@@ -22,15 +22,15 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   use network, only : nspec, naux
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
-       QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
+  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
+       QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, QTEMP, QFS, QFX, &
        npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
   use flatten_module, only : uflaten
-  use fluxlimiter_module, only : Edd_factor
-
+  use rad_util_module, only : compute_ptot_ctot
+  
   implicit none
 
   double precision, parameter:: small = 1.d-8
@@ -63,13 +63,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   integer          :: i, g
   integer          :: ngp, ngf, loq(1), hiq(1)
-  integer          :: n, nq
-  integer          :: iadv, ispec, iaux, ipassive
+  integer          :: ipassive, n, nq
   double precision :: courx, courmx
 
   double precision, allocatable :: dpdrho(:), dpde(:), flatg(:)
 
-  double precision :: csrad2, prad, Eddf, gamr
+  double precision :: ptot, ctot, gamc_tot
 
   type(eos_t) :: eos_state
 
@@ -99,30 +98,10 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      q(i,qrad:qradhi) = Erin(i,0:ngroups-1)
   enddo
 
+  ! Load passive quantities, c, into q, assuming they arrived in uin as rho.c
   do ipassive = 1, npassive
      n  = upass_map(ipassive)
      nq = qpass_map(ipassive)
-     q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
-  end do
-
-!     Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-  do iadv = 1, nadv
-     n  = UFA + iadv - 1
-     nq = QFA + iadv - 1
-     q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
-  enddo
-  
-!     Load species, c, into q, assuming they arrived in uin as rho.c
-  do ispec = 1, nspec
-     n  = UFS + ispec - 1
-     nq = QFS + ispec - 1
-     q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
-  enddo
-
-!     Load auxiliary variables which are needed in the EOS
-  do iaux = 1, naux
-     n  = UFX + iaux - 1
-     nq = QFX + iaux - 1
      q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
   enddo
 
@@ -160,23 +139,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      gamcg(i)   = eos_state % gam1
      cg(i)      = eos_state % cs
 
-     csrad2 = 0.d0
-     prad = 0.d0
-     do g=0, ngroups-1
-        if (comoving) then
-           Eddf = Edd_factor(lam(i,g))
-           gamr = (3.d0-Eddf)/2.d0
-        else
-           gamr = lam(i,g) + 1.d0
-        end if
-        prad = prad + (lam(i,g)*q(i,qrad+g))
-        csrad2 = csrad2 + gamr * (lam(i,g)*q(i,qrad+g)) / q(i,QRHO)
-     end do
+     call compute_ptot_ctot(lam(i,:), q(i,:), cg(i), ptot, ctot, gamc_tot)
 
-     q(i,qptot) = q(i,QPRES) + prad
-     c(i) = cg(i)**2 + csrad2
-     gamc(i) = c(i) * q(i,QRHO) / q(i,qptot)
-     c(i) = sqrt(c(i))
+     q(i,qptot) = ptot
+     c(i) = ctot
+     gamc(i) = gamc_tot
+
      csml(i) = max(small, small * c(i))
   end do
 
@@ -201,18 +169,6 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
         nq = qpass_map(ipassive)
         srcQ(i,nq) = (src(i,n) - q(i,nq) * srcQ(i,QRHO))/q(i,QRHO)
      enddo
-
-     do ispec=1,nspec
-        srcQ(i,QFS+ispec-1) = ( src(i,UFS+ispec-1) - q(i,QFS+ispec-1) * srcQ(i,QRHO) ) / q(i,QRHO)
-     end do
-     
-     do iaux=1,naux
-        srcQ(i,QFX+iaux-1) = ( src(i,UFX+iaux-1) - q(i,QFX+iaux-1) * srcQ(i,QRHO) ) / q(i,QRHO)
-     end do
-     
-     do iadv=1,nadv
-        srcQ(i,QFA+iadv-1) = ( src(i,UFA+iadv-1) - q(i,QFA+iadv-1) * srcQ(i,QRHO) ) / q(i,QRHO)
-     end do
 
   end do
 

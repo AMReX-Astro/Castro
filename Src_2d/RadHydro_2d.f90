@@ -39,7 +39,7 @@ subroutine ctoprim_rad(lo,hi, &
        flatten_pp_threshold, first_order_hydro
   use rad_params_module, only : ngroups
   use flatten_module, only : uflaten
-  use rad_util_module, only : compute_prad_csrad
+  use rad_util_module, only : compute_ptot_ctot
 
   implicit none
 
@@ -76,7 +76,7 @@ subroutine ctoprim_rad(lo,hi, &
   integer          :: n, nq, ipassive
   double precision :: courx, coury, courmx, courmy
 
-  double precision :: csrad2, prad, Eddf, gamr
+  double precision :: csrad2, ptot, ctot, gamc_tot
 
   type(eos_t) :: eos_state
 
@@ -159,13 +159,12 @@ subroutine ctoprim_rad(lo,hi, &
         gamcg(i,j)   = eos_state % gam1
         cg(i,j)      = eos_state % cs
 
-        call compute_prad_csrad(lam(i,j,:), q(i,j,:), cg(i,j), &
-                                ptot, ctot, gamc_tot)
+        call compute_ptot_ctot(lam(i,j,:), q(i,j,:), cg(i,j), &
+                               ptot, ctot, gamc_tot)
 
         q(i,j,qptot) = ptot
         c(i,j) = ctot
         gamc(i,j) = gamc_tot
-        c(i,j) = sqrt(c(i,j))
 
         csml(i,j) = max(small, small * c(i,j))
 

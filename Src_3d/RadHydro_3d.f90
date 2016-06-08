@@ -682,18 +682,19 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
+                                   UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QGAME, &
-                                   QREINT, QPRES, QTEMP, QFA, QFS, QFX, &
+                                   QREINT, QPRES, QTEMP, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, &
-                                   use_flattening
+                                   use_flattening, &
+                                   npassive, upass_map, qpass_map
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
                                        flatten_pp_threshold, first_order_hydro
     use rad_params_module, only : ngroups
     use flatten_module, only : uflaten
-    use fluxlimiter_module, only : Edd_factor
     use mempool_module, only : bl_allocate, bl_deallocate
-    
+    use rad_util_module, only : compute_ptot_ctot
+
     implicit none
 
     double precision, parameter:: small = 1.d-8
@@ -729,11 +730,10 @@ contains
 
     integer          :: i, j, k, g
     integer          :: loq(3), hiq(3)
-    integer          :: n, nq
-    integer          :: iadv, ispec, iaux
+    integer          :: ipassive, n, nq
     double precision :: courx, coury, courz, courmx, courmy, courmz
 
-    double precision :: csrad2, prad, Eddf, gamr
+    double precision :: csrad2, ptot, ctot, gamc_tot
 
     type(eos_t) :: eos_state
 
@@ -772,10 +772,10 @@ contains
        enddo
     enddo
 
-    ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-    do iadv = 1, nadv
-       n = UFA + iadv - 1
-       nq = QFA + iadv - 1
+    ! Load passive quatities, c, into q, assuming they arrived in uin as rho.c
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       nq = qpass_map(ipassive)
        do k = loq(3),hiq(3)
           do j = loq(2),hiq(2)
              do i = loq(1),hiq(1)
@@ -784,32 +784,6 @@ contains
           enddo
        enddo
     end do
-
-    ! Load chemical species, c, into q, assuming they arrived in uin as rho.c
-    do ispec = 1, nspec
-       n  = UFS + ispec - 1
-       nq = QFS + ispec - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-
-    ! Load auxiliary variables which are needed in the EOS
-    do iaux = 1, naux
-       n  = UFX + iaux - 1
-       nq = QFX + iaux - 1
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
 
     ! Get gamc, p, T, c, csml using q state
     do k = loq(3), hiq(3)
@@ -848,23 +822,13 @@ contains
              gamcg(i,j,k)   = eos_state % gam1
              cg(i,j,k)      = eos_state % cs
 
-             csrad2 = 0.d0
-             prad = 0.d0
-             do g=0, ngroups-1
-                if (comoving) then
-                   Eddf = Edd_factor(lam(i,j,k,g))
-                   gamr = (3.d0-Eddf)/2.d0
-                else
-                   gamr = lam(i,j,k,g) + 1.d0
-                end if
-                prad = prad + lam(i,j,k,g)*q(i,j,k,qrad+g)
-                csrad2 = csrad2 + gamr * (lam(i,j,k,g)*q(i,j,k,qrad+g)) / q(i,j,k,QRHO)
-             end do
+             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), cg(i,j,k), &
+                                    ptot, ctot, gamc_tot)
 
-             q(i,j,k,qptot) = q(i,j,k,QPRES) + prad
-             c(i,j,k) = cg(i,j,k)**2 + csrad2
-             gamc(i,j,k) = c(i,j,k) * q(i,j,k,QRHO) / q(i,j,k,qptot)
-             c(i,j,k) = sqrt(c(i,j,k))
+             q(i,j,k,qptot) = ptot
+             c(i,j,k) = ctot
+             gamc(i,j,k) = gamc_tot
+
              csml(i,j,k) = max(small, small * c(i,j,k))
 
              ! convert "e" back to "rho e"
@@ -896,18 +860,10 @@ contains
              !    q(i,j,k,QFS:QFS+nspec-1)*srcQ(i,j,k,QRHO))) &
              !    /q(i,j,k,QRHO)
 
-             do ispec = 1,nspec
-                srcQ(i,j,k,QFS+ispec-1) = ( src(i,j,k,UFS+ispec-1) - q(i,j,k,QFS+ispec-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-
-             do iaux = 1,naux
-                srcQ(i,j,k,QFX+iaux-1) = ( src(i,j,k,UFX+iaux-1) - q(i,j,k,QFX+iaux-1) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-
-             do iadv = 1,nadv
-                srcQ(i,j,k,QFA+iadv-1) = ( src(i,j,k,UFA+iadv-1) - q(i,j,k,QFA+iadv-1) * srcQ(i,j,k,QRHO) ) / &
+             do ipassive = 1, npassive
+                n = upass_map(ipassive)
+                nq = qpass_map(ipassive)
+                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
                      q(i,j,k,QRHO)
              enddo
 
