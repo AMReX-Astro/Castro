@@ -626,6 +626,41 @@ Castro::advance_hydro (Real time,
 
     AmrLevel::FillPatch(*this,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);
 
+    // The linear-combination-preserving state interpolater can sometimes generate
+    // negative densities. Run it through the enforce_minimum_density routine
+    // to deal with that.
+
+    if (lin_limit_state_interp == 1) {
+
+      MultiFab Sborder_copy(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+      MultiFab::Copy(Sborder_copy,Sborder,0,0,NUM_STATE,NUM_GROW);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi) {
+
+	Real mass_added = 0.;
+	Real e_added = 0.;
+	Real E_added = 0.;
+	Real dens_change = 0.;
+	int verbose = 0;
+
+	const Box& bx = mfi.tilebox();
+
+	FArrayBox& stateold = Sborder_copy[mfi];
+	FArrayBox& statenew = Sborder[mfi];
+
+	enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
+				statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
+				statenew.loVect(), statenew.hiVect(),
+				&mass_added, &e_added, &E_added, &dens_change,
+				&verbose);
+
+      }
+
+    }
+
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
