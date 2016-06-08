@@ -9,6 +9,10 @@ module trace_ppm_module
 contains
 
   subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+#ifdef RADIATION
+                       cg, &
+                       lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+#endif
                        dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                        qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
                        src,src_l1,src_l2,src_h1,src_h2, &
@@ -26,26 +30,42 @@ contains
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_flatten_before_integrals, ppm_predict_gammae, &
          npassive, qpass_map
+#ifdef RADIATION
+    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
+    use rad_params_module, only : ngroups
+#endif
     use ppm_module, only : ppm
 
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
+#ifdef RADIATION
+    integer lam_l1, lam_l2, lam_h1, lam_h2
+#endif
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+#ifdef RADIATION
+#define QSIZE QRADVAR
+#else
+#define QSIZE QVAR
+#endif
+
+    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QSIZE)
     double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
+#ifdef RADIATION
+    double precision     cg(qd_l1:qd_h1,qd_l2:qd_h2)
+#endif
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QSIZE)
+    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QSIZE)
+    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QSIZE)
+    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QSIZE)
 
     double precision  src(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
@@ -53,18 +73,23 @@ contains
     double precision dx, dy, dt
 
     ! Local variables
-    integer          :: i, j, iwave, idim
+    integer          :: i, j, iwave, idim, g
     integer          :: n, ipassive
 
+    ! convention here is that p is just gas pressure while ptot is 
+    ! gas + radiation
     double precision :: dtdx, dtdy
     double precision :: cc, csq, Clag, rho, u, v, p, rhoe
-    double precision :: drho, dp, drhoe, dtau
-    double precision :: dup, dvp, dpp
-    double precision :: dum, dvm, dpm
+    double precision :: drho, dptot, drhoe, dtau
+    double precision :: dup, dvp, dptotp
+    double precision :: dum, dvm, dptotm
+
+#ifdef RADIATION
+    double precision :: ptot, enth, cgassq
+#endif 
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
     double precision :: tau_s, e_s, de, dge
-
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
     double precision :: gam, game
@@ -91,19 +116,25 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_2d.f90 :: trace_ppm")
     end if
+
+#ifdef RADIATION
+    if (ppm_tau_in_tracing == 1) then
+       call bl_error("ERROR: ppm_tau_in_tracing not implemented with radiation")
+    endif
+#endif
 
     dtdx = dt/dx
     dtdy = dt/dy
 
     ! indices: (x, y, dimension, wave, variable)
-    allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
-    allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
+    allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QSIZE))
+    allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QSIZE))
 
-    if (ppm_trace_sources .eq. 1) then
+    if (ppm_trace_sources == 1) then
        allocate(Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
        allocate(Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
     endif
@@ -144,7 +175,7 @@ contains
     ! Compute Ip and Im -- this does the parabolic reconstruction,
     ! limiting, and returns the integral of each profile under
     ! each wave to each interface
-    do n=1,QVAR
+    do n=1,QSIZE
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                 flatn, &
