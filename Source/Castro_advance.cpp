@@ -630,7 +630,7 @@ Castro::advance_hydro (Real time,
     // negative densities. Run it through the enforce_minimum_density routine
     // to deal with that.
 
-    if (lin_limit_state_interp == 1) {
+    if (state_interp_order == 1 && lin_limit_state_interp == 1) {
 
       MultiFab Sborder_copy(grids,NUM_STATE,NUM_GROW,Fab_allocate);
       MultiFab::Copy(Sborder_copy,Sborder,0,0,NUM_STATE,NUM_GROW);
