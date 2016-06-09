@@ -1,5 +1,5 @@
 # Scaling for the 3-d black widow pulsar problem on edison with Intel 15
-# compilers and hypre through xpsl
+# compilers and hypre through tpsl (module load cray-tpsl)
 #
 # Ran for 10 steps then got the average as:
 # 
