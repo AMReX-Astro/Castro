@@ -1,3 +1,4 @@
+pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);

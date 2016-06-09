@@ -4,6 +4,9 @@
 # category: AMR
 #-----------------------------------------------------------------------------
 
+# highest order used in interpolation
+state_interp_order           int           1
+
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables

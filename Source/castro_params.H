@@ -1,3 +1,4 @@
+static int state_interp_order;
 static int lin_limit_state_interp;
 static Real difmag;
 static Real small_dens;

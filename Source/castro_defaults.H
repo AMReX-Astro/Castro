@@ -1,3 +1,4 @@
+int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
@@ -30,7 +31,7 @@ int         Castro::transverse_reset_rhoe = 0;
 int         Castro::dual_energy_update_E_from_e = 1;
 Real        Castro::dual_energy_eta1 = 1.0e0;
 Real        Castro::dual_energy_eta2 = 1.0e-4;
-Real        Castro::dual_energy_eta3 = 0.0e0;
+Real        Castro::dual_energy_eta3 = 1.0e0;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
 int         Castro::allow_negative_energy = 1;
