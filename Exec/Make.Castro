@@ -182,8 +182,9 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif	      
 
 ifeq ($(USE_RAD), TRUE)
-  include $(RADIATION_DIR)/Opacity/$(Opacity_dir)/Make.package
-  EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
+  OPAC_PATH := $(RADIATION_DIR)/Opacity/$(Opacity_dir)
+  include $(OPAC_PATH)/Make.package
+  EXTERN_CORE += $(OPAC_PATH)
 endif
 
 INCLUDE_LOCATIONS += $(EOS_HOME)
@@ -202,8 +203,8 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_RAD), TRUE)
-  INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
-  VPATH_LOCATIONS   += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
+  INCLUDE_LOCATIONS += $(OPAC_PATH)
+  VPATH_LOCATIONS   += $(OPAC_PATH)
 endif
 
 ifeq ($(USE_REACT), TRUE)
@@ -314,13 +315,22 @@ CEXE_headers += $(BOXLIB_HOME)/Tools/C_scripts/buildInfo.H
 INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
 
 
+MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
+ifeq ($(USE_DIFFUSION), TRUE)
+  MNAMES += CONDUCTIVITY=$(COND_PATH)
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  MNAMES += OPACITY=$(OPAC_PATH)
+endif
+
 buildInfo.cpp:
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
-          --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
+          --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
 	  --build_git_dir "$(BUILD_GIT_DIR)"
@@ -329,7 +339,7 @@ else
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
-          --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
+          --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)"
 endif
 

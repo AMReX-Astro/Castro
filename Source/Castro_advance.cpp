@@ -644,7 +644,6 @@ Castro::advance_hydro (Real time,
 	Real e_added = 0.;
 	Real E_added = 0.;
 	Real dens_change = 0.;
-	int verbose = 0;
 
 	const Box& bx = mfi.tilebox();
 

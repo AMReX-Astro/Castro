@@ -657,8 +657,9 @@ Castro::writeJobInfo (const std::string& dir)
 
   jobInfoFile << "\n";
 
-  jobInfoFile << "EOS:     " << buildInfoGetAux(1) << "\n";
-  jobInfoFile << "network: " << buildInfoGetAux(2) << "\n";
+  for (int n = 1; n <= buildInfoGetNumModules(); n++) {
+    jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
+  }
 
   jobInfoFile << "\n";
 
