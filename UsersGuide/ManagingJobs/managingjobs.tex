@@ -133,7 +133,25 @@ simply do:
 \begin{verbatim}
 module load cray-tpsl
 \end{verbatim}
-There is no need to set {\tt HYPRE\_DIR}.  
+There is no need to set {\tt HYPRE\_DIR}, but not however that the 
+dependency checker script ({\tt BoxLib/Tools/C\_scripts/mkdep}) will
+complain about:
+\begin{verbatim}
+/path/to/Hypre--with-openmp/include does not exist
+\end{verbatim}
+This can be ignored an compilation will finish.  If you do wish to 
+silence it, you can set {\tt HYPRE\_DIR} to the path shown by
+\begin{verbatim}
+module show cray-tpsl
+\end{verbatim}
+as
+\begin{verbatim}
+export HYPRE_DIR=${CRAY_TPSL_PREFIX_DIR}
+\end{verbatim}
+This path will change dynamically to reflect which compiler programming
+environment you have loaded.  (You can also see that this is the path
+sent to the compilation by doing {\tt ftn -craype-verbose}).
+
 
 \subsection{Running jobs}
 
