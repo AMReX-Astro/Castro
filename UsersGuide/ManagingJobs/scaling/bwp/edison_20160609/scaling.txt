@@ -15,6 +15,9 @@
 #  level   3: number of boxes =  2184
 #            maximum zones =     512 x   512 x   512
 #
+#
+# This is using rad solver: 104   GMRES using AMG as preconditioner
+#
 # cores    MPI    OMP     average time for 10 steps
 
   384      384     1           15.0998
