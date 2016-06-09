@@ -123,6 +123,18 @@ is the job submission script (e.g.\ {\tt atlas.run}).
 The default compilers on edison are the Intel compilers.  Intel version 15.0
 works well with \castro.
 
+
+\subsection{Hypre and radiation}
+
+On edison, the Cray {\em Third Party Scientific Libraries} provide
+{\sf hypre} in a form that works directly with the compiler wrappers
+used on that machine ({\tt CC}, {\tt ftn}, $\ldots$).  To use this,
+simply do:
+\begin{verbatim}
+module load cray-tpsl
+\end{verbatim}
+There is no need to set {\tt HYPRE\_DIR}.  
+
 \subsection{Running jobs}
 
 A sample jobs script is in {\tt Castro/Util/job\_scripts/edison/}, and 
