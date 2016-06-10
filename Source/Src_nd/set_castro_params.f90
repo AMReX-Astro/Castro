@@ -1,25 +1,25 @@
 subroutine set_castro_method_params( &
   difmag_in, small_dens_in, small_temp_in,  &
-  small_pres_in, small_ener_in, small_x_in,  &
-  do_hydro_in, hybrid_hydro_in, ppm_type_in,  &
-  ppm_reference_in, ppm_trace_sources_in, ppm_temp_fix_in,  &
-  ppm_tau_in_tracing_in, ppm_predict_gammae_in, ppm_reference_edge_limit_in,  &
-  ppm_reference_eigenvectors_in, hybrid_riemann_in, use_colglaz_in,  &
-  riemann_solver_in, cg_maxiter_in, cg_tol_in,  &
-  cg_blend_in, use_flattening_in, ppm_flatten_before_integrals_in,  &
-  transverse_use_eos_in, transverse_reset_density_in, transverse_reset_rhoe_in,  &
-  dual_energy_update_E_from_e_in, dual_energy_eta1_in, dual_energy_eta2_in,  &
-  dual_energy_eta3_in, use_pslope_in, fix_mass_flux_in,  &
-  allow_negative_energy_in, allow_small_energy_in, do_sponge_in,  &
-  cfl_in, dtnuc_e_in, dtnuc_X_in,  &
-  dtnuc_mode_in, dxnuc_in, do_react_in,  &
-  react_T_min_in, react_T_max_in, react_rho_min_in,  &
-  react_rho_max_in, disable_shock_burning_in, do_grav_in,  &
-  grav_source_type_in, do_rotation_in, rot_period_in,  &
-  rot_period_dot_in, rotation_include_centrifugal_in, rotation_include_coriolis_in,  &
-  rotation_include_domegadt_in, rot_source_type_in, implicit_rotation_update_in,  &
-  rot_axis_in, point_mass_in, point_mass_fix_solution_in,  &
-  do_acc_in, track_grid_losses_in) bind(C)
+  small_pres_in, small_ener_in, do_hydro_in,  &
+  hybrid_hydro_in, ppm_type_in, ppm_reference_in,  &
+  ppm_trace_sources_in, ppm_temp_fix_in, ppm_tau_in_tracing_in,  &
+  ppm_predict_gammae_in, ppm_reference_edge_limit_in, ppm_reference_eigenvectors_in,  &
+  hybrid_riemann_in, use_colglaz_in, riemann_solver_in,  &
+  cg_maxiter_in, cg_tol_in, cg_blend_in,  &
+  use_flattening_in, ppm_flatten_before_integrals_in, transverse_use_eos_in,  &
+  transverse_reset_density_in, transverse_reset_rhoe_in, dual_energy_update_E_from_e_in,  &
+  dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in,  &
+  use_pslope_in, fix_mass_flux_in, allow_negative_energy_in,  &
+  allow_small_energy_in, do_sponge_in, cfl_in,  &
+  dtnuc_e_in, dtnuc_X_in, dtnuc_mode_in,  &
+  dxnuc_in, do_react_in, react_T_min_in,  &
+  react_T_max_in, react_rho_min_in, react_rho_max_in,  &
+  disable_shock_burning_in, do_grav_in, grav_source_type_in,  &
+  do_rotation_in, rot_period_in, rot_period_dot_in,  &
+  rotation_include_centrifugal_in, rotation_include_coriolis_in, rotation_include_domegadt_in,  &
+  rot_source_type_in, implicit_rotation_update_in, rot_axis_in,  &
+  point_mass_in, point_mass_fix_solution_in, do_acc_in,  &
+  track_grid_losses_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -36,7 +36,6 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: small_temp_in
   double precision, intent(in) :: small_pres_in
   double precision, intent(in) :: small_ener_in
-  double precision, intent(in) :: small_x_in
   integer,          intent(in) :: do_hydro_in
   integer,          intent(in) :: hybrid_hydro_in
   integer,          intent(in) :: ppm_type_in
@@ -99,7 +98,6 @@ subroutine set_castro_method_params( &
   small_temp = small_temp_in
   small_pres = small_pres_in
   small_ener = small_ener_in
-  small_x = small_x_in
   do_hydro = do_hydro_in
   hybrid_hydro = hybrid_hydro_in
   ppm_type = ppm_type_in

@@ -5,7 +5,6 @@ pp.query("small_dens", small_dens);
 pp.query("small_temp", small_temp);
 pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
-pp.query("small_x", small_x);
 pp.query("do_hydro", do_hydro);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);

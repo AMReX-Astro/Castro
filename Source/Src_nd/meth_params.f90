@@ -59,7 +59,6 @@ module meth_params_module
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
-  double precision, save :: small_x
   integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type

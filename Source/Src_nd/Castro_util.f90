@@ -397,8 +397,9 @@ contains
   subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
 
     use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS, small_x
+    use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module, only: ONE
+    use extern_probin_module, only: small_x
 
     implicit none
 
