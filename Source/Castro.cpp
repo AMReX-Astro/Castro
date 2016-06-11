@@ -1632,7 +1632,11 @@ Castro::post_timestep (int iteration)
 		      }
 		      
 		      // Compute sync source
+#ifdef HYBRID_MOMENTUM
+		      sync_src.resize(bx,3+1+3);
+#else
 		      sync_src.resize(bx,3+1);
+#endif
 		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
 				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
@@ -1653,6 +1657,9 @@ Castro::post_timestep (int iteration)
 		      sync_src.mult(0.5*dt);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+#ifdef HYBRID_MOMENTUM
+		      S_new_lev[mfi].plus(sync_src,bx,4,Rmom,3);
+#endif
 		  }
 	      }
             }
