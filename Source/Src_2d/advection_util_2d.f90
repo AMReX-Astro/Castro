@@ -162,12 +162,14 @@ contains
                       print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                       print *,'>>> ... resetting negative density '
                       print *,'>>> ... from ',uout(i,j,URHO),' to ',small_dens
+                      print *,'>>> ... original density for old state was ',uin(i,j,URHO)
                       print *,'    '
                    else
                       print *,'   '
                       print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                       print *,'>>> ... resetting small density '
                       print *,'>>> ... from ',uout(i,j,URHO),' to ',small_dens
+                      print *,'>>> ... original density for old state was ',uin(i,j,URHO)
                       print *,'    '
                    end if
                 end if
@@ -200,12 +202,14 @@ contains
                       print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                       print *,'>>> ... resetting negative density '
                       print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
+                      print *,'>>> ... original density for old state was ',uin(i,j,URHO)
                       print *,'    '
                    else
                       print *,'   '
                       print *,'>>> Warning: Castro_2d::enforce_minimum_density ',i,j
                       print *,'>>> ... resetting small density '
                       print *,'>>> ... from ',uout(i,j,URHO),' to ',uout(i_set,j_set,URHO)
+                      print *,'>>> ... original density for old state was ',uin(i,j,URHO)
                       print *,'    '
                    end if
                 end if
