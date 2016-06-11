@@ -13,9 +13,14 @@ contains
     use network, only: nspec, naux
     use eos_module
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
-         allow_negative_energy
+                                  allow_negative_energy
     use prob_params_module, only: dim
     use bl_constants_module
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_module, only: inertial_to_rotational_velocity
+    use amrinfo_module, only: amr_time
+#endif
 
     implicit none
 
@@ -29,6 +34,10 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
 
     grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
@@ -55,6 +64,16 @@ contains
              uy = u(i,j,k,UMY) * rhoInv
              uz = u(i,j,k,UMZ) * rhoInv
 
+#ifdef ROTATION
+             if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+                vel = [ux, uy, uz]
+                call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
+                ux = vel(1)
+                uy = vel(2)
+                uz = vel(3)
+             endif
+#endif
+             
              if (UESGS .gt. -1) &
                   sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
 

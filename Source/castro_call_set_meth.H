@@ -14,6 +14,9 @@ static int rotation_include_coriolis = 1;
 static int rotation_include_domegadt = 1;
 #endif
 #ifndef ROTATION
+static int state_in_rotating_frame = 1;
+#endif
+#ifndef ROTATION
 static int rot_source_type = 1;
 #endif
 #ifndef ROTATION
@@ -56,7 +59,7 @@ set_castro_method_params
     do_rotation, rotational_period, 
     rotational_dPdt, rotation_include_centrifugal, 
     rotation_include_coriolis, rotation_include_domegadt, 
-    rot_source_type, implicit_rotation_update, 
-    rot_axis, point_mass, 
-    point_mass_fix_solution, do_acc, 
-    track_grid_losses);
+    state_in_rotating_frame, rot_source_type, 
+    implicit_rotation_update, rot_axis, 
+    point_mass, point_mass_fix_solution, 
+    do_acc, track_grid_losses);

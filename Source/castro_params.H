@@ -79,6 +79,9 @@ static int rotation_include_coriolis;
 static int rotation_include_domegadt;
 #endif
 #ifdef ROTATION
+static int state_in_rotating_frame;
+#endif
+#ifdef ROTATION
 static int rot_source_type;
 #endif
 #ifdef ROTATION

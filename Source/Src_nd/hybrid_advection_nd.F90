@@ -142,6 +142,11 @@ contains
     use bl_error_module, only: bl_error
     use prob_params_module, only: center
     use castro_util_module, only: position
+#ifdef ROTATION
+    use amrinfo_module, only: amr_time
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_module, only: inertial_to_rotational_velocity
+#endif
 
     implicit none
 
@@ -152,15 +157,36 @@ contains
     double precision :: linear_mom(3), hybrid_mom(3)
     double precision :: loc(3), R
 
+    double precision :: u_adv
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
+
     if (idir .eq. 1) then
        loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
+       u_adv = state(GDU)
     else if (idir .eq. 2) then
        loc = position(idx(1),idx(2),idx(3),ccy=.false.) - center
+       u_adv = state(GDV)
     else if (idir .eq. 3) then
        loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
+       u_adv = state(GDW)
     else
        call bl_error("Error: unknown direction in compute_hybrid_flux.")
     endif
+
+    ! If we are in the rotating frame but evolving inertial frame variables,
+    ! subtract off the coordinate frame velocity here.
+
+    
+#ifdef ROTATION
+    if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+       vel = state(GDU:GDW)
+       call inertial_to_rotational_velocity(idx, amr_time, vel, idir)
+       u_adv = vel(idir)
+    endif
+#endif
 
     R = sqrt(loc(1)**2 + loc(2)**2)
 
@@ -170,21 +196,21 @@ contains
 
     if (idir .eq. 1) then
 
-       flux(UMR) = hybrid_mom(1) * state(GDU)
-       flux(UML) = hybrid_mom(2) * state(GDU) - loc(2) * state(GDPRES)
-       flux(UMP) = hybrid_mom(3) * state(GDU)
+       flux(UMR) = hybrid_mom(1) * u_adv
+       flux(UML) = hybrid_mom(2) * u_adv - loc(2) * state(GDPRES)
+       flux(UMP) = hybrid_mom(3) * u_adv
 
     else if (idir .eq. 2) then
 
-       flux(UMR) = hybrid_mom(1) * state(GDV)
-       flux(UML) = hybrid_mom(2) * state(GDV) + loc(1) * state(GDPRES)
-       flux(UMP) = hybrid_mom(3) * state(GDV)
+       flux(UMR) = hybrid_mom(1) * u_adv
+       flux(UML) = hybrid_mom(2) * u_adv + loc(1) * state(GDPRES)
+       flux(UMP) = hybrid_mom(3) * u_adv
 
     else if (idir .eq. 3) then
 
-       flux(UMR) = hybrid_mom(1) * state(GDW)
-       flux(UML) = hybrid_mom(2) * state(GDW)
-       flux(UMP) = hybrid_mom(3) * state(GDW) + state(GDPRES)
+       flux(UMR) = hybrid_mom(1) * u_adv
+       flux(UML) = hybrid_mom(2) * u_adv
+       flux(UMP) = hybrid_mom(3) * u_adv + state(GDPRES)
 
     else
 

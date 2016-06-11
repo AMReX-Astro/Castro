@@ -79,6 +79,9 @@ pp.query("rotation_include_coriolis", rotation_include_coriolis);
 pp.query("rotation_include_domegadt", rotation_include_domegadt);
 #endif
 #ifdef ROTATION
+pp.query("state_in_rotating_frame", state_in_rotating_frame);
+#endif
+#ifdef ROTATION
 pp.query("rot_source_type", rot_source_type);
 #endif
 #ifdef ROTATION
