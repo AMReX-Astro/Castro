@@ -400,15 +400,14 @@ contains
                                bind(C, name="ca_check_timestep")
 
     use bl_constants_module, only: HALF, ONE
-#ifdef REACTIONS
-    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-                                  dtnuc_e, dtnuc_X, cfl, do_hydro, do_react, small_x
-#else
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
+#ifdef REACTIONS
+    use meth_params_module, only: dtnuc_e, dtnuc_X, do_react
 #endif
     use prob_params_module, only: dim
     use network, only: nspec, naux
+    use extern_probin_module, only: small_x
     use eos_module
 
     implicit none
