@@ -194,6 +194,7 @@
 \verb=  rotational_period  = &   the rotation period for the corotating frame  &  -1.e200 \\
 \rowcolor{tableShade}
 \verb=  source_term_predictor  = &   extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction  &  0 \\
+\verb=  state_in_rotating_frame  = &   Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate).  &  1 \\
 
 
 \end{longtable}
@@ -278,16 +279,15 @@
 \verb=  small_pres  = &   the small pressure cutoff.  Pressures below this value will be reset  &  -1.e200 \\
 \verb=  small_temp  = &   the small temperature cutoff.  Temperatures below this value will be reset  &  -1.e200 \\
 \rowcolor{tableShade}
-\verb=  small_x  = &   the small mass fraction cutoff. Mass fractions below this value will be reset  &  1.e-30 \\
 \verb=  sum_turb_src  = &    &  0.0 \\
-\rowcolor{tableShade}
 \verb=  transverse_reset_density  = &   if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction.  &  1 \\
+\rowcolor{tableShade}
 \verb=  transverse_reset_rhoe  = &   if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation  &  0 \\
-\rowcolor{tableShade}
 \verb=  transverse_use_eos  = &   after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$).  &  0 \\
-\verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
 \rowcolor{tableShade}
+\verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
 \verb=  use_flattening  = &   flatten the reconstructed profiles around shocks to prevent them from becoming too thin  &  1 \\
+\rowcolor{tableShade}
 \verb=  use_pslope  = &   for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting?  &  1 \\
 
 
