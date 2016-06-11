@@ -1656,7 +1656,7 @@ Castro::post_timestep (int iteration)
 		      
 		      sync_src.mult(0.5*dt);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);
-		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+		      S_new_lev[mfi].plus(sync_src,bx,3,Eden,1);
 #ifdef HYBRID_MOMENTUM
 		      S_new_lev[mfi].plus(sync_src,bx,4,Rmom,3);
 #endif
