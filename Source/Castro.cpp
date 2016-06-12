@@ -1524,25 +1524,6 @@ Castro::post_timestep (int iteration)
 
         reflux();
 
-	// Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-	if (hybrid_hydro) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	  for (MFIter mfi(S_new_crse, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.tilebox();
-
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new_crse[mfi]));
-
-	  }
-
-	}
-#endif
-
         // We need to do this before anything else because refluxing changes the values of coarse cells
         //    underneath fine grids with the assumption they'll be over-written by averaging down
         if (level < finest_level)
