@@ -1473,6 +1473,10 @@ Castro::post_timestep (int iteration)
 {
     BL_PROFILE("Castro::post_timestep()");
 
+    // Pass some information about the state of the simulation to a Fortran module.
+
+    set_amr_info(level, iteration, -1, -1.0, -1.0);
+
     //
     // Integration cycle on fine level grids is complete
     // do post_timestep stuff here.
