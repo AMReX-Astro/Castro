@@ -30,7 +30,7 @@ contains
     if (eos_gamma .gt. 0.d0) then
        gamma_const = eos_gamma
     else
-       gamma_const = FIVE3RD
+       call bl_error("gamma_const cannot be < 0")
     end if
 
     assume_neutral = eos_assume_neutral
