@@ -79,6 +79,9 @@ int         Castro::rotation_include_coriolis = 1;
 int         Castro::rotation_include_domegadt = 1;
 #endif
 #ifdef ROTATION
+int         Castro::state_in_rotating_frame = 1;
+#endif
+#ifdef ROTATION
 int         Castro::rot_source_type = 1;
 #endif
 #ifdef ROTATION

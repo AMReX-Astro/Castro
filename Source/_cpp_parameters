@@ -294,6 +294,14 @@ rotation_include_coriolis    int           1                  y        ROTATION
 # permits the d(omega)/dt terms in the rotation to be turned on and off
 rotation_include_domegadt    int           1                  y        ROTATION
 
+# Which reference frame to measure the state variables with respect to.
+# The standard in the literature when using a rotating reference frame
+# is to measure the state variables with respect to an observer fixed
+# in that rotating frame. If this option is disabled by setting it to 0,
+# the state variables will be measured with respect to an observer fixed
+# in the inertial frame (but the frame will still rotate).
+state_in_rotating_frame      int           1                  y        ROTATION
+
 # determines how the rotation source terms are added to the momentum and
 # energy equations
 rot_source_type              int           1                  y        ROTATION

@@ -1,4 +1,4 @@
 # cutoff for species mass fractions
-small_x                              real               1.e-30
+small_x                              real               1.d-30
 
 

@@ -428,6 +428,11 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use amrinfo_module, only: amr_time
+    use rotation_module, only: inertial_to_rotational_velocity
+#endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
@@ -495,6 +500,12 @@ contains
     type (eos_t) :: eos_state
 
     double precision, pointer :: us1d(:)
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
+
+    double precision :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -980,6 +991,19 @@ contains
 
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 
+          u_adv = qint(i,j,kc,iu)
+
+          ! If we are in the rotating frame but evolving inertial frame variables,
+          ! subtract off the coordinate frame velocity here.
+
+#ifdef ROTATION
+          if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+             vel = qint(i,j,kc,QU:QW)
+             call inertial_to_rotational_velocity([i, j, k3d], amr_time, vel, idir)
+             u_adv = vel(idir)
+          endif
+#endif
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
                special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
@@ -987,10 +1011,10 @@ contains
           else
              bnd_fac_x = ONE
           end if
-          qint(i,j,kc,iu) = qint(i,j,kc,iu) * bnd_fac_x*bnd_fac_y*bnd_fac_z
+          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*qint(i,j,kc,iu)
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
@@ -1004,8 +1028,8 @@ contains
           rhoetot = qint(i,j,kc,GDPRES)/(gamgdnv - ONE) + &
                HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + qint(i,j,kc,GDPRES))
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
 
 
           ! Treat K as a passively advected quantity but allow it to
@@ -1027,7 +1051,7 @@ contains
 
              uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + qint(i,j,kc,iu) * rho_K_contrib
+             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + u_adv * rho_K_contrib
           end if
 
           us1d(i) = ustar
@@ -1075,6 +1099,11 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use amrinfo_module, only: amr_time
+    use rotation_module, only: inertial_to_rotational_velocity
+#endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
@@ -1146,6 +1175,12 @@ contains
 #endif
 
     double precision, pointer :: us1d(:)
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
+
+    double precision :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -1439,6 +1474,19 @@ contains
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 #endif
 
+          u_adv = qint(i,j,kc,iu)
+
+          ! If we are in the rotating frame but evolving inertial frame variables,
+          ! subtract off the coordinate frame velocity here.
+
+#ifdef ROTATION
+          if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+             vel = qint(i,j,kc,QU:QW)
+             call inertial_to_rotational_velocity([i, j, k3d], amr_time, vel, idir)
+             u_adv = vel(idir)
+          endif
+#endif
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
                special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
@@ -1446,16 +1494,16 @@ contains
           else
              bnd_fac_x = ONE
           end if
-          qint(i,j,kc,iu) = qint(i,j,kc,iu) * bnd_fac_x*bnd_fac_y*bnd_fac_z
+          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*qint(i,j,kc,iu)
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu ) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
-
+ 
 #ifdef HYBRID_MOMENTUM
           call compute_hybrid_flux(qint(i,j,kc,:), uflx(i,j,kflux,:), idir, [i, j, k3d])
 #endif
@@ -1463,14 +1511,14 @@ contains
 #ifdef RADIATION
           rhoetot = regdnv_g + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
           
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + pgdnv_g)
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + pgdnv_g)
           
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*regdnv_g
+          uflx(i,j,kflux,UEINT) = u_adv*regdnv_g
 #else
           rhoetot = regdnv + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + qint(i,j,kc,GDPRES))
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*regdnv
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*regdnv
 #endif
 
           ! Treat K as a passively advected quantity but allow it to
@@ -1495,7 +1543,7 @@ contains
 
              uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
 
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + qint(i,j,kc,iu) * rho_K_contrib
+             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + u_adv * rho_K_contrib
           end if
 
           ! store this for vectorization
@@ -1506,11 +1554,11 @@ contains
              do g=0,ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = 0.5d0*(1.d0-eddf)
-                rflx(i,j,kflux,g) = (1.d0+f1) * qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = (1.d0+f1) * qint(i,j,kc,GDERADS+g) * u_adv
              end do
           else ! type 2
              do g=0,ngroups-1
-                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * u_adv
              end do
           end if
 #endif

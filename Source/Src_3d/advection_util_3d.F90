@@ -206,11 +206,13 @@ contains
                          print *,'   '
                          print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
                          print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',small_dens
+                         print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',uin(i,j,k,URHO)
                          print *,'   '
                       else
                          print *,'   '
                          print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
                          print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',small_dens
+                         print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',uin(i,j,k,URHO)
                          print *,'   '
                       end if
                    end if
@@ -248,11 +250,13 @@ contains
                          print *,'   '
                          print *,'>>> RESETTING NEG.  DENSITY AT ',i,j,k
                          print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+                         print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',uin(i,j,k,URHO)
                          print *,'   '
                       else
                          print *,'   '
                          print *,'>>> RESETTING SMALL DENSITY AT ',i,j,k
                          print *,'>>> FROM ',uout(i,j,k,URHO),' TO ',uout(i_set,j_set,k_set,URHO)
+                         print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',uin(i,j,k,URHO)
                          print *,'   '
                       end if
                    end if

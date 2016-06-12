@@ -9,9 +9,48 @@ module rotation_module
 
   private
 
-  public rotational_acceleration, rotational_potential
+  public inertial_to_rotational_velocity, rotational_acceleration, rotational_potential
 
 contains
+
+  ! Given a velocity vector in the inertial frame, transform it to a
+  ! velocity vector in the rotating frame.
+
+  subroutine inertial_to_rotational_velocity(idx, time, v, idir)
+
+    use prob_params_module, only: center
+    use castro_util_module, only: position
+
+    implicit none
+
+    integer, intent(in) :: idx(3)
+    double precision, intent(in   ) :: time
+    double precision, intent(inout) :: v(3)
+    integer, intent(in), optional :: idir
+
+    double precision :: loc(3), omega(3)
+
+    if (present(idir)) then
+       if (idir .eq. 1) then
+          loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
+       else if (idir .eq. 2) then
+          loc = position(idx(1),idx(2),idx(3),ccy=.false.) - center
+       else if (idir .eq. 3) then
+          loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
+       else
+          call bl_error("Error: unknown direction in compute_hybrid_flux.")
+       endif
+    else
+       loc = position(idx(1),idx(2),idx(3)) - center
+    endif
+
+    omega = get_omega(time)
+
+    v = v - cross_product(omega, loc)
+
+  end subroutine inertial_to_rotational_velocity
+
+
 
   ! Given a position and velocity, calculate 
   ! the rotational acceleration. This is the sum of:
@@ -22,6 +61,7 @@ contains
   function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
 
     use bl_constants_module, only: ZERO, TWO
+    use meth_params_module, only: state_in_rotating_frame
 
     implicit none
 
@@ -33,57 +73,65 @@ contains
     logical, optional :: centrifugal, coriolis, domegadt
     logical :: c1, c2, c3
 
-    ! Allow the various terms to be turned off.
+    if (state_in_rotating_frame .eq. 1) then
 
-    if (rotation_include_centrifugal == 1) then
-       c1 = .true.
+       ! Allow the various terms to be turned off.
+
+       if (rotation_include_centrifugal == 1) then
+          c1 = .true.
+       else
+          c1 = .false.
+       endif
+
+       if (present(centrifugal)) then
+          if (.not. centrifugal) c1 = .false.
+       endif
+
+       if (rotation_include_coriolis == 1) then
+          c2 = .true.
+       else
+          c2 = .false.
+       endif
+
+       if (present(coriolis)) then
+          if (.not. coriolis) c2 = .false.
+       endif
+
+       if (rotation_include_domegadt == 1) then
+          c3 = .true.
+       else
+          c3 = .false.
+       endif
+
+       if (present(domegadt)) then
+          if (.not. domegadt) c3 = .false.
+       endif
+
+       omega = get_omega(time)
+
+       domega_dt = get_domegadt(time)
+
+       omegacrossr = cross_product(omega,r)
+       omegacrossv = cross_product(omega,v)
+
+       Sr = ZERO
+
+       if (c1) then
+          Sr = Sr - cross_product(omega, omegacrossr) 
+       endif
+
+       if (c2) then
+          Sr = Sr - TWO * omegacrossv 
+       endif
+
+       if (c3) then
+          Sr = Sr - cross_product(domega_dt, r)
+       endif
+
     else
-       c1 = .false.
-    endif
 
-    if (present(centrifugal)) then
-       if (.not. centrifugal) c1 = .false.
-    endif
+       Sr = -cross_product(omega, v)
 
-    if (rotation_include_coriolis == 1) then
-       c2 = .true.
-    else
-       c2 = .false.
-    endif
-
-    if (present(coriolis)) then
-       if (.not. coriolis) c2 = .false.
-    endif
-
-    if (rotation_include_domegadt == 1) then
-       c3 = .true.
-    else
-       c3 = .false.
-    endif
-
-    if (present(domegadt)) then
-       if (.not. domegadt) c3 = .false.
-    endif
-
-    omega = get_omega(time)
-
-    domega_dt = get_domegadt(time)
-
-    omegacrossr = cross_product(omega,r)
-    omegacrossv = cross_product(omega,v)
-
-    Sr = ZERO
-
-    if (c1) then
-       Sr = Sr - cross_product(omega, omegacrossr) 
-    endif
-
-    if (c2) then
-       Sr = Sr - TWO * omegacrossv 
-    endif
-
-    if (c3) then
-       Sr = Sr - cross_product(domega_dt, r)
     endif
 
   end function rotational_acceleration
@@ -94,7 +142,8 @@ contains
 
   function rotational_potential(r, time) result(phi)
 
-    use bl_constants_module, only: HALF
+    use bl_constants_module, only: ZERO, HALF
+    use meth_params_module, only: state_in_rotating_frame
 
     implicit none
 
@@ -103,11 +152,19 @@ contains
 
     double precision :: omega(3), omegacrossr(3)
 
-    omega = get_omega(time)
+    if (state_in_rotating_frame .eq. 1) then
 
-    omegacrossr = cross_product(omega, r)
+       omega = get_omega(time)
 
-    phi = -HALF * dot_product(omegacrossr,omegacrossr)
+       omegacrossr = cross_product(omega, r)
+
+       phi = -HALF * dot_product(omegacrossr,omegacrossr)
+
+    else
+
+       phi = ZERO
+
+    endif
 
   end function rotational_potential
 
