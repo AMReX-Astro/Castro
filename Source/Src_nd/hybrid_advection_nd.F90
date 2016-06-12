@@ -274,7 +274,8 @@ contains
 
   subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
 
-    use meth_params_module, only: UMR, UMP, UMX, UMZ, NVAR
+    use bl_constants_module, only: HALF, ONE
+    use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
     use castro_util_module, only: position
     use prob_params_module, only: center
 
@@ -286,6 +287,7 @@ contains
 
     integer          :: i, j, k
     double precision :: loc(3)
+    double precision :: old_ke, new_ke, rhoInv
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -293,7 +295,18 @@ contains
 
              loc = position(i,j,k) - center
 
+             rhoInv = ONE / state(i,j,k,URHO)
+
+             old_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
+
              state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
+
+             new_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
+
+             ! We have effectively updated the kinetic energy of the state; to account
+             ! for this, add the difference between the old and new KE to the total E.
+
+             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (new_ke - old_ke)
 
           enddo
        enddo
