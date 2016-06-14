@@ -705,6 +705,8 @@ Castro::setGridInfo ()
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
       int domhi_level[3*nlevs];
+      int ref_ratio_to_f[3*nlevs];
+      int n_error_buf_to_f[nlevs];
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -716,9 +718,17 @@ Castro::setGridInfo ()
 
 	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
 	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+
+	// Refinement ratio and error buffer on finest level are meaningless,
+	// and we want them to be zero on the finest level because some
+	// of the algorithms depend on this feature.
+
+	ref_ratio_to_f[dir + 3 * (nlevs - 1)] = 0;
+	n_error_buf_to_f[nlevs-1] = 0;
       }
-      
-    
+
+      for (int lev = 0; lev <= max_level; lev++)
+
       for (int lev = 1; lev <= max_level; lev++) {
 	IntVect ref_ratio = parent->refRatio(lev-1);
 
@@ -732,14 +742,18 @@ Castro::setGridInfo ()
 	    dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
 	    domlo_level[3 * lev + dir] = domlo_level[dir];
 	    domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = ref_ratio[dir];
 	  } else {
 	    dx_level[3 * lev + dir] = 0.0;
 	    domlo_level[3 * lev + dir] = 0;
 	    domhi_level[3 * lev + dir] = 0;
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
 	  }
+
+	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      set_grid_info(max_level, dx_level, domlo_level, domhi_level);
+      set_grid_info(max_level, dx_level, domlo_level, domhi_level, ref_ratio_to_f, n_error_buf_to_f);
 
     }
     

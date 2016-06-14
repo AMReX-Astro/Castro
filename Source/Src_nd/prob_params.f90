@@ -28,5 +28,7 @@ module prob_params_module
   double precision, save, allocatable :: dx_level(:,:)
   integer         , save, allocatable :: domlo_level(:,:)
   integer         , save, allocatable :: domhi_level(:,:)
+  integer         , save, allocatable :: ref_ratio(:,:)
+  integer         , save, allocatable :: n_error_buf(:)
   
 end module prob_params_module

@@ -75,7 +75,8 @@ extern "C"
 
   void set_grid_info
     (const int& max_level, const Real* dx_level,
-     const int* domlo_level, const int* domhi_level);
+     const int* domlo_level, const int* domhi_level,
+     const int* ref_ratio, const int* n_error_buf);
 
   void get_tagging_params(const int* name, const int* namlen);
   void get_sponge_params(const int* name, const int* namlen);
