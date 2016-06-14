@@ -228,6 +228,10 @@ contains
           enddo
        enddo
 
+    endif
+
+    if (implicit_rotation_update == 1) then
+
        dt_omega = dt * omega_new
 
        dt_omega_matrix(1,1) = ONE + dt_omega(1)**2
