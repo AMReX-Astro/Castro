@@ -707,6 +707,7 @@ Castro::setGridInfo ()
       int domhi_level[3*nlevs];
       int ref_ratio_to_f[3*nlevs];
       int n_error_buf_to_f[nlevs];
+      int blocking_factor_to_f[nlevs];
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -728,6 +729,7 @@ Castro::setGridInfo ()
       }
 
       for (int lev = 0; lev <= max_level; lev++)
+	blocking_factor_to_f[lev] = parent->blockingFactor(lev);
 
       for (int lev = 1; lev <= max_level; lev++) {
 	IntVect ref_ratio = parent->refRatio(lev-1);
@@ -753,7 +755,8 @@ Castro::setGridInfo ()
 	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      set_grid_info(max_level, dx_level, domlo_level, domhi_level, ref_ratio_to_f, n_error_buf_to_f);
+      set_grid_info(max_level, dx_level, domlo_level, domhi_level,
+		    ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
 
     }
     

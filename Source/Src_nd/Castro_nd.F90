@@ -610,10 +610,10 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_ratio_in, n_error_buf_in) &
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_ratio_in, n_error_buf_in, blocking_factor_in) &
                                bind(C, name="set_grid_info")
 
-        use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio
+        use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
 
         implicit none
 
@@ -622,6 +622,7 @@
         integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
         integer,          intent(in) :: ref_ratio_in(3*(max_level_in+1))
         integer,          intent(in) :: n_error_buf_in(0:max_level_in)
+        integer,          intent(in) :: blocking_factor_in(0:max_level_in)
 
         integer :: lev, dir
 
@@ -644,6 +645,9 @@
         if (allocated(n_error_buf)) then
            deallocate(n_error_buf)
         endif
+        if (allocated(blocking_factor)) then
+           deallocate(blocking_factor)
+        endif
 
         max_level = max_level_in
 
@@ -652,6 +656,7 @@
         allocate(domhi_level(1:3, 0:max_level))
         allocate(ref_ratio(1:3, 0:max_level))
         allocate(n_error_buf(0:max_level))
+        allocate(blocking_factor(0:max_level))
         
         do lev = 0, max_level
            do dir = 1, 3
@@ -661,6 +666,7 @@
               ref_ratio(dir,lev) = ref_ratio_in(3*lev + dir)
            enddo
            n_error_buf(lev) = n_error_buf_in(lev)
+           blocking_factor(lev) = blocking_factor_in(lev)
         enddo
 
       end subroutine set_grid_info

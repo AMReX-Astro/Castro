@@ -30,5 +30,6 @@ module prob_params_module
   integer         , save, allocatable :: domhi_level(:,:)
   integer         , save, allocatable :: ref_ratio(:,:)
   integer         , save, allocatable :: n_error_buf(:)
+  integer         , save, allocatable :: blocking_factor(:)
   
 end module prob_params_module
