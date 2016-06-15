@@ -39,7 +39,7 @@ endif
 
 ifeq ($(USE_ROTATION), TRUE)
 f90EXE_sources += Rotation_nd.f90
-f90EXE_sources += Rotation_frequency.f90
+F90EXE_sources += Rotation_frequency.F90
 F90EXE_sources += rotation_sources_nd.F90
 endif
 
@@ -50,9 +50,9 @@ endif
 ifeq ($(DIMENSION_AGNOSTIC), TRUE)
 F90EXE_sources += bc_fill_nd.F90
 F90EXE_sources += filcc_nd.F90
-f90EXE_sources += ext_src_nd.f90
-f90EXE_sources += Prob_nd.f90
-f90EXE_sources += problem_tagging_nd.f90
+F90EXE_sources += ext_src_nd.F90
+F90EXE_sources += Prob_nd.F90
+F90EXE_sources += problem_tagging_nd.F90
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
