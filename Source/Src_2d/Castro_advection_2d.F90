@@ -515,7 +515,7 @@ contains
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module
-    use advection_util_module, only : normalize_species_fluxes
+    use advection_util_2d_module, only : normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 
