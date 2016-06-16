@@ -26,7 +26,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   use meth_params_module, only : QVAR, NVAR, NHYP, GDU, GDV, GDW, ngdnv
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density, divu
+  use advection_util_module, only : enforce_minimum_density
+  use advection_util_3d_module, only : divu
   use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
   use castro_util_module, only : ca_normalize_species
   

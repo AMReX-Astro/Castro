@@ -22,7 +22,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density, divu
+  use advection_util_2d_module, only : divu
+  use advection_util_module, only : enforce_minimum_density
   use rad_advection_module, only : umeth2d_rad, ctoprim_rad, consup_rad
   use castro_util_module, only : ca_normalize_species
 
@@ -171,9 +172,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   mass_added = 0.d0
   eint_added = 0.d0
   eden_added = 0.d0
-  call enforce_minimum_density(uin, [uin_l1, uin_l2], [uin_h1, uin_h2], &
-                               uout,[uout_l1,uout_l2],[uout_h1,uout_h2],&
-                               lo,hi,mass_added,eint_added,eden_added,frac_change,verbose)
+  call enforce_minimum_density(uin, [ uin_l1, uin_l2,0],[ uin_h1, uin_h2,0], &
+                               uout,[uout_l1,uout_l2,0],[uout_h1,uout_h2,0], &
+                               [lo(1),lo(2),0],[hi(1),hi(2),0], &
+                               mass_added,eint_added,eden_added,frac_change,verbose)
   
   ! Renormalize the species mass fractions
   call ca_normalize_species(uout,[uout_l1,uout_l2,0],[uout_h1,uout_h2,0],[lo(1),lo(2),0],[hi(1),hi(2),0])

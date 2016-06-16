@@ -993,7 +993,7 @@ contains
     use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
-    use advection_util_module, only : normalize_species_fluxes
+    use advection_util_3d_module, only : normalize_species_fluxes
 
     implicit none
 
