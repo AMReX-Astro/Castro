@@ -33,8 +33,9 @@ pp.query("dual_energy_eta2", dual_energy_eta2);
 pp.query("dual_energy_eta3", dual_energy_eta3);
 pp.query("use_pslope", use_pslope);
 pp.query("fix_mass_flux", fix_mass_flux);
-pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens);
+pp.query("density_reset_method", density_reset_method);
+pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 #ifdef SGS

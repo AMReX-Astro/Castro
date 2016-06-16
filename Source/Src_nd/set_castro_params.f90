@@ -9,17 +9,18 @@ subroutine set_castro_method_params( &
   use_flattening_in, ppm_flatten_before_integrals_in, transverse_use_eos_in,  &
   transverse_reset_density_in, transverse_reset_rhoe_in, dual_energy_update_E_from_e_in,  &
   dual_energy_eta1_in, dual_energy_eta2_in, dual_energy_eta3_in,  &
-  use_pslope_in, fix_mass_flux_in, allow_negative_energy_in,  &
-  limit_fluxes_on_small_dens_in, allow_small_energy_in, do_sponge_in,  &
-  cfl_in, dtnuc_e_in, dtnuc_X_in,  &
-  dtnuc_mode_in, dxnuc_in, do_react_in,  &
-  react_T_min_in, react_T_max_in, react_rho_min_in,  &
-  react_rho_max_in, disable_shock_burning_in, do_grav_in,  &
-  grav_source_type_in, do_rotation_in, rot_period_in,  &
-  rot_period_dot_in, rotation_include_centrifugal_in, rotation_include_coriolis_in,  &
-  rotation_include_domegadt_in, state_in_rotating_frame_in, rot_source_type_in,  &
-  implicit_rotation_update_in, rot_axis_in, point_mass_in,  &
-  point_mass_fix_solution_in, do_acc_in, track_grid_losses_in) bind(C)
+  use_pslope_in, fix_mass_flux_in, limit_fluxes_on_small_dens_in,  &
+  density_reset_method_in, allow_negative_energy_in, allow_small_energy_in,  &
+  do_sponge_in, cfl_in, dtnuc_e_in,  &
+  dtnuc_X_in, dtnuc_mode_in, dxnuc_in,  &
+  do_react_in, react_T_min_in, react_T_max_in,  &
+  react_rho_min_in, react_rho_max_in, disable_shock_burning_in,  &
+  do_grav_in, grav_source_type_in, do_rotation_in,  &
+  rot_period_in, rot_period_dot_in, rotation_include_centrifugal_in,  &
+  rotation_include_coriolis_in, rotation_include_domegadt_in, state_in_rotating_frame_in,  &
+  rot_source_type_in, implicit_rotation_update_in, rot_axis_in,  &
+  point_mass_in, point_mass_fix_solution_in, do_acc_in,  &
+  track_grid_losses_in) bind(C)
 
   use meth_params_module
   use network, only : nspec, naux
@@ -63,8 +64,9 @@ subroutine set_castro_method_params( &
   double precision, intent(in) :: dual_energy_eta3_in
   integer,          intent(in) :: use_pslope_in
   integer,          intent(in) :: fix_mass_flux_in
-  integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: limit_fluxes_on_small_dens_in
+  integer,          intent(in) :: density_reset_method_in
+  integer,          intent(in) :: allow_negative_energy_in
   integer,          intent(in) :: allow_small_energy_in
   integer,          intent(in) :: do_sponge_in
   double precision, intent(in) :: cfl_in
@@ -127,8 +129,9 @@ subroutine set_castro_method_params( &
   dual_energy_eta3 = dual_energy_eta3_in
   use_pslope = use_pslope_in
   fix_mass_flux = fix_mass_flux_in
-  allow_negative_energy = allow_negative_energy_in
   limit_fluxes_on_small_dens = limit_fluxes_on_small_dens_in
+  density_reset_method = density_reset_method_in
+  allow_negative_energy = allow_negative_energy_in
   allow_small_energy = allow_small_energy_in
   do_sponge = do_sponge_in
   cfl = cfl_in
