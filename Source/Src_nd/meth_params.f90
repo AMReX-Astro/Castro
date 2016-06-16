@@ -87,6 +87,7 @@ module meth_params_module
   integer         , save :: use_pslope
   integer         , save :: fix_mass_flux
   integer         , save :: allow_negative_energy
+  integer         , save :: limit_fluxes_on_small_dens
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
   double precision, save :: cfl

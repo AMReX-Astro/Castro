@@ -34,6 +34,7 @@ static Real dual_energy_eta3;
 static int use_pslope;
 static int fix_mass_flux;
 static int allow_negative_energy;
+static int limit_fluxes_on_small_dens;
 static int allow_small_energy;
 static int do_sponge;
 #ifdef SGS
