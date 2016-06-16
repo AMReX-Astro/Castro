@@ -6,7 +6,7 @@ contains
 
   ! Given 3D indices (i,j,k), return the cell-centered spatial position.
   ! Optionally we can also be edge-centered in any of the directions.
-  
+
   function position(i, j, k, ccx, ccy, ccz)
 
     use amrinfo_module, only: amr_level
@@ -24,17 +24,17 @@ contains
     logical :: cc(3)
     integer :: domlo(3), domhi(3)
     integer :: dir
-    
+
     idx = (/ i, j, k /)
-    
+
     dx(:) = dx_level(:,amr_level)
     domlo = domlo_level(:,amr_level)
     domhi = domhi_level(:,amr_level)
 
     offset(:) = problo(:)
-    
+
     cc(:) = .true.
-    
+
     if (present(ccx)) then
        cc(1) = ccx
     endif
@@ -75,8 +75,8 @@ contains
 
   end function position
 
-  
-  
+
+
   subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
        bind(C, name="ca_enforce_consistent_e")
 
@@ -93,8 +93,8 @@ contains
     integer          :: i,j,k
     double precision :: u, v, w, rhoInv
 
-    ! 
-    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 +_ v^2 + w^2)
+    !
+    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
     !
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -134,7 +134,7 @@ contains
 
     ! Local variables
     integer          :: i,j,k
-    double precision :: Up, Vp, Wp, ke, rho_eint, eint_new, rhoInv
+    double precision :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
 
     type (eos_t) :: eos_state
 
@@ -161,16 +161,7 @@ contains
                 Vp = u(i,j,k,UMY) * rhoInv
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
-
-                rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-
-                ! Reset (e from e) if it's greater than eta * E.
-
-                if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
-
-                   u(i,j,k,UEINT) = rho_eint
-
-                endif
+                eden = u(i,j,k,UEDEN) * rhoInv
 
                 eos_state % rho = u(i,j,k,URHO)
                 eos_state % T   = small_temp
@@ -179,17 +170,49 @@ contains
 
                 call eos(eos_input_rt, eos_state)
 
-                if (u(i,j,k,UEINT) * rhoInv < eos_state % e) then
+                small_e = eos_state % e
 
-                   eos_state % T = max(u(i,j,k,UTEMP), small_temp)
+                ! If E < small_e, reset it so that it's equal to internal + kinetic.
 
-                   call eos(eos_input_rt, eos_state)
+                if (eden < small_e) then
 
-                   if (dual_energy_update_E_from_e) then
-                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
+                   if (u(i,j,k,UEINT) * rhoInv < small_e) then
+
+                      eos_state % T = max(u(i,j,k,UTEMP), small_temp)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+
                    endif
 
-                   u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+                   u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
+
+                else
+
+                   rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+
+                   ! Reset (e from e) if it's greater than eta * E.
+
+                   if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
+
+                      u(i,j,k,UEINT) = rho_eint
+
+                   endif
+
+                   if (u(i,j,k,UEINT) * rhoInv < small_e) then
+
+                      eos_state % T = max(u(i,j,k,UTEMP), small_temp)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      if (dual_energy_update_E_from_e) then
+                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
+                      endif
+
+                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+
+                   endif
 
                 endif
 
@@ -209,43 +232,64 @@ contains
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
-                rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+                if (u(i,j,k,UEDEN) < ZERO) then
 
-                ! Reset (e from e) if it's greater than eta * E.
-                if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
+                   if (u(i,j,k,UEINT) < ZERO) then
 
-                   u(i,j,k,UEINT) = rho_eint
+                      eos_state % rho   = u(i,j,k,URHO)
+                      eos_state % T     = small_temp
+                      eos_state % xn(:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                      eos_state % aux(1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-                   ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-                else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e) then
+                      call eos(eos_input_rt, eos_state)
+
+                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
+
+                   endif
 
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
-                   ! If not resetting and little e is negative ...
-                else if (u(i,j,k,UEINT) .le. ZERO) then
+                else
 
-                   eos_state % rho   = u(i,j,k,URHO)
-                   eos_state % T     = small_temp
-                   eos_state % xn(:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                   eos_state % aux(1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+                   rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
-                   call eos(eos_input_rt, eos_state)
+                   ! Reset (e from e) if it's greater than eta * E.
+                   if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
 
-                   eint_new = eos_state % e
+                      u(i,j,k,UEINT) = rho_eint
 
-                   if (verbose .gt. 0) then
-                      print *,'   '
-                      print *,'>>> Warning: Castro_3d::reset_internal_energy  ',i,j,k
-                      print *,'>>> ... resetting neg. e from EOS using small_temp'
-                      print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
-                      print *,'    '
-                   end if
+                      ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
+                   else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e) then
 
-                   if (dual_energy_update_E_from_e) then
-                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                      u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
+
+                      ! If not resetting and little e is negative ...
+                   else if (u(i,j,k,UEINT) .le. ZERO) then
+
+                      eos_state % rho   = u(i,j,k,URHO)
+                      eos_state % T     = small_temp
+                      eos_state % xn(:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                      eos_state % aux(1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+                      call eos(eos_input_rt, eos_state)
+
+                      eint_new = eos_state % e
+
+                      if (verbose .gt. 0) then
+                         print *,'   '
+                         print *,'>>> Warning: Castro_3d::reset_internal_energy  ',i,j,k
+                         print *,'>>> ... resetting neg. e from EOS using small_temp'
+                         print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
+                         print *,'    '
+                      end if
+
+                      if (dual_energy_update_E_from_e) then
+                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+                      endif
+
+                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
+
                    endif
-
-                   u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
 
                 end if
              enddo
@@ -397,8 +441,9 @@ contains
   subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
 
     use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS, small_x
+    use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module, only: ONE
+    use extern_probin_module, only: small_x
 
     implicit none
 

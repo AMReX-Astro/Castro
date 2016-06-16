@@ -33,10 +33,6 @@ small_pres                   Real         -1.e200             y
 # value will be reset
 small_ener                   Real         -1.e200             y
 
-# the small mass fraction cutoff. Mass fractions below this value will
-# be reset
-small_x                      Real          1.e-30             y
-
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
@@ -159,6 +155,15 @@ dual_energy_eta3             Real          1.0e0              y
 use_pslope                   int           1                  y
 
 fix_mass_flux                int           0                  y
+
+# Should we limit the density fluxes so that we do not create small densities?
+limit_fluxes_on_small_dens   int           0                  y
+
+# Which method to use when resetting a negative/small density
+# 1 = Reset to characteristics of adjacent zone with largest density
+# 2 = Use average of all adjacent zones for all state variables
+# 3 = Reset to the original zone state before the hydro update
+density_reset_method         int           1                  y
 
 # Whether or not to allow internal energy to be less than zero
 allow_negative_energy        int           1                  y
@@ -297,6 +302,14 @@ rotation_include_coriolis    int           1                  y        ROTATION
 
 # permits the d(omega)/dt terms in the rotation to be turned on and off
 rotation_include_domegadt    int           1                  y        ROTATION
+
+# Which reference frame to measure the state variables with respect to.
+# The standard in the literature when using a rotating reference frame
+# is to measure the state variables with respect to an observer fixed
+# in that rotating frame. If this option is disabled by setting it to 0,
+# the state variables will be measured with respect to an observer fixed
+# in the inertial frame (but the frame will still rotate).
+state_in_rotating_frame      int           1                  y        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations

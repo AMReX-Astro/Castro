@@ -215,7 +215,7 @@ contains
   subroutine normalize_abundances(state)
 
     use bl_constants_module, only: ONE
-    use meth_params_module, only: small_x
+    use extern_probin_module, only: small_x
 
     implicit none
 

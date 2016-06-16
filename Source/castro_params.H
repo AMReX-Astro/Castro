@@ -5,7 +5,6 @@ static Real small_dens;
 static Real small_temp;
 static Real small_pres;
 static Real small_ener;
-static Real small_x;
 static int do_hydro;
 static int add_ext_src;
 static int hybrid_hydro;
@@ -34,6 +33,8 @@ static Real dual_energy_eta2;
 static Real dual_energy_eta3;
 static int use_pslope;
 static int fix_mass_flux;
+static int limit_fluxes_on_small_dens;
+static int density_reset_method;
 static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
@@ -78,6 +79,9 @@ static int rotation_include_coriolis;
 #endif
 #ifdef ROTATION
 static int rotation_include_domegadt;
+#endif
+#ifdef ROTATION
+static int state_in_rotating_frame;
 #endif
 #ifdef ROTATION
 static int rot_source_type;

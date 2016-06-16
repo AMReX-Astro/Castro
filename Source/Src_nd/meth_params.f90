@@ -59,7 +59,6 @@ module meth_params_module
   double precision, save :: small_temp
   double precision, save :: small_pres
   double precision, save :: small_ener
-  double precision, save :: small_x
   integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
@@ -87,6 +86,8 @@ module meth_params_module
   double precision, save :: dual_energy_eta3
   integer         , save :: use_pslope
   integer         , save :: fix_mass_flux
+  integer         , save :: limit_fluxes_on_small_dens
+  integer         , save :: density_reset_method
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
@@ -109,6 +110,7 @@ module meth_params_module
   integer         , save :: rotation_include_centrifugal
   integer         , save :: rotation_include_coriolis
   integer         , save :: rotation_include_domegadt
+  integer         , save :: state_in_rotating_frame
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis

@@ -705,6 +705,9 @@ Castro::setGridInfo ()
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
       int domhi_level[3*nlevs];
+      int ref_ratio_to_f[3*nlevs];
+      int n_error_buf_to_f[nlevs];
+      int blocking_factor_to_f[nlevs];
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -716,9 +719,18 @@ Castro::setGridInfo ()
 
 	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
 	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+
+	// Refinement ratio and error buffer on finest level are meaningless,
+	// and we want them to be zero on the finest level because some
+	// of the algorithms depend on this feature.
+
+	ref_ratio_to_f[dir + 3 * (nlevs - 1)] = 0;
+	n_error_buf_to_f[nlevs-1] = 0;
       }
-      
-    
+
+      for (int lev = 0; lev <= max_level; lev++)
+	blocking_factor_to_f[lev] = parent->blockingFactor(lev);
+
       for (int lev = 1; lev <= max_level; lev++) {
 	IntVect ref_ratio = parent->refRatio(lev-1);
 
@@ -732,14 +744,19 @@ Castro::setGridInfo ()
 	    dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
 	    domlo_level[3 * lev + dir] = domlo_level[dir];
 	    domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = ref_ratio[dir];
 	  } else {
 	    dx_level[3 * lev + dir] = 0.0;
 	    domlo_level[3 * lev + dir] = 0;
 	    domhi_level[3 * lev + dir] = 0;
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
 	  }
+
+	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      set_grid_info(max_level, dx_level, domlo_level, domhi_level);
+      set_grid_info(max_level, dx_level, domlo_level, domhi_level,
+		    ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
 
     }
     
@@ -1473,6 +1490,10 @@ Castro::post_timestep (int iteration)
 {
     BL_PROFILE("Castro::post_timestep()");
 
+    // Pass some information about the state of the simulation to a Fortran module.
+
+    set_amr_info(level, iteration, -1, -1.0, -1.0);
+
     //
     // Integration cycle on fine level grids is complete
     // do post_timestep stuff here.
@@ -1519,25 +1540,6 @@ Castro::post_timestep (int iteration)
 #endif
 
         reflux();
-
-	// Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-	if (hybrid_hydro) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	  for (MFIter mfi(S_new_crse, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.tilebox();
-
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new_crse[mfi]));
-
-	  }
-
-	}
-#endif
 
         // We need to do this before anything else because refluxing changes the values of coarse cells
         //    underneath fine grids with the assumption they'll be over-written by averaging down
@@ -1632,7 +1634,11 @@ Castro::post_timestep (int iteration)
 		      }
 		      
 		      // Compute sync source
+#ifdef HYBRID_MOMENTUM
+		      sync_src.resize(bx,3+1+3);
+#else
 		      sync_src.resize(bx,3+1);
+#endif
 		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
 				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
@@ -1652,7 +1658,10 @@ Castro::post_timestep (int iteration)
 		      
 		      sync_src.mult(0.5*dt);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);
-		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+		      S_new_lev[mfi].plus(sync_src,bx,3,Eden,1);
+#ifdef HYBRID_MOMENTUM
+		      S_new_lev[mfi].plus(sync_src,bx,4,Rmom,3);
+#endif
 		  }
 	      }
             }
@@ -1668,6 +1677,27 @@ Castro::post_timestep (int iteration)
         }
 #endif
     }
+
+    // Sync up the hybrid and linear momenta.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef HYBRID_MOMENTUM
+    if (hybrid_hydro) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	const Box& bx = mfi.tilebox();
+
+	hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
+
+      }
+
+    }
+#endif
 
     if (level < finest_level)
         avgDown();
@@ -1729,7 +1759,6 @@ Castro::post_timestep (int iteration)
 #endif
 
     // Re-compute temperature after all the other updates.
-    MultiFab& S_new = getLevel(level).get_new_data(State_Type);
     computeTemp(S_new);
 
 

@@ -134,7 +134,7 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, UMR, UMP, &
-                                  implicit_rotation_update
+                                  implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
     use bl_constants_module
     use math_module, only: cross_product
@@ -228,7 +228,22 @@ contains
           enddo
        enddo
 
-       dt_omega = dt * omega_new
+    endif
+
+    if (implicit_rotation_update == 1) then
+
+       ! Don't do anything here if we've got the Coriolis force disabled,
+       ! or if our state variables are in the inertial frame.
+
+       if (rotation_include_coriolis == 1 .and. state_in_rotating_frame == 1) then
+
+          dt_omega = dt * omega_new
+
+       else
+
+          dt_omega = ZERO
+
+       endif
 
        dt_omega_matrix(1,1) = ONE + dt_omega(1)**2
        dt_omega_matrix(1,2) = dt_omega(1) * dt_omega(2) + dt_omega(3)
@@ -283,7 +298,7 @@ contains
 
              Srcorr = HALF * (Sr_new - Sr_old)
 
-             if (implicit_rotation_update .eq. 1) then
+             if (implicit_rotation_update == 1) then
 
                 ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
 

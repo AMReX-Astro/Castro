@@ -161,6 +161,25 @@ run to continue a simulation from the last checkpoint file in the
 submission directory.
 
 
+\section{Working at LANL}
+
+For the following LANL systems, which all have access to a joint file system,
+\begin{itemize}
+  \item Cielito
+  \item Conejo
+  \item Lightshow
+  \item Moonlight
+  \item Pinto
+  \item Wolf
+  \item Mustang
+  \item Trinitite
+\end{itemize}
+the following steps are needed to get Castro compiling (reported by Platon Karpov, 6/13/2016):
+
+1) Compile on the login node (thus host is lanl.gov)\\
+2) Do \textit{not} set env variable \texttt{BOXLIB\_USE\_MPI\_WRAPPERS} at all\\
+3) Execute \texttt{module load python-epd} at the command line, but do \textit{not} load anaconda\\
+
 
 \section{Scaling}
 

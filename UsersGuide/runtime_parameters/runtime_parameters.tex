@@ -194,6 +194,7 @@
 \verb=  rotational_period  = &   the rotation period for the corotating frame  &  -1.e200 \\
 \rowcolor{tableShade}
 \verb=  source_term_predictor  = &   extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction  &  0 \\
+\verb=  state_in_rotating_frame  = &   Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate).  &  1 \\
 
 
 \end{longtable}
@@ -242,20 +243,23 @@
 \verb=  cg_maxiter  = &   for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state  &  12 \\
 \verb=  cg_tol  = &   for the Colella \& Glaz Riemann solver, the tolerance to demand in finding the star state  &  1.0e-5 \\
 \rowcolor{tableShade}
+\verb=  density_reset_method  = &   Which method to use when resetting a negative/small density 1 = Reset to characteristics of adjacent zone with largest density 2 = Use average of all adjacent zones for all state variables 3 = Reset to the original zone state before the hydro update  &  1 \\
 \verb=  difmag  = &   the coefficient of the artificial viscosity  &  0.1 \\
+\rowcolor{tableShade}
 \verb=  do_hydro  = &   permits hydro to be turned on and off for running pure rad problems  &  -1 \\
-\rowcolor{tableShade}
 \verb=  do_sponge  = &   permits sponge to be turned on and off  &  0 \\
+\rowcolor{tableShade}
 \verb=  dual_energy_eta1  = &   Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT.  &  1.0e0 \\
-\rowcolor{tableShade}
 \verb=  dual_energy_eta2  = &   Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged.  &  1.0e-4 \\
+\rowcolor{tableShade}
 \verb=  dual_energy_eta3  = &   Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT.  &  1.0e0 \\
-\rowcolor{tableShade}
 \verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT.  &  1 \\
-\verb=  fix_mass_flux  = &    &  0 \\
 \rowcolor{tableShade}
+\verb=  fix_mass_flux  = &    &  0 \\
 \verb=  hybrid_hydro  = &   whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only)  &  0 \\
+\rowcolor{tableShade}
 \verb=  hybrid_riemann  = &   do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability?  &  0 \\
+\verb=  limit_fluxes_on_small_dens  = &   Should we limit the density fluxes so that we do not create small densities?  &  0 \\
 \rowcolor{tableShade}
 \verb=  ppm_flatten_before_integrals  = &   where do we apply the flattening?  after we've done the tracing of the states (0); or on the parabolic profiles before we've integrated under them (1)  &  1 \\
 \verb=  ppm_predict_gammae  = &   do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  &  0 \\
@@ -278,16 +282,15 @@
 \verb=  small_pres  = &   the small pressure cutoff.  Pressures below this value will be reset  &  -1.e200 \\
 \verb=  small_temp  = &   the small temperature cutoff.  Temperatures below this value will be reset  &  -1.e200 \\
 \rowcolor{tableShade}
-\verb=  small_x  = &   the small mass fraction cutoff. Mass fractions below this value will be reset  &  1.e-30 \\
 \verb=  sum_turb_src  = &    &  0.0 \\
-\rowcolor{tableShade}
 \verb=  transverse_reset_density  = &   if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction.  &  1 \\
+\rowcolor{tableShade}
 \verb=  transverse_reset_rhoe  = &   if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation  &  0 \\
-\rowcolor{tableShade}
 \verb=  transverse_use_eos  = &   after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$).  &  0 \\
-\verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
 \rowcolor{tableShade}
+\verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
 \verb=  use_flattening  = &   flatten the reconstructed profiles around shocks to prevent them from becoming too thin  &  1 \\
+\rowcolor{tableShade}
 \verb=  use_pslope  = &   for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting?  &  1 \\
 
 

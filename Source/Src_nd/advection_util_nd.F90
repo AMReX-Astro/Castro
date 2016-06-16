@@ -1,0 +1,292 @@
+module advection_util_module
+
+  implicit none
+
+  private
+
+  public enforce_minimum_density
+
+contains
+
+  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                     uout,uout_lo,uout_hi, &
+                                     lo,hi,mass_added,eint_added, &
+                                     eden_added,frac_change,verbose) &
+                                     bind(C, name="enforce_minimum_density")
+    
+    use network, only : nspec, naux
+    use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
+    use bl_constants_module, only : ZERO
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) ::  uin_lo(3),  uin_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+
+    double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+    double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    double precision, intent(inout) :: mass_added, eint_added, eden_added, frac_change
+    
+    ! Local variables
+    integer          :: i,ii,j,jj,k,kk
+    integer          :: i_set, j_set, k_set
+    double precision :: max_dens
+    double precision :: unew(NVAR)
+    integer          :: num_positive_zones
+    
+    double precision :: initial_mass, final_mass
+    double precision :: initial_eint, final_eint
+    double precision :: initial_eden, final_eden
+
+    initial_mass = ZERO
+      final_mass = ZERO
+
+    initial_eint = ZERO
+      final_eint = ZERO
+
+    initial_eden = ZERO
+      final_eden = ZERO
+
+    max_dens = ZERO
+
+    do k = lo(3),hi(3)
+       do j = lo(2),hi(2)
+          do i = lo(1),hi(1)
+
+             initial_mass = initial_mass + uout(i,j,k,URHO )
+             initial_eint = initial_eint + uout(i,j,k,UEINT)
+             initial_eden = initial_eden + uout(i,j,k,UEDEN)
+
+             if (uout(i,j,k,URHO) .eq. ZERO) then
+
+                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
+                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
+                call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
+
+             else if (uout(i,j,k,URHO) < small_dens) then
+
+                ! Store the maximum (negative) fractional change in the density
+
+                if ( uout(i,j,k,URHO) < ZERO .and. &
+                     (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO) < frac_change) then
+
+                   frac_change = (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO)
+
+                endif
+
+                if (density_reset_method == 1) then
+
+                   ! Reset to the characteristics of the adjacent state with the highest density.
+                   
+                   max_dens = uout(i,j,k,URHO)
+                   i_set = i
+                   j_set = j
+                   k_set = k
+                   do kk = -1,1
+                      do jj = -1,1
+                         do ii = -1,1
+                            if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
+                                 i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
+                               if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
+                                  i_set = i+ii
+                                  j_set = j+jj
+                                  k_set = k+kk
+                                  max_dens = uout(i_set,j_set,k_set,URHO)
+                               endif
+                            endif
+                         end do
+                      end do
+                   end do
+
+                   if (max_dens < small_dens) then
+
+                      ! We could not find any nearby zones with sufficient density.
+
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+
+                   else
+
+                      unew = uout(i_set,j_set,k_set,:)
+
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+
+                   endif
+
+                else if (density_reset_method == 2) then
+
+                   ! Reset to the average of adjacent zones. The median is independently calculated for each variable.
+
+                   num_positive_zones = 0
+                   unew(:) = ZERO
+
+                   do kk = -1, 1
+                      do jj = -1, 1
+                         do ii = -1, 1
+                            if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
+                                i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
+                               if (uout(i+ii,j+jj,k+kk,URHO) .ge. small_dens) then
+                                  unew(:) = unew(:) + uout(i+ii,j+jj,k+kk,:)
+                                  num_positive_zones = num_positive_zones + 1
+                               endif
+                            endif
+                         enddo
+                      enddo
+                   enddo
+
+                   if (num_positive_zones == 0) then
+
+                      ! We could not find any nearby zones with sufficient density.
+
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+
+                   else
+
+                      unew(:) = unew(:) / num_positive_zones
+
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+
+                   endif
+
+                elseif (density_reset_method == 3) then
+
+                   ! Reset to the original zone state.
+
+                   if (uin(i,j,k,URHO) < small_dens) then
+
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+
+                   else
+
+                      unew(:) = uin(i,j,k,:)
+
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+
+                   endif
+
+                else
+
+                   call bl_error("Unknown density_reset_method in subroutine enforce_minimum_density.")
+
+                endif
+
+             end if
+
+             final_mass = final_mass + uout(i,j,k,URHO )
+             final_eint = final_eint + uout(i,j,k,UEINT)
+             final_eden = final_eden + uout(i,j,k,UEDEN)
+
+          enddo
+       enddo
+    enddo
+
+    if ( max_dens /= ZERO ) then
+       mass_added = mass_added + final_mass - initial_mass
+       eint_added = eint_added + final_eint - initial_eint
+       eden_added = eden_added + final_eden - initial_eden
+    endif
+
+  end subroutine enforce_minimum_density
+
+
+
+  subroutine reset_to_small_state(old_state, new_state, idx, verbose)
+
+    use bl_constants_module, only: ZERO
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+    use castro_util_module, only: position
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: linear_to_hybrid
+    use meth_params_module, only: UMR, UMP
+#endif
+
+    implicit none
+
+    double precision :: old_state(NVAR), new_state(NVAR)
+    integer          :: idx(3), verbose
+
+    double precision :: loc(3)
+    integer          :: n, ipassive
+    type (eos_t)     :: eos_state
+
+    ! If no neighboring zones are above small_dens, our only recourse 
+    ! is to set the density equal to small_dens, and the temperature 
+    ! equal to small_temp. We set the velocities to zero, 
+    ! though any choice here would be arbitrary.
+    
+    if (verbose .gt. 0) then
+       print *,'   '
+       if (new_state(URHO) < ZERO) then
+          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
+       else
+          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
+       endif
+       print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
+       print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+       print *,'   '
+    end if
+
+    do ipassive = 1, npassive
+       n = upass_map(ipassive)
+       new_state(n) = new_state(n) * (small_dens / new_state(URHO))
+    end do
+
+    eos_state % rho = small_dens
+    eos_state % T   = small_temp
+    eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
+
+    call eos(eos_input_rt, eos_state)
+
+    new_state(URHO ) = eos_state % rho
+    new_state(UTEMP) = eos_state % T
+
+    new_state(UMX  ) = ZERO
+    new_state(UMY  ) = ZERO
+    new_state(UMZ  ) = ZERO
+
+    new_state(UEINT) = eos_state % rho * eos_state % e
+    new_state(UEDEN) = new_state(UEINT)
+
+#ifdef HYBRID_MOMENTUM
+    loc = position(idx(1),idx(2),idx(3))
+    new_state(UMR:UMP) = linear_to_hybrid(loc, new_state(UMX:UMZ))
+#endif
+
+  end subroutine reset_to_small_state
+
+
+ 
+  subroutine reset_to_zone_state(old_state, new_state, input_state, idx, verbose)
+
+    use bl_constants_module, only: ZERO
+    use meth_params_module, only: NVAR, URHO, small_dens
+
+    implicit none
+
+    double precision :: old_state(NVAR), new_state(NVAR), input_state(NVAR), reset_state(NVAR)
+    integer          :: idx(3), verbose
+
+    if (verbose .gt. 0) then
+       if (new_state(URHO) < ZERO) then
+          print *,'   '
+          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
+          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
+          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+          print *,'   '
+       else
+          print *,'   '
+          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
+          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
+          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+          print *,'   '
+       end if
+    end if
+
+    new_state(:) = input_state(:)
+
+  end subroutine reset_to_zone_state
+
+end module advection_util_module
