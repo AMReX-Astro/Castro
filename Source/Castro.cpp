@@ -597,6 +597,8 @@ Castro::Castro (Amr&            papa,
    MultiFab& new_sgs_mf = get_new_data(SGS_Type);
    new_sgs_mf.setVal(0.0);
 #endif
+
+   signalStopJob = false;
 }
 
 Castro::~Castro () 
@@ -2101,7 +2103,11 @@ Castro::okToContinue ()
         return 1;
 
     int test = 1;
-    if (parent->dtLevel(0) < dt_cutoff) test = 0;
+
+    if (signalStopJob)
+      test = 0;
+    else if (parent->dtLevel(0) < dt_cutoff)
+      test = 0;
 
     return test; 
 }

@@ -529,6 +529,8 @@ protected:
     void write_center ();
 #endif
 
+    void stopJob ();
+
     //
     // The data.
     //
@@ -542,6 +544,7 @@ protected:
 #ifdef RADIATION
     FluxRegister*        rad_flux_reg;
 #endif
+    bool                 signalStopJob;
 
     //
     // Static data members.
@@ -660,6 +663,13 @@ Castro&
 Castro::getLevel (int lev)
 {
     return *(Castro *) &parent->getLevel(lev);
+}
+
+inline
+void
+Castro::stopJob()
+{
+  signalStopJob = true;
 }
 
 inline
