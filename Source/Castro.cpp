@@ -1872,6 +1872,11 @@ Castro::post_restart ()
 #else
     init_godunov_indices();
 #endif
+
+#ifdef do_problem_post_restart
+    problem_post_restart();
+#endif
+
 }
 
 void
