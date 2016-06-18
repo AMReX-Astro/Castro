@@ -55,6 +55,7 @@ using std::string;
 #include <omp.h>
 #endif
 
+bool         Castro::signalStopJob = false;
 
 int          Castro::checkpoint_version = 1;
 
@@ -598,7 +599,6 @@ Castro::Castro (Amr&            papa,
    new_sgs_mf.setVal(0.0);
 #endif
 
-   signalStopJob = false;
 }
 
 Castro::~Castro () 
@@ -2109,10 +2109,16 @@ Castro::okToContinue ()
 
     int test = 1;
 
-    if (signalStopJob)
+    if (signalStopJob) {
       test = 0;
-    else if (parent->dtLevel(0) < dt_cutoff)
+      if (ParallelDescriptor::IOProcessor())
+	std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
+    }
+    else if (parent->dtLevel(0) < dt_cutoff) {
       test = 0;
+      if (ParallelDescriptor::IOProcessor())
+	std::cout << " Signalling a stop of the run because dt < dt_cutoff." << std::endl;
+    }
 
     return test; 
 }

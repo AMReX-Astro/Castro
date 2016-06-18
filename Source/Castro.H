@@ -544,13 +544,13 @@ protected:
 #ifdef RADIATION
     FluxRegister*        rad_flux_reg;
 #endif
-    bool                 signalStopJob;
 
     //
     // Static data members.
     //
 #include <castro_params.H>
 
+    static bool      signalStopJob;
     static int       checkpoint_version;
     static bool      dump_old;
     static int       radius_grow;

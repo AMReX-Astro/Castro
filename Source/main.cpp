@@ -153,10 +153,6 @@ main (int   argc,
 
     }
 
-    if (!amrptr->okToContinue() && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Stopping simulation because we are not OK to continue." << std::endl;
-    }
-
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);
     delete dumpmodelptr;
