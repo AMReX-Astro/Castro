@@ -345,7 +345,7 @@
 
         call parallel_initialize()
 
-        iorder = 1
+        iorder = 2
 
         !---------------------------------------------------------------------
         ! conserved state components
