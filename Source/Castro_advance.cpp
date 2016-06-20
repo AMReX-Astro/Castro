@@ -650,9 +650,9 @@ Castro::advance_hydro (Real time,
 	FArrayBox& stateold = Sborder_copy[mfi];
 	FArrayBox& statenew = Sborder[mfi];
 
-	enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
-				statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
-				statenew.loVect(), statenew.hiVect(),
+	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				&mass_added, &e_added, &E_added, &dens_change,
 				&verbose);
 
