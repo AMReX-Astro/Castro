@@ -73,6 +73,8 @@ contains
     logical, optional :: centrifugal, coriolis, domegadt
     logical :: c1, c2, c3
 
+    omega = get_omega(time)
+
     if (state_in_rotating_frame .eq. 1) then
 
        ! Allow the various terms to be turned off.
@@ -106,8 +108,6 @@ contains
        if (present(domegadt)) then
           if (.not. domegadt) c3 = .false.
        endif
-
-       omega = get_omega(time)
 
        domega_dt = get_domegadt(time)
 
