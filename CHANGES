@@ -41,3 +41,7 @@
   -- We have fixed an issue where diffusion did not work correctly if add_ext_src = 0.
      The diffusion source term is now independent of whether you have user-defined
      source terms.
+  
+  -- ConvertCheckpoint/ now lives under Util/
+
+  -- UsersGuide/ is now Docs/ -- this is consistent with the other BoxLib codes
