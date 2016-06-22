@@ -1,11 +1,13 @@
 
-Within the CASTRO distribution, there is the capability to ``grow'' a checkpoint file so 
-that a calculation can be restarted in a larger domain covered by grid cells a factor of
-two or four coarser than the existing coarsest level.  Instructions for how to
-do so are in the Castro/ConvertCheckpoint/README file and are included here.
-Upon restart the existing data in the checkpoint file will be used to fill the region of the previous 
-computational domain, and the new regions will be filled by some other means, typically
-interpolation from a 1D model file.
+Within the CASTRO distribution, there is the capability to ``grow'' a
+checkpoint file so that a calculation can be restarted in a larger
+domain covered by grid cells a factor of two or four coarser than the
+existing coarsest level.  Instructions for how to do so are in the
+{\tt Castro/Util/ConvertCheckpoint/README} file and are included here.
+Upon restart the existing data in the checkpoint file will be used to
+fill the region of the previous computational domain, and the new
+regions will be filled by some other means, typically interpolation
+from a 1D model file.
 
 \section{Star in Corner ({\bf star\_at\_center = 0}) }
 
@@ -42,27 +44,29 @@ new larger domain with a level that is a factor of 2 coarser than the existing l
 
 \begin{enumerate}
 
-\item First, set DIM = in the GNUmakefile, and type  "make" in the ConvertCheckpoint directory.
-This will make an executable from the Embiggen.cpp code.
+\item First, set {\tt DIM =} in the {\tt GNUmakefile}, and type ``{\tt
+  make}'' in the {\tt Util/ConvertCheckpoint/} directory.  This will
+  make an executable from the {\tt Embiggen.cpp} code.
 
 \item Run the embiggening code as follows:
 
-Embiggen2d.Linux.Intel.Intel.ex {\bf checkin}=chk00100 {\bf checkout}=newchk00050
-{\bf ref\_ratio}=2 {\bf grown\_factor}=8 {\bf star\_at\_center}=0
+\begin{verbatim}
+Embiggen2d.Linux.Intel.Intel.ex checkin=chk00100 checkout=newchk00050 ref_ratio=2 grown_factor=8 star_at_center=0
+\end{verbatim}
 
 (Your executable may have a slightly different name depending on the compilers you
 built it with.)
 
 This will create a new checkpoint directory, called {\it newchk00050}, that represents a simulation
 with {\it one} additional level of refinement {\it coarser} than the previous level 0 grids by
-a factor of {\bf ref\_ratio} (in this case, 2).   
-The new domain will be a factor of {\bf grown\_factor} (in this case, 8) larger than the previous domain.
+a factor of {\tt ref\_ratio} (in this case, 2).   
+The new domain will be a factor of {\tt grown\_factor} (in this case, 8) larger than the previous domain.
 
-Note that {\bf ref\_ratio} must be 2 or 4, because those are the only acceptable values of {\bf ref\_ratio}
-in CASTRO.
+Note that {\tt ref\_ratio} must be 2 or 4, because those are the only acceptable values of {\tt ref\_ratio}
+in \castro.
 
-{\bf grown\_factor} can be any reasonable integer; I've only tested 2, 3, 4 and 8.  It does not need
-to be a multiple of 2.
+{\tt grown\_factor} can be any reasonable integer; but it's only been
+tested with 2, 3, 4 and 8.  It does not need to be a multiple of 2.
 
 \end{enumerate}
 
