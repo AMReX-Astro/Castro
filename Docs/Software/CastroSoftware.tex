@@ -7,20 +7,24 @@ The code structure in the {\tt Castro/} directory is as follows:
 \item {\tt ConvertCheckpoint/}: a tool to convert a checkpoint file to
   a larger domain
 
-\item {\tt EOS/}: contains directories for different EOS routines
+\item {\tt Docs/}: you're reading this now!
 
 \item {\tt Exec/}: various problem implementations, including:
   \begin{itemize}
   \item {\tt Sedov/}: run directory for the Sedov problem
   \item {\tt Sod/}: run directory for the Sod problem
   \item {\tt KH/}: run directory for the Kelvin-Helmholz problem
+  \item $\ldots$
   \end{itemize}
 
-\item {\tt Networks/}: contains directories for different reaction networks
+\item {\tt Microphysics/}: contains directories for different default microphysics
+  \begin{itemize}
+  \item {\tt conductivity/}: the thermal conductivity
+  \item {\tt EOS/}: the equation of state
+  \item {\tt Networks/}: the nuclear reaction networks
+  \end{itemize}
 
 \item {\tt Source/}: source code
-
-\item {\tt UsersGuide/}: you're reading this now!
 
 \item {\tt Util/}: a catch-all for additional things you may need 
 \end{itemize}

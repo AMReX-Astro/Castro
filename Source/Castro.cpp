@@ -1570,9 +1570,9 @@ Castro::post_timestep (int iteration)
 	  FArrayBox& stateold = S_old_crse[mfi];
 	  FArrayBox& statenew = S_new_crse[mfi];
 	  
-	  enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
-				  statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
-				  bx.loVect(), bx.hiVect(),
+	  enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				  statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				  ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  &mass_added, &e_added, &E_added, &dens_change,
 				  &verbose);
 
