@@ -3811,7 +3811,7 @@ Castro::build_interior_boundary_mask (int ng)
         IArrayBox& fab = imf[mfi];
 	const Box& bx = fab.box();
 
-	fab.setVal(0);
+	fab.setVal(1);
 
 	std::vector< std::pair<int,Box> > isects = grids.intersections(bx);
 	for (int ii = 0; ii < isects.size(); ii++)

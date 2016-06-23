@@ -479,7 +479,7 @@ protected:
 
     //
     // Build a mask that ghost cells overlapping with interior cells in the same multifab
-    // are set to 1, whereas others are set to 0.
+    // are set to 0, whereas others are set to 1.
     //
     PArray<iMultiFab> ib_mask;
     const iMultiFab& build_interior_boundary_mask (int ng);
