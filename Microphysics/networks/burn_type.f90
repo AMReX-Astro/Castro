@@ -84,6 +84,8 @@ module burn_type_module
 
     logical          :: shock            = .false.
 
+    double precision :: time = -1.d0
+
   end type burn_t
 
 contains
