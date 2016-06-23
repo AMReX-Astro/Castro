@@ -4,6 +4,7 @@
 
 #include <BC_TYPES.H>
 #include <AmrLevel.H>
+#include <iMultiFab.H>
 #include <ErrorList.H>
 #include <FluxRegister.H>
 #include <BL_CXX11.H>
@@ -475,6 +476,13 @@ public:
     MultiFab* build_fine_mask();
 
 protected:
+
+    //
+    // Build a mask that ghost cells overlapping with interior cells in the same multifab
+    // are set to 1, whereas others are set to 0.
+    //
+    PArray<iMultiFab> ib_mask;
+    const iMultiFab& build_interior_boundary_mask (int ng);
 
     int get_numpts();
 

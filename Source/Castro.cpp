@@ -3782,3 +3782,62 @@ Castro::build_fine_mask()
 
     return fine_mask;
 }
+
+const iMultiFab&
+Castro::build_interior_boundary_mask (int ng)
+{
+    for (int i = 0; i < ib_mask.size(); ++i)
+    {
+	if (ib_mask[i].nGrow() == ng) {
+	    return ib_mask[i];
+	}
+    }
+
+    //  If we got here, we need to build a new one
+
+    if (ib_mask.size() == 0) {
+	ib_mask.resize(0,PArrayManage);
+    }
+
+    iMultiFab& imf = *(ib_mask.push_back(new iMultiFab(grids, 1, ng)));
+
+    const Box& the_domain = geom.Domain();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(imf); mfi.isValid(); ++mfi)
+    {
+        IArrayBox& fab = imf[mfi];
+	const Box& bx = fab.box();
+
+	fab.setVal(0);
+
+	std::vector< std::pair<int,Box> > isects = grids.intersections(bx);
+	for (int ii = 0; ii < isects.size(); ii++)
+	{
+	    fab.setVal(0,isects[ii].second,0);
+	}
+
+	if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
+	{
+	    Array<IntVect> pshifts(26);
+	    geom.periodicShift(the_domain, bx, pshifts);
+	    for (Array<IntVect>::const_iterator pit = pshifts.begin();
+		 pit != pshifts.end(); ++pit)
+	    {
+		const IntVect& iv   = *pit;
+		const Box&     shft = bx + iv;
+
+		isects = grids.intersections(shft);
+		for (int ii = 0; ii < isects.size(); ii++)
+		{
+		    const Box& dst = isects[ii].second - iv;
+		    fab.setVal(0,dst,0);
+		}		
+	    }
+	}
+    }
+
+    return imf;
+}
