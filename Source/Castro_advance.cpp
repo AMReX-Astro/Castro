@@ -2042,9 +2042,9 @@ Castro::advance_no_hydro (Real time,
         
 #ifdef REACTIONS
 #ifdef TAU
-       react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
+       react_half_dt(S_new,reactions_new,tau_diff,cur_time-0.5*dt,dt);
 #else
-       react_half_dt(S_new,reactions_new,cur_time,dt);
+       react_half_dt(S_new,reactions_new,cur_time-0.5*dt,dt);
 #endif
 #endif
 
