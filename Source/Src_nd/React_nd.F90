@@ -66,6 +66,10 @@ contains
              call eos(eos_input_re, eos_state_in)
              call eos_to_burn(eos_state_in, burn_state_in)
 
+             burn_state_in % i = i
+             burn_state_in % j = j
+             burn_state_in % k = k
+
              ! Now reset the internal energy to zero for the burn state.
 
              burn_state_in % e = ZERO
