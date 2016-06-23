@@ -3772,9 +3772,9 @@ Castro::build_fine_mask()
     {
         FArrayBox& fab = (*fine_mask)[mfi];
 
-	std::vector< std::pair<int,Box> > isects = baf.intersections(fab.box());
+	const std::vector< std::pair<int,Box> >& isects = baf.intersections(fab.box());
 
-	for (int ii = 0; ii < isects.size(); ii++)
+	for (int ii = 0; ii < isects.size(); ++ii)
 	{
 	    fab.setVal(0.0,isects[ii].second,0);
 	}
@@ -3813,7 +3813,7 @@ Castro::build_interior_boundary_mask (int ng)
 
 	fab.setVal(1);
 
-	std::vector< std::pair<int,Box> > isects = grids.intersections(bx);
+	const std::vector< std::pair<int,Box> >& isects = grids.intersections(bx);
 	for (int ii = 0; ii < isects.size(); ii++)
 	{
 	    fab.setVal(0,isects[ii].second,0);
@@ -3829,7 +3829,7 @@ Castro::build_interior_boundary_mask (int ng)
 		const IntVect& iv   = *pit;
 		const Box&     shft = bx + iv;
 
-		isects = grids.intersections(shft);
+		const std::vector< std::pair<int,Box> >& isects = grids.intersections(shft);
 		for (int ii = 0; ii < isects.size(); ii++)
 		{
 		    const Box& dst = isects[ii].second - iv;
