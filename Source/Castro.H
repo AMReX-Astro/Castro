@@ -321,6 +321,7 @@ public:
 #ifdef TAU
 		       MultiFab& tau,
 #endif
+		       const iMultiFab& mask,
 		       Real time, 
 		       Real dt,
 		       int  ngrow = 0);
