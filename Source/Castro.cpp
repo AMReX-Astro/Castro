@@ -3817,9 +3817,7 @@ Castro::build_interior_boundary_mask (int ng)
 	int idx = mfi.index();
 	for (int ii = 0; ii < isects.size(); ii++)
 	{
-	    if (isects[ii].first != idx) { 
-		fab.setVal(0,isects[ii].second,0);
-	    }
+	    fab.setVal(0,isects[ii].second,0);
 	}
 
 	if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
@@ -3840,6 +3838,8 @@ Castro::build_interior_boundary_mask (int ng)
 		}		
 	    }
 	}
+
+	fab.setVal(1,mfi.validbox(),0);
     }
 
     return imf;
