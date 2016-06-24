@@ -3809,36 +3809,38 @@ Castro::build_interior_boundary_mask (int ng)
     for (MFIter mfi(imf); mfi.isValid(); ++mfi)
     {
         IArrayBox& fab = imf[mfi];
-	const Box& bx = fab.box();
-
 	fab.setVal(1);
 
-	const std::vector< std::pair<int,Box> >& isects = grids.intersections(bx);
-	for (int ii = 0; ii < isects.size(); ii++)
+	if (ng > 0)
 	{
-	    fab.setVal(0,isects[ii].second,0);
-	}
-
-	if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
-	{
-	    Array<IntVect> pshifts(26);
-	    geom.periodicShift(the_domain, bx, pshifts);
-	    for (Array<IntVect>::const_iterator pit = pshifts.begin();
-		 pit != pshifts.end(); ++pit)
+	    const Box& bx = fab.box();	
+	    const std::vector< std::pair<int,Box> >& isects = grids.intersections(bx);
+	    for (int ii = 0; ii < isects.size(); ii++)
 	    {
-		const IntVect& iv   = *pit;
-		const Box&     shft = bx + iv;
-
-		const std::vector< std::pair<int,Box> >& isects = grids.intersections(shft);
-		for (int ii = 0; ii < isects.size(); ii++)
-		{
-		    const Box& dst = isects[ii].second - iv;
-		    fab.setVal(0,dst,0);
-		}		
+		fab.setVal(0,isects[ii].second,0);
 	    }
-	}
 
-	fab.setVal(1,mfi.validbox(),0);
+	    if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
+	    {
+		Array<IntVect> pshifts(26);
+		geom.periodicShift(the_domain, bx, pshifts);
+		for (Array<IntVect>::const_iterator pit = pshifts.begin();
+		     pit != pshifts.end(); ++pit)
+	        {
+		    const IntVect& iv   = *pit;
+		    const Box&     shft = bx + iv;
+
+		    const std::vector< std::pair<int,Box> >& isects = grids.intersections(shft);
+		    for (int ii = 0; ii < isects.size(); ii++)
+		    {
+			const Box& dst = isects[ii].second - iv;
+			fab.setVal(0,dst,0);
+		    }		
+		}
+	    }
+
+	    fab.setVal(1,mfi.validbox(),0);
+	}
     }
 
     return imf;
