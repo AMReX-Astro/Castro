@@ -47,9 +47,9 @@ module burn_type_module
     double precision :: abar             = init_num
     double precision :: zbar             = init_num
 
-    integer :: i = -1
-    integer :: j = -1
-    integer :: k = -1
+    integer :: i = -100
+    integer :: j = -100
+    integer :: k = -100
 
     ! Last temperature we evaluated the EOS at
     double precision :: T_old            = init_num
