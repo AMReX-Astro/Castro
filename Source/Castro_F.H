@@ -667,6 +667,7 @@ extern "C"
 #ifdef TAU
      const BL_FORT_FAB_ARG_3D(Tau),
 #endif
+     const BL_FORT_IFAB_ARG_3D(mask),
      const Real& time, const Real& dt_react);
 
   void ca_tempdiffextrap
