@@ -15,7 +15,9 @@ subroutine do_burn() bind(C)
 
   double precision, parameter :: time = 0.0d0, dt = 1.0d-3
 
-  integer, parameter :: lo(3) = [0, 0, 0], hi(3) = [7, 7, 7], w(3) = hi - lo + 1
+  integer, parameter :: lo(3) = [0, 0, 0]
+  integer, parameter :: hi(3) = [7, 7, 7]
+  integer, parameter :: w(3) = hi - lo + 1
 
   double precision, parameter :: dens_min = 1.0d7, dens_max = 5.0d7
   double precision, parameter :: temp_min = 1.0d9, temp_max = 5.0d9
@@ -42,6 +44,7 @@ subroutine do_burn() bind(C)
   enddo
 
   call runtime_init(probin_pass(1:len(trim(probin_file))), len(trim(probin_file)))
+  call set_castro_method_params()
 
   call network_init()
   call actual_rhs_init()
@@ -62,23 +65,7 @@ subroutine do_burn() bind(C)
   UFS = 8
   UFX = -1
 
-  do_acc = 1
-
-  ! Need to play the same hack for some of the other meth_params variables.
-
-  react_T_min = temp_min / 2.0
-  react_T_max = temp_max * 2.0
-
-  react_rho_min = dens_min / 2.0
-  react_rho_max = dens_max * 2.0
-
-  disable_shock_burning = 0
-
-  smallt = react_T_min
-  smalld = react_rho_min
-
-  !$acc update device(URHO, UTEMP, UEINT, UEDEN, UMX, UMY, UMZ, UFS, UFX, do_acc)
-  !$acc update device(react_T_min, react_T_max, react_rho_min, react_rho_max, disable_shock_burning)
+  !$acc update device(URHO, UTEMP, UEINT, UEDEN, UMX, UMY, UMZ, UFS, UFX)
 
   ! Update the extern probin variables
 
