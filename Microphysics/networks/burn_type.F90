@@ -92,11 +92,11 @@ module burn_type_module
 
     ! Zone index information.
 
-    integer          :: i = -100
-    integer          :: j = -100
-    integer          :: k = -100
+    integer          :: i != -100
+    integer          :: j != -100
+    integer          :: k != -100
 
-    double precision :: time = -1.d0
+    double precision :: time != -1.d0
 
   end type burn_t
 
