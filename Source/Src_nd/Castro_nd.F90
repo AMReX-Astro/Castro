@@ -521,8 +521,10 @@
         diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
 
+#ifdef ROTATION
         rot_vec = ZERO
         rot_vec(rot_axis) = ONE
+#endif
 
         !---------------------------------------------------------------------
         ! safety checks
