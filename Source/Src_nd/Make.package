@@ -4,8 +4,7 @@ F90EXE_sources += Castro_util.F90
 F90EXE_sources += advection_util_nd.F90
 f90EXE_sources += Tagging_nd.f90
 f90EXE_sources += Problem.f90
-f90EXE_sources += set_castro_params.f90
-f90EXE_sources += meth_params.f90
+F90EXE_sources += meth_params.F90
 f90EXE_sources += prob_params.f90
 f90EXE_sources += update_sponge_params.f90
 
@@ -60,3 +59,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
 f90EXE_sources += Diffusion_nd.f90
 f90EXE_sources += Enthalpy_nd.f90
 endif
+
+f90EXE_sources += parmparse_mod.f90
+f90EXE_sources += string_mod.f90
+CEXE_sources   += parmparse_fi.cpp

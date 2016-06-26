@@ -1,7 +1,9 @@
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
-! These parameter are initialized in set_method_params() 
+! The Fortran-specific parameters are initialized in set_method_params(),
+! and the ones that we are mirroring from C++ and obtaining through the
+! ParmParse module are initialized in set_castro_method_params().
 
 module meth_params_module
 
@@ -53,6 +55,7 @@ module meth_params_module
   
   character(len=:), allocatable :: gravity_type
   
+  ! Begin the declarations of the ParmParse parameters
 
   double precision, save :: difmag
   double precision, save :: small_dens
@@ -119,6 +122,111 @@ module meth_params_module
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
 
+  ! End the declarations of the ParmParse parameters
+
   double precision, save :: rot_vec(3)
+
+contains
+
+  subroutine set_castro_method_params() bind(C,name="set_castro_method_params")
+
+    use parmparse_module, only: parmparse_build, parmparse_destroy, ParmParse
+
+    implicit none
+
+    type (ParmParse) :: pp
+
+    call parmparse_build(pp, "castro")
+
+    call pp%query("difmag", difmag)
+    call pp%query("small_dens", small_dens)
+    call pp%query("small_temp", small_temp)
+    call pp%query("small_pres", small_pres)
+    call pp%query("small_ener", small_ener)
+    call pp%query("do_hydro", do_hydro)
+    call pp%query("hybrid_hydro", hybrid_hydro)
+    call pp%query("ppm_type", ppm_type)
+    call pp%query("ppm_reference", ppm_reference)
+    call pp%query("ppm_trace_sources", ppm_trace_sources)
+    call pp%query("ppm_temp_fix", ppm_temp_fix)
+    call pp%query("ppm_tau_in_tracing", ppm_tau_in_tracing)
+    call pp%query("ppm_predict_gammae", ppm_predict_gammae)
+    call pp%query("ppm_reference_edge_limit", ppm_reference_edge_limit)
+    call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
+    call pp%query("hybrid_riemann", hybrid_riemann)
+    call pp%query("use_colglaz", use_colglaz)
+    call pp%query("riemann_solver", riemann_solver)
+    call pp%query("cg_maxiter", cg_maxiter)
+    call pp%query("cg_tol", cg_tol)
+    call pp%query("cg_blend", cg_blend)
+    call pp%query("use_flattening", use_flattening)
+    call pp%query("ppm_flatten_before_integrals", ppm_flatten_before_integrals)
+    call pp%query("transverse_use_eos", transverse_use_eos)
+    call pp%query("transverse_reset_density", transverse_reset_density)
+    call pp%query("transverse_reset_rhoe", transverse_reset_rhoe)
+    call pp%query("dual_energy_update_E_from_e", dual_energy_update_E_from_e)
+    call pp%query("dual_energy_eta1", dual_energy_eta1)
+    call pp%query("dual_energy_eta2", dual_energy_eta2)
+    call pp%query("dual_energy_eta3", dual_energy_eta3)
+    call pp%query("use_pslope", use_pslope)
+    call pp%query("fix_mass_flux", fix_mass_flux)
+    call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
+    call pp%query("density_reset_method", density_reset_method)
+    call pp%query("allow_negative_energy", allow_negative_energy)
+    call pp%query("allow_small_energy", allow_small_energy)
+    call pp%query("do_sponge", do_sponge)
+    call pp%query("cfl", cfl)
+    call pp%query("dtnuc_e", dtnuc_e)
+    call pp%query("dtnuc_X", dtnuc_X)
+    call pp%query("dtnuc_mode", dtnuc_mode)
+    call pp%query("dxnuc", dxnuc)
+    call pp%query("do_react", do_react)
+    call pp%query("react_T_min", react_T_min)
+    call pp%query("react_T_max", react_T_max)
+    call pp%query("react_rho_min", react_rho_min)
+    call pp%query("react_rho_max", react_rho_max)
+    call pp%query("disable_shock_burning", disable_shock_burning)
+    call pp%query("do_grav", do_grav)
+    call pp%query("grav_source_type", grav_source_type)
+    call pp%query("do_rotation", do_rotation)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_dPdt", rot_period_dot)
+#endif
+#ifdef ROTATION
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+#endif
+#ifdef ROTATION
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+#endif
+#ifdef ROTATION
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+#endif
+#ifdef ROTATION
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+#endif
+#ifdef ROTATION
+    call pp%query("rot_source_type", rot_source_type)
+#endif
+#ifdef ROTATION
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+#endif
+#ifdef ROTATION
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef POINTMASS
+    call pp%query("point_mass", point_mass)
+#endif
+#ifdef POINTMASS
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
+    call pp%query("do_acc", do_acc)
+    call pp%query("track_grid_losses", track_grid_losses)
+
+    call parmparse_destroy(pp)
+
+  end subroutine set_castro_method_params
 
 end module meth_params_module

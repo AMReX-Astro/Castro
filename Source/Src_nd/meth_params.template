@@ -1,7 +1,9 @@
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
-! These parameter are initialized in set_method_params() 
+! The Fortran-specific parameters are initialized in set_method_params(),
+! and the ones that we are mirroring from C++ and obtaining through the
+! ParmParse module are initialized in set_castro_method_params().
 
 module meth_params_module
 
@@ -53,9 +55,30 @@ module meth_params_module
   
   character(len=:), allocatable :: gravity_type
   
+  ! Begin the declarations of the ParmParse parameters
 
-  @@f90_declaractions@@
+  @@f90_declarations@@
+
+  ! End the declarations of the ParmParse parameters
 
   double precision, save :: rot_vec(3)
+
+contains
+
+  subroutine set_castro_method_params() bind(C,name="set_castro_method_params")
+
+    use parmparse_module, only: parmparse_build, parmparse_destroy, ParmParse
+
+    implicit none
+
+    type (ParmParse) :: pp
+
+    call parmparse_build(pp, "castro")
+
+    @@set_castro_params@@
+
+    call parmparse_destroy(pp)
+
+  end subroutine set_castro_method_params
 
 end module meth_params_module

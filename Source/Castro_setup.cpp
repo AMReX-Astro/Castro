@@ -244,9 +244,11 @@ Castro::variableSetUp ()
   
   int get_g_from_phi = 0;
   pp.query("get_g_from_phi", get_g_from_phi);
-  
-#include <castro_call_set_meth.H>    
-    
+
+  // Read in the input values to Fortran.
+
+  set_castro_method_params();
+
   set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
 		    NumAdv,
 #ifdef SHOCK_VAR

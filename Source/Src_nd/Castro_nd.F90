@@ -315,11 +315,10 @@
                                    const_grav_in) &
                                    bind(C, name="set_method_params")
 
-        ! Passing data from C++ into f90
-
         use meth_params_module
         use network, only : nspec, naux
-        use parallel
+        use parallel, only : parallel_initialize
+        use eos_module, only : eos_init, eos_get_small_dens, eos_get_small_temp
         use bl_constants_module, only : ZERO, ONE
 
         implicit none
@@ -507,6 +506,8 @@
         ! other initializations
         !---------------------------------------------------------------------
 
+        ! This is a routine which links to the C++ ParallelDescriptor class
+
         call bl_pd_is_ioproc(ioproc)
 
         allocate(character(len=gravity_type_len) :: gravity_type)
@@ -522,7 +523,42 @@
 
         rot_vec = ZERO
         rot_vec(rot_axis) = ONE
-        
+
+        !---------------------------------------------------------------------
+        ! safety checks
+        !---------------------------------------------------------------------
+
+        if (small_dens <= 0.0) then
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
+           endif
+           small_dens = 1.d-200
+        endif
+
+        if (small_temp <= 0.d0) then
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_temp has not been set, defaulting to 1.d-200.")
+           endif
+           small_temp = 1.d-200
+        endif
+
+        if (small_pres <= 0.d0) then
+           small_pres = 1.d-200
+        endif
+
+        if (small_ener <= 0.d0) then
+           small_ener = 1.d-200
+        endif
+
+        call eos_init(small_dens=small_dens, small_temp=small_temp)
+
+        ! The EOS might have modified our choices because of its
+        ! internal limitations, so let's get small_dens and small_temp
+        ! again just to make sure we're consistent with the EOS.
+
+        call eos_get_small_dens(small_dens)
+        call eos_get_small_temp(small_temp)
+
       end subroutine set_method_params
 
 

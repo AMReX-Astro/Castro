@@ -55,13 +55,13 @@ extern "C"
      const Real& diffuse_cutoff_density, 
      const Real& const_grav);
 
+  void set_castro_method_params();
+
 #ifdef RADIATION
   void init_godunov_indices_rad();
 #else
   void init_godunov_indices();
 #endif
-
-#include <castro_set_meth.H>
 
   void set_problem_params
     (const int& dm,
