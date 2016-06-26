@@ -45,7 +45,10 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
 
-    !$acc data copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, dt_react, time) copy(state, reactions) if(do_acc == 1)
+    !$acc data &
+    !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
+    !$acc copyin(mask) &
+    !$acc copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
