@@ -559,6 +559,17 @@
         call eos_get_small_dens(small_dens)
         call eos_get_small_temp(small_temp)
 
+        ! Update device variables
+
+        !$acc update &
+        !$acc device(NTHERM, NVAR) &
+        !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
+        !$acc device(USHK) &
+        !$acc device(QTHERM, QVAR) &
+        !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
+        !$acc device(QGAMC, QGAME) &
+        !$acc device(QFA, QFS, QFX)
+
       end subroutine set_method_params
 
 

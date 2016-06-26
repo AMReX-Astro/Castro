@@ -54,7 +54,18 @@ module meth_params_module
   logical, save :: get_g_from_phi
   
   character(len=:), allocatable :: gravity_type
-  
+
+  ! Create versions of these variables on the GPU
+
+  !$acc declare &
+  !$acc create(NTHERM, NVAR) &
+  !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
+  !$acc create(USHK) &
+  !$acc create(QTHERM, QVAR) &
+  !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
+  !$acc create(QGAMC, QGAME) &
+  !$acc create(QFA, QFS, QFX)
+
   ! Begin the declarations of the ParmParse parameters
 
   @@f90_declarations@@
