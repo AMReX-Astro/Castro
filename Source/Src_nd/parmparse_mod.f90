@@ -14,8 +14,12 @@ module parmparse_module
    contains
      generic :: get      => get_int, get_double, get_logical
      generic :: query    => query_int, query_double, query_logical
-     procedure, private :: get_int, get_double, get_logical
-     procedure, private :: query_int, query_double, query_logical
+     procedure, private :: get_int
+     procedure, private :: get_double
+     procedure, private :: get_logical
+     procedure, private :: query_int
+     procedure, private :: query_double
+     procedure, private :: query_logical
   end type ParmParse
 
   ! interfaces to cpp functions
@@ -87,12 +91,8 @@ contains
 
   subroutine parmparse_build (pp, name)
     type(ParmParse) :: pp
-    character(*), intent(in), optional :: name
-    if (present(name)) then
-       call fi_new_parmparse(pp%p, string_f_to_c(name))
-    else
-       call fi_new_parmparse(pp%p, c_char_""//c_null_char)
-    end if
+    character(*), intent(in) :: name
+    call fi_new_parmparse(pp%p, string_f_to_c(name))
   end subroutine parmparse_build
 
   subroutine parmparse_destroy (this)
