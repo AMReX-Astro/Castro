@@ -84,6 +84,29 @@ class Param(object):
 
         return ostr
 
+    def get_f90_default_string(self):
+        # this is the line that goes into set_castro_method_params()
+        # to set the default value of the variable
+
+        ostr = ""
+
+        if not self.ifdef is None:
+            ostr = "#ifdef {}\n".format(self.ifdef)
+
+        if not self.debug_default is None:
+            ostr += "#ifdef DEBUG\n"
+            ostr += "    {} = {};\n".format(self.f90_name, self.debug_default)
+            ostr += "#else\n"
+            ostr += "    {} = {};\n".format(self.f90_name, self.default)
+            ostr += "#endif\n"
+        else:
+            ostr += "    {} = {};\n".format(self.f90_name, self.default)
+
+        if not self.ifdef is None:
+            ostr += "#endif\n"
+
+        return ostr
+
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
@@ -174,6 +197,11 @@ def write_meth_module(plist, meth_template):
             mo.write(decls)
 
         elif line.find("@@set_castro_params@@") >= 0:
+            for p in params:
+                mo.write(p.get_f90_default_string())
+
+            mo.write("\n")
+
             for p in params:
                 mo.write(p.get_query_string("F90"))
 

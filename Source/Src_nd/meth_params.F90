@@ -138,6 +138,93 @@ contains
 
     call parmparse_build(pp, "castro")
 
+    difmag = 0.1;
+    small_dens = -1.e200;
+    small_temp = -1.e200;
+    small_pres = -1.e200;
+    small_ener = -1.e200;
+    do_hydro = -1;
+    hybrid_hydro = 0;
+    ppm_type = 1;
+    ppm_reference = 1;
+    ppm_trace_sources = 0;
+    ppm_temp_fix = 0;
+    ppm_tau_in_tracing = 0;
+    ppm_predict_gammae = 0;
+    ppm_reference_edge_limit = 1;
+    ppm_reference_eigenvectors = 0;
+    hybrid_riemann = 0;
+    use_colglaz = 0;
+    riemann_solver = 0;
+    cg_maxiter = 12;
+    cg_tol = 1.0e-5;
+    cg_blend = 0;
+    use_flattening = 1;
+    ppm_flatten_before_integrals = 1;
+    transverse_use_eos = 0;
+    transverse_reset_density = 1;
+    transverse_reset_rhoe = 0;
+    dual_energy_update_E_from_e = 1;
+    dual_energy_eta1 = 1.0e0;
+    dual_energy_eta2 = 1.0e-4;
+    dual_energy_eta3 = 1.0e0;
+    use_pslope = 1;
+    fix_mass_flux = 0;
+    limit_fluxes_on_small_dens = 0;
+    density_reset_method = 1;
+    allow_negative_energy = 1;
+    allow_small_energy = 1;
+    do_sponge = 0;
+    cfl = 0.8;
+    dtnuc_e = 1.e200;
+    dtnuc_X = 1.e200;
+    dtnuc_mode = 1;
+    dxnuc = 1.e200;
+    do_react = -1;
+    react_T_min = 0.0;
+    react_T_max = 1.e200;
+    react_rho_min = 0.0;
+    react_rho_max = 1.e200;
+    disable_shock_burning = 0;
+    do_grav = -1;
+    grav_source_type = 2;
+    do_rotation = -1;
+#ifdef ROTATION
+    rot_period = -1.e200;
+#endif
+#ifdef ROTATION
+    rot_period_dot = 0.0;
+#endif
+#ifdef ROTATION
+    rotation_include_centrifugal = 1;
+#endif
+#ifdef ROTATION
+    rotation_include_coriolis = 1;
+#endif
+#ifdef ROTATION
+    rotation_include_domegadt = 1;
+#endif
+#ifdef ROTATION
+    state_in_rotating_frame = 1;
+#endif
+#ifdef ROTATION
+    rot_source_type = 1;
+#endif
+#ifdef ROTATION
+    implicit_rotation_update = 0;
+#endif
+#ifdef ROTATION
+    rot_axis = 3;
+#endif
+#ifdef POINTMASS
+    point_mass = 0.0;
+#endif
+#ifdef POINTMASS
+    point_mass_fix_solution = 1;
+#endif
+    do_acc = -1;
+    track_grid_losses = 0;
+
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
