@@ -4,6 +4,7 @@
 
 #include <BC_TYPES.H>
 #include <AmrLevel.H>
+#include <iMultiFab.H>
 #include <ErrorList.H>
 #include <FluxRegister.H>
 #include <BL_CXX11.H>
@@ -110,6 +111,7 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     VisMF::How     how) BL_OVERRIDE;
+    void writeJobInfo (const std::string& dir);
 
     //
     //Define data descriptors.
@@ -319,6 +321,7 @@ public:
 #ifdef TAU
 		       MultiFab& tau,
 #endif
+		       const iMultiFab& mask,
 		       Real time, 
 		       Real dt,
 		       int  ngrow = 0);
@@ -475,6 +478,13 @@ public:
 
 protected:
 
+    //
+    // Build a mask that ghost cells overlapping with interior cells in the same multifab
+    // are set to 0, whereas others are set to 1.
+    //
+    PArray<iMultiFab> ib_mask;
+    const iMultiFab& build_interior_boundary_mask (int ng);
+
     int get_numpts();
 
     //
@@ -528,6 +538,8 @@ protected:
     void write_center ();
 #endif
 
+    void stopJob ();
+
     //
     // The data.
     //
@@ -547,6 +559,7 @@ protected:
     //
 #include <castro_params.H>
 
+    static bool      signalStopJob;
     static int       checkpoint_version;
     static bool      dump_old;
     static int       radius_grow;
@@ -659,6 +672,13 @@ Castro&
 Castro::getLevel (int lev)
 {
     return *(Castro *) &parent->getLevel(lev);
+}
+
+inline
+void
+Castro::stopJob()
+{
+  signalStopJob = true;
 }
 
 inline

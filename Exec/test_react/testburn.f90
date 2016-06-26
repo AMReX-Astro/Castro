@@ -24,6 +24,7 @@ subroutine do_burn() bind(C)
 
   double precision :: state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nv)
   double precision :: reactions(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nspec+2)
+  integer          :: mask(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
   integer :: i, j, k
 
@@ -104,13 +105,15 @@ subroutine do_burn() bind(C)
            state(i,j,k,UEDEN)           = eos_state % rho * eos_state % e
            state(i,j,k,UMX:UMZ)         = ZERO
 
+           mask(i,j,k) = 1
+
         enddo
      enddo
   enddo
 
   call cpu_time(start)
 
-  call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, time, dt)
+  call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, mask, lo, hi, time, dt)
 
   call cpu_time(finish)
 

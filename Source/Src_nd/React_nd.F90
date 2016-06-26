@@ -9,6 +9,7 @@ contains
   subroutine ca_react_state(lo,hi, &
                             state,s_lo,s_hi, &
                             reactions,r_lo,r_hi, &
+                            mask,m_lo,m_hi, &
                             time,dt_react) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
@@ -32,8 +33,10 @@ contains
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
     integer          :: r_lo(3), r_hi(3)
+    integer          :: m_lo(3), m_hi(3)
     double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     double precision :: time, dt_react
 
     integer          :: i, j, k, n
@@ -85,6 +88,24 @@ contains
              call eos(eos_input_re, eos_state_in)
              call eos_to_burn(eos_state_in, burn_state_in)
 
+             if (i >= lo(1) .and. i <= hi(1)) then
+                burn_state_in % i = i
+             else
+                burn_state_in % i = -1
+             endif
+
+             if (j >= lo(2) .and. j <= hi(2)) then 
+                burn_state_in % j = j
+             else
+                burn_state_in % j = -1
+             endif
+
+             if (k >= lo(3) .and. k <= hi(3)) then
+                burn_state_in % k = k
+             else
+                burn_state_in % k = -1
+             endif
+
              ! Now reset the internal energy to zero for the burn state.
 
              burn_state_in % e = ZERO
@@ -97,7 +118,15 @@ contains
              endif
 #endif
 
-             call burner(burn_state_in, burn_state_out, dt_react, time)
+             ! Initialize the final state so that it has valid data in case this zone is masked out.
+
+             burn_state_out = burn_state_in
+
+             ! Don't burn on zones that we are intentionally masking out.
+
+             if (mask(i,j,k) == 1) then
+                call burner(burn_state_in, burn_state_out, dt_react, time)
+             endif
 
              ! Note that we want to update the total energy by taking the difference of the old
              ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,

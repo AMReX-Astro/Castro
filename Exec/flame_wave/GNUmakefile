@@ -5,8 +5,8 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = g++
-FCOMP	   = gfortran
+COMP	   = Intel
+FCOMP	   = Intel
 
 USE_MPI    = TRUE
 
@@ -17,6 +17,9 @@ USE_MODELPARSER  = TRUE
 
 USE_ROTATION  = TRUE
 USE_DIFFUSION = TRUE
+
+# define the location of the CASTRO top directory
+CASTRO_DIR  := ../..
 
 ifdef MICROPHYSICS_DIR
 

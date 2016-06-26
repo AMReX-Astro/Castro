@@ -1030,9 +1030,9 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, QVAR, NGDNV, track_grid_losses
+         UEDEN, UEINT, UTEMP, QVAR, NGDNV, track_grid_losses, limit_fluxes_on_small_dens
     use bl_constants_module
-    use advection_util_module, only : normalize_species_fluxes
+    use advection_util_3d_module, only : normalize_species_fluxes, limit_hydro_fluxes_on_small_dens
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
     use amrinfo_module, only : amr_level
@@ -1133,6 +1133,15 @@ contains
        endif
 
     enddo
+
+    if (limit_fluxes_on_small_dens == 1) then
+       call limit_hydro_fluxes_on_small_dens(uin,  uin_lo,  uin_hi,   &
+                                             flux1,flux1_lo,flux1_hi, &
+                                             flux2,flux2_lo,flux2_hi, &
+                                             flux3,flux3_lo,flux3_hi, &
+                                             vol,  vol_lo,  vol_hi,   &
+                                             lo, hi)
+    endif
 
     call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
                                   flux2,flux2_lo,flux2_hi, &

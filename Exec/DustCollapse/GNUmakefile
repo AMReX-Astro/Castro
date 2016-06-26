@@ -22,7 +22,7 @@ EOS_dir     := gamma_law
 
 # This sets the EOS directory in $(CASTRO_DIR)/Networks
 Network_dir := general_null
-GENERAL_NET_INPUTS = $(CASTRO_DIR)/Networks/$(Network_dir)/ignition.net
+GENERAL_NET_INPUTS = $(CASTRO_DIR)/Microphysics/networks/$(Network_dir)/ignition.net
 
 Bpack	:= ./Make.package
 Blocs	:= .

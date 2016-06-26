@@ -1,0 +1,5 @@
+const_viscosity      real     1.0d-4
+const_opacity        real     7.0d-2
+
+
+

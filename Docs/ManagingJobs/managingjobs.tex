@@ -1,0 +1,206 @@
+\section{General Info}
+
+
+\section{Linux boxes}
+
+The GCC compilers are the preferred compilers on Linux machines.
+\castro\ runs without issue with GCC 5.3, although anything in the 5.x
+series should work fine.
+
+The PGI compilers (16.4) are also tested with Castro and have no known
+issues.
+
+\section{Working at OLCF (ORNL)}
+
+
+\subsection{Automatic Restarting and Archiving of Data}
+
+The submission script {\tt jaguar.run} and shell script
+{\tt process.jaguar} in {\tt Exec/job\_scripts/}
+are designed to allow you to run CASTRO with minimal interaction,
+while being assured that the data is archived to HPSS on the NCCS
+machines.
+
+To use the scripts, first create a directory in HPSS that has the same
+name as the directory on lustre you are running in (just the directory
+name, not the full path).  E.g.\ if you are running in a directory
+called {\tt Castro\_run}, then do:
+\begin{verbatim}
+hsi
+mkdir Castro_run
+\end{verbatim}
+
+The script {\tt process.jaguar} is called from {\tt jaguar.run} and
+will run in the background and continually wait until checkpoint or
+plotfiles are created (actually, it always leaves the most recent one
+alone, since data may still be written to it, so it waits until there
+are more than one in the directory).
+
+Then the script will use {\tt htar} to archive the plotfiles and checkpoints
+to HPSS.  If the {\tt htar} command was successful, then the plotfiles are
+copied into a {\tt plotfile/} subdirectory.  This is actually important,
+since you don't want to try archiving the data a second time and
+overwriting the stored copy, especially if a purge took place.
+
+Additionally, if you have the path to the {\tt ftime} executable set in the
+script ({\tt ftime.f90} lives in {\tt BoxLib/Tools/Postprocessing/F\_Src/}), then the
+script will create a file called {\tt ftime.out} that lists the name of the
+plotfile and the corresponding simulation time.
+
+Finally, right when the job is submitted, the script will tar up all
+of the diagnostic files created by {\tt diag.f90} and archive them on HPSS.
+The {\tt .tar} file is given a name that contains the date-string to allow
+multiple archives to co-exist.
+
+This really allows you to run the job and have all of the data stored
+long term automatically.  This way you don't need to worry about
+filesystem purges.  It seems to work well.
+
+Also, the {\tt jaguar.run} submission script has code in it that will look
+at the most recently generated checkpoint files, make sure that they
+were written out correctly (it looks to see if there is a Header file,
+since that is the last thing written), and automatically set the
+{\tt --restart} flag on the run line to restart from the most recent
+checkpoint file.
+
+This allows you to job-chain a bunch of submission and have them wait
+until the previous job finished and then automatically queue up:
+\begin{verbatim}
+qsub -W depend=afterany:<JOB-ID>  <QSUB SCRIPT>
+\end{verbatim}
+where {\tt <JOB-ID>} is the id number of the job that must complete
+before the new submission runs and {\tt QSUB SCRIPT} is the submission
+script (e.g.\ {\tt jaguar.run}).
+This way you can queue up a bunch of runs and literally leave things
+alone and it will restart from the right place automatically and store
+the data as it is generated.
+
+When {\tt process.jaguar} is running, it creates a lockfile (called
+{\tt process.pid}) that ensures that only one instance of the script
+is running at any one time.  Sometimes if the machine crashes, the
+{\tt process.pid} file will be left behind, in which case, the script
+aborts.  Just delete that if you know the script is not running.
+
+Analogous scripts exist for running on Atlas, with the same general
+procedure.  The command to chain a job on atlas is:
+\begin{verbatim}
+msub -l depend=<JOB-ID> <MSUB SCRIPT>
+\end{verbatim}
+where, again, {\tt <JOB-ID>} is the id number of the job that must
+complete before the current submission runs and {\tt <MSUB SCRIPT>}
+is the job submission script (e.g.\ {\tt atlas.run}).
+
+
+\section{Working at NERSC}
+
+\subsection{General issues}
+
+\begin{itemize}
+
+\item 3/1/16: The default version loaded of Python on Edison and Cori
+  (2.6.9) is not recent enough to support the Python scripts in our
+  build system. At the terminal, do {\tt module load python} to fix
+  this.
+
+  Note: if you want to swap from the default Intel compilers to the 
+  Cray compiler, this will break the python installation.  The workaround
+  is to do:
+  \begin{verbatim}
+    $ module rm PrgEnv-intel
+    $ module load PrgEnv-cray
+  \end{verbatim}
+
+\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
+  cannot compile BoxLib. To fix this, switch to an earlier version
+  (e.g., at the terminal, do {\tt module swap intel
+    intel/15.0.1.133}).
+
+
+\end{itemize}
+
+\subsection{Edison compilers}
+
+The default compilers on edison are the Intel compilers.  Intel version 15.0
+works well with \castro.
+
+
+\subsection{Hypre and radiation}
+
+On edison, the Cray {\em Third Party Scientific Libraries} provide
+{\sf hypre} in a form that works directly with the compiler wrappers
+used on that machine ({\tt CC}, {\tt ftn}, $\ldots$).  To use this,
+simply do:
+\begin{verbatim}
+module load cray-tpsl
+\end{verbatim}
+There is no need to set {\tt HYPRE\_DIR}, but not however that the 
+dependency checker script ({\tt BoxLib/Tools/C\_scripts/mkdep}) will
+complain about:
+\begin{verbatim}
+/path/to/Hypre--with-openmp/include does not exist
+\end{verbatim}
+This can be ignored an compilation will finish.  If you do wish to 
+silence it, you can set {\tt HYPRE\_DIR} to the path shown by
+\begin{verbatim}
+module show cray-tpsl
+\end{verbatim}
+as
+\begin{verbatim}
+export HYPRE_DIR=${CRAY_TPSL_PREFIX_DIR}
+\end{verbatim}
+This path will change dynamically to reflect which compiler programming
+environment you have loaded.  (You can also see that this is the path
+sent to the compilation by doing {\tt ftn -craype-verbose}).
+
+
+\subsection{Running jobs}
+
+A sample jobs script is in {\tt Castro/Util/job\_scripts/edison/}, and 
+includes logic to automatically add the correct restart options to the 
+run to continue a simulation from the last checkpoint file in the 
+submission directory.
+
+
+\section{Working at LANL}
+
+For the following LANL systems, which all have access to a joint file system,
+\begin{itemize}
+  \item Cielito
+  \item Conejo
+  \item Lightshow
+  \item Moonlight
+  \item Pinto
+  \item Wolf
+  \item Mustang
+  \item Trinitite
+\end{itemize}
+the following steps are needed to get Castro compiling (reported by Platon Karpov, 6/13/2016):
+
+1) Compile on the login node (thus host is lanl.gov)\\
+2) Do \textit{not} set env variable \texttt{BOXLIB\_USE\_MPI\_WRAPPERS} at all\\
+3) Execute \texttt{module load python-epd} at the command line, but do \textit{not} load anaconda\\
+
+
+\section{Scaling}
+
+Data from scaling studies is archived in {\tt Castro/Docs/ManagingJobs/scaling/}
+
+Needs to be updated
+
+
+
+\section{Gotyas}
+
+\begin{enumerate}
+
+\item 3/4/16: The default version loaded of Python on Mira is not
+  recent enough to support the Python scripts in our build system. Add
+  {\tt +python} to your {\tt .soft} to fix this.
+
+\item 2/18/16: The default version loaded of Python on Titan (2.6.9)
+  is not recent enough to support the Python scripts in our build
+  system. At the terminal, do {\tt module load python} to fix this.
+
+
+\end{enumerate}
+

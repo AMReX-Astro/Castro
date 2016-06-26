@@ -55,6 +55,7 @@ using std::string;
 #include <omp.h>
 #endif
 
+bool         Castro::signalStopJob = false;
 
 int          Castro::checkpoint_version = 1;
 
@@ -597,6 +598,7 @@ Castro::Castro (Amr&            papa,
    MultiFab& new_sgs_mf = get_new_data(SGS_Type);
    new_sgs_mf.setVal(0.0);
 #endif
+
 }
 
 Castro::~Castro () 
@@ -705,6 +707,9 @@ Castro::setGridInfo ()
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
       int domhi_level[3*nlevs];
+      int ref_ratio_to_f[3*nlevs];
+      int n_error_buf_to_f[nlevs];
+      int blocking_factor_to_f[nlevs];
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -716,9 +721,18 @@ Castro::setGridInfo ()
 
 	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
 	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+
+	// Refinement ratio and error buffer on finest level are meaningless,
+	// and we want them to be zero on the finest level because some
+	// of the algorithms depend on this feature.
+
+	ref_ratio_to_f[dir + 3 * (nlevs - 1)] = 0;
+	n_error_buf_to_f[nlevs-1] = 0;
       }
-      
-    
+
+      for (int lev = 0; lev <= max_level; lev++)
+	blocking_factor_to_f[lev] = parent->blockingFactor(lev);
+
       for (int lev = 1; lev <= max_level; lev++) {
 	IntVect ref_ratio = parent->refRatio(lev-1);
 
@@ -730,16 +744,22 @@ Castro::setGridInfo ()
 	for (int dir = 0; dir < 3; dir++)
 	  if (dir < BL_SPACEDIM) {
 	    dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	    int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
 	    domlo_level[3 * lev + dir] = domlo_level[dir];
-	    domhi_level[3 * lev + dir] = domhi_level[3 * (lev - 1) + dir] / ref_ratio[dir];
+	    domhi_level[3 * lev + dir] = domlo_level[3 * lev + dir] + ncell - 1;
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = ref_ratio[dir];
 	  } else {
 	    dx_level[3 * lev + dir] = 0.0;
 	    domlo_level[3 * lev + dir] = 0;
 	    domhi_level[3 * lev + dir] = 0;
+	    ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
 	  }
+
+	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      set_grid_info(max_level, dx_level, domlo_level, domhi_level);
+      set_grid_info(max_level, dx_level, domlo_level, domhi_level,
+		    ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
 
     }
     
@@ -1473,6 +1493,10 @@ Castro::post_timestep (int iteration)
 {
     BL_PROFILE("Castro::post_timestep()");
 
+    // Pass some information about the state of the simulation to a Fortran module.
+
+    set_amr_info(level, iteration, -1, -1.0, -1.0);
+
     //
     // Integration cycle on fine level grids is complete
     // do post_timestep stuff here.
@@ -1546,9 +1570,9 @@ Castro::post_timestep (int iteration)
 	  FArrayBox& stateold = S_old_crse[mfi];
 	  FArrayBox& statenew = S_new_crse[mfi];
 	  
-	  enforce_minimum_density(stateold.dataPtr(), stateold.loVect(), stateold.hiVect(),
-				  statenew.dataPtr(), statenew.loVect(), statenew.hiVect(),
-				  bx.loVect(), bx.hiVect(),
+	  enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				  statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				  ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  &mass_added, &e_added, &E_added, &dens_change,
 				  &verbose);
 
@@ -1613,7 +1637,11 @@ Castro::post_timestep (int iteration)
 		      }
 		      
 		      // Compute sync source
+#ifdef HYBRID_MOMENTUM
+		      sync_src.resize(bx,3+1+3);
+#else
 		      sync_src.resize(bx,3+1);
+#endif
 		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
 				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
@@ -1633,7 +1661,10 @@ Castro::post_timestep (int iteration)
 		      
 		      sync_src.mult(0.5*dt);
 		      S_new_lev[mfi].plus(sync_src,bx,0,Xmom,3);
-		      S_new_lev[mfi].plus(sync_src,bx,0,Eden,1);
+		      S_new_lev[mfi].plus(sync_src,bx,3,Eden,1);
+#ifdef HYBRID_MOMENTUM
+		      S_new_lev[mfi].plus(sync_src,bx,4,Rmom,3);
+#endif
 		  }
 	      }
             }
@@ -1649,6 +1680,27 @@ Castro::post_timestep (int iteration)
         }
 #endif
     }
+
+    // Sync up the hybrid and linear momenta.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef HYBRID_MOMENTUM
+    if (hybrid_hydro) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	const Box& bx = mfi.tilebox();
+
+	hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
+
+      }
+
+    }
+#endif
 
     if (level < finest_level)
         avgDown();
@@ -1710,7 +1762,6 @@ Castro::post_timestep (int iteration)
 #endif
 
     // Re-compute temperature after all the other updates.
-    MultiFab& S_new = getLevel(level).get_new_data(State_Type);
     computeTemp(S_new);
 
 
@@ -1822,6 +1873,11 @@ Castro::post_restart ()
 #else
     init_godunov_indices();
 #endif
+
+#ifdef do_problem_post_restart
+    problem_post_restart();
+#endif
+
 }
 
 void
@@ -2055,7 +2111,17 @@ Castro::okToContinue ()
         return 1;
 
     int test = 1;
-    if (parent->dtLevel(0) < dt_cutoff) test = 0;
+
+    if (signalStopJob) {
+      test = 0;
+      if (ParallelDescriptor::IOProcessor())
+	std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
+    }
+    else if (parent->dtLevel(0) < dt_cutoff) {
+      test = 0;
+      if (ParallelDescriptor::IOProcessor())
+	std::cout << " Signalling a stop of the run because dt < dt_cutoff." << std::endl;
+    }
 
     return test; 
 }
@@ -3480,7 +3546,7 @@ Castro::add_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
 {
   int ng = state.nGrow();
 
-  BL_ASSERT(ng >= sources.nGrow());
+  BL_ASSERT(sources.nGrow() >= ng);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3708,13 +3774,76 @@ Castro::build_fine_mask()
     {
         FArrayBox& fab = (*fine_mask)[mfi];
 
-	std::vector< std::pair<int,Box> > isects = baf.intersections(fab.box());
+	const std::vector< std::pair<int,Box> >& isects = baf.intersections(fab.box());
 
-	for (int ii = 0; ii < isects.size(); ii++)
+	for (int ii = 0; ii < isects.size(); ++ii)
 	{
 	    fab.setVal(0.0,isects[ii].second,0);
 	}
     }
 
     return fine_mask;
+}
+
+const iMultiFab&
+Castro::build_interior_boundary_mask (int ng)
+{
+    for (int i = 0; i < ib_mask.size(); ++i)
+    {
+	if (ib_mask[i].nGrow() == ng) {
+	    return ib_mask[i];
+	}
+    }
+
+    //  If we got here, we need to build a new one
+
+    if (ib_mask.size() == 0) {
+	ib_mask.resize(0,PArrayManage);
+    }
+
+    iMultiFab& imf = *(ib_mask.push_back(new iMultiFab(grids, 1, ng)));
+
+    const Box& the_domain = geom.Domain();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(imf); mfi.isValid(); ++mfi)
+    {
+        IArrayBox& fab = imf[mfi];
+	fab.setVal(1);
+
+	if (ng > 0)
+	{
+	    const Box& bx = fab.box();	
+	    const std::vector< std::pair<int,Box> >& isects = grids.intersections(bx);
+	    for (int ii = 0; ii < isects.size(); ii++)
+	    {
+		fab.setVal(0,isects[ii].second,0);
+	    }
+
+	    if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
+	    {
+		Array<IntVect> pshifts(26);
+		geom.periodicShift(the_domain, bx, pshifts);
+		for (Array<IntVect>::const_iterator pit = pshifts.begin();
+		     pit != pshifts.end(); ++pit)
+	        {
+		    const IntVect& iv   = *pit;
+		    const Box&     shft = bx + iv;
+
+		    const std::vector< std::pair<int,Box> >& isects = grids.intersections(shft);
+		    for (int ii = 0; ii < isects.size(); ii++)
+		    {
+			const Box& dst = isects[ii].second - iv;
+			fab.setVal(0,dst,0);
+		    }		
+		}
+	    }
+
+	    fab.setVal(1,mfi.validbox(),0);
+	}
+    }
+
+    return imf;
 }

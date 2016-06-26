@@ -8,12 +8,6 @@
 #
 # specifically, we write out:
 #
-#   -- castro_set_meth.H  (included in Castro_F.H):
-#      defines the prototype for set_castro_method_params
-#
-#   -- castro_call_set_meth.H  (included in Castro_setup.cpp):
-#      implements the actual call to set_castro_method_params
-#
 #   -- castro_params.H  (included in Castro.H):
 #      declares the static variables of the Castro class
 #
@@ -21,8 +15,11 @@
 #      sets the defaults of the runtime parameters
 #
 #   -- castro_queries.H  (included in Castro.cpp):
-#      does the parmparse query to override the default
+#      does the parmparse query to override the default in C++
 #
+#   -- meth_params.F90
+#      does the parmparse query to override the default in Fortran,
+#      and sets a number of other parameters specific to the F90 routinse
 
 import argparse
 import re
@@ -87,7 +84,7 @@ class Param(object):
 
         return ostr
 
-    def get_query_string(self):
+    def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
         # This goes into castro_queries.H included into Castro.cpp
@@ -95,11 +92,16 @@ class Param(object):
         if not self.ifdef is None:
             ostr += "#ifdef {}\n".format(self.ifdef)
 
-        ostr += "pp.query(\"{}\", {});\n".format(self.name, self.name)
+        if language == "C++":
+            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.name)
+        elif language == "F90":
+            ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
+        else:
+            sys.exit("invalid language choice in get_query_string")
 
         if not self.ifdef is None:
             ostr += "#endif\n".format(self.ifdef)
-        
+
         return ostr
 
     def get_decl_string(self):
@@ -127,21 +129,6 @@ class Param(object):
 
         return ostr
 
-    def get_static_default_string(self):
-        # this is used before the call to set_castro_meth_param to 
-        # give defaults when the ifdef is not defined
-
-        if self.dtype == "int":
-            tstr = "static int {} = {};\n".format(self.name, self.default)
-        elif self.dtype == "Real":
-            tstr = "static Real {} = {};\n".format(self.name, self.default)
-        elif self.dtype == "string":
-            tstr = "static std::string {} = {};\n".format(self.name, self.default)
-        else:
-            sys.exit("invalid data type for parameter {}".format(self.name))
-
-        return tstr
-
     def get_f90_decl_string(self):
         # this is the line that goes into meth_params.f90
 
@@ -159,85 +146,6 @@ class Param(object):
 
         return tstr
 
-    def get_prototype_decl(self):
-        # this give the line in the set_castro_method_params prototype
-        # for this runtime parameter that will be written into
-        # castro_set_meth.H and defined in Castro_F.H
-
-        if not self.in_fortran:
-            return None
-
-        if self.dtype == "int":
-            tstr = "const int& {}".format(self.name)
-        elif self.dtype == "Real":
-            tstr = "const Real& {}".format(self.name)
-        else:
-            sys.exit("unsupported datatype for Fortran: {}".format(self.name))
-
-        return tstr
-
-
-def get_prototype(plist):
-
-    decls = [p.get_prototype_decl() for p in plist if not p.get_prototype_decl() is None]
-
-    indent = 4
-
-    prototype = "void set_castro_method_params\n"
-    prototype += (indent-1)*" " + "("
-
-    for n, d in enumerate(decls):
-        prototype += "{}".format(d)
-        if n == len(decls)-1:
-            prototype += ");\n"
-            break
-
-        else:
-            prototype += ", "
-
-        if n % 2 == 1:
-            prototype += "\n"
-            prototype += indent*" "
-
-    return prototype
-
-
-def get_cpp_call(plist):
-
-    args = [p.name for p in plist if p.in_fortran == 1]
-
-    indent = 4
-
-    call = ""
-
-    # any special ifdefs to deal with?
-    for p in plist:
-        if p.ifdef is None or not p.in_fortran: continue
-        
-        call += "#ifndef {}\n".format(p.ifdef)
-        call += p.get_static_default_string()
-        call += "#endif\n"
-        
-
-    call += "set_castro_method_params\n"
-
-    call += (indent-1)*" " + "("
-
-    for n, a in enumerate(args):
-        call += "{}".format(a)
-        if n == len(args)-1:
-            call += ");\n"
-            break
-
-        else:
-            call += ", "
-
-        if n % 2 == 1:
-            call += "\n"
-            call += indent*" "
-
-    return call
-
 
 def write_meth_module(plist, meth_template):
     """this writes the meth_params_module, starting with the meth_template
@@ -249,11 +157,12 @@ def write_meth_module(plist, meth_template):
     except:
         sys.exit("invalid template file")
 
-    try: mo = open("Src_nd/meth_params.f90", "w")
+    try: mo = open("Src_nd/meth_params.F90", "w")
     except:
-        sys.exit("unable to open meth_params.f90 for writing")
+        sys.exit("unable to open meth_params.F90 for writing")
 
     param_decls = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
+    params = [p for p in plist if p.in_fortran == 1]
 
     decls = ""
 
@@ -261,7 +170,7 @@ def write_meth_module(plist, meth_template):
         decls += "  {}".format(p)
 
     for line in mt:
-        if line.find("@@f90_declaractions@@") > 0:
+        if line.find("@@f90_declarations@@") > 0:
             mo.write(decls)
 
             # Now do the OpenACC declarations
@@ -283,95 +192,35 @@ def write_meth_module(plist, meth_template):
                     else:
                         mo.write(", ")
 
+        elif line.find("@@set_castro_params@@") >= 0:
+            for p in params:
+                mo.write(p.get_query_string("F90"))
+
+            # Now do the OpenACC device updates
+
+            mo.write("\n")
+            mo.write("    !$acc update &\n")
+            mo.write("    !$acc device(")
+
+            for n, p in enumerate(params):
+                mo.write("{}".format(p.f90_name))
+
+                if n == len(params)-1:
+                    mo.write(")\n")
+                else:
+                    if n % 3 == 2:
+                        mo.write(") &\n    !$acc device(")
+                    else:
+                        mo.write(", ")
+
         else:
             mo.write(line)
-
 
     mo.close()
     mt.close()
 
 
-def write_set_meth_sub(plist, set_template):
-    """this writes the set_castro_meth_params routine, starting with the
-       set_template and inserting the runtime parameter info where needed
-    """
-
-    try: st = open(set_template, "r")
-    except:
-        sys.exit("invalid template file")
-
-    try: so = open("Src_nd/set_castro_params.f90", "w")
-    except:
-        sys.exit("unable to open set_castro_params.f90 for writing")
-
-    params = [p for p in plist if p.in_fortran == 1]
-
-    for line in st:
-        if line.find("@@start_sub@@") >= 0:
-            so.write("subroutine set_castro_method_params( &\n  ")
-            for n, p in enumerate(params):
-                so.write("{}_in".format(p.f90_name))
-
-                if n == len(params)-1:
-                    so.write(") bind(C)\n")
-                else:
-                    so.write(", ")
-
-                    if n % 3 == 2:
-                        so.write(" &\n  ")
-
-        elif line.find("@@set_params@@") >= 0:
-
-            # first the declarations
-            for p in params:
-                if p.dtype == "int":
-                    so.write("  integer,          intent(in) :: {}_in\n".format(p.f90_name))
-                elif p.dtype == "Real":
-                    so.write("  double precision, intent(in) :: {}_in\n".format(p.f90_name))
-                else:
-                    sys.exit("unsupported datatype for Fortran: {}".format(p.name))
-
-            so.write("\n")
-
-            # now store it in the module -- be aware of changing data types
-            for p in params:
-                if p.dtype == p.f90_dtype:
-                    so.write("  {} = {}_in\n".format(p.f90_name, p.f90_name))
-                else:
-                    if p.dtype == "int" and p.f90_dtype == "logical":
-                        so.write("  {} = {}_in .ne. 0\n".format(p.f90_name, p.f90_name))
-                    else:
-                        sys.exit("unsupported combination of data types")
-
-
-            # Now do the OpenACC device updates
-
-            so.write("\n")
-            so.write("  !$acc update &\n")
-            so.write("  !$acc device(")
-
-            for n, p in enumerate(params):
-                so.write("{}".format(p.f90_name))
-
-                if n == len(params)-1:
-                    so.write(")\n")
-                else:
-                    if n % 3 == 2:
-                        so.write(") &\n  !$acc device(")
-                    else:
-                        so.write(", ")
-
-        elif line.find("@@end_sub@@") >= 0:
-            so.write("end subroutine set_castro_method_params\n")
-
-        else:
-            so.write(line)
-
-    so.close()
-    st.close()
-
-
-def parse_params(infile, meth_template, set_template):
+def parse_params(infile, meth_template):
 
     params = []
 
@@ -433,24 +282,6 @@ def parse_params(infile, meth_template, set_template):
 
     cd.close()
 
-    # write castro_set_meth.H
-    prototype = get_prototype(params)
-    try: csm = open("castro_set_meth.H", "w")
-    except:
-        sys.exit("unable to open castro_set_meth.H for writing")
-        
-    csm.write(prototype)
-    csm.close()
-
-    # write castro_call_set_meth.H
-    call = get_cpp_call(params)
-    try: ccsm = open("castro_call_set_meth.H", "w")
-    except:
-        sys.exit("unable to open castro_call_set_meth.H for writing")
-        
-    ccsm.write(call)
-    ccsm.close()
-
     # write castro_params.H
     try: cp = open("castro_params.H", "w")
     except:
@@ -467,14 +298,13 @@ def parse_params(infile, meth_template, set_template):
         sys.exit("unable to open castro_queries.H for writing")
 
     for p in params:
-        cq.write(p.get_query_string())
+        cq.write(p.get_query_string("C++"))
 
     cq.close()
 
 
-    # write the Fortran routines
+    # write the Fortran module
     write_meth_module(params, meth_template)
-    write_set_meth_sub(params, set_template)
 
 
 if __name__ == "__main__":
@@ -482,11 +312,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", type=str, default=None,
                         help="template for the meth_params module")
-    parser.add_argument("-s", type=str, default=None,
-                        help="template for the castro_set_meth_params subroutine")
     parser.add_argument("input_file", type=str, nargs=1,
                         help="input file containing the list of parameters we will define")
 
     args = parser.parse_args()
 
-    parse_params(args.input_file[0], args.m, args.s)
+    parse_params(args.input_file[0], args.m)

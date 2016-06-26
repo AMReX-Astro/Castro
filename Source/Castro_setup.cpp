@@ -244,9 +244,11 @@ Castro::variableSetUp ()
   
   int get_g_from_phi = 0;
   pp.query("get_g_from_phi", get_g_from_phi);
-  
-#include <castro_call_set_meth.H>    
-    
+
+  // Read in the input values to Fortran.
+
+  set_castro_method_params();
+
   set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
 		    NumAdv,
 #ifdef SHOCK_VAR
@@ -294,11 +296,16 @@ Castro::variableSetUp ()
 
   Interpolater* interp;
 
-  if (lin_limit_state_interp == 1)
-    interp = &lincc_interp;
-  else
-    interp = &cell_cons_interp;
-  
+  if (state_interp_order == 0) {
+    interp = &pc_interp;
+  }
+  else {
+    if (lin_limit_state_interp == 1)
+      interp = &lincc_interp;
+    else
+      interp = &cell_cons_interp;
+  }
+
 #ifdef RADIATION
   // cell_cons_interp is not conservative in spherical coordinates.
   // We could do this for other cases too, but I'll confine it to

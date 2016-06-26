@@ -1,0 +1,494 @@
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ AMR
+ parameters.]{ AMR
+ parameters.} \label{table:  AMR
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  lin_limit_state_interp  = &   how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables  &  0 \\
+\verb=  state_interp_order  = &   highest order used in interpolation  &  1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ diagnostics
+ parameters.]{ diagnostics
+ parameters.} \label{table:  diagnostics
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  hard_cfl_limit  = &   abort if we exceed CFL = 1 over the cource of a timestep  &  1 \\
+\verb=  job_name  = &   a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file  &  "" \\
+\rowcolor{tableShade}
+\verb=  print_energy_diagnostics  = &   display breakdown of energy sources  &  (0, \\
+\verb=  print_fortran_warnings  = &   display warnings in Fortran90 routines  &  (0, \\
+\rowcolor{tableShade}
+\verb=  show_center_of_mass  = &   display center of mass diagnostics  &  0 \\
+\verb=  sum_interval  = &   how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)  &  -1 \\
+\rowcolor{tableShade}
+\verb=  sum_per  = &   how often (simulation time) to compute integral sums (for runtime diagnostics)  &  -1.0e0 \\
+\verb=  track_grid_losses  = &   calculate losses of material through physical grid boundaries  &  0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ embiggening
+ parameters.]{ embiggening
+ parameters.} \label{table:  embiggening
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  grown_factor  = &   the factor by which to extend the domain upon restart for embiggening  &  1 \\
+\verb=  star_at_center  = &   used with the embiggening routines to determine how to extend the domain  &  -1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ gravity and rotation
+ parameters.]{ gravity and rotation
+ parameters.} \label{table:  gravity and rotation
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  do_grav  = &   permits gravity calculation to be turned on and off  &  -1 \\
+\verb=  do_rotation  = &   permits rotation calculation to be turned on and off  &  -1 \\
+\rowcolor{tableShade}
+\verb=  grav_source_type  = &   determines how the gravitational source term is added to the momentum and energy state variables.  &  2 \\
+\verb=  implicit_rotation_update  = &   we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms  &  0 \\
+\rowcolor{tableShade}
+\verb=  moving_center  = &   to we recompute the center used for the multipole gravity solve each step?  &  0 \\
+\verb=  point_mass  = &   include a central point mass  &  0.0 \\
+\rowcolor{tableShade}
+\verb=  point_mass_fix_solution  = &   if we have a central point mass, we can prevent mass from building up in the zones adjacent to it by keeping their density constant and adding their mass to the point mass object  &  1 \\
+\verb=  rot_axis  = &   the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector  &  3 \\
+\rowcolor{tableShade}
+\verb=  rot_source_type  = &   determines how the rotation source terms are added to the momentum and energy equations  &  1 \\
+\verb=  rotation_include_centrifugal  = &   permits the centrifugal terms in the rotation to be turned on and off  &  1 \\
+\rowcolor{tableShade}
+\verb=  rotation_include_coriolis  = &   permits the Coriolis terms in the rotation to be turned on and off  &  1 \\
+\verb=  rotation_include_domegadt  = &   permits the d(omega)/dt terms in the rotation to be turned on and off  &  1 \\
+\rowcolor{tableShade}
+\verb=  rotational_dPdt  = &   the rotation periods time evolution---this allows the rotation rate to change durning the simulation time  &  0.0 \\
+\verb=  rotational_period  = &   the rotation period for the corotating frame  &  -1.e200 \\
+\rowcolor{tableShade}
+\verb=  source_term_predictor  = &   extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction  &  0 \\
+\verb=  state_in_rotating_frame  = &   Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate).  &  1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ hydrodynamics
+ parameters.]{ hydrodynamics
+ parameters.} \label{table:  hydrodynamics
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  add_ext_src  = &   if true, define an additional source term  &  0 \\
+\verb=  allow_negative_energy  = &   Whether or not to allow internal energy to be less than zero  &  1 \\
+\rowcolor{tableShade}
+\verb=  allow_small_energy  = &   Whether or not to allow the internal energy to be less than the internal energy corresponding to small\_temp  &  1 \\
+\verb=  cg_blend  = &   for the Colella \& Glaz Riemann solver, what to do if we do not converge to a solution for the star state. 0 = do nothing; print iterations and exit 1 = revert to the original guess for p-star 2 = do a bisection search for another 2 * cg\_maxiter iterations.  &  0 \\
+\rowcolor{tableShade}
+\verb=  cg_maxiter  = &   for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state  &  12 \\
+\verb=  cg_tol  = &   for the Colella \& Glaz Riemann solver, the tolerance to demand in finding the star state  &  1.0e-5 \\
+\rowcolor{tableShade}
+\verb=  density_reset_method  = &   Which method to use when resetting a negative/small density 1 = Reset to characteristics of adjacent zone with largest density 2 = Use average of all adjacent zones for all state variables 3 = Reset to the original zone state before the hydro update  &  1 \\
+\verb=  difmag  = &   the coefficient of the artificial viscosity  &  0.1 \\
+\rowcolor{tableShade}
+\verb=  do_hydro  = &   permits hydro to be turned on and off for running pure rad problems  &  -1 \\
+\verb=  do_sponge  = &   permits sponge to be turned on and off  &  0 \\
+\rowcolor{tableShade}
+\verb=  dual_energy_eta1  = &   Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT.  &  1.0e0 \\
+\verb=  dual_energy_eta2  = &   Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged.  &  1.0e-4 \\
+\rowcolor{tableShade}
+\verb=  dual_energy_eta3  = &   Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT.  &  1.0e0 \\
+\verb=  dual_energy_update_E_from_e  = &   Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT.  &  1 \\
+\rowcolor{tableShade}
+\verb=  fix_mass_flux  = &    &  0 \\
+\verb=  hybrid_hydro  = &   whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only)  &  0 \\
+\rowcolor{tableShade}
+\verb=  hybrid_riemann  = &   do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability?  &  0 \\
+\verb=  limit_fluxes_on_small_dens  = &   Should we limit the density fluxes so that we do not create small densities?  &  0 \\
+\rowcolor{tableShade}
+\verb=  ppm_flatten_before_integrals  = &   where do we apply the flattening?  after we've done the tracing of the states (0); or on the parabolic profiles before we've integrated under them (1)  &  1 \\
+\verb=  ppm_predict_gammae  = &   do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  &  0 \\
+\rowcolor{tableShade}
+\verb=  ppm_reference  = &   do we take the reference state for the characteristic projection to be the cell centers (0) or the integral under the parabola for the fastest moving wave toward the interface (1)  &  1 \\
+\verb=  ppm_reference_edge_limit  = &   do we take the reference state when no waves are moving toward the interface to be the cell center (0) or the limit of the reconstructed parabola at the interface (1)  &  1 \\
+\rowcolor{tableShade}
+\verb=  ppm_reference_eigenvectors  = &   do we use the reference state in evaluating the eigenvectors?  &  0 \\
+\verb=  ppm_tau_in_tracing  = &   to we use $\tau = 1/rho$ or $\rho$ in the eigensystem?  &  0 \\
+\rowcolor{tableShade}
+\verb=  ppm_temp_fix  = &   various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015  &  0 \\
+\verb=  ppm_trace_sources  = &   to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation)  &  0 \\
+\rowcolor{tableShade}
+\verb=  ppm_type  = &   reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm  &  1 \\
+\verb=  riemann_solver  = &   which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC  &  0 \\
+\rowcolor{tableShade}
+\verb=  small_dens  = &   the small density cutoff.  Densities below this value will be reset  &  -1.e200 \\
+\verb=  small_ener  = &   the small specific internal energy cutoff.  Internal energies below this value will be reset  &  -1.e200 \\
+\rowcolor{tableShade}
+\verb=  small_pres  = &   the small pressure cutoff.  Pressures below this value will be reset  &  -1.e200 \\
+\verb=  small_temp  = &   the small temperature cutoff.  Temperatures below this value will be reset  &  -1.e200 \\
+\rowcolor{tableShade}
+\verb=  sum_turb_src  = &    &  0.0 \\
+\verb=  transverse_reset_density  = &   if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction.  &  1 \\
+\rowcolor{tableShade}
+\verb=  transverse_reset_rhoe  = &   if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation  &  0 \\
+\verb=  transverse_use_eos  = &   after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$).  &  0 \\
+\rowcolor{tableShade}
+\verb=  use_colglaz  = &   this is deprecated---use {\tt riemann\_solver} instead  &  0 \\
+\verb=  use_flattening  = &   flatten the reconstructed profiles around shocks to prevent them from becoming too thin  &  1 \\
+\rowcolor{tableShade}
+\verb=  use_pslope  = &   for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting?  &  1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ parallelization
+ parameters.]{ parallelization
+ parameters.} \label{table:  parallelization
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  bndry_func_thread_safe  = &    &  1 \\
+\verb=  do_acc  = &   determines whether we use accelerators for specific loops  &  -1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ reactions
+ parameters.]{ reactions
+ parameters.} \label{table:  reactions
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  disable_shock_burning  = &   disable burning inside hydrodynamic shock regions  &  0 \\
+\verb=  do_react  = &   permits reactions to be turned on and off -- mostly for efficiency's sake  &  -1 \\
+\rowcolor{tableShade}
+\verb=  dtnuc_X  = &   Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(X / \dot{X})$.  &  1.e200 \\
+\verb=  dtnuc_e  = &   Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$.  &  1.e200 \\
+\rowcolor{tableShade}
+\verb=  dtnuc_mode  = &   If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep  &  1 \\
+\verb=  dxnuc  = &   limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale.  &  1.e200 \\
+\rowcolor{tableShade}
+\verb=  react_T_max  = &   maximum temperature for allowing reactions to occur in a zone  &  1.e200 \\
+\verb=  react_T_min  = &   minimum temperature for allowing reactions to occur in a zone  &  0.0 \\
+\rowcolor{tableShade}
+\verb=  react_rho_max  = &   maximum density for allowing reactions to occur in a zone  &  1.e200 \\
+\verb=  react_rho_min  = &   minimum density for allowing reactions to occur in a zone  &  0.0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ refinement
+ parameters.]{ refinement
+ parameters.} \label{table:  refinement
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  do_special_tagging  = &    &  0 \\
+\verb=  spherical_star  = &    &  0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ timestep control
+ parameters.]{ timestep control
+ parameters.} \label{table:  timestep control
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb=  cfl  = &   the effective Courant number to use---we will not allow the hydrodynamic waves to cross more than this fraction of a zone over a single timestep  &  0.8 \\
+\verb=  change_max  = &   the maximum factor by which the timestep can increase from one step to the next.  &  1.1 \\
+\rowcolor{tableShade}
+\verb=  dt_cutoff  = &   the smallest valid timestep---if we go below this, we abort  &  0.0 \\
+\verb=  fixed_dt  = &   a fixed timestep to use for all steps (negative turns it off)  &  -1.0 \\
+\rowcolor{tableShade}
+\verb=  init_shrink  = &   a factor by which to reduce the first timestep from that requested by the timestep estimators  &  1.0 \\
+\verb=  initial_dt  = &   the initial timestep (negative uses the step returned from the timestep constraints)  &  -1.0 \\
+\rowcolor{tableShade}
+\verb=  max_dt  = &   the largest valid timestep---limit all timesteps to be no larger than this  &  1.e200 \\
+\verb=  retry_neg_dens_factor  = &   If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion.  &  1.e-1 \\
+\rowcolor{tableShade}
+\verb=  use_retry  = &   Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time.  &  0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+

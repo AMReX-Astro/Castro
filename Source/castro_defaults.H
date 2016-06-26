@@ -1,10 +1,10 @@
+int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;
 Real        Castro::small_pres = -1.e200;
 Real        Castro::small_ener = -1.e200;
-Real        Castro::small_x = 1.e-30;
 int         Castro::do_hydro = -1;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
@@ -33,6 +33,8 @@ Real        Castro::dual_energy_eta2 = 1.0e-4;
 Real        Castro::dual_energy_eta3 = 1.0e0;
 int         Castro::use_pslope = 1;
 int         Castro::fix_mass_flux = 0;
+int         Castro::limit_fluxes_on_small_dens = 0;
+int         Castro::density_reset_method = 1;
 int         Castro::allow_negative_energy = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
@@ -77,6 +79,9 @@ int         Castro::rotation_include_coriolis = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rotation_include_domegadt = 1;
+#endif
+#ifdef ROTATION
+int         Castro::state_in_rotating_frame = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rot_source_type = 1;

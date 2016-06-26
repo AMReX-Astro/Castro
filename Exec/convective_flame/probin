@@ -1,6 +1,6 @@
 &fortin
 
-  model_name = "convective_flame.hse.tanh.delta_0.040cm.dx_0.040cm"
+  model_name = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
 
   cutoff_density = 1.e-8
 

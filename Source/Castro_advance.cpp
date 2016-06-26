@@ -626,6 +626,40 @@ Castro::advance_hydro (Real time,
 
     AmrLevel::FillPatch(*this,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);
 
+    // The linear-combination-preserving state interpolater can sometimes generate
+    // negative densities. Run it through the enforce_minimum_density routine
+    // to deal with that.
+
+    if (state_interp_order == 1 && lin_limit_state_interp == 1) {
+
+      MultiFab Sborder_copy(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+      MultiFab::Copy(Sborder_copy,Sborder,0,0,NUM_STATE,NUM_GROW);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi) {
+
+	Real mass_added = 0.;
+	Real e_added = 0.;
+	Real E_added = 0.;
+	Real dens_change = 0.;
+
+	const Box& bx = mfi.tilebox();
+
+	FArrayBox& stateold = Sborder_copy[mfi];
+	FArrayBox& statenew = Sborder[mfi];
+
+	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				&mass_added, &e_added, &E_added, &dens_change,
+				&verbose);
+
+      }
+
+    }
+
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
@@ -679,7 +713,7 @@ Castro::advance_hydro (Real time,
 #ifdef HYBRID_MOMENTUM
     MultiFab hybrid_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     hybrid_src_old.setVal(0.0,NUM_GROW);
-    add_hybrid_hydro_source(hybrid_src_old, S_old);
+    add_hybrid_hydro_source(hybrid_src_old, Sborder);
     MultiFab::Add(hydro_sources,hybrid_src_old,0,0,NUM_STATE,NUM_GROW);
 #endif
 
@@ -748,14 +782,30 @@ Castro::advance_hydro (Real time,
 
       // Note that we do the react_half_dt on Sborder because of our Strang
       // splitting approach -- the "old" data sent to the hydro,
-      // which Sborder represents, has already had a half-timestep of burning.      
-      
+      // which Sborder represents, has already had a half-timestep of burning.
+
+      // Reactions are expensive and we would usually rather do a communication
+      // step than burn on the ghost zones. So what we will do here is create a mask
+      // that indicates that we want to turn on the valid interior zones but NOT
+      // on the ghost zones that are interior to the level. However, we DO want to
+      // burn on the ghost zones that are on the coarse-fine interfaces, since that
+      // is going to be more accurate than interpolating from coarse zones. So we will
+      // not mask out those zones, and the subsequent FillBoundary call will not
+      // interfere with it.
+
 #ifdef REACTIONS
+
+        const int react_ngrow_first_half = NUM_GROW;
+        const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
+
 #ifdef TAU
-	react_half_dt(Sborder,reactions_old,tau_diff,time,dt,NUM_GROW);
+	react_half_dt(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,dt,react_ngrow_first_half);
 #else
-	react_half_dt(Sborder,reactions_old,time,dt,NUM_GROW);
+	react_half_dt(Sborder,reactions_old,interior_mask_first_half,time,dt,react_ngrow_first_half);
 #endif
+
+        BoxLib::fill_boundary(Sborder, geom);
+
 #endif
 
 	if (verbose && ParallelDescriptor::IOProcessor())
@@ -1779,13 +1829,20 @@ Castro::advance_hydro (Real time,
       dSdt_new.mult(1.0/dt);
 
     } 
-    
+
 #ifdef REACTIONS
+
+    const int react_ngrow_second_half = 0;
+    const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
+
 #ifdef TAU
-    react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
+    react_half_dt(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
 #else
-    react_half_dt(S_new,reactions_new,cur_time,dt);
+    react_half_dt(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
 #endif
+
+    BoxLib::fill_boundary(S_new, geom);
+
 #endif
 
        // Sync up the hybrid and linear momenta.
@@ -1923,10 +1980,12 @@ Castro::advance_no_hydro (Real time,
     enforce_nonnegative_species(S_old);
 
 #ifdef REACTIONS
+      const int react_ngrow_first_half = 0;
+      const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
 #ifdef TAU
-    react_half_dt(S_old,reactions_old,tau_diff,time,dt);
+      react_half_dt(S_old,reactions_old,tau_diff,interior_mask_first_half,time,dt,react_ngrow_first_half);
 #else
-    react_half_dt(S_old,reactions_old,time,dt);
+      react_half_dt(S_old,reactions_old,interior_mask_first_half,time,dt,react_ngrow_first_half);
 #endif
 #endif
  
@@ -2005,12 +2064,14 @@ Castro::advance_no_hydro (Real time,
 #endif
         full_spec_diffusion_update(S_new,prev_time,cur_time,dt);
 #endif
-        
+
 #ifdef REACTIONS
+    const int react_ngrow_second_half = 0;
+    const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
 #ifdef TAU
-       react_half_dt(S_new,reactions_new,tau_diff,cur_time,dt);
+    react_half_dt(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
 #else
-       react_half_dt(S_new,reactions_new,cur_time,dt);
+    react_half_dt(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
 #endif
 #endif
 

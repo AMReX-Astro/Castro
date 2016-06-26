@@ -16,8 +16,8 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density
   use castro_util_module, only : ca_normalize_species
+  use advection_util_module, only : enforce_minimum_density
   use bl_constants_module
 
   implicit none
@@ -136,7 +136,9 @@ subroutine ca_umdrv(is_finest_level,time,&
        verbose)
 
   ! Enforce the density >= small_dens.
-  call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi,lo,hi,&
+  call enforce_minimum_density(uin,[uin_lo(1),0,0],[uin_hi(1),0,0], &
+                               uout,[uout_lo(1),0,0],[uout_hi(1),0,0], &
+                               [lo(1),0,0],[hi(1),0,0], &
                                mass_added,eint_added,eden_added,frac_change,verbose)
 
   ! Renormalize species mass fractions

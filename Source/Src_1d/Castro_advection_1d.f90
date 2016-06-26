@@ -328,7 +328,7 @@ contains
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, track_grid_losses
     use bl_constants_module
-    use advection_util_module, only: normalize_species_fluxes
+    use advection_util_1d_module, only: normalize_species_fluxes
     use prob_params_module, only : domlo_level, domhi_level, center
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level

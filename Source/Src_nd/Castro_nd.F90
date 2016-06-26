@@ -315,11 +315,10 @@
                                    const_grav_in) &
                                    bind(C, name="set_method_params")
 
-        ! Passing data from C++ into f90
-
         use meth_params_module
         use network, only : nspec, naux
-        use parallel
+        use parallel, only : parallel_initialize
+        use eos_module, only : eos_init, eos_get_small_dens, eos_get_small_temp
         use bl_constants_module, only : ZERO, ONE
 
         implicit none
@@ -507,6 +506,8 @@
         ! other initializations
         !---------------------------------------------------------------------
 
+        ! This is a routine which links to the C++ ParallelDescriptor class
+
         call bl_pd_is_ioproc(ioproc)
 
         allocate(character(len=gravity_type_len) :: gravity_type)
@@ -522,7 +523,42 @@
 
         rot_vec = ZERO
         rot_vec(rot_axis) = ONE
-        
+
+        !---------------------------------------------------------------------
+        ! safety checks
+        !---------------------------------------------------------------------
+
+        if (small_dens <= 0.0) then
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
+           endif
+           small_dens = 1.d-200
+        endif
+
+        if (small_temp <= 0.d0) then
+           if (ioproc == 1) then
+              call bl_warning("Warning:: small_temp has not been set, defaulting to 1.d-200.")
+           endif
+           small_temp = 1.d-200
+        endif
+
+        if (small_pres <= 0.d0) then
+           small_pres = 1.d-200
+        endif
+
+        if (small_ener <= 0.d0) then
+           small_ener = 1.d-200
+        endif
+
+        call eos_init(small_dens=small_dens, small_temp=small_temp)
+
+        ! The EOS might have modified our choices because of its
+        ! internal limitations, so let's get small_dens and small_temp
+        ! again just to make sure we're consistent with the EOS.
+
+        call eos_get_small_dens(small_dens)
+        call eos_get_small_temp(small_temp)
+
       end subroutine set_method_params
 
 
@@ -610,16 +646,19 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in) &
-           bind(C, name="set_grid_info")
+      subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_ratio_in, n_error_buf_in, blocking_factor_in) &
+                               bind(C, name="set_grid_info")
 
-        use prob_params_module
+        use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
 
         implicit none
 
         integer,          intent(in) :: max_level_in
         double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
         integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
+        integer,          intent(in) :: ref_ratio_in(3*(max_level_in+1))
+        integer,          intent(in) :: n_error_buf_in(0:max_level_in)
+        integer,          intent(in) :: blocking_factor_in(0:max_level_in)
 
         integer :: lev, dir
 
@@ -636,19 +675,34 @@
         if (allocated(domhi_level)) then
            deallocate(domhi_level)
         endif
+        if (allocated(ref_ratio)) then
+           deallocate(ref_ratio)
+        endif
+        if (allocated(n_error_buf)) then
+           deallocate(n_error_buf)
+        endif
+        if (allocated(blocking_factor)) then
+           deallocate(blocking_factor)
+        endif
 
         max_level = max_level_in
 
         allocate(dx_level(1:3, 0:max_level))
         allocate(domlo_level(1:3, 0:max_level))
         allocate(domhi_level(1:3, 0:max_level))
+        allocate(ref_ratio(1:3, 0:max_level))
+        allocate(n_error_buf(0:max_level))
+        allocate(blocking_factor(0:max_level))
         
         do lev = 0, max_level
            do dir = 1, 3
               dx_level(dir,lev) = dx_level_in(3*lev + dir)
               domlo_level(dir,lev) = domlo_in(3*lev + dir)
               domhi_level(dir,lev) = domhi_in(3*lev + dir)
+              ref_ratio(dir,lev) = ref_ratio_in(3*lev + dir)
            enddo
+           n_error_buf(lev) = n_error_buf_in(lev)
+           blocking_factor(lev) = blocking_factor_in(lev)
         enddo
 
       end subroutine set_grid_info

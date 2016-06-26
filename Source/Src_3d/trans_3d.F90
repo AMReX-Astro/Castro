@@ -136,7 +136,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -161,6 +161,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -493,7 +494,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -518,6 +519,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -887,7 +889,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -912,6 +914,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -1241,7 +1244,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -1266,6 +1269,7 @@ contains
     double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
     double precision eddf, f1, ugc
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -1641,7 +1645,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
 
-    integer n, nq, i, j, g, ipassive
+    integer n, nq, i, j, ipassive
 
     double precision rrnew, rr
     double precision compn, compu
@@ -1665,6 +1669,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
          ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -2198,7 +2203,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2218,6 +2223,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -2670,7 +2676,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2687,6 +2693,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state
@@ -3085,7 +3092,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
 
-    integer i, j, g, n, nq, ipassive
+    integer i, j, n, nq, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -3103,6 +3110,7 @@ contains
     double precision, dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
     double precision eddf, f1
+    integer :: g
 #endif
 
     logical :: reset_state

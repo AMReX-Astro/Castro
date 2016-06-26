@@ -55,13 +55,13 @@ extern "C"
      const Real& diffuse_cutoff_density, 
      const Real& const_grav);
 
+  void set_castro_method_params();
+
 #ifdef RADIATION
   void init_godunov_indices_rad();
 #else
   void init_godunov_indices();
 #endif
-
-#include <castro_set_meth.H>
 
   void set_problem_params
     (const int& dm,
@@ -75,7 +75,9 @@ extern "C"
 
   void set_grid_info
     (const int& max_level, const Real* dx_level,
-     const int* domlo_level, const int* domhi_level);
+     const int* domlo_level, const int* domhi_level,
+     const int* ref_ratio, const int* n_error_buf,
+     const int* blocking_factor);
 
   void get_tagging_params(const int* name, const int* namlen);
   void get_sponge_params(const int* name, const int* namlen);
@@ -665,6 +667,7 @@ extern "C"
 #ifdef TAU
      const BL_FORT_FAB_ARG_3D(Tau),
 #endif
+     const BL_FORT_IFAB_ARG_3D(mask),
      const Real& time, const Real& dt_react);
 
   void ca_tempdiffextrap

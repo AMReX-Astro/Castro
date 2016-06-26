@@ -8,9 +8,9 @@ using std::string;
 #ifdef REACTIONS
 void
 #ifdef TAU
-Castro::react_half_dt(MultiFab& s, MultiFab& r, MultiFab& tau_diff, Real time, Real dt, int ngrow) 
+Castro::react_half_dt(MultiFab& s, MultiFab& r, MultiFab& tau_diff, const iMultiFab& mask, Real time, Real dt, int ngrow) 
 #else
-Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow) 
+Castro::react_half_dt(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, Real dt, int ngrow) 
 #endif
 {
     BL_PROFILE("Castro::react_half_dt()");
@@ -18,7 +18,7 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
     const Real strt_time = ParallelDescriptor::second();
 
     r.setVal(0.0);
-    
+
     if (do_react == 1) 
     {
 
@@ -40,6 +40,7 @@ Castro::react_half_dt(MultiFab& s, MultiFab& r, Real time, Real dt, int ngrow)
 #ifdef TAU
 			 BL_TO_FORTRAN_3D(tau_diff[mfi]),
 #endif
+			 BL_TO_FORTRAN_3D(mask[mfi]),
 			 time, 0.5 * dt);
 
 	}
