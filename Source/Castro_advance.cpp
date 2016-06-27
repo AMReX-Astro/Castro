@@ -428,8 +428,8 @@ Castro::advance_hydro (Real time,
         {
             if (S_old.contains_nan(Density+i,1,0,true))
             {
-	        std::cout << "Testing " << desc_lst[State_Type].name(i) << " for NaNs" << std::endl;
-                BoxLib::Abort("S_old has NaNs in this component::advance_hydro()");
+                std::string abort_string = std::string("S_new has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
+                BoxLib::Abort(abort_string.c_str());
             }
         }
     }
@@ -1424,8 +1424,8 @@ Castro::advance_hydro (Real time,
         {
 	if (S_new.contains_nan(Density + i, 1, 0,true))
             {
-  	        std::cout << "Testing " << desc_lst[State_Type].name(i) << " for NaNs " << std::endl;
-                BoxLib::Abort("S_new has NaNs in this component::advance_hydro()");
+                std::string abort_string = std::string("S_new has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
+                BoxLib::Abort(abort_string.c_str());
             }
         }
     }
