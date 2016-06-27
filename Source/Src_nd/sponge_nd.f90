@@ -50,7 +50,7 @@ contains
     else
        alpha = ZERO
     endif
-       
+
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
 
@@ -62,20 +62,20 @@ contains
 
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
-             
+
              ! Starting diagnostic quantities
 
-             E_old    = state(i,j,k,UEDEN)
-             ke_old   = HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv
+             E_old   = state(i,j,k,UEDEN)
+             ke_old  = HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv
              mom_old = state(i,j,k,UMX:UMZ)
 
              ! Apply radial sponge. By default sponge_lower_radius will be zero
              ! so this sponge is applied only if set by the user.
 
-             radius = sqrt(sum(r**2))
-
              if (sponge_lower_radius > ZERO .and. sponge_upper_radius > ZERO) then
-             
+
+                radius = sqrt(sum(r**2))
+
                 if (radius < sponge_lower_radius) then
                    sponge_factor = ZERO
                 else if (radius >= sponge_lower_radius .and. radius <= sponge_upper_radius) then
