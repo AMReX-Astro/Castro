@@ -526,6 +526,12 @@
         rot_vec(rot_axis) = ONE
 #endif
 
+        ! Mirrored from the C++ in Castro::read_params
+
+        if (use_colglaz > 0 .and. riemann_solver == 0) then
+           riemann_solver = 1
+        endif
+
         !---------------------------------------------------------------------
         ! safety checks
         !---------------------------------------------------------------------
@@ -601,6 +607,9 @@
 
         use bl_constants_module, only: ZERO
         use prob_params_module
+#ifdef ROTATION
+        use meth_params_module, only: rot_axis
+#endif
 
         implicit none
 
@@ -641,6 +650,12 @@
         if (dim .lt. 3) then
            dg(3) = 0
         endif
+
+#ifdef ROTATION
+        if (coord_type == 1) then
+           rot_axis = 2
+        endif
+#endif
 
       end subroutine set_problem_params
 
