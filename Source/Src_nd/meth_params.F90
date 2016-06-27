@@ -83,7 +83,7 @@ module meth_params_module
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density
   integer         , save :: transverse_reset_rhoe
-  logical         , save :: dual_energy_update_E_from_e
+  integer         , save :: dual_energy_update_E_from_e
   double precision, save :: dual_energy_eta1
   double precision, save :: dual_energy_eta2
   double precision, save :: dual_energy_eta3
