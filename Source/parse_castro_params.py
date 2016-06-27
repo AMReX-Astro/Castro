@@ -90,9 +90,6 @@ class Param(object):
 
         ostr = ""
 
-        if not self.ifdef is None:
-            ostr = "#ifdef {}\n".format(self.ifdef)
-
         if not self.debug_default is None:
             ostr += "#ifdef DEBUG\n"
             ostr += "    {} = {};\n".format(self.f90_name, self.debug_default)
@@ -101,9 +98,6 @@ class Param(object):
             ostr += "#endif\n"
         else:
             ostr += "    {} = {};\n".format(self.f90_name, self.default)
-
-        if not self.ifdef is None:
-            ostr += "#endif\n"
 
         return ostr
 

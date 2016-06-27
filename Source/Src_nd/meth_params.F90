@@ -189,39 +189,17 @@ contains
     do_grav = -1;
     grav_source_type = 2;
     do_rotation = -1;
-#ifdef ROTATION
     rot_period = -1.e200;
-#endif
-#ifdef ROTATION
     rot_period_dot = 0.0;
-#endif
-#ifdef ROTATION
     rotation_include_centrifugal = 1;
-#endif
-#ifdef ROTATION
     rotation_include_coriolis = 1;
-#endif
-#ifdef ROTATION
     rotation_include_domegadt = 1;
-#endif
-#ifdef ROTATION
     state_in_rotating_frame = 1;
-#endif
-#ifdef ROTATION
     rot_source_type = 1;
-#endif
-#ifdef ROTATION
     implicit_rotation_update = 0;
-#endif
-#ifdef ROTATION
     rot_axis = 3;
-#endif
-#ifdef POINTMASS
     point_mass = 0.0;
-#endif
-#ifdef POINTMASS
     point_mass_fix_solution = 1;
-#endif
     do_acc = -1;
     track_grid_losses = 0;
 
