@@ -12,7 +12,7 @@ module riemann_module
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
-                                 allow_negative_energy, use_colglaz
+                                 allow_negative_energy
 
 #ifdef RADIATION
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
@@ -105,10 +105,6 @@ contains
 #ifdef RADIATION
     if (hybrid_riemann == 1) then
        call bl_error("ERROR: hybrid Riemann not supported for radiation")
-    endif
-
-    if (use_colglaz == 1) then
-       call bl_error("ERROR: the Colella-Glaz Riemann solver is not supported for radiation")
     endif
 
     if (riemann_solver > 0) then

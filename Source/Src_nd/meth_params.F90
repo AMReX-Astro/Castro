@@ -73,7 +73,6 @@ module meth_params_module
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_reference_eigenvectors
   integer         , save :: hybrid_riemann
-  integer         , save :: use_colglaz
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
@@ -154,7 +153,6 @@ contains
     ppm_reference_edge_limit = 1;
     ppm_reference_eigenvectors = 0;
     hybrid_riemann = 0;
-    use_colglaz = 0;
     riemann_solver = 0;
     cg_maxiter = 12;
     cg_tol = 1.0d-5;
@@ -219,7 +217,6 @@ contains
     call pp%query("ppm_reference_edge_limit", ppm_reference_edge_limit)
     call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
     call pp%query("hybrid_riemann", hybrid_riemann)
-    call pp%query("use_colglaz", use_colglaz)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)
     call pp%query("cg_tol", cg_tol)

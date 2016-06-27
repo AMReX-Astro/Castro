@@ -85,7 +85,7 @@ ppm_reference_eigenvectors   int           0                  y
 hybrid_riemann               int           0                  y
 
 # this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           0                  y
+use_colglaz                  int           -1
 
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);

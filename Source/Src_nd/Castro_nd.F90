@@ -526,11 +526,6 @@
         rot_vec(rot_axis) = ONE
 #endif
 
-        ! Mirrored from the C++ in Castro::read_params
-
-        if (use_colglaz > 0 .and. riemann_solver == 0) then
-           riemann_solver = 1
-        endif
 
         !---------------------------------------------------------------------
         ! safety checks
