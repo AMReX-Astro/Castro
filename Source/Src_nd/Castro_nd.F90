@@ -530,7 +530,7 @@
         ! safety checks
         !---------------------------------------------------------------------
 
-        if (small_dens <= 0.0) then
+        if (small_dens <= 0.d0) then
            if (ioproc == 1) then
               call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
            endif
