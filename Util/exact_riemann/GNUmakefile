@@ -28,8 +28,8 @@ USE_REACT := FALSE
 EOS_TOP_DIR := $(MICROPHYSICS_HOME)/eos
 NETWORK_TOP_DIR := $(MICROPHYSICS_HOME)/networks
 
-EOS_DIR := gamma_law_general
-#EOS_DIR := helmholtz
+#EOS_DIR := gamma_law_general
+EOS_DIR := helmholtz
 #EOS_DIR := stellarcollapse
 
 NETWORK_DIR := ignition_simple
@@ -81,21 +81,19 @@ Fmpack += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir)/GPackage
 Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
 
 # CASTRO-specific stuff that the Microphysics directories rely on
-Fmlocs += $(CASTRO_HOME)/Microphysics/EOS
+Fmlocs += $(MICROPHYSICS_HOME)/unit_test/ $(MICROPHYSICS_HOME)/interfaces/
 f90sources += eos.f90
 f90sources += eos_type.f90
-
-Fmlocs += $(CASTRO_HOME)/Microphysics/networks
 f90sources += network.f90
 
 Fmlocs += $(CASTRO_HOME)/constants
 f90sources += constants_cgs.f90
 
 Fmlocs += $(CASTRO_HOME)/Source/Src_nd/
-F90sources += meth_params.F90 
-f90sources += parmparse_mod.f90
-f90sources += string_mod.f90
-cxxsources   += parmparse_fi.cpp                                              
+# F90sources += meth_params.F90 
+# f90sources += parmparse_mod.f90
+# f90sources += string_mod.f90
+# cxxsources   += parmparse_fi.cpp                                              
 
 # any include files
 Fmincs := $(foreach dir, $(Fmincludes), $(CASTRO_HOME)/$(dir))
