@@ -174,6 +174,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   eden_added = 0.d0
   call enforce_minimum_density(uin, [ uin_l1, uin_l2,0],[ uin_h1, uin_h2,0], &
                                uout,[uout_l1,uout_l2,0],[uout_h1,uout_h2,0], &
+                               vol,[vol_l1, vol_l2, 0],[vol_h1, vol_h2, 0], &
                                [lo(1),lo(2),0],[hi(1),hi(2),0], &
                                mass_added,eint_added,eden_added,frac_change,verbose)
   

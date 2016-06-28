@@ -271,6 +271,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   eint_added = 0.d0
   eden_added = 0.d0
   call enforce_minimum_density(uin, uin_lo, uin_hi, uout, uout_lo, uout_hi, &
+                               vol,vol_lo,vol_hi, &
                                lo,hi,mass_added,eint_added,eden_added,frac_change,verbose)
 
   ! Renormalize species mass fractions
