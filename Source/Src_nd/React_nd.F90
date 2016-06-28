@@ -40,6 +40,10 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             ! Don't burn on zones that we are intentionally masking out.
+
+             if (mask(i,j,k) /= 1) cycle
+
              rhoInv = ONE / state(i,j,k,URHO)
 
              burn_state_in % rho = state(i,j,k,URHO)
@@ -103,11 +107,7 @@ contains
 
              burn_state_out = burn_state_in
 
-             ! Don't burn on zones that we are intentionally masking out.
-
-             if (mask(i,j,k) == 1) then
-                call burner(burn_state_in, burn_state_out, dt_react, time)
-             endif
+             call burner(burn_state_in, burn_state_out, dt_react, time)
 
              ! Note that we want to update the total energy by taking the difference of the old
              ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,
