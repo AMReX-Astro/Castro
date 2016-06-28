@@ -166,7 +166,7 @@ void Radiation::read_static_params()
   }
 
   if (rad_hydro_combined) {
-    if (Castro::use_colglaz) {
+    if (Castro::use_colglaz >= 0) {
       BoxLib::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
     }
   }
