@@ -5,9 +5,7 @@ MKVERBOSE :=t
 COMP := gfortran
 
 # define the location of the CASTRO root directory
-CASTRO_DIR ?= ../../
-CASTRO_TOP_DIR = $(CASTRO_DIR)
-
+CASTRO_HOME = ../../
 
 # include the main Makefile stuff
 include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
@@ -22,16 +20,16 @@ Fmdirs :=
 # directories containing files that are 'include'-d via Fortran
 Fmincludes :=
 
-ifndef MICROPHYSICS_DIR
-$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_DIR appropriately)
+ifndef MICROPHYSICS_HOME
+$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
 endif
 
 USE_REACT := FALSE
-EOS_TOP_DIR := $(MICROPHYSICS_DIR)/eos
-NETWORK_TOP_DIR := $(MICROPHYSICS_DIR)/networks
+EOS_TOP_DIR := $(MICROPHYSICS_HOME)/eos
+NETWORK_TOP_DIR := $(MICROPHYSICS_HOME)/networks
 
-EOS_DIR := gamma_law_general
-#EOS_DIR := helmholtz
+#EOS_DIR := gamma_law_general
+EOS_DIR := helmholtz
 #EOS_DIR := stellarcollapse
 
 NETWORK_DIR := ignition_simple
@@ -65,39 +63,40 @@ ifeq ($(findstring stellarcollapse, $(EOS_DIR)), stellarcollapse)
   FINCLUDE_LOCATIONS += $(HDF5_DIR)/include
 
   # it also needs the interpolation module
-  FINCLUDE_LOCATIONS += $(CASTRO_TOP_DIR)/Source/Src_nd
+  FINCLUDE_LOCATIONS += $(CASTRO_HOME)/Source/Src_nd
   f90sources += interpolate.f90
 endif
 
 
 # any Util stuff (BLAS and VODE -- for now these seem to have a GPackage.mak)
-Fmpack := $(foreach dir, $(Fmdirs), $(CASTRO_TOP_DIR)/$(dir)/GPackage.mak)
-Fmlocs := $(foreach dir, $(Fmdirs), $(CASTRO_TOP_DIR)/$(dir))
+Fmpack := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir)/GPackage.mak)
+Fmlocs := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir))
 
 # BoxLib stuff
 Fmpack += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir)/GPackage.mak)
 Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir))
 
 # EOS/Network
-Fmpack += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_DIR)/$(dir)/GPackage.mak)
-Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_DIR)/$(dir))
+Fmpack += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
 
 # CASTRO-specific stuff that the Microphysics directories rely on
-Fmlocs += $(CASTRO_TOP_DIR)/EOS
+Fmlocs += $(MICROPHYSICS_HOME)/unit_test/ $(MICROPHYSICS_HOME)/interfaces/
 f90sources += eos.f90
 f90sources += eos_type.f90
-
-Fmlocs += $(CASTRO_TOP_DIR)/Networks
 f90sources += network.f90
 
-Fmlocs += $(CASTRO_TOP_DIR)/constants
+Fmlocs += $(CASTRO_HOME)/constants
 f90sources += constants_cgs.f90
 
-Fmlocs += $(CASTRO_TOP_DIR)/Source/Src_nd/
-f90sources += meth_params.f90
+Fmlocs += $(CASTRO_HOME)/Source/Src_nd/
+# F90sources += meth_params.F90 
+# f90sources += parmparse_mod.f90
+# f90sources += string_mod.f90
+# cxxsources   += parmparse_fi.cpp                                              
 
 # any include files
-Fmincs := $(foreach dir, $(Fmincludes), $(CASTRO_TOP_DIR)/$(dir))
+Fmincs := $(foreach dir, $(Fmincludes), $(CASTRO_HOME)/$(dir))
 
 # current directory
 Fmpack += ./GPackage.mak
@@ -117,7 +116,7 @@ FINCLUDE_LOCATIONS += $(Fmincs)
 PROBIN_PARAMETER_DIRS = ./
 PROBIN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(PROBIN_PARAMETER_DIRS))
 
-EXTERN_PARAMETER_DIRS += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_DIR)/$(dir))
+EXTERN_PARAMETER_DIRS += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
 EXTERN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(EXTERN_PARAMETER_DIRS))
 
 PROBIN_TEMPLATE := ./dummy.probin.template

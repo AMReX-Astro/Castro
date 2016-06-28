@@ -1,4 +1,8 @@
 * changes since the last release:
+  
+  -- For consistency across the BoxLib suite of astro codes, we've renamed the
+     main environment variables.  CASTRO_HOME now replaces CASTRO_DIR; 
+     MICROPHYSICS_HOME now replaces MICROPHYSICS_DIR.
 
   -- The EOS, network, and conductivity routines have been moved to sub-directories
      or Castro/Microphysics/.  This reflects the way the layout in the standalone
