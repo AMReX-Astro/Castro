@@ -867,6 +867,8 @@ Castro::advance_hydro (Real time,
 		    FArrayBox &lam = lamborder[mfi];
 		    FArrayBox &Erout = Er_new[mfi];
 		
+		    FArrayBox& vol      = volume[mfi];
+
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM ; i++)  {
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
