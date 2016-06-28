@@ -7,8 +7,8 @@ module gravity_sources_module
 contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
-                     E_added,mom_added) bind(C, name="ca_gsrc")
+                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,vol,vol_lo,vol_hi, &
+                     dx,dt,time,E_added,mom_added) bind(C, name="ca_gsrc")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, UMR, UMP
     use bl_constants_module
@@ -27,11 +27,13 @@ contains
     integer          :: grav_lo(3), grav_hi(3)
     integer          :: uold_lo(3), uold_hi(3)
     integer          :: unew_lo(3), unew_hi(3)
+    integer          :: vol_lo(3), vol_hi(3)
 
     double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     double precision :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
     double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     double precision :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
+    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision :: dx(3), dt, time
     double precision :: E_added, mom_added(3)
 
@@ -105,8 +107,8 @@ contains
              ! **** Start Diagnostics ****
              new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
              new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + unew(i,j,k,UEDEN) - old_re
-             mom_added = mom_added + unew(i,j,k,UMX:UMZ) - old_mom
+             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
           enddo
        enddo
@@ -441,8 +443,8 @@ contains
              ! **** Start Diagnostics ****
              new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoninv
              new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + unew(i,j,k,UEDEN) - old_re
-             mom_added = mom_added + unew(i,j,k,UMX:UMZ) - old_mom
+             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
 
           enddo

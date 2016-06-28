@@ -138,6 +138,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,[uin_lo(1),0,0],[uin_hi(1),0,0], &
                                uout,[uout_lo(1),0,0],[uout_hi(1),0,0], &
+                               vol,[vol_l1,0,0],[vol_h1,0,0], &
                                [lo(1),0,0],[hi(1),0,0], &
                                mass_added,eint_added,eden_added,frac_change,verbose)
 

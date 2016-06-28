@@ -8,7 +8,7 @@ module sponge_module
 
 contains
 
-  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added) &
+  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,vol,vol_lo,vol_hi,dx,dt,time,E_added,mom_added) &
        bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
@@ -19,7 +19,9 @@ contains
     
     integer          :: lo(3),hi(3)
     integer          :: state_lo(3), state_hi(3)
+    integer          :: vol_lo(3), vol_hi(3)
     double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision :: dx(3), dt, time
     double precision :: E_added, mom_added(3)
 
@@ -110,8 +112,8 @@ contains
 
              ! Ending diagnostic quantities
 
-             E_added   = E_added   + state(i,j,k,UEDEN)   - E_old
-             mom_added = mom_added + state(i,j,k,UMX:UMZ) - mom_old
+             E_added   = E_added   + (state(i,j,k,UEDEN)   - E_old) * vol(i,j,k)
+             mom_added = mom_added + (state(i,j,k,UMX:UMZ) - mom_old) * vol(i,j,k)
 
           enddo
        enddo
