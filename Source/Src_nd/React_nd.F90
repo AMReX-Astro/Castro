@@ -15,6 +15,8 @@ contains
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          UFS, UFX, dual_energy_eta3, allow_negative_energy, USHK
+    use prob_params_module, only : dx_level, dim
+    use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
     use bl_constants_module
@@ -31,10 +33,14 @@ contains
     double precision :: time, dt_react
 
     integer          :: i, j, k, n
-    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e
+    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
 
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
+
+    ! Minimum zone width
+
+    dx_min = minval(dx_level(1:dim, amr_level))
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -91,6 +97,10 @@ contains
                 burn_state_in % k = -1
              endif
 
+             ! Sound crossing time of the zone.
+
+             burn_state_in % t_sound = dx_min / eos_state_in % cs
+
              ! Now reset the internal energy to zero for the burn state.
 
              burn_state_in % e = ZERO
@@ -102,10 +112,6 @@ contains
                 burn_state_in % shock = .true.
              endif
 #endif
-
-             ! Initialize the final state so that it has valid data in case this zone is masked out.
-
-             burn_state_out = burn_state_in
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
