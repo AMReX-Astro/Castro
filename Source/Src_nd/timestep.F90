@@ -210,7 +210,7 @@ contains
                 call eos(eos_input_rt, eos_state)
                 call eos_to_burn(eos_state, state_new)
 
-                state_new % t_sound = minval(dx(1:dim)) / eos_state % cs
+                state_new % dx = minval(dx(1:dim))
 
                 call actual_rhs(state_new)
 

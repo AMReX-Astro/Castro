@@ -97,9 +97,7 @@ contains
                 burn_state_in % k = -1
              endif
 
-             ! Sound crossing time of the zone.
-
-             burn_state_in % t_sound = dx_min / eos_state_in % cs
+             burn_state_in % dx = dx_min
 
              ! Now reset the internal energy to zero for the burn state.
 
