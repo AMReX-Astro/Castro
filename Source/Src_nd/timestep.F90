@@ -210,6 +210,8 @@ contains
                 call eos(eos_input_rt, eos_state)
                 call eos_to_burn(eos_state, state_new)
 
+                state_new % dx = minval(dx(1:dim))
+
                 call actual_rhs(state_new)
 
                 dedt = state_new % ydot(net_ienuc)
