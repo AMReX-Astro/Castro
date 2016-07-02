@@ -116,6 +116,8 @@ contains
 
     ! Check to make sure the inputs are valid.
 
+    has_been_reset = .false.
+
     if (state % check_inputs) then
        call check_inputs(input, state, has_been_reset)
     endif
@@ -143,8 +145,6 @@ contains
     logical,      intent(inout) :: reset
 
     integer :: n
-
-    reset = .false.
 
     ! Check the inputs, and do initial setup for iterations.
 
