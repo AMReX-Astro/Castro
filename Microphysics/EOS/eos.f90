@@ -116,7 +116,9 @@ contains
 
     ! Check to make sure the inputs are valid.
 
-    call check_inputs(input, state, has_been_reset)
+    if (state % check_inputs) then
+       call check_inputs(input, state, has_been_reset)
+    endif
 
     ! Call the EOS.
 

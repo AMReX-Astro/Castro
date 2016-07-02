@@ -146,6 +146,7 @@ module eos_type_module
 
     logical :: reset                = .false.
     logical :: check_small          = .true.
+    logical :: check_inputs         = .true.
 
   end type eos_t
 
