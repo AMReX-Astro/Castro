@@ -9,11 +9,15 @@ module sponge_module
 contains
 
   subroutine ca_sponge(lo,hi,state,state_lo,state_hi,vol,vol_lo,vol_hi,dx,dt,time,E_added,mom_added) &
-       bind(C, name="ca_sponge")
+                       bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
     use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
     use bl_constants_module,  only: ZERO, HALF, ONE, M_PI
+#ifdef HYBRID_MOMENTUM
+    use meth_params_module,   only: UMR, UMP
+    use hybrid_advection_module, only: linear_to_hybrid
+#endif
     
     implicit none
     
@@ -32,6 +36,7 @@ contains
     double precision :: sponge_factor, alpha
     double precision :: delta_r, delta_rho
     double precision :: rho, rhoInv
+    double precision :: update_factor, Sr(3)
     
     integer          :: i, j, k
 
@@ -52,6 +57,8 @@ contains
     else
        alpha = ZERO
     endif
+
+    update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
@@ -106,7 +113,23 @@ contains
 
              endif
 
-             state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) / (ONE + alpha * sponge_factor)
+             ! The source term is given by -(rho v) * alpha * sponge_factor. We apply the
+             ! update in an implicit fashion, choosing the (rho v) to be the momentum after
+             ! the update. This then leads to an update of the form (rho v) --> (rho v) *
+             ! ONE / (ONE + alpha * sponge_factor). To get an equivalent explicit form of
+             ! this source term, which we need for the hybrid momentum update, we can then
+             ! solve for Sr such that (rho v) + dt * Sr == (rho v) / (ONE + alpha * sponge_factor),
+             ! which yields Sr = - (rho v) / dt * (ONE - ONE / (ONE + alpha * sponge_factor)).
+             ! We'll leave off the factor of dt in the following since the update is linear in
+             ! dt for the hybrid momentum as well.
+
+             Sr = state(i,j,k,UMX:UMZ) * update_factor
+
+             state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + Sr
+
+#ifdef HYBRID_MOMENTUM
+             state(i,j,k,UMR:UMP) = state(i,j,k,UMR:UMP) + linear_to_hybrid(r, Sr)
+#endif
 
              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv - ke_old
 
