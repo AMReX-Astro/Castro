@@ -12,7 +12,7 @@ contains
                        bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
-    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
+    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR, sponge_implicit
     use bl_constants_module,  only: ZERO, HALF, ONE, M_PI
 #ifdef HYBRID_MOMENTUM
     use meth_params_module,   only: UMR, UMP
@@ -58,7 +58,11 @@ contains
        alpha = ZERO
     endif
 
-    update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+    if (sponge_implicit == 1) then
+       update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+    else
+       update_factor = -alpha * sponge_factor
+    endif
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
@@ -113,15 +117,16 @@ contains
 
              endif
 
-             ! The source term is given by -(rho v) * alpha * sponge_factor. We apply the
-             ! update in an implicit fashion, choosing the (rho v) to be the momentum after
-             ! the update. This then leads to an update of the form (rho v) --> (rho v) *
-             ! ONE / (ONE + alpha * sponge_factor). To get an equivalent explicit form of
-             ! this source term, which we need for the hybrid momentum update, we can then
-             ! solve for Sr such that (rho v) + dt * Sr == (rho v) / (ONE + alpha * sponge_factor),
-             ! which yields Sr = - (rho v) / dt * (ONE - ONE / (ONE + alpha * sponge_factor)).
-             ! We'll leave off the factor of dt in the following since the update is linear in
-             ! dt for the hybrid momentum as well.
+             ! For an explicit update (sponge_implicit /= 1), the source term is given by
+             ! -(rho v) * alpha * sponge_factor. We simply add this directly by using the
+             ! current value of the momentum.
+
+             ! For an implicit update (sponge_implicit == 1), we choose the (rho v) to be
+             ! the momentum after the update. This then leads to an update of the form
+             ! (rho v) --> (rho v) * ONE / (ONE + alpha * sponge_factor). To get an equivalent
+             ! explicit form of this source term, which we need for the hybrid momentum update,
+             ! we can then solve (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
+             ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
              Sr = state(i,j,k,UMX:UMZ) * update_factor
 

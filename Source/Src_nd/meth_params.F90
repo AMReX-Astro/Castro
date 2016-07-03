@@ -93,6 +93,7 @@ module meth_params_module
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
+  integer         , save :: sponge_implicit
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -173,6 +174,7 @@ contains
     allow_negative_energy = 1;
     allow_small_energy = 1;
     do_sponge = 0;
+    sponge_implicit = 1;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -237,6 +239,7 @@ contains
     call pp%query("allow_negative_energy", allow_negative_energy)
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
+    call pp%query("sponge_implicit", sponge_implicit)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)

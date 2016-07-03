@@ -38,6 +38,7 @@ int         Castro::density_reset_method = 1;
 int         Castro::allow_negative_energy = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
+int         Castro::sponge_implicit = 1;
 #ifdef SGS
 Real        Castro::sum_turb_src = 0.0;
 #endif

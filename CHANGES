@@ -5,3 +5,8 @@
      can now be run through the preprocessor. Please update your
      local name for this file if you're overriding it in your
      problem setup.
+
+  -- The sponge update is usually done in an implicit fashion,
+     but you can now instead do an explicit update with
+     castro.sponge_implicit == 0.
+
