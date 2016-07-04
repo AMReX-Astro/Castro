@@ -16,6 +16,7 @@ static int ppm_tau_in_tracing;
 static int ppm_predict_gammae;
 static int ppm_reference_edge_limit;
 static int ppm_reference_eigenvectors;
+static int plm_iorder;
 static int hybrid_riemann;
 static int use_colglaz;
 static int riemann_solver;

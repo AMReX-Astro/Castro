@@ -16,6 +16,7 @@ int         Castro::ppm_tau_in_tracing = 0;
 int         Castro::ppm_predict_gammae = 0;
 int         Castro::ppm_reference_edge_limit = 1;
 int         Castro::ppm_reference_eigenvectors = 0;
+int         Castro::plm_iorder = 2;
 int         Castro::hybrid_riemann = 0;
 int         Castro::use_colglaz = -1;
 int         Castro::riemann_solver = 0;

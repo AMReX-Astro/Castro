@@ -9,8 +9,6 @@ module meth_params_module
 
   implicit none
 
-  integer         , save :: iorder        ! used only in uslope 
-
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
@@ -72,6 +70,7 @@ module meth_params_module
   integer         , save :: ppm_predict_gammae
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_reference_eigenvectors
+  integer         , save :: plm_iorder
   integer         , save :: hybrid_riemann
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
@@ -153,6 +152,7 @@ contains
     ppm_predict_gammae = 0;
     ppm_reference_edge_limit = 1;
     ppm_reference_eigenvectors = 0;
+    plm_iorder = 2;
     hybrid_riemann = 0;
     riemann_solver = 0;
     cg_maxiter = 12;
@@ -218,6 +218,7 @@ contains
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
     call pp%query("ppm_reference_edge_limit", ppm_reference_edge_limit)
     call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
+    call pp%query("plm_iorder", plm_iorder)
     call pp%query("hybrid_riemann", hybrid_riemann)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)

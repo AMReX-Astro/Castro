@@ -80,6 +80,9 @@ ppm_reference_edge_limit     int           1                  y
 # do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
 
+# for piecewise linear, reconstruction order to use
+plm_iorder                   int           2                  y
+
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y

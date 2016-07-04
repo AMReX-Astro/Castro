@@ -14,7 +14,7 @@ contains
                    src,src_l1,src_l2,src_h1,src_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
+    use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QV, &
                                    QREINT, QPRES, QFS, QFX, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
     use slope_module, only : uslope, pslope, multid_slope
@@ -75,11 +75,11 @@ contains
     allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
 
     ! Compute slopes
-    if (iorder == 1) then
+    if (plm_iorder == 1) then
        dqx(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
        dqy(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
 
-    elseif (iorder == 2) then
+    elseif (plm_iorder == 2) then
        ! these are piecewise linear slopes.  The limiter is a 4th order
        ! limiter, but the overall method will be second order.
        call uslope(q, &
@@ -105,7 +105,7 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,2)
        endif
 
-    elseif (iorder == -2) then
+    elseif (plm_iorder == -2) then
        ! these are also piecewise linear, but it uses a multidimensional
        ! reconstruction based on the BDS advection method to construct
        ! the x- and y-slopes together
