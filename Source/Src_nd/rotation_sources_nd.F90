@@ -48,7 +48,7 @@ contains
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
-               
+
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
@@ -90,11 +90,11 @@ contains
                 ! do, for consistency. We will fully subtract this predictor value
                 ! during the corrector step, so that the final result is correct.
                 ! Here we use the same approach as rot_source_type == 2.
-                
+
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-                
-             else 
-                call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
+
+             else
+                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrE
@@ -268,7 +268,7 @@ contains
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
-             
+
              rhoo = uold(i,j,k,URHO)
              rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -382,7 +382,7 @@ contains
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
                 ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV).
-                
+
                 SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                              flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
                                              flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
@@ -391,20 +391,17 @@ contains
                                              flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts 
-                ! purely as a source term. For the velocities this is a corrector step
-                ! and for the energy we add the full source term.
+                ! purely as a source term.
 
                 Sr_old = - rhoo * cross_product(domegadt_old, loc)
                 Sr_new = - rhon * cross_product(domegadt_new, loc)
-               
-                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
 
                 vnew = unew(i,j,k,UMX:UMZ) / rhon
 
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
 
-             else 
-                call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
+             else
+                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
