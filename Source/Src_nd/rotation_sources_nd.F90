@@ -396,7 +396,7 @@ contains
                 Sr_old = - rhoo * cross_product(domegadt_old, loc)
                 Sr_new = - rhon * cross_product(domegadt_new, loc)
 
-                vnew = unew(i,j,k,UMX:UMZ) / rhon
+                vnew = unew(i,j,k,UMX:UMZ) * rhoninv
 
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
 
