@@ -16,6 +16,7 @@ pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_edge_limit", ppm_reference_edge_limit);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
+pp.query("plm_iorder", plm_iorder);
 pp.query("hybrid_riemann", hybrid_riemann);
 pp.query("use_colglaz", use_colglaz);
 pp.query("riemann_solver", riemann_solver);
@@ -38,6 +39,7 @@ pp.query("density_reset_method", density_reset_method);
 pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
+pp.query("sponge_implicit", sponge_implicit);
 #ifdef SGS
 pp.query("sum_turb_src", sum_turb_src);
 #endif

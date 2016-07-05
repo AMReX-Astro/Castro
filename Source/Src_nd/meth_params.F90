@@ -9,8 +9,6 @@ module meth_params_module
 
   implicit none
 
-  integer         , save :: iorder        ! used only in uslope 
-
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
@@ -72,6 +70,7 @@ module meth_params_module
   integer         , save :: ppm_predict_gammae
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_reference_eigenvectors
+  integer         , save :: plm_iorder
   integer         , save :: hybrid_riemann
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
@@ -93,6 +92,7 @@ module meth_params_module
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
+  integer         , save :: sponge_implicit
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -152,6 +152,7 @@ contains
     ppm_predict_gammae = 0;
     ppm_reference_edge_limit = 1;
     ppm_reference_eigenvectors = 0;
+    plm_iorder = 2;
     hybrid_riemann = 0;
     riemann_solver = 0;
     cg_maxiter = 12;
@@ -173,6 +174,7 @@ contains
     allow_negative_energy = 1;
     allow_small_energy = 1;
     do_sponge = 0;
+    sponge_implicit = 1;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -216,6 +218,7 @@ contains
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
     call pp%query("ppm_reference_edge_limit", ppm_reference_edge_limit)
     call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
+    call pp%query("plm_iorder", plm_iorder)
     call pp%query("hybrid_riemann", hybrid_riemann)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)
@@ -237,6 +240,7 @@ contains
     call pp%query("allow_negative_energy", allow_negative_energy)
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
+    call pp%query("sponge_implicit", sponge_implicit)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)

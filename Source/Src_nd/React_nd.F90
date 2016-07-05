@@ -13,8 +13,11 @@ contains
                             time,dt_react) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-         UFS, UFX, dual_energy_eta3, allow_negative_energy, USHK
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
+         UFS, UFX, dual_energy_eta3
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
     use prob_params_module, only : dx_level, dim
     use amrinfo_module, only : amr_level
     use burner_module

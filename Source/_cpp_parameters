@@ -80,6 +80,9 @@ ppm_reference_edge_limit     int           1                  y
 # do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
 
+# for piecewise linear, reconstruction order to use
+plm_iorder                   int           2                  y
+
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
@@ -174,6 +177,9 @@ allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off 
 do_sponge                    int           0                  y
+
+# if we are using the sponge, whether to use the implicit solve for it
+sponge_implicit              int           1                  y
 
 
 sum_turb_src                 Real          0.0                n        SGS

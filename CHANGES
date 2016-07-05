@@ -3,72 +3,13 @@ previous changes:
 
 16.07
   
-  -- For consistency across the BoxLib suite of astro codes, we've
-     renamed the main environment variables.  CASTRO_HOME now replaces
-     CASTRO_DIR; MICROPHYSICS_HOME now replaces MICROPHYSICS_DIR.
+  -- The file sponge_nd.f90 in Source/Src_nd/ has been renamed to
+     sponge_nd.F90, the file extension change indicating that it
+     can now be run through the preprocessor. Please update your
+     local name for this file if you're overriding it in your
+     problem setup.
 
-  -- The EOS, network, and conductivity routines have been moved to
-     sub-directories or Castro/Microphysics/.  This reflects the way
-     the layout in the standalone Microphysics repo as well as that in
-     Maestro.
+  -- The sponge update is usually done in an implicit fashion,
+     but you can now instead do an explicit update with
+     castro.sponge_implicit == 0.
 
-  -- Some of the routines in Source/Src_nd/ have been renamed from
-     .f90 files to .F90 files so that we can use the preprocessor. If
-     you were using any of them (Prob_nd.f90, problem_tagging_nd.f90,
-     Rotation_frequency.f90, or ext_src_nd.f90) by having local copies
-     in your problem directory that overwrote them, please be sure to
-     update the file extension so that Castro will recognize them.
-
-  -- If you were using allow_negative_energy == 0, the case where
-     (rho*E), the total gas energy of the zone, was negative was
-     indirectly covered and it would be reset in this case due to the
-     way the logic worked for resetting the internal energy and then
-     updating the total energy to be consistent with it. However at
-     one point we added an option castro.dual_energy_update_E_from_e
-     which disabled that second update and also meant that negative
-     (rho*E) was again possible. This possibility has now been
-     precluded directly, by resetting (rho*E) the same way if we
-     detect that it is negative. This should not change results unless
-     you were using castro.dual_energy_update_E_from_e = 1. This is
-     also a good time to plug the newer option
-     castro.allow_small_energy, which if set to 1 will reset when you
-     hit a (rho*e) that is less than the smallest possible energy for
-     the (rho, small_temp, X) in that zone. Note that it requires an
-     extra EOS call.
-
-  -- The default interpolation for coarse zones into fine zones is
-     piecewise linear.  There is now an option to use piecewise
-     constant instead -- set castro.state_interp_order to 0. Note that
-     if you use piecewise linear you can set
-     castro.lin_limit_state_interp to 1 if you want to preserve linear
-     combinations and therefore guarantee that, say, sum(X) = 1.
-
-  -- If you set the new option castro.limit_fluxes_on_small_dens = 1,
-     the fluxes will be explicitly limited such that a negative
-     density is never created.
-
-  -- Along similar lines, there are also new options for how to reset
-     a negative density if one should arise. Set
-     castro.density_reset_method = 2 to use the average of all
-     adjacent zones instead of the default, which is the
-     characteristics of the adjacent zone with the highest
-     density. Set it to 3 if you want to reset it to the original zone
-     state before the hydro update.
-
-  -- We have fixed an issue where diffusion did not work correctly if
-     add_ext_src = 0.  The diffusion source term is now independent of
-     whether you have user-defined source terms.
-  
-  -- ConvertCheckpoint/ now lives under Util/
-
-  -- UsersGuide/ is now Docs/ -- this is consistent with the other
-     BoxLib codes
-
-  -- Burning is no longer done in ghost cells for boundaries with
-     neighbors on the same level of refinement.  Instead a ghost cell
-     fill is done to fill the like-level neighbor cells.  As a
-     consequence of this change, if reset_internal_energy() is invoked
-     in a cell, to reset the internal energy to E - K, this reset is
-     now reflected in the ghost cells (this is a more consistent
-     behavior).  Previously, the energy was never reset in the ghost
-     cells.

@@ -16,6 +16,7 @@ static int ppm_tau_in_tracing;
 static int ppm_predict_gammae;
 static int ppm_reference_edge_limit;
 static int ppm_reference_eigenvectors;
+static int plm_iorder;
 static int hybrid_riemann;
 static int use_colglaz;
 static int riemann_solver;
@@ -38,6 +39,7 @@ static int density_reset_method;
 static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
+static int sponge_implicit;
 #ifdef SGS
 static Real sum_turb_src;
 #endif

@@ -9,8 +9,6 @@ module meth_params_module
 
   implicit none
 
-  integer         , save :: iorder        ! used only in uslope 
-
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
