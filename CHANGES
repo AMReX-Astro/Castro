@@ -1,4 +1,7 @@
-* changes since the last release:
+previous changes:
+
+
+16.07
   
   -- For consistency across the BoxLib suite of astro codes, we've
      renamed the main environment variables.  CASTRO_HOME now replaces
