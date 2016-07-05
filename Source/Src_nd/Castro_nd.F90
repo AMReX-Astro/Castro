@@ -687,6 +687,7 @@
         if (allocated(domhi_level)) then
            deallocate(domhi_level)
         endif
+
         if (allocated(ref_ratio)) then
            deallocate(ref_ratio)
         endif
