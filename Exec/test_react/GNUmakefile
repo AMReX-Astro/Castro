@@ -28,7 +28,7 @@ f90EXE_sources += testburn.f90
 
 BLOCS += .
 
-include $(CASTRO_DIR)/Exec/Make.Castro
+include $(CASTRO_HOME)/Exec/Make.Castro
 
 
 #my_objs = $(filter-out $(objEXETempDir)/main.o, $(objForExecs))
