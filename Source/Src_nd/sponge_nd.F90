@@ -58,12 +58,6 @@ contains
        alpha = ZERO
     endif
 
-    if (sponge_implicit == 1) then
-       update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
-    else
-       update_factor = -alpha * sponge_factor
-    endif
-
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
 
@@ -127,6 +121,11 @@ contains
              ! explicit form of this source term, which we need for the hybrid momentum update,
              ! we can then solve (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
              ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
+             if (sponge_implicit == 1) then
+                update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+             else
+                update_factor = -alpha * sponge_factor
+             endif
 
              Sr = state(i,j,k,UMX:UMZ) * update_factor
 
