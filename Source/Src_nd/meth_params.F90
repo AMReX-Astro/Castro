@@ -138,23 +138,23 @@ module meth_params_module
   !$acc create(hybrid_hydro, ppm_type, ppm_reference) &
   !$acc create(ppm_trace_sources, ppm_temp_fix, ppm_tau_in_tracing) &
   !$acc create(ppm_predict_gammae, ppm_reference_edge_limit, ppm_reference_eigenvectors) &
-  !$acc create(hybrid_riemann, use_colglaz, riemann_solver) &
+  !$acc create(plm_iorder, hybrid_riemann, riemann_solver) &
   !$acc create(cg_maxiter, cg_tol, cg_blend) &
   !$acc create(use_flattening, ppm_flatten_before_integrals, transverse_use_eos) &
   !$acc create(transverse_reset_density, transverse_reset_rhoe, dual_energy_update_E_from_e) &
   !$acc create(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3) &
   !$acc create(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
   !$acc create(density_reset_method, allow_negative_energy, allow_small_energy) &
-  !$acc create(do_sponge, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_mode, dxnuc) &
-  !$acc create(do_react, react_T_min, react_T_max) &
-  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(track_grid_losses)
+  !$acc create(do_sponge, sponge_implicit, cfl) &
+  !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
+  !$acc create(dxnuc, do_react, react_T_min) &
+  !$acc create(react_T_max, react_rho_min, react_rho_max) &
+  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
+  !$acc create(do_rotation, rot_period, rot_period_dot) &
+  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, track_grid_losses)
 
   ! End the declarations of the ParmParse parameters
 
@@ -332,23 +332,23 @@ contains
     !$acc device(hybrid_hydro, ppm_type, ppm_reference) &
     !$acc device(ppm_trace_sources, ppm_temp_fix, ppm_tau_in_tracing) &
     !$acc device(ppm_predict_gammae, ppm_reference_edge_limit, ppm_reference_eigenvectors) &
-    !$acc device(hybrid_riemann, use_colglaz, riemann_solver) &
+    !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
     !$acc device(cg_maxiter, cg_tol, cg_blend) &
     !$acc device(use_flattening, ppm_flatten_before_integrals, transverse_use_eos) &
     !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_update_E_from_e) &
     !$acc device(dual_energy_eta1, dual_energy_eta2, dual_energy_eta3) &
     !$acc device(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
     !$acc device(density_reset_method, allow_negative_energy, allow_small_energy) &
-    !$acc device(do_sponge, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_mode, dxnuc) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(track_grid_losses)
+    !$acc device(do_sponge, sponge_implicit, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
+    !$acc device(dxnuc, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, track_grid_losses)
 
     call parmparse_destroy(pp)
 
