@@ -344,8 +344,6 @@
 
         call parallel_initialize()
 
-        iorder = 2
-
         !---------------------------------------------------------------------
         ! conserved state components
         !---------------------------------------------------------------------
@@ -521,14 +519,17 @@
         diffuse_cutoff_density       = diffuse_cutoff_density_in
         const_grav                   = const_grav_in
 
+#ifdef ROTATION
         rot_vec = ZERO
         rot_vec(rot_axis) = ONE
+#endif
+
 
         !---------------------------------------------------------------------
         ! safety checks
         !---------------------------------------------------------------------
 
-        if (small_dens <= 0.0) then
+        if (small_dens <= 0.d0) then
            if (ioproc == 1) then
               call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
            endif
@@ -610,6 +611,9 @@
 
         use bl_constants_module, only: ZERO
         use prob_params_module
+#ifdef ROTATION
+        use meth_params_module, only: rot_axis
+#endif
 
         implicit none
 
@@ -651,6 +655,12 @@
            dg(3) = 0
         endif
 
+#ifdef ROTATION
+        if (coord_type == 1) then
+           rot_axis = 2
+        endif
+#endif
+
       end subroutine set_problem_params
 
 ! :::
@@ -686,6 +696,7 @@
         if (allocated(domhi_level)) then
            deallocate(domhi_level)
         endif
+
         if (allocated(ref_ratio)) then
            deallocate(ref_ratio)
         endif

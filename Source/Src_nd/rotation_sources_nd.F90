@@ -7,8 +7,8 @@ module rotation_sources_module
 contains
 
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,dx,dt,time, &
-                     E_added,mom_added) bind(C, name="ca_rsrc")
+                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,vol,vol_lo,vol_hi,&
+                     dx,dt,time,E_added,mom_added) bind(C, name="ca_rsrc")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, rot_source_type
     use prob_params_module, only: center
@@ -26,11 +26,13 @@ contains
     integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
     integer         , intent(in   ) :: uold_lo(3), uold_hi(3)
     integer         , intent(in   ) :: unew_lo(3), unew_hi(3)
+    integer         , intent(in   ) :: vol_lo(3), vol_hi(3)
 
     double precision, intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     double precision, intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     double precision, intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
     double precision, intent(inout) :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
+    double precision, intent(inout) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision, intent(in   ) :: dx(3), dt, time
 
     integer          :: i, j ,k
@@ -46,7 +48,7 @@ contains
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
-               
+
              rho = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
@@ -88,11 +90,11 @@ contains
                 ! do, for consistency. We will fully subtract this predictor value
                 ! during the corrector step, so that the final result is correct.
                 ! Here we use the same approach as rot_source_type == 2.
-                
+
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-                
-             else 
-                call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
+
+             else
+                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrE
@@ -100,8 +102,8 @@ contains
              ! **** Start Diagnostics ****
              new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
              new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + unew(i,j,k,UEDEN) - old_re
-             mom_added = mom_added + unew(i,j,k,UMX:UMZ) - old_mom
+             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
 
           enddo
@@ -266,7 +268,7 @@ contains
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
-             
+
              rhoo = uold(i,j,k,URHO)
              rhooinv = ONE / uold(i,j,k,URHO)
 
@@ -380,7 +382,7 @@ contains
                 ! Note that in the hydrodynamics step, the fluxes used here were already 
                 ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV).
-                
+
                 SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                              flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
                                              flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
@@ -389,20 +391,17 @@ contains
                                              flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts 
-                ! purely as a source term. For the velocities this is a corrector step
-                ! and for the energy we add the full source term.
+                ! purely as a source term.
 
                 Sr_old = - rhoo * cross_product(domegadt_old, loc)
                 Sr_new = - rhon * cross_product(domegadt_new, loc)
-               
-                unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + HALF * (Sr_new - Sr_old) * dt
 
-                vnew = unew(i,j,k,UMX:UMZ) / rhon
+                vnew = unew(i,j,k,UMX:UMZ) * rhoninv
 
                 SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
 
-             else 
-                call bl_error("Error:: rotation_sources_nd.f90 :: invalid rot_source_type")
+             else
+                call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
              end if
 
              unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
@@ -411,8 +410,8 @@ contains
              ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
              new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoninv
              new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + unew(i,j,k,UEDEN) - old_re
-             mom_added = mom_added + unew(i,j,k,UMX:UMZ) - old_mom
+             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
 
           enddo

@@ -8,18 +8,24 @@ module sponge_module
 
 contains
 
-  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,dx,dt,time,E_added,mom_added) &
-       bind(C, name="ca_sponge")
+  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,vol,vol_lo,vol_hi,dx,dt,time,E_added,mom_added) &
+                       bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
-    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
+    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR, sponge_implicit
     use bl_constants_module,  only: ZERO, HALF, ONE, M_PI
+#ifdef HYBRID_MOMENTUM
+    use meth_params_module,   only: UMR, UMP
+    use hybrid_advection_module, only: linear_to_hybrid
+#endif
     
     implicit none
     
     integer          :: lo(3),hi(3)
     integer          :: state_lo(3), state_hi(3)
+    integer          :: vol_lo(3), vol_hi(3)
     double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision :: dx(3), dt, time
     double precision :: E_added, mom_added(3)
 
@@ -30,6 +36,7 @@ contains
     double precision :: sponge_factor, alpha
     double precision :: delta_r, delta_rho
     double precision :: rho, rhoInv
+    double precision :: update_factor, Sr(3)
     
     integer          :: i, j, k
 
@@ -50,7 +57,7 @@ contains
     else
        alpha = ZERO
     endif
-       
+
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
 
@@ -62,20 +69,20 @@ contains
 
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
-             
+
              ! Starting diagnostic quantities
 
-             E_old    = state(i,j,k,UEDEN)
-             ke_old   = HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv
+             E_old   = state(i,j,k,UEDEN)
+             ke_old  = HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv
              mom_old = state(i,j,k,UMX:UMZ)
 
              ! Apply radial sponge. By default sponge_lower_radius will be zero
              ! so this sponge is applied only if set by the user.
 
-             radius = sqrt(sum(r**2))
-
              if (sponge_lower_radius > ZERO .and. sponge_upper_radius > ZERO) then
-             
+
+                radius = sqrt(sum(r**2))
+
                 if (radius < sponge_lower_radius) then
                    sponge_factor = ZERO
                 else if (radius >= sponge_lower_radius .and. radius <= sponge_upper_radius) then
@@ -104,14 +111,36 @@ contains
 
              endif
 
-             state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) / (ONE + alpha * sponge_factor)
+             ! For an explicit update (sponge_implicit /= 1), the source term is given by
+             ! -(rho v) * alpha * sponge_factor. We simply add this directly by using the
+             ! current value of the momentum.
+
+             ! For an implicit update (sponge_implicit == 1), we choose the (rho v) to be
+             ! the momentum after the update. This then leads to an update of the form
+             ! (rho v) --> (rho v) * ONE / (ONE + alpha * sponge_factor). To get an equivalent
+             ! explicit form of this source term, which we need for the hybrid momentum update,
+             ! we can then solve (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
+             ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
+             if (sponge_implicit == 1) then
+                update_factor = -(ONE - ONE / (ONE + alpha * sponge_factor))
+             else
+                update_factor = -alpha * sponge_factor
+             endif
+
+             Sr = state(i,j,k,UMX:UMZ) * update_factor
+
+             state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + Sr
+
+#ifdef HYBRID_MOMENTUM
+             state(i,j,k,UMR:UMP) = state(i,j,k,UMR:UMP) + linear_to_hybrid(r, Sr)
+#endif
 
              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF * sum(state(i,j,k,UMX:UMZ)**2) * rhoInv - ke_old
 
              ! Ending diagnostic quantities
 
-             E_added   = E_added   + state(i,j,k,UEDEN)   - E_old
-             mom_added = mom_added + state(i,j,k,UMX:UMZ) - mom_old
+             E_added   = E_added   + (state(i,j,k,UEDEN)   - E_old) * vol(i,j,k)
+             mom_added = mom_added + (state(i,j,k,UMX:UMZ) - mom_old) * vol(i,j,k)
 
           enddo
        enddo

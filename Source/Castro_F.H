@@ -111,6 +111,7 @@ extern "C"
   void enforce_minimum_density
     (const Real* S_old, const int* s_old_lo, const int* s_old_hi,
      const Real* S_new, const int* s_new_lo, const int* s_new_hi,
+     const Real* vol, const int* vol_lo, const int* vol_hi,
      const int* lo, const int* hi,
      const Real* mass_added, const Real* e_added,
      const Real* E_added, const Real* frac_change,
@@ -532,6 +533,7 @@ extern "C"
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);
 
@@ -565,6 +567,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(s_new),
+     const BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
 
@@ -615,6 +618,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(s_new),
+     const BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);
 

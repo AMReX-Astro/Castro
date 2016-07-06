@@ -649,9 +649,11 @@ Castro::advance_hydro (Real time,
 
 	FArrayBox& stateold = Sborder_copy[mfi];
 	FArrayBox& statenew = Sborder[mfi];
+	FArrayBox& vol      = volume[mfi];
 
 	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
 				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				&mass_added, &e_added, &E_added, &dens_change,
 				&verbose);
@@ -865,6 +867,8 @@ Castro::advance_hydro (Real time,
 		    FArrayBox &lam = lamborder[mfi];
 		    FArrayBox &Erout = Er_new[mfi];
 		
+		    FArrayBox& vol      = volume[mfi];
+
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM ; i++)  {
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
@@ -925,6 +929,7 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(grav_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_grav,mom_added);
 #endif		    
@@ -944,6 +949,7 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(rot_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(vol),
 			      ZFILL(dx),dt,&time,
 			      E_added_rot,mom_added);		    
 #endif
@@ -955,7 +961,9 @@ Castro::advance_hydro (Real time,
 		    
 		    if (do_sponge)
 		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
-				BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
+				BL_TO_FORTRAN_3D(stateout),
+				BL_TO_FORTRAN_3D(vol),
+				ZFILL(dx), dt, &time,
 				E_added_sponge,mom_added);
 
 		    if (radiation->do_inelastic_scattering) {
@@ -1176,6 +1184,7 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(grav_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_grav,mom_added);
 #endif
@@ -1197,6 +1206,7 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(rot_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_rot,mom_added);
 #endif
@@ -1210,7 +1220,9 @@ Castro::advance_hydro (Real time,
 
 		    if (do_sponge)
 		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
-				BL_TO_FORTRAN_3D(stateout), ZFILL(dx), dt, &time,
+				BL_TO_FORTRAN_3D(stateout),
+				BL_TO_FORTRAN_3D(volume[mfi]),
+				ZFILL(dx), dt, &time,
 				E_added_sponge,mom_added);
 
 		    xmom_added_sponge += mom_added[0];
@@ -1263,7 +1275,6 @@ Castro::advance_hydro (Real time,
 
 	    if (print_energy_diagnostics)
 	    {
-	       const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 	       Real foo[20] = {mass_added, eint_added, eden_added, 
 			       E_added_flux, E_added_grav, E_added_rot, E_added_sponge,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
@@ -1300,11 +1311,11 @@ Castro::advance_hydro (Real time,
 		   if (std::abs(mass_added) != 0.0)
 		   {
 		      std::cout << "   Mass added from negative density correction : " << 
-				    mass_added*cell_vol << std::endl;
+				    mass_added << std::endl;
 		      std::cout << "(rho e) added from negative density correction : " << 
-				    eint_added*cell_vol << std::endl;
+				    eint_added << std::endl;
 		      std::cout << "(rho E) added from negative density correction : " << 
-				    eden_added*cell_vol << std::endl;
+				    eden_added << std::endl;
 		   }
 
 		   std::cout << "mass added from fluxes                      : " <<
@@ -1321,39 +1332,39 @@ Castro::advance_hydro (Real time,
 		   if (do_grav) 
 		   {	 
 		      std::cout << "(rho E) added from grav. source terms          : " << 
-				    E_added_grav*cell_vol << std::endl;
+				    E_added_grav << std::endl;
 		      std::cout << "xmom added from grav. source terms             : " << 
-				    xmom_added_grav*cell_vol << std::endl;
+				    xmom_added_grav << std::endl;
 		      std::cout << "ymom added from grav. source terms             : " << 
-				    ymom_added_grav*cell_vol << std::endl;
+				    ymom_added_grav << std::endl;
 		      std::cout << "zmom added from grav. source terms             : " << 
-				    zmom_added_grav*cell_vol << std::endl;
+				    zmom_added_grav << std::endl;
 		   }
 #endif
 #ifdef ROTATION
 		   if (do_rotation) 
 		   {	 
 		      std::cout << "(rho E) added from rot. source terms          : " << 
-				    E_added_rot*cell_vol << std::endl;
+				    E_added_rot << std::endl;
 		      std::cout << "xmom added from rot. source terms             : " << 
-				    xmom_added_rot*cell_vol << std::endl;
+				    xmom_added_rot << std::endl;
 		      std::cout << "ymom added from rot. source terms             : " << 
-				    ymom_added_rot*cell_vol << std::endl;
+				    ymom_added_rot << std::endl;
 		      std::cout << "zmom added from rot. source terms             : " << 
-				    zmom_added_rot*cell_vol << std::endl;
+				    zmom_added_rot << std::endl;
 		   }
 #endif
 
 		   if (do_sponge) 
 		   {	 
 		      std::cout << "(rho E) added from sponge                     : " << 
-				    E_added_sponge*cell_vol << std::endl;
+				    E_added_sponge << std::endl;
 		      std::cout << "xmom added from sponge                        : " << 
-				    xmom_added_sponge*cell_vol << std::endl;
+				    xmom_added_sponge << std::endl;
 		      std::cout << "ymom added from sponge                        : " << 
-				    ymom_added_sponge*cell_vol << std::endl;
+				    ymom_added_sponge << std::endl;
 		      std::cout << "zmom added from sponge                        : " << 
-				    zmom_added_sponge*cell_vol << std::endl;
+				    zmom_added_sponge << std::endl;
 		   }
 	       }
 #ifdef BL_LAZY
@@ -1681,7 +1692,6 @@ Castro::advance_hydro (Real time,
 
         if (print_energy_diagnostics)
         {
-	    const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 	    Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
 #ifdef BL_LAZY
             Lazy::QueueReduction( [=] () mutable {
@@ -1693,13 +1703,13 @@ Castro::advance_hydro (Real time,
 		       ymom_added = foo[2],
 		       zmom_added = foo[3]);
 
-		std::cout << "(rho E) added from grav. corr.  terms          : " << E_added*cell_vol << std::endl;
-		std::cout << "xmom added from grav. corr. terms              : " << xmom_added*cell_vol << std::endl;
+		std::cout << "(rho E) added from grav. corr.  terms          : " << E_added << std::endl;
+		std::cout << "xmom added from grav. corr. terms              : " << xmom_added << std::endl;
 #if (BL_SPACEDIM >= 2)
-		std::cout << "ymom added from grav. corr. terms              : " << ymom_added*cell_vol << std::endl;
+		std::cout << "ymom added from grav. corr. terms              : " << ymom_added << std::endl;
 #endif
 #if (BL_SPACEDIM == 3)
-		std::cout << "zmom added from grav. corr. terms              : " << zmom_added*cell_vol << std::endl;
+		std::cout << "zmom added from grav. corr. terms              : " << zmom_added << std::endl;
 #endif
 	    }
 #ifdef BL_LAZY
@@ -1779,7 +1789,6 @@ Castro::advance_hydro (Real time,
 
         if (print_energy_diagnostics)
         {
-	    const Real cell_vol = D_TERM(dx[0], *dx[1], *dx[2]);
 	    Real foo[4] = {E_added, xmom_added, ymom_added, zmom_added};
 #ifdef BL_LAZY
             Lazy::QueueReduction( [=] () mutable {
@@ -1791,10 +1800,10 @@ Castro::advance_hydro (Real time,
 		ymom_added = foo[2],
 		zmom_added = foo[3];
 
-		std::cout << "(rho E) added from rot. corr.  terms          : " << E_added*cell_vol << std::endl;
-		std::cout << "xmom added from rot. corr. terms              : " << xmom_added*cell_vol << std::endl;
-		std::cout << "ymom added from rot. corr. terms              : " << ymom_added*cell_vol << std::endl;
-		std::cout << "zmom added from rot. corr. terms              : " << zmom_added*cell_vol << std::endl;
+		std::cout << "(rho E) added from rot. corr.  terms          : " << E_added << std::endl;
+		std::cout << "xmom added from rot. corr. terms              : " << xmom_added << std::endl;
+		std::cout << "ymom added from rot. corr. terms              : " << ymom_added << std::endl;
+		std::cout << "zmom added from rot. corr. terms              : " << zmom_added << std::endl;
 	    }
 #ifdef BL_LAZY
 	    });

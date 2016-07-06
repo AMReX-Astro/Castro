@@ -9,8 +9,6 @@ module meth_params_module
 
   implicit none
 
-  integer         , save :: iorder        ! used only in uslope 
-
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
@@ -83,8 +81,8 @@ module meth_params_module
   integer         , save :: ppm_predict_gammae
   integer         , save :: ppm_reference_edge_limit
   integer         , save :: ppm_reference_eigenvectors
+  integer         , save :: plm_iorder
   integer         , save :: hybrid_riemann
-  integer         , save :: use_colglaz
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
   double precision, save :: cg_tol
@@ -94,7 +92,7 @@ module meth_params_module
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density
   integer         , save :: transverse_reset_rhoe
-  logical         , save :: dual_energy_update_E_from_e
+  integer         , save :: dual_energy_update_E_from_e
   double precision, save :: dual_energy_eta1
   double precision, save :: dual_energy_eta2
   double precision, save :: dual_energy_eta3
@@ -105,6 +103,7 @@ module meth_params_module
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
+  integer         , save :: sponge_implicit
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -173,6 +172,72 @@ contains
 
     call parmparse_build(pp, "castro")
 
+    difmag = 0.1d0;
+    small_dens = -1.d200;
+    small_temp = -1.d200;
+    small_pres = -1.d200;
+    small_ener = -1.d200;
+    do_hydro = -1;
+    hybrid_hydro = 0;
+    ppm_type = 1;
+    ppm_reference = 1;
+    ppm_trace_sources = 0;
+    ppm_temp_fix = 0;
+    ppm_tau_in_tracing = 0;
+    ppm_predict_gammae = 0;
+    ppm_reference_edge_limit = 1;
+    ppm_reference_eigenvectors = 0;
+    plm_iorder = 2;
+    hybrid_riemann = 0;
+    riemann_solver = 0;
+    cg_maxiter = 12;
+    cg_tol = 1.0d-5;
+    cg_blend = 0;
+    use_flattening = 1;
+    ppm_flatten_before_integrals = 1;
+    transverse_use_eos = 0;
+    transverse_reset_density = 1;
+    transverse_reset_rhoe = 0;
+    dual_energy_update_E_from_e = 1;
+    dual_energy_eta1 = 1.0d0;
+    dual_energy_eta2 = 1.0d-4;
+    dual_energy_eta3 = 1.0d0;
+    use_pslope = 1;
+    fix_mass_flux = 0;
+    limit_fluxes_on_small_dens = 0;
+    density_reset_method = 1;
+    allow_negative_energy = 1;
+    allow_small_energy = 1;
+    do_sponge = 0;
+    sponge_implicit = 1;
+    cfl = 0.8d0;
+    dtnuc_e = 1.d200;
+    dtnuc_X = 1.d200;
+    dtnuc_mode = 1;
+    dxnuc = 1.d200;
+    do_react = -1;
+    react_T_min = 0.0d0;
+    react_T_max = 1.d200;
+    react_rho_min = 0.0d0;
+    react_rho_max = 1.d200;
+    disable_shock_burning = 0;
+    do_grav = -1;
+    grav_source_type = 2;
+    do_rotation = -1;
+    rot_period = -1.d200;
+    rot_period_dot = 0.0d0;
+    rotation_include_centrifugal = 1;
+    rotation_include_coriolis = 1;
+    rotation_include_domegadt = 1;
+    state_in_rotating_frame = 1;
+    rot_source_type = 1;
+    implicit_rotation_update = 0;
+    rot_axis = 3;
+    point_mass = 0.0d0;
+    point_mass_fix_solution = 1;
+    do_acc = -1;
+    track_grid_losses = 0;
+
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -188,8 +253,8 @@ contains
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
     call pp%query("ppm_reference_edge_limit", ppm_reference_edge_limit)
     call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
+    call pp%query("plm_iorder", plm_iorder)
     call pp%query("hybrid_riemann", hybrid_riemann)
-    call pp%query("use_colglaz", use_colglaz)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)
     call pp%query("cg_tol", cg_tol)
@@ -210,6 +275,7 @@ contains
     call pp%query("allow_negative_energy", allow_negative_energy)
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
+    call pp%query("sponge_implicit", sponge_implicit)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)

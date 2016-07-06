@@ -373,10 +373,10 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
-    if (use_colglaz > 0 && riemann_solver == 0)
+    if (use_colglaz >= 0)
       {
-	std::cerr << "WARNING: the use_colglaz parameter is deprecated.  Use riemann_solver instead\n";
-	riemann_solver = 1;
+	std::cerr << "ERROR:: use_colglaz is deprecated.  Use riemann_solver instead\n";
+	BoxLib::Error();
       }
 
 
@@ -1569,9 +1569,11 @@ Castro::post_timestep (int iteration)
 
 	  FArrayBox& stateold = S_old_crse[mfi];
 	  FArrayBox& statenew = S_new_crse[mfi];
+	  FArrayBox& vol      = volume[mfi];
 	  
 	  enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				  statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				  vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()), 
 				  ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  &mass_added, &e_added, &E_added, &dens_change,
 				  &verbose);

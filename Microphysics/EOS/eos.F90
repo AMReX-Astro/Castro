@@ -121,7 +121,12 @@ contains
     state % smalld = smalld
 
     ! Check to make sure the inputs are valid.
-    call check_inputs(input, state, has_been_reset)
+
+    has_been_reset = .false.
+
+    if (state % check_inputs) then
+       call check_inputs(input, state, has_been_reset)
+    endif
 
     ! Call the EOS.
 
@@ -148,8 +153,6 @@ contains
     logical,      intent(inout) :: reset
 
     integer :: n
-
-    reset = .false.
 
     ! Check the inputs, and do initial setup for iterations.
 

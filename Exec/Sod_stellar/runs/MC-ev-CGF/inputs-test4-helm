@@ -31,7 +31,7 @@ castro.ppm_tau_in_tracing = 0
 castro.use_flattening = 1
 castro.ppm_flatten_before_integrals = 1
 
-castro.use_colglaz = 0
+castro.riemann_solver = 0
 
 castro.allow_negative_energy = 0
 

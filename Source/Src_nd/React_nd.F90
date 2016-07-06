@@ -24,6 +24,8 @@ contains
 #ifdef ACC
     use meth_params_module, only : do_acc
 #endif
+    use prob_params_module, only : dx_level, dim
+    use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
     use bl_constants_module
@@ -40,7 +42,7 @@ contains
     double precision :: time, dt_react
 
     integer          :: i, j, k, n
-    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e
+    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
 
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
@@ -56,9 +58,18 @@ contains
     !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e) &
     !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
+
+    ! Minimum zone width
+
+    dx_min = minval(dx_level(1:dim, amr_level))
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             ! Don't burn on zones that we are intentionally masking out.
+
+             if (mask(i,j,k) /= 1) cycle
 
              rhoInv = ONE / state(i,j,k,URHO)
 
@@ -109,6 +120,8 @@ contains
                 burn_state_in % k = -1
              endif
 
+             burn_state_in % dx = dx_min
+
              ! Now reset the internal energy to zero for the burn state.
 
              burn_state_in % e = ZERO
@@ -121,15 +134,7 @@ contains
              endif
 #endif
 
-             ! Initialize the final state so that it has valid data in case this zone is masked out.
-
-             burn_state_out = burn_state_in
-
-             ! Don't burn on zones that we are intentionally masking out.
-
-             if (mask(i,j,k) == 1) then
-                call burner(burn_state_in, burn_state_out, dt_react, time)
-             endif
+             call burner(burn_state_in, burn_state_out, dt_react, time)
 
              ! Note that we want to update the total energy by taking the difference of the old
              ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,

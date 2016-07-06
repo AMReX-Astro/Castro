@@ -84,6 +84,47 @@ class Param(object):
 
         return ostr
 
+    def get_f90_default_string(self):
+        # this is the line that goes into set_castro_method_params()
+        # to set the default value of the variable
+
+        ostr = ""
+
+        # convert to the double precision notation Fortran knows
+        # if the parameter is already of the form "#.e###" then
+        # it is easy as swapping out "e" for "d"; if it is a number
+        # like 0.1 without a format specifier, then add a d0 to it
+        # because the C++ will read it in that way and we want to
+        # give identical results (at least to within roundoff)
+
+        if not self.debug_default is None:
+            debug_default = self.debug_default
+            if self.dtype == "Real":
+                if "e" in debug_default:
+                    debug_default = debug_default.replace("e", "d")
+                else:
+                    debug_default += "d0"
+
+        default = self.default
+        if self.dtype == "Real":
+            if "e" in default:
+                default = default.replace("e", "d")
+            else:
+                default += "d0"
+
+        name = self.f90_name
+
+        if not self.debug_default is None:
+            ostr += "#ifdef DEBUG\n"
+            ostr += "    {} = {};\n".format(name, debug_default)
+            ostr += "#else\n"
+            ostr += "    {} = {};\n".format(name, default)
+            ostr += "#endif\n"
+        else:
+            ostr += "    {} = {};\n".format(name, default)
+
+        return ostr
+
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
@@ -193,6 +234,11 @@ def write_meth_module(plist, meth_template):
                         mo.write(", ")
 
         elif line.find("@@set_castro_params@@") >= 0:
+            for p in params:
+                mo.write(p.get_f90_default_string())
+
+            mo.write("\n")
+
             for p in params:
                 mo.write(p.get_query_string("F90"))
 

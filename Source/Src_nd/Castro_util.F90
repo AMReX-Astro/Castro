@@ -206,7 +206,7 @@ contains
 
                       call eos(eos_input_rt, eos_state)
 
-                      if (dual_energy_update_E_from_e) then
+                      if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
                       endif
 
@@ -259,7 +259,7 @@ contains
                       u(i,j,k,UEINT) = rho_eint
 
                       ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
-                   else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e) then
+                   else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e == 1) then
 
                       u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
@@ -277,13 +277,13 @@ contains
 
                       if (verbose .gt. 0) then
                          print *,'   '
-                         print *,'>>> Warning: Castro_3d::reset_internal_energy  ',i,j,k
+                         print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
                          print *,'>>> ... resetting neg. e from EOS using small_temp'
                          print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
                          print *,'    '
                       end if
 
-                      if (dual_energy_update_E_from_e) then
+                      if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
                       endif
 
@@ -386,7 +386,7 @@ contains
 
              ! In case we've floored, or otherwise allowed the energy to change, update the energy accordingly.
 
-             if (dual_energy_update_E_from_e) then
+             if (dual_energy_update_E_from_e == 1) then
                 state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (state(i,j,k,URHO) * eos_state % e - state(i,j,k,UEINT))
              endif
 

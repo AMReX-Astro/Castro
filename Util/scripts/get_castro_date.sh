@@ -63,7 +63,7 @@ if [ -f exports.sh ]; then
 fi
 
 cat >> exports.sh << EOF 
-export CASTRO_DIR="${pwd}/Castro"
+export CASTRO_HOME="${pwd}/Castro"
 export BOXLIB_HOME="${pwd}/BoxLib"
 EOF
 

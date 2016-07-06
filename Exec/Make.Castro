@@ -1,7 +1,7 @@
 BOXLIB_HOME ?= /path/to/BoxLib
-CASTRO_DIR ?= /path/to/Castro
+CASTRO_HOME ?= /path/to/Castro
 
-TOP := $(CASTRO_DIR)
+TOP := $(CASTRO_HOME)
 
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
@@ -121,10 +121,17 @@ all: $(executable)
 	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
+# for backward compatibility -- MICROPHYSICS_DIR is deprecated
+ifndef MICROPHYSICS_HOME
+  ifdef MICROPHYSICS_DIR
+    MICROPHYSICS_HOME := $(MICROPHYSICS_DIR)
+    $(info MICROPHYSICS_DIR is deprecated.  Please use MICROPHYSICS_HOME)
+  endif 
+endif
 
-ifdef MICROPHYSICS_DIR
-      EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
-      NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
+ifdef MICROPHYSICS_HOME
+      EOS_PATH := $(MICROPHYSICS_HOME)/eos/$(strip $(EOS_dir))
+      NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
 endif
 
 ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
@@ -175,9 +182,9 @@ EXTERN_CORE += $(NETWORK_PATH)
 # Note that this should be located after the include of the EOS and Network includes
 # since it has actions that depend on variables set there.
 
-ifdef MICROPHYSICS_DIR
-  include $(MICROPHYSICS_DIR)/eos/Make.package
-  include $(MICROPHYSICS_DIR)/networks/Make.package
+ifdef MICROPHYSICS_HOME
+  include $(MICROPHYSICS_HOME)/eos/Make.package
+  include $(MICROPHYSICS_HOME)/networks/Make.package
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -335,7 +342,7 @@ ifdef BUILD_GIT_NAME
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)" \
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
 	  --build_git_dir "$(BUILD_GIT_DIR)"
 else
@@ -344,7 +351,7 @@ else
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)"
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)"
 endif
 
 vpath %.c   . $(VPATH_LOCATIONS)

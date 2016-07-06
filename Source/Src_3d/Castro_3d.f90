@@ -217,7 +217,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Enforce the density >= small_dens.
   call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi, &
-                               lo,hi,mass_added,eint_added,eden_added, &
+                               vol,vol_lo,vol_hi,lo,hi,mass_added,eint_added,eden_added, &
                                frac_change,verbose)
 
   ! Renormalize species mass fractions

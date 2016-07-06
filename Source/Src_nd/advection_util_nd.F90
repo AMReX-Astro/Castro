@@ -10,6 +10,7 @@ contains
 
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
+                                     vol,vol_lo,vol_hi, &
                                      lo,hi,mass_added,eint_added, &
                                      eden_added,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
@@ -23,9 +24,11 @@ contains
     integer, intent(in) :: lo(3), hi(3), verbose
     integer, intent(in) ::  uin_lo(3),  uin_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) ::  vol_lo(3),  vol_hi(3)
 
     double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    double precision, intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
     double precision, intent(inout) :: mass_added, eint_added, eden_added, frac_change
     
     ! Local variables
@@ -54,15 +57,15 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             initial_mass = initial_mass + uout(i,j,k,URHO )
-             initial_eint = initial_eint + uout(i,j,k,UEINT)
-             initial_eden = initial_eden + uout(i,j,k,UEDEN)
+             initial_mass = initial_mass + uout(i,j,k,URHO ) * vol(i,j,k)
+             initial_eint = initial_eint + uout(i,j,k,UEINT) * vol(i,j,k)
+             initial_eden = initial_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
 
              if (uout(i,j,k,URHO) .eq. ZERO) then
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
+                call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -172,9 +175,9 @@ contains
 
              end if
 
-             final_mass = final_mass + uout(i,j,k,URHO )
-             final_eint = final_eint + uout(i,j,k,UEINT)
-             final_eden = final_eden + uout(i,j,k,UEDEN)
+             final_mass = final_mass + uout(i,j,k,URHO ) * vol(i,j,k)
+             final_eint = final_eint + uout(i,j,k,UEINT) * vol(i,j,k)
+             final_eden = final_eden + uout(i,j,k,UEDEN) * vol(i,j,k)
 
           enddo
        enddo
