@@ -65,7 +65,7 @@ contains
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: Castro_3d.f90 :: enforce_minimum_density")
+                call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 

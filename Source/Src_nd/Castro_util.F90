@@ -277,7 +277,7 @@ contains
 
                       if (verbose .gt. 0) then
                          print *,'   '
-                         print *,'>>> Warning: Castro_3d::reset_internal_energy  ',i,j,k
+                         print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
                          print *,'>>> ... resetting neg. e from EOS using small_temp'
                          print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
                          print *,'    '
