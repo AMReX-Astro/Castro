@@ -47,9 +47,13 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
 
+    ! Minimum zone width
+
+    dx_min = minval(dx_level(1:dim, amr_level))
+
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
-    !$acc copyin(mask) &
+    !$acc copyin(mask, dx_min) &
     !$acc copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
@@ -58,10 +62,6 @@ contains
     !$acc private(rhoInv, rho_e_K, delta_e, delta_rho_e) &
     !$acc private(eos_state_in, eos_state_out, burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
-
-    ! Minimum zone width
-
-    dx_min = minval(dx_level(1:dim, amr_level))
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
