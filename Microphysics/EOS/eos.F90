@@ -17,6 +17,10 @@ contains
 
   subroutine eos_get_small_temp(small_temp_out)
 
+    !$acc routine seq
+
+    implicit none
+
     double precision, intent(out) :: small_temp_out
 
     small_temp_out = smallt
@@ -26,6 +30,10 @@ contains
 
 
   subroutine eos_get_small_dens(small_dens_out)
+
+    !$acc routine seq
+
+    implicit none
 
     double precision, intent(out) :: small_dens_out
 
