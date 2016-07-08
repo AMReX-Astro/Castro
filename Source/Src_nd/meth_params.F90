@@ -1,3 +1,8 @@
+
+! This file is automatically created by parse_castro_params.py.  To update
+! or add runtime parameters, please edit _cpp_parameters and then run
+! mk_params.sh
+
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !

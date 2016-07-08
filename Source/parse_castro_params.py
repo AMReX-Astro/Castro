@@ -25,6 +25,18 @@ import argparse
 import re
 import sys
 
+FWARNING = """
+! This file is automatically created by parse_castro_params.py.  To update
+! or add runtime parameters, please edit _cpp_parameters and then run
+! mk_params.sh\n
+"""
+
+CWARNING = """
+// This file is automatically created by parse_castro_params.py.  To update
+// or add runtime parameters, please edit _cpp_parameters and then run
+// mk_params.sh\n
+"""
+
 class Param(object):
     def __init__(self, name, dtype, default,
                  debug_default=None,
@@ -202,6 +214,9 @@ def write_meth_module(plist, meth_template):
     except:
         sys.exit("unable to open meth_params.F90 for writing")
 
+
+    mo.write(FWARNING)
+
     param_decls = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
     params = [p for p in plist if p.in_fortran == 1]
 
@@ -287,6 +302,8 @@ def parse_params(infile, meth_template):
     except:
         sys.exit("unable to open castro_defaults.H for writing")
 
+    cd.write(CWARNING)
+
     for p in params:
         cd.write(p.get_default_string())
 
@@ -297,6 +314,8 @@ def parse_params(infile, meth_template):
     except:
         sys.exit("unable to open castro_params.H for writing")
 
+    cp.write(CWARNING)
+
     for p in params:
         cp.write(p.get_decl_string())
 
@@ -306,6 +325,8 @@ def parse_params(infile, meth_template):
     try: cq = open("castro_queries.H", "w")
     except:
         sys.exit("unable to open castro_queries.H for writing")
+
+    cq.write(CWARNING)
 
     for p in params:
         cq.write(p.get_query_string("C++"))

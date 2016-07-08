@@ -1,3 +1,8 @@
+
+// This file is automatically created by parse_castro_params.py.  To update
+// or add runtime parameters, please edit _cpp_parameters and then run
+// mk_params.sh
+
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 Real        Castro::difmag = 0.1;
