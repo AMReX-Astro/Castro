@@ -126,7 +126,7 @@ ifndef MICROPHYSICS_HOME
 endif
 
 ifdef MICROPHYSICS_HOME
-      EOS_PATH := $(MICROPHYSICS_HOME)/eos/$(strip $(EOS_dir))
+      EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
       NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
 endif
 
@@ -179,7 +179,7 @@ EXTERN_CORE += $(NETWORK_PATH)
 # since it has actions that depend on variables set there.
 
 ifdef MICROPHYSICS_HOME
-  include $(MICROPHYSICS_HOME)/eos/Make.package
+  include $(MICROPHYSICS_HOME)/EOS/Make.package
   include $(MICROPHYSICS_HOME)/networks/Make.package
 endif
 
