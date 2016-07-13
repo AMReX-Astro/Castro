@@ -116,13 +116,15 @@
 	    <li><h3><span class="icon fa-download"></span> Clone</h3>
 	      <pre>
 git clone https://github.com/BoxLib-Codes/BoxLib.git
-git clone https://github.com/BoxLib-Codes/Castro.git</pre>
+git clone https://github.com/BoxLib-Codes/Castro.git
+git clone https://github.com/BoxLib-Codes/Microphysics.git</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-cogs"></span> Setup your environment</h3>
 	      <pre>
 export CASTRO_HOME=/path/to/Castro
 export BOXLIB_HOME=/path/to/BoxLib
+export MICROPHYSICS_HOME=/path/to/Microphysics
 export BOXLIB_USE_MPI_WRAPPERS=1</pre>
 	    </li>
 
@@ -168,10 +170,10 @@ make DIM=2</pre>
 	Castro is written in a mix of C++ and Fortran.  The main driver, memory
 	management, and parallelization are implemented in C++ (using
 	the BoxLib framework) and the physics kernels are written in
-	Fortran.  New code features are done either on the "development" branch
-	of in a separate feature branch and periodically merged into "master".  If
+	Fortran.  New code features are done either on the "<tt>development</tt>" branch
+	or in a separate feature branch and periodically merged into "<tt>master</tt>".  If
 	you want to contribute to Castro, clone the Castro git repo, make your changes
-	on "development" and then issue a pull-request to the Castro "development" branch.
+	on "<tt>development</tt>" and then issue a pull-request to the Castro "<tt>development</tt>" branch.
 
 	<p>Additional physics capabilities are provided by the CastroRadiation and Microphysics
 	  git repositories.
