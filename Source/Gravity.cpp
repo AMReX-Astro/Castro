@@ -1010,7 +1010,8 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-      make_prescribed_grav(level,time,grav);
+      MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
+      make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
 
@@ -1091,7 +1092,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-	make_prescribed_grav(level,time,grav);
+        MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
+        make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
 
@@ -1543,12 +1545,22 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
 #endif
 
 void
-Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
+Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
 {
     const Real strt = ParallelDescriptor::second();
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif   
+    for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
+    {
+       const Box& bx = mfi.growntilebox();
+       ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		        BL_TO_FORTRAN_3D(phi[mfi]),dx);
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel

@@ -74,9 +74,14 @@ extern "C"
      const Real* max_radius,
      const Real* dr, const int* numpts_1d);
 
+  void ca_prescribe_phi
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(p),
+     const Real* dx);
+
   void ca_prescribe_grav
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(S),
+     const BL_FORT_FAB_ARG_3D(g),
      const Real* dx);
 
 #ifdef GR_GRAV
