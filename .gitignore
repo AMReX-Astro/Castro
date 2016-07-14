@@ -7,10 +7,10 @@
 *.blg
 *.lof
 *.lot
-UsersGuide/*.out
-UsersGuide/*.ps
-UsersGuide/*.pdf
-UsersGuide/*/*.pdf
+Docs/*.out
+Docs/*.ps
+Docs/*.pdf
+Docs/*/*.pdf
 
 # emacs temporaries
 *~
