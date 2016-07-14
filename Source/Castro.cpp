@@ -383,15 +383,6 @@ Castro::read_params ()
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM == 1)
-    if (do_grav && !Geometry::IsSPHERICAL()) {
-        std::cerr << "ERROR:Castro::Gravity in 1D assumes that the coordinate system is spherical\n";
-        BoxLib::Error();
-    }
-#endif
-#endif
-
     if (max_dt < fixed_dt)
       {
 	std::cerr << "cannot have max_dt < fixed_dt\n";

@@ -93,9 +93,9 @@ public:
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, 
                                  Array<Real>& radial_grav, MultiFab& grav_vector);
-  void make_prescribed_grav(int level, Real time, MultiFab& grav);
 #endif
 
+  void make_prescribed_grav(int level, Real time, MultiFab& grav);
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)

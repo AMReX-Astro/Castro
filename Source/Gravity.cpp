@@ -300,7 +300,7 @@ Gravity::install_level (int                   level,
        }
 
 #if (BL_SPACEDIM > 1)
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    } else if (gravity_type == "MonopoleGrav") {
 
         if (!Geometry::isAllPeriodic())
         {
@@ -995,26 +995,23 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
       
        grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    } else if (gravity_type == "MonopoleGrav") {
 
 #if (BL_SPACEDIM == 1)
        MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
        make_one_d_grav(level,time,grav,phi);
 #else
 
-       if (gravity_type == "MonopoleGrav") 
-       {
-          const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
-          make_radial_gravity(level,prev_time,radial_grav_old[level]);
-          interpolate_monopole_grav(level,radial_grav_old[level],grav);
+       const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
+       make_radial_gravity(level,prev_time,radial_grav_old[level]);
+       interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
-       }
-       else if (gravity_type == "PrescribedGrav") 
-       {
-          make_prescribed_grav(level,time,grav);
-       }  
+#endif
 
-#endif 
+    } else if (gravity_type == "PrescribedGrav") {
+
+      make_prescribed_grav(level,time,grav);
+
     } else if (gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
@@ -1080,26 +1077,22 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
        // Set to constant value in the BL_SPACEDIM direction
        grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
 
-    } else if (gravity_type == "MonopoleGrav" || gravity_type == "PrescribedGrav") {
+    } else if (gravity_type == "MonopoleGrav") {
 
 #if (BL_SPACEDIM == 1)
         MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
         make_one_d_grav(level,time,grav,phi);
 #else
-
 	// We always fill radial_grav_new (at every level)
-	if (gravity_type == "MonopoleGrav")
-	{
-          const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
-          make_radial_gravity(level,cur_time,radial_grav_new[level]);
-          interpolate_monopole_grav(level,radial_grav_new[level],grav);
-	}
-	else if (gravity_type == "PrescribedGrav") 
-	{
-	  make_prescribed_grav(level,time,grav);
-	}
-
+	const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
+	make_radial_gravity(level,cur_time,radial_grav_new[level]);
+	interpolate_monopole_grav(level,radial_grav_new[level],grav);
 #endif
+
+    } else if (gravity_type == "PrescribedGrav") {
+
+	make_prescribed_grav(level,time,grav);
+
     } else if (gravity_type == "PoissonGrav") {
 
 	const Geometry& geom = parent->Geom(level);
@@ -1549,7 +1542,6 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
 }
 #endif
 
-#if (BL_SPACEDIM > 1)
 void
 Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
 {
@@ -1585,6 +1577,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector)
     }
 }
 
+#if (BL_SPACEDIM > 1)
 void
 Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector)
 {
