@@ -5,7 +5,7 @@ from __future__ import print_function
 import sys
 
 # tex format stuff
-Mheader=r"""
+Mheader = r"""
 \label{ch:parameters}
 
 
@@ -16,7 +16,7 @@ Mheader=r"""
 \begin{landscape}
 """
 
-header=r"""
+header = r"""
 {\small
 
 \renewcommand{\arraystretch}{1.5}
@@ -45,7 +45,7 @@ header=r"""
 
 """
 
-footer=r"""
+footer = r"""
 
 \end{longtable}
 \end{center}
@@ -53,7 +53,7 @@ footer=r"""
 } % ends \small
 """
 
-Mfooter=r"""
+Mfooter = r"""
 \end{landscape}
 
 %
@@ -138,7 +138,7 @@ def make_tex_table():
             current_param.description = descr
             current_param.category = category
 
-            descr=r""
+            descr = r""
 
         # store the current parameter in the list
         params_list.append(current_param)
