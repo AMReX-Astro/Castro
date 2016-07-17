@@ -5,13 +5,13 @@ module advection_module
   private
 
   public umeth2d, ctoprim, consup
-  
+
 contains
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH2D     Compute hyperbolic fluxes using unsplit second
 ! ::: ::               order Godunov integrator.
-! ::: :: 
+! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: c           => (const)  sound speed
@@ -88,7 +88,7 @@ contains
     double precision, allocatable::  qm(:,:,:),   qp(:,:,:)
     double precision, allocatable:: qxm(:,:,:), qym(:,:,:)
     double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
-    
+
     ! Work arrays to hold riemann state and conservative fluxes
     double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
     double precision, allocatable ::  qgdxtmp(:,:,:)
@@ -193,7 +193,7 @@ contains
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
-    
+
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
@@ -203,7 +203,7 @@ contains
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
-      
+
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
@@ -226,7 +226,7 @@ contains
                 gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
-      
+
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
     ! returned from the Riemann solver.
@@ -244,12 +244,12 @@ contains
     deallocate(fx,fy)
     deallocate(shk)
     deallocate(qgdxtmp)
-    
+
   end subroutine umeth2d
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine ctoprim(lo,hi, &
                      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
@@ -257,7 +257,7 @@ contains
                      src,src_l1,src_l2,src_h1,src_h2, &
                      srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                      courno,dx,dy,dt,ngp,ngf)
-    
+
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
     ! lo-ngf:hi+ngf if use_flattening=1.  Declared dimensions of
     ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region
@@ -276,7 +276,7 @@ contains
     use bl_constants_module
 
     implicit none
-    
+
     double precision, parameter:: small = 1.d-8
 
     integer lo(2), hi(2)
@@ -284,7 +284,7 @@ contains
     integer q_l1,q_l2,q_h1,q_h2
     integer src_l1,src_l2,src_h1,src_h2
     integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
-    
+
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
     double precision :: c(q_l1:q_h1,q_l2:q_h2)
@@ -294,7 +294,7 @@ contains
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
     double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt, courno
-    
+
     double precision, allocatable :: dpdrho(:,:)
     double precision, allocatable :: dpde(:,:)
     double precision, allocatable :: dpdX_er(:,:,:)
@@ -310,7 +310,7 @@ contains
     allocate( dpdrho(q_l1:q_h1,q_l2:q_h2))
     allocate(   dpde(q_l1:q_h1,q_l2:q_h2))
     allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
-    
+
     do i=1,2
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
@@ -323,7 +323,7 @@ contains
        do i = loq(1),hiq(1)
 
           q(i,j,QRHO) = uin(i,j,URHO)
-          
+
           ! Load passively-advected quatities, c, into q, assuming they
           ! arrived in uin as rho.c. Note that for DIM < 3, this includes
           ! the transverse velocities that are not explicitly evolved.
@@ -332,8 +332,8 @@ contains
              nq = qpass_map(ipassive)
 
              q(i,j,nq) = uin(i,j,n)/q(i,j,QRHO)
-          enddo          
-          
+          enddo
+
           if (uin(i,j,URHO) .le. ZERO) then
              print *,'   '
              print *,'>>> Error: Castro_2d::ctoprim ',i,j
@@ -341,17 +341,17 @@ contains
              print *,'    '
              call bl_error("Error:: Castro_2d.f90 :: ctoprim")
           end if
-          
+
           q(i,j,QU:QV) = uin(i,j,UMX:UMY)/uin(i,j,URHO)
 
           ! Get the internal energy, which we'll use for determining the pressure.
-          ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
+          ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small,
           ! then we risk serious numerical truncation error in the internal energy.
           ! Therefore we'll use the result of the separately updated internal energy equation.
           ! Otherwise, we'll set e = E - K.
 
           kineng = HALF * q(i,j,QRHO) * sum(q(i,j,QU:QW)**2)
-          
+
           if ( (uin(i,j,UEDEN) - kineng) / uin(i,j,UEDEN) .gt. dual_energy_eta1) then
              q(i,j,QREINT) = (uin(i,j,UEDEN) - kineng) / q(i,j,QRHO)
           else
@@ -360,7 +360,7 @@ contains
 
           q(i,j,QTEMP  ) = uin(i,j,UTEMP)
 
-          ! Get gamc, p, T, c, csml using q state 
+          ! Get gamc, p, T, c, csml using q state
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
@@ -409,7 +409,7 @@ contains
     ! Compute sources in terms of Q
     do j = loq(2), hiq(2)
        do i = loq(1), hiq(1)
-          
+
           srcQ(i,j,QRHO  ) = src(i,j,URHO)
           srcQ(i,j,QU:QV ) = (src(i,j,UMX:UMY) - q(i,j,QU:QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
           ! S_rhoe = S_rhoE - u . (S_rhoU - 0.5 u S_rho)
@@ -447,7 +447,7 @@ contains
           coury =  ( c(i,j)+abs(q(i,j,QV)) ) * dt/dy
           courmx = max( courmx, courx )
           courmy = max( courmy, coury )
-          
+
           if (courx .gt. ONE) then
              print *,'   '
              call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
@@ -456,7 +456,7 @@ contains
              print *,'>>> ... u, c                ',q(i,j,QU), c(i,j)
              print *,'>>> ... density             ',q(i,j,QRHO)
           end if
-          
+
           if (coury .gt. ONE) then
              print *,'   '
              call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
@@ -465,11 +465,11 @@ contains
              print *,'>>> ... v, c                ',q(i,j,QV), c(i,j)
              print *,'>>> ... density             ',q(i,j,QRHO)
           end if
-          
+
        enddo
     enddo
     courno = max( courmx, courmy )
-      
+
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then
        do n=1,2
@@ -485,14 +485,14 @@ contains
     else
        flatn = ONE
     endif
-    
+
     deallocate(dpdrho,dpde)
-    
+
   end subroutine ctoprim
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
@@ -511,7 +511,7 @@ contains
                      verbose)
 
     use eos_module
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, &
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, USHK, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module
@@ -549,7 +549,7 @@ contains
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision mass_lost, xmom_lost, ymom_lost, zmom_lost
     double precision eden_lost, xang_lost, yang_lost, zang_lost
-    
+
     integer i, j, k, n
 
     double precision div1
@@ -568,7 +568,10 @@ contains
        if (n == UTEMP) then
           flux1(:,:,n) = ZERO
           flux2(:,:,n) = ZERO
-       else 
+       else if (n == USHK) then
+          flux1(:,:,n) = ZERO
+          flux2(:,:,n) = ZERO          
+       else
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)+1
                 div1 = HALF*(div(i,j) + div(i,j+1))
@@ -580,7 +583,7 @@ contains
                 flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
              enddo
           enddo
-          
+
           do j = lo(2), hi(2)+1
              do i = lo(1), hi(1)
                 div1 = HALF*(div(i,j) + div(i+1,j))
@@ -595,18 +598,20 @@ contains
 
        endif
     enddo
-    
+
     ! do the conservative updates
     do n = 1, NVAR
        if (n == UTEMP) then
           uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
-       else 
+       else if (n == USHK) then
+          uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
+       else
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
                 uout(i,j,n) = uin(i,j,n) + dt * &
                      ( flux1(i,j,n) - flux1(i+1,j,n) + &
                        flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
-                
+
                 if (n == UEINT) then
                    ! Add p div(u) source term to (rho e)
                    uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
@@ -619,7 +624,7 @@ contains
 
     ! Add up some diagnostic quantities. Note that these are volumetric sums
     ! so we are not dividing by the cell volume.
-                   
+
     if (verbose .eq. 1) then
 
        do j = lo(2), hi(2)
@@ -668,8 +673,8 @@ contains
           endif
        enddo
     enddo
-    
-    do j = lo(2), hi(2)+1 
+
+    do j = lo(2), hi(2)+1
        do i = lo(1), hi(1)
           flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
           !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
