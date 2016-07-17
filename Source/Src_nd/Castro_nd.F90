@@ -355,10 +355,6 @@
         NTHERM = NTHERM + 3
 #endif
 
-#ifdef SHOCK_VAR
-        NTHERM = NTHERM + 1
-#endif
-
         if (use_sgs .eq. 1) NTHERM = NTHERM + 1
         NVAR = NTHERM + nspec + naux + numadv
 
@@ -399,6 +395,7 @@
 
 #ifdef SHOCK_VAR
         USHK  = Shock + 1
+        NVAR  = NVAR + 1
 #else
         USHK  = -1
 #endif

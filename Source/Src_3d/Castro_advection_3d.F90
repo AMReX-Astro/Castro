@@ -263,7 +263,11 @@ contains
     pdivu(:,:,:) = ZERO
 
 #ifdef SHOCK_VAR
+    uout(:,:,:,USHK) = ZERO
+
     call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+
+    ! Store the shock data for future use in the burning step.
 
     do k3d = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -272,6 +276,8 @@ contains
           enddo
        enddo
     enddo
+
+    ! Discard it locally if we don't need it in the hydro update.
 
     if (hybrid_riemann /= 1) then
        shk(:,:,:) = ZERO
@@ -1039,6 +1045,9 @@ contains
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
@@ -1091,6 +1100,14 @@ contains
           flux1(:,:,:,n) = ZERO
           flux2(:,:,:,n) = ZERO
           flux3(:,:,:,n) = ZERO
+
+#ifdef SHOCK_VAR
+       else if ( n.eq.USHK ) then
+
+          flux1(:,:,:,n) = ZERO
+          flux2(:,:,:,n) = ZERO
+          flux3(:,:,:,n) = ZERO
+#endif
 
        else
 
@@ -1159,6 +1176,10 @@ contains
                 enddo
              enddo
           enddo
+#ifdef SHOCK_VAR
+       else if (n .eq. USHK) then
+          cycle
+#endif
        else
           ! update everything else with fluxes
           do k = lo(3),hi(3)

@@ -120,15 +120,21 @@ contains
     hdt = HALF*dt
 
 #ifdef SHOCK_VAR
+    uout(:,:,USHK) = ZERO
+
     call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
                shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
                ilo1,ilo2,ihi1,ihi2,dx,dy)
+
+    ! Store the shock data for future use in the burning step.
 
     do j = ilo2, ihi2
        do i = ilo1, ihi1
           uout(i,j,USHK) = shk(i,j)
        enddo
     enddo
+
+    ! Discard it locally if we don't need it in the hydro update.
 
     if (hybrid_riemann /= 1) then
        shk(:,:) = ZERO
@@ -511,13 +517,16 @@ contains
                      verbose)
 
     use eos_module
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UFS, USHK, &
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module
     use advection_util_2d_module, only : normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
@@ -568,9 +577,11 @@ contains
        if (n == UTEMP) then
           flux1(:,:,n) = ZERO
           flux2(:,:,n) = ZERO
+#ifdef SHOCK_VAR
        else if (n == USHK) then
           flux1(:,:,n) = ZERO
-          flux2(:,:,n) = ZERO          
+          flux2(:,:,n) = ZERO
+#endif
        else
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)+1
@@ -603,8 +614,10 @@ contains
     do n = 1, NVAR
        if (n == UTEMP) then
           uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
+#ifdef SHOCK_VAR
        else if (n == USHK) then
-          uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
+          cycle
+#endif
        else
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
