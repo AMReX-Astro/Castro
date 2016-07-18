@@ -35,7 +35,6 @@ module burn_type_module
     double precision :: rho              = init_num
     double precision :: T                = init_num
     double precision :: e                = init_num
-    double precision :: h                = init_num
     double precision :: xn(nspec)        = init_num
     double precision :: aux(naux)        = init_num
     double precision :: cv               = init_num
