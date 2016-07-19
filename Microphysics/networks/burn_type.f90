@@ -149,4 +149,21 @@ contains
 
   end subroutine burn_to_eos
 
+
+  subroutine normalize_abundances_burn(state)
+
+    !$acc routine seq
+
+    use bl_constants_module, only: ONE
+    use extern_probin_module, only: small_x
+
+    implicit none
+
+    type (burn_t), intent(inout) :: state
+
+    state % xn(:) = max(small_x, min(ONE, state % xn(:)))
+    state % xn(:) = state % xn(:) / sum(state % xn(:))
+
+  end subroutine normalize_abundances_burn
+
 end module burn_type_module
