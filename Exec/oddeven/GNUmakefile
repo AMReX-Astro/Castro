@@ -11,6 +11,8 @@ FCOMP	   = gfortran
 USE_MPI    = FALSE
 USE_OMP    = FALSE
 
+USE_SHOCK_VAR = TRUE
+
 CASTRO_HOME = ../..
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS

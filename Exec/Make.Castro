@@ -214,20 +214,6 @@ ifeq ($(USE_RAD), TRUE)
   VPATH_LOCATIONS   += $(OPAC_PATH)
 endif
 
-ifeq ($(USE_REACT), TRUE)
-VODE_dir    := $(TOP)/Util/VODE
-include $(VODE_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/VODE
-INCLUDE_LOCATIONS += $(VODE_dir) 
-VPATH_LOCATIONS   += $(VODE_dir) 
-
-BLAS_dir    := $(TOP)/Util/BLAS
-include $(BLAS_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/BLAS
-INCLUDE_LOCATIONS += $(BLAS_dir) 
-VPATH_LOCATIONS   += $(BLAS_dir) 
-endif
-
 ifeq ($(USE_RAD), TRUE)
 LAPACK_dir    := $(TOP)/Util/LAPACK
 include $(LAPACK_dir)/Make.package
