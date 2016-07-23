@@ -528,7 +528,7 @@ Castro::advance_hydro (Real time,
     MultiFab& reactions_old = get_old_data(Reactions_Type);
     MultiFab& reactions_new = get_new_data(Reactions_Type);
 #endif
-    
+
     // It's possible for interpolation to create very small negative values for
     //   species so we make sure here that all species are non-negative after this point
     enforce_nonnegative_species(S_old);
@@ -580,7 +580,7 @@ Castro::advance_hydro (Real time,
       fine = &getFluxReg(level+1);
     if (do_reflux && level > 0)
       current = &getFluxReg(level);
-    
+
 #ifdef SGS
     FluxRegister *sgs_fine    = 0;
     FluxRegister *sgs_current = 0;
@@ -589,7 +589,7 @@ Castro::advance_hydro (Real time,
     if (do_reflux && level > 0)
       sgs_current = &getSGSFluxReg(level);
 #endif
-    
+
 #ifdef RADIATION
     FluxRegister *rad_fine    = 0;
     FluxRegister *rad_current = 0;
@@ -598,10 +598,10 @@ Castro::advance_hydro (Real time,
     if (Radiation::rad_hydro_combined && do_reflux && level > 0)
       rad_current = &getRADFluxReg(level);
 #endif
-    
+
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
-    
+
     MultiFab fluxes[3];
 
     // We want to define this on every grid, because we may need the fluxes
@@ -628,7 +628,7 @@ Castro::advance_hydro (Real time,
 	sgs_fluxes[dir].define(getEdgeBoxArray(dir), NUM_STATE, 0, Fab_allocate);
       }
 #endif
-    
+
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
     MultiFab rad_fluxes[BL_SPACEDIM];
@@ -814,7 +814,7 @@ Castro::advance_hydro (Real time,
 
     {
 
-      // Note that we do the react_half_dt on Sborder because of our Strang
+      // Note that we do the react_state on Sborder because of our Strang
       // splitting approach -- the "old" data sent to the hydro,
       // which Sborder represents, has already had a half-timestep of burning.
 
@@ -833,9 +833,9 @@ Castro::advance_hydro (Real time,
         const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
 
 #ifdef TAU
-	react_half_dt(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,dt,react_ngrow_first_half);
+	react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #else
-	react_half_dt(Sborder,reactions_old,interior_mask_first_half,time,dt,react_ngrow_first_half);
+	react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #endif
 
         BoxLib::fill_boundary(Sborder, geom);
@@ -1928,9 +1928,9 @@ Castro::advance_hydro (Real time,
     const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
 
 #ifdef TAU
-    react_half_dt(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
+    react_state(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
 #else
-    react_half_dt(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
+    react_state(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
 #endif
 
     BoxLib::fill_boundary(S_new, geom);
@@ -2075,9 +2075,9 @@ Castro::advance_no_hydro (Real time,
       const int react_ngrow_first_half = 0;
       const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
 #ifdef TAU
-      react_half_dt(S_old,reactions_old,tau_diff,interior_mask_first_half,time,dt,react_ngrow_first_half);
+      react_state(S_old,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #else
-      react_half_dt(S_old,reactions_old,interior_mask_first_half,time,dt,react_ngrow_first_half);
+      react_state(S_old,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #endif
 #endif
  
@@ -2161,9 +2161,9 @@ Castro::advance_no_hydro (Real time,
     const int react_ngrow_second_half = 0;
     const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
 #ifdef TAU
-    react_half_dt(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
+    react_state(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
 #else
-    react_half_dt(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,dt,react_ngrow_second_half);
+    react_state(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
 #endif
 #endif
 

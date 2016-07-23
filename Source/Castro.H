@@ -316,15 +316,15 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
-    void react_half_dt(MultiFab& state,
-		       MultiFab& reactions,
+    void react_state(MultiFab& state,
+		     MultiFab& reactions,
 #ifdef TAU
-		       MultiFab& tau,
+		     MultiFab& tau,
 #endif
-		       const iMultiFab& mask,
-		       Real time, 
-		       Real dt,
-		       int  ngrow = 0);
+		     const iMultiFab& mask,
+		     Real time,
+		     Real dt_react,
+		     int  ngrow = 0);
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
