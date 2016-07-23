@@ -382,6 +382,26 @@ Castro::advance_hydro (Real time,
     } 
 #endif
 
+    // Create storage for all source terms.
+
+    enum sources { ext_src = 0,
+#ifdef GRAVITY
+		   grav_src,
+#endif
+#ifdef ROTATION
+		   rot_src,
+#endif
+#ifdef DIFFUSION
+		   diff_src,
+#endif
+#ifdef HYBRID_MOMENTUM
+		   hybrid_src,
+#endif
+                   num_src };
+
+    PArray<MultiFab> old_sources(num_src, PArrayManage);
+    PArray<MultiFab> new_sources(num_src, PArrayManage);
+
     // Reset the change from density resets
 
     frac_change = 1.e0;
@@ -462,6 +482,9 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef GRAVITY
+    old_sources.set(grav_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
+    old_sources[grav_src].setVal(0.0, NUM_GROW);
+
     // Old and new gravitational potential.
        
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -675,26 +698,6 @@ Castro::advance_hydro (Real time,
 
     MultiFab sources_for_hydro(grids,NUM_STATE,NUM_GROW,Fab_allocate);
     sources_for_hydro.setVal(0.0,NUM_GROW);
-
-    // Create storage for all source terms.
-
-    enum sources { ext_src = 0,
-#ifdef GRAVITY
-		   grav_src,
-#endif
-#ifdef ROTATION
-		   rot_src,
-#endif
-#ifdef DIFFUSION
-		   diff_src,
-#endif
-#ifdef HYBRID_MOMENTUM
-		   hybrid_src,
-#endif
-                   num_src };
-
-    PArray<MultiFab> old_sources(num_src, PArrayManage);
-    PArray<MultiFab> new_sources(num_src, PArrayManage);
 
     // Set up external source terms.
 
@@ -958,9 +961,12 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(grav_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_grav,mom_added);
+
+		    stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif		    
 
 		    for (int dir = 0; dir < 3; dir++)
@@ -1241,9 +1247,12 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(grav_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_grav,mom_added);
+
+		    stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    xmom_added_grav += mom_added[0];
@@ -1657,6 +1666,10 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,0);
     
 #ifdef GRAVITY
+
+    new_sources.set(grav_src, new MultiFab(grids, NUM_STATE, 0));
+    new_sources[grav_src].setVal(0.0);
+
     if (do_grav)
       {
 	if (gravity->get_gravity_type() == "PoissonGrav")
@@ -1737,12 +1750,15 @@ Castro::advance_hydro (Real time,
 			    BL_TO_FORTRAN_3D(grav_new[mfi]),
 			    BL_TO_FORTRAN_3D(S_old[mfi]),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
+			    BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
 			    ZFILL(dx),dt,&cur_time,
 			    BL_TO_FORTRAN_3D(volume[mfi]),
 			    E_added, mom_added);
+
+		S_new[mfi].saxpy(dt,new_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
 
 		xmom_added += mom_added[0];
 		ymom_added += mom_added[1];
