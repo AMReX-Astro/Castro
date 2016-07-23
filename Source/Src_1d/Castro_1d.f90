@@ -16,7 +16,6 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
-  use advection_util_module, only : enforce_minimum_density
   use bl_constants_module
 
   implicit none
@@ -133,13 +132,6 @@ subroutine ca_umdrv(is_finest_level,time,&
        mass_lost,xmom_lost,ymom_lost,zmom_lost, &
        eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
-
-  ! Enforce the density >= small_dens.
-  call enforce_minimum_density(uin,[uin_lo(1),0,0],[uin_hi(1),0,0], &
-                               uout,[uout_lo(1),0,0],[uout_hi(1),0,0], &
-                               vol,[vol_l1,0,0],[vol_h1,0,0], &
-                               [lo(1),0,0],[hi(1),0,0], &
-                               mass_added,eint_added,eden_added,frac_change,verbose)
 
   deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 

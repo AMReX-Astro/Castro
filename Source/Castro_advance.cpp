@@ -876,7 +876,7 @@ Castro::advance_hydro (Real time,
 			rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
-		
+
 		    ca_umdrv_rad
 			(&is_finest_level,&time,
 			 bx.loVect(), bx.hiVect(),
@@ -1111,42 +1111,50 @@ Castro::advance_hydro (Real time,
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
 
+		    FArrayBox &vol = volume[mfi];
+
 		    // Allocate fabs for fluxes and Godunov velocities.
 		    for (int i = 0; i < BL_SPACEDIM; i++) {
 			const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 			flux[i].resize(bxtmp,NUM_STATE);
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
-	  
+
 		    ca_umdrv
 			(&is_finest_level,&time,
 			 lo, hi, domain_lo, domain_hi,
 			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
-			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
-				BL_TO_FORTRAN(ugdn[1]), 
-				BL_TO_FORTRAN(ugdn[2])), 
+			 D_DECL(BL_TO_FORTRAN(ugdn[0]),
+				BL_TO_FORTRAN(ugdn[1]),
+				BL_TO_FORTRAN(ugdn[2])),
 			 BL_TO_FORTRAN(hydro_sources[mfi]),
 			 dx, &dt,
-			 D_DECL(BL_TO_FORTRAN(flux[0]), 
-				BL_TO_FORTRAN(flux[1]), 
-				BL_TO_FORTRAN(flux[2])), 
-			 D_DECL(BL_TO_FORTRAN(area[0][mfi]), 
-				BL_TO_FORTRAN(area[1][mfi]), 
-				BL_TO_FORTRAN(area[2][mfi])), 
-#if (BL_SPACEDIM < 3) 
-			 BL_TO_FORTRAN(dLogArea[0][mfi]), 
+			 D_DECL(BL_TO_FORTRAN(flux[0]),
+				BL_TO_FORTRAN(flux[1]),
+				BL_TO_FORTRAN(flux[2])),
+			 D_DECL(BL_TO_FORTRAN(area[0][mfi]),
+				BL_TO_FORTRAN(area[1][mfi]),
+				BL_TO_FORTRAN(area[2][mfi])),
+#if (BL_SPACEDIM < 3)
+			 BL_TO_FORTRAN(dLogArea[0][mfi]),
 #endif
-			 BL_TO_FORTRAN(volume[mfi]), 
-			 &cflLoc, verbose, 
-			 mass_added, eint_added, eden_added,
-			 dens_change,
+			 BL_TO_FORTRAN(vol),
+			 &cflLoc, verbose,
 			 mass_added_flux,
-			 xmom_added_flux, 
-                  	 ymom_added_flux, 
+			 xmom_added_flux,
+                  	 ymom_added_flux,
 	                 zmom_added_flux,
                          E_added_flux,
 			 mass_lost, xmom_lost, ymom_lost, zmom_lost,
 			 eden_lost, xang_lost, yang_lost, zang_lost);
+
+		    // Enforce the density >= small_dens.
+
+		    enforce_minimum_density(statein.dataPtr(),ARLIM_3D(statein.loVect()),ARLIM_3D(statein.hiVect()),
+					    stateout.dataPtr(),ARLIM_3D(stateout.loVect()),ARLIM_3D(stateout.hiVect()),
+					    vol.dataPtr(),ARLIM_3D(vol.loVect()),ARLIM_3D(vol.hiVect()),
+					    ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
+					    &mass_added,&eint_added,&eden_added,&dens_change,&verbose);
 
 		    // Renormalize species mass fractions
 
@@ -1166,7 +1174,7 @@ Castro::advance_hydro (Real time,
 #endif
 
 		    // Copy the normal velocities from the Riemann solver
-		    
+
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		    }

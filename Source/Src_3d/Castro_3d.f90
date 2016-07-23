@@ -13,7 +13,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                    courno,verbose,mass_added,eint_added,eden_added,frac_change, &
+                    courno,verbose, &
                     mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
                     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
@@ -23,7 +23,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                  GDU, GDV, GDW
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_3d_module, only : divu
-  use advection_util_module, only : enforce_minimum_density
 
   implicit none
 
@@ -59,7 +58,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
   double precision, intent(in) :: delta(3),dt,time
   double precision, intent(inout) :: courno,E_added_flux,mass_added_flux
-  double precision, intent(inout) :: mass_added,eint_added,eden_added,frac_change
   double precision, intent(inout) :: xmom_added_flux,ymom_added_flux,zmom_added_flux
   double precision, intent(inout) :: mass_lost,xmom_lost,ymom_lost,zmom_lost
   double precision, intent(inout) :: eden_lost,xang_lost,yang_lost,zang_lost
@@ -213,11 +211,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !    call post_step_radiative_cooling(lo,hi,dt, &
   !         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3)
   ! endif
-
-  ! Enforce the density >= small_dens.
-  call enforce_minimum_density(uin,uin_lo,uin_hi,uout,uout_lo,uout_hi, &
-                               vol,vol_lo,vol_hi,lo,hi,mass_added,eint_added,eden_added, &
-                               frac_change,verbose)
 
   ! Copy data from the edge-centered state into ugdnv
 
