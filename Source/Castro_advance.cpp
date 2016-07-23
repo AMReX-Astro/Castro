@@ -1154,6 +1154,10 @@ Castro::advance_hydro (Real time,
 			ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		    }
 
+		    // Initialize new data by copying old data.
+
+		    stateout.copy(statein,bx);
+
 		    ca_umdrv
 			(&is_finest_level,&time,
 			 lo, hi, domain_lo, domain_hi,
@@ -1186,7 +1190,6 @@ Castro::advance_hydro (Real time,
 
 		    // Apply the hydro source term.
 
-		    stateout.copy(statein,bx);
 		    stateout.saxpy(dt,source,bx,bx,0,0,NUM_STATE);
 
 		    // Enforce the density >= small_dens.
