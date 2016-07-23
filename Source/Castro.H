@@ -52,6 +52,23 @@ enum StateType { State_Type = 0,
 #endif
                  NUM_STATE_TYPE };
 
+// Create storage for all source terms.
+
+enum sources { ext_src = 0,
+#ifdef GRAVITY
+	       grav_src,
+#endif
+#ifdef ROTATION
+	       rot_src,
+#endif
+#ifdef DIFFUSION
+	       diff_src,
+#endif
+#ifdef HYBRID_MOMENTUM
+	       hybrid_src,
+#endif
+	       num_src };
+
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media
 //

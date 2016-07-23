@@ -382,23 +382,6 @@ Castro::advance_hydro (Real time,
     } 
 #endif
 
-    // Create storage for all source terms.
-
-    enum sources { ext_src = 0,
-#ifdef GRAVITY
-		   grav_src,
-#endif
-#ifdef ROTATION
-		   rot_src,
-#endif
-#ifdef DIFFUSION
-		   diff_src,
-#endif
-#ifdef HYBRID_MOMENTUM
-		   hybrid_src,
-#endif
-                   num_src };
-
     PArray<MultiFab> old_sources(num_src, PArrayManage);
     PArray<MultiFab> new_sources(num_src, PArrayManage);
 
