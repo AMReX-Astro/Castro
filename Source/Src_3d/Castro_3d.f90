@@ -23,7 +23,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                  GDU, GDV, GDW
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_3d_module, only : divu
-  use castro_util_module, only : ca_normalize_species
   use advection_util_module, only : enforce_minimum_density
 
   implicit none
@@ -220,9 +219,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                vol,vol_lo,vol_hi,lo,hi,mass_added,eint_added,eden_added, &
                                frac_change,verbose)
 
-  ! Renormalize species mass fractions
-  call ca_normalize_species(uout,uout_lo,uout_hi,lo,hi)
- 
   ! Copy data from the edge-centered state into ugdnv
 
   ugdnvx_out(:,:,:) = q1(:,:,:,GDU)

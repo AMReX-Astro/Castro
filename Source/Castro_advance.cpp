@@ -1148,6 +1148,11 @@ Castro::advance_hydro (Real time,
 			 mass_lost, xmom_lost, ymom_lost, zmom_lost,
 			 eden_lost, xang_lost, yang_lost, zang_lost);
 
+		    // Renormalize species mass fractions
+
+		    ca_normalize_species(stateout.dataPtr(),ARLIM_3D(stateout.loVect()), ARLIM_3D(stateout.hiVect()),
+					 ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
+
 		    // Add dt * old-time external source terms
 
 		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);

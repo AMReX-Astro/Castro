@@ -16,7 +16,6 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
-  use castro_util_module, only : ca_normalize_species
   use advection_util_module, only : enforce_minimum_density
   use bl_constants_module
 
@@ -141,11 +140,6 @@ subroutine ca_umdrv(is_finest_level,time,&
                                vol,[vol_l1,0,0],[vol_h1,0,0], &
                                [lo(1),0,0],[hi(1),0,0], &
                                mass_added,eint_added,eden_added,frac_change,verbose)
-
-  ! Renormalize species mass fractions
-  call ca_normalize_species(uout, &
-                            [uout_l1, 0, 0], [uout_h1, 0, 0], &
-                            [lo(1), 0, 0], [hi(1), 0, 0])
 
   deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
 
