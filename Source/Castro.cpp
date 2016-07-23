@@ -452,7 +452,8 @@ Castro::Castro (Amr&            papa,
                 const BoxArray& bl,
                 Real            time)
     :
-    AmrLevel(papa,lev,level_geom,bl,time) 
+    AmrLevel(papa,lev,level_geom,bl,time),
+    comp_minus_level_grad_phi(BL_SPACEDIM)
 {
     buildMetrics();
 
@@ -522,6 +523,7 @@ Castro::Castro (Amr&            papa,
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
        phi_new.setVal(0.0);
    }
+
 #endif
 
 #ifdef ROTATION

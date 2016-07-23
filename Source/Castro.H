@@ -222,20 +222,31 @@ public:
 
     Real advance_hydro (Real time,
                         Real dt,
-                        int  iteration,
-                        int  ncycle,
-			int  subcycle_iter);
+                        int  amr_iteration,
+                        int  amr_ncycle,
+			int  sub_iteration,
+			int  sub_ncycle);
 
     Real advance_no_hydro (Real time,
                            Real dt,
-                           int  iteration,
-                           int  ncycle,
-			   int  subcycle_iter);
+                           int  amr_iteration,
+                           int  amr_ncycle,
+			   int  sub_iteration,
+			   int  sub_ncycle);
 
     void time_center_source_terms (MultiFab& S_new,
                                    MultiFab& ext_src_old,
                                    MultiFab& ext_src_new,
                                    Real dt);
+
+#ifdef GRAVITY
+    void construct_old_gravity(int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time);
+    void construct_new_gravity(int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time);
+#endif
 
     //
     //Estimate time step.
@@ -508,6 +519,12 @@ protected:
     // Need to pass ugdnv out of cmpflx to do level sets
     //
     MultiFab* u_gdnv;
+
+    //
+    // Difference between composite and level solve for phi.
+    //
+    MultiFab* comp_minus_level_phi;
+    Array<MultiFab*> comp_minus_level_grad_phi;
 
     //
     //  Call extern/networks/.../network.f90::network_init()

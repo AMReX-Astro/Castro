@@ -30,8 +30,8 @@ using std::string;
 Real
 Castro::advance (Real time,
                  Real dt,
-                 int  iteration,
-                 int  ncycle)
+                 int  amr_iteration,
+                 int  amr_ncycle)
 {
     BL_PROFILE("Castro::advance()");
 
@@ -39,14 +39,14 @@ Castro::advance (Real time,
 
     // Pass some information about the state of the simulation to a Fortran module.
 
-    set_amr_info(level, iteration, ncycle, time, dt);
+    set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
 
     // Swap the new data from the last timestep into the old state data.
     // If we're on level 0, do it for all levels below this one as well.
     // Or, if we're on a later iteration at a finer timestep, swap for all
     // lower time levels as well.
 
-    if (level == 0 || iteration > 1) {
+    if (level == 0 || amr_iteration > 1) {
 
         for (int lev = level; lev <= parent->finestLevel(); lev++) {
 
@@ -80,7 +80,8 @@ Castro::advance (Real time,
 
     PArray<StateData> prev_state(NUM_STATE_TYPE,PArrayManage);
 
-    int subcycle_iter = 0;
+    int sub_iteration = 0;
+    int sub_ncycle = 0;
 
     if (use_retry) {
 
@@ -104,19 +105,19 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    if (do_hydro) 
+    if (do_hydro)
     {
-        dt_new = advance_hydro(time,dt,iteration,ncycle,subcycle_iter);
-    } 
-    else 
+        dt_new = advance_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
+    }
+    else
     {
 #ifdef SGS
         BoxLib::Abort("Castro::advance -- doesn't make sense to have SGS defined but not do_hydro");
         return 0.;
 #else
-        dt_new = advance_no_hydro(time,dt,iteration,ncycle,subcycle_iter);
+        dt_new = advance_no_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
 #endif
-    } 
+    }
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
@@ -173,19 +174,19 @@ Castro::advance (Real time,
 
       if (dt_subcycle < dt) {
 
-	int n_subcycle_iters = ceil(dt / dt_subcycle);
+	int sub_ncycle = ceil(dt / dt_subcycle);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
 	  std::cout << std::endl;
 	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	  std::cout << "  Performing a retry, with " << n_subcycle_iters
+	  std::cout << "  Performing a retry, with " << sub_ncycle
 		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
 	  std::cout << std::endl;
 	}
 
 	Real subcycle_time = time;
-	subcycle_iter = 1;
-	Real dt_advance = dt / n_subcycle_iters;
+	sub_iteration = 1;
+	Real dt_advance = dt / sub_ncycle;
 
 	// Restore the original values of the state data.
 
@@ -227,7 +228,7 @@ Castro::advance (Real time,
 	    dt_advance = (time + dt) - subcycle_time;
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << "  Beginning retry subcycle " << subcycle_iter << " of " << n_subcycle_iters
+	    std::cout << "  Beginning retry subcycle " << sub_iteration << " of " << sub_ncycle
 		      << ", starting at time " << subcycle_time
 		      << " with dt = " << dt_advance << std::endl << std::endl;
 	  }
@@ -248,21 +249,21 @@ Castro::advance (Real time,
 
 	  if (do_hydro)
 	  {
-	    advance_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
 	  }
 	  else
 	  {
-	    advance_no_hydro(subcycle_time,dt_advance,iteration,ncycle,subcycle_iter);
+	    advance_no_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
 	  }
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << std::endl;
-	    std::cout << "  Retry subcycle " << subcycle_iter << " of " << n_subcycle_iters << " completed" << std::endl;
+	    std::cout << "  Retry subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
 	    std::cout << std::endl;
 	  }
 
 	  subcycle_time += dt_advance;
-	  subcycle_iter += 1;
+	  sub_iteration += 1;
 
 	}
 
@@ -324,13 +325,13 @@ Castro::advance (Real time,
 
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
-    final_radiation_call(S_new,iteration,ncycle);
+    final_radiation_call(S_new,amr_iteration,amr_ncycle);
 #endif
 
 #ifdef PARTICLES
     if (TracerPC)
     {
-	int ng = iteration;
+	int ng = amr_iteration;
 	Real t = time + 0.5*dt;
 
 	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
@@ -363,9 +364,10 @@ Castro::advance (Real time,
 Real
 Castro::advance_hydro (Real time,
                        Real dt,
-                       int  iteration,
-                       int  ncycle,
-		       int  subcycle_iter)
+                       int  amr_iteration,
+                       int  amr_ncycle,
+		       int  sub_iteration,
+		       int  sub_ncycle)
 {
     BL_PROFILE("Castro::advance_hydro()");
 
@@ -395,10 +397,10 @@ Castro::advance_hydro (Real time,
 	u_gdnv[dir].define(getEdgeBoxArray(dir),1,1,Fab_allocate);
 	u_gdnv[dir].setVal(1.e40,1);
     }
-    
+
     int finest_level = parent->finestLevel();
 
-    if (do_reflux && level < finest_level && subcycle_iter < 2) {
+    if (do_reflux && level < finest_level && sub_iteration < 2) {
         //
         // Set reflux registers to zero.
         //
@@ -468,43 +470,7 @@ Castro::advance_hydro (Real time,
     old_sources.set(grav_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
     old_sources[grav_src].setVal(0.0, NUM_GROW);
 
-    // Old and new gravitational potential.
-       
-    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-    MultiFab& phi_new = get_new_data(PhiGrav_Type);
-
-    MultiFab& grav_old = get_old_data(Gravity_Type);
-    MultiFab& grav_new = get_new_data(Gravity_Type);
-    
-    if (do_grav) {
-
-       // Swap the old and new data at this level and all finer levels,
-       // and zero out the flux registers. 
-
-       if (level == 0 || iteration > 1) {
-
-	 if (subcycle_iter < 2)
-	   for (int lev = level; lev < finest_level; lev++) {
-               if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
-                   gravity->zeroPhiFluxReg(lev+1);
-           }
-
-       }
-
-       // Define the old gravity vector (aka grad_phi on cell centers)
-       //   Note that this is based on the multilevel solve when doing "PoissonGrav".
-
-       gravity->get_old_grav_vector(level,grav_old,time);
-       
-       if (gravity->get_gravity_type() == "PoissonGrav" &&
-           gravity->test_results_of_solves() == 1)
-          gravity->test_level_grad_phi_prev(level);
-    }
-    else
-    {
-       grav_new.setVal(0.0);
-       phi_new.setVal(0.0);
-    }
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 #endif
 
 #ifdef REACTIONS
@@ -522,35 +488,6 @@ Castro::advance_hydro (Real time,
     tau_diff.setVal(0.);
     define_tau(tau_diff,grav_old,time);
 #endif
-#endif
-
-#ifdef GRAVITY
-    MultiFab comp_minus_level_phi;
-    PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
-
-    // Do level solve at beginning of time step in order to compute the
-    //   difference between the multilevel and the single level solutions.
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
-    {
-        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
-	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		  comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
-	    }
-	    gravity->create_comp_minus_level_grad_phi(level,
-                            comp_minus_level_phi,comp_minus_level_grad_phi);
-        } else {
-           if (verbose && ParallelDescriptor::IOProcessor()) {
-              std::cout << " " << '\n';
-              std::cout << "... old-time level solve at level " << level << '\n';
-           }
-	   int is_new = 0;
-           gravity->solve_for_phi(level, 
-				  phi_old,
-				  gravity->get_grad_phi_prev(level),
-				  is_new);
-        }
-    }
 #endif
 
     //
@@ -736,6 +673,7 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,NUM_GROW);
 
 #ifdef GRAVITY
+    MultiFab& grav_old = get_old_data(Gravity_Type);
     if (do_grav)
       add_force_to_sources(grav_old, sources_for_hydro, Sborder);
 #endif
@@ -1223,6 +1161,8 @@ Castro::advance_hydro (Real time,
 		    Real mom_added[3] = { 0.0 };
 
 #ifdef GRAVITY
+		    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+
 		    if (do_grav)
 		      ca_gsrc(ARLIM_3D(lo), ARLIM_3D(hi),
 			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
@@ -1649,64 +1589,17 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,0);
     
 #ifdef GRAVITY
-
     new_sources.set(grav_src, new MultiFab(grids, NUM_STATE, 0));
     new_sources[grav_src].setVal(0.0);
 
-    if (do_grav)
-      {
-	if (gravity->get_gravity_type() == "PoissonGrav")
-	  {
-            if (verbose && ParallelDescriptor::IOProcessor()) {
-	      std::cout << " " << '\n';
-	      std::cout << "... new-time level solve at level " << level << '\n';
-            }
-	    
-            // Here we use the "old" phi from the current time step as a guess for this solve
-	    MultiFab::Copy(phi_new,phi_old,0,0,1,phi_new.nGrow());
-            if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
-	    }
-            int is_new = 1;
-            gravity->solve_for_phi(level,
-				   phi_new,
-				   gravity->get_grad_phi_curr(level),
-				   is_new);
-	    
-            if (gravity->test_results_of_solves() == 1)
-	      {
-		if (verbose && ParallelDescriptor::IOProcessor()) 
-		  {
-		    std::cout << " " << '\n';
-		    std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
-		  }
-		gravity->test_level_grad_phi_curr(level);
-	      }
-	    
-            if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-	      phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-	      gravity->plus_grad_phi_curr(level,comp_minus_level_grad_phi);
-            }
-	    
-            if (gravity->test_results_of_solves() == 1) {
-	      if (level < parent->finestLevel()) {
-		if (verbose && ParallelDescriptor::IOProcessor()) {
-		  std::cout << " " << '\n';
-		  std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
-		}
-		gravity->test_level_grad_phi_curr(level);
-	      }
-            }
-	    
-            if (do_reflux)  gravity->add_to_fluxes(level,iteration,ncycle);
-	  }
-	else {
-	    phi_new.setVal(0.0);  // so that plotfiles do not contain nans
-	}
+    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
 
-	// Now do corrector part of source term update
-	gravity->get_new_grav_vector(level,grav_new,cur_time);
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
+    MultiFab& grav_new = get_new_data(Gravity_Type);
+
+    if (do_grav) {
         Real E_added    = 0.;
 	Real xmom_added = 0.;
 	Real ymom_added = 0.;
@@ -1950,9 +1843,10 @@ Castro::advance_hydro (Real time,
 Real
 Castro::advance_no_hydro (Real time,
                           Real dt,
-                          int  iteration,
-                          int  ncycle,
-			  int  subcycle_iter)
+                          int  amr_iteration,
+                          int  amr_ncycle,
+			  int  sub_iteration,
+			  int  sub_ncycle)
 {
     BL_PROFILE("Castro::advance_no_hydro()");
 
@@ -2016,7 +1910,7 @@ Castro::advance_no_hydro (Real time,
     MultiFab& grav_new = get_new_data(Gravity_Type);
     
     if (do_grav) {
-       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && subcycle_iter < 2)
+       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && sub_iteration < 2)
            gravity->zeroPhiFluxReg(level+1);
 
        // Define the old gravity vector (aka grad_phi on cell centers)
@@ -2065,32 +1959,7 @@ Castro::advance_no_hydro (Real time,
 #endif
  
 #ifdef GRAVITY
-    MultiFab comp_minus_level_phi;
-    PArray<MultiFab> comp_minus_level_grad_phi(BL_SPACEDIM,PArrayManage);
-
-    // Do level solve at beginning of time step in order to compute the
-    //   difference between the multilevel and the single level solutions.
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
-    {
-        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
-	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
-	    for (int n=0; n<BL_SPACEDIM; ++n) {
-		comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
-	    }
-	    gravity->create_comp_minus_level_grad_phi(level,
-                            comp_minus_level_phi,comp_minus_level_grad_phi);
-        } else {
-           if (verbose && ParallelDescriptor::IOProcessor()) {
-              std::cout << " " << '\n';
-              std::cout << "... old-time level solve at level " << level << '\n';
-           }
-           int is_new = 0;
-           gravity->solve_for_phi(level,
-				  phi_old,
-				  gravity->get_grad_phi_prev(level),
-				  is_new);
-        }
-    }
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 #endif
 
     Real cur_time = state[State_Type].curTime();
@@ -2123,6 +1992,19 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef GRAVITY
     MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
+    MultiFab::Copy(grav_new, grav_old, 0, 0, 3, grav_new.nGrow());
+
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
+    {
+        if (gravity->NoComposite() != 1 && level < parent->finestLevel())
+	{
+
+	  delete comp_minus_level_phi;
+	  for (int n = 0; n < BL_SPACEDIM; ++n)
+	    delete comp_minus_level_grad_phi[n];
+
+	}
+    }
 #endif
 
     // ******************
