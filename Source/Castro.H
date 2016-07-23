@@ -364,6 +364,14 @@ public:
 #endif
 
 #ifdef ROTATION
+    void construct_old_rotation(int amr_iteration, int amr_ncycle,
+				int sub_iteration, int sub_ncycle,
+				Real time, MultiFab& state);
+
+    void construct_new_rotation(int amr_iteration, int amr_ncycle,
+				int sub_iteration, int sub_ncycle,
+				Real time, MultiFab& state);
+
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
 

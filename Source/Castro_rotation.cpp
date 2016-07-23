@@ -3,6 +3,56 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle,
+				    int sub_iteration, int sub_ncycle,
+				    Real time, MultiFab& state)
+{
+
+    MultiFab& phirot_old = get_old_data(PhiRot_Type);
+    MultiFab& rot_old = get_old_data(Rotation_Type);
+
+    // Fill the old rotation data.
+
+    if (do_rotation) {
+
+      fill_rotation_field(phirot_old, rot_old, state, time);
+
+    } else {
+
+      phirot_old.setVal(0.);
+      rot_old.setVal(0.);
+
+    }
+
+}
+
+
+
+void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle,
+				    int sub_iteration, int sub_ncycle,
+				    Real time, MultiFab& state)
+{
+
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
+
+    // Fill the old rotation data.
+
+    if (do_rotation) {
+
+      fill_rotation_field(phirot_new, rot_new, state, time);
+
+    } else {
+
+      phirot_new.setVal(0.);
+      rot_new.setVal(0.);
+
+    }
+
+}
+
+
+
 void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time)
 {
     const Real* dx = geom.CellSize();

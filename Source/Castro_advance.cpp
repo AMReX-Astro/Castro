@@ -681,21 +681,10 @@ Castro::advance_hydro (Real time,
 #ifdef ROTATION
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    // Fill the old rotation data.
-
-    if (do_rotation) {
-
-      fill_rotation_field(phirot_old, rot_old, Sborder, prev_time);
-
-    } else {
-
-      phirot_old.setVal(0.);
-      rot_old.setVal(0.);
-
-    }
+    construct_old_rotation(amr_iteration, amr_ncycle,
+			   sub_iteration, sub_ncycle,
+			   prev_time, Sborder);
 
     if (do_rotation)
       add_force_to_sources(rot_old, sources_for_hydro, Sborder);
@@ -1692,15 +1681,17 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
+    MultiFab& phirot_new = get_new_data(PhiRot_Type);
+    MultiFab& rot_new = get_new_data(Rotation_Type);
 
     new_sources.set(rot_src, new MultiFab(grids, NUM_STATE, 0));
     new_sources[rot_src].setVal(0.0);
 
+    construct_new_rotation(amr_iteration, amr_ncycle,
+			   sub_iteration, sub_ncycle,
+			   cur_time, S_new);
+
     if (do_rotation) {
-
-        // Fill the new rotation data.
-
-        fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
 
 	// Now do corrector part of rotation source term update
 
