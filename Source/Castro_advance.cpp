@@ -1609,11 +1609,11 @@ Castro::advance_hydro (Real time,
       }
 
 #ifdef HYBRID_MOMENTUM
-    MultiFab hybrid_src_new(grids,NUM_STATE,0,Fab_allocate);
-    hybrid_src_new.setVal(0.0);
-    add_hybrid_hydro_source(hybrid_src_new, S_new);
-    time_center_source_terms(S_new, old_sources[hybrid_src], hybrid_src_new, dt);
-    MultiFab::Add(sources_for_hydro,hybrid_src_new,0,0,NUM_STATE,0);
+    new_sources.set(hybrid_src, new MultiFab(grids,NUM_STATE,0));
+    new_sources[hybrid_src].setVal(0.0);
+    add_hybrid_hydro_source(new_sources[hybrid_src], S_new);
+    time_center_source_terms(S_new, old_sources[hybrid_src], new_sources[hybrid_src], dt);
+    MultiFab::Add(sources_for_hydro,new_sources[hybrid_src],0,0,NUM_STATE,0);
 #endif
 
 #ifdef SGS
