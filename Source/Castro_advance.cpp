@@ -371,7 +371,7 @@ Castro::advance_hydro (Real time,
 {
     BL_PROFILE("Castro::advance_hydro()");
 
-    if (!do_hydro)  
+    if (!do_hydro)
        BoxLib::Abort("In advance_hydro but do_hydro not true");
 
 #ifdef RADIATION
@@ -381,7 +381,7 @@ Castro::advance_hydro (Real time,
         // before the swap.
 
         radiation->pre_timestep(level);
-    } 
+    }
 #endif
 
     PArray<MultiFab> old_sources(num_src, PArrayManage);
@@ -448,7 +448,7 @@ Castro::advance_hydro (Real time,
     // make sure these are filled to avoid check/plot file errors:
     if (do_radiation) {
       get_old_data(Rad_Type).setBndry(0.0);
-      get_new_data(Rad_Type).setBndry(0.0);      
+      get_new_data(Rad_Type).setBndry(0.0);
     }
     else {
       get_old_data(Rad_Type).setVal(0.0);
@@ -495,7 +495,7 @@ Castro::advance_hydro (Real time,
     //
     FluxRegister *fine    = 0;
     FluxRegister *current = 0;
-    
+
     if (do_reflux && level < finest_level)
       fine = &getFluxReg(level+1);
     if (do_reflux && level > 0)
@@ -560,10 +560,10 @@ Castro::advance_hydro (Real time,
 #endif
 
 
-    
+
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
-    // using the state data to give us Sborder, which does have ghost zones. 
+    // using the state data to give us Sborder, which does have ghost zones.
 
     MultiFab Sborder(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
@@ -651,7 +651,7 @@ Castro::advance_hydro (Real time,
 #else
     add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,prev_time);
 #endif
-#if (BL_SPACEDIM == 1) 
+#if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,prev_time);
     add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
 #endif
@@ -771,7 +771,7 @@ Castro::advance_hydro (Real time,
 
 	    FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 	    MultiFab& Erborder = fpi_rad.get_mf();
-	    
+
 	    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
 	    MultiFab kappa_s;
 	    if (radiation->do_inelastic_scattering) {
@@ -798,28 +798,28 @@ Castro::advance_hydro (Real time,
 #endif
 	    {
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
-	    
+
 		int priv_nstep_fsp = -1;
 		Real cflLoc = -1.0e+200;
 		int is_finest_level = (level == finest_level) ? 1 : 0;
 		const int*  domain_lo = geom.Domain().loVect();
 		const int*  domain_hi = geom.Domain().hiVect();
-	    
-		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi) 
+
+		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
 		    const Box &bx    = mfi.tilebox();
 
 		    const int* lo = bx.loVect();
 		    const int* hi = bx.hiVect();
-		    
-		    FArrayBox &stateold = S_old[mfi];		    
+
+		    FArrayBox &stateold = S_old[mfi];
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
-		
+
 		    FArrayBox &Er = Erborder[mfi];
 		    FArrayBox &lam = lamborder[mfi];
 		    FArrayBox &Erout = Er_new[mfi];
-		
+
 		    FArrayBox& vol      = volume[mfi];
 
 		    // Allocate fabs for fluxes and Godunov velocities.
@@ -837,24 +837,24 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 			 BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 			 BL_TO_FORTRAN(Erout),
-			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
-				BL_TO_FORTRAN(ugdn[1]), 
-				BL_TO_FORTRAN(ugdn[2])), 
+			 D_DECL(BL_TO_FORTRAN(ugdn[0]),
+				BL_TO_FORTRAN(ugdn[1]),
+				BL_TO_FORTRAN(ugdn[2])),
 			 BL_TO_FORTRAN(sources_for_hydro[mfi]),
 			 dx, &dt,
-			 D_DECL(BL_TO_FORTRAN(flux[0]), 
-				BL_TO_FORTRAN(flux[1]), 
-				BL_TO_FORTRAN(flux[2])), 
-			 D_DECL(BL_TO_FORTRAN(rad_flux[0]), 
-				BL_TO_FORTRAN(rad_flux[1]), 
-				BL_TO_FORTRAN(rad_flux[2])), 
-			 D_DECL(BL_TO_FORTRAN(area[0][mfi]), 
-				BL_TO_FORTRAN(area[1][mfi]), 
-				BL_TO_FORTRAN(area[2][mfi])), 
-#if (BL_SPACEDIM < 3) 
-			 BL_TO_FORTRAN(dLogArea[0][mfi]), 
+			 D_DECL(BL_TO_FORTRAN(flux[0]),
+				BL_TO_FORTRAN(flux[1]),
+				BL_TO_FORTRAN(flux[2])),
+			 D_DECL(BL_TO_FORTRAN(rad_flux[0]),
+				BL_TO_FORTRAN(rad_flux[1]),
+				BL_TO_FORTRAN(rad_flux[2])),
+			 D_DECL(BL_TO_FORTRAN(area[0][mfi]),
+				BL_TO_FORTRAN(area[1][mfi]),
+				BL_TO_FORTRAN(area[2][mfi])),
+#if (BL_SPACEDIM < 3)
+			 BL_TO_FORTRAN(dLogArea[0][mfi]),
 #endif
-			 BL_TO_FORTRAN(volume[mfi]), 
+			 BL_TO_FORTRAN(volume[mfi]),
 			 &cflLoc, verbose, &priv_nstep_fsp);
 
 		    // Add dt * old-time external source terms
@@ -888,7 +888,7 @@ Castro::advance_hydro (Real time,
 			      E_added_grav,mom_added);
 
 		    stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif		    
+#endif
 
 		    for (int dir = 0; dir < 3; dir++)
 			 mom_added[dir] = 0.0;
@@ -936,7 +936,7 @@ Castro::advance_hydro (Real time,
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
 			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		    }
-		    
+
 		    if (do_reflux) {
 			for (int i = 0; i < BL_SPACEDIM ; i++) {
 			    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
@@ -953,7 +953,7 @@ Castro::advance_hydro (Real time,
 			     BL_TO_FORTRAN_3D(stateout),
 			     BL_TO_FORTRAN_3D(volume[mfi]),
 			     ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
-#endif	
+#endif
 		}
 
 #ifdef _OPENMP
@@ -986,7 +986,7 @@ Castro::advance_hydro (Real time,
 	        });
 #endif
 	    }
-	    
+
 	}
 	else {
 	  BoxLib::Abort("Castro::advance -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
@@ -994,7 +994,7 @@ Castro::advance_hydro (Real time,
 #else
 
 	    // pure hydro (no radiation)
-	  
+
 	    Real E_added_grav    = 0.;
 	    Real E_added_flux    = 0.;
 	    Real E_added_rot     = 0.;
@@ -1026,7 +1026,7 @@ Castro::advance_hydro (Real time,
 	    Real zmom_added_sponge = 0.;
 
 	    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
-	    
+
 #ifdef _OPENMP
 #ifdef POINTMASS
 #pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
@@ -1154,7 +1154,7 @@ Castro::advance_hydro (Real time,
 		    // to the fluxes MultiFAB even if we aren't on a fine grid.
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++)
-		      fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));	  
+		      fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 
 		    // Gravitational source term for the time-level n data.
 
@@ -1220,8 +1220,8 @@ Castro::advance_hydro (Real time,
 		    xmom_added_sponge += mom_added[0];
 		    ymom_added_sponge += mom_added[1];
 		    zmom_added_sponge += mom_added[2];
-			 
-		    
+
+
 #ifdef POINTMASS
 		    if (level == finest_level && point_mass_fix_solution)
 			pm_compute_delta_mass
@@ -1239,7 +1239,7 @@ Castro::advance_hydro (Real time,
 #endif
 		{
 		    courno = std::max(courno,cflLoc);
-		}	  
+		}
 	    }  // end of omp parallel region
 
 	    BL_PROFILE_VAR_STOP(CA_UMDRV);
@@ -1267,7 +1267,7 @@ Castro::advance_hydro (Real time,
 
 	    if (print_energy_diagnostics)
 	    {
-	       Real foo[20] = {mass_added, eint_added, eden_added, 
+	       Real foo[20] = {mass_added, eint_added, eden_added,
 			       E_added_flux, E_added_grav, E_added_rot, E_added_sponge,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
 			       xmom_added_grav, ymom_added_grav, zmom_added_grav,
@@ -1278,7 +1278,7 @@ Castro::advance_hydro (Real time,
 	       Lazy::QueueReduction( [=] () mutable {
 #endif
 	       ParallelDescriptor::ReduceRealSum(foo, 20, ParallelDescriptor::IOProcessorNumber());
-	       if (ParallelDescriptor::IOProcessor()) 
+	       if (ParallelDescriptor::IOProcessor())
 	       {
 		   mass_added = foo[0];
 		   eint_added = foo[1];
@@ -1321,8 +1321,8 @@ Castro::advance_hydro (Real time,
 		   std::cout << "(rho E) added from fluxes                   : " << 
 				 E_added_flux << std::endl;
 #ifdef GRAVITY
-		   if (do_grav) 
-		   {	 
+		   if (do_grav)
+		   {
 		      std::cout << "(rho E) added from grav. source terms          : " << 
 				    E_added_grav << std::endl;
 		      std::cout << "xmom added from grav. source terms             : " << 
@@ -1334,8 +1334,8 @@ Castro::advance_hydro (Real time,
 		   }
 #endif
 #ifdef ROTATION
-		   if (do_rotation) 
-		   {	 
+		   if (do_rotation)
+		   {
 		      std::cout << "(rho E) added from rot. source terms          : " << 
 				    E_added_rot << std::endl;
 		      std::cout << "xmom added from rot. source terms             : " << 
@@ -1347,8 +1347,8 @@ Castro::advance_hydro (Real time,
 		   }
 #endif
 
-		   if (do_sponge) 
-		   {	 
+		   if (do_sponge)
+		   {
 		      std::cout << "(rho E) added from sponge                     : " << 
 				    E_added_sponge << std::endl;
 		      std::cout << "xmom added from sponge                        : " << 
@@ -1437,15 +1437,15 @@ Castro::advance_hydro (Real time,
     // get rid of the dt/2 * dS/dt that we added from the last
     // timestep, then subtract the old sources data to get the
     // first half of the update for the next calculation of dS/dt.
-    
+
     if (source_term_predictor == 1) {
       MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
       dSdt_new.setVal(0.0, NUM_GROW);
       MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
     }
-    
+
     sources_for_hydro.setVal(0.0,NUM_GROW);
-    
+
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
     if (moving_center == 1)
@@ -1459,7 +1459,7 @@ Castro::advance_hydro (Real time,
            // Re-compute source at old time because we may have added something to ext_src_old
 	reset_old_sgs(dt);
 	getOldSource(prev_time,dt,old_sources[ext_src],sgs_fluxes);
-	
+
 	// Add half of old fluxes to the flux register
 	if (do_reflux)
 	  {
@@ -1472,7 +1472,7 @@ Castro::advance_hydro (Real time,
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
 		      sgs_current->FineAdd(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,dt);
                   }
-		
+
 		if (sgs_fine)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
@@ -1485,7 +1485,7 @@ Castro::advance_hydro (Real time,
 	computeTemp(S_new);
 
 	// Compute source at new time (no ghost cells needed)
-	
+
 #if (BL_SPACEDIM > 1)
 	// We need to make the new radial data now so that we can use it when we
 	//   FillPatch in creating the new source
@@ -1501,7 +1501,7 @@ Castro::advance_hydro (Real time,
 	reset_new_sgs(dt);
 
 	sgs_new = get_new_data(SGS_Type);
-	
+
 	getSource(cur_time,dt,S_new,new_sources[ext_src],sgs_new,sgs_fluxes);
 
 	// Add half of new fluxes to the flux register
@@ -1511,13 +1511,13 @@ Castro::advance_hydro (Real time,
 	      {
 		for (int dir = 0; dir < BL_SPACEDIM ; dir++)
 		  sgs_fluxes[dir].mult(0.5);
-		
+
 		if (sgs_current)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
 		      sgs_current->FineAdd(sgs_fluxes[dir],area[dir],dir,0,0,NUM_STATE,dt);
                   }
-		
+
 		if (sgs_fine)
                   {
 		    for (int dir = 0; dir < BL_SPACEDIM ; dir++)
@@ -1547,7 +1547,7 @@ Castro::advance_hydro (Real time,
 	reset_new_sgs(dt);
 	computeTemp(S_new);
     }
-    
+
 #else
 
     // Do the new-time diffusion source term and then add it to the
@@ -1583,11 +1583,11 @@ Castro::advance_hydro (Real time,
       time_center_source_terms(S_new,old_sources[ext_src],new_sources[ext_src],dt);
       computeTemp(S_new);
     }
-    
+
 #endif
 
     MultiFab::Add(sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,0);
-    
+
 #ifdef GRAVITY
     new_sources.set(grav_src, new MultiFab(grids, NUM_STATE, 0));
     new_sources[grav_src].setVal(0.0);
@@ -1615,7 +1615,7 @@ Castro::advance_hydro (Real time,
 	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
-		
+
 		Real mom_added[3] = { 0.0 };
 
 		ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -1667,7 +1667,7 @@ Castro::advance_hydro (Real time,
 #ifdef BL_LAZY
 	    });
 #endif
-        }	
+        }
 
 	// Add this to the source term array if we're using the source term predictor.
 	// If not, don't bother because sources isn't actually used in the update after this point.
@@ -1699,7 +1699,7 @@ Castro::advance_hydro (Real time,
     if (do_rotation) {
 
         // Fill the new rotation data.
-      
+
         fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
 
 	// Now do corrector part of rotation source term update
@@ -1744,7 +1744,7 @@ Castro::advance_hydro (Real time,
 		ymom_added += mom_added[1];
 		zmom_added += mom_added[2];
 	    }
-	} 
+	}
 
         if (print_energy_diagnostics)
         {
@@ -1789,14 +1789,14 @@ Castro::advance_hydro (Real time,
     reset_internal_energy(S_new);
 
     if (source_term_predictor == 1) {
-    
+
       // Calculate the time derivative of the source terms.
 
       MultiFab::Add(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
-      
+
       dSdt_new.mult(1.0/dt);
 
-    } 
+    }
 
 #ifdef REACTIONS
 
@@ -1850,9 +1850,9 @@ Castro::advance_no_hydro (Real time,
 {
     BL_PROFILE("Castro::advance_no_hydro()");
 
-    if (do_hydro)  
+    if (do_hydro)
        BoxLib::Abort("In advance_no_hydro but do_hydro is true");
-    
+
 #ifdef SGS
     BoxLib::Abort("In advance_no_hydro but SGS is defined");
 #endif
@@ -1865,7 +1865,7 @@ Castro::advance_no_hydro (Real time,
         radiation->pre_timestep(level);
     }
 #endif
-    
+
     int finest_level = parent->finestLevel();
 
     if (do_reflux && level < finest_level) {
@@ -1882,7 +1882,7 @@ Castro::advance_no_hydro (Real time,
     // Make sure these are filled to avoid check/plot file errors:
     if (do_radiation) {
       get_old_data(Rad_Type).setBndry(0.0);
-      get_new_data(Rad_Type).setBndry(0.0);      
+      get_new_data(Rad_Type).setBndry(0.0);
     }
     else {
       get_old_data(Rad_Type).setVal(0.0);
@@ -1902,13 +1902,13 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef GRAVITY
     // Old and new gravitational potential.
-       
+
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
-    
+
     if (do_grav) {
        if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && sub_iteration < 2)
            gravity->zeroPhiFluxReg(level+1);
@@ -1927,13 +1927,13 @@ Castro::advance_no_hydro (Real time,
        grav_new.setVal(0.0);
        phi_new.setVal(0.0);
     }
-#endif 
+#endif
 
 #ifdef REACTIONS
     MultiFab& reactions_old = get_old_data(Reactions_Type);
     MultiFab& reactions_new = get_new_data(Reactions_Type);
-#endif    
-    
+#endif
+
 #ifdef DIFFUSION
 #ifdef TAU
     MultiFab tau_diff(grids,1,1);
@@ -1957,16 +1957,16 @@ Castro::advance_no_hydro (Real time,
       react_state(S_old,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #endif
 #endif
- 
+
 #ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 #endif
 
     Real cur_time = state[State_Type].curTime();
-        
+
     // Copy old data into new data.
     MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, S_new.nGrow());
-        
+
     if (add_ext_src) {
            MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);
            getSource(prev_time,dt,S_old,S_old,ext_src_old,0);
