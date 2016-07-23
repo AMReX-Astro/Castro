@@ -563,7 +563,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(s_old),
-     const BL_FORT_FAB_ARG_3D(s_new),
      BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time,

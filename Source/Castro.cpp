@@ -3517,20 +3517,21 @@ Castro::add_force_to_sources(MultiFab& force, MultiFab& sources, MultiFab& state
    for (int i = 0; i < 3; i++) {
 
      MultiFab::Copy(temp_MF,force,i,0,1,ng);
-      
-     // Multiply the force by the density to put it in conservative form.      
-	
+
+     // Multiply the force by the density to put it in conservative form.
+
      MultiFab::Multiply(temp_MF,state,Density,0,1,ng);
      MultiFab::Add(sources,temp_MF,0,Xmom+i,1,ng);
 
      MultiFab::Copy(temp_MF,force,i,0,1,ng);
-      	
+
      // Add corresponding energy source term (v . src).
 
      MultiFab::Multiply(temp_MF,state,Xmom+i,0,1,ng);
      MultiFab::Add(sources,temp_MF,0,Eden,1,ng);
-      
+
    }
+
 }
 
 #ifdef HYBRID_MOMENTUM

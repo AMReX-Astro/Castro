@@ -243,9 +243,19 @@ public:
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
+
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
+
+    void construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+				      MultiFab& S_old,
+				      Real time, Real dt);
+
+    void construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+				      MultiFab& S_old, MultiFab& S_new,
+				      MultiFab fluxes[],
+                                      Real time, Real dt);
 #endif
 
     //

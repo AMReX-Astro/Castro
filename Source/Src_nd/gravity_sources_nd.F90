@@ -7,7 +7,7 @@ module gravity_sources_module
 contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi, &
+                     uold,uold_lo,uold_hi, &
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
                      dx,dt,time,E_added,mom_added) bind(C, name="ca_gsrc")
 
@@ -28,14 +28,12 @@ contains
     integer          :: phi_lo(3), phi_hi(3)
     integer          :: grav_lo(3), grav_hi(3)
     integer          :: uold_lo(3), uold_hi(3)
-    integer          :: unew_lo(3), unew_hi(3)
     integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
 
     double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     double precision :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
     double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
     double precision :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision :: dx(3), dt, time
@@ -70,10 +68,10 @@ contains
              loc = position(i,j,k) - center
 
              src = ZERO
-             snew = unew(i,j,k,:)
+             snew = uold(i,j,k,:)
 
              ! **** Start Diagnostics ****
-             old_re = unew(i,j,k,UEDEN)
+             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
              old_rhoeint = snew(UEDEN) - old_ke
              old_mom = snew(UMX:UMZ)
@@ -379,7 +377,7 @@ contains
 
              ! Define new source terms
 
-             vnew = unew(i,j,k,UMX:UMZ) * rhoninv
+             vnew = snew(UMX:UMZ) * rhoninv
 
              Sr_new = rhon * gnew(i,j,k,:)
              SrE_new = dot_product(vnew, Sr_new)
