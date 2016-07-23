@@ -313,6 +313,7 @@ contains
   subroutine consup( &
                     uin,  uin_l1,  uin_h1, &
                     uout, uout_l1 ,uout_h1, &
+                    update,updt_l1,updt_h1, &
                     pgdnv,pgdnv_l1,pgdnv_h1, &
                     src,  src_l1,  src_h1, &
                     flux, flux_l1, flux_h1, &
@@ -336,6 +337,7 @@ contains
     integer lo(1), hi(1)
     integer   uin_l1,  uin_h1
     integer  uout_l1, uout_h1
+    integer  updt_l1, updt_h1
     integer pgdnv_l1,pgdnv_h1
     integer   src_l1,  src_h1
     integer  flux_l1, flux_h1
@@ -344,6 +346,7 @@ contains
     integer verbose
     double precision   uin(uin_l1:uin_h1,NVAR)
     double precision  uout(uout_l1:uout_h1,NVAR)
+    double precision update(updt_l1:updt_h1,NVAR)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
     double precision   src(  src_l1:  src_h1,NVAR)
     double precision  flux( flux_l1: flux_h1,NVAR)
@@ -351,7 +354,6 @@ contains
     double precision    vol(vol_l1:vol_h1)
     double precision    div(lo(1):hi(1)+1)
     double precision  pdivu(lo(1):hi(1)  )
-    double precision update(uout_l1:uout_h1,NVAR)
     double precision dx, dt
     double precision E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
@@ -384,12 +386,10 @@ contains
        endif
     enddo
 
-    update = ZERO
-
     ! Fill the update array.
 
     do n = 1, NVAR
-       do i = lo(1),hi(1)
+       do i = lo(1), hi(1)
 
           update(i,n) = update(i,n) + ( flux(i,n) - flux(i+1,n) ) / vol(i)
 
@@ -475,16 +475,6 @@ contains
        endif
 
     endif
-
-    ! Apply the update.
-
-    do n = 1, NVAR
-       do i = lo(1), hi(1)
-
-          uout(i,n) = uin(i,n) + dt * update(i,n)
-
-       enddo
-    enddo
 
     ! Scale the fluxes for the form we expect later in refluxing.
 

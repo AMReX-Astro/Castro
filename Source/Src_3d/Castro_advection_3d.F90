@@ -1020,6 +1020,7 @@ contains
 
   subroutine consup(uin,uin_lo,uin_hi, &
                     uout,uout_lo,uout_hi, &
+                    update,updt_lo,updt_hi, &
                     src,src_lo,src_hi, &
                     flux1,flux1_lo,flux1_hi, &
                     flux2,flux2_lo,flux2_hi, &
@@ -1055,6 +1056,7 @@ contains
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
     integer, intent(in) ::  uout_lo(3),  uout_hi(3)
+    integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) ::   src_lo(3),   src_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
@@ -1071,7 +1073,7 @@ contains
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-
+    double precision, intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
     double precision, intent(in) ::   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
@@ -1086,7 +1088,6 @@ contains
     double precision, intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision, intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     double precision, intent(in) :: dx(3), dt
-    double precision             :: update(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
 
     double precision, intent(inout) :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
@@ -1168,8 +1169,6 @@ contains
                                   flux2,flux2_lo,flux2_hi, &
                                   flux3,flux3_lo,flux3_hi, &
                                   lo,hi)
-
-    update = ZERO
 
     ! Fill the update array.
 
@@ -1383,20 +1382,6 @@ contains
        endif
 
     endif
-
-    ! Apply the update.
-
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                uout(i,j,k,n) = uin(i,j,k,n) + dt * update(i,j,k,n)
-
-             enddo
-          enddo
-       enddo
-    enddo
 
     ! Scale the fluxes for the form we expect later in refluxing.
 

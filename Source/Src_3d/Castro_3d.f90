@@ -1,6 +1,7 @@
 subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                     uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
+                    update,updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3, &
                     ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
                     ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
                     ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
@@ -31,6 +32,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer, intent(in) ::  domlo(3),domhi(3)
   integer, intent(in) :: uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
   integer, intent(in) :: uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
+  integer, intent(in) :: updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3
   integer, intent(in) :: ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
   integer, intent(in) :: ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
   integer, intent(in) :: ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
@@ -45,6 +47,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   double precision, intent(in) ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
   double precision, intent(inout) ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
+  double precision, intent(inout) :: update(updt_l1:updt_h1,  updt_l2:updt_h2,   updt_l3:updt_h3, NVAR)
   double precision, intent(out) :: ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
   double precision, intent(out) :: ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
   double precision, intent(out) :: ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
@@ -80,6 +83,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: ngq, ngf
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
+  integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
   integer :: flux2_lo(3), flux2_hi(3)
   integer :: flux3_lo(3), flux3_hi(3)  
@@ -105,6 +109,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   uout_lo = [ uout_l1, uout_l2, uout_l3 ]
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
+
+  updt_lo = [ updt_l1, updt_l2, updt_l3 ]
+  updt_hi = [ updt_h1, updt_h2, updt_h3 ]
 
   flux1_lo = [ flux1_l1, flux1_l2, flux1_l3 ]
   flux1_hi = [ flux1_h1, flux1_h2, flux1_h3 ]
@@ -189,6 +196,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! Conservative update
   call consup(uin ,  uin_lo , uin_hi, &
               uout, uout_lo, uout_hi, &
+              update, updt_lo, updt_hi, &
               src ,  src_lo,  src_hi, &
               flux1, flux1_lo, flux1_hi, &
               flux2, flux2_lo, flux2_hi, &

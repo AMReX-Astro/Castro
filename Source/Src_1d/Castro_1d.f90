@@ -2,6 +2,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      lo,hi,domlo,domhi,&
      uin,uin_l1,uin_h1,&
      uout,uout_l1,uout_h1,&
+     update,updt_l1,updt_h1,&
      ugdnv,ugdnv_l1,ugdnv_h1,&
      src,src_l1,src_h1, &
      delta,dt,&
@@ -25,6 +26,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer domlo(1),domhi(1)
   integer uin_l1,uin_h1
   integer uout_l1,uout_h1
+  integer updt_l1,updt_h1
   integer ugdnv_l1,ugdnv_h1
   integer flux_l1,flux_h1
   integer area_l1,area_h1
@@ -33,6 +35,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer src_l1,src_h1
   double precision   uin(  uin_l1:  uin_h1,NVAR)
   double precision  uout( uout_l1: uout_h1,NVAR)
+  double precision update(updt_l1: updt_h1,NVAR)
   double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision   src(  src_l1:  src_h1,NVAR)
   double precision  flux( flux_l1: flux_h1,NVAR)
@@ -122,6 +125,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   !     Conservative update
   call consup(uin,uin_l1,uin_h1, &
        uout,uout_l1,uout_h1, &
+       update,updt_l1,updt_h1, &
        pgdnv,lo(1),hi(1)+1, &
        src , src_l1, src_h1, &
        flux,flux_l1,flux_h1, &

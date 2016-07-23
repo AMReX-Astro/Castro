@@ -1,6 +1,7 @@
 subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                     uout,uout_l1,uout_l2,uout_h1,uout_h2, &
+                    update,updt_l1,updt_l2,updt_h1,updt_h2, &
                     ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
                     ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
                     src,src_l1,src_l2,src_h1,src_h2, &
@@ -27,6 +28,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer domlo(2),domhi(2)
   integer uin_l1,uin_l2,uin_h1,uin_h2
   integer uout_l1,uout_l2,uout_h1,uout_h2
+  integer updt_l1,updt_l2,updt_h1,updt_h2
   integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
   integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
   integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
@@ -39,6 +41,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
   double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
+  double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
   double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
   double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
   double precision src(src_l1:src_h1,src_l2:src_h2,NVAR)
@@ -140,6 +143,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !     Conservative update
   call consup(uin,    uin_l1,  uin_l2,  uin_h1,  uin_h2, &
               uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
+              update, updt_l1, updt_l2, updt_h1, updt_h2, &
               q1, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
               q2, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
               src,    src_l1,  src_l2,  src_h1,  src_h2, &

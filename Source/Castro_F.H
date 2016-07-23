@@ -446,6 +446,7 @@ extern "C"
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
+     BL_FORT_FAB_ARG(update),
      BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
      BL_FORT_FAB_ARG(ugdnvy),

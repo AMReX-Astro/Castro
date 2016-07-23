@@ -662,6 +662,12 @@ Castro::advance_hydro (Real time,
 
     }
 
+    // This array holds the hydrodynamics update.
+
+    MultiFab hydro_update(grids,NUM_STATE,0,Fab_allocate);
+
+    hydro_update.setVal(0.0);
+
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
@@ -1094,22 +1100,24 @@ Castro::advance_hydro (Real time,
 #endif
 	    {
 		FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
-		
+
 		Real cflLoc = -1.0e+200;
 		int is_finest_level = (level == finest_level) ? 1 : 0;
 		const int* domain_lo = geom.Domain().loVect();
 		const int* domain_hi = geom.Domain().hiVect();
-		
+
 		for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 		{
 		    const Box& bx = mfi.tilebox();
 
 		    const int* lo = bx.loVect();
-		    const int* hi = bx.hiVect();		    		    
-		    
+		    const int* hi = bx.hiVect();
+
 		    FArrayBox &stateold = S_old[mfi];
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
+
+		    FArrayBox &update = hydro_update[mfi];
 
 		    FArrayBox &vol = volume[mfi];
 
@@ -1123,7 +1131,9 @@ Castro::advance_hydro (Real time,
 		    ca_umdrv
 			(&is_finest_level,&time,
 			 lo, hi, domain_lo, domain_hi,
-			 BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+			 BL_TO_FORTRAN(statein),
+			 BL_TO_FORTRAN(stateout),
+			 BL_TO_FORTRAN(update),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]),
 				BL_TO_FORTRAN(ugdn[1]),
 				BL_TO_FORTRAN(ugdn[2])),
@@ -1147,6 +1157,11 @@ Castro::advance_hydro (Real time,
                          E_added_flux,
 			 mass_lost, xmom_lost, ymom_lost, zmom_lost,
 			 eden_lost, xang_lost, yang_lost, zang_lost);
+
+		    // Apply the hydro update.
+
+		    stateout.copy(statein,bx);
+		    stateout.saxpy(dt,update,bx,bx,0,0,NUM_STATE);
 
 		    // Enforce the density >= small_dens.
 

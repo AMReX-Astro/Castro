@@ -505,6 +505,7 @@ contains
 
   subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
+                     update,updt_l1,updt_l2,updt_h1,updt_h2, &
                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
                      q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      src , src_l1, src_l2, src_h1, src_h2, &
@@ -533,6 +534,7 @@ contains
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
     integer uout_l1,uout_l2,uout_h1,uout_h2
+    integer updt_l1,updt_l2,updt_h1,updt_h2
     integer q1_l1, q1_l2, q1_h1, q1_h2
     integer q2_l1, q2_l2, q2_h1, q2_h2
     integer   src_l1,  src_l2,  src_h1,  src_h2
@@ -546,6 +548,7 @@ contains
 
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
+    double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
     double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
     double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
@@ -553,7 +556,6 @@ contains
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
-    double precision update(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
@@ -613,8 +615,6 @@ contains
 
        endif
     enddo
-
-    update = ZERO
 
     ! Fill the update array.
 
@@ -772,18 +772,6 @@ contains
        endif
 
     endif
-
-    ! Apply the update.
-
-    do n = 1, NVAR
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             uout(i,j,n) = uin(i,j,n) + dt * update(i,j,n)
-
-          enddo
-       enddo
-    enddo
 
     ! Scale the fluxes for the form we expect later in refluxing.
 
