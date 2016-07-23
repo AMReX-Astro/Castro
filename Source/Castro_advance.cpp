@@ -775,6 +775,9 @@ Castro::advance_hydro (Real time,
 
     if (do_rotation)
       add_force_to_sources(rot_old, sources_for_hydro, Sborder);
+
+    old_sources.set(rot_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
+    old_sources[rot_src].setVal(0.0, NUM_GROW);
 #endif
 
 
@@ -967,7 +970,7 @@ Castro::advance_hydro (Real time,
 
 		    Real E_added_rot = 0.0;
 
-#ifdef ROTATION		    
+#ifdef ROTATION
 		    if (do_rotation)
 		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
 			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
@@ -975,9 +978,12 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(rot_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
 			      BL_TO_FORTRAN_3D(vol),
 			      ZFILL(dx),dt,&time,
-			      E_added_rot,mom_added);		    
+			      E_added_rot,mom_added);
+
+		    stateout.saxpy(dt,bx,bx,old_sources[rot_src][mfi],0,0,NUM_STATE);
 #endif
 
 		    for (int dir = 0; dir < 3; dir++)
@@ -1254,9 +1260,12 @@ Castro::advance_hydro (Real time,
 			      BL_TO_FORTRAN_3D(rot_old[mfi]),
 			      BL_TO_FORTRAN_3D(stateold),
 			      BL_TO_FORTRAN_3D(stateout),
+			      BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
 			      BL_TO_FORTRAN_3D(volume[mfi]),
 			      ZFILL(dx),dt,&time,
 			      E_added_rot,mom_added);
+
+		    stateout.saxpy(dt,old_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    xmom_added_rot += mom_added[0];
@@ -1788,6 +1797,10 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
+
+    new_sources.set(rot_src, new MultiFab(grids, NUM_STATE, 0));
+    new_sources[rot_src].setVal(0.0);
+
     if (do_rotation) {
 
         // Fill the new rotation data.
@@ -1822,12 +1835,15 @@ Castro::advance_hydro (Real time,
 			    BL_TO_FORTRAN_3D(rot_new[mfi]),
 			    BL_TO_FORTRAN_3D(S_old[mfi]),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
+			    BL_TO_FORTRAN_3D(new_sources[rot_src][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
 			    ZFILL(dx),dt,&cur_time,
 			    BL_TO_FORTRAN_3D(volume[mfi]),
 			    E_added,mom_added);
+
+		S_new[mfi].saxpy(dt,new_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 
 		xmom_added += mom_added[0];
 		ymom_added += mom_added[1];
