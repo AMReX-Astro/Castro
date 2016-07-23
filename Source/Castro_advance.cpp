@@ -664,35 +664,55 @@ Castro::advance_hydro (Real time,
 
     // This array holds the hydrodynamics update.
 
-    MultiFab hydro_update(grids,NUM_STATE,0,Fab_allocate);
+    MultiFab hydro_source(grids,NUM_STATE,0,Fab_allocate);
 
-    hydro_update.setVal(0.0);
+    hydro_source.setVal(0.0);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
     // compute the time derivative of the source terms.
 
-    MultiFab hydro_sources(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    hydro_sources.setVal(0.0,NUM_GROW);
+    MultiFab sources_for_hydro(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro.setVal(0.0,NUM_GROW);
 
-    // Set up external source terms
-    
-    MultiFab ext_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    ext_src_old.setVal(0.0,NUM_GROW);
+    // Create storage for all source terms.
 
-    MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
-    ext_src_new.setVal(0.0);
+    enum sources { ext_src = 0,
+#ifdef GRAVITY
+		   grav_src,
+#endif
+#ifdef ROTATION
+		   rot_src,
+#endif
+#ifdef DIFFUSION
+		   diff_src,
+#endif
+#ifdef HYBRID_MOMENTUM
+		   hybrid_src,
+#endif
+                   num_src };
+
+    PArray<MultiFab> old_sources(num_src, PArrayManage);
+    PArray<MultiFab> new_sources(num_src, PArrayManage);
+
+    // Set up external source terms.
+
+    old_sources.set(ext_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
+    old_sources[ext_src].setVal(0.0,NUM_GROW);
+
+    new_sources.set(ext_src, new MultiFab(grids,NUM_STATE,0));
+    new_sources[ext_src].setVal(0.0);
 
 #ifdef SGS
     if (add_ext_src) {
       reset_old_sgs(dt);
       MultiFab& sgs_old = get_old_data(SGS_Type);
-      getSource(prev_time,dt,Sborder,ext_src_old,sgs_old,sgs_fluxes);
+      getSource(prev_time,dt,Sborder,old_sources[ext_src],sgs_old,sgs_fluxes);
     }
 #else
     if (add_ext_src)
-      getSource(prev_time,dt,Sborder,Sborder,ext_src_old,NUM_GROW);
+      getSource(prev_time,dt,Sborder,Sborder,old_sources[ext_src],NUM_GROW);
 #endif
 
 #ifdef DIFFUSION
@@ -701,37 +721,37 @@ Castro::advance_hydro (Real time,
     MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
     MultiFab OldViscousTermforEnergy(grids,1,1);
 
-    MultiFab diff_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    diff_src_old.setVal(0.0,NUM_GROW);
+    old_sources.set(diff_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
+    old_sources[diff_src].setVal(0.0,NUM_GROW);
 #ifdef TAU
-    add_temp_diffusion_to_source(diff_src_old,OldTempDiffTerm,prev_time,tau_diff);
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,prev_time,tau_diff);
 #else
-    add_temp_diffusion_to_source(diff_src_old,OldTempDiffTerm,prev_time);
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,prev_time);
 #endif
 #if (BL_SPACEDIM == 1) 
-    add_spec_diffusion_to_source(diff_src_old,OldSpecDiffTerm,prev_time);
-    add_viscous_term_to_source(diff_src_old,OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
+    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,prev_time);
+    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
 #endif
-    BoxLib::fill_boundary(diff_src_old, geom);
-    MultiFab::Add(hydro_sources,diff_src_old,0,0,NUM_STATE,NUM_GROW);
+    BoxLib::fill_boundary(old_sources[diff_src], geom);
+    MultiFab::Add(sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
 #endif
 
     // Account for the hybrid hydro source by adding it to the ext_src arrays.
 
 #ifdef HYBRID_MOMENTUM
-    MultiFab hybrid_src_old(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    hybrid_src_old.setVal(0.0,NUM_GROW);
-    add_hybrid_hydro_source(hybrid_src_old, Sborder);
-    MultiFab::Add(hydro_sources,hybrid_src_old,0,0,NUM_STATE,NUM_GROW);
+    old_sources.set(hybrid_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
+    old_sources[hybrid_src].setVal(0.0,NUM_GROW);
+    add_hybrid_hydro_source(old_sources[hybrid_src], Sborder);
+    MultiFab::Add(sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,NUM_GROW);
 #endif
 
-    BoxLib::fill_boundary(ext_src_old, geom);    
+    BoxLib::fill_boundary(old_sources[ext_src], geom);
 
-    MultiFab::Add(hydro_sources,ext_src_old,0,0,NUM_STATE,NUM_GROW);
+    MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,NUM_GROW);
 
 #ifdef GRAVITY
     if (do_grav)
-      add_force_to_sources(grav_old, hydro_sources, Sborder);
+      add_force_to_sources(grav_old, sources_for_hydro, Sborder);
 #endif
 
 #ifdef ROTATION
@@ -740,21 +760,21 @@ Castro::advance_hydro (Real time,
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    // Fill the old rotation data.    
-    
+    // Fill the old rotation data.
+
     if (do_rotation) {
-      
+
       fill_rotation_field(phirot_old, rot_old, Sborder, prev_time);
-      
+
     } else {
-      
+
       phirot_old.setVal(0.);
       rot_old.setVal(0.);
-      
-    } 
+
+    }
 
     if (do_rotation)
-      add_force_to_sources(rot_old, hydro_sources, Sborder);
+      add_force_to_sources(rot_old, sources_for_hydro, Sborder);
 #endif
 
 
@@ -782,7 +802,7 @@ Castro::advance_hydro (Real time,
 
       dSdt_new.mult(dt / 2.0, NUM_GROW);
 
-      MultiFab::Add(hydro_sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Add(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
     }
 
@@ -893,7 +913,7 @@ Castro::advance_hydro (Real time,
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]), 
 				BL_TO_FORTRAN(ugdn[1]), 
 				BL_TO_FORTRAN(ugdn[2])), 
-			 BL_TO_FORTRAN(hydro_sources[mfi]),
+			 BL_TO_FORTRAN(sources_for_hydro[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]), 
 				BL_TO_FORTRAN(flux[1]), 
@@ -912,14 +932,14 @@ Castro::advance_hydro (Real time,
 
 		    // Add dt * old-time external source terms
 
-		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
 
 #ifdef DIFFUSION
-		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 #ifdef HYBRID_MOMENTUM
-		    stateout.saxpy(dt,hybrid_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    // Gravitational source term for the time-level n data.
@@ -946,7 +966,7 @@ Castro::advance_hydro (Real time,
 		    // Rotational source term for the time-level n data.
 
 		    Real E_added_rot = 0.0;
-		    
+
 #ifdef ROTATION		    
 		    if (do_rotation)
 		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
@@ -1117,7 +1137,7 @@ Castro::advance_hydro (Real time,
 		    FArrayBox &statein  = Sborder[mfi];
 		    FArrayBox &stateout = S_new[mfi];
 
-		    FArrayBox &update = hydro_update[mfi];
+		    FArrayBox &source = hydro_source[mfi];
 
 		    FArrayBox &vol = volume[mfi];
 
@@ -1133,11 +1153,11 @@ Castro::advance_hydro (Real time,
 			 lo, hi, domain_lo, domain_hi,
 			 BL_TO_FORTRAN(statein),
 			 BL_TO_FORTRAN(stateout),
-			 BL_TO_FORTRAN(update),
+			 BL_TO_FORTRAN(source),
 			 D_DECL(BL_TO_FORTRAN(ugdn[0]),
 				BL_TO_FORTRAN(ugdn[1]),
 				BL_TO_FORTRAN(ugdn[2])),
-			 BL_TO_FORTRAN(hydro_sources[mfi]),
+			 BL_TO_FORTRAN(sources_for_hydro[mfi]),
 			 dx, &dt,
 			 D_DECL(BL_TO_FORTRAN(flux[0]),
 				BL_TO_FORTRAN(flux[1]),
@@ -1158,10 +1178,10 @@ Castro::advance_hydro (Real time,
 			 mass_lost, xmom_lost, ymom_lost, zmom_lost,
 			 eden_lost, xang_lost, yang_lost, zang_lost);
 
-		    // Apply the hydro update.
+		    // Apply the hydro source term.
 
 		    stateout.copy(statein,bx);
-		    stateout.saxpy(dt,update,bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,source,bx,bx,0,0,NUM_STATE);
 
 		    // Enforce the density >= small_dens.
 
@@ -1178,14 +1198,14 @@ Castro::advance_hydro (Real time,
 
 		    // Add dt * old-time external source terms
 
-		    stateout.saxpy(dt,ext_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
 
 #ifdef DIFFUSION
-		    stateout.saxpy(dt,diff_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 #ifdef HYBRID_MOMENTUM
-		    stateout.saxpy(dt,hybrid_src_old[mfi],bx,bx,0,0,NUM_STATE);
+		    stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
 		    // Copy the normal velocities from the Riemann solver
@@ -1475,12 +1495,12 @@ Castro::advance_hydro (Real time,
     // first half of the update for the next calculation of dS/dt.
     
     if (source_term_predictor == 1) {
-      MultiFab::Subtract(hydro_sources,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
       dSdt_new.setVal(0.0, NUM_GROW);
-      MultiFab::Subtract(dSdt_new,hydro_sources,0,0,NUM_STATE,0);
+      MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
     }
     
-    hydro_sources.setVal(0.0,NUM_GROW);
+    sources_for_hydro.setVal(0.0,NUM_GROW);
     
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
@@ -1494,7 +1514,7 @@ Castro::advance_hydro (Real time,
 #ifdef SGS
            // Re-compute source at old time because we may have added something to ext_src_old
 	reset_old_sgs(dt);
-	getOldSource(prev_time,dt,ext_src_old,sgs_fluxes);
+	getOldSource(prev_time,dt,old_sources[ext_src],sgs_fluxes);
 	
 	// Add half of old fluxes to the flux register
 	if (do_reflux)
@@ -1538,7 +1558,7 @@ Castro::advance_hydro (Real time,
 
 	sgs_new = get_new_data(SGS_Type);
 	
-	getSource(cur_time,dt,S_new,ext_src_new,sgs_new,sgs_fluxes);
+	getSource(cur_time,dt,S_new,new_sources[ext_src],sgs_new,sgs_fluxes);
 
 	// Add half of new fluxes to the flux register
 	if (do_reflux)
@@ -1562,8 +1582,8 @@ Castro::advance_hydro (Real time,
 	      }
 	  }
 #else
-	ext_src_new.setVal(0.0);	
-	getSource(cur_time,dt,S_old,S_new,ext_src_new,0);
+	new_sources[ext_src].setVal(0.0);
+	getSource(cur_time,dt,S_old,S_new,new_sources[ext_src],0);
 #endif
       }
 
@@ -1571,15 +1591,15 @@ Castro::advance_hydro (Real time,
     MultiFab hybrid_src_new(grids,NUM_STATE,0,Fab_allocate);
     hybrid_src_new.setVal(0.0);
     add_hybrid_hydro_source(hybrid_src_new, S_new);
-    time_center_source_terms(S_new, hybrid_src_old, hybrid_src_new, dt);
-    MultiFab::Add(hydro_sources,hybrid_src_new,0,0,NUM_STATE,0);
+    time_center_source_terms(S_new, old_sources[hybrid_src], hybrid_src_new, dt);
+    MultiFab::Add(sources_for_hydro,hybrid_src_new,0,0,NUM_STATE,0);
 #endif
 
 #ifdef SGS
 
 // old way: time-centering for ext_src, diffusion are separated.
     if (add_ext_src) {
-	time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
+	time_center_source_terms(S_new,old_sources[ext_src],new_sources[ext_src],dt);
 	reset_new_sgs(dt);
 	computeTemp(S_new);
     }
@@ -1597,32 +1617,32 @@ Castro::advance_hydro (Real time,
     MultiFab& NewViscousTermforMomentum = OldViscousTermforMomentum;
     MultiFab& NewViscousTermforEnergy   = OldViscousTermforEnergy;
 
-    MultiFab diff_src_new(grids,NUM_STATE,0,Fab_allocate);
-    diff_src_new.setVal(0.0);
+    new_sources.set(diff_src, new MultiFab(grids,NUM_STATE,0));
+    new_sources[diff_src].setVal(0.0);
 
     computeTemp(S_new);
 #ifdef TAU
-    add_temp_diffusion_to_source(diff_src_new,NewTempDiffTerm,cur_time,tau_diff);
+    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,cur_time,tau_diff);
 #else
-    add_temp_diffusion_to_source(diff_src_new,NewTempDiffTerm,cur_time);
+    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,cur_time);
 #endif
 #if (BL_SPACEDIM == 1) 
-    add_spec_diffusion_to_source(diff_src_new,NewSpecDiffTerm,cur_time);
-    add_viscous_term_to_source(diff_src_new,NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
+    add_spec_diffusion_to_source(new_sources[diff_src],NewSpecDiffTerm,cur_time);
+    add_viscous_term_to_source(new_sources[diff_src],NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
 #endif
-    time_center_source_terms(S_new, diff_src_old, diff_src_new, dt);
+    time_center_source_terms(S_new, old_sources[diff_src], new_sources[diff_src], dt);
     computeTemp(S_new);
-    MultiFab::Add(hydro_sources,diff_src_new,0,0,NUM_STATE,0);
+    MultiFab::Add(sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
 #endif
 
     if (add_ext_src) {
-      time_center_source_terms(S_new,ext_src_old,ext_src_new,dt);
+      time_center_source_terms(S_new,old_sources[ext_src],new_sources[ext_src],dt);
       computeTemp(S_new);
     }
     
 #endif
 
-    MultiFab::Add(hydro_sources,ext_src_new,0,0,NUM_STATE,0);
+    MultiFab::Add(sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,0);
     
 #ifdef GRAVITY
     if (do_grav)
@@ -1749,7 +1769,7 @@ Castro::advance_hydro (Real time,
 	// If not, don't bother because sources isn't actually used in the update after this point.
 
 	if (source_term_predictor == 1)
-	  add_force_to_sources(grav_new, hydro_sources, S_new);
+	  add_force_to_sources(grav_new, sources_for_hydro, S_new);
 
 	computeTemp(S_new);
       }
@@ -1851,7 +1871,7 @@ Castro::advance_hydro (Real time,
     // If not, don't bother because sources isn't actually used in the update after this point.
 
     if (source_term_predictor == 1)
-      add_force_to_sources(rot_new, hydro_sources, S_new);
+      add_force_to_sources(rot_new, sources_for_hydro, S_new);
 
 #endif
 
@@ -1861,7 +1881,7 @@ Castro::advance_hydro (Real time,
     
       // Calculate the time derivative of the source terms.
 
-      MultiFab::Add(dSdt_new,hydro_sources,0,0,NUM_STATE,0);
+      MultiFab::Add(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
       
       dSdt_new.mult(1.0/dt);
 
