@@ -44,21 +44,25 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
-                                   hybrid_riemann, USHK
+                                   hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
-    use transverse_module
+    use transverse_module, only : transx1, transx2, transy1, transy2, transz, &
+                                  transxy, transxz, transyz
     use ppm_module, only : ppm
     use slope_module, only : uslope, pslope
-    use network
-    use eos_module
+    use actual_network, only : nspec, naux
+    use eos_module, only : eos_t, eos_input_rt, eos
     use riemann_module, only: cmpflx, shock
     use bl_constants_module
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     implicit none
 
@@ -735,7 +739,7 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UMR, UMP, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UESGS, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
@@ -1034,10 +1038,9 @@ contains
                     verbose)
 
     use network, only : nspec, naux
-    use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, QVAR, NGDNV, track_grid_losses, limit_fluxes_on_small_dens
-    use bl_constants_module
+                                   UEDEN, UEINT, UTEMP, NGDNV, track_grid_losses, limit_fluxes_on_small_dens
+    use bl_constants_module, only : ZERO, FOURTH, ONE
     use advection_util_3d_module, only : normalize_species_fluxes, limit_hydro_fluxes_on_small_dens
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
@@ -1083,6 +1086,7 @@ contains
     double precision, intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision, intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     double precision, intent(in) :: dx(3), dt
+    double precision             :: update(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
 
     double precision, intent(inout) :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
@@ -1095,14 +1099,14 @@ contains
 
     do n = 1, NVAR
 
-       if ( n.eq.UTEMP ) then
+       if ( n == UTEMP ) then
 
           flux1(:,:,:,n) = ZERO
           flux2(:,:,:,n) = ZERO
           flux3(:,:,:,n) = ZERO
 
 #ifdef SHOCK_VAR
-       else if ( n.eq.USHK ) then
+       else if ( n == USHK ) then
 
           flux1(:,:,:,n) = ZERO
           flux2(:,:,:,n) = ZERO
@@ -1118,7 +1122,7 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
-                   flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
+                   flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k)
                 enddo
              enddo
           enddo
@@ -1130,7 +1134,7 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
-                   flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
+                   flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k)
                 enddo
              enddo
           enddo
@@ -1142,7 +1146,7 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3) * div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
-                   flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
+                   flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k)
                 enddo
              enddo
           enddo
@@ -1165,79 +1169,64 @@ contains
                                   flux3,flux3_lo,flux3_hi, &
                                   lo,hi)
 
+    update = ZERO
+
+    ! Fill the update array.
+
     do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-       ! pass temperature through
-       if (n .eq. UTEMP) then
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   uout(i,j,k,n) = uin(i,j,k,n)
-                enddo
+                volinv = ONE / vol(i,j,k)
+
+                update(i,j,k,n) = update(i,j,k,n) + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) + &
+                                                      flux2(i,j,k,n) - flux2(i,j+1,k,n) + &
+                                                      flux3(i,j,k,n) - flux3(i,j,k+1,n) ) * volinv
+
+                ! Add the p div(u) source term to (rho e).
+
+                if (n .eq. UEINT) then
+
+                   update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
+
+                endif
+
              enddo
           enddo
-#ifdef SHOCK_VAR
-       else if (n .eq. USHK) then
-          cycle
-#endif
-       else
-          ! update everything else with fluxes
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-
-                   volinv = ONE/vol(i,j,k)
-
-                   uout(i,j,k,n) = uin(i,j,k,n) &
-                          + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-
-                   !
-                   ! Add the p div(u) source term to (rho e)
-                   !
-                   if (n .eq. UEINT) then
-                      uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
-                   endif
-
-                enddo
-             enddo
-          enddo
-       endif
-
+       enddo
     enddo
 
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
-                                     uout, uout_lo, uout_hi, &
+                                     update, uout_lo, uout_hi, &
                                      qx, qx_lo, qx_hi, &
                                      qy, qy_lo, qy_hi, &
                                      qz, qz_lo, qz_hi)
 #endif
 
-    ! Add up some diagnostic quantities. Note that these are volumetric sums
-    ! so we are not dividing by the cell volume.
+    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) &
-                                                  +   flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) &
-                                                  +   flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
-                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) &
-                                                  +   flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) &
-                                                  +   flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
-                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) &
-                                                  +   flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) &
-                                                  +   flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
-                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) &
-                                                  +   flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) &
-                                                  +   flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
-                E_added_flux = E_added_flux + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) &
-                                            +   flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) &
-                                            +   flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN))
+                mass_added_flux = mass_added_flux + dt * ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) + &
+                                                           flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) + &
+                                                           flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
+                xmom_added_flux = xmom_added_flux + dt * ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) + &
+                                                           flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) + &
+                                                           flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
+                ymom_added_flux = ymom_added_flux + dt * ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) + &
+                                                           flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) + &
+                                                           flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
+                zmom_added_flux = zmom_added_flux + dt * ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) + &
+                                                           flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) + &
+                                                           flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
+                E_added_flux    = E_added_flux    + dt * ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) + &
+                                                           flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) + &
+                                                           flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
              enddo
           enddo
        enddo
@@ -1257,13 +1246,13 @@ contains
 
                 loc = position(i,j,k,ccz=.false.)
 
-                mass_lost = mass_lost - flux3(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux3(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux3(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux3(i,j,k,UMZ)
-                eden_lost = eden_lost - flux3(i,j,k,UEDEN)
+                mass_lost = mass_lost - dt * flux3(i,j,k,URHO)
+                xmom_lost = xmom_lost - dt * flux3(i,j,k,UMX)
+                ymom_lost = ymom_lost - dt * flux3(i,j,k,UMY)
+                zmom_lost = zmom_lost - dt * flux3(i,j,k,UMZ)
+                eden_lost = eden_lost - dt * flux3(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux3(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost - ang_mom(1)
                 yang_lost = yang_lost - ang_mom(2)
                 zang_lost = zang_lost - ang_mom(3)
@@ -1281,13 +1270,13 @@ contains
 
                 loc = position(i,j,k,ccz=.false.)
 
-                mass_lost = mass_lost + flux3(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux3(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux3(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux3(i,j,k,UMZ)
-                eden_lost = eden_lost + flux3(i,j,k,UEDEN)
+                mass_lost = mass_lost + dt * flux3(i,j,k,URHO)
+                xmom_lost = xmom_lost + dt * flux3(i,j,k,UMX)
+                ymom_lost = ymom_lost + dt * flux3(i,j,k,UMY)
+                zmom_lost = zmom_lost + dt * flux3(i,j,k,UMZ)
+                eden_lost = eden_lost + dt * flux3(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux3(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost + ang_mom(1)
                 yang_lost = yang_lost + ang_mom(2)
                 zang_lost = zang_lost + ang_mom(3)
@@ -1305,13 +1294,13 @@ contains
 
                 loc = position(i,j,k,ccy=.false.)
 
-                mass_lost = mass_lost - flux2(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux2(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux2(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux2(i,j,k,UMZ)
-                eden_lost = eden_lost - flux2(i,j,k,UEDEN)
+                mass_lost = mass_lost - dt * flux2(i,j,k,URHO)
+                xmom_lost = xmom_lost - dt * flux2(i,j,k,UMX)
+                ymom_lost = ymom_lost - dt * flux2(i,j,k,UMY)
+                zmom_lost = zmom_lost - dt * flux2(i,j,k,UMZ)
+                eden_lost = eden_lost - dt * flux2(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost - ang_mom(1)
                 yang_lost = yang_lost - ang_mom(2)
                 zang_lost = zang_lost - ang_mom(3)
@@ -1329,13 +1318,13 @@ contains
 
                 loc = position(i,j,k,ccy=.false.)
 
-                mass_lost = mass_lost + flux2(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux2(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux2(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux2(i,j,k,UMZ)
-                eden_lost = eden_lost + flux2(i,j,k,UEDEN)
+                mass_lost = mass_lost + dt * flux2(i,j,k,URHO)
+                xmom_lost = xmom_lost + dt * flux2(i,j,k,UMX)
+                ymom_lost = ymom_lost + dt * flux2(i,j,k,UMY)
+                zmom_lost = zmom_lost + dt * flux2(i,j,k,UMZ)
+                eden_lost = eden_lost + dt * flux2(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost + ang_mom(1)
                 yang_lost = yang_lost + ang_mom(2)
                 zang_lost = zang_lost + ang_mom(3)
@@ -1353,13 +1342,13 @@ contains
 
                 loc = position(i,j,k,ccx=.false.)
 
-                mass_lost = mass_lost - flux1(i,j,k,URHO)
-                xmom_lost = xmom_lost - flux1(i,j,k,UMX)
-                ymom_lost = ymom_lost - flux1(i,j,k,UMY)
-                zmom_lost = zmom_lost - flux1(i,j,k,UMZ)
-                eden_lost = eden_lost - flux1(i,j,k,UEDEN)
+                mass_lost = mass_lost - dt * flux1(i,j,k,URHO)
+                xmom_lost = xmom_lost - dt * flux1(i,j,k,UMX)
+                ymom_lost = ymom_lost - dt * flux1(i,j,k,UMY)
+                zmom_lost = zmom_lost - dt * flux1(i,j,k,UMZ)
+                eden_lost = eden_lost - dt * flux1(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost - ang_mom(1)
                 yang_lost = yang_lost - ang_mom(2)
                 zang_lost = zang_lost - ang_mom(3)
@@ -1377,13 +1366,13 @@ contains
 
                 loc = position(i,j,k,ccx=.false.)
 
-                mass_lost = mass_lost + flux1(i,j,k,URHO)
-                xmom_lost = xmom_lost + flux1(i,j,k,UMX)
-                ymom_lost = ymom_lost + flux1(i,j,k,UMY)
-                zmom_lost = zmom_lost + flux1(i,j,k,UMZ)
-                eden_lost = eden_lost + flux1(i,j,k,UEDEN)
+                mass_lost = mass_lost + dt * flux1(i,j,k,URHO)
+                xmom_lost = xmom_lost + dt * flux1(i,j,k,UMX)
+                ymom_lost = ymom_lost + dt * flux1(i,j,k,UMY)
+                zmom_lost = zmom_lost + dt * flux1(i,j,k,UMZ)
+                eden_lost = eden_lost + dt * flux1(i,j,k,UEDEN)
 
-                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+                ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,k,UMX:UMZ))
                 xang_lost = xang_lost + ang_mom(1)
                 yang_lost = yang_lost + ang_mom(2)
                 zang_lost = zang_lost + ang_mom(3)
@@ -1394,6 +1383,52 @@ contains
        endif
 
     endif
+
+    ! Apply the update.
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                uout(i,j,k,n) = uin(i,j,k,n) + dt * update(i,j,k,n)
+
+             enddo
+          enddo
+       enddo
+    enddo
+
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1) + 1
+                flux1(i,j,k,n) = dt * flux1(i,j,k,n)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2) + 1
+             do i = lo(1), hi(1)
+                flux2(i,j,k,n) = dt * flux2(i,j,k,n)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                flux3(i,j,k,n) = dt * flux3(i,j,k,n)
+             enddo
+          enddo
+       enddo
+    enddo
 
   end subroutine consup
 

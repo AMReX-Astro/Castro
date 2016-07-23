@@ -43,12 +43,15 @@ contains
                      domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
-                                   GDU, GDV, GDPRES, ngdnv, USHK
+         GDU, GDV, GDPRES, ngdnv
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
-    use transverse_module
+    use transverse_module, only : transx, transy
     use riemann_module, only: cmpflx, shock
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF
+#ifdef SHOCK_VAR
+    use meth_params_,odule, only : USHK
+#endif
 
     implicit none
 
@@ -516,11 +519,10 @@ contains
                      eden_lost,xang_lost,yang_lost,zang_lost, &
                      verbose)
 
-    use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF
     use advection_util_2d_module, only : normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -551,6 +553,7 @@ contains
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
+    double precision update(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
@@ -566,13 +569,14 @@ contains
     integer domlo(3), domhi(3)
     double precision loc(3), ang_mom(3)
 
-    ! Normalize the species fluxes
-    call normalize_species_fluxes( &
-         flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-         flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-         lo,hi)
+    ! Normalize the species fluxes.
 
-    ! correct the fluxes to include the effects of the artificial viscosity
+    call normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                                  lo,hi)
+
+    ! Correct the fluxes to include the effects of the artificial viscosity.
+
     do n = 1, NVAR
        if (n == UTEMP) then
           flux1(:,:,n) = ZERO
@@ -610,33 +614,42 @@ contains
        endif
     enddo
 
-    ! do the conservative updates
+    update = ZERO
+
+    ! Fill the update array.
+
     do n = 1, NVAR
-       if (n == UTEMP) then
-          uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
-#ifdef SHOCK_VAR
-       else if (n == USHK) then
-          cycle
-#endif
-       else
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                uout(i,j,n) = uin(i,j,n) + dt * &
-                     ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                       flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-                if (n == UEINT) then
-                   ! Add p div(u) source term to (rho e)
-                   uout(i,j,UEINT) = uout(i,j,UEINT)  - dt * pdivu(i,j)
-                endif
+             update(i,j,n) = update(i,j,n) + ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                                               flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
 
-             enddo
+             if (n == UEINT) then
+
+                ! Add p div(u) source term to (rho e)
+
+                update(i,j,n) = update(i,j,n) - pdivu(i,j)
+
+             endif
+
           enddo
-       end if
+       enddo
     enddo
 
-    ! Add up some diagnostic quantities. Note that these are volumetric sums
-    ! so we are not dividing by the cell volume.
+    ! Add gradp term to momentum equation -- only for axisymmetric
+    ! coords (and only for the radial flux).
+
+    if (coord_type == 1) then
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             update(i,j,UMX) = update(i,j,UMX) - (q1(i+1,j,GDPRES) - q1(i,j,GDPRES)) / dx
+             !update(i,j,UMY) = update(i,j,UMY) - (pgdy(i,j+1)-pgdy(i,j)) / dy
+          enddo
+       enddo
+    endif
+
+    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
 
@@ -655,44 +668,13 @@ contains
              zmom_added_flux = zmom_added_flux + dt * ( flux1(i,j,UMZ) - flux1(i+1,j,UMZ) + &
                                                         flux2(i,j,UMZ) - flux2(i,j+1,UMZ) )
 
-             E_added_flux = E_added_flux + dt * ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
-                                                  flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
+             E_added_flux    = E_added_flux    + dt * ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
+                                                        flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
 
           enddo
        enddo
 
     endif
-
-
-    ! Add gradp term to momentum equation -- only for axisymmetric
-    ! coords (and only for the radial flux)
-    if (coord_type == 1) then
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             uout(i,j,UMX) = uout(i,j,UMX) - dt * (q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
-             !uout(i,j,UMY) = uout(i,j,UMY) - dt * (pgdy(i,j+1)-pgdy(i,j))/ dy
-          enddo
-       enddo
-    endif
-
-    ! scale the fluxes (and correct the momentum flux with the grad p part)
-    ! so we can use them in the flux correction at coarse-fine interfaces
-    ! later.
-    do j = lo(2), hi(2)
-       do i = lo(1), hi(1)+1
-          flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
-          if (coord_type == 1) then
-             flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*q1(i,j,GDPRES)
-          endif
-       enddo
-    enddo
-
-    do j = lo(2), hi(2)+1
-       do i = lo(1), hi(1)
-          flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
-          !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
-       enddo
-    enddo
 
     if (track_grid_losses .eq. 1) then
 
@@ -708,13 +690,13 @@ contains
 
              loc = position(i,j,k,ccy=.false.)
 
-             mass_lost = mass_lost - flux2(i,j,URHO)
-             xmom_lost = xmom_lost - flux2(i,j,UMX)
-             ymom_lost = ymom_lost - flux2(i,j,UMY)
-             zmom_lost = zmom_lost - flux2(i,j,UMZ)
-             eden_lost = eden_lost - flux2(i,j,UEDEN)
+             mass_lost = mass_lost - dt * flux2(i,j,URHO)
+             xmom_lost = xmom_lost - dt * flux2(i,j,UMX)
+             ymom_lost = ymom_lost - dt * flux2(i,j,UMY)
+             zmom_lost = zmom_lost - dt * flux2(i,j,UMZ)
+             eden_lost = eden_lost - dt * flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
              zang_lost = zang_lost - ang_mom(3)
@@ -730,13 +712,13 @@ contains
 
              loc = position(i,j,k,ccy=.false.)
 
-             mass_lost = mass_lost + flux2(i,j,URHO)
-             xmom_lost = xmom_lost + flux2(i,j,UMX)
-             ymom_lost = ymom_lost + flux2(i,j,UMY)
-             zmom_lost = zmom_lost + flux2(i,j,UMZ)
-             eden_lost = eden_lost + flux2(i,j,UEDEN)
+             mass_lost = mass_lost + dt * flux2(i,j,URHO)
+             xmom_lost = xmom_lost + dt * flux2(i,j,UMX)
+             ymom_lost = ymom_lost + dt * flux2(i,j,UMY)
+             zmom_lost = zmom_lost + dt * flux2(i,j,UMZ)
+             eden_lost = eden_lost + dt * flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
@@ -752,13 +734,13 @@ contains
 
              loc = position(i,j,k,ccx=.false.)
 
-             mass_lost = mass_lost - flux1(i,j,URHO)
-             xmom_lost = xmom_lost - flux1(i,j,UMX)
-             ymom_lost = ymom_lost - flux1(i,j,UMY)
-             zmom_lost = zmom_lost - flux1(i,j,UMZ)
-             eden_lost = eden_lost - flux1(i,j,UEDEN)
+             mass_lost = mass_lost - dt * flux1(i,j,URHO)
+             xmom_lost = xmom_lost - dt * flux1(i,j,UMX)
+             ymom_lost = ymom_lost - dt * flux1(i,j,UMY)
+             zmom_lost = zmom_lost - dt * flux1(i,j,UMZ)
+             eden_lost = eden_lost - dt * flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
              zang_lost = zang_lost - ang_mom(3)
@@ -774,13 +756,13 @@ contains
 
              loc = position(i,j,k,ccx=.false.)
 
-             mass_lost = mass_lost + flux1(i,j,URHO)
-             xmom_lost = xmom_lost + flux1(i,j,UMX)
-             ymom_lost = ymom_lost + flux1(i,j,UMY)
-             zmom_lost = zmom_lost + flux1(i,j,UMZ)
-             eden_lost = eden_lost + flux1(i,j,UEDEN)
+             mass_lost = mass_lost + dt * flux1(i,j,URHO)
+             xmom_lost = xmom_lost + dt * flux1(i,j,UMX)
+             ymom_lost = ymom_lost + dt * flux1(i,j,UMY)
+             zmom_lost = zmom_lost + dt * flux1(i,j,UMZ)
+             eden_lost = eden_lost + dt * flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
@@ -790,6 +772,52 @@ contains
        endif
 
     endif
+
+    ! Apply the update.
+
+    do n = 1, NVAR
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             uout(i,j,n) = uin(i,j,n) + dt * update(i,j,n)
+
+          enddo
+       enddo
+    enddo
+
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)+1
+
+             flux1(i,j,n) = dt * flux1(i,j,n)
+
+             ! Correct the momentum flux with the grad p part.
+
+             if (coord_type == 1) then
+                if (n == UMX) then
+                   flux1(i,j,n) = flux1(i,j,n) + dt * area1(i,j) * q1(i,j,GDPRES)
+                endif
+             endif
+
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do j = lo(2), hi(2)+1
+          do i = lo(1), hi(1)
+
+             flux2(i,j,n) = dt * flux2(i,j,n)
+
+             !if (n == UMY) then
+                !flux2(i,j,n) = flux2(i,j,n) + dt * area2(i,j) * pgdy(i,j)
+             !endif
+
+          enddo
+       enddo
+    enddo
 
   end subroutine consup
 
