@@ -486,6 +486,8 @@ public:
 
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
 
+    void apply_source_to_state (MultiFab& state, MultiFab& source, Real dt);
+
     void make_radial_data (int is_new);
 
 #ifdef LEVELSET

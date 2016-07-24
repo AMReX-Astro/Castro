@@ -1435,23 +1435,12 @@ Castro::advance_hydro (Real time,
 
 #ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
+
     construct_new_gravity_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, cur_time, dt);
 
-    if (do_grav)
-    {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	{
-	    const Box& bx = mfi.tilebox();
-
-	    S_new[mfi].saxpy(dt,new_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
-
-	}
-
-	computeTemp(S_new);
+    if (do_grav) {
+        apply_source_to_state(S_new, new_sources[grav_src], dt);
+        computeTemp(S_new);
     }
 #endif
 
@@ -1468,26 +1457,12 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
-    construct_new_rotation(amr_iteration, amr_ncycle,
-			   sub_iteration, sub_ncycle,
-			   cur_time, S_new);
+    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, S_new);
 
     construct_new_rotation_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, cur_time, dt);
 
-    if (do_rotation)
-    {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	{
-	    const Box& bx = mfi.tilebox();
-
-	    S_new[mfi].saxpy(dt,new_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
-
-	}
-
+    if (do_rotation) {
+        apply_source_to_state(S_new, new_sources[rot_src], dt);
 	computeTemp(S_new);
     }
 #endif

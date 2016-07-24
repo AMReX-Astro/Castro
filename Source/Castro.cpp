@@ -3559,6 +3559,22 @@ Castro::add_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
 #endif
 
 void
+Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
+{
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state,true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
+
+	state[mfi].saxpy(dt,source[mfi],bx,bx,0,0,NUM_STATE);
+
+    }
+}
+
+void
 Castro::make_radial_data(int is_new)
 {
 #if (BL_SPACEDIM > 1)
