@@ -41,6 +41,15 @@ Castro::advance (Real time,
 
     set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
 
+    // The option of whether to do a multilevel initialization is
+    // controlled within the radiation class.  This step belongs
+    // before the swap.
+
+#ifdef RADIATION
+    if (do_radiation)
+        radiation->pre_timestep(level);
+#endif
+
     // Swap the new data from the last timestep into the old state data.
     // If we're on level 0, do it for all levels below this one as well.
     // Or, if we're on a later iteration at a finer timestep, swap for all
@@ -102,6 +111,52 @@ Castro::advance (Real time,
     if (track_grid_losses)
       for (int i = 0; i < n_lost; i++)
 	material_lost_through_boundary_temp[i] = 0.0;
+
+    // These arrays hold all source terms that update the state.
+
+    for (int n = 0; n < num_src; ++n) {
+        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+        new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
+
+	old_sources[n].setVal(0.0);
+	new_sources[n].setVal(0.0);
+    }
+
+    // This array holds the hydrodynamics update.
+
+    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
+
+    hydro_source->setVal(0.0);
+
+    // This array holds the sum of all source terms that affect the hydrodynamics.
+    // If we are doing the source term predictor, we'll also use this after the
+    // hydro update to store the sum of the new-time sources, so that we can
+    // compute the time derivative of the source terms.
+
+    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro->setVal(0.0,NUM_GROW);
+
+    for (int j = 0; j < BL_SPACEDIM; j++)
+    {
+        fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
+        fluxes[j]->setVal(0.0);
+    }
+
+    for (int j = BL_SPACEDIM; j < 3; j++)
+    {
+        BoxArray ba = get_new_data(State_Type).boxArray();
+	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
+	fluxes[j]->setVal(0.0);
+    }
+
+#ifdef RADIATION
+    MultiFab& Er_new = get_new_data(Rad_Type);
+    if (Radiation::rad_hydro_combined) {
+        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+	    rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
+	}
+    }
+#endif
 
     // Do the advance.
 
@@ -313,6 +368,31 @@ Castro::advance (Real time,
     UpdateParticles(amr_iteration, time, dt);
 #endif
 
+    delete hydro_source;
+    delete sources_for_hydro;
+
+    old_sources.clear();
+    new_sources.clear();
+
+    for (int n = 0; n < 3; ++n)
+        delete fluxes[n];
+
+#ifdef RADIATION
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+        delete rad_fluxes[n];
+#endif
+
+#ifdef DIFFUSION
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+#endif
+
+#ifdef TAU
+    delete tau_diff;
+#endif
+
     return dt_new;
 }
 
@@ -325,40 +405,6 @@ Castro::advance_hydro (Real time,
 		       int  sub_ncycle)
 {
     BL_PROFILE("Castro::advance_hydro()");
-
-#ifdef RADIATION
-    if (do_radiation) {
-        // The option of whether to do a multilevel initialization is
-        // controlled within the radiation class.  This step belongs
-        // before the swap.
-
-        radiation->pre_timestep(level);
-    }
-#endif
-
-    // These arrays hold all source terms that update the state.
-
-    for (int n = 0; n < num_src; ++n) {
-        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-        new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
-
-	old_sources[n].setVal(0.0);
-	new_sources[n].setVal(0.0);
-    }
-
-    // This array holds the hydrodynamics update.
-
-    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
-
-    hydro_source->setVal(0.0);
-
-    // This array holds the sum of all source terms that affect the hydrodynamics.
-    // If we are doing the source term predictor, we'll also use this after the
-    // hydro update to store the sum of the new-time sources, so that we can
-    // compute the time derivative of the source terms.
-
-    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_for_hydro->setVal(0.0,NUM_GROW);
 
     // Reset the change from density resets
 
@@ -407,31 +453,6 @@ Castro::advance_hydro (Real time,
     }
     S_old.setBndry(0.0);
     S_new.setBndry(0.0);
-#endif
-
-    // We want to define this on every grid, because we may need the fluxes
-    // when computing the source terms later.
-
-    for (int j = 0; j < BL_SPACEDIM; j++)
-       {
-         fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
-         fluxes[j]->setVal(0.0);
-       }
-
-    for (int j = BL_SPACEDIM; j < 3; j++)
-      {
-	BoxArray ba = S_new.boxArray();
-	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
-	fluxes[j]->setVal(0.0);
-      }
-
-#ifdef RADIATION
-    MultiFab& Er_new = get_new_data(Rad_Type);
-    if (Radiation::rad_hydro_combined) {
-      for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
-      }
-    }
 #endif
 
     // Do preliminary steps for constructing old-time sources.
@@ -581,33 +602,8 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    delete hydro_source;
-    delete sources_for_hydro;
-
-    old_sources.clear();
-    new_sources.clear();
-
-    for (int n = 0; n < 3; ++n)
-        delete fluxes[n];
-
-#ifdef RADIATION
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-        delete rad_fluxes[n];
-#endif
-
 #ifndef LEVELSET
     delete [] u_gdnv;
-#endif
-
-#ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
-#endif
-
-#ifdef TAU
-    delete tau_diff;
 #endif
 
     return dt;
