@@ -344,7 +344,7 @@ contains
                 ! Do the full corrector step with the old contribution (subtract 1/2 times the old term) and do
                 ! the non-Coriolis parts of the new contribution (add 1/2 of the new term).
 
-                new_mom = unew(i,j,k,UMX:UMZ) - HALF * Sr_old + &
+                new_mom = unew(i,j,k,UMX:UMZ) - HALF * Sr_old * dt + &
                           HALF * rhon * rotational_acceleration(loc, vnew, time, coriolis = .false.) * dt
 
                 ! The following is the general solution to the 3D coupled system,
@@ -356,7 +356,7 @@ contains
 
                 new_mom = matmul(dt_omega_matrix, new_mom)
 
-                Srcorr = new_mom - unew(i,j,k,UMX:UMZ)
+                Srcorr = (new_mom - unew(i,j,k,UMX:UMZ)) / dt
 
              endif
 
@@ -386,7 +386,7 @@ contains
                 ! before we calculate the energy source term.
 
                 vnew = snew(UMX:UMZ) * rhoninv
-                Sr_new = rhon * rotational_acceleration(loc, vnew, time) * dt
+                Sr_new = rhon * rotational_acceleration(loc, vnew, time)
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -424,12 +424,12 @@ contains
                 ! multiplied by dA and dt, so dividing by the cell volume is enough to 
                 ! get the density change (flux * dt * dA / dV).
 
-                SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                             flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                             flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                             flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                             flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                             flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                    flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                    flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                    flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                    flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                    flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts 
                 ! purely as a source term.
@@ -439,7 +439,7 @@ contains
 
                 vnew = snew(UMX:UMZ) * rhoninv
 
-                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new)) * dt
+                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
                 call bl_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")

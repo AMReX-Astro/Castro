@@ -450,12 +450,12 @@ contains
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
                      .and. get_g_from_phi) ) then
 
-                   SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                       flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                       flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                       flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                       flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                       flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                    ! However, at present phi is only actually filled for Poisson gravity,
                    ! and optionally monopole gravity if the user species get_g_from_phi.   
@@ -465,12 +465,12 @@ contains
 
                 else
 
-                   SrEcorr = SrEcorr + HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
-                                                flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
-                                                flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
-                                                flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
-                                                flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                                                flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
+                                                       flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
+                                                       flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
 
                 endif
 
