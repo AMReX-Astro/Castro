@@ -445,8 +445,8 @@ Castro::advance_hydro (Real time,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    MultiFab Sborder(grids, NUM_STATE, NUM_GROW, Fab_allocate);
-    expand_state(Sborder, prev_time, NUM_GROW);
+    Sborder = new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    expand_state(*Sborder, prev_time, NUM_GROW);
 
     // Since we are Strang splitting the reactions, do them now.
 
@@ -466,22 +466,19 @@ Castro::advance_hydro (Real time,
     const int react_ngrow_first_half = NUM_GROW;
     const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
 
-    react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
+    react_state(*Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 
-    BoxLib::fill_boundary(Sborder, geom);
+    BoxLib::fill_boundary(*Sborder, geom);
 
 #endif
 
     // Initialize the new-time data.
 
-    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+    MultiFab::Copy(S_new, *Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
     // Construct the old-time sources.
 
-    construct_old_sources(Sborder,
-			  amr_iteration, amr_ncycle,
-			  sub_iteration, sub_ncycle,
-			  prev_time, dt);
+    construct_old_sources(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time, dt);
 
     // Apply the old-time sources.
 
@@ -508,8 +505,7 @@ Castro::advance_hydro (Real time,
     // Do the hydro update.
 
     if (do_hydro)
-        hydro_update(Sborder,
-		     hydro_source,
+        hydro_update(hydro_source,
 #ifdef RADIATION
 		     rad_fluxes,
 #endif
@@ -620,8 +616,7 @@ Castro::advance_hydro (Real time,
 
 
 void
-Castro::hydro_update(MultiFab& Sborder,
-		     MultiFab& hydro_source,
+Castro::hydro_update(MultiFab& hydro_source,
 #ifdef RADIATION
 		     MultiFab rad_fluxes[],
 #endif
@@ -675,7 +670,7 @@ Castro::hydro_update(MultiFab& Sborder,
 	    lamborder.setVal(0.0, NUM_GROW);
 	}
 	else {
-	    radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder, kappa_s);
+	    radiation->compute_limiter(level, grids, *Sborder, Erborder, lamborder, kappa_s);
 	}
 
 	int nstep_fsp = -1;
@@ -701,7 +696,7 @@ Castro::hydro_update(MultiFab& Sborder,
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &statein  = Sborder[mfi];
+		FArrayBox &statein  = (*Sborder)[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
 		FArrayBox &Er = Erborder[mfi];
@@ -848,7 +843,7 @@ Castro::hydro_update(MultiFab& Sborder,
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &statein  = Sborder[mfi];
+		FArrayBox &statein  = (*Sborder)[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
 		FArrayBox &source = hydro_source[mfi];

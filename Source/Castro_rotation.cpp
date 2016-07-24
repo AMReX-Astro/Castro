@@ -3,9 +3,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
-void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle,
-				    int sub_iteration, int sub_ncycle,
-				    Real time, MultiFab& state)
+void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
@@ -15,7 +13,7 @@ void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle,
 
     if (do_rotation) {
 
-      fill_rotation_field(phirot_old, rot_old, state, time);
+      fill_rotation_field(phirot_old, rot_old, (*Sborder), time);
 
     } else {
 
@@ -28,19 +26,19 @@ void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle,
 
 
 
-void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle,
-				    int sub_iteration, int sub_ncycle,
-				    Real time, MultiFab& state)
+void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
+    MultiFab& S_new = get_new_data(State_Type);
+
     // Fill the old rotation data.
 
     if (do_rotation) {
 
-      fill_rotation_field(phirot_new, rot_new, state, time);
+      fill_rotation_field(phirot_new, rot_new, S_new, time);
 
     } else {
 
@@ -53,8 +51,7 @@ void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle,
 
 
 
-void Castro::construct_old_rotation_source(MultiFab& S_old,
-					   Real time, Real dt)
+void Castro::construct_old_rotation_source(Real time, Real dt)
 {
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
@@ -73,7 +70,7 @@ void Castro::construct_old_rotation_source(MultiFab& S_old,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-	for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi((*Sborder),true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
@@ -83,7 +80,7 @@ void Castro::construct_old_rotation_source(MultiFab& S_old,
 		    ARLIM_3D(domlo), ARLIM_3D(domhi),
 		    BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		    BL_TO_FORTRAN_3D(rot_old[mfi]),
-		    BL_TO_FORTRAN_3D(S_old[mfi]),
+		    BL_TO_FORTRAN_3D((*Sborder)[mfi]),
 		    BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
 		    BL_TO_FORTRAN_3D(volume[mfi]),
 		    ZFILL(dx),dt,&time,
@@ -118,7 +115,7 @@ void Castro::construct_old_rotation_source(MultiFab& S_old,
 #endif
         }
 
-	add_force_to_sources(rot_old, *sources_for_hydro, S_old);
+	add_force_to_sources(rot_old, *sources_for_hydro, (*Sborder));
 
     }
 
@@ -126,10 +123,11 @@ void Castro::construct_old_rotation_source(MultiFab& S_old,
 
 
 
-void Castro::construct_new_rotation_source(MultiFab& S_old, MultiFab& S_new,
-					   MultiFab fluxes[],
-					   Real time, Real dt)
+void Castro::construct_new_rotation_source(MultiFab fluxes[], Real time, Real dt)
 {
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 

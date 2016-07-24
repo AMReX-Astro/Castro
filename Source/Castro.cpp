@@ -3731,21 +3731,17 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 }
 
 void
-Castro::construct_old_sources(MultiFab& state,
-			      int amr_iteration, int amr_ncycle,
-			      int sub_iteration, int sub_ncycle,
-			      Real time, Real dt)
+Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
-
     if (do_sponge)
         construct_old_sponge_source(time, dt);
 
     if (add_ext_src)
-        construct_old_ext_source(state, time, dt);
+        construct_old_ext_source(time, dt);
 
 #ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_gravity_source(state, time, dt);
+    construct_old_gravity_source(time, dt);
 #endif
 
 #ifdef DIFFUSION
@@ -3757,13 +3753,9 @@ Castro::construct_old_sources(MultiFab& state,
 #endif
 
 #ifdef ROTATION
-    construct_old_rotation(amr_iteration, amr_ncycle,
-			   sub_iteration, sub_ncycle,
-			   time, state);
-
-    construct_old_rotation_source(state, time, dt);
+    construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_old_rotation_source(time, dt);
 #endif
-
 }
 
 void
@@ -3772,17 +3764,14 @@ Castro::construct_new_sources(MultiFab fluxes[],
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
     if (do_sponge)
         construct_new_sponge_source(time, dt);
 
     if (add_ext_src)
-      construct_new_ext_source(S_old, S_new, time, dt);
+       construct_new_ext_source(time, dt);
 
 #ifdef HYBRID_MOMENTUM
-    construct_new_hybrid_source(S_old, S_new, time, dt);
+    construct_new_hybrid_source(time, dt);
 #endif
 
 #ifdef DIFFUSION
@@ -3791,14 +3780,12 @@ Castro::construct_new_sources(MultiFab fluxes[],
 
 #ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-
-    construct_new_gravity_source(S_old, S_new, fluxes, time, dt);
+    construct_new_gravity_source(fluxes, time, dt);
 #endif
 
 #ifdef ROTATION
-    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time, S_new);
-
-    construct_new_rotation_source(S_old, S_new, fluxes, time, dt);
+    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_new_rotation_source(fluxes, time, dt);
 #endif
 }
 

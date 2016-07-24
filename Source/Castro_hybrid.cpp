@@ -2,11 +2,11 @@
 #include "Castro_F.H"
 
 void
-Castro::construct_old_hybrid_source(MultiFab& S_old, Real time, Real dt)
+Castro::construct_old_hybrid_source(Real time, Real dt)
 {
     int ng = S_old.nGrow();
 
-    fill_hybrid_hydro_source(old_sources[hybrid_src], S_old);
+    fill_hybrid_hydro_source(old_sources[hybrid_src], (*Sborder));
 
     // Add to the hydro source terms.
 
@@ -17,8 +17,11 @@ Castro::construct_old_hybrid_source(MultiFab& S_old, Real time, Real dt)
 
 
 void
-Castro::construct_new_hybrid_source(MultiFab& S_old, MultiFab& S_new, Real time, Real dt)
+Castro::construct_new_hybrid_source(Real time, Real dt)
 {
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
     int ng = S_new.nGrow();
 
     fill_hybrid_hydro_source(new_sources[hybrid_src], S_new);

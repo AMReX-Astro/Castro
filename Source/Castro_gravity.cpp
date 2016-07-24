@@ -3,9 +3,7 @@
 #include "Gravity.H"
 
 void
-Castro::construct_old_gravity(int amr_iteration, int amr_ncycle,
-			      int sub_iteration, int sub_ncycle,
-			      Real time)
+Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
     // Old and new gravitational potential.
@@ -77,9 +75,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle,
 }
 
 void
-Castro::construct_new_gravity(int amr_iteration, int amr_ncycle,
-			      int sub_iteration, int sub_ncycle,
-			      Real time)
+Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -146,7 +142,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle,
 }
 
 
-void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
+void Castro::construct_old_gravity_source(Real time, Real dt)
 {
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -168,7 +164,7 @@ void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-	for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi((*Sborder),true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
@@ -178,7 +174,7 @@ void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
 		    ARLIM_3D(domlo), ARLIM_3D(domhi),
 		    BL_TO_FORTRAN_3D(phi_old[mfi]),
 		    BL_TO_FORTRAN_3D(grav_old[mfi]),
-		    BL_TO_FORTRAN_3D(S_old[mfi]),
+		    BL_TO_FORTRAN_3D((*Sborder)[mfi]),
 		    BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 		    BL_TO_FORTRAN_3D(volume[mfi]),
 		    ZFILL(dx),dt,&time,
@@ -216,7 +212,7 @@ void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
 #endif
         }
 
-	add_force_to_sources(grav_old, *sources_for_hydro, S_old);
+	add_force_to_sources(grav_old, *sources_for_hydro, (*Sborder));
 
     }
 
@@ -224,8 +220,11 @@ void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
 
 
 
-void Castro::construct_new_gravity_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt)
+void Castro::construct_new_gravity_source(MultiFab fluxes[], Real time, Real dt)
 {
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 

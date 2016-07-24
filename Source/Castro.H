@@ -229,8 +229,7 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
-    void hydro_update(MultiFab& Sborder,
-		      MultiFab& hydro_source,
+    void hydro_update(MultiFab& hydro_source,
 #ifdef RADIATION
 		      MultiFab rad_fluxes[],
 #endif
@@ -241,10 +240,7 @@ public:
 
     void set_up_for_old_sources(Real time);
 
-    void construct_old_sources(MultiFab& state,
-			       int amr_iteration, int amr_ncycle,
-			       int sub_iteration, int sub_ncycle,
-			       Real time, Real dt);
+    void construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
     void set_up_for_new_sources(Real time);
 
@@ -262,11 +258,9 @@ public:
 
     void construct_new_sponge_source(Real time, Real dt);
 
-    void construct_old_ext_source(MultiFab& S_old,
-				  Real time, Real dt);
+    void construct_old_ext_source(Real time, Real dt);
 
-    void construct_new_ext_source(MultiFab& S_old, MultiFab& S_new,
-				  Real time, Real dt);
+    void construct_new_ext_source(Real time, Real dt);
 
     void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
 
@@ -279,9 +273,9 @@ public:
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
 
-    void construct_old_gravity_source(MultiFab& S_old, Real time, Real dt);
+    void construct_old_gravity_source(Real time, Real dt);
 
-    void construct_new_gravity_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt);
+    void construct_new_gravity_source(MultiFab fluxes[], Real time, Real dt);
 #endif
 
     //
@@ -400,17 +394,13 @@ public:
 #endif
 
 #ifdef ROTATION
-    void construct_old_rotation(int amr_iteration, int amr_ncycle,
-				int sub_iteration, int sub_ncycle,
-				Real time, MultiFab& state);
+    void construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time);
 
-    void construct_new_rotation(int amr_iteration, int amr_ncycle,
-				int sub_iteration, int sub_ncycle,
-				Real time, MultiFab& state);
+    void construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time);
 
-    void construct_old_rotation_source(MultiFab& S_old, Real time, Real dt);
+    void construct_old_rotation_source(Real time, Real dt);
 
-    void construct_new_rotation_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt);
+    void construct_new_rotation_source(MultiFab fluxes[], Real time, Real dt);
 
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
@@ -490,9 +480,9 @@ public:
     void set_special_tagging_flag (Real time);
 
 #ifdef HYBRID_MOMENTUM
-    void construct_old_hybrid_source(MultiFab& S_old, Real time, Real dt);
+    void construct_old_hybrid_source(Real time, Real dt);
 
-    void construct_new_hybrid_source(MultiFab& S_old, MultiFab& S_new, Real time, Real dt);
+    void construct_new_hybrid_source(Real time, Real dt);
 
     void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
 #endif
@@ -565,6 +555,11 @@ protected:
     //
     MultiFab* comp_minus_level_phi;
     Array<MultiFab*> comp_minus_level_grad_phi;
+
+    //
+    // A state array with ghost zones.
+    //
+    MultiFab* Sborder;
 
     //
     // Source terms to the hydrodynamics solve.
