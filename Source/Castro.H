@@ -229,13 +229,6 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
-    Real advance_no_hydro (Real time,
-                           Real dt,
-                           int  amr_iteration,
-                           int  amr_ncycle,
-			   int  sub_iteration,
-			   int  sub_ncycle);
-
     void hydro_update(MultiFab& Sborder,
 		      MultiFab& hydro_source,
 #ifdef RADIATION

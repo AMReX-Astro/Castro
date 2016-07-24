@@ -105,14 +105,7 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    if (do_hydro)
-    {
-        dt_new = advance_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-    }
-    else
-    {
-        dt_new = advance_no_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-    }
+    dt_new = advance_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
@@ -242,14 +235,7 @@ Castro::advance (Real time,
 	    gravity->swapTimeLevels(level);
 #endif
 
-	  if (do_hydro)
-	  {
-	    advance_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-	  }
-	  else
-	  {
-	    advance_no_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-	  }
+	  advance_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
 
 	  if (verbose && ParallelDescriptor::IOProcessor()) {
 	    std::cout << std::endl;
@@ -527,13 +513,14 @@ Castro::advance_hydro (Real time,
 
     // Do the hydro update.
 
-    hydro_update(Sborder,
-		 hydro_source,
+    if (do_hydro)
+        hydro_update(Sborder,
+		     hydro_source,
 #ifdef RADIATION
-		 rad_fluxes,
+		     rad_fluxes,
 #endif
-		 fluxes,
-		 time, dt);
+		     fluxes,
+		     time, dt);
 
     // Update the point mass.
 
@@ -626,217 +613,6 @@ Castro::advance_hydro (Real time,
     OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
     OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
     OldViscousTermforEnergy = new MultiFab(grids,1,1);
-#endif
-
-#ifdef TAU
-    delete tau_diff;
-#endif
-
-    return dt;
-}
-
-Real
-Castro::advance_no_hydro (Real time,
-                          Real dt,
-                          int  amr_iteration,
-                          int  amr_ncycle,
-			  int  sub_iteration,
-			  int  sub_ncycle)
-{
-    BL_PROFILE("Castro::advance_no_hydro()");
-
-    if (do_hydro)
-       BoxLib::Abort("In advance_no_hydro but do_hydro is true");
-
-#ifdef RADIATION
-    if (do_radiation) {
-        // The option of whether to do a multilevel initialization is
-        // controlled within the radiation class.  This step belongs
-        // before the swap.
-        radiation->pre_timestep(level);
-    }
-#endif
-
-    int finest_level = parent->finestLevel();
-
-    if (do_reflux && level < finest_level) {
-        //
-        // Set reflux registers to zero.
-        //
-        getFluxReg(level+1).setVal(0.0);
-    }
-
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
-#ifdef RADIATION
-    // Make sure these are filled to avoid check/plot file errors:
-    if (do_radiation) {
-      get_old_data(Rad_Type).setBndry(0.0);
-      get_new_data(Rad_Type).setBndry(0.0);
-    }
-    else {
-      get_old_data(Rad_Type).setVal(0.0);
-      get_new_data(Rad_Type).setVal(0.0);
-    }
-    S_old.setBndry(0.0);
-    S_new.setBndry(0.0);
-#endif
-
-#if (BL_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       swap_outflow_data();
-       int is_new = 0;
-       make_radial_data(is_new);
-    }
-#endif
-
-#ifdef GRAVITY
-    // Old and new gravitational potential.
-
-    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-    MultiFab& phi_new = get_new_data(PhiGrav_Type);
-
-    MultiFab& grav_old = get_old_data(Gravity_Type);
-    MultiFab& grav_new = get_new_data(Gravity_Type);
-
-    if (do_grav) {
-       if (do_reflux && level < finest_level && gravity->get_gravity_type() == "PoissonGrav" && sub_iteration < 2)
-           gravity->zeroPhiFluxReg(level+1);
-
-       // Define the old gravity vector (aka grad_phi on cell centers)
-       //   Note that this is based on the multilevel solve when doing "PoissonGrav".
-
-       gravity->get_old_grav_vector(level,grav_old,time);
-
-       if (gravity->get_gravity_type() == "PoissonGrav" &&
-           gravity->test_results_of_solves() == 1)
-          gravity->test_level_grad_phi_prev(level);
-    }
-    else
-    {
-       grav_new.setVal(0.0);
-       phi_new.setVal(0.0);
-    }
-#endif
-
-#ifdef REACTIONS
-    MultiFab& reactions_old = get_old_data(Reactions_Type);
-    MultiFab& reactions_new = get_new_data(Reactions_Type);
-#endif
-
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff = new MultiFab(grids,1,1);
-    tau_diff->setVal(0.);
-    define_tau(grav_old,time);
-#endif
-#endif
-
-    const Real prev_time = state[State_Type].prevTime();
-
-    // It's possible for interpolation to create very small negative values for
-    //   species so we make sure here that all species are non-negative after this point
-    enforce_nonnegative_species(S_old);
-
-#ifdef REACTIONS
-      const int react_ngrow_first_half = 0;
-      const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
-      react_state(S_old,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#endif
-
-#ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-#endif
-
-    Real cur_time = state[State_Type].curTime();
-
-    // Copy old data into new data.
-    MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, S_new.nGrow());
-
-    if (add_ext_src) {
-
-           MultiFab ext_src_old(grids,NUM_STATE,0,Fab_allocate);
-           fill_ext_source(prev_time,dt,S_old,S_old,ext_src_old,0);
-           ext_src_old.mult(dt);
-           MultiFab::Add(S_new,ext_src_old,0,0,NUM_STATE,0);
-
-           // Must compute new temperature in case it is needed in the source term evaluation
-           computeTemp(S_new);
-
-           // Compute source at new time
-           MultiFab ext_src_new(grids,NUM_STATE,0,Fab_allocate);
-           fill_ext_source(cur_time,dt,S_old,S_new,ext_src_new,0);
-
-           ext_src_old.mult(-0.5);
-           ext_src_new.mult( 0.5*dt);
-
-           // Subtract off half of the old source term, and add half of the new.
-           MultiFab::Add(S_new,ext_src_old,0,0,S_new.nComp(),0);
-           MultiFab::Add(S_new,ext_src_new,0,0,S_new.nComp(),0);
-    }
-
-    computeTemp(S_new);
-
-#ifdef GRAVITY
-    MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
-    MultiFab::Copy(grav_new, grav_old, 0, 0, 3, grav_new.nGrow());
-
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
-    {
-        if (gravity->NoComposite() != 1 && level < parent->finestLevel())
-	{
-
-	  delete comp_minus_level_phi;
-	  for (int n = 0; n < BL_SPACEDIM; ++n)
-	    delete comp_minus_level_grad_phi[n];
-
-	}
-    }
-#endif
-
-    // ******************
-    //  Note: If add_ext_src changed the density, 
-    //        we need to update gravity and the associated source terms and
-    //        state variables here
-    // ******************
-
-#ifdef DIFFUSION
-        full_temp_diffusion_update(S_new,prev_time,cur_time,dt);
-        full_spec_diffusion_update(S_new,prev_time,cur_time,dt);
-#endif
-
-#ifdef REACTIONS
-    const int react_ngrow_second_half = 0;
-    const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
-    react_state(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
-#endif
-
-       // Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-       if (hybrid_hydro) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-	 for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	   const Box& bx = mfi.tilebox();
-
-	   hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
-
-	 }
-
-       }
-#endif
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-      MultiFab& Er_old = get_old_data(Rad_Type);
-      MultiFab& Er_new = get_new_data(Rad_Type);
-      Er_new.copy(Er_old);
-    }
 #endif
 
 #ifdef TAU
