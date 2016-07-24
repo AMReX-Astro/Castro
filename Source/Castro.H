@@ -619,6 +619,10 @@ protected:
     void write_center ();
 #endif
 
+#ifdef POINTMASS
+    void pointmass_update(Real time, Real dt);
+#endif
+
     void stopJob ();
 
     //

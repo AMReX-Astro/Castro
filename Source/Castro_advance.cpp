@@ -618,10 +618,6 @@ Castro::advance_hydro (Real time,
 #endif
 
 
-#ifdef POINTMASS
-    Real mass_change_at_center = 0.;
-#endif
-
     // Set up the time-rate of change of the source terms.
 
     MultiFab& dSdt_new = get_new_data(Source_Type);
@@ -700,11 +696,7 @@ Castro::advance_hydro (Real time,
 	BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv_rad()", CA_UMDRV_RAD);
 
 #ifdef _OPENMP
-#ifdef POINTMASS
-#pragma omp parallel reduction(+:mass_change_at_center)
-#else
 #pragma omp parallel
-#endif
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
@@ -810,16 +802,6 @@ Castro::advance_hydro (Real time,
 				     dt);
 		}
 
-#ifdef POINTMASS
-		if (level == finest_level && point_mass_fix_solution)
-		    pm_compute_delta_mass
-			(&mass_change_at_center,
-			 ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 BL_TO_FORTRAN_3D(volume[mfi]),
-			 ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
-#endif
 	    }
 
 #ifdef _OPENMP
@@ -882,22 +864,12 @@ Castro::advance_hydro (Real time,
 	BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
-#ifdef POINTMASS
-#pragma omp parallel reduction(+:E_added_flux) \
-		 reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
-		 reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
-		 reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-		 reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-		 reduction(+:mass_change_at_center) \
-		 reduction(min:dens_change)
-#else
 #pragma omp parallel reduction(+:E_added_flux) \
 		 reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
 		 reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
 		 reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
 		 reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
 		 reduction(min:dens_change)
-#endif
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
@@ -1013,16 +985,6 @@ Castro::advance_hydro (Real time,
 		stateout.saxpy(dt,old_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
-#ifdef POINTMASS
-		if (level == finest_level && point_mass_fix_solution)
-		    pm_compute_delta_mass
-			(&mass_change_at_center,
-			 ARLIM_3D(lo), ARLIM_3D(hi),
-			 BL_TO_FORTRAN_3D(stateold),
-			 BL_TO_FORTRAN_3D(stateout),
-			 BL_TO_FORTRAN_3D(volume[mfi]),
-			 ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
-#endif
 	    }
 
 #ifdef _OPENMP
@@ -1111,23 +1073,7 @@ Castro::advance_hydro (Real time,
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 #ifdef POINTMASS
-    if (level == finest_level && point_mass_fix_solution)
-    {
-          ParallelDescriptor::ReduceRealSum(mass_change_at_center);
-  	  if (mass_change_at_center > 0.)
-          {
-	     point_mass += mass_change_at_center;
-	     for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
-             {
-		const Box& bx = mfi.validbox();
-
-		pm_fix_solution
-		  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		   BL_TO_FORTRAN_3D(S_old[mfi]), BL_TO_FORTRAN_3D(S_new[mfi]),
-		   ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
-             }
-          }
-    }
+    pointmass_update(time, dt);
 #endif
 
     if (do_reflux) {

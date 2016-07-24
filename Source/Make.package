@@ -38,6 +38,10 @@ FEXE_headers += Gravity_F.H
 CEXE_sources += Castro_gravity.cpp
 endif
 
+ifeq ($(USE_POINTMASS), TRUE)
+CEXE_sources += Castro_pointmass.cpp
+endif
+
 ifeq ($(USE_ROTATION), TRUE)
 CEXE_sources += Castro_rotation.cpp
 endif
