@@ -448,12 +448,13 @@ Castro::Castro (Amr&            papa,
     :
     AmrLevel(papa,lev,level_geom,bl,time),
     comp_minus_level_grad_phi(BL_SPACEDIM),
-    old_sources(num_src, PArrayManage),
-    new_sources(num_src, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM),
 #endif
-    fluxes(3)
+    fluxes(3),
+    u_gdnv(BL_SPACEDIM),
+    old_sources(num_src, PArrayManage),
+    new_sources(num_src, PArrayManage)
 {
     buildMetrics();
 

@@ -538,11 +538,6 @@ protected:
     int get_numpts();
 
     //
-    // Need to pass ugdnv out of cmpflx to do level sets
-    //
-    MultiFab* u_gdnv;
-
-    //
     // Difference between composite and level solve for phi.
     //
     MultiFab* comp_minus_level_phi;
@@ -570,6 +565,11 @@ protected:
 #ifdef RADIATION
     Array<MultiFab*> rad_fluxes;
 #endif
+
+    //
+    // Face-centered velocities from the Riemann solve.
+    //
+    Array<MultiFab*> u_gdnv;
 
     //
     // Non-hydro source terms.

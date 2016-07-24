@@ -158,6 +158,12 @@ Castro::advance (Real time,
     }
 #endif
 
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+	u_gdnv[dir] = new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate);
+	u_gdnv[dir]->setVal(1.e40,1);
+    }
+
     // Do the advance.
 
     dt_new = advance_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
@@ -382,6 +388,11 @@ Castro::advance (Real time,
         delete rad_fluxes[n];
 #endif
 
+#ifndef LEVELSET
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+        delete u_gdnv[n];
+#endif
+
 #ifdef DIFFUSION
     OldTempDiffTerm = new MultiFab(grids, 1, 1);
     OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
@@ -409,13 +420,6 @@ Castro::advance_hydro (Real time,
     // Reset the change from density resets
 
     frac_change = 1.e0;
-
-    u_gdnv = new MultiFab[BL_SPACEDIM];
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-	u_gdnv[dir].define(getEdgeBoxArray(dir),1,1,Fab_allocate);
-	u_gdnv[dir].setVal(1.e40,1);
-    }
 
     int finest_level = parent->finestLevel();
 
@@ -602,10 +606,6 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-#ifndef LEVELSET
-    delete [] u_gdnv;
-#endif
-
     return dt;
 }
 
@@ -732,7 +732,7 @@ Castro::hydro_update(Real time, Real dt)
 		     &cflLoc, verbose, &priv_nstep_fsp);
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
+		    (*u_gdnv[i])[mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
 		if (do_reflux) {
@@ -898,7 +898,7 @@ Castro::hydro_update(Real time, Real dt)
 		// Copy the normal velocities from the Riemann solver
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
+		    (*u_gdnv[i])[mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
 		// Since we may need the fluxes later on, we'll copy them
