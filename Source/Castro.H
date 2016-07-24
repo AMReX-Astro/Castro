@@ -416,6 +416,26 @@ public:
                             Real dt);
 
 #ifdef DIFFUSION
+  void construct_old_diff_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro,
+#ifdef TAU
+				 MultiFab& tau_diff,
+#endif
+				 MultiFab& OldTempDiffTerm,
+				 MultiFab& OldSpecDiffTerm,
+				 MultiFab& OldViscousTermforMomentum,
+				 MultiFab& OldViscousTermforEnergy,
+				 Real time, Real dt);
+
+  void construct_new_diff_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
+#ifdef TAU
+				 MultiFab& tau_diff,
+#endif
+				 MultiFab& NewTempDiffTerm,
+				 MultiFab& NewSpecDiffTerm,
+				 MultiFab& NewViscousTermforMomentum,
+				 MultiFab& NewViscousTermforEnergy,
+				 Real time, Real dt);
+
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);

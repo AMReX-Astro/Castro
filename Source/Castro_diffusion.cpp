@@ -8,6 +8,79 @@ using std::string;
 #ifdef DIFFUSION
 #include "Diffusion.H"
 
+void
+Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
+				  MultiFab& sources_for_hydro,
+#ifdef TAU
+				  MultiFab& tau_diff,
+#endif
+				  MultiFab& OldTempDiffTerm,
+				  MultiFab& OldSpecDiffTerm,
+				  MultiFab& OldViscousTermforMomentum,
+				  MultiFab& OldViscousTermforEnergy,
+				  Real time, Real dt)
+{
+    old_sources.set(diff_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
+    old_sources[diff_src].setVal(0.0,NUM_GROW);
+
+#ifdef TAU
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time,tau_diff);
+#else
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time);
+#endif
+#if (BL_SPACEDIM == 1)
+    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
+    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
+#endif
+
+    BoxLib::fill_boundary(old_sources[diff_src], geom);
+
+    // Add to the hydro source terms.
+
+    MultiFab::Add(sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
+}
+
+void
+Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
+				  PArray<MultiFab>& new_sources,
+				  MultiFab& sources_for_hydro,
+#ifdef TAU
+				  MultiFab& tau_diff,
+#endif
+				  MultiFab& NewTempDiffTerm,
+				  MultiFab& NewSpecDiffTerm,
+				  MultiFab& NewViscousTermforMomentum,
+				  MultiFab& NewViscousTermforEnergy,
+				  Real time, Real dt)
+{
+    new_sources.set(diff_src, new MultiFab(grids,NUM_STATE,0));
+    new_sources[diff_src].setVal(0.0);
+
+#ifdef TAU
+    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,time,tau_diff);
+#else
+    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,time);
+#endif
+#if (BL_SPACEDIM == 1)
+    add_spec_diffusion_to_source(new_sources[diff_src],NewSpecDiffTerm,time);
+    add_viscous_term_to_source(new_sources[diff_src],NewViscousTermforMomentum,NewViscousTermforEnergy,time);
+#endif
+
+    // Time center the source term.
+
+    old_sources[diff_src].mult(-0.5);
+    new_sources[diff_src].mult( 0.5);
+
+    MultiFab::Add(new_sources[diff_src],old_sources[diff_src],0,0,NUM_STATE,0);
+
+    old_sources[diff_src].mult(-2.0);
+
+    // Add to the hydro source terms.
+
+    MultiFab::Add(sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
+
+}
+
 // **********************************************************************************************
 
 void

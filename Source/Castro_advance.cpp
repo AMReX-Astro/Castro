@@ -595,19 +595,16 @@ Castro::advance_hydro (Real time,
     MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
     MultiFab OldViscousTermforEnergy(grids,1,1);
 
-    old_sources.set(diff_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
-    old_sources[diff_src].setVal(0.0,NUM_GROW);
+    construct_old_diff_source(old_sources,
+			      sources_for_hydro,
 #ifdef TAU
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,prev_time,tau_diff);
-#else
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,prev_time);
+			      tau_diff,
 #endif
-#if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,prev_time);
-    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,prev_time);
-#endif
-    BoxLib::fill_boundary(old_sources[diff_src], geom);
-    MultiFab::Add(sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
+			      OldTempDiffTerm,
+			      OldSpecDiffTerm,
+			      OldViscousTermforMomentum,
+			      OldViscousTermforEnergy,
+			      prev_time, dt);
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -1279,22 +1276,21 @@ Castro::advance_hydro (Real time,
     MultiFab& NewViscousTermforMomentum = OldViscousTermforMomentum;
     MultiFab& NewViscousTermforEnergy   = OldViscousTermforEnergy;
 
-    new_sources.set(diff_src, new MultiFab(grids,NUM_STATE,0));
-    new_sources[diff_src].setVal(0.0);
+    computeTemp(S_new);
+
+    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,
+#ifdef TAU
+			      tau_diff,
+#endif
+			      NewTempDiffTerm,
+			      NewSpecDiffTerm,
+			      NewViscousTermforMomentum,
+			      NewViscousTermforEnergy,
+			      cur_time, dt);
+
+    apply_source_to_state(S_new, new_sources[diff_src], dt);
 
     computeTemp(S_new);
-#ifdef TAU
-    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,cur_time,tau_diff);
-#else
-    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,cur_time);
-#endif
-#if (BL_SPACEDIM == 1) 
-    add_spec_diffusion_to_source(new_sources[diff_src],NewSpecDiffTerm,cur_time);
-    add_viscous_term_to_source(new_sources[diff_src],NewViscousTermforMomentum,NewViscousTermforEnergy,cur_time);
-#endif
-    time_center_source_terms(S_new, old_sources[diff_src], new_sources[diff_src], dt);
-    computeTemp(S_new);
-    MultiFab::Add(sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
 #endif
 
 #ifdef GRAVITY
