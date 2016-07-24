@@ -443,6 +443,38 @@ Castro::advance_hydro (Real time,
     MultiFab Sborder(grids, NUM_STATE, NUM_GROW, Fab_allocate);
     expand_state(Sborder, prev_time, NUM_GROW);
 
+    // Since we are Strang splitting the reactions, do them now.
+
+    // Reactions are expensive and we would usually rather do a communication
+    // step than burn on the ghost zones. So what we will do here is create a mask
+    // that indicates that we want to turn on the valid interior zones but NOT
+    // on the ghost zones that are interior to the level. However, we DO want to
+    // burn on the ghost zones that are on the coarse-fine interfaces, since that
+    // is going to be more accurate than interpolating from coarse zones. So we will
+    // not mask out those zones, and the subsequent FillBoundary call will not
+    // interfere with it.
+
+#ifdef REACTIONS
+
+    MultiFab& reactions_old = get_old_data(Reactions_Type);
+
+    const int react_ngrow_first_half = NUM_GROW;
+    const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
+
+#ifdef TAU
+    react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
+#else
+    react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
+#endif
+
+    BoxLib::fill_boundary(Sborder, geom);
+
+#endif
+
+    // Initialize the new-time data.
+
+    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+
     // Construct the old-time sponge source.
 
     if (do_sponge)
@@ -572,36 +604,6 @@ Castro::advance_hydro (Real time,
 
     }
 
-    // Note that we do the react_state on Sborder because of our Strang
-    // splitting approach -- the "old" data sent to the hydro,
-    // which Sborder represents, has already had a half-timestep of burning.
-
-    // Reactions are expensive and we would usually rather do a communication
-    // step than burn on the ghost zones. So what we will do here is create a mask
-    // that indicates that we want to turn on the valid interior zones but NOT
-    // on the ghost zones that are interior to the level. However, we DO want to
-    // burn on the ghost zones that are on the coarse-fine interfaces, since that
-    // is going to be more accurate than interpolating from coarse zones. So we will
-    // not mask out those zones, and the subsequent FillBoundary call will not
-    // interfere with it.
-
-#ifdef REACTIONS
-
-    MultiFab& reactions_old = get_old_data(Reactions_Type);
-
-    const int react_ngrow_first_half = NUM_GROW;
-    const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
-
-#ifdef TAU
-    react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#else
-    react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#endif
-
-    BoxLib::fill_boundary(Sborder, geom);
-
-#endif
-
     // Begin hydro advance
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -649,7 +651,6 @@ Castro::advance_hydro (Real time,
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &stateold = S_old[mfi];
 		FArrayBox &statein  = Sborder[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
@@ -821,7 +822,6 @@ Castro::advance_hydro (Real time,
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &stateold = S_old[mfi];
 		FArrayBox &statein  = Sborder[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
@@ -835,10 +835,6 @@ Castro::advance_hydro (Real time,
 		    flux[i].resize(bxtmp,NUM_STATE);
 		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		}
-
-		// Initialize new data by copying old data.
-
-		stateout.copy(statein,bx);
 
 		ca_umdrv
 		    (&is_finest_level,&time,
