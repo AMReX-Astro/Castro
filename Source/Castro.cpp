@@ -3736,6 +3736,9 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 void
 Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			      MultiFab& sources_for_hydro,
+#ifdef TAU
+			      MultiFab& tau_diff,
+#endif
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
@@ -3773,6 +3776,51 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
     construct_old_rotation_source(old_sources, sources_for_hydro, state, time, dt);
 #endif
 
+}
+
+void
+Castro::construct_new_sources(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
+			      MultiFab& sources_for_hydro,
+			      MultiFab fluxes[],
+#ifdef TAU
+			      MultiFab& tau_diff,
+#endif
+			      int amr_iteration, int amr_ncycle,
+			      int sub_iteration, int sub_ncycle,
+			      Real time, Real dt)
+{
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    if (do_sponge)
+        construct_new_sponge_source(new_sources, time, dt);
+
+    if (add_ext_src)
+      construct_new_ext_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, time, dt);
+
+#ifdef HYBRID_MOMENTUM
+    construct_new_hybrid_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, time, dt);
+#endif
+
+#ifdef DIFFUSION
+    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,
+#ifdef TAU
+			      tau_diff,
+#endif
+			      time, dt);
+#endif
+
+#ifdef GRAVITY
+    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+
+    construct_new_gravity_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, time, dt);
+#endif
+
+#ifdef ROTATION
+    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time, S_new);
+
+    construct_new_rotation_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, time, dt);
+#endif
 }
 
 void

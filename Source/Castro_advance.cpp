@@ -589,23 +589,13 @@ Castro::advance_hydro (Real time,
 
     sources_for_hydro.setVal(0.0,NUM_GROW);
 
+    // Preliminary steps before constructing the new sources.
+
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
     if (moving_center == 1)
        define_new_center(S_new,cur_time);
 #endif
-
-    if (do_sponge) {
-
-      construct_new_sponge_source(new_sources, time, dt);
-      apply_source_to_state(S_new, new_sources[sponge_src], dt);
-
-    }
-
-    if (add_ext_src) {
-
-      // Must compute new temperature in case it is needed in the source term evaluation
-      computeTemp(S_new);
 
 #if (BL_SPACEDIM > 1)
       // We need to make the new radial data now so that we can use it when we
@@ -616,61 +606,38 @@ Castro::advance_hydro (Real time,
       }
 #endif
 
-      construct_new_ext_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, cur_time, dt);
-      apply_source_to_state(S_new, new_sources[ext_src], dt);
-      computeTemp(S_new);
-
-    }
-
-#ifdef HYBRID_MOMENTUM
-    construct_new_hybrid_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, cur_time, dt);
-    apply_source_to_state(S_new, new_sources[hybrid_src], dt);
-#endif
-
-    // Do the new-time diffusion source term.
-
 #ifdef DIFFUSION
     NewTempDiffTerm = OldTempDiffTerm;
     NewSpecDiffTerm = OldSpecDiffTerm;
     NewViscousTermforMomentum = OldViscousTermforMomentum;
     NewViscousTermforEnergy   = OldViscousTermforEnergy;
+#endif
+
+    // Compute the current temperature for use in the source term evaluation.
 
     computeTemp(S_new);
 
-    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,
+    // Construct the new-time source terms.
+
+    construct_new_sources(old_sources,
+			  new_sources,
+			  sources_for_hydro,
+			  fluxes,
 #ifdef TAU
-			      tau_diff,
+			  tau_diff,
 #endif
-			      cur_time, dt);
+			  amr_iteration, amr_ncycle,
+			  sub_iteration, sub_ncycle,
+			  cur_time, dt);
 
-    apply_source_to_state(S_new, new_sources[diff_src], dt);
+    for (int n = 0; n < num_src; ++n)
+        apply_source_to_state(S_new, new_sources[n], dt);
+
+    // Sync up the temperature now that all sources have been applied.
 
     computeTemp(S_new);
-#endif
 
-#ifdef GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
-
-    construct_new_gravity_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, cur_time, dt);
-
-    if (do_grav) {
-        apply_source_to_state(S_new, new_sources[grav_src], dt);
-        computeTemp(S_new);
-    }
-#endif
-
-#ifdef ROTATION
-    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, S_new);
-
-    construct_new_rotation_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, cur_time, dt);
-
-    if (do_rotation) {
-        apply_source_to_state(S_new, new_sources[rot_src], dt);
-	computeTemp(S_new);
-    }
-#endif
-
-    reset_internal_energy(S_new);
+    // Do the final update for dSdt.
 
     if (source_term_predictor == 1) {
 
@@ -683,6 +650,8 @@ Castro::advance_hydro (Real time,
       dSdt_new.mult(1.0/dt);
 
     }
+
+    // Do the second half of the reactions.
 
 #ifdef REACTIONS
 

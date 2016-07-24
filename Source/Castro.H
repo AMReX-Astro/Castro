@@ -249,6 +249,20 @@ public:
 
     void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			       MultiFab& sources_for_hydro,
+#ifdef TAU
+			       MultiFab& tau_diff,
+#endif
+			       int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time, Real dt);
+
+    void construct_new_sources(PArray<MultiFab>& old_sources,
+			       PArray<MultiFab>& new_sources,
+			       MultiFab& sources_for_hydro,
+			       MultiFab fluxes[],
+#ifdef TAU
+			       MultiFab& tau_diff,
+#endif
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
