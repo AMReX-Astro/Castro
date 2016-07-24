@@ -129,19 +129,19 @@ public:
     void writeJobInfo (const std::string& dir);
 
     //
-    //Define data descriptors.
+    // Define data descriptors.
     //
     static void variableSetUp ();
     //
-    //Define tagging functions.
+    // Define tagging functions.
     //
     static void ErrorSetUp ();
     //
-    //Cleanup data descriptors at end of run.
+    // Cleanup data descriptors at end of run.
     //
     static void variableCleanUp ();
     //
-    //Initialize grid data at problem start-up.
+    // Initialize grid data at problem start-up.
     //
     virtual void initData () BL_OVERRIDE;
 
@@ -151,7 +151,7 @@ public:
     //
     static void read_particle_params ();
     //
-    //Initialize particle locations and velocities (and strengths if relevant)
+    // Initialize particle locations and velocities (and strengths if relevant)
     //
     void init_particles ();
     //
@@ -173,6 +173,10 @@ public:
     //
     void TimestampParticles (int ngrow); 
     //
+    // Advance the particles by dt
+    //
+    void UpdateParticles (int iteration, Real time, Real dt);
+    //
     // Default verbosity of Particle class
     //
     static int particle_verbose;
@@ -184,34 +188,34 @@ public:
 #endif
 
     //
-    //Get problem metrics.
+    // Get problem metrics.
     //
     MultiFab* Area ();
     MultiFab& Area (int dir);
     //
-    //The volume of the multifab.
+    // The volume of the multifab.
     //
     MultiFab& Volume ();
     //
-    //Set time levels of state data.
+    // Set time levels of state data.
     //
     virtual void setTimeLevel (Real time,
                                Real dt_old,
                                Real dt_new) BL_OVERRIDE;
     //
-    //Initialize data on this level from another Castro (during regrid).
+    // Initialize data on this level from another Castro (during regrid).
     //
     virtual void init (AmrLevel& old) BL_OVERRIDE;
     //
-    //Initialize data on this level after regridding if old level did not previously exist
+    // Initialize data on this level after regridding if old level did not previously exist
     //
     virtual void init () BL_OVERRIDE;
     //
-    //Proceed with next timestep?
+    // Proceed with next timestep?
     //
     virtual int okToContinue () BL_OVERRIDE;
     //
-    //Advance grids at this level in time.
+    // Advance grids at this level in time.
     //
     virtual Real advance (Real time,
                           Real dt,
@@ -271,15 +275,15 @@ public:
 #endif
 
     //
-    //Estimate time step.
+    // Estimate time step.
     //
     Real estTimeStep (Real dt_old);
     //
-    //Compute initial time step.
+    // Compute initial time step.
     //
     Real initialTimeStep ();
     //
-    //Compute initial `dt'.
+    // Compute initial `dt'.
     //
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
@@ -288,7 +292,7 @@ public:
                                    Array<Real>&          dt_level,
                                    Real                  stop_time) BL_OVERRIDE;
     //
-    //Compute new `dt'.
+    // Compute new `dt'.
     //
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
@@ -299,23 +303,23 @@ public:
                                Real                  stop_time,
                                int                   post_regrid_flag) BL_OVERRIDE;
     //
-    //Allocate data at old time.
+    // Allocate data at old time.
     //
     virtual void allocOldData () BL_OVERRIDE;
     //
-    //Remove data at old time.
+    // Remove data at old time.
     //
     virtual void removeOldData () BL_OVERRIDE;
     //
-    //Passes some data about the grid to a Fortran module.
+    // Passes some data about the grid to a Fortran module.
     //
     void setGridInfo();
     //
-    //Print information about energy budget.
+    // Print information about energy budget.
     //
     void do_energy_diagnostics();
     //
-    //Do work after timestep().
+    // Do work after timestep().
     //
     virtual void post_timestep (int iteration) BL_OVERRIDE;
     //
@@ -323,24 +327,24 @@ public:
     //
     virtual void postCoarseTimeStep (Real cumtime) BL_OVERRIDE;
     //
-    //Do work after regrid().
+    // Do work after regrid().
     //
     virtual void post_regrid (int lbase,
                               int new_finest) BL_OVERRIDE;   
     //
-    //Do work after a restart().
+    // Do work after a restart().
     //
     virtual void post_restart () BL_OVERRIDE;
     //
-    //Do work after init().
+    // Do work after init().
     //
     virtual void post_init (Real stop_time) BL_OVERRIDE;
     //
-    //Do work after restart with grown_factor > 1
+    // Do work after restart with grown_factor > 1
     //
     void post_grown_restart ();
     //
-    //Error estimation for regridding.
+    // Error estimation for regridding.
     //
     virtual void errorEst (TagBoxArray& tb,
                            int          clearval,
