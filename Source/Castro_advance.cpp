@@ -444,9 +444,9 @@ Castro::advance_hydro (Real time,
 
 #ifdef DIFFUSION
 #ifdef TAU
-    MultiFab tau_diff(grids,1,NUM_GROW);
-    tau_diff.setVal(0.);
-    define_tau(tau_diff,grav_old,time);
+    tau_diff = new MultiFab(grids,1,NUM_GROW);
+    tau_diff->setVal(0.);
+    define_tau(grav_old,time);
 #endif
 #endif
 
@@ -510,11 +510,7 @@ Castro::advance_hydro (Real time,
     const int react_ngrow_first_half = NUM_GROW;
     const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
 
-#ifdef TAU
-    react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#else
     react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#endif
 
     BoxLib::fill_boundary(Sborder, geom);
 
@@ -623,9 +619,6 @@ Castro::advance_hydro (Real time,
 			  new_sources,
 			  sources_for_hydro,
 			  fluxes,
-#ifdef TAU
-			  tau_diff,
-#endif
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  cur_time, dt);
@@ -660,11 +653,7 @@ Castro::advance_hydro (Real time,
     const int react_ngrow_second_half = 0;
     const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
 
-#ifdef TAU
-    react_state(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
-#else
     react_state(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
-#endif
 
     BoxLib::fill_boundary(S_new, geom);
 
@@ -698,6 +687,10 @@ Castro::advance_hydro (Real time,
     OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
     OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
     OldViscousTermforEnergy = new MultiFab(grids,1,1);
+#endif
+
+#ifdef TAU
+    delete tau_diff;
 #endif
 
     return dt;
@@ -795,9 +788,9 @@ Castro::advance_no_hydro (Real time,
 
 #ifdef DIFFUSION
 #ifdef TAU
-    MultiFab tau_diff(grids,1,1);
-    tau_diff.setVal(0.);
-    define_tau(tau_diff,grav_old,time);
+    tau_diff = new MultiFab(grids,1,1);
+    tau_diff->setVal(0.);
+    define_tau(grav_old,time);
 #endif
 #endif
 
@@ -810,11 +803,7 @@ Castro::advance_no_hydro (Real time,
 #ifdef REACTIONS
       const int react_ngrow_first_half = 0;
       const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
-#ifdef TAU
-      react_state(S_old,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#else
       react_state(S_old,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#endif
 #endif
 
 #ifdef GRAVITY
@@ -874,22 +863,14 @@ Castro::advance_no_hydro (Real time,
     // ******************
 
 #ifdef DIFFUSION
-#ifdef TAU
-        full_temp_diffusion_update(S_new,prev_time,cur_time,dt,tau_diff);
-#else
         full_temp_diffusion_update(S_new,prev_time,cur_time,dt);
-#endif
         full_spec_diffusion_update(S_new,prev_time,cur_time,dt);
 #endif
 
 #ifdef REACTIONS
     const int react_ngrow_second_half = 0;
     const iMultiFab& interior_mask_second_half = build_interior_boundary_mask(react_ngrow_second_half);
-#ifdef TAU
-    react_state(S_new,reactions_new,tau_diff,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
-#else
     react_state(S_new,reactions_new,interior_mask_second_half,cur_time-0.5*dt,0.5*dt,react_ngrow_second_half);
-#endif
 #endif
 
        // Sync up the hybrid and linear momenta.
@@ -917,6 +898,10 @@ Castro::advance_no_hydro (Real time,
       MultiFab& Er_new = get_new_data(Rad_Type);
       Er_new.copy(Er_old);
     }
+#endif
+
+#ifdef TAU
+    delete tau_diff;
 #endif
 
     return dt;

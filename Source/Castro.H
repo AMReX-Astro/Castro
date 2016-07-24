@@ -249,9 +249,6 @@ public:
 
     void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			       MultiFab& sources_for_hydro,
-#ifdef TAU
-			       MultiFab& tau_diff,
-#endif
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
@@ -260,9 +257,6 @@ public:
 			       PArray<MultiFab>& new_sources,
 			       MultiFab& sources_for_hydro,
 			       MultiFab fluxes[],
-#ifdef TAU
-			       MultiFab& tau_diff,
-#endif
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
@@ -457,18 +451,12 @@ public:
 
 #ifdef DIFFUSION
   void construct_old_diff_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro,
-#ifdef TAU
-				 MultiFab& tau_diff,
-#endif
 				 Real time, Real dt);
 
   void construct_new_diff_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
-#ifdef TAU
-				 MultiFab& tau_diff,
-#endif
 				 Real time, Real dt);
 
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
 #if (BL_SPACEDIM == 1)
@@ -478,18 +466,13 @@ public:
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
 #ifdef TAU
-    void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
-    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, MultiFab& tau_diff);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
-    void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt, MultiFab& tau_diff);
-#else
+    void define_tau (MultiFab& grav_vector, Real time);
+#endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void time_center_enth_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
     void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
     void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
-#endif
     void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
     void full_spec_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
@@ -712,6 +695,10 @@ protected:
     MultiFab* NewSpecDiffTerm;
     MultiFab* NewViscousTermforMomentum;
     MultiFab* NewViscousTermforEnergy;
+#endif
+
+#ifdef TAU
+    MultiFab* tau_diff;
 #endif
 
 #ifdef PARTICLES

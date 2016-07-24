@@ -7,11 +7,7 @@ using std::string;
 
 #ifdef REACTIONS
 void
-#ifdef TAU
-Castro::react_state(MultiFab& s, MultiFab& r, MultiFab& tau_diff, const iMultiFab& mask, Real time, Real dt_react, int ngrow)
-#else
 Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, Real dt_react, int ngrow)
-#endif
 {
     BL_PROFILE("Castro::react_state()");
 
@@ -38,7 +34,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 			 BL_TO_FORTRAN_3D(s[mfi]),
 			 BL_TO_FORTRAN_3D(r[mfi]),
 #ifdef TAU
-			 BL_TO_FORTRAN_3D(tau_diff[mfi]),
+			 BL_TO_FORTRAN_3D((*tau_diff)[mfi]),
 #endif
 			 BL_TO_FORTRAN_3D(mask[mfi]),
 			 time, dt_react);

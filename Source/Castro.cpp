@@ -2395,7 +2395,7 @@ Castro::reinit_phi(Real time)
 #ifdef DIFFUSION
 #ifdef TAU
 void
-Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
+Castro::define_tau (MultiFab& grav_vector, Real time)
 {
    MultiFab& S_old = get_old_data(State_Type);
    const int ncomp = S_old.nComp();
@@ -2409,7 +2409,7 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
         Box bx(fpi.validbox());
         int i = fpi.index();
         ca_define_tau(bx.loVect(), bx.hiVect(),
-		      BL_TO_FORTRAN(tau_diff[fpi]),
+		      BL_TO_FORTRAN((*tau_diff)[fpi]),
 		      BL_TO_FORTRAN(fpi()),
 		      BL_TO_FORTRAN(grav_vector[fpi]),
 		      dx_fine);
@@ -2418,7 +2418,7 @@ Castro::define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time)
 #endif
 
 void
-Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
+Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm)
 {
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
@@ -2427,11 +2427,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
 #ifdef TAU
-   if (tau == 0) 
+   if (tau_diff == 0) 
      std::cerr << "ERROR:tau must be defined if USE_TAU = TRUE " << std::endl;
-#else
-   if (tau != 0) 
-     std::cerr << "ERROR:tau must == 0 if USE_TAU = FALSE " << std::endl;
 #endif
 
    // Fill coefficients at this level.
@@ -2462,7 +2459,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, MultiFab* tau)
 	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     BL_TO_FORTRAN_3D(state_old[mfi]),
 #ifdef TAU
-			     BL_TO_FORTRAN_3D((*tau)[mfi]),
+			     BL_TO_FORTRAN_3D((*tau_diff)[mfi]),
 #endif
 			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
@@ -3736,9 +3733,6 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 void
 Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			      MultiFab& sources_for_hydro,
-#ifdef TAU
-			      MultiFab& tau_diff,
-#endif
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
@@ -3756,12 +3750,7 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 #endif
 
 #ifdef DIFFUSION
-    construct_old_diff_source(old_sources,
-			      sources_for_hydro,
-#ifdef TAU
-			      tau_diff,
-#endif
-			      time, dt);
+    construct_old_diff_source(old_sources, sources_for_hydro, time, dt);
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -3782,9 +3771,6 @@ void
 Castro::construct_new_sources(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
 			      MultiFab& sources_for_hydro,
 			      MultiFab fluxes[],
-#ifdef TAU
-			      MultiFab& tau_diff,
-#endif
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
@@ -3803,11 +3789,7 @@ Castro::construct_new_sources(PArray<MultiFab>& old_sources, PArray<MultiFab>& n
 #endif
 
 #ifdef DIFFUSION
-    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,
-#ifdef TAU
-			      tau_diff,
-#endif
-			      time, dt);
+    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,time, dt);
 #endif
 
 #ifdef GRAVITY

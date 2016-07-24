@@ -11,16 +11,10 @@ using std::string;
 void
 Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
 				  MultiFab& sources_for_hydro,
-#ifdef TAU
-				  MultiFab& tau_diff,
-#endif
 				  Real time, Real dt)
 {
-#ifdef TAU
-    add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time,tau_diff);
-#else
     add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
-#endif
+
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(old_sources[diff_src],*OldSpecDiffTerm,time);
     add_viscous_term_to_source(old_sources[diff_src],*OldViscousTermforMomentum,OldViscousTermforEnergy,time);
@@ -37,16 +31,10 @@ void
 Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 				  PArray<MultiFab>& new_sources,
 				  MultiFab& sources_for_hydro,
-#ifdef TAU
-				  MultiFab& tau_diff,
-#endif
 				  Real time, Real dt)
 {
-#ifdef TAU
-    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time,tau_diff);
-#else
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
-#endif
+
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
     add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,NewViscousTermforEnergy,time);
@@ -70,17 +58,13 @@ Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 // **********************************************************************************************
 
 void
-#ifdef TAU
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, MultiFab& tau_diff)
-#else
 Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t)
-#endif
 {
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
     if (diffuse_temp == 1) {
 #ifdef TAU
-       getTempDiffusionTerm(t,DiffTerm,&tau_diff);
+       getTempDiffusionTerm(t,DiffTerm,tau_diff);
 #else
        getTempDiffusionTerm(t,DiffTerm);
 #endif
