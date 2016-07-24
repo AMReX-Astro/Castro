@@ -3755,7 +3755,7 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    construct_old_hybrid_source(state, time, dt);
+    construct_old_hybrid_source(time, dt);
 #endif
 
 #ifdef ROTATION
