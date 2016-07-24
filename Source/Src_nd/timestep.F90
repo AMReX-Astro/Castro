@@ -30,7 +30,6 @@ contains
     double precision :: dx(3), dt
 
     double precision :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
-    double precision :: sqrtK, grid_scl, dt4
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -38,8 +37,6 @@ contains
 #ifdef ROTATION
     double precision :: vel(3)
 #endif
-
-    grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
 
     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
