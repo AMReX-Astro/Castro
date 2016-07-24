@@ -513,6 +513,7 @@ extern "C"
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time, 
      const Real& E_added, const Real* mom_added);

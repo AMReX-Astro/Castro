@@ -52,6 +52,7 @@ enum StateType { State_Type = 0,
 // Create storage for all source terms.
 
 enum sources { ext_src = 0,
+	       sponge_src,
 #ifdef GRAVITY
 	       grav_src,
 #endif
@@ -235,6 +236,10 @@ public:
 				   MultiFab& src_old,
 				   MultiFab& src_new,
 				   Real dt = 1.0);
+
+    void construct_old_sponge_source(PArray<MultiFab>& old_sources, Real time, Real dt);
+
+    void construct_new_sponge_source(PArray<MultiFab>& new_sources, Real time, Real dt);
 
     void construct_old_ext_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro,
 				  MultiFab& S_old,

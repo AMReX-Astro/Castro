@@ -510,6 +510,9 @@ Castro::advance_hydro (Real time,
 
     }
 
+    if (do_sponge)
+      construct_old_sponge_source(old_sources, time, dt);
+
 #ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
     construct_old_gravity_source(old_sources, sources_for_hydro, Sborder, time, dt);
@@ -618,11 +621,6 @@ Castro::advance_hydro (Real time,
 #ifdef POINTMASS
     Real mass_change_at_center = 0.;
 #endif
-
-    // Permit the user to update the sponge parameters as a function of time.
-
-    if (do_sponge)
-      update_sponge_params(&time);
 
     // Set up the time-rate of change of the source terms.
 
@@ -782,6 +780,9 @@ Castro::advance_hydro (Real time,
 
 		// Add source terms
 
+		if (do_sponge)
+		  stateout.saxpy(dt,old_sources[sponge_src][mfi],bx,bx,0,0,NUM_STATE);
+
 		if (add_ext_src)
 		  stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
 
@@ -800,17 +801,6 @@ Castro::advance_hydro (Real time,
 #ifdef ROTATION
 		stateout.saxpy(dt,bx,bx,old_sources[rot_src][mfi],0,0,NUM_STATE);
 #endif
-
-		Real E_added_sponge = 0.0;
-
-		Real mom_added[3] = { 0.0 };
-
-		if (do_sponge)
-		  ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
-			    BL_TO_FORTRAN_3D(stateout),
-			    BL_TO_FORTRAN_3D(vol),
-			    ZFILL(dx), dt, &time,
-			    E_added_sponge,mom_added);
 
 		if (radiation->do_inelastic_scattering) {
 		    ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -872,7 +862,6 @@ Castro::advance_hydro (Real time,
 	// pure hydro (no radiation)
 
 	Real E_added_flux    = 0.;
-	Real E_added_sponge  = 0.;
 	Real mass_added      = 0.;
 	Real eint_added      = 0.;
 	Real eden_added      = 0.;
@@ -889,29 +878,24 @@ Castro::advance_hydro (Real time,
 	Real xang_lost       = 0.;
 	Real yang_lost       = 0.;
 	Real zang_lost       = 0.;
-	Real xmom_added_sponge = 0.;
-	Real ymom_added_sponge = 0.;
-	Real zmom_added_sponge = 0.;
 
 	BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
 #ifdef POINTMASS
-#pragma omp parallel reduction(+:E_added_flux,E_added_sponge) \
+#pragma omp parallel reduction(+:E_added_flux) \
 		 reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
 		 reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
 		 reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
 		 reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-		 reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
 		 reduction(+:mass_change_at_center) \
 		 reduction(min:dens_change)
 #else
-#pragma omp parallel reduction(+:E_added_flux,E_added_sponge) \
+#pragma omp parallel reduction(+:E_added_flux) \
 		 reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
 		 reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
 		 reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
 		 reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-		 reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
 		 reduction(min:dens_change)
 #endif
 #endif
@@ -1029,20 +1013,6 @@ Castro::advance_hydro (Real time,
 		stateout.saxpy(dt,old_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
-		Real mom_added[3] = { 0.0 };
-
-		if (do_sponge)
-		  ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
-			    BL_TO_FORTRAN_3D(stateout),
-			    BL_TO_FORTRAN_3D(volume[mfi]),
-			    ZFILL(dx), dt, &time,
-			    E_added_sponge,mom_added);
-
-		xmom_added_sponge += mom_added[0];
-		ymom_added_sponge += mom_added[1];
-		zmom_added_sponge += mom_added[2];
-
-
 #ifdef POINTMASS
 		if (level == finest_level && point_mass_fix_solution)
 		    pm_compute_delta_mass
@@ -1088,11 +1058,10 @@ Castro::advance_hydro (Real time,
 
 	if (print_energy_diagnostics)
 	{
-	   Real foo[12] = {mass_added, eint_added, eden_added,
-			   E_added_flux, E_added_sponge,
-			   xmom_added_flux, ymom_added_flux, zmom_added_flux,
-			   xmom_added_sponge, ymom_added_sponge, zmom_added_sponge,
-			   mass_added_flux};
+	   Real foo[8] = {mass_added, eint_added, eden_added,
+			  E_added_flux,
+			  xmom_added_flux, ymom_added_flux, zmom_added_flux,
+			  mass_added_flux};
 #ifdef BL_LAZY
 	   Lazy::QueueReduction( [=] () mutable {
 #endif
@@ -1103,14 +1072,10 @@ Castro::advance_hydro (Real time,
 	       eint_added = foo[1];
 	       eden_added = foo[2];
 	       E_added_flux = foo[3];
-	       E_added_sponge = foo[4];
-	       xmom_added_flux = foo[5];
-	       ymom_added_flux = foo[6];
-	       zmom_added_flux = foo[7];
-	       xmom_added_sponge  = foo[8];
-	       ymom_added_sponge  = foo[9];
-	       zmom_added_sponge  = foo[10];
-	       mass_added_flux    = foo[11];
+	       xmom_added_flux = foo[4];
+	       ymom_added_flux = foo[5];
+	       zmom_added_flux = foo[6];
+	       mass_added_flux    = foo[7];
 	       if (std::abs(mass_added) != 0.0)
 	       {
 		  std::cout << "   Mass added from negative density correction : " <<
@@ -1131,18 +1096,6 @@ Castro::advance_hydro (Real time,
 			     zmom_added_flux << std::endl;
 	       std::cout << "(rho E) added from fluxes                   : " <<
 			     E_added_flux << std::endl;
-
-	       if (do_sponge)
-	       {
-		  std::cout << "(rho E) added from sponge                     : " <<
-				E_added_sponge << std::endl;
-		  std::cout << "xmom added from sponge                        : " <<
-				xmom_added_sponge << std::endl;
-		  std::cout << "ymom added from sponge                        : " <<
-				ymom_added_sponge << std::endl;
-		  std::cout << "zmom added from sponge                        : " <<
-				zmom_added_sponge << std::endl;
-	       }
 	   }
 #ifdef BL_LAZY
 	   });
@@ -1151,11 +1104,11 @@ Castro::advance_hydro (Real time,
 
 #endif    // RADIATION
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
-
     if (use_retry)
       ParallelDescriptor::ReduceRealMin(frac_change);
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 #ifdef POINTMASS
     if (level == finest_level && point_mass_fix_solution)
@@ -1234,6 +1187,13 @@ Castro::advance_hydro (Real time,
     if (moving_center == 1)
        define_new_center(S_new,cur_time);
 #endif
+
+    if (do_sponge) {
+
+      construct_new_sponge_source(new_sources, time, dt);
+      apply_source_to_state(S_new, new_sources[sponge_src], dt);
+
+    }
 
     if (add_ext_src) {
 
