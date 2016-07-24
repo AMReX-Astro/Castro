@@ -326,9 +326,6 @@ Castro::advance_hydro (Real time,
 {
     BL_PROFILE("Castro::advance_hydro()");
 
-    if (!do_hydro)
-       BoxLib::Abort("In advance_hydro but do_hydro not true");
-
 #ifdef RADIATION
     if (do_radiation) {
         // The option of whether to do a multilevel initialization is
