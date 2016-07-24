@@ -229,7 +229,7 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
-    void hydro_update(MultiFab& hydro_source, Real time, Real dt);
+    void hydro_update(Real time, Real dt);
 
     void check_for_nan(MultiFab& state);
 
@@ -557,6 +557,11 @@ protected:
     // Source terms to the hydrodynamics solve.
     //
     MultiFab* sources_for_hydro;
+
+    //
+    // Source term representing hydrodynamics update.
+    //
+    MultiFab* hydro_source;
 
     //
     // Hydrodynamic (and radiation) fluxes.

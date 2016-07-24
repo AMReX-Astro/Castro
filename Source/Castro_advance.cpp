@@ -348,9 +348,9 @@ Castro::advance_hydro (Real time,
 
     // This array holds the hydrodynamics update.
 
-    MultiFab hydro_source(grids,NUM_STATE,0,Fab_allocate);
+    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
 
-    hydro_source.setVal(0.0);
+    hydro_source->setVal(0.0);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
@@ -502,7 +502,7 @@ Castro::advance_hydro (Real time,
     // Do the hydro update.
 
     if (do_hydro)
-        hydro_update(hydro_source,time, dt);
+        hydro_update(time, dt);
 
     // Update the point mass.
 
@@ -581,6 +581,7 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
+    delete hydro_source;
     delete sources_for_hydro;
 
     old_sources.clear();
@@ -615,7 +616,7 @@ Castro::advance_hydro (Real time,
 
 
 void
-Castro::hydro_update(MultiFab& hydro_source,Real time, Real dt)
+Castro::hydro_update(Real time, Real dt)
 {
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -840,7 +841,7 @@ Castro::hydro_update(MultiFab& hydro_source,Real time, Real dt)
 		FArrayBox &statein  = (*Sborder)[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
-		FArrayBox &source = hydro_source[mfi];
+		FArrayBox &source = (*hydro_source)[mfi];
 
 		FArrayBox &vol = volume[mfi];
 
