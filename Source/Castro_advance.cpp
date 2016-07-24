@@ -584,6 +584,29 @@ Castro::advance_hydro (Real time,
     construct_old_rotation_source(old_sources, sources_for_hydro, Sborder, time, dt);
 #endif
 
+    // Apply the old-time sources.
+
+    if (do_sponge)
+      apply_source_to_state(S_new, old_sources[sponge_src], dt);
+
+    if (add_ext_src)
+      apply_source_to_state(S_new, old_sources[ext_src], dt);
+
+#ifdef DIFFUSION
+    apply_source_to_state(S_new, old_sources[diff_src], dt);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    apply_source_to_state(S_new, old_sources[hybrid_src], dt);
+#endif
+
+#ifdef GRAVITY
+    apply_source_to_state(S_new, old_sources[grav_src], dt);
+#endif
+
+#ifdef ROTATION
+    apply_source_to_state(S_new, old_sources[rot_src], dt);
+#endif
 
     // Set up the time-rate of change of the source terms.
 
@@ -705,30 +728,6 @@ Castro::advance_hydro (Real time,
 			rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
 		    }
 		}
-
-		// Add source terms
-
-		if (do_sponge)
-		  stateout.saxpy(dt,old_sources[sponge_src][mfi],bx,bx,0,0,NUM_STATE);
-
-		if (add_ext_src)
-		  stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
-
-#ifdef DIFFUSION
-		stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef HYBRID_MOMENTUM
-		stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef GRAVITY
-		stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef ROTATION
-		stateout.saxpy(dt,bx,bx,old_sources[rot_src][mfi],0,0,NUM_STATE);
-#endif
 
 		if (radiation->do_inelastic_scattering) {
 		    ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
@@ -894,27 +893,6 @@ Castro::advance_hydro (Real time,
 
 		for (int i = 0; i < BL_SPACEDIM ; i++)
 		  fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
-
-		// Add source terms
-
-		if (add_ext_src)
-		  stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
-
-#ifdef DIFFUSION
-		stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef HYBRID_MOMENTUM
-		stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef GRAVITY
-		stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef ROTATION
-		stateout.saxpy(dt,old_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
 
 	    }
 
