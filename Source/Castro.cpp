@@ -74,9 +74,6 @@ Real         Castro::frac_change   = 1.e200;
 int          Castro::Density       = -1;
 int          Castro::Eden          = -1;
 int          Castro::Eint          = -1;
-#ifdef SGS
-int          Castro::Esgs          = -1;
-#endif
 int          Castro::Temp          = -1;
 int          Castro::Xmom          = -1;
 int          Castro::Ymom          = -1;
@@ -437,9 +434,6 @@ Castro::read_params ()
 Castro::Castro ()
 {
     flux_reg = 0;
-#ifdef SGS
-    sgs_flux_reg = 0;
-#endif
 #ifdef RADIATION
     rad_flux_reg = 0;
 #endif
@@ -468,15 +462,6 @@ Castro::Castro (Amr&            papa,
         flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
         flux_reg->setVal(0.0);
     }
-
-#ifdef SGS
-    sgs_flux_reg = 0;
-    if (level > 0 && do_reflux)
-    {
-        sgs_flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
-        sgs_flux_reg->setVal(0.0);
-    }
-#endif
 
 #ifdef RADIATION    
     rad_flux_reg = 0;
@@ -587,19 +572,11 @@ Castro::Castro (Amr&            papa,
     LSmine.define(bl,BL_SPACEDIM,1,Fab_allocate);
 #endif
 
-#ifdef SGS
-   MultiFab& new_sgs_mf = get_new_data(SGS_Type);
-   new_sgs_mf.setVal(0.0);
-#endif
-
 }
 
 Castro::~Castro () 
 {
     delete flux_reg;
-#ifdef SGS
-    delete sgs_flux_reg;
-#endif
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
@@ -2912,10 +2889,6 @@ Castro::reflux ()
 
     getFluxReg(level+1).Reflux(get_new_data(State_Type),volume,1.0,0,0,NUM_STATE,geom);
 
-#ifdef SGS
-    getSGSFluxReg(level+1).Reflux(get_new_data(State_Type),volume,1.0,0,0,NUM_STATE,geom);
-#endif
-
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
       getRADFluxReg(level+1).Reflux(get_new_data(Rad_Type),volume,1.0,0,0,Radiation::nGroups,geom);
@@ -3242,46 +3215,6 @@ Castro::extern_init ()
 
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
 }
-
-#ifdef SGS
-void
-Castro::reset_old_sgs(Real dt)
-{
-   MultiFab&   S_old = get_old_data(State_Type);
-   MultiFab& sgs_old = get_old_data(SGS_Type);
-
-   int is_old = 1; 
-
-   for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
-   {
-       const Box& bx = mfi.validbox();
-
-       ca_reset_sgs(BL_TO_FORTRAN(S_old[mfi]),
-		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
-		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
-		    bx.loVect(),bx.hiVect(),verbose,is_old,dt);
-   }
-}
-void
-Castro::reset_new_sgs(Real dt)
-{
-   MultiFab&   S_new = get_new_data(State_Type);
-   MultiFab& sgs_old = get_old_data(SGS_Type);
-   MultiFab& sgs_new = get_new_data(SGS_Type);
-
-   int is_old = 0; 
-
-   for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-   {
-       const Box& bx = mfi.validbox();
-
-       ca_reset_sgs(BL_TO_FORTRAN(S_new[mfi]),
-		    BL_TO_FORTRAN_N(sgs_old[mfi],0),
-		    BL_TO_FORTRAN_N(sgs_new[mfi],0),
-		    bx.loVect(),bx.hiVect(),verbose,is_old,dt);
-   }
-}
-#endif
 
 void
 Castro::reset_internal_energy(MultiFab& S_new)

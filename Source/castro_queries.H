@@ -45,9 +45,6 @@ pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 pp.query("sponge_implicit", sponge_implicit);
-#ifdef SGS
-pp.query("sum_turb_src", sum_turb_src);
-#endif
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);

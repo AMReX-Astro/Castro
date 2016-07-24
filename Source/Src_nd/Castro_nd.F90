@@ -310,7 +310,6 @@
 #endif
                                    gravity_type_in, gravity_type_len, &
                                    get_g_from_phi_in, &
-                                   use_sgs, &
                                    diffuse_cutoff_density_in, &
                                    const_grav_in) &
                                    bind(C, name="set_method_params")
@@ -333,7 +332,6 @@
         integer, intent(in) :: gravity_type_len
         integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
-        integer, intent(in) :: use_sgs
         double precision, intent(in) :: const_grav_in, diffuse_cutoff_density_in
         integer :: iadv, ispec
 
@@ -355,7 +353,6 @@
         NTHERM = NTHERM + 3
 #endif
 
-        if (use_sgs .eq. 1) NTHERM = NTHERM + 1
         NVAR = NTHERM + nspec + naux + numadv
 
         nadv = numadv
@@ -372,11 +369,6 @@
 #endif
         UEDEN = Eden      + 1
         UEINT = Eint      + 1
-        if (use_sgs .eq. 1) then
-           UESGS = UEINT     + 1
-        else
-           UESGS = -1
-        endif
         UTEMP = Temp      + 1
 
         if (numadv .ge. 1) then
@@ -405,11 +397,11 @@
         !---------------------------------------------------------------------
 
         ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
-        !         + 3 velocity components + 1 SGS components (if defined)
+        !         + 3 velocity components
         ! QVAR  : number of total variables in primitive form
 
         QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
-                             ! the SGS component is accounted for already in NTHERM
+
 #ifdef HYBRID_MOMENTUM
         QTHERM = QTHERM - 3
 #endif
@@ -428,12 +420,6 @@
 
         QPRES   = QLAST + 1
         QREINT  = QLAST + 2
-
-        if (use_sgs .eq. 1) then
-           QESGS   = QLAST + 3
-        else
-           QESGS = -1
-        endif
 
         QTEMP   = QTHERM
 
@@ -456,7 +442,7 @@
         end if
 
         ! easy indexing for the passively advected quantities.  This
-        ! lets us loop over all four groups (SGS, advected, species, aux)
+        ! lets us loop over all groups (advected, species, aux)
         ! in a single loop.
         allocate(qpass_map(QVAR))
         allocate(upass_map(NVAR))
@@ -479,12 +465,6 @@
            npassive = 1
         else
            npassive = 0
-        endif
-
-        if (QESGS > -1) then
-           upass_map(npassive + 1) = UESGS
-           qpass_map(npassive + 1) = QESGS
-           npassive = npassive + 1
         endif
 
         do iadv = 1, nadv

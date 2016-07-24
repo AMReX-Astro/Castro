@@ -181,10 +181,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-
-sum_turb_src                 Real          0.0                n        SGS
-
-
 #-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------

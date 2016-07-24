@@ -214,12 +214,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
-  ! Add the radiative cooling -- for SGS only.
-  ! if (radiative_cooling_type.eq.2) then
-  !    call post_step_radiative_cooling(lo,hi,dt, &
-  !         uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3)
-  ! endif
-
   ! Copy data from the edge-centered state into ugdnv
 
   ugdnvx_out(:,:,:) = q1(:,:,:,GDU)

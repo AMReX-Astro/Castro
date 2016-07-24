@@ -4,8 +4,8 @@ module transverse_module
 
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QESGS, QFS, &
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
+                                 QPRES, QREINT, QGAME, QFS, &
+                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, GDERADS, GDLAMS, &
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &

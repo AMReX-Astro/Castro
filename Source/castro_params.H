@@ -45,9 +45,6 @@ static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
-#ifdef SGS
-static Real sum_turb_src;
-#endif
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;

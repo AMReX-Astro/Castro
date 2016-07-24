@@ -264,12 +264,6 @@ Castro::restart (Amr&     papa,
     if (level > 0 && do_reflux)
         flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
 
-#ifdef SGS
-    BL_ASSERT(sgs_flux_reg == 0);
-    if (level > 0 && do_reflux)
-        sgs_flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
-#endif
-
 #ifdef RADIATION
     BL_ASSERT(rad_flux_reg == 0);
     if (Radiation::rad_hydro_combined && level > 0 && do_reflux)

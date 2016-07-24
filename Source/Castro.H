@@ -47,9 +47,6 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
-#ifdef SGS
-                 SGS_Type,
-#endif
                  NUM_STATE_TYPE };
 
 // Create storage for all source terms.
@@ -410,11 +407,6 @@ public:
                                int ncycle);
 #endif
 
-#ifdef SGS 
-    void reset_old_sgs (Real dt);
-    void reset_new_sgs (Real dt);
-#endif
-
     void reset_internal_energy (MultiFab& State);
 
     void computeTemp (MultiFab& State);
@@ -422,12 +414,6 @@ public:
     void update_point_mass (MultiFab& StateIn, MultiFab& StateOut, 
                             PArray<FArrayBox>& flux, MultiFab& volume,
                             Real dt);
-
-#ifdef SGS
-    void getSource (Real time, Real dt, MultiFab& state, MultiFab& src, MultiFab& sgs_state, MultiFab* sgs_fluxes);
-#else
-    void getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& src, int ngrow = 0);
-#endif
 
 #ifdef DIFFUSION
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
@@ -527,10 +513,6 @@ public:
 #ifdef SHOCK_VAR
     static int       Shock;
 #endif
-#ifdef SGS
-    static int       Esgs;
-    static Real      sum_turb_src;
-#endif
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
@@ -582,11 +564,6 @@ protected:
 
     Castro& getLevel (int lev);
 
-#ifdef SGS
-    FluxRegister& getSGSFluxReg ();
-    FluxRegister& getSGSFluxReg (int lev);
-#endif
-
 #ifdef RADIATION
     FluxRegister& getRADFluxReg ();
     FluxRegister& getRADFluxReg (int lev);
@@ -626,9 +603,6 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
-#ifdef SGS
-    FluxRegister*        sgs_flux_reg;
-#endif
 #ifdef RADIATION
     FluxRegister*        rad_flux_reg;
 #endif
@@ -774,23 +748,6 @@ Castro::getFluxReg (int lev)
 {
     return getLevel(lev).getFluxReg();
 }
-
-#ifdef SGS
-inline
-FluxRegister&
-Castro::getSGSFluxReg ()
-{
-    BL_ASSERT(sgs_flux_reg);
-    return *sgs_flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getSGSFluxReg (int lev)
-{
-    return getLevel(lev).getSGSFluxReg();
-}
-#endif
 
 #ifdef RADIATION
 inline

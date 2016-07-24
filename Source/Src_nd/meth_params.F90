@@ -28,9 +28,6 @@ module meth_params_module
   integer         , save :: QGAMC, QGAME
   integer         , save :: QFA, QFS, QFX
 
-  ! These are only used when we use the SGS model.
-  integer         , save :: UESGS,QESGS
-
   integer         , save :: nadv
 
   integer, save :: npassive

@@ -111,12 +111,7 @@ Castro::advance (Real time,
     }
     else
     {
-#ifdef SGS
-        BoxLib::Abort("Castro::advance -- doesn't make sense to have SGS defined but not do_hydro");
-        return 0.;
-#else
         dt_new = advance_no_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-#endif
     }
 
     // Check to see if this advance violated certain stability criteria.
@@ -415,21 +410,12 @@ Castro::advance_hydro (Real time,
         // Set reflux registers to zero.
         //
         getFluxReg(level+1).setVal(0.0);
-#ifdef SGS
-        getSGSFluxReg(level+1).setVal(0.0);
-#endif
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
 	  getRADFluxReg(level+1).setVal(0.0);
 	}
 #endif
     }
-
-#ifdef SGS
-    // Make sure this is zero in case we turn off source terms
-    MultiFab& SGS_new = get_new_data(SGS_Type);
-    SGS_new.setVal(0.);
-#endif
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -553,15 +539,6 @@ Castro::advance_hydro (Real time,
     if (do_reflux && level > 0)
       current = &getFluxReg(level);
 
-#ifdef SGS
-    FluxRegister *sgs_fine    = 0;
-    FluxRegister *sgs_current = 0;
-    if (do_reflux && level < finest_level)
-      sgs_fine = &getSGSFluxReg(level+1);
-    if (do_reflux && level > 0)
-      sgs_current = &getSGSFluxReg(level);
-#endif
-
 #ifdef RADIATION
     FluxRegister *rad_fine    = 0;
     FluxRegister *rad_current = 0;
@@ -592,15 +569,6 @@ Castro::advance_hydro (Real time,
 	fluxes[j].setVal(0.0);
       }
 
-#ifdef SGS
-    // We need these even if we are single-level because they are used in the source construction.
-    MultiFab sgs_fluxes[BL_SPACEDIM];
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-      {
-	sgs_fluxes[dir].define(getEdgeBoxArray(dir), NUM_STATE, 0, Fab_allocate);
-      }
-#endif
-
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
     MultiFab rad_fluxes[BL_SPACEDIM];
@@ -616,11 +584,6 @@ Castro::advance_hydro (Real time,
     MultiFab hydro_source(grids,NUM_STATE,0,Fab_allocate);
 
     hydro_source.setVal(0.0);
-
-#ifdef SGS
-    reset_old_sgs(dt);
-    MultiFab& sgs_old = get_old_data(SGS_Type);
-#endif
 
     if (add_ext_src) {
       construct_old_ext_source(old_sources,sources_for_hydro,Sborder,prev_time,dt);
@@ -1345,18 +1308,6 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-#ifdef SGS  // for non-SGS, diffusion has been time-centered.
-#ifdef DIFFUSION
-#ifdef TAU
-    time_center_temp_diffusion(S_new, OldTempDiffTerm, cur_time, dt, tau_diff);
-#else
-    time_center_temp_diffusion(S_new, OldTempDiffTerm, cur_time, dt);
-#endif
-    time_center_spec_diffusion(S_new, OldSpecDiffTerm, cur_time, dt);
-    time_center_viscous_terms(S_new, OldViscousTermforMomentum, OldViscousTermforEnergy, cur_time, dt);
-#endif
-#endif
-
 #ifdef ROTATION
     construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, S_new);
 
@@ -1421,7 +1372,6 @@ Castro::advance_hydro (Real time,
     return dt;
 }
 
-#ifndef SGS
 Real
 Castro::advance_no_hydro (Real time,
                           Real dt,
@@ -1434,10 +1384,6 @@ Castro::advance_no_hydro (Real time,
 
     if (do_hydro)
        BoxLib::Abort("In advance_no_hydro but do_hydro is true");
-
-#ifdef SGS
-    BoxLib::Abort("In advance_no_hydro but SGS is defined");
-#endif
 
 #ifdef RADIATION
     if (do_radiation) {
@@ -1644,4 +1590,3 @@ Castro::advance_no_hydro (Real time,
 
     return dt;
 }
-#endif

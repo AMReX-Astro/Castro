@@ -740,9 +740,9 @@ contains
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UESGS, UTEMP, &
+                                   UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    allow_negative_energy
@@ -845,10 +845,6 @@ contains
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 
-             ! convert "rho K" to "K"
-             if (QESGS .gt. -1) &
-                  q(i,j,k,QESGS) = uin(i,j,k,UESGS)*rhoinv
-
           enddo
        enddo
     enddo
@@ -920,9 +916,6 @@ contains
 !                                    sum(dpdX_er(i,j,k,:)*(src(i,j,k,UFS:UFS+nspec-1) - &
 !                                                          q(i,j,k,QFS:QFS+nspec-1)*srcQ(i,j,k,QRHO))) &
 !                                    /q(i,j,k,QRHO)
-
-             if (QESGS .gt. -1) &
-                  srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)*rhoinv - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
 
           enddo
        enddo

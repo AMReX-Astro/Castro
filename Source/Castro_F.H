@@ -51,7 +51,6 @@ extern "C"
 #endif
      const int* gravity_type, const int* gravity_type_len,
      const int& get_g_from_phi,
-     const int& use_sgs,
      const Real& diffuse_cutoff_density, 
      const Real& const_grav);
 
@@ -205,14 +204,6 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
-#ifdef SGS
-  void ca_sgsfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
-     const Real* time, const int* bc);
-#endif
-
 #ifdef GRAVITY
   void ca_phigravfill
     (BL_FORT_FAB_ARG_3D(state),
@@ -327,14 +318,6 @@ extern "C"
 
 #ifdef REACTIONS
   void ca_reactfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
-     const Real* time, const int bc[]);
-#endif
-
-#ifdef SGS
-  void ca_sgsfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[], 
@@ -743,15 +726,6 @@ extern "C"
      const Real * dt);
 #endif  
 
-#ifdef SGS
-  void ca_reset_sgs
-    (BL_FORT_FAB_ARG(S_new), 
-     BL_FORT_FAB_ARG(sgs_old), 
-     BL_FORT_FAB_ARG(sgs_new), 
-     const int lo[], const int hi[], 
-     const int& verbose, const int& is_old, const Real& dt);
-#endif  
-
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
 #endif  
@@ -818,19 +792,6 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const Real dx[], const Real xlo[], const Real xhi[]);
 #endif
 
-#ifdef SGS
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(fluxx),
-     BL_FORT_FAB_ARG(fluxy),
-     BL_FORT_FAB_ARG(fluxz),
-     BL_FORT_FAB_ARG(ext_src),
-     BL_FORT_FAB_ARG(prod_sgs),
-     BL_FORT_FAB_ARG(diff_sgs),
-     BL_FORT_FAB_ARG(turb_src),
-     const Real* dx, const Real* time, const Real* dt);
-#else
 #ifdef DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
@@ -847,7 +808,6 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      BL_FORT_FAB_ARG(ext_src),
      const Real* prob_lo, const Real* dx, 
      const Real* time, const Real* dt);
-#endif
 #endif
 
 /* problem-specific includes */
