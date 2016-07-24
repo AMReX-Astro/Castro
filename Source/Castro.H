@@ -229,6 +229,8 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
+    Real retry_advance (Real time, Real dt, int amr_iteration, int amr_ncycle);
+
     void initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
 
     void finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);

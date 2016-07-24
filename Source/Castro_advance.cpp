@@ -44,195 +44,21 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    dt_new = advance_hydro(time,dt,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
+    dt_new = advance_hydro(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
 
     if (use_retry)
-    {
-
-      Real dt_subcycle = 1.e200;
-
-      MultiFab& S_old = get_old_data(State_Type);
-      MultiFab& S_new = get_new_data(State_Type);
-
-#ifdef REACTIONS
-      MultiFab& R_old = get_old_data(Reactions_Type);
-      MultiFab& R_new = get_new_data(Reactions_Type);
-#endif
-
-      const Real* dx = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:dt_subcycle)
-#endif
-      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	const Box& bx = mfi.tilebox();
-
-	const int* lo = bx.loVect();
-	const int* hi = bx.hiVect();
-
-	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
-			  BL_TO_FORTRAN_3D(S_new[mfi]),
-#ifdef REACTIONS
-			  BL_TO_FORTRAN_3D(R_old[mfi]),
-			  BL_TO_FORTRAN_3D(R_new[mfi]),
-#endif
-			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
-			  &dt, &dt_subcycle);
-
-      }
-
-      if (retry_neg_dens_factor > 0.0) {
-
-	// Negative density criterion
-	// Reset so that the desired maximum fractional change in density
-	// is not larger than retry_neg_dens_factor.
-
-	if (frac_change < 0.0)
-	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));
-
-      }
-
-      ParallelDescriptor::ReduceRealMin(dt_subcycle);
-
-      if (dt_subcycle < dt) {
-
-	int sub_ncycle = ceil(dt / dt_subcycle);
-
-	if (verbose && ParallelDescriptor::IOProcessor()) {
-	  std::cout << std::endl;
-	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	  std::cout << "  Performing a retry, with " << sub_ncycle
-		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
-	  std::cout << std::endl;
-	}
-
-	Real subcycle_time = time;
-	sub_iteration = 1;
-	Real dt_advance = dt / sub_ncycle;
-
-	// Restore the original values of the state data.
-
-	for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	  if (prev_state[k].hasOldData())
-	    state[k].copyOld(prev_state[k]);
-
-	  if (prev_state[k].hasNewData())
-	    state[k].copyNew(prev_state[k]);
-
-	  // Anticipate the swapTimeLevels to come.
-
-	  if (k == Source_Type)
-	    state[k].swapTimeLevels(0.0);
-
-	  state[k].swapTimeLevels(0.0);
-
-	  state[k].setTimeLevel(time, 0.0, 0.0);
-
-	}
-
-	if (track_grid_losses)
-	  for (int i = 0; i < n_lost; i++)
-	    material_lost_through_boundary_temp[i] = 0.0;
-
-	// Subcycle until we've reached the target time.
-
-	while (subcycle_time < time + dt) {
-
-	  // Shorten the last timestep so that we don't overshoot
-	  // the ending time. We want to protect against taking
-	  // a very small last timestep due to precision issues,
-	  // so subtract a small number from that time.
-
-	  Real eps = 1.0e-10 * dt;
-
-	  if (subcycle_time + dt_advance > time + dt - eps)
-	    dt_advance = (time + dt) - subcycle_time;
-
-	  if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << "  Beginning retry subcycle " << sub_iteration << " of " << sub_ncycle
-		      << ", starting at time " << subcycle_time
-		      << " with dt = " << dt_advance << std::endl << std::endl;
-	  }
-
-	  for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	    if (k == Source_Type)
-	      state[k].swapTimeLevels(0.0);
-
-	    state[k].swapTimeLevels(dt_advance);
-
-	  }
-
-#ifdef GRAVITY
-	  if (do_grav)
-	    gravity->swapTimeLevels(level);
-#endif
-
-	  advance_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
-
-	  if (verbose && ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Retry subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
-	    std::cout << std::endl;
-	  }
-
-	  subcycle_time += dt_advance;
-	  sub_iteration += 1;
-
-	}
-
-	// We want to return this subcycled timestep as a suggestion,
-	// if it is smaller than what the hydro estimates.
-
-	dt_new = std::min(dt_new, dt_subcycle);
-
-	if (verbose && ParallelDescriptor::IOProcessor()) {
-	  std::cout << "  Retry subcycling complete" << std::endl << std::endl;
-	}
-
-	// Finally, copy the original data back to the old state
-	// data so that externally it appears like we took only
-	// a single timestep.
-
-	for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	  if (prev_state[k].hasOldData())
-	    state[k].copyOld(prev_state[k]);
-
-	  state[k].setTimeLevel(time + dt, dt, 0.0);
-
-	}
-
-      }
-
-    }
-
-    // Add the material lost in this timestep to the cumulative losses.
-
-    if (track_grid_losses) {
-
-      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
-
-      for (int i = 0; i < n_lost; i++)
-	material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
-
-    }
-
-    Real cur_time = state[State_Type].curTime();
-    set_special_tagging_flag(cur_time);
+        dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
 
 #ifdef AUX_UPDATE
-    advance_aux(time,dt);
+    advance_aux(time, dt);
 #endif
 
 #ifdef LEVELSET
-    advance_levelset(time,dt);
+    advance_levelset(time, dt);
 #endif
 
 #if (BL_SPACEDIM > 1)
@@ -245,7 +71,7 @@ Castro::advance (Real time,
 
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
-    final_radiation_call(S_new,amr_iteration,amr_ncycle);
+    final_radiation_call(S_new, amr_iteration, amr_ncycle);
 #endif
 
 #ifdef PARTICLES
@@ -1098,6 +924,20 @@ void
 Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
+    // Add the material lost in this timestep to the cumulative losses.
+
+    if (track_grid_losses) {
+
+      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
+
+      for (int i = 0; i < n_lost; i++)
+	material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
+
+    }
+
+    Real cur_time = state[State_Type].curTime();
+    set_special_tagging_flag(cur_time);
+
     delete hydro_source;
     delete sources_for_hydro;
 
@@ -1129,5 +969,173 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 #ifdef TAU
     delete tau_diff;
 #endif
+
+}
+
+
+
+Real
+Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+{
+
+    Real dt_new = 1.e200;
+    Real dt_subcycle = 1.e200;
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef REACTIONS
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+#endif
+
+    const Real* dx = geom.CellSize();
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(min:dt_subcycle)
+#endif
+    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.tilebox();
+
+	const int* lo = bx.loVect();
+	const int* hi = bx.hiVect();
+
+	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
+			  BL_TO_FORTRAN_3D(S_new[mfi]),
+#ifdef REACTIONS
+			  BL_TO_FORTRAN_3D(R_old[mfi]),
+			  BL_TO_FORTRAN_3D(R_new[mfi]),
+#endif
+			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
+			  &dt, &dt_subcycle);
+
+    }
+
+    if (retry_neg_dens_factor > 0.0) {
+
+        // Negative density criterion
+	// Reset so that the desired maximum fractional change in density
+	// is not larger than retry_neg_dens_factor.
+
+	if (frac_change < 0.0)
+	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));
+
+    }
+
+    ParallelDescriptor::ReduceRealMin(dt_subcycle);
+
+    if (dt_subcycle < dt) {
+
+        int sub_ncycle = ceil(dt / dt_subcycle);
+
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	  std::cout << std::endl;
+	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+	  std::cout << "  Performing a retry, with " << sub_ncycle
+		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+	  std::cout << std::endl;
+	}
+
+	Real subcycle_time = time;
+	int sub_iteration = 1;
+	Real dt_advance = dt / sub_ncycle;
+
+	// Restore the original values of the state data.
+
+	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	  if (prev_state[k].hasOldData())
+	    state[k].copyOld(prev_state[k]);
+
+	  if (prev_state[k].hasNewData())
+	    state[k].copyNew(prev_state[k]);
+
+	  // Anticipate the swapTimeLevels to come.
+
+	  if (k == Source_Type)
+	    state[k].swapTimeLevels(0.0);
+
+	  state[k].swapTimeLevels(0.0);
+
+	  state[k].setTimeLevel(time, 0.0, 0.0);
+
+	}
+
+	if (track_grid_losses)
+	  for (int i = 0; i < n_lost; i++)
+	    material_lost_through_boundary_temp[i] = 0.0;
+
+	// Subcycle until we've reached the target time.
+
+	while (subcycle_time < time + dt) {
+
+	    // Shorten the last timestep so that we don't overshoot
+	    // the ending time. We want to protect against taking
+	    // a very small last timestep due to precision issues,
+	    // so subtract a small number from that time.
+
+	    Real eps = 1.0e-10 * dt;
+
+	    if (subcycle_time + dt_advance > time + dt - eps)
+	        dt_advance = (time + dt) - subcycle_time;
+
+	    if (verbose && ParallelDescriptor::IOProcessor()) {
+	        std::cout << "  Beginning retry subcycle " << sub_iteration << " of " << sub_ncycle
+		          << ", starting at time " << subcycle_time
+		         << " with dt = " << dt_advance << std::endl << std::endl;
+	    }
+
+	    for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	        if (k == Source_Type)
+		    state[k].swapTimeLevels(0.0);
+
+		state[k].swapTimeLevels(dt_advance);
+
+	    }
+
+#ifdef GRAVITY
+	    if (do_grav)
+	        gravity->swapTimeLevels(level);
+#endif
+
+	    advance_hydro(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
+
+	    if (verbose && ParallelDescriptor::IOProcessor()) {
+	        std::cout << std::endl;
+	        std::cout << "  Retry subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
+	        std::cout << std::endl;
+	    }
+
+	  subcycle_time += dt_advance;
+	  sub_iteration += 1;
+
+	}
+
+	// We want to return this subcycled timestep as a suggestion,
+	// if it is smaller than what the hydro estimates.
+
+	dt_new = std::min(dt_new, dt_subcycle);
+
+	if (verbose && ParallelDescriptor::IOProcessor())
+            std::cout << "  Retry subcycling complete" << std::endl << std::endl;
+
+	// Finally, copy the original data back to the old state
+	// data so that externally it appears like we took only
+	// a single timestep.
+
+	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+           if (prev_state[k].hasOldData())
+	      state[k].copyOld(prev_state[k]);
+
+	   state[k].setTimeLevel(time + dt, dt, 0.0);
+
+	}
+
+    }
+
+    return dt_new;
 
 }
