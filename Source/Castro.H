@@ -382,6 +382,15 @@ public:
 				int sub_iteration, int sub_ncycle,
 				Real time, MultiFab& state);
 
+    void construct_old_rotation_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+				       MultiFab& S_old,
+				       Real time, Real dt);
+
+    void construct_new_rotation_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+				       MultiFab& S_old, MultiFab& S_new,
+				       MultiFab fluxes[],
+				       Real time, Real dt);
+
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
 

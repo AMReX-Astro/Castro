@@ -671,18 +671,11 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,NUM_GROW);
 
 #ifdef ROTATION
-    MultiFab& phirot_old = get_old_data(PhiRot_Type);
-    MultiFab& rot_old = get_old_data(Rotation_Type);
-
     construct_old_rotation(amr_iteration, amr_ncycle,
 			   sub_iteration, sub_ncycle,
 			   prev_time, Sborder);
 
-    if (do_rotation)
-      add_force_to_sources(rot_old, sources_for_hydro, Sborder);
-
-    old_sources.set(rot_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
-    old_sources[rot_src].setVal(0.0, NUM_GROW);
+    construct_old_rotation_source(old_sources, sources_for_hydro, Sborder, time, dt);
 #endif
 
 
@@ -838,7 +831,18 @@ Castro::advance_hydro (Real time,
 			 BL_TO_FORTRAN(volume[mfi]),
 			 &cflLoc, verbose, &priv_nstep_fsp);
 
-		    // Add dt * old-time external source terms
+		    for (int i = 0; i < BL_SPACEDIM ; i++) {
+			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
+		    }
+
+		    if (do_reflux) {
+			for (int i = 0; i < BL_SPACEDIM ; i++) {
+			    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
+			    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+			}
+		    }
+
+		    // Add source terms
 
 		    stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
 
@@ -854,34 +858,14 @@ Castro::advance_hydro (Real time,
 		    stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
-		    for (int dir = 0; dir < 3; dir++)
-			 mom_added[dir] = 0.0;
-
-		    // Rotational source term for the time-level n data.
-
-		    Real E_added_rot = 0.0;
-
 #ifdef ROTATION
-		    if (do_rotation)
-		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
-			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			      BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			      BL_TO_FORTRAN_3D(rot_old[mfi]),
-			      BL_TO_FORTRAN_3D(stateold),
-			      BL_TO_FORTRAN_3D(stateout),
-			      BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
-			      BL_TO_FORTRAN_3D(vol),
-			      ZFILL(dx),dt,&time,
-			      E_added_rot,mom_added);
-
 		    stateout.saxpy(dt,bx,bx,old_sources[rot_src][mfi],0,0,NUM_STATE);
 #endif
 
-		    for (int dir = 0; dir < 3; dir++)
-			 mom_added[dir] = 0.0;
-
 		    Real E_added_sponge = 0.0;
-		    
+
+		    Real mom_added[3] = { 0.0 };
+
 		    if (do_sponge)
 		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
 				BL_TO_FORTRAN_3D(stateout),
@@ -895,17 +879,6 @@ Castro::advance_hydro (Real time,
 					 BL_TO_FORTRAN_3D(Erout),
 					 BL_TO_FORTRAN_3D(kappa_s[mfi]),
 					 dt);
-		    }
-
-		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-			u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
-		    }
-
-		    if (do_reflux) {
-			for (int i = 0; i < BL_SPACEDIM ; i++) {
-			    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
-			    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
-			}
 		    }
 
 #ifdef POINTMASS
@@ -959,9 +932,7 @@ Castro::advance_hydro (Real time,
 
 	    // pure hydro (no radiation)
 
-	    Real E_added_grav    = 0.;
 	    Real E_added_flux    = 0.;
-	    Real E_added_rot     = 0.;
 	    Real E_added_sponge  = 0.;
 	    Real mass_added      = 0.;
 	    Real eint_added      = 0.;
@@ -979,12 +950,6 @@ Castro::advance_hydro (Real time,
 	    Real xang_lost       = 0.;
 	    Real yang_lost       = 0.;
 	    Real zang_lost       = 0.;
-	    Real xmom_added_grav = 0.;
-	    Real ymom_added_grav = 0.;
-	    Real zmom_added_grav = 0.;
-	    Real xmom_added_rot  = 0.;
-	    Real ymom_added_rot  = 0.;
-	    Real zmom_added_rot  = 0.;
 	    Real xmom_added_sponge = 0.;
 	    Real ymom_added_sponge = 0.;
 	    Real zmom_added_sponge = 0.;
@@ -993,24 +958,20 @@ Castro::advance_hydro (Real time,
 
 #ifdef _OPENMP
 #ifdef POINTMASS
-#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
+#pragma omp parallel reduction(+:E_added_flux,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
                      reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-                     reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
-                     reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
                      reduction(+:mass_change_at_center) \
                      reduction(min:dens_change)
 #else
-#pragma omp parallel reduction(+:E_added_grav,E_added_flux,E_added_rot,E_added_sponge) \
+#pragma omp parallel reduction(+:E_added_flux,E_added_sponge) \
                      reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
                      reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
                      reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
                      reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-                     reduction(+:xmom_added_grav,ymom_added_grav,zmom_added_grav) \
-                     reduction(+:xmom_added_rot,ymom_added_rot,zmom_added_rot) \
                      reduction(+:xmom_added_sponge,ymom_added_sponge,zmom_added_sponge) \
                      reduction(min:dens_change)
 #endif
@@ -1096,18 +1057,6 @@ Castro::advance_hydro (Real time,
 		    ca_normalize_species(stateout.dataPtr(),ARLIM_3D(stateout.loVect()), ARLIM_3D(stateout.hiVect()),
 					 ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
 
-		    // Add dt * old-time external source terms
-
-		    stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
-
-#ifdef DIFFUSION
-		    stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
-#ifdef HYBRID_MOMENTUM
-		    stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
-#endif
-
 		    // Copy the normal velocities from the Riemann solver
 
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -1120,45 +1069,27 @@ Castro::advance_hydro (Real time,
 		    for (int i = 0; i < BL_SPACEDIM ; i++)
 		      fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 
-		    // Gravitational source term for the time-level n data.
+		    // Add source terms
 
-		    Real mom_added[3] = { 0.0 };
+		    stateout.saxpy(dt,old_sources[ext_src][mfi],bx,bx,0,0,NUM_STATE);
+
+#ifdef DIFFUSION
+		    stateout.saxpy(dt,old_sources[diff_src][mfi],bx,bx,0,0,NUM_STATE);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+		    stateout.saxpy(dt,old_sources[hybrid_src][mfi],bx,bx,0,0,NUM_STATE);
+#endif
 
 #ifdef GRAVITY
 		    stateout.saxpy(dt,old_sources[grav_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
-		    xmom_added_grav += mom_added[0];
-		    ymom_added_grav += mom_added[1];
-		    zmom_added_grav += mom_added[2];
-
-		    for (int dir = 0; dir < 3; dir++)
-			 mom_added[dir] = 0.0;
-
-		    // Rotational source term for the time-level n data.
-
 #ifdef ROTATION
-		    if (do_rotation)
-		      ca_rsrc(ARLIM_3D(lo), ARLIM_3D(hi),
-			      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-			      BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			      BL_TO_FORTRAN_3D(rot_old[mfi]),
-			      BL_TO_FORTRAN_3D(stateold),
-			      BL_TO_FORTRAN_3D(stateout),
-			      BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
-			      BL_TO_FORTRAN_3D(volume[mfi]),
-			      ZFILL(dx),dt,&time,
-			      E_added_rot,mom_added);
-
 		    stateout.saxpy(dt,old_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 #endif
 
-		    xmom_added_rot += mom_added[0];
-		    ymom_added_rot += mom_added[1];
-		    zmom_added_rot += mom_added[2];
-
-		    for (int dir = 0; dir < 3; dir++)
-			 mom_added[dir] = 0.0;
+		    Real mom_added[3] = { 0.0 };
 
 		    if (do_sponge)
 		      ca_sponge(ARLIM_3D(lo), ARLIM_3D(hi),
@@ -1217,11 +1148,9 @@ Castro::advance_hydro (Real time,
 
 	    if (print_energy_diagnostics)
 	    {
-	       Real foo[20] = {mass_added, eint_added, eden_added,
-			       E_added_flux, E_added_grav, E_added_rot, E_added_sponge,
+	       Real foo[12] = {mass_added, eint_added, eden_added,
+			       E_added_flux, E_added_sponge,
 			       xmom_added_flux, ymom_added_flux, zmom_added_flux,
-			       xmom_added_grav, ymom_added_grav, zmom_added_grav,
-			       xmom_added_rot,  ymom_added_rot,  zmom_added_rot,
                                xmom_added_sponge, ymom_added_sponge, zmom_added_sponge,
 	                       mass_added_flux};
 #ifdef BL_LAZY
@@ -1234,22 +1163,14 @@ Castro::advance_hydro (Real time,
 		   eint_added = foo[1];
 		   eden_added = foo[2];
 		   E_added_flux = foo[3];
-		   E_added_grav = foo[4];
-		   E_added_rot  = foo[5];
-		   E_added_sponge = foo[6];
-		   xmom_added_flux = foo[7];
-		   ymom_added_flux = foo[8];
-		   zmom_added_flux = foo[9];
-		   xmom_added_grav = foo[10];
-		   ymom_added_grav = foo[11];
-		   zmom_added_grav = foo[12];
-		   xmom_added_rot  = foo[13];
-		   ymom_added_rot  = foo[14];
-		   zmom_added_rot  = foo[15];
-		   xmom_added_sponge  = foo[16];
-		   ymom_added_sponge  = foo[17];
-		   zmom_added_sponge  = foo[18];
-		   mass_added_flux    = foo[19];
+		   E_added_sponge = foo[4];
+		   xmom_added_flux = foo[5];
+		   ymom_added_flux = foo[6];
+		   zmom_added_flux = foo[7];
+		   xmom_added_sponge  = foo[8];
+		   ymom_added_sponge  = foo[9];
+		   zmom_added_sponge  = foo[10];
+		   mass_added_flux    = foo[11];
 		   if (std::abs(mass_added) != 0.0)
 		   {
 		      std::cout << "   Mass added from negative density correction : " << 
@@ -1270,19 +1191,6 @@ Castro::advance_hydro (Real time,
 				 zmom_added_flux << std::endl;
 		   std::cout << "(rho E) added from fluxes                   : " << 
 				 E_added_flux << std::endl;
-#ifdef ROTATION
-		   if (do_rotation)
-		   {
-		      std::cout << "(rho E) added from rot. source terms          : " << 
-				    E_added_rot << std::endl;
-		      std::cout << "xmom added from rot. source terms             : " << 
-				    xmom_added_rot << std::endl;
-		      std::cout << "ymom added from rot. source terms             : " << 
-				    ymom_added_rot << std::endl;
-		      std::cout << "zmom added from rot. source terms             : " << 
-				    zmom_added_rot << std::endl;
-		   }
-#endif
 
 		   if (do_sponge)
 		   {
@@ -1533,7 +1441,7 @@ Castro::advance_hydro (Real time,
     {
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
+#pragma omp parallel
 #endif
         for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
@@ -1560,100 +1468,28 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef ROTATION
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
-
-    new_sources.set(rot_src, new MultiFab(grids, NUM_STATE, 0));
-    new_sources[rot_src].setVal(0.0);
-
     construct_new_rotation(amr_iteration, amr_ncycle,
 			   sub_iteration, sub_ncycle,
 			   cur_time, S_new);
 
-    if (do_rotation) {
+    construct_new_rotation_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, cur_time, dt);
 
-	// Now do corrector part of rotation source term update
-
-        Real E_added    = 0.;
-	Real xmom_added = 0.;
-	Real ymom_added = 0.;
-	Real zmom_added = 0.;
-
-	const int* domlo = geom.Domain().loVect();
-	const int* domhi = geom.Domain().hiVect();
+    if (do_rotation)
+    {
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
+#pragma omp parallel
 #endif
+        for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
-	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	    {
-		const Box& bx = mfi.tilebox();
+	    const Box& bx = mfi.tilebox();
 
-		Real mom_added[3] = { 0.0 };
+	    S_new[mfi].saxpy(dt,new_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
 
-		ca_corrrsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			    ARLIM_3D(domlo), ARLIM_3D(domhi),
-			    BL_TO_FORTRAN_3D(phirot_old[mfi]),
-			    BL_TO_FORTRAN_3D(phirot_new[mfi]),
-			    BL_TO_FORTRAN_3D(rot_old[mfi]),
-			    BL_TO_FORTRAN_3D(rot_new[mfi]),
-			    BL_TO_FORTRAN_3D(S_old[mfi]),
-			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    BL_TO_FORTRAN_3D(new_sources[rot_src][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-			    ZFILL(dx),dt,&cur_time,
-			    BL_TO_FORTRAN_3D(volume[mfi]),
-			    E_added,mom_added);
-
-		S_new[mfi].saxpy(dt,new_sources[rot_src][mfi],bx,bx,0,0,NUM_STATE);
-
-		xmom_added += mom_added[0];
-		ymom_added += mom_added[1];
-		zmom_added += mom_added[2];
-	    }
 	}
 
-        if (print_energy_diagnostics)
-        {
-	    Real foo[4] = {E_added, xmom_added, ymom_added, zmom_added};
-#ifdef BL_LAZY
-            Lazy::QueueReduction( [=] () mutable {
-#endif
-	    ParallelDescriptor::ReduceRealSum(foo, 4, ParallelDescriptor::IOProcessorNumber());
-	    if (ParallelDescriptor::IOProcessor()) {
-		E_added = foo[0];
-		xmom_added = foo[1],
-		ymom_added = foo[2],
-		zmom_added = foo[3];
-
-		std::cout << "(rho E) added from rot. corr.  terms          : " << E_added << std::endl;
-		std::cout << "xmom added from rot. corr. terms              : " << xmom_added << std::endl;
-		std::cout << "ymom added from rot. corr. terms              : " << ymom_added << std::endl;
-		std::cout << "zmom added from rot. corr. terms              : " << zmom_added << std::endl;
-	    }
-#ifdef BL_LAZY
-	    });
-#endif
-        }
-
 	computeTemp(S_new);
-
-    } else {
-
-        phirot_new.setVal(0.0);
-        rot_new.setVal(0.0);
-
     }
-
-    // Add this to the source term array if we're using the source term predictor.
-    // If not, don't bother because sources isn't actually used in the update after this point.
-
-    if (source_term_predictor == 1)
-      add_force_to_sources(rot_new, sources_for_hydro, S_new);
-
 #endif
 
     reset_internal_energy(S_new);

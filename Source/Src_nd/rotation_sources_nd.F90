@@ -7,7 +7,7 @@ module rotation_sources_module
 contains
 
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi, &
+                     uold,uold_lo,uold_hi, &
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
                      dx,dt,time,E_added,mom_added) bind(C, name="ca_rsrc")
 
@@ -27,14 +27,12 @@ contains
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
     integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
     integer         , intent(in   ) :: uold_lo(3), uold_hi(3)
-    integer         , intent(in   ) :: unew_lo(3), unew_hi(3)
     integer         , intent(in   ) :: src_lo(3), src_hi(3)
     integer         , intent(in   ) :: vol_lo(3), vol_hi(3)
 
     double precision, intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     double precision, intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     double precision, intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision, intent(in   ) :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
     double precision, intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision, intent(in   ) :: dx(3), dt, time
@@ -63,7 +61,7 @@ contains
              rhoInv = ONE / rho
 
              src = ZERO
-             snew = unew(i,j,k,:)
+             snew = uold(i,j,k,:)
 
              ! **** Start Diagnostics ****
              old_re = snew(UEDEN)
