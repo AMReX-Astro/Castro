@@ -14,20 +14,16 @@ Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
 #ifdef TAU
 				  MultiFab& tau_diff,
 #endif
-				  MultiFab& OldTempDiffTerm,
-				  MultiFab& OldSpecDiffTerm,
-				  MultiFab& OldViscousTermforMomentum,
-				  MultiFab& OldViscousTermforEnergy,
 				  Real time, Real dt)
 {
 #ifdef TAU
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time,tau_diff);
+    add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time,tau_diff);
 #else
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time);
+    add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
 #endif
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
-    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
+    add_spec_diffusion_to_source(old_sources[diff_src],*OldSpecDiffTerm,time);
+    add_viscous_term_to_source(old_sources[diff_src],*OldViscousTermforMomentum,OldViscousTermforEnergy,time);
 #endif
 
     BoxLib::fill_boundary(old_sources[diff_src], geom);
@@ -44,20 +40,16 @@ Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 #ifdef TAU
 				  MultiFab& tau_diff,
 #endif
-				  MultiFab& NewTempDiffTerm,
-				  MultiFab& NewSpecDiffTerm,
-				  MultiFab& NewViscousTermforMomentum,
-				  MultiFab& NewViscousTermforEnergy,
 				  Real time, Real dt)
 {
 #ifdef TAU
-    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,time,tau_diff);
+    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time,tau_diff);
 #else
-    add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,time);
+    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
 #endif
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(new_sources[diff_src],NewSpecDiffTerm,time);
-    add_viscous_term_to_source(new_sources[diff_src],NewViscousTermforMomentum,NewViscousTermforEnergy,time);
+    add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
+    add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,NewViscousTermforEnergy,time);
 #endif
 
     // Time center the source term.

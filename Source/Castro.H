@@ -238,12 +238,6 @@ public:
 
     void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			       MultiFab& sources_for_hydro,
-#ifdef DIFFUSION
-			       MultiFab& OldTempDiffTerm,
-			       MultiFab& OldSpecDiffTerm,
-			       MultiFab& OldViscousTermforMomentum,
-			       MultiFab& OldViscousTermforEnergy,
-#endif
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
@@ -441,20 +435,12 @@ public:
 #ifdef TAU
 				 MultiFab& tau_diff,
 #endif
-				 MultiFab& OldTempDiffTerm,
-				 MultiFab& OldSpecDiffTerm,
-				 MultiFab& OldViscousTermforMomentum,
-				 MultiFab& OldViscousTermforEnergy,
 				 Real time, Real dt);
 
   void construct_new_diff_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
 #ifdef TAU
 				 MultiFab& tau_diff,
 #endif
-				 MultiFab& NewTempDiffTerm,
-				 MultiFab& NewSpecDiffTerm,
-				 MultiFab& NewViscousTermforMomentum,
-				 MultiFab& NewViscousTermforEnergy,
 				 Real time, Real dt);
 
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
@@ -691,6 +677,16 @@ protected:
     static int       diffuse_spec;
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
+
+    MultiFab* OldTempDiffTerm;
+    MultiFab* OldSpecDiffTerm;
+    MultiFab* OldViscousTermforMomentum;
+    MultiFab* OldViscousTermforEnergy;
+
+    MultiFab* NewTempDiffTerm;
+    MultiFab* NewSpecDiffTerm;
+    MultiFab* NewViscousTermforMomentum;
+    MultiFab* NewViscousTermforEnergy;
 #endif
 
 #ifdef PARTICLES

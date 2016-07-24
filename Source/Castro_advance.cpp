@@ -510,10 +510,10 @@ Castro::advance_hydro (Real time,
 #endif
 
 #ifdef DIFFUSION
-    MultiFab OldTempDiffTerm(grids,1,1);
-    MultiFab OldSpecDiffTerm(grids,NumSpec,1);
-    MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
-    MultiFab OldViscousTermforEnergy(grids,1,1);
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
 #endif
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
@@ -559,12 +559,6 @@ Castro::advance_hydro (Real time,
 
     construct_old_sources(Sborder, old_sources,
 			  sources_for_hydro,
-#ifdef DIFFUSION
-			  OldTempDiffTerm,
-			  OldSpecDiffTerm,
-			  OldViscousTermforMomentum,
-			  OldViscousTermforEnergy,
-#endif
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  prev_time, dt);
@@ -1040,16 +1034,13 @@ Castro::advance_hydro (Real time,
     apply_source_to_state(S_new, new_sources[hybrid_src], dt);
 #endif
 
-    // Do the new-time diffusion source term and then add it to the
-    // state using the call to time_center_source_terms. We keep
-    // this separate from the user-defined external source terms
-    // because the user might not have any.
+    // Do the new-time diffusion source term.
 
 #ifdef DIFFUSION
-    MultiFab& NewTempDiffTerm = OldTempDiffTerm;
-    MultiFab& NewSpecDiffTerm = OldSpecDiffTerm;
-    MultiFab& NewViscousTermforMomentum = OldViscousTermforMomentum;
-    MultiFab& NewViscousTermforEnergy   = OldViscousTermforEnergy;
+    NewTempDiffTerm = OldTempDiffTerm;
+    NewSpecDiffTerm = OldSpecDiffTerm;
+    NewViscousTermforMomentum = OldViscousTermforMomentum;
+    NewViscousTermforEnergy   = OldViscousTermforEnergy;
 
     computeTemp(S_new);
 
@@ -1057,10 +1048,6 @@ Castro::advance_hydro (Real time,
 #ifdef TAU
 			      tau_diff,
 #endif
-			      NewTempDiffTerm,
-			      NewSpecDiffTerm,
-			      NewViscousTermforMomentum,
-			      NewViscousTermforEnergy,
 			      cur_time, dt);
 
     apply_source_to_state(S_new, new_sources[diff_src], dt);
@@ -1142,6 +1129,13 @@ Castro::advance_hydro (Real time,
 
 #ifndef LEVELSET
     delete [] u_gdnv;
+#endif
+
+#ifdef DIFFUSION
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
 #endif
 
     return dt;

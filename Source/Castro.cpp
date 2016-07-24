@@ -3736,12 +3736,6 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 void
 Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			      MultiFab& sources_for_hydro,
-#ifdef DIFFUSION
-			      MultiFab& OldTempDiffTerm,
-			      MultiFab& OldSpecDiffTerm,
-			      MultiFab& OldViscousTermforMomentum,
-			      MultiFab& OldViscousTermforEnergy,
-#endif
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
@@ -3764,10 +3758,6 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 #ifdef TAU
 			      tau_diff,
 #endif
-			      OldTempDiffTerm,
-			      OldSpecDiffTerm,
-			      OldViscousTermforMomentum,
-			      OldViscousTermforEnergy,
 			      time, dt);
 #endif
 
