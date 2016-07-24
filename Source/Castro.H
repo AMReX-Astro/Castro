@@ -236,6 +236,15 @@ public:
 			   int  sub_iteration,
 			   int  sub_ncycle);
 
+    void hydro_update(MultiFab& Sborder,
+		      MultiFab& hydro_source,
+		      MultiFab& sources_for_hydro,
+#ifdef RADIATION
+		      MultiFab rad_fluxes[],
+#endif
+		      MultiFab fluxes[],
+		      Real time, Real dt);
+
     void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			       MultiFab& sources_for_hydro,
 			       int amr_iteration, int amr_ncycle,
