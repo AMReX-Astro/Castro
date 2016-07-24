@@ -50,3 +50,7 @@ CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
 CEXE_headers += Diffusion.H
 endif
+
+ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
+CEXE_sources += Castro_hybrid.cpp
+endif

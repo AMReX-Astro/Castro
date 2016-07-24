@@ -3426,30 +3426,6 @@ Castro::add_force_to_sources(MultiFab& force, MultiFab& sources, MultiFab& state
 
 }
 
-#ifdef HYBRID_MOMENTUM
-void
-Castro::add_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
-{
-  int ng = state.nGrow();
-
-  BL_ASSERT(sources.nGrow() >= ng);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
-
-    const Box& bx = mfi.growntilebox(ng);
-
-    ca_hybrid_hydro_source(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			   BL_TO_FORTRAN_3D(state[mfi]),
-			   BL_TO_FORTRAN_3D(sources[mfi]));
-
-  }
-
-}
-#endif
-
 void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {

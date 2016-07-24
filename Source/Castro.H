@@ -491,7 +491,13 @@ public:
     void set_special_tagging_flag (Real time);
 
 #ifdef HYBRID_MOMENTUM
-    void add_hybrid_hydro_source (MultiFab& sources, MultiFab& state);
+    void construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro,
+				     MultiFab& S_old, Real time, Real dt);
+
+    void construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
+				     MultiFab& S_old, MultiFab& S_new, Real time, Real dt);
+
+    void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
 #endif
 
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);

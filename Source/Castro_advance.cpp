@@ -647,13 +647,8 @@ Castro::advance_hydro (Real time,
     MultiFab::Add(sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
 #endif
 
-    // Hybrid advection source terms
-
 #ifdef HYBRID_MOMENTUM
-    old_sources.set(hybrid_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
-    old_sources[hybrid_src].setVal(0.0,NUM_GROW);
-    add_hybrid_hydro_source(old_sources[hybrid_src], Sborder);
-    MultiFab::Add(sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,NUM_GROW);
+    construct_old_hybrid_source(old_sources, sources_for_hydro, Sborder, time, dt);
 #endif
 
 #ifdef ROTATION
@@ -1306,11 +1301,8 @@ Castro::advance_hydro (Real time,
     }
 
 #ifdef HYBRID_MOMENTUM
-    new_sources.set(hybrid_src, new MultiFab(grids,NUM_STATE,0));
-    new_sources[hybrid_src].setVal(0.0);
-    add_hybrid_hydro_source(new_sources[hybrid_src], S_new);
-    time_center_source_terms(S_new, old_sources[hybrid_src], new_sources[hybrid_src], dt);
-    MultiFab::Add(sources_for_hydro,new_sources[hybrid_src],0,0,NUM_STATE,0);
+    construct_new_hybrid_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, cur_time, dt);
+    apply_source_to_state(S_new, new_sources[hybrid_src], dt);
 #endif
 
     // Do the new-time diffusion source term and then add it to the
