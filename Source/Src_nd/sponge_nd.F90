@@ -141,7 +141,7 @@ contains
              snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, src(UMR:UMP), src(UMX:UMZ))
+             call add_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
 
              snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif
