@@ -2,13 +2,13 @@
 #include "Castro_F.H"
 
 void
-Castro::construct_old_sponge_source(PArray<MultiFab>& old_sources, Real time, Real dt)
+Castro::construct_old_sponge_source(Real time, Real dt)
 {
     update_sponge_params(&time);
 }
 
 void
-Castro::construct_new_sponge_source(PArray<MultiFab>& new_sources, Real time, Real dt)
+Castro::construct_new_sponge_source(Real time, Real dt)
 {
     update_sponge_params(&time);
 

@@ -241,16 +241,14 @@ public:
 
     void set_up_for_old_sources(Real time);
 
-    void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
+    void construct_old_sources(MultiFab& state,
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
 
     void set_up_for_new_sources(Real time);
 
-    void construct_new_sources(PArray<MultiFab>& old_sources,
-			       PArray<MultiFab>& new_sources,
-			       MultiFab fluxes[],
+    void construct_new_sources(MultiFab fluxes[],
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
@@ -260,16 +258,14 @@ public:
 				   MultiFab& src_new,
 				   Real dt = 1.0);
 
-    void construct_old_sponge_source(PArray<MultiFab>& old_sources, Real time, Real dt);
+    void construct_old_sponge_source(Real time, Real dt);
 
-    void construct_new_sponge_source(PArray<MultiFab>& new_sources, Real time, Real dt);
+    void construct_new_sponge_source(Real time, Real dt);
 
-    void construct_old_ext_source(PArray<MultiFab>& old_sources,
-				  MultiFab& S_old,
+    void construct_old_ext_source(MultiFab& S_old,
 				  Real time, Real dt);
 
-    void construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
-				  MultiFab& S_old, MultiFab& S_new,
+    void construct_new_ext_source(MultiFab& S_old, MultiFab& S_new,
 				  Real time, Real dt);
 
     void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
@@ -283,14 +279,9 @@ public:
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
 
-    void construct_old_gravity_source(PArray<MultiFab>& sources,
-				      MultiFab& S_old,
-				      Real time, Real dt);
+    void construct_old_gravity_source(MultiFab& S_old, Real time, Real dt);
 
-    void construct_new_gravity_source(PArray<MultiFab>& sources,
-				      MultiFab& S_old, MultiFab& S_new,
-				      MultiFab fluxes[],
-                                      Real time, Real dt);
+    void construct_new_gravity_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt);
 #endif
 
     //
@@ -417,14 +408,9 @@ public:
 				int sub_iteration, int sub_ncycle,
 				Real time, MultiFab& state);
 
-    void construct_old_rotation_source(PArray<MultiFab>& sources,
-				       MultiFab& S_old,
-				       Real time, Real dt);
+    void construct_old_rotation_source(MultiFab& S_old, Real time, Real dt);
 
-    void construct_new_rotation_source(PArray<MultiFab>& sources,
-				       MultiFab& S_old, MultiFab& S_new,
-				       MultiFab fluxes[],
-				       Real time, Real dt);
+    void construct_new_rotation_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt);
 
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
@@ -444,11 +430,9 @@ public:
                             Real dt);
 
 #ifdef DIFFUSION
-  void construct_old_diff_source(PArray<MultiFab>& old_sources,
-				 Real time, Real dt);
+  void construct_old_diff_source(Real time, Real dt);
 
-  void construct_new_diff_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
-				 Real time, Real dt);
+  void construct_new_diff_source(Real time, Real dt);
 
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
@@ -506,11 +490,9 @@ public:
     void set_special_tagging_flag (Real time);
 
 #ifdef HYBRID_MOMENTUM
-    void construct_old_hybrid_source(PArray<MultiFab>& old_sources,
-				     MultiFab& S_old, Real time, Real dt);
+    void construct_old_hybrid_source(MultiFab& S_old, Real time, Real dt);
 
-    void construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
-				     MultiFab& S_old, MultiFab& S_new, Real time, Real dt);
+    void construct_new_hybrid_source(MultiFab& S_old, MultiFab& S_new, Real time, Real dt);
 
     void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
 #endif
@@ -588,6 +570,12 @@ protected:
     // Source terms to the hydrodynamics solve.
     //
     MultiFab* sources_for_hydro;
+
+    //
+    // Non-hydro source terms.
+    //
+    PArray<MultiFab> old_sources;
+    PArray<MultiFab> new_sources;
 
     //
     //  Call extern/networks/.../network.f90::network_init()

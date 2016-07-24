@@ -9,8 +9,7 @@ using std::string;
 #include "Diffusion.H"
 
 void
-Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
-				  Real time, Real dt)
+Castro::construct_old_diff_source(Real time, Real dt)
 {
     add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
 
@@ -27,9 +26,7 @@ Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
 }
 
 void
-Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
-				  PArray<MultiFab>& new_sources,
-				  Real time, Real dt)
+Castro::construct_new_diff_source(Real time, Real dt)
 {
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
 

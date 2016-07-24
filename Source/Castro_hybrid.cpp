@@ -2,7 +2,7 @@
 #include "Castro_F.H"
 
 void
-Castro::construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& S_old, Real time, Real dt)
+Castro::construct_old_hybrid_source(MultiFab& S_old, Real time, Real dt)
 {
     int ng = S_old.nGrow();
 
@@ -17,9 +17,7 @@ Castro::construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& S_o
 
 
 void
-Castro::construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
-				    MultiFab& S_old, MultiFab& S_new,
-				    Real time, Real dt)
+Castro::construct_new_hybrid_source(MultiFab& S_old, MultiFab& S_new, Real time, Real dt)
 {
     int ng = S_new.nGrow();
 

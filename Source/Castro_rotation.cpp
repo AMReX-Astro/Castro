@@ -53,8 +53,7 @@ void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle,
 
 
 
-void Castro::construct_old_rotation_source(PArray<MultiFab>& sources,
-					   MultiFab& S_old,
+void Castro::construct_old_rotation_source(MultiFab& S_old,
 					   Real time, Real dt)
 {
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
@@ -85,7 +84,7 @@ void Castro::construct_old_rotation_source(PArray<MultiFab>& sources,
 		    BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		    BL_TO_FORTRAN_3D(rot_old[mfi]),
 		    BL_TO_FORTRAN_3D(S_old[mfi]),
-		    BL_TO_FORTRAN_3D(sources[rot_src][mfi]),
+		    BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
 		    BL_TO_FORTRAN_3D(volume[mfi]),
 		    ZFILL(dx),dt,&time,
 		    E_added,mom_added);
@@ -127,8 +126,7 @@ void Castro::construct_old_rotation_source(PArray<MultiFab>& sources,
 
 
 
-void Castro::construct_new_rotation_source(PArray<MultiFab>& sources,
-					   MultiFab& S_old, MultiFab& S_new,
+void Castro::construct_new_rotation_source(MultiFab& S_old, MultiFab& S_new,
 					   MultiFab fluxes[],
 					   Real time, Real dt)
 {
@@ -169,7 +167,7 @@ void Castro::construct_new_rotation_source(PArray<MultiFab>& sources,
 			    BL_TO_FORTRAN_3D(rot_new[mfi]),
 			    BL_TO_FORTRAN_3D(S_old[mfi]),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    BL_TO_FORTRAN_3D(sources[rot_src][mfi]),
+			    BL_TO_FORTRAN_3D(new_sources[rot_src][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),

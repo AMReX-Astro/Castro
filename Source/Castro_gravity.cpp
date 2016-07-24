@@ -146,9 +146,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle,
 }
 
 
-void Castro::construct_old_gravity_source(PArray<MultiFab>& sources,
-					  MultiFab& S_old,
-					  Real time, Real dt)
+void Castro::construct_old_gravity_source(MultiFab& S_old, Real time, Real dt)
 {
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -181,7 +179,7 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources,
 		    BL_TO_FORTRAN_3D(phi_old[mfi]),
 		    BL_TO_FORTRAN_3D(grav_old[mfi]),
 		    BL_TO_FORTRAN_3D(S_old[mfi]),
-		    BL_TO_FORTRAN_3D(sources[grav_src][mfi]),
+		    BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 		    BL_TO_FORTRAN_3D(volume[mfi]),
 		    ZFILL(dx),dt,&time,
 		    E_added,mom_added);
@@ -226,10 +224,7 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources,
 
 
 
-void Castro::construct_new_gravity_source(PArray<MultiFab>& sources,
-					  MultiFab& S_old, MultiFab& S_new,
-					  MultiFab fluxes[],
-					  Real time, Real dt)
+void Castro::construct_new_gravity_source(MultiFab& S_old, MultiFab& S_new, MultiFab fluxes[], Real time, Real dt)
 {
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -266,7 +261,7 @@ void Castro::construct_new_gravity_source(PArray<MultiFab>& sources,
 			    BL_TO_FORTRAN_3D(grav_new[mfi]),
 			    BL_TO_FORTRAN_3D(S_old[mfi]),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    BL_TO_FORTRAN_3D(sources[grav_src][mfi]),
+			    BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),

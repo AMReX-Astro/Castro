@@ -338,9 +338,6 @@ Castro::advance_hydro (Real time,
 
     // These arrays hold all source terms that update the state.
 
-    PArray<MultiFab> old_sources(num_src, PArrayManage);
-    PArray<MultiFab> new_sources(num_src, PArrayManage);
-
     for (int n = 0; n < num_src; ++n) {
         old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
         new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
@@ -481,7 +478,7 @@ Castro::advance_hydro (Real time,
 
     // Construct the old-time sources.
 
-    construct_old_sources(Sborder, old_sources,
+    construct_old_sources(Sborder,
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  prev_time, dt);
@@ -535,9 +532,7 @@ Castro::advance_hydro (Real time,
 
     // Construct the new-time source terms.
 
-    construct_new_sources(old_sources,
-			  new_sources,
-			  fluxes,
+    construct_new_sources(fluxes,
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  cur_time, dt);
@@ -600,6 +595,9 @@ Castro::advance_hydro (Real time,
 #endif
 
     delete sources_for_hydro;
+
+    old_sources.clear();
+    new_sources.clear();
 
 #ifndef LEVELSET
     delete [] u_gdnv;
