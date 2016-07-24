@@ -3732,7 +3732,6 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 
 void
 Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
-			      MultiFab& sources_for_hydro,
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
 			      Real time, Real dt)
@@ -3742,19 +3741,19 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
         construct_old_sponge_source(old_sources, time, dt);
 
     if (add_ext_src)
-        construct_old_ext_source(old_sources, sources_for_hydro, state, time, dt);
+        construct_old_ext_source(old_sources, state, time, dt);
 
 #ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_gravity_source(old_sources, sources_for_hydro, state, time, dt);
+    construct_old_gravity_source(old_sources, state, time, dt);
 #endif
 
 #ifdef DIFFUSION
-    construct_old_diff_source(old_sources, sources_for_hydro, time, dt);
+    construct_old_diff_source(old_sources, time, dt);
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    construct_old_hybrid_source(old_sources, sources_for_hydro, state, time, dt);
+    construct_old_hybrid_source(old_sources, state, time, dt);
 #endif
 
 #ifdef ROTATION
@@ -3762,14 +3761,13 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			   sub_iteration, sub_ncycle,
 			   time, state);
 
-    construct_old_rotation_source(old_sources, sources_for_hydro, state, time, dt);
+    construct_old_rotation_source(old_sources, state, time, dt);
 #endif
 
 }
 
 void
 Castro::construct_new_sources(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
-			      MultiFab& sources_for_hydro,
 			      MultiFab fluxes[],
 			      int amr_iteration, int amr_ncycle,
 			      int sub_iteration, int sub_ncycle,
@@ -3782,26 +3780,26 @@ Castro::construct_new_sources(PArray<MultiFab>& old_sources, PArray<MultiFab>& n
         construct_new_sponge_source(new_sources, time, dt);
 
     if (add_ext_src)
-      construct_new_ext_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, time, dt);
+      construct_new_ext_source(old_sources, new_sources, S_old, S_new, time, dt);
 
 #ifdef HYBRID_MOMENTUM
-    construct_new_hybrid_source(old_sources, new_sources, sources_for_hydro, S_old, S_new, time, dt);
+    construct_new_hybrid_source(old_sources, new_sources, S_old, S_new, time, dt);
 #endif
 
 #ifdef DIFFUSION
-    construct_new_diff_source(old_sources, new_sources, sources_for_hydro,time, dt);
+    construct_new_diff_source(old_sources, new_sources, time, dt);
 #endif
 
 #ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 
-    construct_new_gravity_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, time, dt);
+    construct_new_gravity_source(new_sources, S_old, S_new, fluxes, time, dt);
 #endif
 
 #ifdef ROTATION
     construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time, S_new);
 
-    construct_new_rotation_source(new_sources, sources_for_hydro, S_old, S_new, fluxes, time, dt);
+    construct_new_rotation_source(new_sources, S_old, S_new, fluxes, time, dt);
 #endif
 }
 

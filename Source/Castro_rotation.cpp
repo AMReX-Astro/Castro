@@ -53,7 +53,7 @@ void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle,
 
 
 
-void Castro::construct_old_rotation_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+void Castro::construct_old_rotation_source(PArray<MultiFab>& sources,
 					   MultiFab& S_old,
 					   Real time, Real dt)
 {
@@ -119,8 +119,7 @@ void Castro::construct_old_rotation_source(PArray<MultiFab>& sources, MultiFab& 
 #endif
         }
 
-	if (do_rotation)
-	  add_force_to_sources(rot_old, sources_for_hydro, S_old);
+	add_force_to_sources(rot_old, *sources_for_hydro, S_old);
 
     }
 
@@ -128,7 +127,7 @@ void Castro::construct_old_rotation_source(PArray<MultiFab>& sources, MultiFab& 
 
 
 
-void Castro::construct_new_rotation_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+void Castro::construct_new_rotation_source(PArray<MultiFab>& sources,
 					   MultiFab& S_old, MultiFab& S_new,
 					   MultiFab fluxes[],
 					   Real time, Real dt)
@@ -211,7 +210,7 @@ void Castro::construct_new_rotation_source(PArray<MultiFab>& sources, MultiFab& 
 	// If not, don't bother because sources isn't actually used in the update after this point.
 
 	if (source_term_predictor == 1)
-	  add_force_to_sources(rot_new, sources_for_hydro, S_new);
+	  add_force_to_sources(rot_new, *sources_for_hydro, S_new);
 
     }
 

@@ -10,7 +10,6 @@ using std::string;
 
 void
 Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
-				  MultiFab& sources_for_hydro,
 				  Real time, Real dt)
 {
     add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
@@ -24,13 +23,12 @@ Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
 
     // Add to the hydro source terms.
 
-    MultiFab::Add(sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
+    MultiFab::Add(*sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
 }
 
 void
 Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 				  PArray<MultiFab>& new_sources,
-				  MultiFab& sources_for_hydro,
 				  Real time, Real dt)
 {
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
@@ -51,7 +49,8 @@ Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 
     // Add to the hydro source terms.
 
-    MultiFab::Add(sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
+    if (source_term_predictor == 1)
+        MultiFab::Add(*sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
 
 }
 

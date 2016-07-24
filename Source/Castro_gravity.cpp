@@ -146,7 +146,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle,
 }
 
 
-void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+void Castro::construct_old_gravity_source(PArray<MultiFab>& sources,
 					  MultiFab& S_old,
 					  Real time, Real dt)
 {
@@ -218,8 +218,7 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 #endif
         }
 
-	if (do_grav)
-	  add_force_to_sources(grav_old, sources_for_hydro, S_old);
+	add_force_to_sources(grav_old, *sources_for_hydro, S_old);
 
     }
 
@@ -227,7 +226,7 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 
 
 
-void Castro::construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& sources_for_hydro,
+void Castro::construct_new_gravity_source(PArray<MultiFab>& sources,
 					  MultiFab& S_old, MultiFab& S_new,
 					  MultiFab fluxes[],
 					  Real time, Real dt)
@@ -312,7 +311,7 @@ void Castro::construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 	// If not, don't bother because sources isn't actually used in the update after this point.
 
 	if (source_term_predictor == 1)
-	  add_force_to_sources(grav_new, sources_for_hydro, S_new);
+	  add_force_to_sources(grav_new, *sources_for_hydro, S_new);
 
     }
 }

@@ -2,21 +2,21 @@
 #include "Castro_F.H"
 
 void
-Castro::construct_old_ext_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro, MultiFab& S_old, Real time, Real dt)
+Castro::construct_old_ext_source(PArray<MultiFab>& old_sources, MultiFab& S_old, Real time, Real dt)
 {
     int ng = S_old.nGrow();
 
     if (add_ext_src) {
       fill_ext_source(time, dt, S_old, S_old, old_sources[ext_src], ng);
       BoxLib::fill_boundary(old_sources[ext_src], geom);
-      MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
+      MultiFab::Add(*sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
     }
 }
 
 
 
 void
-Castro::construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
+Castro::construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
 				 MultiFab& S_old, MultiFab& S_new, Real time, Real dt)
 {
     int ng = S_new.nGrow();
@@ -30,7 +30,9 @@ Castro::construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>
       new_sources[ext_src].mult( 0.5);
 
       MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,ng);
-      MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
+
+      if (source_term_predictor == 1)
+          MultiFab::Add(*sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,ng);
 
       old_sources[ext_src].mult(-2.0);
     }

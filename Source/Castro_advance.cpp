@@ -377,8 +377,8 @@ Castro::advance_hydro (Real time,
     // hydro update to store the sum of the new-time sources, so that we can
     // compute the time derivative of the source terms.
 
-    MultiFab sources_for_hydro(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_for_hydro.setVal(0.0,NUM_GROW);
+    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro->setVal(0.0,NUM_GROW);
 
     // Reset the change from density resets
 
@@ -499,7 +499,6 @@ Castro::advance_hydro (Real time,
     // Construct the old-time sources.
 
     construct_old_sources(Sborder, old_sources,
-			  sources_for_hydro,
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  prev_time, dt);
@@ -522,7 +521,7 @@ Castro::advance_hydro (Real time,
 
       dSdt_new.mult(dt / 2.0, NUM_GROW);
 
-      MultiFab::Add(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
     }
 
@@ -530,7 +529,6 @@ Castro::advance_hydro (Real time,
 
     hydro_update(Sborder,
 		 hydro_source,
-		 sources_for_hydro,
 #ifdef RADIATION
 		 rad_fluxes,
 #endif
@@ -549,13 +547,12 @@ Castro::advance_hydro (Real time,
 
     // Preliminary steps before constructing the new sources.
 
-    set_up_for_new_sources(sources_for_hydro, cur_time);
+    set_up_for_new_sources(cur_time);
 
     // Construct the new-time source terms.
 
     construct_new_sources(old_sources,
 			  new_sources,
-			  sources_for_hydro,
 			  fluxes,
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
@@ -578,7 +575,7 @@ Castro::advance_hydro (Real time,
 
       // Calculate the time derivative of the source terms.
 
-      MultiFab::Add(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
+      MultiFab::Add(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
 
       dSdt_new.mult(1.0/dt);
 
@@ -617,6 +614,8 @@ Castro::advance_hydro (Real time,
 
     }
 #endif
+
+    delete sources_for_hydro;
 
 #ifndef LEVELSET
     delete [] u_gdnv;
@@ -852,7 +851,6 @@ Castro::advance_no_hydro (Real time,
 void
 Castro::hydro_update(MultiFab& Sborder,
 		     MultiFab& hydro_source,
-		     MultiFab& sources_for_hydro,
 #ifdef RADIATION
 		     MultiFab rad_fluxes[],
 #endif
@@ -959,7 +957,7 @@ Castro::hydro_update(MultiFab& Sborder,
 		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
 			    BL_TO_FORTRAN(ugdn[1]),
 			    BL_TO_FORTRAN(ugdn[2])),
-		     BL_TO_FORTRAN(sources_for_hydro[mfi]),
+		     BL_TO_FORTRAN((*sources_for_hydro)[mfi]),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
@@ -1102,7 +1100,7 @@ Castro::hydro_update(MultiFab& Sborder,
 		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
 			    BL_TO_FORTRAN(ugdn[1]),
 			    BL_TO_FORTRAN(ugdn[2])),
-		     BL_TO_FORTRAN(sources_for_hydro[mfi]),
+		     BL_TO_FORTRAN((*sources_for_hydro)[mfi]),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
@@ -1311,7 +1309,7 @@ Castro::set_up_for_old_sources(Real time)
 
 
 void
-Castro::set_up_for_new_sources(MultiFab& sources_for_hydro, Real time)
+Castro::set_up_for_new_sources(Real time)
 {
 
     // Now we'll start updating the dSdt MultiFab. First,
@@ -1321,12 +1319,12 @@ Castro::set_up_for_new_sources(MultiFab& sources_for_hydro, Real time)
 
     if (source_term_predictor == 1) {
       MultiFab& dSdt_new = get_new_data(Source_Type);
-      MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Subtract(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
       dSdt_new.setVal(0.0, NUM_GROW);
-      MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
+      MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
     }
 
-    sources_for_hydro.setVal(0.0,NUM_GROW);
+    sources_for_hydro->setVal(0.0,NUM_GROW);
 
     MultiFab& S_new = get_new_data(State_Type);
 

@@ -2,7 +2,7 @@
 #include "Castro_F.H"
 
 void
-Castro::construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro, MultiFab& S_old, Real time, Real dt)
+Castro::construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& S_old, Real time, Real dt)
 {
     int ng = S_old.nGrow();
 
@@ -10,14 +10,14 @@ Castro::construct_old_hybrid_source(PArray<MultiFab>& old_sources, MultiFab& sou
 
     // Add to the hydro source terms.
 
-    MultiFab::Add(sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
+    MultiFab::Add(*sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
 
 }
 
 
 
 void
-Castro::construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
+Castro::construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources,
 				    MultiFab& S_old, MultiFab& S_new,
 				    Real time, Real dt)
 {
@@ -36,7 +36,8 @@ Castro::construct_new_hybrid_source(PArray<MultiFab>& old_sources, PArray<MultiF
 
     // Add to the hydro source terms.
 
-    MultiFab::Add(sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
+    if (source_term_predictor == 1)
+        MultiFab::Add(*sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
 
 }
 
