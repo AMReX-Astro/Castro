@@ -247,11 +247,15 @@ public:
 
     void check_for_nan(MultiFab& state);
 
+    void set_up_for_old_sources(Real time);
+
     void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 			       MultiFab& sources_for_hydro,
 			       int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time, Real dt);
+
+    void set_up_for_new_sources(MultiFab& sources_for_hydro, Real time);
 
     void construct_new_sources(PArray<MultiFab>& old_sources,
 			       PArray<MultiFab>& new_sources,

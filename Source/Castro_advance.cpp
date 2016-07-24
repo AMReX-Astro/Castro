@@ -415,11 +415,6 @@ Castro::advance_hydro (Real time,
 
     check_for_nan(S_old);
 
-#ifdef GRAVITY
-    if (moving_center == 1)
-       define_new_center(S_old,time);
-#endif
-
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
     if (do_radiation) {
@@ -432,22 +427,6 @@ Castro::advance_hydro (Real time,
     }
     S_old.setBndry(0.0);
     S_new.setBndry(0.0);
-#endif
-
-#if (BL_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       swap_outflow_data();
-       int is_new = 0;
-       make_radial_data(is_new);
-    }
-#endif
-
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff = new MultiFab(grids,1,NUM_GROW);
-    tau_diff->setVal(0.);
-    define_tau(grav_old,time);
-#endif
 #endif
 
     MultiFab fluxes[3];
@@ -478,12 +457,9 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-#ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
-#endif
+    // Do preliminary steps for constructing old-time sources.
+
+    set_up_for_old_sources(time);
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
@@ -571,47 +547,9 @@ Castro::advance_hydro (Real time,
 
     check_for_nan(S_new);
 
-    // Now we'll start updating the dSdt MultiFab. First,
-    // get rid of the dt/2 * dS/dt that we added from the last
-    // timestep, then subtract the old sources data to get the
-    // first half of the update for the next calculation of dS/dt.
-
-    if (source_term_predictor == 1) {
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-      MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
-      dSdt_new.setVal(0.0, NUM_GROW);
-      MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
-    }
-
-    sources_for_hydro.setVal(0.0,NUM_GROW);
-
     // Preliminary steps before constructing the new sources.
 
-#ifdef GRAVITY
-    // Must define new value of "center" before we call new gravity solve or external source routine
-    if (moving_center == 1)
-       define_new_center(S_new,cur_time);
-#endif
-
-#if (BL_SPACEDIM > 1)
-      // We need to make the new radial data now so that we can use it when we
-      //   FillPatch in creating the new source
-      if ( (level == 0) && (spherical_star == 1) ) {
-	  int is_new = 1;
-	  make_radial_data(is_new);
-      }
-#endif
-
-#ifdef DIFFUSION
-    NewTempDiffTerm = OldTempDiffTerm;
-    NewSpecDiffTerm = OldSpecDiffTerm;
-    NewViscousTermforMomentum = OldViscousTermforMomentum;
-    NewViscousTermforEnergy   = OldViscousTermforEnergy;
-#endif
-
-    // Compute the current temperature for use in the source term evaluation.
-
-    computeTemp(S_new);
+    set_up_for_new_sources(sources_for_hydro, cur_time);
 
     // Construct the new-time source terms.
 
@@ -622,6 +560,8 @@ Castro::advance_hydro (Real time,
 			  amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  cur_time, dt);
+
+    // Apply the new-time sources to the state.
 
     for (int n = 0; n < num_src; ++n)
         apply_source_to_state(S_new, new_sources[n], dt);
@@ -1327,5 +1267,93 @@ Castro::hydro_update(MultiFab& Sborder,
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+
+}
+
+
+
+void
+Castro::set_up_for_old_sources(Real time)
+{
+
+    MultiFab& S_old = get_old_data(State_Type);
+
+#ifdef GRAVITY
+    if (moving_center == 1)
+       define_new_center(S_old,time);
+#endif
+
+#if (BL_SPACEDIM > 1)
+    if ( (level == 0) && (spherical_star == 1) ) {
+       swap_outflow_data();
+       int is_new = 0;
+       make_radial_data(is_new);
+    }
+#endif
+
+#ifdef DIFFUSION
+#ifdef TAU
+    tau_diff = new MultiFab(grids,1,NUM_GROW);
+    tau_diff->setVal(0.);
+    define_tau(grav_old,time);
+#endif
+#endif
+
+#ifdef DIFFUSION
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+#endif
+
+}
+
+
+
+void
+Castro::set_up_for_new_sources(MultiFab& sources_for_hydro, Real time)
+{
+
+    // Now we'll start updating the dSdt MultiFab. First,
+    // get rid of the dt/2 * dS/dt that we added from the last
+    // timestep, then subtract the old sources data to get the
+    // first half of the update for the next calculation of dS/dt.
+
+    if (source_term_predictor == 1) {
+      MultiFab& dSdt_new = get_new_data(Source_Type);
+      MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      dSdt_new.setVal(0.0, NUM_GROW);
+      MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
+    }
+
+    sources_for_hydro.setVal(0.0,NUM_GROW);
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef GRAVITY
+    // Must define new value of "center" before we call new gravity solve or external source routine
+    if (moving_center == 1)
+       define_new_center(S_new,time);
+#endif
+
+#if (BL_SPACEDIM > 1)
+      // We need to make the new radial data now so that we can use it when we
+      //   FillPatch in creating the new source
+      if ( (level == 0) && (spherical_star == 1) ) {
+	  int is_new = 1;
+	  make_radial_data(is_new);
+      }
+#endif
+
+#ifdef DIFFUSION
+    NewTempDiffTerm = OldTempDiffTerm;
+    NewSpecDiffTerm = OldSpecDiffTerm;
+    NewViscousTermforMomentum = OldViscousTermforMomentum;
+    NewViscousTermforEnergy   = OldViscousTermforEnergy;
+#endif
+
+    // Compute the current temperature for use in the source term evaluation.
+
+    computeTemp(S_new);
 
 }
