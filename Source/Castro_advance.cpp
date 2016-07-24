@@ -440,49 +440,10 @@ Castro::advance_hydro (Real time,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    MultiFab Sborder(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    MultiFab Sborder(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    expand_state(Sborder, prev_time, NUM_GROW);
 
-    AmrLevel::FillPatch(*this,Sborder,NUM_GROW,prev_time,State_Type,0,NUM_STATE);
-
-    // The linear-combination-preserving state interpolater can sometimes generate
-    // negative densities. Run it through the enforce_minimum_density routine
-    // to deal with that.
-
-    if (state_interp_order == 1 && lin_limit_state_interp == 1) {
-
-      MultiFab Sborder_copy(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-      MultiFab::Copy(Sborder_copy,Sborder,0,0,NUM_STATE,NUM_GROW);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi) {
-
-	Real mass_added = 0.;
-	Real e_added = 0.;
-	Real E_added = 0.;
-	Real dens_change = 0.;
-
-	const Box& bx = mfi.tilebox();
-
-	FArrayBox& stateold = Sborder_copy[mfi];
-	FArrayBox& statenew = Sborder[mfi];
-	FArrayBox& vol      = volume[mfi];
-
-	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				&mass_added, &e_added, &E_added, &dens_change,
-				&verbose);
-
-      }
-
-    }
-
-    // It's also possible for interpolation to create very small negative values for species.
-
-    enforce_nonnegative_species(Sborder);
+    // Construct the old-time sponge source.
 
     if (do_sponge)
       construct_old_sponge_source(old_sources, time, dt);

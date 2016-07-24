@@ -519,6 +519,8 @@ public:
 
     void apply_source_to_state (MultiFab& state, MultiFab& source, Real dt);
 
+    void expand_state(MultiFab& Sborder, Real time, int ng);
+
     void make_radial_data (int is_new);
 
 #ifdef LEVELSET
