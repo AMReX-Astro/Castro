@@ -27,16 +27,19 @@ Castro::construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>
     new_sources.set(ext_src, new MultiFab(grids,NUM_STATE,ng));
     new_sources[ext_src].setVal(0.0,ng);
 
-    fill_ext_source(time, dt, S_old, S_new, new_sources[ext_src], ng);
+    if (add_ext_src) {
+      fill_ext_source(time, dt, S_old, S_new, new_sources[ext_src], ng);
 
-    // Time center the source term.
+      // Time center the source term.
 
-    old_sources[ext_src].mult(-0.5);
-    new_sources[ext_src].mult( 0.5);
+      old_sources[ext_src].mult(-0.5);
+      new_sources[ext_src].mult( 0.5);
 
-    MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,0);
+      MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,ng);
+      MultiFab::Add(sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
 
-    old_sources[ext_src].mult(-2.0);
+      old_sources[ext_src].mult(-2.0);
+    }
 
 }
 
