@@ -229,6 +229,10 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
+    void initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
+
+    void finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
+
     void hydro_update(Real time, Real dt);
 
     void check_for_nan(MultiFab& state);
@@ -576,6 +580,11 @@ protected:
     //
     PArray<MultiFab> old_sources;
     PArray<MultiFab> new_sources;
+
+    //
+    // State data to hold if we want to do a retry.
+    //
+    PArray<StateData> prev_state;
 
     //
     //  Call extern/networks/.../network.f90::network_init()

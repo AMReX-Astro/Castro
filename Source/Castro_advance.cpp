@@ -37,132 +37,10 @@ Castro::advance (Real time,
 
     Real dt_new = dt;
 
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
-
-    // The option of whether to do a multilevel initialization is
-    // controlled within the radiation class.  This step belongs
-    // before the swap.
-
-#ifdef RADIATION
-    if (do_radiation)
-        radiation->pre_timestep(level);
-#endif
-
-    // Swap the new data from the last timestep into the old state data.
-    // If we're on level 0, do it for all levels below this one as well.
-    // Or, if we're on a later iteration at a finer timestep, swap for all
-    // lower time levels as well.
-
-    if (level == 0 || amr_iteration > 1) {
-
-        for (int lev = level; lev <= parent->finestLevel(); lev++) {
-
-	    Real dt_lev = parent->dtLevel(lev);
-            for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	        // The following is a hack to make sure that
-	        // we only ever have new data for the Source_Type;
-	        // by doing a swap now, we'll guarantee that
-	        // allocOldData() does nothing. We do this because
-	        // we never need the old data, so we don't want to
-	        // allocate memory for it.
-
-	        if (k == Source_Type) {
-		  getLevel(lev).state[k].swapTimeLevels(0.0);
-		}
-
-	        getLevel(lev).state[k].allocOldData();
-                getLevel(lev).state[k].swapTimeLevels(dt_lev);
-            }
-
-#ifdef GRAVITY
-	    if (do_grav)
-               gravity->swapTimeLevels(lev);
-#endif
-
-        }
-    }
-
-    // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
-
-    PArray<StateData> prev_state(NUM_STATE_TYPE,PArrayManage);
+    initialize_advance(time, dt, amr_iteration, amr_ncycle);
 
     int sub_iteration = 0;
     int sub_ncycle = 0;
-
-    if (use_retry) {
-
-      // Store the old and new time levels.
-
-      for (int k = 0; k < NUM_STATE_TYPE; k++) {
-
-	prev_state.set(k, new StateData());
-
-	StateData::Initialize(prev_state[k], state[k]);
-
-      }
-
-    }
-
-    // Reset the grid loss tracking.
-
-    if (track_grid_losses)
-      for (int i = 0; i < n_lost; i++)
-	material_lost_through_boundary_temp[i] = 0.0;
-
-    // These arrays hold all source terms that update the state.
-
-    for (int n = 0; n < num_src; ++n) {
-        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-        new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
-
-	old_sources[n].setVal(0.0);
-	new_sources[n].setVal(0.0);
-    }
-
-    // This array holds the hydrodynamics update.
-
-    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
-
-    hydro_source->setVal(0.0);
-
-    // This array holds the sum of all source terms that affect the hydrodynamics.
-    // If we are doing the source term predictor, we'll also use this after the
-    // hydro update to store the sum of the new-time sources, so that we can
-    // compute the time derivative of the source terms.
-
-    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_for_hydro->setVal(0.0,NUM_GROW);
-
-    for (int j = 0; j < BL_SPACEDIM; j++)
-    {
-        fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
-        fluxes[j]->setVal(0.0);
-    }
-
-    for (int j = BL_SPACEDIM; j < 3; j++)
-    {
-        BoxArray ba = get_new_data(State_Type).boxArray();
-	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
-	fluxes[j]->setVal(0.0);
-    }
-
-#ifdef RADIATION
-    MultiFab& Er_new = get_new_data(Rad_Type);
-    if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	    rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
-	}
-    }
-#endif
-
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-	u_gdnv[dir] = new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate);
-	u_gdnv[dir]->setVal(1.e40,1);
-    }
 
     // Do the advance.
 
@@ -374,35 +252,7 @@ Castro::advance (Real time,
     UpdateParticles(amr_iteration, time, dt);
 #endif
 
-    delete hydro_source;
-    delete sources_for_hydro;
-
-    old_sources.clear();
-    new_sources.clear();
-
-    for (int n = 0; n < 3; ++n)
-        delete fluxes[n];
-
-#ifdef RADIATION
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-        delete rad_fluxes[n];
-#endif
-
-#ifndef LEVELSET
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-        delete u_gdnv[n];
-#endif
-
-#ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
-#endif
-
-#ifdef TAU
-    delete tau_diff;
-#endif
+    finalize_advance(time, dt, amr_iteration, amr_ncycle);
 
     return dt_new;
 }
@@ -1110,5 +960,174 @@ Castro::set_up_for_new_sources(Real time)
     // Compute the current temperature for use in the source term evaluation.
 
     computeTemp(S_new);
+
+}
+
+
+
+void
+Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+{
+    // Pass some information about the state of the simulation to a Fortran module.
+
+    set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
+
+    // The option of whether to do a multilevel initialization is
+    // controlled within the radiation class.  This step belongs
+    // before the swap.
+
+#ifdef RADIATION
+    if (do_radiation)
+        radiation->pre_timestep(level);
+#endif
+
+    // Swap the new data from the last timestep into the old state data.
+    // If we're on level 0, do it for all levels below this one as well.
+    // Or, if we're on a later iteration at a finer timestep, swap for all
+    // lower time levels as well.
+
+    if (level == 0 || amr_iteration > 1) {
+
+        for (int lev = level; lev <= parent->finestLevel(); lev++) {
+
+	    Real dt_lev = parent->dtLevel(lev);
+            for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	        // The following is a hack to make sure that
+	        // we only ever have new data for the Source_Type;
+	        // by doing a swap now, we'll guarantee that
+	        // allocOldData() does nothing. We do this because
+	        // we never need the old data, so we don't want to
+	        // allocate memory for it.
+
+	        if (k == Source_Type) {
+		  getLevel(lev).state[k].swapTimeLevels(0.0);
+		}
+
+	        getLevel(lev).state[k].allocOldData();
+                getLevel(lev).state[k].swapTimeLevels(dt_lev);
+            }
+
+#ifdef GRAVITY
+	    if (do_grav)
+               gravity->swapTimeLevels(lev);
+#endif
+
+        }
+    }
+
+    // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
+
+    if (use_retry) {
+
+      // Store the old and new time levels.
+
+      for (int k = 0; k < NUM_STATE_TYPE; k++) {
+
+	prev_state.set(k, new StateData());
+
+	StateData::Initialize(prev_state[k], state[k]);
+
+      }
+
+    }
+
+    // Reset the grid loss tracking.
+
+    if (track_grid_losses)
+      for (int i = 0; i < n_lost; i++)
+	material_lost_through_boundary_temp[i] = 0.0;
+
+    // These arrays hold all source terms that update the state.
+
+    for (int n = 0; n < num_src; ++n) {
+        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+        new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
+
+	old_sources[n].setVal(0.0);
+	new_sources[n].setVal(0.0);
+    }
+
+    // This array holds the hydrodynamics update.
+
+    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
+
+    hydro_source->setVal(0.0);
+
+    // This array holds the sum of all source terms that affect the hydrodynamics.
+    // If we are doing the source term predictor, we'll also use this after the
+    // hydro update to store the sum of the new-time sources, so that we can
+    // compute the time derivative of the source terms.
+
+    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro->setVal(0.0,NUM_GROW);
+
+    for (int j = 0; j < BL_SPACEDIM; j++)
+    {
+        fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
+        fluxes[j]->setVal(0.0);
+    }
+
+    for (int j = BL_SPACEDIM; j < 3; j++)
+    {
+        BoxArray ba = get_new_data(State_Type).boxArray();
+	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
+	fluxes[j]->setVal(0.0);
+    }
+
+#ifdef RADIATION
+    MultiFab& Er_new = get_new_data(Rad_Type);
+    if (Radiation::rad_hydro_combined) {
+        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+	    rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
+	}
+    }
+#endif
+
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+	u_gdnv[dir] = new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate);
+	u_gdnv[dir]->setVal(1.e40,1);
+    }
+
+}
+
+
+
+void
+Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+{
+
+    delete hydro_source;
+    delete sources_for_hydro;
+
+    old_sources.clear();
+    new_sources.clear();
+
+    for (int n = 0; n < 3; ++n)
+        delete fluxes[n];
+
+#ifdef RADIATION
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+        delete rad_fluxes[n];
+#endif
+
+#ifndef LEVELSET
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+        delete u_gdnv[n];
+#endif
+
+    prev_state.clear();
+
+#ifdef DIFFUSION
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+#endif
+
+#ifdef TAU
+    delete tau_diff;
+#endif
 
 }

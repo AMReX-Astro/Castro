@@ -454,7 +454,8 @@ Castro::Castro (Amr&            papa,
     fluxes(3),
     u_gdnv(BL_SPACEDIM),
     old_sources(num_src, PArrayManage),
-    new_sources(num_src, PArrayManage)
+    new_sources(num_src, PArrayManage),
+    prev_state(NUM_STATE_TYPE, PArrayManage)
 {
     buildMetrics();
 
