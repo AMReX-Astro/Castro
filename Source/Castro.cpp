@@ -2415,114 +2415,6 @@ Castro::reinit_phi(Real time)
 
 #endif
 
-void
-Castro::time_center_source_terms(MultiFab& S_new, MultiFab& ext_src_old, MultiFab &ext_src_new, Real dt)
-{
-    BL_PROFILE("Castro::time_center_source_terms()");
-
-    // Subtract off half of the old source term, and add half of the new.
-
-    ext_src_old.mult(-0.5*dt);
-    ext_src_new.mult( 0.5*dt);
-    
-    MultiFab::Add(S_new,ext_src_old,0,0,S_new.nComp(),0);
-    MultiFab::Add(S_new,ext_src_new,0,0,S_new.nComp(),0);
-
-    // Return the source terms to their original form.
-
-    if (dt > 0.0) {
-      ext_src_old.mult(1.0/(-0.5*dt));
-      ext_src_new.mult(1.0/( 0.5*dt));
-    }
-}
-
-#ifdef SGS
-void
-Castro::getSource (Real time, Real dt, MultiFab& state, MultiFab& ext_src, MultiFab& sgs_state, MultiFab* sgs_fluxes)
-{
-   const Real* dx = geom.CellSize();
-
-   ext_src.setVal(0.0,ext_src.nGrow());
-
-   sgs_state.setVal(0.0);
-
-   // Set these to zero so we always add them up correctly
-   for (int dir = 0; dir < BL_SPACEDIM; dir++) 
-       sgs_fluxes[dir].setVal(0.0);
-
-   // We need to use temporary FABs to hold the fluxes for the old source
-   //   because sgs_fluxes has no ghost cells but the fluxes array in the ext_src routine
-   //   needs to have a layer of ghost cells for fluxes
-   FArrayBox fluxx, fluxy, fluxz;
-
-   for (MFIter mfi(ext_src); mfi.isValid(); ++mfi)
-   {
-        const Box& bx = grids[mfi.index()];
-	
-        Box bxx = bx; bxx.surroundingNodes(0); bxx.grow(1);
-        fluxx.resize(bxx,NUM_STATE);
-
-        Box bxy = bx; bxy.surroundingNodes(1); bxy.grow(1);
-        fluxy.resize(bxy,NUM_STATE);
-
-        Box bxz = bx; bxz.surroundingNodes(2); bxz.grow(1);
-        fluxz.resize(bxz,NUM_STATE);
-
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(state[mfi]),
-	   BL_TO_FORTRAN(fluxx),
-	   BL_TO_FORTRAN(fluxy),
-	   BL_TO_FORTRAN(fluxz),
-	   BL_TO_FORTRAN(ext_src[mfi]),
-	   BL_TO_FORTRAN_N(sgs_mf[mfi],0),
-	   BL_TO_FORTRAN_N(sgs_mf[mfi],1),
-	   BL_TO_FORTRAN_N(sgs_mf[mfi],2),
-	   dx,&time,&dt);
-  
-        sgs_fluxes[0][mfi].copy(fluxx,0,0,NUM_STATE);
-        sgs_fluxes[1][mfi].copy(fluxy,0,0,NUM_STATE);
-        sgs_fluxes[2][mfi].copy(fluxz,0,0,NUM_STATE);
-   }
-   geom.FillPeriodicBoundary(ext_src,0,NUM_STATE);
-}
-
-#else
-
-void
-Castro::getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src, int ng)
-{
-   const Real* dx = geom.CellSize();
-   const Real* prob_lo = geom.ProbLo();
-
-   ext_src.setVal(0.0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-   for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
-     {
-       const Box& bx = mfi.growntilebox(ng);
-#ifdef DIMENSION_AGNOSTIC	   
-       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	 (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-	  BL_TO_FORTRAN_3D(state_old[mfi]),
-	  BL_TO_FORTRAN_3D(state_new[mfi]),
-	  BL_TO_FORTRAN_3D(ext_src[mfi]),
-	  ZFILL(prob_lo),ZFILL(dx),&time,&dt);
-#else	   
-       BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	 (bx.loVect(), bx.hiVect(),
-	  BL_TO_FORTRAN(state_old[mfi]),
-	  BL_TO_FORTRAN(state_new[mfi]),
-	  BL_TO_FORTRAN(ext_src[mfi]),
-	  prob_lo,dx,&time,&dt);
-#endif	   
-     }
-}
-
-#endif
-
 #ifdef DIFFUSION
 #ifdef TAU
 void
@@ -3572,6 +3464,27 @@ Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 	state[mfi].saxpy(dt,source[mfi],bx,bx,0,0,NUM_STATE);
 
     }
+}
+
+void
+Castro::time_center_source_terms(MultiFab& S_new, MultiFab& src_old, MultiFab &src_new, Real dt)
+{
+  BL_PROFILE("Castro::time_center_source_terms()");
+
+  // Subtract off half of the old source term, and add half of the new.
+
+  src_old.mult(-0.5*dt);
+  src_new.mult( 0.5*dt);
+
+  MultiFab::Add(S_new,src_old,0,0,S_new.nComp(),0);
+  MultiFab::Add(S_new,src_new,0,0,S_new.nComp(),0);
+
+  // Return the source terms to their original form.
+
+  if (dt > 0.0) {
+    src_old.mult(1.0/(-0.5*dt));
+    src_new.mult(1.0/( 0.5*dt));
+  }
 }
 
 void

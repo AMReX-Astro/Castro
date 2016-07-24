@@ -235,9 +235,19 @@ public:
 			   int  sub_ncycle);
 
     void time_center_source_terms (MultiFab& S_new,
-                                   MultiFab& ext_src_old,
-                                   MultiFab& ext_src_new,
-                                   Real dt);
+				   MultiFab& src_old,
+				   MultiFab& src_new,
+				   Real dt = 1.0);
+
+    void construct_old_ext_source(PArray<MultiFab>& old_sources, MultiFab& sources_for_hydro,
+				  MultiFab& S_old,
+				  Real time, Real dt);
+
+    void construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>& new_sources, MultiFab& sources_for_hydro,
+				  MultiFab& S_old, MultiFab& S_new,
+				  Real time, Real dt);
+
+    void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
 
 #ifdef GRAVITY
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
