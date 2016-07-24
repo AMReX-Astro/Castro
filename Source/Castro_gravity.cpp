@@ -153,17 +153,10 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
     sources.set(grav_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
     sources[grav_src].setVal(0.0, NUM_GROW);
 
-    const Real* dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
-
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
 
     // Gravitational source term for the time-level n data.
-
-    Real E_added_grav = 0.0;
-    Real mom_added[3] = { 0.0 };
 
     if (do_grav)
     {
@@ -173,8 +166,12 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const Real* dx = geom.CellSize();
+	const int* domlo = geom.Domain().loVect();
+	const int* domhi = geom.Domain().hiVect();
+
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
 	for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
 	{
@@ -190,7 +187,7 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 		    BL_TO_FORTRAN_3D(sources[grav_src][mfi]),
 		    BL_TO_FORTRAN_3D(volume[mfi]),
 		    ZFILL(dx),dt,&time,
-		    E_added_grav,mom_added);
+		    E_added,mom_added);
 
 	    xmom_added += mom_added[0];
 	    ymom_added += mom_added[1];
@@ -248,8 +245,6 @@ void Castro::construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& s
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
 
-    const Real *dx = geom.CellSize();
-
     if (do_grav) {
 
         Real E_added    = 0.;
@@ -257,6 +252,7 @@ void Castro::construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 	Real ymom_added = 0.;
 	Real zmom_added = 0.;
 
+	const Real *dx = geom.CellSize();
 	const int* domlo = geom.Domain().loVect();
 	const int* domhi = geom.Domain().hiVect();
 
