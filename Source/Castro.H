@@ -229,12 +229,7 @@ public:
 			int  sub_iteration,
 			int  sub_ncycle);
 
-    void hydro_update(MultiFab& hydro_source,
-#ifdef RADIATION
-		      MultiFab rad_fluxes[],
-#endif
-		      MultiFab fluxes[],
-		      Real time, Real dt);
+    void hydro_update(MultiFab& hydro_source, Real time, Real dt);
 
     void check_for_nan(MultiFab& state);
 
@@ -244,10 +239,7 @@ public:
 
     void set_up_for_new_sources(Real time);
 
-    void construct_new_sources(MultiFab fluxes[],
-			       int amr_iteration, int amr_ncycle,
-			       int sub_iteration, int sub_ncycle,
-			       Real time, Real dt);
+    void construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
     void time_center_source_terms (MultiFab& S_new,
 				   MultiFab& src_old,
@@ -275,7 +267,7 @@ public:
 
     void construct_old_gravity_source(Real time, Real dt);
 
-    void construct_new_gravity_source(MultiFab fluxes[], Real time, Real dt);
+    void construct_new_gravity_source(Real time, Real dt);
 #endif
 
     //
@@ -400,7 +392,7 @@ public:
 
     void construct_old_rotation_source(Real time, Real dt);
 
-    void construct_new_rotation_source(MultiFab fluxes[], Real time, Real dt);
+    void construct_new_rotation_source(Real time, Real dt);
 
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
@@ -565,6 +557,14 @@ protected:
     // Source terms to the hydrodynamics solve.
     //
     MultiFab* sources_for_hydro;
+
+    //
+    // Hydrodynamic (and radiation) fluxes.
+    //
+    Array<MultiFab*> fluxes;
+#ifdef RADIATION
+    Array<MultiFab*> rad_fluxes;
+#endif
 
     //
     // Non-hydro source terms.

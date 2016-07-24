@@ -449,7 +449,11 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,time),
     comp_minus_level_grad_phi(BL_SPACEDIM),
     old_sources(num_src, PArrayManage),
-    new_sources(num_src, PArrayManage)
+    new_sources(num_src, PArrayManage),
+#ifdef RADIATION
+    rad_fluxes(BL_SPACEDIM),
+#endif
+    fluxes(3)
 {
     buildMetrics();
 
@@ -3759,10 +3763,7 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 }
 
 void
-Castro::construct_new_sources(MultiFab fluxes[],
-			      int amr_iteration, int amr_ncycle,
-			      int sub_iteration, int sub_ncycle,
-			      Real time, Real dt)
+Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
     if (do_sponge)
         construct_new_sponge_source(time, dt);
@@ -3780,12 +3781,12 @@ Castro::construct_new_sources(MultiFab fluxes[],
 
 #ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_new_gravity_source(fluxes, time, dt);
+    construct_new_gravity_source(time, dt);
 #endif
 
 #ifdef ROTATION
     construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_new_rotation_source(fluxes, time, dt);
+    construct_new_rotation_source(time, dt);
 #endif
 }
 

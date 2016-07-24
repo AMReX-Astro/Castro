@@ -123,7 +123,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 
 
 
-void Castro::construct_new_rotation_source(MultiFab fluxes[], Real time, Real dt)
+void Castro::construct_new_rotation_source(Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -166,9 +166,9 @@ void Castro::construct_new_rotation_source(MultiFab fluxes[], Real time, Real dt
 			    BL_TO_FORTRAN_3D(S_old[mfi]),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
 			    BL_TO_FORTRAN_3D(new_sources[rot_src][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			    BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			    BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
+			    BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
+			    BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
 			    ZFILL(dx),dt,&time,
 			    BL_TO_FORTRAN_3D(volume[mfi]),
 			    E_added,mom_added);

@@ -409,30 +409,27 @@ Castro::advance_hydro (Real time,
     S_new.setBndry(0.0);
 #endif
 
-    MultiFab fluxes[3];
-
     // We want to define this on every grid, because we may need the fluxes
     // when computing the source terms later.
 
     for (int j = 0; j < BL_SPACEDIM; j++)
        {
-         fluxes[j].define(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
-         fluxes[j].setVal(0.0);
+         fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
+         fluxes[j]->setVal(0.0);
        }
 
     for (int j = BL_SPACEDIM; j < 3; j++)
       {
 	BoxArray ba = S_new.boxArray();
-	fluxes[j].define(ba, NUM_STATE, 0, Fab_allocate);
-	fluxes[j].setVal(0.0);
+	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
+	fluxes[j]->setVal(0.0);
       }
 
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
-    MultiFab rad_fluxes[BL_SPACEDIM];
     if (Radiation::rad_hydro_combined) {
       for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	rad_fluxes[dir].define(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
+	rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
       }
     }
 #endif
@@ -505,12 +502,7 @@ Castro::advance_hydro (Real time,
     // Do the hydro update.
 
     if (do_hydro)
-        hydro_update(hydro_source,
-#ifdef RADIATION
-		     rad_fluxes,
-#endif
-		     fluxes,
-		     time, dt);
+        hydro_update(hydro_source,time, dt);
 
     // Update the point mass.
 
@@ -528,8 +520,7 @@ Castro::advance_hydro (Real time,
 
     // Construct the new-time source terms.
 
-    construct_new_sources(fluxes,
-			  amr_iteration, amr_ncycle,
+    construct_new_sources(amr_iteration, amr_ncycle,
 			  sub_iteration, sub_ncycle,
 			  cur_time, dt);
 
@@ -595,6 +586,14 @@ Castro::advance_hydro (Real time,
     old_sources.clear();
     new_sources.clear();
 
+    for (int n = 0; n < 3; ++n)
+        delete fluxes[n];
+
+#ifdef RADIATION
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+        delete rad_fluxes[n];
+#endif
+
 #ifndef LEVELSET
     delete [] u_gdnv;
 #endif
@@ -616,12 +615,7 @@ Castro::advance_hydro (Real time,
 
 
 void
-Castro::hydro_update(MultiFab& hydro_source,
-#ifdef RADIATION
-		     MultiFab rad_fluxes[],
-#endif
-		     MultiFab fluxes[],
-		     Real time, Real dt)
+Castro::hydro_update(MultiFab& hydro_source,Real time, Real dt)
 {
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -746,8 +740,8 @@ Castro::hydro_update(MultiFab& hydro_source,
 
 		if (do_reflux) {
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-			fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
-			rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+		        (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i));
+			(*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
 		    }
 		}
 
@@ -914,7 +908,7 @@ Castro::hydro_update(MultiFab& hydro_source,
 		// to the fluxes MultiFAB even if we aren't on a fine grid.
 
 		for (int i = 0; i < BL_SPACEDIM ; i++)
-		  fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
+		    (*fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i));
 
 	    }
 
@@ -1005,20 +999,20 @@ Castro::hydro_update(MultiFab& hydro_source,
     if (do_reflux) {
 	if (current) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-		current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
+	        current->FineAdd(*fluxes[i],i,0,0,NUM_STATE,1.);
 	}
 	if (fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
+                fine->CrseInit(*fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
 	}
 #ifdef RADIATION
 	if (rad_current) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-		rad_current->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
+                rad_current->FineAdd(*rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
 	}
 	if (rad_fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
+                rad_fine->CrseInit(*rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
         }
 #endif
     }
