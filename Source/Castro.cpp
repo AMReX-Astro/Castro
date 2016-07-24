@@ -3707,8 +3707,6 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 	Real E_added = 0.;
 	Real dens_change = 0.;
 
-	const Box& bx = mfi.tilebox();
-
 	FArrayBox& stateold = Sborder_copy[mfi];
 	FArrayBox& statenew = Sborder[mfi];
 	FArrayBox& vol      = volume[mfi];
