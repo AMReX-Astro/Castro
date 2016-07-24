@@ -57,9 +57,6 @@ void Castro::construct_old_rotation_source(PArray<MultiFab>& sources, MultiFab& 
 					   MultiFab& S_old,
 					   Real time, Real dt)
 {
-    sources.set(rot_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
-    sources[rot_src].setVal(0.0, NUM_GROW);
-
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 
@@ -136,9 +133,6 @@ void Castro::construct_new_rotation_source(PArray<MultiFab>& sources, MultiFab& 
 					   MultiFab fluxes[],
 					   Real time, Real dt)
 {
-    sources.set(rot_src, new MultiFab(grids, NUM_STATE, 0));
-    sources[rot_src].setVal(0.0);
-
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 

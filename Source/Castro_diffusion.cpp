@@ -20,9 +20,6 @@ Castro::construct_old_diff_source(PArray<MultiFab>& old_sources,
 				  MultiFab& OldViscousTermforEnergy,
 				  Real time, Real dt)
 {
-    old_sources.set(diff_src, new MultiFab(grids,NUM_STATE,NUM_GROW));
-    old_sources[diff_src].setVal(0.0,NUM_GROW);
-
 #ifdef TAU
     add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time,tau_diff);
 #else
@@ -53,9 +50,6 @@ Castro::construct_new_diff_source(PArray<MultiFab>& old_sources,
 				  MultiFab& NewViscousTermforEnergy,
 				  Real time, Real dt)
 {
-    new_sources.set(diff_src, new MultiFab(grids,NUM_STATE,0));
-    new_sources[diff_src].setVal(0.0);
-
 #ifdef TAU
     add_temp_diffusion_to_source(new_sources[diff_src],NewTempDiffTerm,time,tau_diff);
 #else

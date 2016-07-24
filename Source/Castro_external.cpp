@@ -6,9 +6,6 @@ Castro::construct_old_ext_source(PArray<MultiFab>& old_sources, MultiFab& source
 {
     int ng = S_old.nGrow();
 
-    old_sources.set(ext_src, new MultiFab(grids,NUM_STATE,ng));
-    old_sources[ext_src].setVal(0.0,ng);
-
     if (add_ext_src) {
       fill_ext_source(time, dt, S_old, S_old, old_sources[ext_src], ng);
       BoxLib::fill_boundary(old_sources[ext_src], geom);
@@ -23,9 +20,6 @@ Castro::construct_new_ext_source(PArray<MultiFab>& old_sources, PArray<MultiFab>
 				 MultiFab& S_old, MultiFab& S_new, Real time, Real dt)
 {
     int ng = S_new.nGrow();
-
-    new_sources.set(ext_src, new MultiFab(grids,NUM_STATE,ng));
-    new_sources[ext_src].setVal(0.0,ng);
 
     if (add_ext_src) {
       fill_ext_source(time, dt, S_old, S_new, new_sources[ext_src], ng);

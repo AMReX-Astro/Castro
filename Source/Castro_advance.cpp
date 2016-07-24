@@ -358,6 +358,14 @@ Castro::advance_hydro (Real time,
     PArray<MultiFab> old_sources(num_src, PArrayManage);
     PArray<MultiFab> new_sources(num_src, PArrayManage);
 
+    for (int n = 0; n < num_src; ++n) {
+        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+        new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
+
+	old_sources[n].setVal(0.0);
+	new_sources[n].setVal(0.0);
+    }
+
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can

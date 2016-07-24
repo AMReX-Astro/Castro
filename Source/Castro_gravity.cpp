@@ -150,9 +150,6 @@ void Castro::construct_old_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 					  MultiFab& S_old,
 					  Real time, Real dt)
 {
-    sources.set(grav_src, new MultiFab(grids, NUM_STATE, NUM_GROW));
-    sources[grav_src].setVal(0.0, NUM_GROW);
-
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
 
@@ -235,10 +232,6 @@ void Castro::construct_new_gravity_source(PArray<MultiFab>& sources, MultiFab& s
 					  MultiFab fluxes[],
 					  Real time, Real dt)
 {
-
-    sources.set(grav_src, new MultiFab(grids, NUM_STATE, 0));
-    sources[grav_src].setVal(0.0);
-
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 

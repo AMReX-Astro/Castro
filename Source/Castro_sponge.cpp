@@ -4,18 +4,12 @@
 void
 Castro::construct_old_sponge_source(PArray<MultiFab>& old_sources, Real time, Real dt)
 {
-    old_sources.set(sponge_src, new MultiFab(grids, NUM_STATE, 0));
-    old_sources[sponge_src].setVal(0.0);
-
     update_sponge_params(&time);
 }
 
 void
 Castro::construct_new_sponge_source(PArray<MultiFab>& new_sources, Real time, Real dt)
 {
-    new_sources.set(sponge_src, new MultiFab(grids, NUM_STATE, 0));
-    new_sources[sponge_src].setVal(0.0);
-
     update_sponge_params(&time);
 
     MultiFab& S_new = get_new_data(State_Type);
