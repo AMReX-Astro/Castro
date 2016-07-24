@@ -436,10 +436,6 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    // It's possible for interpolation to create very small negative values for
-    //   species so we make sure here that all species are non-negative after this point
-    enforce_nonnegative_species(S_old);
-
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
@@ -483,6 +479,10 @@ Castro::advance_hydro (Real time,
       }
 
     }
+
+    // It's also possible for interpolation to create very small negative values for species.
+
+    enforce_nonnegative_species(Sborder);
 
     if (do_sponge)
       construct_old_sponge_source(old_sources, time, dt);

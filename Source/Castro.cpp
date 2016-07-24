@@ -2952,12 +2952,14 @@ Castro::avgDown ()
 void
 Castro::enforce_nonnegative_species (MultiFab& S_new)
 {
+    int ng = S_new.nGrow();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.tilebox();
+       const Box& bx = mfi.growntilebox(ng);
        ca_normalize_species(BL_TO_FORTRAN_3D(S_new[mfi]),ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
     }
 }
