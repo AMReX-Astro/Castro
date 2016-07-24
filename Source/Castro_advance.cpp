@@ -411,17 +411,9 @@ Castro::advance_hydro (Real time,
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    if (S_old.contains_nan(Density,S_old.nComp(),0,true))
-    {
-        for (int i = 0; i < S_old.nComp(); i++)
-        {
-            if (S_old.contains_nan(Density+i,1,0,true))
-            {
-                std::string abort_string = std::string("S_old has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
-                BoxLib::Abort(abort_string.c_str());
-            }
-        }
-    }
+    // Check for NaN's.
+
+    check_for_nan(S_old);
 
 #ifdef GRAVITY
     if (moving_center == 1)
@@ -579,17 +571,9 @@ Castro::advance_hydro (Real time,
     pointmass_update(time, dt);
 #endif
 
-    if (S_new.contains_nan(Density,S_new.nComp(),0,true))
-    {
-        for (int i = 0; i < S_new.nComp(); i++)
-        {
-	if (S_new.contains_nan(Density + i, 1, 0,true))
-            {
-                std::string abort_string = std::string("S_new has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
-                BoxLib::Abort(abort_string.c_str());
-            }
-        }
-    }
+    // Check for NaN's.
+
+    check_for_nan(S_new);
 
     // Now we'll start updating the dSdt MultiFab. First,
     // get rid of the dt/2 * dS/dt that we added from the last

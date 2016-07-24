@@ -3774,3 +3774,19 @@ Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
 #endif
 
 }
+
+void
+Castro::check_for_nan(MultiFab& state)
+{
+    if (state.contains_nan(Density,state.nComp(),0,true))
+    {
+        for (int i = 0; i < state.nComp(); i++)
+        {
+	if (state.contains_nan(Density + i, 1, 0,true))
+            {
+                std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
+                BoxLib::Abort(abort_string.c_str());
+            }
+        }
+    }
+}
