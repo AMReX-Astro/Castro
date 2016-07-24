@@ -236,6 +236,18 @@ public:
 			   int  sub_iteration,
 			   int  sub_ncycle);
 
+    void construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
+			       MultiFab& sources_for_hydro,
+#ifdef DIFFUSION
+			       MultiFab& OldTempDiffTerm,
+			       MultiFab& OldSpecDiffTerm,
+			       MultiFab& OldViscousTermforMomentum,
+			       MultiFab& OldViscousTermforEnergy,
+#endif
+			       int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time, Real dt);
+
     void time_center_source_terms (MultiFab& S_new,
 				   MultiFab& src_old,
 				   MultiFab& src_new,

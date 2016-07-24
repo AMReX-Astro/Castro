@@ -3732,3 +3732,55 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
     enforce_nonnegative_species(Sborder);
 
 }
+
+void
+Castro::construct_old_sources(MultiFab& state, PArray<MultiFab>& old_sources,
+			      MultiFab& sources_for_hydro,
+#ifdef DIFFUSION
+			      MultiFab& OldTempDiffTerm,
+			      MultiFab& OldSpecDiffTerm,
+			      MultiFab& OldViscousTermforMomentum,
+			      MultiFab& OldViscousTermforEnergy,
+#endif
+			      int amr_iteration, int amr_ncycle,
+			      int sub_iteration, int sub_ncycle,
+			      Real time, Real dt)
+{
+
+    if (do_sponge)
+        construct_old_sponge_source(old_sources, time, dt);
+
+    if (add_ext_src)
+        construct_old_ext_source(old_sources, sources_for_hydro, state, time, dt);
+
+#ifdef GRAVITY
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_old_gravity_source(old_sources, sources_for_hydro, state, time, dt);
+#endif
+
+#ifdef DIFFUSION
+    construct_old_diff_source(old_sources,
+			      sources_for_hydro,
+#ifdef TAU
+			      tau_diff,
+#endif
+			      OldTempDiffTerm,
+			      OldSpecDiffTerm,
+			      OldViscousTermforMomentum,
+			      OldViscousTermforEnergy,
+			      time, dt);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    construct_old_hybrid_source(old_sources, sources_for_hydro, state, time, dt);
+#endif
+
+#ifdef ROTATION
+    construct_old_rotation(amr_iteration, amr_ncycle,
+			   sub_iteration, sub_ncycle,
+			   time, state);
+
+    construct_old_rotation_source(old_sources, sources_for_hydro, state, time, dt);
+#endif
+
+}

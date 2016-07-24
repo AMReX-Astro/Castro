@@ -366,6 +366,12 @@ Castro::advance_hydro (Real time,
 	new_sources[n].setVal(0.0);
     }
 
+    // This array holds the hydrodynamics update.
+
+    MultiFab hydro_source(grids,NUM_STATE,0,Fab_allocate);
+
+    hydro_source.setVal(0.0);
+
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
@@ -444,55 +450,6 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
-    // but the state data does not carry ghost zones. So we use a FillPatch
-    // using the state data to give us Sborder, which does have ghost zones.
-
-    MultiFab Sborder(grids, NUM_STATE, NUM_GROW, Fab_allocate);
-    expand_state(Sborder, prev_time, NUM_GROW);
-
-    // Since we are Strang splitting the reactions, do them now.
-
-    // Reactions are expensive and we would usually rather do a communication
-    // step than burn on the ghost zones. So what we will do here is create a mask
-    // that indicates that we want to turn on the valid interior zones but NOT
-    // on the ghost zones that are interior to the level. However, we DO want to
-    // burn on the ghost zones that are on the coarse-fine interfaces, since that
-    // is going to be more accurate than interpolating from coarse zones. So we will
-    // not mask out those zones, and the subsequent FillBoundary call will not
-    // interfere with it.
-
-#ifdef REACTIONS
-
-    MultiFab& reactions_old = get_old_data(Reactions_Type);
-
-    const int react_ngrow_first_half = NUM_GROW;
-    const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
-
-#ifdef TAU
-    react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#else
-    react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
-#endif
-
-    BoxLib::fill_boundary(Sborder, geom);
-
-#endif
-
-    // Initialize the new-time data.
-
-    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
-
-    // Construct the old-time sponge source.
-
-    if (do_sponge)
-      construct_old_sponge_source(old_sources, time, dt);
-
-#ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_gravity_source(old_sources, sources_for_hydro, Sborder, time, dt);
-#endif
-
 #ifdef DIFFUSION
 #ifdef TAU
     MultiFab tau_diff(grids,1,NUM_GROW);
@@ -552,73 +509,70 @@ Castro::advance_hydro (Real time,
     }
 #endif
 
-    // This array holds the hydrodynamics update.
-
-    MultiFab hydro_source(grids,NUM_STATE,0,Fab_allocate);
-
-    hydro_source.setVal(0.0);
-
-    if (add_ext_src) {
-      construct_old_ext_source(old_sources,sources_for_hydro,Sborder,prev_time,dt);
-    }
-
 #ifdef DIFFUSION
     MultiFab OldTempDiffTerm(grids,1,1);
     MultiFab OldSpecDiffTerm(grids,NumSpec,1);
     MultiFab OldViscousTermforMomentum(grids,BL_SPACEDIM,1);
     MultiFab OldViscousTermforEnergy(grids,1,1);
+#endif
 
-    construct_old_diff_source(old_sources,
-			      sources_for_hydro,
+    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
+    // but the state data does not carry ghost zones. So we use a FillPatch
+    // using the state data to give us Sborder, which does have ghost zones.
+
+    MultiFab Sborder(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    expand_state(Sborder, prev_time, NUM_GROW);
+
+    // Since we are Strang splitting the reactions, do them now.
+
+    // Reactions are expensive and we would usually rather do a communication
+    // step than burn on the ghost zones. So what we will do here is create a mask
+    // that indicates that we want to turn on the valid interior zones but NOT
+    // on the ghost zones that are interior to the level. However, we DO want to
+    // burn on the ghost zones that are on the coarse-fine interfaces, since that
+    // is going to be more accurate than interpolating from coarse zones. So we will
+    // not mask out those zones, and the subsequent FillBoundary call will not
+    // interfere with it.
+
+#ifdef REACTIONS
+
+    MultiFab& reactions_old = get_old_data(Reactions_Type);
+
+    const int react_ngrow_first_half = NUM_GROW;
+    const iMultiFab& interior_mask_first_half = build_interior_boundary_mask(react_ngrow_first_half);
+
 #ifdef TAU
-			      tau_diff,
-#endif
-			      OldTempDiffTerm,
-			      OldSpecDiffTerm,
-			      OldViscousTermforMomentum,
-			      OldViscousTermforEnergy,
-			      prev_time, dt);
+    react_state(Sborder,reactions_old,tau_diff,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
+#else
+    react_state(Sborder,reactions_old,interior_mask_first_half,time,0.5*dt,react_ngrow_first_half);
 #endif
 
-#ifdef HYBRID_MOMENTUM
-    construct_old_hybrid_source(old_sources, sources_for_hydro, Sborder, time, dt);
+    BoxLib::fill_boundary(Sborder, geom);
+
 #endif
 
-#ifdef ROTATION
-    construct_old_rotation(amr_iteration, amr_ncycle,
-			   sub_iteration, sub_ncycle,
-			   prev_time, Sborder);
+    // Initialize the new-time data.
 
-    construct_old_rotation_source(old_sources, sources_for_hydro, Sborder, time, dt);
+    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+
+    // Construct the old-time sources.
+
+    construct_old_sources(Sborder, old_sources,
+			  sources_for_hydro,
+#ifdef DIFFUSION
+			  OldTempDiffTerm,
+			  OldSpecDiffTerm,
+			  OldViscousTermforMomentum,
+			  OldViscousTermforEnergy,
 #endif
+			  amr_iteration, amr_ncycle,
+			  sub_iteration, sub_ncycle,
+			  prev_time, dt);
 
     // Apply the old-time sources.
 
-    if (do_sponge)
-      apply_source_to_state(S_new, old_sources[sponge_src], dt);
-
-    if (add_ext_src)
-      apply_source_to_state(S_new, old_sources[ext_src], dt);
-
-#ifdef DIFFUSION
-    apply_source_to_state(S_new, old_sources[diff_src], dt);
-#endif
-
-#ifdef HYBRID_MOMENTUM
-    apply_source_to_state(S_new, old_sources[hybrid_src], dt);
-#endif
-
-#ifdef GRAVITY
-    apply_source_to_state(S_new, old_sources[grav_src], dt);
-#endif
-
-#ifdef ROTATION
-    apply_source_to_state(S_new, old_sources[rot_src], dt);
-#endif
-
-    // Set up the time-rate of change of the source terms.
-
-    MultiFab& dSdt_new = get_new_data(Source_Type);
+    for (int n = 0; n < num_src; ++n)
+        apply_source_to_state(S_new, old_sources[n], dt);
 
     // Optionally we can predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
@@ -626,6 +580,8 @@ Castro::advance_hydro (Real time,
     // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
 
     if (source_term_predictor == 1) {
+
+      MultiFab& dSdt_new = get_new_data(Source_Type);
 
       AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
 
@@ -1038,6 +994,7 @@ Castro::advance_hydro (Real time,
     // first half of the update for the next calculation of dS/dt.
 
     if (source_term_predictor == 1) {
+      MultiFab& dSdt_new = get_new_data(Source_Type);
       MultiFab::Subtract(sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
       dSdt_new.setVal(0.0, NUM_GROW);
       MultiFab::Subtract(dSdt_new,sources_for_hydro,0,0,NUM_STATE,0);
@@ -1136,6 +1093,8 @@ Castro::advance_hydro (Real time,
     reset_internal_energy(S_new);
 
     if (source_term_predictor == 1) {
+
+      MultiFab& dSdt_new = get_new_data(Source_Type);
 
       // Calculate the time derivative of the source terms.
 
