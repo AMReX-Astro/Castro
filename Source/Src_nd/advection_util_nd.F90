@@ -211,9 +211,12 @@ contains
     double precision :: old_state(NVAR), new_state(NVAR)
     integer          :: idx(3), verbose
 
-    double precision :: loc(3)
     integer          :: n, ipassive
     type (eos_t)     :: eos_state
+
+#ifdef HYBRID_MOMENTUM
+    double precision :: loc(3)
+#endif
 
     ! If no neighboring zones are above small_dens, our only recourse 
     ! is to set the density equal to small_dens, and the temperature 
@@ -265,11 +268,11 @@ contains
   subroutine reset_to_zone_state(old_state, new_state, input_state, idx, verbose)
 
     use bl_constants_module, only: ZERO
-    use meth_params_module, only: NVAR, URHO, small_dens
+    use meth_params_module, only: NVAR, URHO
 
     implicit none
 
-    double precision :: old_state(NVAR), new_state(NVAR), input_state(NVAR), reset_state(NVAR)
+    double precision :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
     integer          :: idx(3), verbose
 
     if (verbose .gt. 0) then
