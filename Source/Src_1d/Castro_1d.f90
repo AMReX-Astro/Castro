@@ -64,6 +64,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   integer ::  uin_lo(1),  uin_hi(1)
   integer :: uout_lo(1), uout_hi(1)
+  integer :: q_lo(1), q_hi(1)
 
   integer :: lo_3D(3), hi_3D(3)
   integer :: q_lo_3D(3), q_hi_3D(3)
@@ -80,6 +81,9 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   q_l1 = lo(1)-NHYP
   q_h1 = hi(1)+NHYP
+
+  q_lo = [q_l1]
+  q_hi = [q_h1]
 
   lo_3D   = [lo(1), 0, 0]
   hi_3D   = [hi(1), 0, 0]
@@ -99,11 +103,12 @@ subroutine ca_umdrv(is_finest_level,time,&
   dx = delta(1)
 
   !     Translate to primitive variables, compute sound speeds
-  call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
+  call ctoprim(q_lo,q_hi, &
+               uin,uin_l1,uin_h1, &
                q,q_l1,q_h1, &
                src,src_l1,src_h1, &
                srcQ,q_l1,q_h1, &
-               dx,dt,ngq)
+               dx,dt)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)

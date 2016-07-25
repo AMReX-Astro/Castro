@@ -263,9 +263,7 @@ contains
                      q,q_l1,q_l2,q_h1,q_h2, &
                      src,src_l1,src_l2,src_h1,src_h2, &
                      srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                     dx,dy,dt,ngp)
-
-    ! Will give primitive variables on lo-ngp:hi+ngp.
+                     dx,dy,dt)
 
     use actual_network, only : nspec, naux
     use eos_module, only : eos
@@ -294,29 +292,19 @@ contains
     double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt
 
-    double precision, allocatable :: dpdrho(:,:)
-    double precision, allocatable :: dpde(:,:)
-    double precision, allocatable :: dpdX_er(:,:,:)
-
     integer          :: i, j
-    integer          :: ngp, loq(2), hiq(2)
     integer          :: n, nq, ipassive
     double precision :: kineng
 
     type (eos_t) :: eos_state
-
-    do i=1,2
-       loq(i) = lo(i)-ngp
-       hiq(i) = hi(i)+ngp
-    enddo
 
     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
     ! call and will be overwritten
-    do j = loq(2),hiq(2)
-       do i = loq(1),hiq(1)
+    do j = lo(2),hi(2)
+       do i = lo(1),hi(1)
 
           q(i,j,QRHO) = uin(i,j,URHO)
 
@@ -383,8 +371,8 @@ contains
     srcQ = ZERO
 
     ! Compute sources in terms of Q
-    do j = loq(2), hiq(2)
-       do i = loq(1), hiq(1)
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)
 
           srcQ(i,j,QRHO  ) = src(i,j,URHO)
           srcQ(i,j,QU:QV ) = (src(i,j,UMX:UMY) - q(i,j,QU:QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
@@ -404,8 +392,8 @@ contains
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
              srcQ(i,j,nq) = ( src(i,j,n) - q(i,j,nq) * srcQ(i,j,QRHO) ) / q(i,j,QRHO)
           enddo
        enddo

@@ -724,9 +724,7 @@ contains
                      q,     q_lo,   q_hi, &
                      src, src_lo, src_hi, &
                      srcQ,srQ_lo, srQ_hi, &
-                     dx,dt,ngp)
-
-    ! Will give primitive variables on lo-ngp:hi+ngp.
+                     dx,dt)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -751,8 +749,6 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
-    integer, intent(in) :: ngp
-
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
 
@@ -764,7 +760,6 @@ contains
     double precision, parameter:: small = 1.d-8
 
     integer          :: i, j, k
-    integer          :: loq(3), hiq(3)
     integer          :: n, nq, ipassive
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
@@ -772,18 +767,13 @@ contains
 
     type (eos_t) :: eos_state
 
-    do i=1,3
-       loq(i) = lo(i)-ngp
-       hiq(i) = hi(i)+ngp
-    enddo
-
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
     ! The temperature is used as an initial guess for the eos call and will be overwritten.
     !
-    do k = loq(3),hiq(3)
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
+    do k = lo(3),hi(3)
+       do j = lo(2),hi(2)
+          do i = lo(1),hi(1)
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
@@ -792,7 +782,7 @@ contains
              end if
           end do
 
-          do i = loq(1),hiq(1)
+          do i = lo(1),hi(1)
 
              loc = position(i,j,k)
 
@@ -827,9 +817,9 @@ contains
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nq = qpass_map(ipassive)
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
                 q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
@@ -838,9 +828,9 @@ contains
 
     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
@@ -868,9 +858,9 @@ contains
     srcQ = ZERO
 
     ! compute srcQ terms
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
              rhoinv = ONE/q(i,j,k,QRHO)
              srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
              srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
@@ -893,9 +883,9 @@ contains
        n = upass_map(ipassive)
        nq = qpass_map(ipassive)
 
-       do k = loq(3), hiq(3)
-          do j = loq(2), hiq(2)
-             do i = loq(1), hiq(1)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
                                  q(i,j,k,QRHO)
              enddo

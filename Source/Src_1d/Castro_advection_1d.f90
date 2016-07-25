@@ -100,15 +100,12 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine ctoprim(lo,hi,uin,uin_l1,uin_h1, &
+  subroutine ctoprim(lo,hi, &
+                     uin,uin_l1,uin_h1, &
                      q,q_l1,q_h1,&
                      src,src_l1,src_h1, &
                      srcQ,srQ_l1,srQ_h1, &
-                     dx,dt,ngp)
-    
-    ! Will give primitive variables on lo-ngp:hi+ngp. Declared
-    ! dimensions of q, c, gamc, csml are given by DIMS(q). This
-    ! declared region is assumed to encompass lo-ngp:hi+ngp.
+                     dx,dt)
 
     use network, only : nspec, naux
     use eos_module, only : eos
@@ -137,19 +134,15 @@ contains
     double precision :: dx, dt
 
     integer          :: i
-    integer          :: ngp, loq(1), hiq(1)
     integer          :: n, nq, ipassive
     double precision :: kineng
 
     type (eos_t) :: eos_state
 
-    loq(1) = lo(1)-ngp
-    hiq(1) = hi(1)+ngp
-
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
     ! call and will be overwritten
-    do i = loq(1),hiq(1)
+    do i = lo(1),hi(1)
 
        if (uin(i,URHO) .le. ZERO) then
           print *,'   '
@@ -191,7 +184,7 @@ contains
     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     ! Get gamc, p, T, c, csml using q state
-    do i = loq(1), hiq(1)
+    do i = lo(1), hi(1)
        eos_state % T   = q(i,QTEMP)
        eos_state % rho = q(i,QRHO)
        eos_state % e   = q(i,QREINT)
@@ -211,7 +204,7 @@ contains
     end do
 
     ! Make this "rho e" instead of "e"
-    do i = loq(1),hiq(1)
+    do i = lo(1),hi(1)
        q(i,QREINT ) = q(i,QREINT )*q(i,QRHO)
        q(i,QGAME) = q(i,QPRES)/q(i,QREINT) + ONE
     enddo
@@ -219,7 +212,7 @@ contains
     srcQ = ZERO
 
     ! compute srcQ terms
-    do i = loq(1), hiq(1)
+    do i = lo(1), hi(1)
        srcQ(i,QRHO   ) = src(i,URHO)
        srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
        srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + HALF * q(i,QU)**2 * srcQ(i,QRHO)

@@ -166,11 +166,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
   ! 3) Translate source terms
-  call ctoprim(lo,hi,uin,uin_lo,uin_hi, &
+  call ctoprim(q_lo,q_hi, &
+               uin,uin_lo,uin_hi, &
                q,q_lo,q_hi, &
                src,src_lo,src_hi, &
                srcQ,q_lo,q_hi, &
-               delta,dt,ngq)
+               delta,dt)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo, q_hi, lo, hi, dt, delta, courno)
