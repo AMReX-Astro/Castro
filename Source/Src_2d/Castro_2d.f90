@@ -129,7 +129,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ! (q,c,gamc,csml,flatn) are all dimensioned the same and set to
   ! correspond to coordinates of (lo:hi)
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-               q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+               q,c,gamc,csml,q_l1,q_l2,q_h1,q_h2, &
                src,src_l1,src_l2,src_h1,src_h2, &
                srcQ,q_l1,q_l2,q_h1,q_h2, &
                dx,dy,dt,ngq)

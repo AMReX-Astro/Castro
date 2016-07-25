@@ -109,7 +109,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   !       and set to correspond to coordinates of (lo:hi)
 
   call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
-       q,c,gamc,csml,flatn,q_l1,q_h1, &
+       q,c,gamc,csml,q_l1,q_h1, &
        src,src_l1,src_h1, &
        srcQ,q_l1,q_h1, &
        dx,dt,ngq)

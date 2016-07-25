@@ -103,7 +103,7 @@ contains
 ! ::: 
 
   subroutine ctoprim(lo,hi,uin,uin_l1,uin_h1, &
-                     q,c,gamc,csml,flatn,q_l1,q_h1,&
+                     q,c,gamc,csml,q_l1,q_h1,&
                      src,src_l1,src_h1, &
                      srcQ,srQ_l1,srQ_h1, &
                      dx,dt,ngp)
@@ -137,7 +137,6 @@ contains
     double precision ::     c(  q_l1:  q_h1)
     double precision ::  gamc(  q_l1:  q_h1)
     double precision ::  csml(  q_l1:  q_h1)
-    double precision :: flatn(  q_l1:  q_h1)
     double precision ::   src(src_l1:src_h1,NVAR)
     double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
     double precision :: dx, dt
