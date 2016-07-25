@@ -51,6 +51,10 @@ ifeq ($(USE_PARTICLES), TRUE)
 CEXE_sources += CastroParticles.cpp
 endif
 
+ifeq ($(USE_LEVELSET), TRUE)
+CEXE_sources += Castro_levelset.cpp
+endif
+
 ifeq ($(USE_DIFFUSION), TRUE)
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
