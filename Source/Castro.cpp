@@ -547,7 +547,7 @@ Castro::Castro (Amr&            papa,
 
    // Initialize reactions source term to zero.
 
-   react_src = new MultiFab(grids, QVAR, 0, Fab_allocate);
+   react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
    react_src->setVal(0.0);
 
 #endif
@@ -3244,5 +3244,9 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     }
 
     MultiFab::Add(react_src, A_prim, 0, 0, QVAR, 0);
+
+    // Now fill all of the ghost zones.
+
+    BoxLib::fill_boundary(react_src, geom);
 }
 #endif

@@ -259,6 +259,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 		          source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
 		          src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
+		// Add in the reactions source term.
+
+#ifdef REACTIONS
+		if (do_sdc)
+		    src_q.plus((*react_src)[mfi],qbx,qbx,0,0,QVAR);
+#endif
+
 		// Allocate fabs for fluxes and Godunov velocities.
 		for (int i = 0; i < BL_SPACEDIM; i++) {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
