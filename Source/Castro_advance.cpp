@@ -709,6 +709,12 @@ Castro::set_up_for_old_sources(Real time)
 
     MultiFab& S_old = get_old_data(State_Type);
 
+    // Reset the grid loss tracking.
+
+    if (track_grid_losses)
+      for (int i = 0; i < n_lost; i++)
+	material_lost_through_boundary_temp[i] = 0.0;
+
 #ifdef GRAVITY
     if (moving_center == 1)
        define_new_center(S_old,time);
@@ -724,18 +730,24 @@ Castro::set_up_for_old_sources(Real time)
 
 #ifdef DIFFUSION
 #ifdef TAU
-    tau_diff = new MultiFab(grids,1,NUM_GROW);
     tau_diff->setVal(0.);
     define_tau(grav_old,time);
 #endif
 #endif
 
-#ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
-#endif
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+	u_gdnv[dir]->setVal(1.e40,1);
+    }
+
+    for (int n = 0; n < num_src; ++n) {
+	old_sources[n].setVal(0.0);
+    }
+
+    for (int j = 0; j < 3; j++)
+    {
+        fluxes[j]->setVal(0.0);
+    }
 
 }
 
@@ -757,7 +769,13 @@ Castro::set_up_for_new_sources(Real time)
       MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
     }
 
+    for (int n = 0; n < num_src; ++n) {
+	new_sources[n].setVal(0.0);
+    }
+
     sources_for_hydro->setVal(0.0,NUM_GROW);
+
+    hydro_source->setVal(0.0);
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -858,27 +876,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    // Reset the grid loss tracking.
-
-    if (track_grid_losses)
-      for (int i = 0; i < n_lost; i++)
-	material_lost_through_boundary_temp[i] = 0.0;
-
     // These arrays hold all source terms that update the state.
 
     for (int n = 0; n < num_src; ++n) {
         old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
         new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
-
-	old_sources[n].setVal(0.0);
-	new_sources[n].setVal(0.0);
     }
 
     // This array holds the hydrodynamics update.
 
     hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
-
-    hydro_source->setVal(0.0);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
@@ -886,19 +893,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // compute the time derivative of the source terms.
 
     sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
-    sources_for_hydro->setVal(0.0,NUM_GROW);
 
     for (int j = 0; j < BL_SPACEDIM; j++)
     {
         fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
-        fluxes[j]->setVal(0.0);
     }
 
     for (int j = BL_SPACEDIM; j < 3; j++)
     {
         BoxArray ba = get_new_data(State_Type).boxArray();
 	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
-	fluxes[j]->setVal(0.0);
     }
 
 #ifdef RADIATION
@@ -913,8 +917,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
 	u_gdnv[dir] = new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate);
-	u_gdnv[dir]->setVal(1.e40,1);
     }
+
+#ifdef DIFFUSION
+#ifdef TAU
+    tau_diff = new MultiFab(grids,1,NUM_GROW);
+#endif
+#endif
+
+#ifdef DIFFUSION
+    OldTempDiffTerm = new MultiFab(grids, 1, 1);
+    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
+    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+#endif
 
 }
 
