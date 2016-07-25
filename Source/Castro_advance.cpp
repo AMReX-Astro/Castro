@@ -39,12 +39,36 @@ Castro::advance (Real time,
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
 
-    int sub_iteration = 0;
-    int sub_ncycle = 0;
-
     // Do the advance.
 
-    dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+    if (do_sdc) {
+
+        for (int n = 0; n < sdc_iters; ++n) {
+
+            if (ParallelDescriptor::IOProcessor())
+	        std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
+
+            dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, n, sdc_iters);
+
+            // Reset state data.
+
+            MultiFab& S_old = get_old_data(State_Type);
+            MultiFab& S_new = get_new_data(State_Type);
+
+            MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, 0);
+
+            // Insert ODE integration here.
+
+        }
+
+    } else {
+
+        int sub_iteration = 0;
+        int sub_ncycle = 0;
+
+        dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+
+    }
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach

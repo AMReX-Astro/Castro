@@ -55,6 +55,7 @@ static Real change_max;
 static int use_retry;
 static Real retry_neg_dens_factor;
 static int do_sdc;
+static int sdc_iters;
 static Real dtnuc_e;
 static Real dtnuc_X;
 static int dtnuc_mode;
