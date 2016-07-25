@@ -575,6 +575,13 @@ protected:
     //
     MultiFab* hydro_source;
 
+#ifdef REACTIONS
+    //
+    // Source term to primitive variables from reactions.
+    //
+    MultiFab* react_src;
+#endif
+
     //
     // Hydrodynamic (and radiation) fluxes.
     //

@@ -545,6 +545,11 @@ Castro::Castro (Amr&            papa,
    MultiFab& reactions_new = get_new_data(Reactions_Type);
    reactions_new.setVal(0.0);
 
+   // Initialize reactions source term to zero.
+
+   react_src = new MultiFab(grids, QVAR, 0, Fab_allocate);
+   react_src->setVal(0.0);
+
 #endif
    
 #ifdef DIFFUSION
@@ -598,6 +603,10 @@ Castro::~Castro ()
     }
 #endif
     delete fine_mask;
+
+#ifdef REACTIONS
+    delete react_src;
+#endif
 }
 
 
