@@ -70,10 +70,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Automatic arrays for workspace
   double precision, pointer:: q(:,:,:,:)
-  double precision, pointer:: gamc(:,:,:)
   double precision, pointer:: flatn(:,:,:)
-  double precision, pointer:: c(:,:,:)
-  double precision, pointer:: csml(:,:,:)
   double precision, pointer:: div(:,:,:)
   double precision, pointer:: pdivu(:,:,:)
   double precision, pointer:: srcQ(:,:,:,:)
@@ -141,10 +138,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   src_hi = [ src_h1, src_h2, src_h3 ]  
   
   call bl_allocate(     q, q_lo, q_hi, QVAR)
-  call bl_allocate(  gamc, q_lo, q_hi)
   call bl_allocate( flatn, q_lo, q_hi)
-  call bl_allocate(     c, q_lo, q_hi)
-  call bl_allocate(  csml, q_lo, q_hi)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)  
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
@@ -171,17 +165,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   
   ! 1) Translate conserved variables (u) to primitive variables (q).
   ! 2) Compute sound speeds (c) and gamma (gamc).
-  !    Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  !    and set to correspond to coordinates of (lo:hi)
   ! 3) Translate source terms
   call ctoprim(lo,hi,uin,uin_lo,uin_hi, &
-               q,c,gamc,csml,q_lo,q_hi, &
+               q,q_lo,q_hi, &
                src,src_lo,src_hi, &
                srcQ,q_lo,q_hi, &
                delta,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, c, q_lo, q_hi, lo, hi, dt, delta, courno)
+  call compute_cfl(q, q_lo, q_hi, lo, hi, dt, delta, courno)
 
   ! Compute flattening coef for slope calculations
   if (use_flattening == 1) then
@@ -193,7 +185,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d(q,c,gamc,csml,flatn,q_lo,q_hi, &
+  call umeth3d(q,flatn,q_lo,q_hi, &
                srcQ,q_lo,q_hi, &
                lo,hi,delta,dt, &
                uout,uout_lo,uout_hi, &
@@ -236,10 +228,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ugdnvz_out(:,:,:) = q3(:,:,:,GDW)
   
   call bl_deallocate(     q)
-  call bl_deallocate(  gamc)
   call bl_deallocate( flatn)
-  call bl_deallocate(     c)
-  call bl_deallocate(  csml)
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)

@@ -396,11 +396,11 @@
         ! primitive state components
         !---------------------------------------------------------------------
 
-        ! QTHERM: number of primitive variables: rho, game, p, (rho e), T
-        !         + 3 velocity components
+        ! QTHERM: number of primitive variables: rho, p, (rho e), T
+        !         + 3 velocity components + 6 auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
         ! QVAR  : number of total variables in primitive form
 
-        QTHERM = NTHERM + 1  ! here the +1 is for QGAME always defined in primitive mode
+        QTHERM = NTHERM + 6
 
 #ifdef HYBRID_MOMENTUM
         QTHERM = QTHERM - 3
@@ -414,9 +414,14 @@
         QV    = 3
         QW    = 4
 
-        ! we'll carry this around as an potential alternate to (rho e)
+        ! Carry some auxiliary data around that we get from the EOS
         QGAME   = 5
-        QLAST   = QGAME
+        QGAMC   = 6
+        QC      = 7
+        QCSML   = 8
+        QDPDR   = 9
+        QDPDE   = 10
+        QLAST   = QDPDE
 
         QPRES   = QLAST + 1
         QREINT  = QLAST + 2

@@ -297,21 +297,19 @@ contains
 
 
 
-  subroutine compute_cfl(q, q_lo, q_hi, c, c_lo, c_hi, lo, hi, dt, dx, courno) &
+  subroutine compute_cfl(q, q_lo, q_hi, lo, hi, dt, dx, courno) &
                          bind(C, name = 'ca_compute_cfl')
 
     use bl_constants_module, only: ZERO, ONE
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC
     use prob_params_module, only: dim
 
     implicit none
 
     integer :: lo(3), hi(3)
     integer :: q_lo(3), q_hi(3)
-    integer :: c_lo(3), c_hi(3)
 
     double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
     double precision :: dt, dx(3), courno
 
     double precision :: courx, coury, courz, courmx, courmy, courmz
@@ -342,9 +340,9 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             courx = ( c(i,j,k) + abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( c(i,j,k) + abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( c(i,j,k) + abs(q(i,j,k,QW)) ) * dtdz
+             courx = ( q(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
+             coury = ( q(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
+             courz = ( q(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
 
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
@@ -355,7 +353,7 @@ contains
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... u, c                ', q(i,j,k,QU), c(i,j,k)
+                print *,'>>> ... u, c                ', q(i,j,k,QU), q(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 
@@ -364,7 +362,7 @@ contains
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                print *,'>>> ... v, c                ', q(i,j,k,QV), c(i,j,k)
+                print *,'>>> ... v, c                ', q(i,j,k,QV), q(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 
@@ -373,7 +371,7 @@ contains
                 call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... w, c                ', q(i,j,k,QW), c(i,j,k)
+                print *,'>>> ... w, c                ', q(i,j,k,QW), q(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 

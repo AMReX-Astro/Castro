@@ -28,7 +28,7 @@ contains
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth2d(q, c, gamc, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
+  subroutine umeth2d(q, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      uout, uout_l1, uout_l2, uout_h1, uout_h2, &
@@ -43,7 +43,8 @@ contains
                      domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
-         GDU, GDV, GDPRES, ngdnv
+                                   GDU, GDV, GDPRES, ngdnv, &
+                                   QC, QCSML, QGAMC
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module, only : transx, transy
@@ -71,10 +72,7 @@ contains
 
     double precision dx, dy, dt
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
@@ -160,17 +158,17 @@ contains
     !      qxm and qxp will be the states on either side of the x interfaces
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
-       call trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+       call trace(q,q(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                   qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                   srcQ,src_l1,src_l2,src_h1,src_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     else
-       call trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+       call trace_ppm(q,q(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       srcQ,src_l1,src_l2,src_h1,src_h2, &
-                      gamc,qd_l1,qd_l2,qd_h1,qd_h2, &
+                      q(:,:,QGAMC),qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
 
@@ -179,7 +177,7 @@ contains
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -188,7 +186,7 @@ contains
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
@@ -198,7 +196,7 @@ contains
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
@@ -209,7 +207,7 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-                gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -219,7 +217,7 @@ contains
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                gamc, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -232,7 +230,7 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -262,14 +260,12 @@ contains
 
   subroutine ctoprim(lo,hi, &
                      uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                     q,c,gamc,csml,q_l1,q_l2,q_h1,q_h2, &
+                     q,q_l1,q_l2,q_h1,q_h2, &
                      src,src_l1,src_l2,src_h1,src_h2, &
                      srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                      dx,dy,dt,ngp)
 
-    ! Will give primitive variables on lo-ngp:hi+ngp.  Declared
-    ! dimensions of q, c, gamc, csml are given by DIMS(q). This
-    ! declared region is assumed to encompass lo-ngp:hi+ngp.
+    ! Will give primitive variables on lo-ngp:hi+ngp.
 
     use actual_network, only : nspec, naux
     use eos_module, only : eos
@@ -277,6 +273,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
+                                   QC, QCSML, QGAMC, QDPDR, QDPDE, &
                                    allow_negative_energy, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1
     use bl_constants_module, only : ZERO, HALF, ONE
@@ -293,9 +290,6 @@ contains
 
     double precision :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
     double precision :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
-    double precision :: c(q_l1:q_h1,q_l2:q_h2)
-    double precision :: gamc(q_l1:q_h1,q_l2:q_h2)
-    double precision :: csml(q_l1:q_h1,q_l2:q_h2)
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
     double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
     double precision :: dx, dy, dt
@@ -310,10 +304,6 @@ contains
     double precision :: kineng
 
     type (eos_t) :: eos_state
-
-    allocate( dpdrho(q_l1:q_h1,q_l2:q_h2))
-    allocate(   dpde(q_l1:q_h1,q_l2:q_h2))
-    allocate(dpdX_er(q_l1:q_h1,q_l2:q_h2,nspec))
 
     do i=1,2
        loq(i) = lo(i)-ngp
@@ -378,13 +368,11 @@ contains
           q(i,j,QTEMP)  = eos_state % T
           q(i,j,QREINT) = eos_state % e
           q(i,j,QPRES)  = eos_state % p
-
-          dpdrho(i,j) = eos_state % dpdr_e
-          dpde(i,j)   = eos_state % dpde
-          c(i,j)      = eos_state % cs
-          gamc(i,j)   = eos_state % gam1
-
-          csml(i,j) = max(small, small * c(i,j))
+          q(i,j,QDPDR)  = eos_state % dpdr_e
+          q(i,j,QDPDE)  = eos_state % dpde
+          q(i,j,QC)     = eos_state % cs
+          q(i,j,QGAMC)  = eos_state % gam1
+          q(i,j,QCSML)  = max(small, small * q(i,j,QC))
 
           ! Make this "rho e" instead of "e"
           q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
@@ -404,11 +392,9 @@ contains
           srcQ(i,j,QREINT) = src(i,j,UEDEN)                               &
                            - dot_product(q(i,j,QU:QV),src(i,j,UMX:UMY))   &
                            + HALF * sum(q(i,j,QU:QV)**2) * srcQ(i,j,QRHO)
-          srcQ(i,j,QPRES ) = dpde(i,j) * &
+          srcQ(i,j,QPRES ) = q(i,j,QDPDE) * &
                (srcQ(i,j,QREINT) - q(i,j,QREINT)*srcQ(i,j,QRHO)/q(i,j,QRHO))/q(i,j,QRHO) + &
-               dpdrho(i,j) * srcQ(i,j,QRHO)! + &
-!                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
-!                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
+               q(i,j,QDPDR) * srcQ(i,j,QRHO)
 
        enddo
     enddo
@@ -425,8 +411,6 @@ contains
        enddo
 
     end do
-
-    deallocate(dpdrho,dpde)
 
   end subroutine ctoprim
 

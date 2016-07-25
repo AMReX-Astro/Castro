@@ -48,10 +48,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   !     Automatic arrays for workspace
   double precision, allocatable:: q(:,:)
-  double precision, allocatable:: gamc(:)
   double precision, allocatable:: flatn(:)
-  double precision, allocatable:: c(:)
-  double precision, allocatable:: csml(:)
   double precision, allocatable:: div(:)
   double precision, allocatable:: pgdnv(:)
   double precision, allocatable:: srcQ(:,:)
@@ -91,10 +88,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   dx_3D   = [delta(1), ZERO, ZERO]
 
   allocate(     q(q_l1:q_h1,QVAR))
-  allocate(     c(q_l1:q_h1))
-  allocate(  gamc(q_l1:q_h1))
   allocate( flatn(q_l1:q_h1))
-  allocate(  csml(q_l1:q_h1))
 
   allocate(  srcQ(q_l1:q_h1,QVAR))
 
@@ -105,17 +99,14 @@ subroutine ca_umdrv(is_finest_level,time,&
   dx = delta(1)
 
   !     Translate to primitive variables, compute sound speeds
-  !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  !       and set to correspond to coordinates of (lo:hi)
-
   call ctoprim(lo,hi,uin,uin_l1,uin_h1, &
-       q,c,gamc,csml,q_l1,q_h1, &
-       src,src_l1,src_h1, &
-       srcQ,q_l1,q_h1, &
-       dx,dt,ngq)
+               q,q_l1,q_h1, &
+               src,src_l1,src_h1, &
+               srcQ,q_l1,q_h1, &
+               dx,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+  call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coef for slope calculations
   if (use_flattening == 1) then
@@ -127,7 +118,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   endif
 
   call umeth1d(lo,hi,domlo,domhi, &
-       q,c,gamc,csml,flatn,q_l1,q_h1, &
+       q,flatn,q_l1,q_h1, &
        srcQ, q_l1,q_h1, &
        lo(1),hi(1),dx,dt, &
        flux,flux_l1,flux_h1, &
@@ -161,6 +152,6 @@ subroutine ca_umdrv(is_finest_level,time,&
        eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
 
-  deallocate(q,c,gamc,flatn,csml,srcQ,div,pdivu,pgdnv)
+  deallocate(q,flatn,srcQ,div,pdivu,pgdnv)
 
 end subroutine ca_umdrv

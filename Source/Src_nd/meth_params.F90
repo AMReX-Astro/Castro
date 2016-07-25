@@ -25,7 +25,7 @@ module meth_params_module
   ! QTHERM: number of primitive variables
   integer         , save :: QTHERM, QVAR
   integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP
-  integer         , save :: QGAMC, QGAME
+  integer         , save :: QGAMC, QGAME, QC, QCSML, QDPDR, QDPDE
   integer         , save :: QFA, QFS, QFX
 
   integer         , save :: nadv

@@ -14,9 +14,6 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: c           => (const)  sound speed
-! ::: :: gamc        => (const)  cound speed gamma
-! ::: :: csml        => (const)  local small c val
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
@@ -31,7 +28,7 @@ contains
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth3d(q, c, gamc, csml, flatn, qd_lo, qd_hi, &
+  subroutine umeth3d(q, flatn, qd_lo, qd_hi, &
                      srcQ, src_lo, src_hi, &
                      lo, hi, dx, dt, &
                      uout, uout_lo, uout_hi, &
@@ -46,6 +43,7 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
+                                   QC, QCSML, QGAMC, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
@@ -79,9 +77,6 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
 
     double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision, intent(in) ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) ::  gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) ::  csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
@@ -325,7 +320,7 @@ contains
 
           do n=1,QVAR
              call ppm(q(:,:,:,n  ),  qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+                      q(:,:,:,QU:QW),q(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n),It_lo,It_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -334,7 +329,7 @@ contains
           if (ppm_trace_sources .eq. 1) then
              do n=1,QVAR
                 call ppm(srcQ(:,:,:,n),src_lo,src_hi, &
-                         q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+                         q(:,:,:,QU:QW),q(:,:,:,QC),qd_lo,qd_hi, &
                          flatn,qd_lo,qd_hi, &
                          Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n),It_lo,It_hi, &
                          lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -342,8 +337,8 @@ contains
           endif
 
           if (ppm_temp_fix /= 1) then
-             call ppm(gamc(:,:,:),qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+             call ppm(q(:,:,:,QGAMC),qd_lo,qd_hi, &
+                      q(:,:,:,QU:QW),q(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1),It_lo,It_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -390,10 +385,10 @@ contains
           endif
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy_ppm(q,c,flatn,qd_lo,qd_hi, &
+          call tracexy_ppm(q,q(:,:,:,QC),flatn,qd_lo,qd_hi, &
                            Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                            qxm,qxp,qym,qyp,qt_lo,qt_hi, &
-                           gamc,qd_lo,qd_hi, &
+                           q(:,:,:,QGAMC),qd_lo,qd_hi, &
                            lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 
        else
@@ -412,7 +407,7 @@ contains
                            lo(1),lo(2),hi(1),hi(2),kc,k3d,dx)
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy(q,c,qd_lo,qd_hi, &
+          call tracexy(q,q(:,:,:,QC),qd_lo,qd_hi, &
                        dqx,dqy,qt_lo,qt_hi, &
                        qxm,qxp,qym,qyp,qt_lo,qt_hi, &
                        lo(1),lo(2),hi(1),hi(2),dx,dt,kc,k3d)
@@ -423,7 +418,7 @@ contains
        call cmpflx(qxm,qxp,qt_lo,qt_hi, &
                    fx,fx_lo,fx_hi, &
                    qgdnvx,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -431,7 +426,7 @@ contains
        call cmpflx(qym,qyp,qt_lo,qt_hi, &
                    fy,fy_lo,fy_hi, &
                    qgdnvy,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -439,21 +434,21 @@ contains
        call transy1(qxm,qmxy,qxp,qpxy,qt_lo,qt_hi, &
                     fy,fy_lo,fy_hi, &
                     qgdnvy,qt_lo,qt_hi, &
-                    gamc,qd_lo,qd_hi, &
+                    q(:,:,:,QGAMC),qd_lo,qd_hi, &
                     cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,k3d)
 
        ! Compute U'^x_y at kc (k3d)
        call transx1(qym,qmyx,qyp,qpyx,qt_lo,qt_hi, &
                     fx,fx_lo,fx_hi, &
                     qgdnvx,qt_lo,qt_hi, &
-                    gamc,qd_lo,qd_hi, &
+                    q(:,:,:,QGAMC),qd_lo,qd_hi, &
                     cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy,qpxy,qt_lo,qt_hi, &
                    fxy,fx_lo,fx_hi, &
                    qgdnvtmpx,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    1,lo(1),hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
 
@@ -461,7 +456,7 @@ contains
        call cmpflx(qmyx,qpyx,qt_lo,qt_hi, &
                    fyx,fy_lo,fy_hi, &
                    qgdnvtmpy,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    2,lo(1),hi(1),lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -469,13 +464,13 @@ contains
 
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
-             call tracez_ppm(q,c,flatn,qd_lo,qd_hi, &
+             call tracez_ppm(q,q(:,:,:,QC),flatn,qd_lo,qd_hi, &
                              Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                              qzm,qzp,qt_lo,qt_hi, &
-                             gamc,qd_lo,qd_hi, &
+                             q(:,:,:,QGAMC),qd_lo,qd_hi, &
                              lo(1),lo(2),hi(1),hi(2),dt,km,kc,k3d)
           else
-             call tracez(q,c,qd_lo,qd_hi, &
+             call tracez(q,q(:,:,:,QC),qd_lo,qd_hi, &
                          dqz,qt_lo,qt_hi, &
                          qzm,qzp,qt_lo,qt_hi, &
                          lo(1),lo(2),hi(1),hi(2),dx,dt,km,kc,k3d)
@@ -485,7 +480,7 @@ contains
           call cmpflx(qzm,qzp,qt_lo,qt_hi, &
                       fz,fz_lo,fz_hi, &
                       qgdnvz,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -493,21 +488,21 @@ contains
           call transy2(qzm,qmzy,qzp,qpzy,qt_lo,qt_hi, &
                        fy,fy_lo,fy_hi, &
                        qgdnvy,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       q(:,:,:,QGAMC),qd_lo,qd_hi, &
                        cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,km,k3d)
 
           ! Compute U'^x_z at kc (k3d)
           call transx2(qzm,qmzx,qzp,qpzx,qt_lo,qt_hi, &
                        fx,fx_lo,fx_hi, &
                        qgdnvx,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       q(:,:,:,QGAMC),qd_lo,qd_hi, &
                        cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,km,k3d)
 
           ! Compute F^{z|x} at kc (k3d)
           call cmpflx(qmzx,qpzx,qt_lo,qt_hi, &
                       fzx,fz_lo,fz_hi, &
                       qgdnvtmpz1,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -515,7 +510,7 @@ contains
           call cmpflx(qmzy,qpzy,qt_lo,qt_hi, &
                       fzy,fz_lo,fz_hi, &
                       qgdnvtmpz2,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
 
@@ -525,7 +520,7 @@ contains
                        fyx,fy_lo,fy_hi, &
                        qgdnvtmpx,qt_lo,qt_hi, &
                        qgdnvtmpy,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       q(:,:,:,QGAMC),qd_lo,qd_hi, &
                        srcQ,src_lo,src_hi,&
                        hdt,hdtdx,hdtdy,lo(1),hi(1),lo(2),hi(2),kc,km,k3d)
 
@@ -533,7 +528,7 @@ contains
           call cmpflx(qzl,qzr,qt_lo,qt_hi, &
                       flux3,fd3_lo,fd3_hi, &
                       qgdnvzf,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
 
@@ -559,14 +554,14 @@ contains
              call transz(qxm,qmxz,qxp,qpxz,qym,qmyz,qyp,qpyz,qt_lo,qt_hi, &
                          fz,fz_lo,fz_hi, &
                          qgdnvz,qt_lo,qt_hi, &
-                         gamc,qd_lo,qd_hi, &
+                         q(:,:,:,QGAMC),qd_lo,qd_hi, &
                          cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
 
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz,qpxz,qt_lo,qt_hi, &
                          fxz,fx_lo,fx_hi, &
                          qgdnvx,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
 
@@ -574,7 +569,7 @@ contains
              call cmpflx(qmyz,qpyz,qt_lo,qt_hi, &
                          fyz,fy_lo,fy_hi, &
                          qgdnvy,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
 
@@ -584,7 +579,7 @@ contains
                           fzy,fz_lo,fz_hi, &
                           qgdnvy,qt_lo,qt_hi, &
                           qgdnvtmpz2,qt_lo,qt_hi, &
-                          gamc,qd_lo,qd_hi, &
+                          q(:,:,:,QGAMC),qd_lo,qd_hi, &
                           srcQ,src_lo,src_hi, &
                           hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
 
@@ -594,7 +589,7 @@ contains
                           fzx,fz_lo,fz_hi, &
                           qgdnvx,qt_lo,qt_hi, &
                           qgdnvtmpz1,qt_lo,qt_hi, &
-                          gamc,qd_lo,qd_hi, &
+                          q(:,:,:,QGAMC),qd_lo,qd_hi, &
                           srcQ,src_lo,src_hi, &
                           hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
 
@@ -602,7 +597,7 @@ contains
              call cmpflx(qxl,qxr,qt_lo,qt_hi, &
                          flux1,fd1_lo,fd1_hi, &
                          qgdnvxf,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
 
@@ -616,7 +611,7 @@ contains
              call cmpflx(qyl,qyr,qt_lo,qt_hi, &
                          flux2,fd2_lo,fd2_hi, &
                          qgdnvyf,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         q(:,:,:,QGAMC),q(:,:,:,QCSML),q(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
 
@@ -724,15 +719,14 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine ctoprim(lo,hi,uin,    uin_lo,uin_hi, &
-                     q,c,gamc,csml,  q_lo,  q_hi, &
-                     src,          src_lo,src_hi, &
-                     srcQ,         srQ_lo,srQ_hi, &
+  subroutine ctoprim(lo, hi, &
+                     uin, uin_lo, uin_hi, &
+                     q,     q_lo,   q_hi, &
+                     src, src_lo, src_hi, &
+                     srcQ,srQ_lo, srQ_hi, &
                      dx,dt,ngp)
 
-    ! Will give primitive variables on lo-ngp:hi+ngp.  Declared dimensions of
-    ! q, c, gamc, csml are given by DIMS(q).  This declared region is assumed
-    ! to encompass lo-ngp:hi+ngp.
+    ! Will give primitive variables on lo-ngp:hi+ngp.
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -742,6 +736,7 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   QC, QCSML, QGAMC, QDPDR, QDPDE, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    allow_negative_energy
     use bl_constants_module, only: ZERO, HALF, ONE
@@ -759,22 +754,14 @@ contains
     integer, intent(in) :: ngp
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision, intent(in) ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision, intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
 
     double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision, intent(inout) :: c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
     double precision, intent(in) :: dx(3), dt
 
     double precision, parameter:: small = 1.d-8
-
-
-    double precision, pointer:: dpdrho(:,:,:)
-    double precision, pointer:: dpde(:,:,:)
-!    double precision, pointer:: dpdX_er(:,:,:,:)
 
     integer          :: i, j, k
     integer          :: loq(3), hiq(3)
@@ -789,10 +776,6 @@ contains
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
-
-    call bl_allocate( dpdrho, q_lo, q_hi)
-    call bl_allocate(   dpde, q_lo, q_hi)
-!    call bl_allocate(dpdX_er, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,nspec)
 
     !
     ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
@@ -858,6 +841,7 @@ contains
     do k = loq(3), hiq(3)
        do j = loq(2), hiq(2)
           do i = loq(1), hiq(1)
+
              eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
              eos_state % e   = q(i,j,k,QREINT)
@@ -869,16 +853,12 @@ contains
              q(i,j,k,QTEMP)  = eos_state % T
              q(i,j,k,QREINT) = eos_state % e
              q(i,j,k,QPRES)  = eos_state % p
-
-             dpdrho(i,j,k)   = eos_state % dpdr_e
-             dpde(i,j,k)     = eos_state % dpde
-             c(i,j,k)        = eos_state % cs
-             gamc(i,j,k)     = eos_state % gam1
-
-             csml(i,j,k)     = max(small, small * c(i,j,k))
-
+             q(i,j,k,QDPDR)  = eos_state % dpdr_e
+             q(i,j,k,QDPDE)  = eos_state % dpde
+             q(i,j,k,QC)     = eos_state % cs
+             q(i,j,k,QGAMC)  = eos_state % gam1
+             q(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
              q(i,j,k,QREINT) = q(i,j,k,QREINT) * q(i,j,k,QRHO)
-
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
 
           enddo
@@ -901,12 +881,9 @@ contains
                                                    - q(i,j,k,QW)*src(i,j,k,UMZ) &
                                     + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
 
-             srcQ(i,j,k,QPRES ) = dpde(i,j,k)*(srcQ(i,j,k,QREINT) - &
-                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
-                  dpdrho(i,j,k)*srcQ(i,j,k,QRHO)! + &
-!                                    sum(dpdX_er(i,j,k,:)*(src(i,j,k,UFS:UFS+nspec-1) - &
-!                                                          q(i,j,k,QFS:QFS+nspec-1)*srcQ(i,j,k,QRHO))) &
-!                                    /q(i,j,k,QRHO)
+             srcQ(i,j,k,QPRES ) = q(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
+                                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
+                                  q(i,j,k,QDPDR)*srcQ(i,j,k,QRHO)
 
           enddo
        enddo
@@ -920,16 +897,12 @@ contains
           do j = loq(2), hiq(2)
              do i = loq(1), hiq(1)
                 srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
+                                 q(i,j,k,QRHO)
              enddo
           enddo
        enddo
 
     enddo
-
-    call bl_deallocate( dpdrho)
-    call bl_deallocate(   dpde)
-!    call bl_deallocate(dpdX_er)
 
   end subroutine ctoprim
 

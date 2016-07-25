@@ -25,7 +25,7 @@ contains
 ! ::: ----------------------------------------------------------------
 
   subroutine umeth1d(lo,hi,domlo,domhi, &
-                     q,c,gamc,csml,flatn,qd_l1,qd_h1, &
+                     q,flatn,qd_l1,qd_h1, &
                      srcQ,src_l1,src_h1, &
                      ilo,ihi,dx,dt, &
                      flux ,   fd_l1,   fd_h1, &
@@ -33,12 +33,13 @@ contains
                      ugdnv,ugdnv_l1,ugdnv_h1, &
                      dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type
+    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC
     use riemann_module, only : cmpflx
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
 
     implicit none
+
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer dloga_l1,dloga_h1
@@ -50,10 +51,7 @@ contains
     integer ilo,ihi
     double precision dx, dt
     double precision     q(   qd_l1:qd_h1,QVAR)
-    double precision  gamc(   qd_l1:qd_h1)
     double precision flatn(   qd_l1:qd_h1)
-    double precision  csml(   qd_l1:qd_h1)
-    double precision     c(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
@@ -69,7 +67,7 @@ contains
 
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
-       call trace_ppm(q,c,flatn,gamc,qd_l1,qd_h1, &
+       call trace_ppm(q,q(:,QC),flatn,q(:,QGAMC),qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
                       qm,qp,ilo-1,ihi+1, &
@@ -77,7 +75,7 @@ contains
     else
        allocate ( dq(ilo-1:ihi+1,QVAR))
 
-       call trace(q,dq,c,flatn,qd_l1,qd_h1, &
+       call trace(q,dq,q(:,QC),flatn,qd_l1,qd_h1, &
                   dloga,dloga_l1,dloga_h1, &
                   srcQ,src_l1,src_h1, &
                   qm,qp,ilo-1,ihi+1, &
@@ -92,7 +90,7 @@ contains
                 flux ,  fd_l1, fd_h1, &
                 pgdnv,pgdnv_l1,pgdnv_h1, &
                 ugdnv,ugdnv_l1,ugdnv_h1, &
-                gamc, csml,c,qd_l1,qd_h1,ilo,ihi)
+                q(:,QGAMC),q(:,QCSML),q(:,QC),qd_l1,qd_h1,ilo,ihi)
 
     deallocate (qm,qp)
 
@@ -103,7 +101,7 @@ contains
 ! ::: 
 
   subroutine ctoprim(lo,hi,uin,uin_l1,uin_h1, &
-                     q,c,gamc,csml,q_l1,q_h1,&
+                     q,q_l1,q_h1,&
                      src,src_l1,src_h1, &
                      srcQ,srQ_l1,srQ_h1, &
                      dx,dt,ngp)
@@ -118,10 +116,10 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
+                                   QC, QCSML, QGAMC, QDPDR, QDPDE, &
                                    npassive, upass_map, qpass_map, allow_negative_energy, &
                                    dual_energy_eta1
-    use flatten_module
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF, ONE
 
     implicit none
 
@@ -134,29 +132,19 @@ contains
     integer          ::  srQ_l1,srQ_h1
     double precision ::   uin(uin_l1:uin_h1,NVAR)
     double precision ::     q(  q_l1:  q_h1,QVAR)
-    double precision ::     c(  q_l1:  q_h1)
-    double precision ::  gamc(  q_l1:  q_h1)
-    double precision ::  csml(  q_l1:  q_h1)
     double precision ::   src(src_l1:src_h1,NVAR)
     double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
     double precision :: dx, dt
-    
+
     integer          :: i
     integer          :: ngp, loq(1), hiq(1)
     integer          :: n, nq, ipassive
-    double precision :: courx, courmx
     double precision :: kineng
-    
-    double precision, allocatable :: dpdrho(:), dpde(:) !, dpdX_er(:,:)
-    
+
     type (eos_t) :: eos_state
-    
+
     loq(1) = lo(1)-ngp
     hiq(1) = hi(1)+ngp
-    
-    allocate(dpdrho(q_l1:q_h1))
-    allocate(dpde  (q_l1:q_h1))
-    ! allocate(dpdX_er(q_l1:q_h1,nspec))
 
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
@@ -170,7 +158,7 @@ contains
           print *,'    '
           call bl_error("Error:: Castro_1d.f90 :: ctoprim")
        end if
-       
+
        q(i,QRHO) = uin(i,URHO)
 
        ! Load passively advected qunatities into q
@@ -215,13 +203,11 @@ contains
        q(i,QTEMP)  = eos_state % T
        q(i,QREINT) = eos_state % e
        q(i,QPRES)  = eos_state % p
-
-       dpdrho(i) = eos_state % dpdr_e
-       dpde(i)   = eos_state % dpde
-       c(i)      = eos_state % cs
-       gamc(i)   = eos_state % gam1
-
-       csml(i) = max(small, small * c(i))
+       q(i,QDPDR)  = eos_state % dpdr_e
+       q(i,QDPDE)  = eos_state % dpde
+       q(i,QC)     = eos_state % cs
+       q(i,QGAMC)  = eos_state % gam1
+       q(i,QCSML)  = max(small, small * q(i,QC))
     end do
 
     ! Make this "rho e" instead of "e"
@@ -237,10 +223,9 @@ contains
        srcQ(i,QRHO   ) = src(i,URHO)
        srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
        srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + HALF * q(i,QU)**2 * srcQ(i,QRHO)
-       srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
-            dpdrho(i) * srcQ(i,QRHO)! - &
-       !              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
-       
+       srcQ(i,QPRES  ) = q(i,QDPDE) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
+                         q(i,QDPDR) * srcQ(i,QRHO)
+
        do ipassive=1, npassive
           n  = upass_map(ipassive)
           nq = qpass_map(ipassive)
@@ -248,15 +233,13 @@ contains
        end do
 
     end do
-    
-    deallocate(dpdrho,dpde)
-    
+
   end subroutine ctoprim
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
-     
+! :::
+
   subroutine consup( &
                     uin,  uin_l1,  uin_h1, &
                     uout, uout_l1 ,uout_h1, &

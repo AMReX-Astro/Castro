@@ -64,10 +64,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Automatic arrays for workspace
   double precision, allocatable :: q(:,:,:)
-  double precision, allocatable :: gamc(:,:)
   double precision, allocatable :: flatn(:,:)
-  double precision, allocatable :: c(:,:)
-  double precision, allocatable :: csml(:,:)
   double precision, allocatable :: div(:,:)
   double precision, allocatable :: srcQ(:,:,:)
   double precision, allocatable :: pdivu(:,:)
@@ -109,10 +106,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dx_3D   = [delta(1), delta(2), ZERO]
 
   allocate(     q(q_l1:q_h1,q_l2:q_h2,QVAR))
-  allocate(  gamc(q_l1:q_h1,q_l2:q_h2))
   allocate( flatn(q_l1:q_h1,q_l2:q_h2))
-  allocate(     c(q_l1:q_h1,q_l2:q_h2))
-  allocate(  csml(q_l1:q_h1,q_l2:q_h2))
 
   allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,QVAR))
 
@@ -125,17 +119,15 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dx = delta(1)
   dy = delta(2)
 
-  ! Translate to primitive variables, compute sound speeds.  Note that
-  ! (q,c,gamc,csml,flatn) are all dimensioned the same and set to
-  ! correspond to coordinates of (lo:hi)
+  ! Translate to primitive variables, compute sound speeds.
   call ctoprim(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-               q,c,gamc,csml,q_l1,q_l2,q_h1,q_h2, &
+               q,q_l1,q_l2,q_h1,q_h2, &
                src,src_l1,src_l2,src_h1,src_h2, &
                srcQ,q_l1,q_l2,q_h1,q_h2, &
                dx,dy,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+  call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coef for slope calculations
   if (use_flattening == 1) then
@@ -147,7 +139,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
+  call umeth2d(q,flatn,q_l1,q_l2,q_h1,q_h2, &
                srcQ, q_l1,q_l2,q_h1,q_h2, &
                lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                uout,uout_l1,uout_l2,uout_h1,uout_h2, &
@@ -187,6 +179,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)
 
-  deallocate(q,gamc,flatn,c,csml,div,q1,q2,srcQ,pdivu)
+  deallocate(q,flatn,div,q1,q2,srcQ,pdivu)
 
 end subroutine ca_umdrv
