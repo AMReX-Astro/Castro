@@ -106,7 +106,7 @@ contains
                      q,c,gamc,csml,flatn,q_l1,q_h1,&
                      src,src_l1,src_h1, &
                      srcQ,srQ_l1,srQ_h1, &
-                     courno,dx,dt,ngp,ngf)
+                     dx,dt,ngp,ngf)
     
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
     ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
@@ -142,7 +142,7 @@ contains
     double precision :: flatn(  q_l1:  q_h1)
     double precision ::   src(src_l1:src_h1,NVAR)
     double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
-    double precision :: dx, dt, courno
+    double precision :: dx, dt
     
     integer          :: i
     integer          :: ngp, ngf, loq(1), hiq(1)
@@ -269,24 +269,6 @@ contains
        end do
 
     end do
-
-    ! Compute running max of Courant number over grids
-    courmx = courno
-    do i = lo(1),hi(1)
-       
-       courx  = ( c(i)+abs(q(i,QU)) ) * dt/dx
-       courmx = max( courmx, courx )
-       
-       if (courx .gt. ONE) then
-          print *,'   '
-          call bl_warning("Warning:: Castro_1d.f90 :: CFL violation in ctoprim")
-          print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-          print *,'>>> ... at cell (i)       : ',i
-          print *,'>>> ... u, c                ',q(i,QU), c(i)
-          print *,'>>> ... density             ',q(i,QRHO)
-       end if
-    enddo
-    courno = courmx
     
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then

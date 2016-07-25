@@ -728,7 +728,7 @@ contains
                      q,c,gamc,csml,flatn,  q_lo,  q_hi, &
                      src,                src_lo,src_hi, &
                      srcQ,               srQ_lo,srQ_hi, &
-                     courno,dx,dt,ngp,ngf)
+                     dx,dt,ngp,ngf)
     !
     !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
     !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
@@ -737,8 +737,9 @@ contains
     !     routine that computes flatn).
     !
     use mempool_module, only : bl_allocate, bl_deallocate
-    use network, only : nspec, naux
-    use eos_module
+    use actual_network, only : nspec, naux
+    use eos_module, only : eos_input_re, eos
+    use eos_type_module, only : eos_t
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
@@ -746,9 +747,10 @@ contains
                                    use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    allow_negative_energy
-    use flatten_module
-    use bl_constants_module
+    use flatten_module, only: uflaten
+    use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
+    use advection_util_module, only: compute_cfl
 
     implicit none
 
@@ -771,7 +773,6 @@ contains
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
     double precision, intent(in) :: dx(3), dt
-    double precision, intent(inout) :: courno
 
     double precision, parameter:: small = 1.d-8
 
@@ -785,14 +786,9 @@ contains
     integer          :: n, nq, ipassive
     double precision :: courx, coury, courz, courmx, courmy, courmz
     double precision :: kineng, rhoinv
-    double precision :: dtdx, dtdy, dtdz
     double precision :: loc(3), vel(3)
 
     type (eos_t) :: eos_state
-
-    dtdx = dt/dx(1)
-    dtdy = dt/dx(2)
-    dtdz = dt/dx(3)
 
     do i=1,3
        loq(i) = lo(i)-ngp
@@ -935,55 +931,6 @@ contains
        enddo
 
     enddo
-
-    ! Compute running max of Courant number over grids
-    courmx = courno
-    courmy = courno
-    courmz = courno
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dtdz
-
-             courmx = max( courmx, courx )
-             courmy = max( courmy, coury )
-             courmz = max( courmz, courz )
-
-             if (courx .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... u, c                ',q(i,j,k,QU), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (coury .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... v, c                ',q(i,j,k,QV), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (courz .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... w, c                ',q(i,j,k,QW), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-          enddo
-       enddo
-    enddo
-
-    courno = max( courmx, courmy, courmz )
 
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then

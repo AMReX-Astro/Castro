@@ -20,6 +20,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
   use advection_module, only : umeth2d, ctoprim, consup
   use advection_util_2d_module, only : divu
+  use advection_util_module, only : compute_cfl
+  use bl_constants_module, only : ZERO
 
   implicit none
 
@@ -80,6 +82,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer ::  uin_lo(2),  uin_hi(2)
   integer :: uout_lo(2), uout_hi(2)
 
+  integer :: lo_3D(3), hi_3D(3)
+  integer :: q_lo_3D(3), q_hi_3D(3)
+  double precision :: dx_3D(3)
+
   uin_lo  = [uin_l1, uin_l2]
   uin_hi  = [uin_h1, uin_h2]
 
@@ -93,6 +99,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   q_l2 = lo(2)-NHYP
   q_h1 = hi(1)+NHYP
   q_h2 = hi(2)+NHYP
+
+  lo_3D   = [lo(1), lo(2), 0]
+  hi_3D   = [hi(1), hi(2), 0]
+  q_lo_3D = [q_l1, q_l2, 0]
+  q_hi_3D = [q_h1, q_h2, 0]
+  dx_3D   = [delta(1), delta(2), ZERO]
 
   allocate(     q(q_l1:q_h1,q_l2:q_h2,QVAR))
   allocate(  gamc(q_l1:q_h1,q_l2:q_h2))
@@ -118,8 +130,11 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                src,src_l1,src_l2,src_h1,src_h2, &
                srcQ,q_l1,q_l2,q_h1,q_h2, &
-               courno,dx,dy,dt,ngq,ngf)
-  
+               dx,dy,dt,ngq,ngf)
+
+  ! Check if we have violated the CFL criterion.
+  call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                srcQ, q_l1,q_l2,q_h1,q_h2, &

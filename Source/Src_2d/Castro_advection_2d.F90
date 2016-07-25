@@ -265,7 +265,7 @@ contains
                      q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                      src,src_l1,src_l2,src_h1,src_h2, &
                      srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                     courno,dx,dy,dt,ngp,ngf)
+                     dx,dy,dt,ngp,ngf)
 
     ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
     ! lo-ngf:hi+ngf if use_flattening=1.  Declared dimensions of
@@ -302,7 +302,7 @@ contains
     double precision :: flatn(q_l1:q_h1,q_l2:q_h2)
     double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
     double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
-    double precision :: dx, dy, dt, courno
+    double precision :: dx, dy, dt
 
     double precision, allocatable :: dpdrho(:,:)
     double precision, allocatable :: dpde(:,:)
@@ -446,38 +446,6 @@ contains
        enddo
 
     end do
-
-    ! Compute running max of Courant number over grids
-    courmx = courno
-    courmy = courno
-    do j = lo(2),hi(2)
-       do i = lo(1),hi(1)
-          courx =  ( c(i,j)+abs(q(i,j,QU)) ) * dt/dx
-          coury =  ( c(i,j)+abs(q(i,j,QV)) ) * dt/dy
-          courmx = max( courmx, courx )
-          courmy = max( courmy, coury )
-
-          if (courx .gt. ONE) then
-             print *,'   '
-             call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
-             print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-             print *,'>>> ... at cell (i,j)     : ',i,j
-             print *,'>>> ... u, c                ',q(i,j,QU), c(i,j)
-             print *,'>>> ... density             ',q(i,j,QRHO)
-          end if
-
-          if (coury .gt. ONE) then
-             print *,'   '
-             call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
-             print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-             print *,'>>> ... at cell (i,j)     : ',i,j
-             print *,'>>> ... v, c                ',q(i,j,QV), c(i,j)
-             print *,'>>> ... density             ',q(i,j,QRHO)
-          end if
-
-       enddo
-    enddo
-    courno = max( courmx, courmy )
 
     ! Compute flattening coef for slope calculations
     if (use_flattening == 1) then

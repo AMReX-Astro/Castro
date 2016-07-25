@@ -24,6 +24,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                  GDU, GDV, GDW
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_3d_module, only : divu
+  use advection_util_module, only : compute_cfl
 
   implicit none
 
@@ -175,7 +176,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                q,c,gamc,csml,flatn,q_lo,q_hi, &
                src,src_lo,src_hi, &
                srcQ,q_lo,q_hi, &
-               courno,delta,dt,ngq,ngf)
+               delta,dt,ngq,ngf)
+
+  ! Check if we have violated the CFL criterion.
+  call compute_cfl(q, q_lo, q_hi, c, q_lo, q_hi, lo, hi, dt, delta, courno)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_lo,q_hi, &

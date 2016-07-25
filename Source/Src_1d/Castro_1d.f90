@@ -18,6 +18,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use advection_module  , only : umeth1d, ctoprim, consup
   use bl_constants_module
+  use advection_util_module, only : compute_cfl
 
   implicit none
 
@@ -66,6 +67,10 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer ::  uin_lo(1),  uin_hi(1)
   integer :: uout_lo(1), uout_hi(1)
 
+  integer :: lo_3D(3), hi_3D(3)
+  integer :: q_lo_3D(3), q_hi_3D(3)
+  double precision :: dx_3D(3)
+
   uin_lo  = [uin_l1]
   uin_hi  = [uin_h1]
 
@@ -77,6 +82,12 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   q_l1 = lo(1)-NHYP
   q_h1 = hi(1)+NHYP
+
+  lo_3D   = [lo(1), 0, 0]
+  hi_3D   = [hi(1), 0, 0]
+  q_lo_3D = [q_l1, 0, 0]
+  q_hi_3D = [q_h1, 0, 0]
+  dx_3D   = [delta(1), ZERO, ZERO]
 
   allocate(     q(q_l1:q_h1,QVAR))
   allocate(     c(q_l1:q_h1))
@@ -100,7 +111,10 @@ subroutine ca_umdrv(is_finest_level,time,&
        q,c,gamc,csml,flatn,q_l1,q_h1, &
        src,src_l1,src_h1, &
        srcQ,q_l1,q_h1, &
-       courno,dx,dt,ngq,ngf)
+       dx,dt,ngq,ngf)
+
+  ! Check if we have violated the CFL criterion.
+  call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
 
   call umeth1d(lo,hi,domlo,domhi, &
        q,c,gamc,csml,flatn,q_l1,q_h1, &
