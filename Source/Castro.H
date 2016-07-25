@@ -222,12 +222,12 @@ public:
                           int  iteration,
                           int  ncycle) BL_OVERRIDE;
 
-    Real advance_hydro (Real time,
-                        Real dt,
-                        int  amr_iteration,
-                        int  amr_ncycle,
-			int  sub_iteration,
-			int  sub_ncycle);
+    Real do_advance (Real time,
+                     Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle,
+                     int  sub_iteration,
+                     int  sub_ncycle);
 
     Real retry_advance (Real time, Real dt, int amr_iteration, int amr_ncycle);
 
@@ -235,19 +235,15 @@ public:
 
     void finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
 
-    void initialize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+    void initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
 
-    void finalize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+    void finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
 
     void hydro_update(Real time, Real dt);
 
     void check_for_nan(MultiFab& state);
 
-    void set_up_for_old_sources(Real time);
-
     void construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
-
-    void set_up_for_new_sources(Real time);
 
     void construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
@@ -378,13 +374,14 @@ public:
 #ifdef REACTIONS
     void react_state(MultiFab& state,
 		     MultiFab& reactions,
-#ifdef TAU
-		     MultiFab& tau,
-#endif
 		     const iMultiFab& mask,
 		     Real time,
 		     Real dt_react,
 		     int  ngrow = 0);
+
+    void strang_react_first_half(Real time, Real dt);
+
+    void strang_react_second_half(Real time, Real dt);
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,

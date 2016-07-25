@@ -3739,6 +3739,12 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 void
 Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
+
+    for (int n = 0; n < num_src; ++n)
+	old_sources[n].setVal(0.0);
+
+    sources_for_hydro->setVal(0.0,NUM_GROW);
+
     if (do_sponge)
         construct_old_sponge_source(time, dt);
 
@@ -3767,6 +3773,27 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 void
 Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
+
+    // Update the dSdt MultiFab. Get rid of the dt/2 * dS/dt that
+    // we added from the last timestep, then subtract the old sources
+    // data to get the first half of the update, which is needed for
+    // the next calculation of dS/dt.
+
+    if (source_term_predictor == 1) {
+      MultiFab& dSdt_new = get_new_data(Source_Type);
+      MultiFab::Subtract(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      dSdt_new.setVal(0.0, NUM_GROW);
+      MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
+    }
+
+    for (int n = 0; n < num_src; ++n) {
+	new_sources[n].setVal(0.0);
+    }
+
+    sources_for_hydro->setVal(0.0,NUM_GROW);
+
+    hydro_source->setVal(0.0);
+
     if (do_sponge)
         construct_new_sponge_source(time, dt);
 
@@ -3778,6 +3805,11 @@ Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 #endif
 
 #ifdef DIFFUSION
+    NewTempDiffTerm = OldTempDiffTerm;
+    NewSpecDiffTerm = OldSpecDiffTerm;
+    NewViscousTermforMomentum = OldViscousTermforMomentum;
+    NewViscousTermforEnergy   = OldViscousTermforEnergy;
+
     construct_new_diff_source(time, dt);
 #endif
 

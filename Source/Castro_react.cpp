@@ -5,10 +5,64 @@
 
 using std::string;
 
-#ifdef REACTIONS
+
+void
+Castro::strang_react_first_half(Real time, Real dt)
+{
+
+    // Reactions are expensive and we would usually rather do a communication
+    // step than burn on the ghost zones. So what we will do here is create a mask
+    // that indicates that we want to turn on the valid interior zones but NOT
+    // on the ghost zones that are interior to the level. However, we DO want to
+    // burn on the ghost zones that are on the coarse-fine interfaces, since that
+    // is going to be more accurate than interpolating from coarse zones. So we will
+    // not mask out those zones, and the subsequent FillBoundary call will not
+    // interfere with it.
+
+    MultiFab& reactions = get_old_data(Reactions_Type);
+
+    MultiFab& state = (*Sborder);
+
+    const int ng = state.nGrow();
+
+    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+
+    react_state(state, reactions, interior_mask, time, dt, ng);
+
+    reset_internal_energy(state);
+
+    BoxLib::fill_boundary(state, geom);
+
+}
+
+
+
+void
+Castro::strang_react_second_half(Real time, Real dt)
+{
+
+    MultiFab& reactions = get_new_data(Reactions_Type);
+
+    MultiFab& state = get_new_data(State_Type);
+
+    const int ng = state.nGrow();
+
+    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+
+    react_state(state, reactions, interior_mask, time, dt, ng);
+
+    reset_internal_energy(state);
+
+    BoxLib::fill_boundary(state, geom);
+
+}
+
+
+
 void
 Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, Real dt_react, int ngrow)
 {
+
     BL_PROFILE("Castro::react_state()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -41,8 +95,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 
 	}
 
-        reset_internal_energy(s);
-
 	if (verbose) {
 
 	  Real e_added = r.sum(NumSpec + 1);
@@ -73,5 +125,5 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 	});
 #endif
     }
+
 }
-#endif
