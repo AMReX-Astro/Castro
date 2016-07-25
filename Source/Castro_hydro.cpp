@@ -2,7 +2,7 @@
 #include "Castro_F.H"
 
 void
-Castro::hydro_update(Real time, Real dt)
+Castro::construct_hydro_source(Real time, Real dt)
 {
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -280,10 +280,6 @@ Castro::hydro_update(Real time, Real dt)
 		     E_added_flux,
 		     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 		     eden_lost, xang_lost, yang_lost, zang_lost);
-
-		// Apply the hydro source term.
-
-		stateout.saxpy(dt,source,bx,bx,0,0,NUM_STATE);
 
 		// Copy the normal velocities from the Riemann solver
 

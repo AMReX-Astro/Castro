@@ -135,15 +135,18 @@ Castro::do_advance (Real time,
     // Do the hydro update.
 
     if (do_hydro)
-        hydro_update(time, dt);
+    {
+        construct_hydro_source(time, dt);
+	apply_source_to_state(S_new, *hydro_source, dt);
 
-    // Renormalize the species.
+	// Renormalize the species.
 
-    normalize_species(S_new);
+	normalize_species(S_new);
 
-    // Enforce non-negative densities.
+	// Enforce non-negative densities.
 
-    frac_change = enforce_min_density(S_old, S_new);
+	frac_change = enforce_min_density(S_old, S_new);
+    }
 
     // Check for NaN's.
 
