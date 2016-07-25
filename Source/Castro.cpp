@@ -3064,6 +3064,21 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
     construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
     construct_old_rotation_source(time, dt);
 #endif
+
+    // If we're doing SDC, time-center the source term (using the current iteration's old sources
+    // and the last iteration's new sources).
+
+    if (do_sdc) {
+
+      sources_for_hydro->mult(0.5, NUM_GROW);
+
+      for (int n = 0; n < num_src; ++n)
+	MultiFab::Saxpy(*sources_for_hydro, 0.5, new_sources[n], 0, 0, NUM_STATE, 0);
+
+      BoxLib::fill_boundary(*sources_for_hydro, geom);
+
+    }
+
 }
 
 void
