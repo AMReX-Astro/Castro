@@ -4,7 +4,7 @@ module advection_module
 
   private
 
-  public umeth1d, ctoprim, consup
+  public umeth1d, consup
 
 contains
 
@@ -95,139 +95,6 @@ contains
     deallocate (qm,qp)
 
   end subroutine umeth1d
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
-  subroutine ctoprim(lo,hi, &
-                     uin,uin_l1,uin_h1, &
-                     q,q_l1,q_h1,&
-                     src,src_l1,src_h1, &
-                     srcQ,srQ_l1,srQ_h1, &
-                     dx,dt)
-
-    use network, only : nspec, naux
-    use eos_module, only : eos
-    use eos_type_module, only : eos_t, eos_input_re
-    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-                                   QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
-                                   QFS, QFX, &
-                                   QC, QCSML, QGAMC, QDPDR, QDPDE, &
-                                   npassive, upass_map, qpass_map, allow_negative_energy, &
-                                   dual_energy_eta1
-    use bl_constants_module, only : ZERO, HALF, ONE
-
-    implicit none
-
-    double precision, parameter:: small = 1.d-8
-
-    integer          :: lo(1), hi(1)
-    integer          :: uin_l1,uin_h1
-    integer          :: q_l1,q_h1
-    integer          ::  src_l1,src_h1
-    integer          ::  srQ_l1,srQ_h1
-    double precision ::   uin(uin_l1:uin_h1,NVAR)
-    double precision ::     q(  q_l1:  q_h1,QVAR)
-    double precision ::   src(src_l1:src_h1,NVAR)
-    double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
-    double precision :: dx, dt
-
-    integer          :: i
-    integer          :: n, nq, ipassive
-    double precision :: kineng
-
-    type (eos_t) :: eos_state
-
-    ! Make q (all but p), except put e in slot for rho.e, fix after
-    ! eos call The temperature is used as an initial guess for the eos
-    ! call and will be overwritten
-    do i = lo(1),hi(1)
-
-       if (uin(i,URHO) .le. ZERO) then
-          print *,'   '
-          print *,'>>> Error: Castro_1d::ctoprim ',i
-          print *,'>>> ... negative density ',uin(i,URHO)
-          print *,'    '
-          call bl_error("Error:: Castro_1d.f90 :: ctoprim")
-       end if
-
-       q(i,QRHO) = uin(i,URHO)
-
-       ! Load passively advected qunatities into q
-       do ipassive = 1, npassive
-          n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
-          q(i,nq) = uin(i,n)/q(i,QRHO)
-       enddo
-
-       q(i,QU  ) = uin(i,UMX )/uin(i,URHO)
-
-       ! Get the internal energy, which we'll use for determining the pressure.
-       ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small, 
-       ! then we risk serious numerical truncation error in the internal energy.
-       ! Therefore we'll use the result of the separately updated internal energy equation.
-       ! Otherwise, we'll set e = E - K.
-
-       kineng = HALF * q(i,QRHO) * sum(q(i,QU:QW)**2)
-
-       if ( (uin(i,UEDEN) - kineng) / uin(i,UEDEN) .gt. dual_energy_eta1) then
-          q(i,QREINT) = (uin(i,UEDEN) - kineng) / q(i,QRHO)
-       else
-          q(i,QREINT) = uin(i,UEINT) / q(i,QRHO)
-       endif
-
-       q(i,QTEMP ) = uin(i,UTEMP)
-
-    enddo
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
-    ! Get gamc, p, T, c, csml using q state
-    do i = lo(1), hi(1)
-       eos_state % T   = q(i,QTEMP)
-       eos_state % rho = q(i,QRHO)
-       eos_state % e   = q(i,QREINT)
-       eos_state % xn  = q(i,QFS:QFS+nspec-1)
-       eos_state % aux = q(i,QFX:QFX+naux-1)
-
-       call eos(eos_input_re, eos_state)
-
-       q(i,QTEMP)  = eos_state % T
-       q(i,QREINT) = eos_state % e
-       q(i,QPRES)  = eos_state % p
-       q(i,QDPDR)  = eos_state % dpdr_e
-       q(i,QDPDE)  = eos_state % dpde
-       q(i,QC)     = eos_state % cs
-       q(i,QGAMC)  = eos_state % gam1
-       q(i,QCSML)  = max(small, small * q(i,QC))
-    end do
-
-    ! Make this "rho e" instead of "e"
-    do i = lo(1),hi(1)
-       q(i,QREINT ) = q(i,QREINT )*q(i,QRHO)
-       q(i,QGAME) = q(i,QPRES)/q(i,QREINT) + ONE
-    enddo
-
-    srcQ = ZERO
-
-    ! compute srcQ terms
-    do i = lo(1), hi(1)
-       srcQ(i,QRHO   ) = src(i,URHO)
-       srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
-       srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + HALF * q(i,QU)**2 * srcQ(i,QRHO)
-       srcQ(i,QPRES  ) = q(i,QDPDE) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
-                         q(i,QDPDR) * srcQ(i,QRHO)
-
-       do ipassive=1, npassive
-          n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
-          srcQ(i,nq) = ( src(i,n) - q(i,nq) * srcQ(i,QRHO) ) / q(i,QRHO)
-       end do
-
-    end do
-
-  end subroutine ctoprim
 
 ! :::
 ! ::: ------------------------------------------------------------------

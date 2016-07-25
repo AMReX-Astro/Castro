@@ -19,9 +19,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, &
                                  use_flattening, QU, QV, QW, QPRES
-  use advection_module, only : umeth2d, ctoprim, consup
+  use advection_module, only : umeth2d, consup
   use advection_util_2d_module, only : divu
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, ctoprim
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only : uflaten
 
@@ -84,6 +84,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   integer :: lo_3D(3), hi_3D(3)
   integer :: q_lo_3D(3), q_hi_3D(3)
+  integer :: uin_lo_3D(3), uin_hi_3D(3)
+  integer :: src_lo_3D(3), src_hi_3D(3)
   double precision :: dx_3D(3)
 
   uin_lo  = [uin_l1, uin_l2]
@@ -107,6 +109,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   hi_3D   = [hi(1), hi(2), 0]
   q_lo_3D = [q_l1, q_l2, 0]
   q_hi_3D = [q_h1, q_h2, 0]
+  uin_lo_3D = [uin_l1, uin_l2, 0]
+  uin_hi_3D = [uin_h1, uin_h2, 0]
+  src_lo_3D = [src_l1, src_l2, 0]
+  src_hi_3D = [src_h1, src_h2, 0]
   dx_3D   = [delta(1), delta(2), ZERO]
 
   allocate(     q(q_l1:q_h1,q_l2:q_h2,QVAR))
@@ -124,12 +130,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dy = delta(2)
 
   ! Translate to primitive variables, compute sound speeds.
-  call ctoprim(q_lo,q_hi, &
-               uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-               q,q_l1,q_l2,q_h1,q_h2, &
-               src,src_l1,src_l2,src_h1,src_h2, &
-               srcQ,q_l1,q_l2,q_h1,q_h2, &
-               dx,dy,dt)
+  call ctoprim(q_lo_3D, q_hi_3D, &
+               uin, uin_lo_3D, uin_hi_3D, &
+               q, q_lo_3D, q_hi_3D, &
+               src, src_lo_3D, src_hi_3D, &
+               srcQ, q_lo_3D, q_hi_3D, &
+               dx_3D, dt)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
