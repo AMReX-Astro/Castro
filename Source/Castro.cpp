@@ -1559,7 +1559,8 @@ Castro::post_timestep (int iteration)
 	}
 
         // This needs to be done after any changes to the state from refluxing.
-        enforce_nonnegative_species(S_new_crse);
+
+        normalize_species(S_new_crse);
 
 	// Flush Fortran output
 
@@ -2955,7 +2956,7 @@ Castro::avgDown ()
 }
 
 void
-Castro::enforce_nonnegative_species (MultiFab& S_new)
+Castro::normalize_species (MultiFab& S_new)
 {
     int ng = S_new.nGrow();
 
@@ -3732,7 +3733,7 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 
     // It's also possible for interpolation to create very small negative values for species.
 
-    enforce_nonnegative_species(Sborder);
+    normalize_species(Sborder);
 
 }
 

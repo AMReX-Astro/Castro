@@ -59,6 +59,9 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
 	       rot_src,
 #endif
+#ifdef REACTIONS
+	       react_src,
+#endif
 #ifdef DIFFUSION
 	       diff_src,
 #endif
@@ -607,7 +610,7 @@ protected:
 
     void reflux ();
 
-    void enforce_nonnegative_species (MultiFab& S_new);
+    void normalize_species (MultiFab& S_new);
 
     void enforce_consistent_e (MultiFab& S);
 
