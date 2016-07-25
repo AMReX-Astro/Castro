@@ -81,7 +81,7 @@ Castro::advance (Real time,
 #endif
 
 #ifdef PARTICLES
-    UpdateParticles(amr_iteration, time, dt);
+    advance_particles(amr_iteration, time, dt);
 #endif
 
     finalize_advance(time, dt, amr_iteration, amr_ncycle);
@@ -152,19 +152,21 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_new);
 
-#ifdef GRAVITY
     // Must define new value of "center" before we call new gravity solve or external source routine
+
+#ifdef GRAVITY
     if (moving_center == 1)
         define_new_center(S_new, time);
 #endif
 
+    // We need to make the new radial data now so that we can use it when we
+    // FillPatch in creating the new source.
+
 #if (BL_SPACEDIM > 1)
-      // We need to make the new radial data now so that we can use it when we
-      //   FillPatch in creating the new source
-      if ( (level == 0) && (spherical_star == 1) ) {
-	  int is_new = 1;
-	  make_radial_data(is_new);
-      }
+    if ( (level == 0) && (spherical_star == 1) ) {
+        int is_new = 1;
+	make_radial_data(is_new);
+    }
 #endif
 
     // Compute the current temperature for use in the source term evaluation.

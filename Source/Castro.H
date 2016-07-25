@@ -178,7 +178,7 @@ public:
     //
     // Advance the particles by dt
     //
-    void UpdateParticles (int iteration, Real time, Real dt);
+    void advance_particles (int iteration, Real time, Real dt);
     //
     // Default verbosity of Particle class
     //

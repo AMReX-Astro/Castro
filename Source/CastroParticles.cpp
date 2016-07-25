@@ -278,7 +278,7 @@ Castro::TimestampParticles (int ngrow)
 #endif
 
 void
-Castro::UpdateParticles(int iteration, Real time, Real dt)
+Castro::advance_particles(int iteration, Real time, Real dt)
 {
     if (TracerPC)
     {
