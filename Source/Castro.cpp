@@ -3744,12 +3744,9 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 
     AmrLevel::FillPatch(*this,Sborder,ng,time,State_Type,0,NUM_STATE);
 
-    // The linear-combination-preserving state interpolater can sometimes generate
-    // negative densities. Run it through the enforce_minimum_density routine
-    // to deal with that.
+    // It's possible for interpolation to generate negative/small densities.
 
-    if (state_interp_order == 1 && lin_limit_state_interp == 1)
-        enforce_min_density(Sborder, Sborder);
+    enforce_min_density(Sborder, Sborder);
 
     // It's also possible for interpolation to create very small negative values for species.
 
