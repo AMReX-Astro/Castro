@@ -113,11 +113,12 @@ contains
     ! declared region is assumed to encompass lo-ngp:hi+ngp.
 
     use network, only : nspec, naux
-    use eos_module
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
-                                   npassive, upass_map, qpass_map, small_temp, allow_negative_energy, &
+                                   npassive, upass_map, qpass_map, allow_negative_energy, &
                                    dual_energy_eta1
     use flatten_module
     use bl_constants_module
@@ -199,49 +200,31 @@ contains
        q(i,QTEMP ) = uin(i,UTEMP)
 
     enddo
-    
+
+    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
+
     ! Get gamc, p, T, c, csml using q state
     do i = loq(1), hiq(1)
-       
        eos_state % T   = q(i,QTEMP)
        eos_state % rho = q(i,QRHO)
+       eos_state % e   = q(i,QREINT)
        eos_state % xn  = q(i,QFS:QFS+nspec-1)
        eos_state % aux = q(i,QFX:QFX+naux-1)
-       
-       ! If necessary, reset the energy using small_temp
-       if (allow_negative_energy .eq. 0 .and. q(i,QREINT) .le. ZERO) then
-          
-          q(i,QTEMP) = small_temp
-          eos_state % T = q(i,QTEMP)
-          
-          call eos(eos_input_rt, eos_state)
-          q(i,QREINT) = eos_state % e
-          
-          if (q(i,QREINT) .lt. ZERO) then
-             print *,'   '
-             print *,'>>> Error: Castro_1d::ctoprim ',i
-             print *,'>>> ... new e from eos (input_rt) call is negative ',q(i,QREINT)
-             print *,'    '
-             call bl_error("Error:: Castro_1d.f90 :: ctoprim")
-          end if
-       end if
-       
-       eos_state % e = q(i,QREINT)
-       
+
        call eos(eos_input_re, eos_state)
-       
+
        q(i,QTEMP)  = eos_state % T
        q(i,QREINT) = eos_state % e
        q(i,QPRES)  = eos_state % p
-       
+
        dpdrho(i) = eos_state % dpdr_e
        dpde(i)   = eos_state % dpde
        c(i)      = eos_state % cs
        gamc(i)   = eos_state % gam1
-       
+
        csml(i) = max(small, small * c(i))
     end do
-    
+
     ! Make this "rho e" instead of "e"
     do i = loq(1),hiq(1)
        q(i,QREINT ) = q(i,QREINT )*q(i,QRHO)

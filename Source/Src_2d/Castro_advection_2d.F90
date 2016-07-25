@@ -273,11 +273,11 @@ contains
 
     use actual_network, only : nspec, naux
     use eos_module, only : eos
-    use eos_type_module, only : eos_t, eos_input_rt, eos_input_re
+    use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
-                                   allow_negative_energy, small_temp, &
+                                   allow_negative_energy, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1
     use bl_constants_module, only : ZERO, HALF, ONE
 
@@ -320,6 +320,8 @@ contains
        loq(i) = lo(i)-ngp
        hiq(i) = hi(i)+ngp
     enddo
+
+    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     ! Make q (all but p), except put e in slot for rho.e, fix after
     ! eos call The temperature is used as an initial guess for the eos
@@ -368,27 +370,9 @@ contains
           ! Get gamc, p, T, c, csml using q state
           eos_state % T   = q(i,j,QTEMP)
           eos_state % rho = q(i,j,QRHO)
+          eos_state % e   = q(i,j,QREINT)
           eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
           eos_state % aux = q(i,j,QFX:QFX+naux-1)
-
-          ! if necessary, reset the energy using small_temp
-          if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. ZERO)) then
-             q(i,j,QTEMP) = small_temp
-             eos_state % T = q(i,j,QTEMP)
-
-             call eos(eos_input_rt, eos_state)
-             q(i,j,QREINT) = eos_state % e
-
-             if (q(i,j,QREINT) .lt. ZERO) then
-                print *,'   '
-                print *,'>>> Error: Castro_2d::ctoprim ',i,j
-                print *,'>>> ... new e from eos (input_rt) call is negative ',q(i,j,QREINT)
-                print *,'    '
-                call bl_error("Error:: Castro_2d.f90 :: ctoprim")
-             end if
-          end if
-
-          eos_state % e = q(i,j,QREINT)
 
           call eos(eos_input_re, eos_state)
 
