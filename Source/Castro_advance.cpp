@@ -141,6 +141,10 @@ Castro::do_advance (Real time,
 
     normalize_species(S_new);
 
+    // Enforce non-negative densities.
+
+    frac_change = enforce_min_density(S_old, S_new);
+
     // Check for NaN's.
 
     check_for_nan(S_new);
@@ -542,6 +546,8 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
         // Negative density criterion
 	// Reset so that the desired maximum fractional change in density
 	// is not larger than retry_neg_dens_factor.
+
+        ParallelDescriptor::ReduceRealMin(frac_change);
 
 	if (frac_change < 0.0)
 	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));

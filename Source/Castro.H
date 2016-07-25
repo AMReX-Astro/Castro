@@ -614,6 +614,8 @@ protected:
 
     void enforce_consistent_e (MultiFab& S);
 
+    Real enforce_min_density (MultiFab& S_old, MultiFab& S_new);
+
     void avgDown ();
 
     void avgDown (int state_indx);

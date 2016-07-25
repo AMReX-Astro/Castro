@@ -1530,33 +1530,7 @@ Castro::post_timestep (int iteration)
 	// Sometimes refluxing can generate zones with rho < small_dens, so let's fix 
 	// that now if we need to.
 
-	MultiFab& S_old_crse = get_old_data(State_Type);
-	
-#ifdef _OPENMP
-#pragma omp parallel	      
-#endif	
-	for (MFIter mfi(S_new_crse,true); mfi.isValid(); ++mfi) {
-
-	  Real mass_added = 0.;
-	  Real e_added = 0.;
-	  Real E_added = 0.;
-	  Real dens_change = 0.;
-	  int verbose = 0;
-
-	  const Box& bx = mfi.tilebox();
-
-	  FArrayBox& stateold = S_old_crse[mfi];
-	  FArrayBox& statenew = S_new_crse[mfi];
-	  FArrayBox& vol      = volume[mfi];
-	  
-	  enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				  statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				  vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()), 
-				  ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				  &mass_added, &e_added, &E_added, &dens_change,
-				  &verbose);
-
-	}
+	enforce_min_density(S_new_crse, S_new_crse);
 
         // This needs to be done after any changes to the state from refluxing.
 
@@ -2987,6 +2961,79 @@ Castro::enforce_consistent_e (MultiFab& S)
     }
 }
 
+Real
+Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
+{
+
+    // This routine sets the density in S_new to be larger than the density floor.
+    // Note that it will operate everywhere on S_new, including ghost zones.
+    // S_old is present so that, after the hydro call, we know what the old density
+    // was so that we have a reference for comparison. If you are calling it elsewhere
+    // and there's no meaningful reference state, just pass in the same MultiFab twice.
+
+    // The return value is the the negative fractional change in the state that has the
+    // largest magnitude. If there is no reference state, this is meaningless.
+
+    Real dens_change = 1.e0;
+
+    Real mass_added = 0.0;
+    Real eint_added = 0.0;
+    Real eden_added = 0.0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(min:dens_change)
+#endif
+    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	FArrayBox& stateold = S_old[mfi];
+	FArrayBox& statenew = S_new[mfi];
+	FArrayBox& vol      = volume[mfi];
+
+	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
+				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				&mass_added, &eint_added, &eden_added, &dens_change,
+				&verbose);
+
+    }
+
+    if (print_energy_diagnostics)
+    {
+
+        Real foo[3] = {mass_added, eint_added, eden_added};
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+	    ParallelDescriptor::ReduceRealSum(foo, 3, ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor())
+	    {
+	        mass_added = foo[0];
+		eint_added = foo[1];
+		eden_added = foo[2];
+
+		if (std::abs(mass_added) != 0.0)
+	        {
+		  std::cout << "   Mass added from negative density correction : " <<
+				mass_added << std::endl;
+		  std::cout << "(rho e) added from negative density correction : " <<
+				eint_added << std::endl;
+		  std::cout << "(rho E) added from negative density correction : " <<
+				eden_added << std::endl;
+	        }
+	    }
+#ifdef BL_LAZY
+        });
+#endif
+
+    }
+
+    return dens_change;
+
+}
+
 void
 Castro::avgDown (int state_indx)
 {
@@ -3701,35 +3748,8 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
     // negative densities. Run it through the enforce_minimum_density routine
     // to deal with that.
 
-    if (state_interp_order == 1 && lin_limit_state_interp == 1) {
-
-      MultiFab Sborder_copy(grids,NUM_STATE,ng,Fab_allocate);
-      MultiFab::Copy(Sborder_copy,Sborder,0,0,NUM_STATE,ng);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi) {
-
-	Real mass_added = 0.;
-	Real e_added = 0.;
-	Real E_added = 0.;
-	Real dens_change = 0.;
-
-	FArrayBox& stateold = Sborder_copy[mfi];
-	FArrayBox& statenew = Sborder[mfi];
-	FArrayBox& vol      = volume[mfi];
-
-	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				&mass_added, &e_added, &E_added, &dens_change,
-				&verbose);
-
-      }
-
-    }
+    if (state_interp_order == 1 && lin_limit_state_interp == 1)
+        enforce_min_density(Sborder, Sborder);
 
     // It's also possible for interpolation to create very small negative values for species.
 

@@ -201,10 +201,6 @@ Castro::hydro_update(Real time, Real dt)
 	// pure hydro (no radiation)
 
 	Real E_added_flux    = 0.;
-	Real mass_added      = 0.;
-	Real eint_added      = 0.;
-	Real eden_added      = 0.;
-	Real dens_change     = 1.e200;
 	Real mass_added_flux = 0.;
 	Real xmom_added_flux = 0.;
 	Real ymom_added_flux = 0.;
@@ -221,12 +217,10 @@ Castro::hydro_update(Real time, Real dt)
 	BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added_flux) \
-                     reduction(+:mass_added,eint_added,eden_added,mass_added_flux) \
+#pragma omp parallel reduction(+:E_added_flux,mass_added_flux) \
 		     reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
 		     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-		     reduction(min:dens_change)
+		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
@@ -291,14 +285,6 @@ Castro::hydro_update(Real time, Real dt)
 
 		stateout.saxpy(dt,source,bx,bx,0,0,NUM_STATE);
 
-		// Enforce the density >= small_dens.
-
-		enforce_minimum_density(statein.dataPtr(),ARLIM_3D(statein.loVect()),ARLIM_3D(statein.hiVect()),
-					stateout.dataPtr(),ARLIM_3D(stateout.loVect()),ARLIM_3D(stateout.hiVect()),
-					vol.dataPtr(),ARLIM_3D(vol.loVect()),ARLIM_3D(vol.hiVect()),
-					ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
-					&mass_added,&eint_added,&eden_added,&dens_change,&verbose);
-
 		// Copy the normal velocities from the Riemann solver
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
@@ -323,8 +309,6 @@ Castro::hydro_update(Real time, Real dt)
 
 	BL_PROFILE_VAR_STOP(CA_UMDRV);
 
-	frac_change = dens_change;
-
 	// Flush Fortran output
 
 	if (verbose)
@@ -346,33 +330,21 @@ Castro::hydro_update(Real time, Real dt)
 
 	if (print_energy_diagnostics)
 	{
-	   Real foo[8] = {mass_added, eint_added, eden_added,
-			  E_added_flux,
-			  xmom_added_flux, ymom_added_flux, zmom_added_flux,
-			  mass_added_flux};
+
+	    Real foo[5] = {E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, mass_added_flux};
+
 #ifdef BL_LAZY
-	   Lazy::QueueReduction( [=] () mutable {
+	    Lazy::QueueReduction( [=] () mutable {
 #endif
-	   ParallelDescriptor::ReduceRealSum(foo, 20, ParallelDescriptor::IOProcessorNumber());
-	   if (ParallelDescriptor::IOProcessor())
-	   {
-	       mass_added = foo[0];
-	       eint_added = foo[1];
-	       eden_added = foo[2];
-	       E_added_flux = foo[3];
-	       xmom_added_flux = foo[4];
-	       ymom_added_flux = foo[5];
-	       zmom_added_flux = foo[6];
-	       mass_added_flux    = foo[7];
-	       if (std::abs(mass_added) != 0.0)
-	       {
-		  std::cout << "   Mass added from negative density correction : " <<
-				mass_added << std::endl;
-		  std::cout << "(rho e) added from negative density correction : " <<
-				eint_added << std::endl;
-		  std::cout << "(rho E) added from negative density correction : " <<
-				eden_added << std::endl;
-	       }
+	    ParallelDescriptor::ReduceRealSum(foo, 5, ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor())
+	    {
+	        E_added_flux    = foo[0];
+	        xmom_added_flux = foo[1];
+	        ymom_added_flux = foo[2];
+	        zmom_added_flux = foo[3];
+	        mass_added_flux = foo[4];
 
 	       std::cout << "mass added from fluxes                      : " <<
 			     mass_added_flux << std::endl;
@@ -388,12 +360,10 @@ Castro::hydro_update(Real time, Real dt)
 #ifdef BL_LAZY
 	   });
 #endif
+
 	}
 
 #endif    // RADIATION
-
-    if (use_retry)
-      ParallelDescriptor::ReduceRealMin(frac_change);
 
     // Save the fluxes.
 
