@@ -299,11 +299,6 @@ Castro::hydro_update(Real time, Real dt)
 					ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
 					&mass_added,&eint_added,&eden_added,&dens_change,&verbose);
 
-		// Renormalize species mass fractions
-
-		ca_normalize_species(stateout.dataPtr(),ARLIM_3D(stateout.loVect()), ARLIM_3D(stateout.hiVect()),
-				     ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()));
-
 		// Copy the normal velocities from the Riemann solver
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {

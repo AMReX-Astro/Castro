@@ -137,6 +137,10 @@ Castro::do_advance (Real time,
     if (do_hydro)
         hydro_update(time, dt);
 
+    // Renormalize the species.
+
+    normalize_species(S_new);
+
     // Check for NaN's.
 
     check_for_nan(S_new);
