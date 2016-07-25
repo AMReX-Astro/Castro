@@ -235,6 +235,10 @@ public:
 
     void finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
 
+    void initialize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+
+    void finalize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+
     void hydro_update(Real time, Real dt);
 
     void check_for_nan(MultiFab& state);

@@ -93,58 +93,23 @@ Castro::advance_hydro (Real time,
 {
     BL_PROFILE("Castro::advance_hydro()");
 
-    // Reset the change from density resets
-
-    frac_change = 1.e0;
-
-    int finest_level = parent->finestLevel();
-
-    if (do_reflux && level < finest_level && sub_iteration < 2) {
-        //
-        // Set reflux registers to zero.
-        //
-        getFluxReg(level+1).setVal(0.0);
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	  getRADFluxReg(level+1).setVal(0.0);
-	}
-#endif
-    }
-
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+    // Perform initialization steps.
+
+    initialize_advance_hydro(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+
     // Check for NaN's.
 
     check_for_nan(S_old);
 
-#ifdef RADIATION
-    // make sure these are filled to avoid check/plot file errors:
-    if (do_radiation) {
-      get_old_data(Rad_Type).setBndry(0.0);
-      get_new_data(Rad_Type).setBndry(0.0);
-    }
-    else {
-      get_old_data(Rad_Type).setVal(0.0);
-      get_new_data(Rad_Type).setVal(0.0);
-    }
-    S_old.setBndry(0.0);
-    S_new.setBndry(0.0);
-#endif
-
     // Do preliminary steps for constructing old-time sources.
 
     set_up_for_old_sources(time);
-
-    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
-    // but the state data does not carry ghost zones. So we use a FillPatch
-    // using the state data to give us Sborder, which does have ghost zones.
-
-    Sborder = new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate);
-    expand_state(*Sborder, prev_time, NUM_GROW);
 
     // Since we are Strang splitting the reactions, do them now.
 
@@ -170,7 +135,7 @@ Castro::advance_hydro (Real time,
 
 #endif
 
-    // Initialize the new-time data.
+    // Initialize the new-time data. This copy needs to come after the reactions.
 
     MultiFab::Copy(S_new, *Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
@@ -182,23 +147,6 @@ Castro::advance_hydro (Real time,
 
     for (int n = 0; n < num_src; ++n)
         apply_source_to_state(S_new, old_sources[n], dt);
-
-    // Optionally we can predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so 
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
-
-    if (source_term_predictor == 1) {
-
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-
-      AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);       
-
-      dSdt_new.mult(dt / 2.0, NUM_GROW);
-
-      MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
-
-    }
 
     // Do the hydro update.
 
@@ -221,9 +169,7 @@ Castro::advance_hydro (Real time,
 
     // Construct the new-time source terms.
 
-    construct_new_sources(amr_iteration, amr_ncycle,
-			  sub_iteration, sub_ncycle,
-			  cur_time, dt);
+    construct_new_sources(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
 
     // Apply the new-time sources to the state.
 
@@ -233,20 +179,6 @@ Castro::advance_hydro (Real time,
     // Sync up the temperature now that all sources have been applied.
 
     computeTemp(S_new);
-
-    // Do the final update for dSdt.
-
-    if (source_term_predictor == 1) {
-
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-
-      // Calculate the time derivative of the source terms.
-
-      MultiFab::Add(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
-
-      dSdt_new.mult(1.0/dt);
-
-    }
 
     // Do the second half of the reactions.
 
@@ -263,26 +195,10 @@ Castro::advance_hydro (Real time,
 
 #endif
 
-    // Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.tilebox();
-
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
-
-	}
-
-    }
-#endif
+    finalize_advance_hydro(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
     return dt;
+
 }
 
 
@@ -293,6 +209,25 @@ Castro::hydro_update(Real time, Real dt)
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
+
+    const Real cur_time = state[State_Type].curTime();
+
+    // Optionally we can predict the source terms to t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
+
+    if (source_term_predictor == 1) {
+
+      MultiFab& dSdt_new = get_new_data(Source_Type);
+
+      AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);
+
+      dSdt_new.mult(dt / 2.0, NUM_GROW);
+
+      MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+
+    }
 
     int finest_level = parent->finestLevel();
 
@@ -704,10 +639,45 @@ Castro::hydro_update(Real time, Real dt)
 
 
 void
-Castro::set_up_for_old_sources(Real time)
+Castro::initialize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
 
-    MultiFab& S_old = get_old_data(State_Type);
+    // Reset the change from density resets
+
+    frac_change = 1.e0;
+
+    int finest_level = parent->finestLevel();
+
+    if (do_reflux && level < finest_level && sub_iteration < 2) {
+        //
+        // Set reflux registers to zero.
+        //
+        getFluxReg(level+1).setVal(0.0);
+#ifdef RADIATION
+	if (Radiation::rad_hydro_combined) {
+	  getRADFluxReg(level+1).setVal(0.0);
+	}
+#endif
+    }
+
+#ifdef RADIATION
+    // make sure these are filled to avoid check/plot file errors:
+    if (do_radiation) {
+      get_old_data(Rad_Type).setBndry(0.0);
+      get_new_data(Rad_Type).setBndry(0.0);
+    }
+    else {
+      get_old_data(Rad_Type).setVal(0.0);
+      get_new_data(Rad_Type).setVal(0.0);
+    }
+    get_old_data(State_Type).setBndry(0.0);
+    get_new_data(State_Type).setBndry(0.0);
+#endif
+
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+	u_gdnv[dir]->setVal(1.e40,1);
+    }
 
     // Reset the grid loss tracking.
 
@@ -717,7 +687,7 @@ Castro::set_up_for_old_sources(Real time)
 
 #ifdef GRAVITY
     if (moving_center == 1)
-       define_new_center(S_old,time);
+        define_new_center(get_old_data(State_Type), time);
 #endif
 
 #if (BL_SPACEDIM > 1)
@@ -735,19 +705,74 @@ Castro::set_up_for_old_sources(Real time)
 #endif
 #endif
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-	u_gdnv[dir]->setVal(1.e40,1);
-    }
-
-    for (int n = 0; n < num_src; ++n) {
-	old_sources[n].setVal(0.0);
-    }
-
     for (int j = 0; j < 3; j++)
-    {
         fluxes[j]->setVal(0.0);
+
+    hydro_source->setVal(0.0);
+
+    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
+    // but the state data does not carry ghost zones. So we use a FillPatch
+    // using the state data to give us Sborder, which does have ghost zones.
+
+    Sborder = new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    const Real prev_time = state[State_Type].prevTime();
+    expand_state(*Sborder, prev_time, NUM_GROW);
+
+}
+
+
+
+void
+Castro::finalize_advance_hydro(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+{
+
+    // Do the final update for dSdt.
+
+    if (source_term_predictor == 1) {
+
+      MultiFab& dSdt_new = get_new_data(Source_Type);
+
+      // Calculate the time derivative of the source terms.
+
+      MultiFab::Add(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
+
+      dSdt_new.mult(1.0/dt);
+
     }
+
+    // Sync up the hybrid and linear momenta.
+
+#ifdef HYBRID_MOMENTUM
+    if (hybrid_hydro) {
+
+        MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+	    const Box& bx = mfi.tilebox();
+
+	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
+
+	}
+
+    }
+#endif
+
+}
+
+
+
+void
+Castro::set_up_for_old_sources(Real time)
+{
+
+    for (int n = 0; n < num_src; ++n)
+	old_sources[n].setVal(0.0);
+
+    sources_for_hydro->setVal(0.0,NUM_GROW);
 
 }
 
