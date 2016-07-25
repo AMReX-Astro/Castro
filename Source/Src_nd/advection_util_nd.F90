@@ -298,7 +298,7 @@ contains
 
 
   subroutine compute_cfl(q, q_lo, q_hi, lo, hi, dt, dx, courno) &
-                         bind(C, name = 'ca_compute_cfl')
+                         bind(C, name = "compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC
@@ -387,7 +387,7 @@ contains
 
   subroutine ctoprim(lo, hi, &
                      uin, uin_lo, uin_hi, &
-                     q,     q_lo,   q_hi)
+                     q,     q_lo,   q_hi) bind(C, name = "ctoprim")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -516,7 +516,7 @@ contains
   subroutine srctoprim(lo, hi, &
                        q,     q_lo,   q_hi, &
                        src, src_lo, src_hi, &
-                       srcQ,srQ_lo, srQ_hi)
+                       srcQ,srQ_lo, srQ_hi) bind(C, name = "srctoprim")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
