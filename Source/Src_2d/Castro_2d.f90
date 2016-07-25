@@ -21,7 +21,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                                  use_flattening, QU, QV, QW, QPRES
   use advection_module, only : umeth2d, consup
   use advection_util_2d_module, only : divu
-  use advection_util_module, only : compute_cfl, ctoprim
+  use advection_util_module, only : compute_cfl, ctoprim, srctoprim
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only : uflaten
 
@@ -129,18 +129,21 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dx = delta(1)
   dy = delta(2)
 
-  ! Translate to primitive variables, compute sound speeds.
+  ! Translate to primitive variables.
   call ctoprim(q_lo_3D, q_hi_3D, &
                uin, uin_lo_3D, uin_hi_3D, &
-               q, q_lo_3D, q_hi_3D, &
-               src, src_lo_3D, src_hi_3D, &
-               srcQ, q_lo_3D, q_hi_3D, &
-               dx_3D, dt)
+               q, q_lo_3D, q_hi_3D)
+
+  ! Translate source terms to primitive form.
+  call srctoprim(q_lo_3D, q_hi_3D, &
+                 q, q_lo_3D, q_hi_3D, &
+                 src, src_lo_3D, src_hi_3D, &
+                 srcQ, q_lo_3D, q_hi_3D)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
 
-  ! Compute flattening coef for slope calculations
+  ! Compute flattening coefficient for slope calculations.
   if (use_flattening == 1) then
      call uflaten((/ lo(1) - ngf, lo(2) - ngf, 0 /), (/ hi(1) + ngf, hi(2) + ngf, 0 /), &
                   q(:,:,QPRES), q(:,:,QU), q(:,:,QV), q(:,:,QW), &

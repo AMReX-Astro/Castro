@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, compute_cfl, ctoprim
+  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim
 
 contains
 
@@ -385,22 +385,15 @@ contains
 
 
 
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
   subroutine ctoprim(lo, hi, &
                      uin, uin_lo, uin_hi, &
-                     q,     q_lo,   q_hi, &
-                     src, src_lo, src_hi, &
-                     srcQ,srQ_lo, srQ_hi, &
-                     dx, dt)
+                     q,     q_lo,   q_hi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
@@ -415,18 +408,11 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
-    double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision, intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-
+    double precision, intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
-    double precision, intent(in) :: dx(3), dt
-
-    double precision, parameter:: small = 1.d-8
+    double precision, parameter :: small = 1.d-8
 
     integer          :: i, j, k
     integer          :: n, nq, ipassive
@@ -523,13 +509,52 @@ contains
        enddo
     enddo
 
+  end subroutine ctoprim
+
+
+
+  subroutine srctoprim(lo, hi, &
+                       q,     q_lo,   q_hi, &
+                       src, src_lo, src_hi, &
+                       srcQ,srQ_lo, srQ_hi)
+
+    use mempool_module, only : bl_allocate, bl_deallocate
+    use actual_network, only : nspec, naux
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_re
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
+                                   QVAR, QRHO, QU, QV, QW, &
+                                   QREINT, QPRES, QDPDR, QDPDE, &
+                                   npassive, upass_map, qpass_map
+    use bl_constants_module, only: ZERO, HALF, ONE
+    use castro_util_module, only: position
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
+
+    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+
+    double precision, parameter :: small = 1.d-8
+
+    integer          :: i, j, k
+    integer          :: n, nq, ipassive
+    double precision :: rhoinv
+
     srcQ = ZERO
 
     ! compute srcQ terms
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             rhoinv = ONE/q(i,j,k,QRHO)
+
+             rhoinv = ONE / q(i,j,k,QRHO)
+
              srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
              srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
@@ -562,6 +587,6 @@ contains
 
     enddo
 
-  end subroutine ctoprim
+  end subroutine srctoprim
 
 end module advection_util_module
