@@ -246,6 +246,8 @@ public:
 
     void check_for_nan(MultiFab& state);
 
+    void cons_to_prim(MultiFab& u, MultiFab& q);
+
     void construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
     void construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
@@ -518,6 +520,7 @@ public:
 #ifdef SHOCK_VAR
     static int       Shock;
 #endif
+    static int       QVAR;
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;

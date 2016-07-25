@@ -141,6 +141,22 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
+      subroutine get_qvar(qvar_in) bind(C, name="get_qvar")
+
+        use meth_params_module, only: QVAR
+
+        implicit none
+
+        integer, intent(inout) :: qvar_in
+
+        qvar_in = QVAR
+
+      end subroutine get_qvar
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
       subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
            bind(C, name="set_amr_info")
 

@@ -258,6 +258,10 @@ Castro::variableSetUp ()
 		    diffuse_cutoff_density,
 		    const_grav);
 
+  // Get the number of primitive variables from Fortran.
+
+  get_qvar(&QVAR);
+
   Real run_stop = ParallelDescriptor::second() - run_strt;
  
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());

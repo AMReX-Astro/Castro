@@ -97,6 +97,8 @@ int          Castro::FirstAdv      = -1;
 int          Castro::Shock         = -1;
 #endif
 
+int          Castro::QVAR          = -1;
+
 #include <castro_defaults.H>
 
 #ifdef GRAVITY
@@ -3129,4 +3131,31 @@ Castro::check_for_nan(MultiFab& state)
             }
         }
     }
+}
+
+// Convert a MultiFab with conservative state data u to a primitive MultiFab q.
+
+void
+Castro::cons_to_prim(MultiFab& u, MultiFab& q)
+{
+
+    BL_ASSERT(u.nComp() == NUM_STATE);
+    BL_ASSERT(q.nComp() == QVAR);
+    BL_ASSERT(q.nGrow() >= u.nGrow());
+
+    int ng = u.nGrow();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(u, true); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.growntilebox(ng);
+
+	ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
+		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()));
+
+    }
+
 }

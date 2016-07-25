@@ -21,6 +21,8 @@ extern "C"
 
   void get_aux_names(int* aux_names, int* iaux, int* len);
 
+  void get_qvar(int* qvar);
+
   void ca_set_special_tagging_flag(const Real& max_den, const int* flag);  
   
   void set_amr_info(const int& level, const int& iteration, const int& ncycle,
@@ -103,6 +105,10 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state));
 #endif
+
+  void ctoprim(const int* lo, const int* hi,
+	       const Real* u, const int* u_lo, const int* u_hi,
+	       const Real* q, const int* q_lo, const int* q_hi);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
