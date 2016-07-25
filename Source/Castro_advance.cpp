@@ -116,7 +116,8 @@ Castro::do_advance (Real time,
     // Since we are Strang splitting the reactions, do them now.
 
 #ifdef REACTIONS
-    strang_react_first_half(prev_time, 0.5 * dt);
+    if (!do_sdc)
+        strang_react_first_half(prev_time, 0.5 * dt);
 #endif
 
     // Initialize the new-time data. This copy needs to come after the reactions.
@@ -189,7 +190,8 @@ Castro::do_advance (Real time,
     // Do the second half of the reactions.
 
 #ifdef REACTIONS
-    strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+    if (!do_sdc)
+        strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
 #endif
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);

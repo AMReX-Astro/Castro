@@ -54,6 +54,7 @@ pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
 pp.query("use_retry", use_retry);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
+pp.query("do_sdc", do_sdc);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_mode", dtnuc_mode);
