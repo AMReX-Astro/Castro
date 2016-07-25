@@ -3159,3 +3159,87 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q)
     }
 
 }
+
+// Obtain the sum of all source terms.
+
+void
+Castro::sum_of_sources(MultiFab& source)
+{
+
+  int ng = source.nGrow();
+
+  source.setVal(0.0, ng);
+
+  for (int n = 0; n < num_src; ++n)
+      MultiFab::Add(source, old_sources[n], 0, 0, NUM_STATE, ng);
+
+  MultiFab::Add(source, *hydro_source, 0, 0, NUM_STATE, ng);
+
+  for (int n = 0; n < num_src; ++n)
+      MultiFab::Add(source, new_sources[n], 0, 0, NUM_STATE, ng);
+
+}
+
+// Obtain the effective source term due to reactions on the primitive variables.
+
+#ifdef REACTIONS
+void
+Castro::get_react_source_prim(MultiFab& react_src, Real dt)
+{
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    // Carries the contribution of all non-reacting source terms.
+
+    MultiFab A(grids, NUM_STATE, 0, Fab_allocate);
+
+    sum_of_sources(A);
+
+    // Compute the state that has effectively only been updated with advection.
+
+    MultiFab S_noreact(grids, NUM_STATE, 0, Fab_allocate);
+
+    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, S_noreact.nGrow());
+    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, S_noreact.nGrow());
+
+    // Compute its primitive counterpart.
+
+    MultiFab q_noreact(grids, QVAR, 0, Fab_allocate);
+
+    cons_to_prim(S_noreact, q_noreact);
+
+    // Compute the primitive version of the old state.
+
+    MultiFab q_old(grids, QVAR, 0, Fab_allocate);
+
+    cons_to_prim(S_old, q_old);
+
+    // Compute the effective advective update on the primitive state.
+
+    MultiFab A_prim(grids, QVAR, 0, Fab_allocate);
+
+    A_prim.setVal(0.0);
+
+    if (dt > 0.0) {
+        MultiFab::Saxpy(A_prim, -1.0 / dt, q_noreact, 0, 0, QVAR, 0);
+	MultiFab::Saxpy(A_prim,  1.0 / dt, q_old,     0, 0, QVAR, 0);
+    }
+
+    // Compute the primitive version of the new state.
+
+    MultiFab q_new(grids, QVAR, 0, Fab_allocate);
+
+    cons_to_prim(S_new, q_new);
+
+    // Compute the reaction source term.
+
+    react_src.setVal(0.0);
+
+    if (dt > 0.0) {
+        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, 0);
+	MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, 0);
+    }
+
+    MultiFab::Add(react_src, A_prim, 0, 0, QVAR, 0);
+}
+#endif

@@ -252,6 +252,8 @@ public:
 
     void construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
+    void sum_of_sources(MultiFab& source);
+
     void time_center_source_terms (MultiFab& S_new,
 				   MultiFab& src_old,
 				   MultiFab& src_new,
@@ -395,6 +397,8 @@ public:
 #endif
                       Real       time,
                       Real       dt);
+
+    void get_react_source_prim(MultiFab& source, Real dt);
 #endif
 
 #ifdef ROTATION

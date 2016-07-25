@@ -53,6 +53,13 @@ Castro::advance (Real time,
     if (use_retry)
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
 
+#ifdef REACTIONS
+    MultiFab react_src(grids, QVAR, 0, Fab_allocate);
+
+    if (do_sdc)
+      get_react_source_prim(react_src, dt);
+#endif
+
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
 #endif
