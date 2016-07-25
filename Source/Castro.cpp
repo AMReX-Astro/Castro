@@ -2702,16 +2702,10 @@ void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state,true); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
+  BL_ASSERT(source.nGrow() >= state.nGrow());
 
-	state[mfi].saxpy(dt,source[mfi],bx,bx,0,0,NUM_STATE);
+  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
 
-    }
 }
 
 void
