@@ -265,24 +265,21 @@ contains
                      q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                      src,src_l1,src_l2,src_h1,src_h2, &
                      srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                     dx,dy,dt,ngp,ngf)
+                     dx,dy,dt,ngp)
 
-    ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-    ! lo-ngf:hi+ngf if use_flattening=1.  Declared dimensions of
-    ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region
-    ! is assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call
-    ! assumes ngp>=ngf+3 (ie, primitve data is used by the routine
-    ! that computes flatn).
+    ! Will give primitive variables on lo-ngp:hi+ngp.  Declared
+    ! dimensions of q, c, gamc, csml are given by DIMS(q). This
+    ! declared region is assumed to encompass lo-ngp:hi+ngp.
 
-    use network, only : nspec, naux
-    use eos_module
+    use actual_network, only : nspec, naux
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_rt, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP,&
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
-                                   allow_negative_energy, small_temp, use_flattening, &
+                                   allow_negative_energy, small_temp, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1
-    use flatten_module
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF, ONE
 
     implicit none
 
@@ -309,9 +306,8 @@ contains
     double precision, allocatable :: dpdX_er(:,:,:)
 
     integer          :: i, j
-    integer          :: ngp, ngf, loq(2), hiq(2)
+    integer          :: ngp, loq(2), hiq(2)
     integer          :: n, nq, ipassive
-    double precision :: courx, coury, courmx, courmy
     double precision :: kineng
 
     type (eos_t) :: eos_state
@@ -446,22 +442,6 @@ contains
        enddo
 
     end do
-
-    ! Compute flattening coef for slope calculations
-    if (use_flattening == 1) then
-       do n=1,2
-          loq(n)=lo(n)-ngf
-          hiq(n)=hi(n)+ngf
-       enddo
-       call uflaten((/ loq(1), loq(2), 0 /), (/ hiq(1), hiq(2), 0 /), &
-            q(q_l1,q_l2,QPRES), &
-            q(q_l1,q_l2,QU), &
-            q(q_l1,q_l2,QV), &
-            q(q_l1,q_l2,QW), &
-            flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
-    else
-       flatn = ONE
-    endif
 
     deallocate(dpdrho,dpde)
 

@@ -20,11 +20,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, &
-                                 GDU, GDV, GDW
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NVAR, NHYP, NGDNV, &
+                                 GDU, GDV, GDW, use_flattening
   use advection_module, only : umeth3d, ctoprim, consup
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
+  use bl_constants_module, only : ONE
+  use flatten_module, only: uflaten
 
   implicit none
 
@@ -173,13 +175,22 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   !    and set to correspond to coordinates of (lo:hi)
   ! 3) Translate source terms
   call ctoprim(lo,hi,uin,uin_lo,uin_hi, &
-               q,c,gamc,csml,flatn,q_lo,q_hi, &
+               q,c,gamc,csml,q_lo,q_hi, &
                src,src_lo,src_hi, &
                srcQ,q_lo,q_hi, &
-               delta,dt,ngq,ngf)
+               delta,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo, q_hi, c, q_lo, q_hi, lo, hi, dt, delta, courno)
+
+  ! Compute flattening coef for slope calculations
+  if (use_flattening == 1) then
+     call uflaten(lo - ngf, hi + ngf, &
+                  q(:,:,:,QPRES), q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
+                  flatn, q_lo, q_hi)
+  else
+     flatn = ONE
+  endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,c,gamc,csml,flatn,q_lo,q_hi, &

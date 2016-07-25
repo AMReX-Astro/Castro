@@ -17,11 +17,13 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, &
+                                 use_flattening, QU, QV, QW, QPRES
   use advection_module, only : umeth2d, ctoprim, consup
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
-  use bl_constants_module, only : ZERO
+  use bl_constants_module, only : ZERO, ONE
+  use flatten_module, only : uflaten
 
   implicit none
 
@@ -130,10 +132,19 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &
                src,src_l1,src_l2,src_h1,src_h2, &
                srcQ,q_l1,q_l2,q_h1,q_h2, &
-               dx,dy,dt,ngq,ngf)
+               dx,dy,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+
+  ! Compute flattening coef for slope calculations
+  if (use_flattening == 1) then
+     call uflaten((/ lo(1) - ngf, lo(2) - ngf, 0 /), (/ hi(1) + ngf, hi(2) + ngf, 0 /), &
+                  q(:,:,QPRES), q(:,:,QU), q(:,:,QV), q(:,:,QW), &
+                  flatn,(/ q_l1, q_l2, 0 /), (/ q_h1, q_h2, 0 /))
+  else
+     flatn = ONE
+  endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d(q,c,gamc,csml,flatn,q_l1,q_l2,q_h1,q_h2, &

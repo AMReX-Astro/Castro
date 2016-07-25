@@ -15,10 +15,11 @@ subroutine ca_umdrv(is_finest_level,time,&
      E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
      eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NVAR, NHYP, use_flattening
   use advection_module  , only : umeth1d, ctoprim, consup
-  use bl_constants_module
+  use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
+  use flatten_module, only : uflaten
 
   implicit none
 
@@ -111,10 +112,19 @@ subroutine ca_umdrv(is_finest_level,time,&
        q,c,gamc,csml,flatn,q_l1,q_h1, &
        src,src_l1,src_h1, &
        srcQ,q_l1,q_h1, &
-       dx,dt,ngq,ngf)
+       dx,dt,ngq)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, c, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+
+  ! Compute flattening coef for slope calculations
+  if (use_flattening == 1) then
+     call uflaten((/ lo(1) - ngf, 0, 0 /), (/ hi(1) + ngf, 0, 0 /), &
+                  q(:,QPRES), q(:,QU), q(:,QV), q(:,QW), &
+                  flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
+  else
+     flatn = ONE
+  endif
 
   call umeth1d(lo,hi,domlo,domhi, &
        q,c,gamc,csml,flatn,q_l1,q_h1, &

@@ -106,21 +106,18 @@ contains
                      q,c,gamc,csml,flatn,q_l1,q_h1,&
                      src,src_l1,src_h1, &
                      srcQ,srQ_l1,srQ_h1, &
-                     dx,dt,ngp,ngf)
+                     dx,dt,ngp)
     
-    ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-    ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
-    ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared
-    ! region is assumed to encompass lo-ngp:hi+ngp.  Also, uflaten
-    ! call assumes ngp>=ngf+3 (ie, primitve data is used by the
-    ! routine that computes flatn).
+    ! Will give primitive variables on lo-ngp:hi+ngp. Declared
+    ! dimensions of q, c, gamc, csml are given by DIMS(q). This
+    ! declared region is assumed to encompass lo-ngp:hi+ngp.
 
     use network, only : nspec, naux
     use eos_module
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, QREINT, QPRES, QTEMP, QGAME, &
                                    QFS, QFX, &
-                                   npassive, upass_map, qpass_map, small_temp, allow_negative_energy, use_flattening, &
+                                   npassive, upass_map, qpass_map, small_temp, allow_negative_energy, &
                                    dual_energy_eta1
     use flatten_module
     use bl_constants_module
@@ -145,7 +142,7 @@ contains
     double precision :: dx, dt
     
     integer          :: i
-    integer          :: ngp, ngf, loq(1), hiq(1)
+    integer          :: ngp, loq(1), hiq(1)
     integer          :: n, nq, ipassive
     double precision :: courx, courmx
     double precision :: kineng
@@ -269,20 +266,6 @@ contains
        end do
 
     end do
-    
-    ! Compute flattening coef for slope calculations
-    if (use_flattening == 1) then
-       loq(1)=lo(1)-ngf
-       hiq(1)=hi(1)+ngf
-       call uflaten((/ loq(1), 0, 0 /), (/ hiq(1), 0, 0 /), &
-                    q(q_l1,QPRES), &
-                    q(q_l1,QU), &
-                    q(q_l1,QV), &
-                    q(q_l1,QW), &
-                    flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
-    else
-       flatn = ONE
-    endif
     
     deallocate(dpdrho,dpde)
     

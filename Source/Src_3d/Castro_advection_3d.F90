@@ -724,30 +724,26 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine ctoprim(lo,hi,          uin,uin_lo,uin_hi, &
-                     q,c,gamc,csml,flatn,  q_lo,  q_hi, &
-                     src,                src_lo,src_hi, &
-                     srcQ,               srQ_lo,srQ_hi, &
-                     dx,dt,ngp,ngf)
-    !
-    !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
-    !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
-    !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
-    !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-    !     routine that computes flatn).
-    !
+  subroutine ctoprim(lo,hi,uin,    uin_lo,uin_hi, &
+                     q,c,gamc,csml,  q_lo,  q_hi, &
+                     src,          src_lo,src_hi, &
+                     srcQ,         srQ_lo,srQ_hi, &
+                     dx,dt,ngp)
+
+    ! Will give primitive variables on lo-ngp:hi+ngp.  Declared dimensions of
+    ! q, c, gamc, csml are given by DIMS(q).  This declared region is assumed
+    ! to encompass lo-ngp:hi+ngp.
+
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
-    use eos_module, only : eos_input_re, eos
-    use eos_type_module, only : eos_t
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   use_flattening, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    allow_negative_energy
-    use flatten_module, only: uflaten
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
     use advection_util_module, only: compute_cfl
@@ -760,7 +756,7 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
-    integer, intent(in) :: ngp, ngf
+    integer, intent(in) :: ngp
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(in) ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
@@ -769,7 +765,6 @@ contains
     double precision, intent(inout) :: c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision, intent(inout) :: gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision, intent(inout) :: csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
     double precision, intent(in) :: dx(3), dt
@@ -931,22 +926,6 @@ contains
        enddo
 
     enddo
-
-    ! Compute flattening coef for slope calculations
-    if (use_flattening == 1) then
-       do n=1,3
-          loq(n)=lo(n)-ngf
-          hiq(n)=hi(n)+ngf
-       enddo
-       call uflaten(loq,hiq, &
-                    q(q_lo(1),q_lo(2),q_lo(3),QPRES), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QU), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QV), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QW), &
-                    flatn,q_lo,q_hi)
-    else
-       flatn = ONE
-    endif
 
     call bl_deallocate( dpdrho)
     call bl_deallocate(   dpde)
