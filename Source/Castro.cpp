@@ -550,6 +550,15 @@ Castro::Castro (Amr&            papa,
    react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
    react_src->setVal(0.0);
 
+   if (do_sdc)
+     for (int n = 0; n < num_src; ++n) {
+       old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
+       new_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
+
+       old_sources[n].setVal(0.0, NUM_GROW);
+       new_sources[n].setVal(0.0, NUM_GROW);
+     }
+
 #endif
    
 #ifdef DIFFUSION

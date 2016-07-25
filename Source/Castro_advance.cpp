@@ -403,9 +403,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // These arrays hold all source terms that update the state.
 
+    if (!do_sdc) {
     for (int n = 0; n < num_src; ++n) {
         old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
         new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
+    }
     }
 
     // This array holds the hydrodynamics update.
@@ -482,8 +484,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     delete hydro_source;
     delete sources_for_hydro;
 
+    if (!do_sdc) {
     old_sources.clear();
     new_sources.clear();
+    }
 
     for (int n = 0; n < 3; ++n)
         delete fluxes[n];
