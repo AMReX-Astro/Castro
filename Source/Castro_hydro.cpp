@@ -224,6 +224,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
+	    FArrayBox q, src_q;
 
 	    Real cflLoc = -1.0e+200;
 	    int is_finest_level = (level == finest_level) ? 1 : 0;
@@ -233,6 +234,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 	    {
 		const Box& bx = mfi.tilebox();
+	        const Box& qbx = BoxLib::grow(bx, NUM_GROW);
 
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
@@ -240,9 +242,22 @@ Castro::construct_hydro_source(Real time, Real dt)
 		FArrayBox &statein  = (*Sborder)[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
-		FArrayBox &source = (*hydro_source)[mfi];
+		FArrayBox &source_in  = (*sources_for_hydro)[mfi];
+		FArrayBox &source_out = (*hydro_source)[mfi];
 
 		FArrayBox &vol = volume[mfi];
+
+		q.resize(qbx, QVAR);
+		src_q.resize(qbx, QVAR);
+
+		ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
+		        statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
+		        q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()));
+
+		srctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
+		          q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+		          source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
+		          src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
 		// Allocate fabs for fluxes and Godunov velocities.
 		for (int i = 0; i < BL_SPACEDIM; i++) {
@@ -256,11 +271,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     lo, hi, domain_lo, domain_hi,
 		     BL_TO_FORTRAN(statein),
 		     BL_TO_FORTRAN(stateout),
-		     BL_TO_FORTRAN(source),
+		     BL_TO_FORTRAN(q),
+		     BL_TO_FORTRAN(src_q),
+		     BL_TO_FORTRAN(source_out),
 		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
 			    BL_TO_FORTRAN(ugdn[1]),
 			    BL_TO_FORTRAN(ugdn[2])),
-		     BL_TO_FORTRAN((*sources_for_hydro)[mfi]),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),

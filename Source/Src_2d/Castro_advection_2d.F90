@@ -263,7 +263,6 @@ contains
                      update,updt_l1,updt_l2,updt_h1,updt_h2, &
                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
                      q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                     src , src_l1, src_l2, src_h1, src_h2, &
                      flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                      flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                      area1,area1_l1,area1_l2,area1_h1,area1_h2, &
@@ -292,7 +291,6 @@ contains
     integer updt_l1,updt_l2,updt_h1,updt_h2
     integer q1_l1, q1_l2, q1_h1, q1_h2
     integer q2_l1, q2_l2, q2_h1, q2_h2
-    integer   src_l1,  src_l2,  src_h1,  src_h2
     integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
     integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
     integer area1_l1,area1_l2,area1_h1,area1_h2
@@ -306,7 +304,6 @@ contains
     double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
     double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
-    double precision   src(  src_l1:  src_h1,  src_l2:  src_h2,NVAR)
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
