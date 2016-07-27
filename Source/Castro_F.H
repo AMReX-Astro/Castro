@@ -667,7 +667,7 @@ extern "C"
      const Real* unew, const int* un_lo, const int* un_hi,
      const Real* asrc, const int* as_lo, const int* as_hi,
      const Real* reactions, const int* r_lo, const int* r_hi,
-     const BL_FORT_IFAB_ARG_3D(mask),
+     const int* mask, const int* m_lo, const int* m_hi,
      const Real& time, const Real& dt_react);
 #else
   void ca_react_state

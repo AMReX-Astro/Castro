@@ -163,17 +163,18 @@ Castro::react_state(Real time, Real dt)
 
 	const Box& bx = mfi.growntilebox(ng);
 
-	FArrayBox& uold = S_old[mfi];
-	FArrayBox& unew = S_new[mfi];
-	FArrayBox& a    = A_src[mfi];
-	FArrayBox& r    = reactions[mfi];
+	FArrayBox& uold    = S_old[mfi];
+	FArrayBox& unew    = S_new[mfi];
+	FArrayBox& a       = A_src[mfi];
+	FArrayBox& r       = reactions[mfi];
+	const IArrayBox& m = interior_mask[mfi];
 
 	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		       uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
 		       unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
 		       a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
 		       r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-		       BL_TO_FORTRAN_3D(interior_mask[mfi]),
+		       m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
 		       time, dt);
 
     }
