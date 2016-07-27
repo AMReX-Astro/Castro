@@ -3095,6 +3095,7 @@ void
 Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
 
+#ifndef SDC
     // Update the dSdt MultiFab. Get rid of the dt/2 * dS/dt that
     // we added from the last timestep, then subtract the old sources
     // data to get the first half of the update, which is needed for
@@ -3106,6 +3107,7 @@ Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iterati
       dSdt_new.setVal(0.0, NUM_GROW);
       MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
     }
+#endif
 
     for (int n = 0; n < num_src; ++n) {
 	new_sources[n].setVal(0.0);

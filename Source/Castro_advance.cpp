@@ -123,11 +123,11 @@ Castro::advance (Real time,
 
 Real
 Castro::do_advance (Real time,
-                       Real dt,
-                       int  amr_iteration,
-                       int  amr_ncycle,
-		       int  sub_iteration,
-		       int  sub_ncycle)
+                    Real dt,
+                    int  amr_iteration,
+                    int  amr_ncycle,
+                    int  sub_iteration,
+                    int  sub_ncycle)
 {
     BL_PROFILE("Castro::do_advance()");
 
@@ -324,6 +324,7 @@ void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
 
+#ifndef SDC
     // Do the final update for dSdt.
 
     if (source_term_predictor == 1) {
@@ -337,6 +338,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
       dSdt_new.mult(1.0/dt);
 
     }
+#endif
 
     // Sync up the hybrid and linear momenta.
 

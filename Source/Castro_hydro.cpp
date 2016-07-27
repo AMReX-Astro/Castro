@@ -10,6 +10,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     const Real cur_time = state[State_Type].curTime();
 
+#ifndef SDC
     // Optionally we can predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
     // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
@@ -26,6 +27,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
     }
+#endif
 
     int finest_level = parent->finestLevel();
 
