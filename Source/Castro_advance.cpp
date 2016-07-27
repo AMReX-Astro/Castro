@@ -48,6 +48,8 @@ Castro::advance (Real time,
         if (ParallelDescriptor::IOProcessor())
 	    std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
 
+	// First do the non-reacting advance and construct the relevant source terms.
+
 	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, n, sdc_iters);
 
 #ifdef REACTIONS
