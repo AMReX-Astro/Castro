@@ -285,15 +285,13 @@
 \verb= small_temp = &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
 \verb= sponge_implicit = &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
 \rowcolor{tableShade}
-\verb= sum_turb_src = &  & 0.0 \\
 \verb= transverse_reset_density = &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
-\rowcolor{tableShade}
 \verb= transverse_reset_rhoe = &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
+\rowcolor{tableShade}
 \verb= transverse_use_eos = &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
-\rowcolor{tableShade}
 \verb= use_colglaz = &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
-\verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \rowcolor{tableShade}
+\verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \verb= use_pslope = &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
 
 
@@ -481,6 +479,7 @@
 \verb= max_dt = &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
 \verb= retry_neg_dens_factor = &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
 \rowcolor{tableShade}
+\verb= sdc_iters = &  Number of iterations for the SDC advance. & 2 \\
 \verb= use_retry = &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 

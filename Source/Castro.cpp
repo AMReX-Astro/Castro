@@ -3210,6 +3210,7 @@ Castro::sum_of_sources(MultiFab& source)
 // Obtain the effective source term due to reactions on the primitive variables.
 
 #ifdef REACTIONS
+#ifdef SDC
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 {
@@ -3273,4 +3274,5 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     BoxLib::fill_boundary(react_src, geom);
 }
+#endif
 #endif

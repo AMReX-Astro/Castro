@@ -41,34 +41,42 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    if (do_sdc) {
+#ifdef SDC
 
-        for (int n = 0; n < sdc_iters; ++n) {
+    for (int n = 0; n < sdc_iters; ++n) {
 
-            if (ParallelDescriptor::IOProcessor())
-	        std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
+        if (ParallelDescriptor::IOProcessor())
+	    std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
 
-            dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, n, sdc_iters);
+	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, n, sdc_iters);
 
-            // Reset state data.
+#ifdef REACTIONS
+	if (do_react) {
 
-            MultiFab& S_old = get_old_data(State_Type);
-            MultiFab& S_new = get_new_data(State_Type);
+            // Do the ODE integration to capture the reaction source terms.
 
-            MultiFab::Copy(S_new, S_old, 0, 0, NUM_STATE, 0);
+	    react_state(time, dt);
 
-            // Insert ODE integration here.
+	    // Compute the reactive source term for use in the next iteration.
+
+	    get_react_source_prim(*react_src, dt);
 
         }
+#endif
 
-    } else {
-
-        int sub_iteration = 0;
-        int sub_ncycle = 0;
-
-        dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+        if (ParallelDescriptor::IOProcessor())
+	    std::cout << "\nEnding SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
 
     }
+
+#else
+
+    int sub_iteration = 0;
+    int sub_ncycle = 0;
+
+    dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+
+#endif
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
@@ -76,11 +84,6 @@ Castro::advance (Real time,
 
     if (use_retry)
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
-
-#ifdef REACTIONS
-    if (do_sdc)
-        get_react_source_prim(*react_src, dt);
-#endif
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
@@ -145,8 +148,9 @@ Castro::do_advance (Real time,
     // Since we are Strang splitting the reactions, do them now.
 
 #ifdef REACTIONS
-    if (!do_sdc)
-        strang_react_first_half(prev_time, 0.5 * dt);
+#ifndef SDC
+    strang_react_first_half(prev_time, 0.5 * dt);
+#endif
 #endif
 
     // Initialize the new-time data. This copy needs to come after the reactions.
@@ -219,8 +223,9 @@ Castro::do_advance (Real time,
     // Do the second half of the reactions.
 
 #ifdef REACTIONS
-    if (!do_sdc)
-        strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+#ifndef SDC
+    strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+#endif
 #endif
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);

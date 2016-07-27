@@ -54,7 +54,6 @@ Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
 int         Castro::use_retry = 0;
 Real        Castro::retry_neg_dens_factor = 1.e-1;
-int         Castro::do_sdc = 0;
 int         Castro::sdc_iters = 2;
 Real        Castro::dtnuc_e = 1.e200;
 Real        Castro::dtnuc_X = 1.e200;

@@ -379,6 +379,7 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
+#ifndef SDC
     void react_state(MultiFab& state,
 		     MultiFab& reactions,
 		     const iMultiFab& mask,
@@ -389,6 +390,10 @@ public:
     void strang_react_first_half(Real time, Real dt);
 
     void strang_react_second_half(Real time, Real dt);
+#else
+    void react_state(Real time, Real dt);
+    void get_react_source_prim(MultiFab& source, Real dt);
+#endif
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
@@ -397,8 +402,6 @@ public:
 #endif
                       Real       time,
                       Real       dt);
-
-    void get_react_source_prim(MultiFab& source, Real dt);
 #endif
 
 #ifdef ROTATION

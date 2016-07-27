@@ -5,6 +5,7 @@
 
 using std::string;
 
+#ifndef SDC
 
 void
 Castro::strang_react_first_half(Real time, Real dt)
@@ -127,3 +128,93 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
     }
 
 }
+
+#else
+
+void
+Castro::react_state(Real time, Real dt)
+{
+    BL_PROFILE("Castro::react_state()");
+
+    const Real strt_time = ParallelDescriptor::second();
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    // Build the burning mask, in case the state has ghost zones.
+
+    const int ng = S_new.nGrow();
+    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+
+    // Create a MultiFab with all of the non-reacting source terms.
+
+    MultiFab A_src(grids, NUM_STATE, ng, Fab_allocate);
+    sum_of_sources(A_src);
+
+    MultiFab& reactions = get_old_data(Reactions_Type);
+
+    reactions.setVal(0.0);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
+    {
+
+	const Box& bx = mfi.growntilebox(ng);
+
+	FArrayBox& uold = S_old[mfi];
+	FArrayBox& unew = S_new[mfi];
+	FArrayBox& a    = A_src[mfi];
+	FArrayBox& r    = reactions[mfi];
+
+	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		       uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
+		       unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
+		       a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
+		       r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
+		       BL_TO_FORTRAN_3D(interior_mask[mfi]),
+		       time, dt);
+
+    }
+
+    // Ensure consistent, normalized species.
+
+    normalize_species(S_new);
+
+    // Update the temperature to be consistent with the new energy.
+
+    computeTemp(S_new);
+
+    if (ng > 0)
+        BoxLib::fill_boundary(S_new, geom);
+
+    if (verbose) {
+
+        Real e_added = reactions.sum(NumSpec + 1);
+
+	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
+	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
+
+	if (verbose && ParallelDescriptor::IOProcessor())
+	    std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+	Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time, IOProc);
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::react_state() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+	});
+#endif
+
+    }
+
+}
+
+#endif

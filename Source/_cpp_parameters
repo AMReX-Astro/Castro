@@ -221,9 +221,6 @@ use_retry                    int           0
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
 
-# Whether or not to use the SDC advance.
-do_sdc                       int           0
-
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
 

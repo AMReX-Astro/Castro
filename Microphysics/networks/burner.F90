@@ -4,7 +4,11 @@ module burner_module
   use bl_constants_module
   use network
   use eos_module
+#ifndef SDC
   use actual_burner_module
+#else
+  use integrator_module
+#endif
   use burn_type_module
 
   logical :: burner_initialized = .false.
@@ -15,7 +19,11 @@ contains
 
     implicit none
 
+#ifdef SDC
+    call integrator_init()
+#else
     call actual_burner_init()
+#endif
 
     burner_initialized = .true.
 
@@ -46,7 +54,7 @@ contains
   end function ok_to_burn
 
 
-
+#ifndef SDC
   subroutine burner(state_in, state_out, dt, time)
 
     implicit none
@@ -76,5 +84,6 @@ contains
     endif
 
   end subroutine burner
+#endif
 
 end module burner_module

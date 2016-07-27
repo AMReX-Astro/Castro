@@ -30,8 +30,8 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 endif
 
-ifeq ($(USE_SGS), TRUE)
-  DEFINES += -DSGS
+ifeq ($(USE_SDC), TRUE)
+  DEFINES += -DSDC
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
