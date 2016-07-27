@@ -3115,8 +3115,6 @@ Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 
     sources_for_hydro->setVal(0.0,NUM_GROW);
 
-    hydro_source->setVal(0.0);
-
     if (do_sponge)
         construct_new_sponge_source(time, dt);
 
