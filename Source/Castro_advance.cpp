@@ -63,6 +63,10 @@ Castro::advance (Real time,
 
 	    get_react_source_prim(*react_src, dt);
 
+	    // Check for NaN's.
+
+	    check_for_nan(get_new_data(State_Type));
+
         }
 #endif
 
