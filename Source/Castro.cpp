@@ -550,7 +550,7 @@ Castro::Castro (Amr&            papa,
    react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
    react_src->setVal(0.0);
 
-   if (do_sdc)
+#ifdef SDC
      for (int n = 0; n < num_src; ++n) {
        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
        new_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
@@ -558,6 +558,7 @@ Castro::Castro (Amr&            papa,
        old_sources[n].setVal(0.0, NUM_GROW);
        new_sources[n].setVal(0.0, NUM_GROW);
      }
+#endif
 
 #endif
    
@@ -3077,16 +3078,16 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
     // If we're doing SDC, time-center the source term (using the current iteration's old sources
     // and the last iteration's new sources).
 
-    if (do_sdc) {
+#ifdef SDC
 
-      sources_for_hydro->mult(0.5, NUM_GROW);
+    sources_for_hydro->mult(0.5, NUM_GROW);
 
-      for (int n = 0; n < num_src; ++n)
-	MultiFab::Saxpy(*sources_for_hydro, 0.5, new_sources[n], 0, 0, NUM_STATE, 0);
+    for (int n = 0; n < num_src; ++n)
+        MultiFab::Saxpy(*sources_for_hydro, 0.5, new_sources[n], 0, 0, NUM_STATE, 0);
 
-      BoxLib::fill_boundary(*sources_for_hydro, geom);
+    BoxLib::fill_boundary(*sources_for_hydro, geom);
 
-    }
+#endif
 
 }
 

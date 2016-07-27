@@ -262,7 +262,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		// Add in the reactions source term.
 
 #ifdef REACTIONS
-		if (do_sdc)
+		if (do_react)
 		    src_q.plus((*react_src)[mfi],qbx,qbx,0,0,QVAR);
 #endif
 
