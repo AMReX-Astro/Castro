@@ -11,7 +11,6 @@ subroutine ca_umdrv(is_finest_level,time,&
      area,area_l1,area_h1,&
      dloga,dloga_l1,dloga_h1,&
      vol,vol_l1,vol_h1,courno,verbose,&
-     mass_added,eint_added,eden_added,frac_change,&
      mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
      E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
      eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
