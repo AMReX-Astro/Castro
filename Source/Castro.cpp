@@ -3076,14 +3076,14 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
 #endif
 
     // If we're doing SDC, time-center the source term (using the current iteration's old sources
-    // and the last iteration's new sources).
+    // and the last iteration's new sources). Since the new_sources are just the corrector step
+    // of the predictor-corrector formalism, we want to add the full value of each to get the
+    // time-centered value.
 
 #ifdef SDC
 
-    sources_for_hydro->mult(0.5, NUM_GROW);
-
     for (int n = 0; n < num_src; ++n)
-        MultiFab::Saxpy(*sources_for_hydro, 0.5, new_sources[n], 0, 0, NUM_STATE, 0);
+        MultiFab::Add(*sources_for_hydro, new_sources[n], 0, 0, NUM_STATE, 0);
 
     BoxLib::fill_boundary(*sources_for_hydro, geom);
 
