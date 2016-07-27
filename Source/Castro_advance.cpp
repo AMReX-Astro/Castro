@@ -536,10 +536,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     prev_state.clear();
 
 #ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+    delete OldTempDiffTerm;
+    delete OldSpecDiffTerm;
+    delete OldViscousTermforMomentum;
+    delete OldViscousTermforEnergy;
 #endif
 
 #ifdef TAU
