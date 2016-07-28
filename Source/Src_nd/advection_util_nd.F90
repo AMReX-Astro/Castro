@@ -399,7 +399,7 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    QC, QCSML, QGAMC, QDPDR, QDPDE, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy
+                                   allow_negative_energy, small_dens
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
 
@@ -421,22 +421,24 @@ contains
 
     type (eos_t) :: eos_state
 
-    !
-    ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
-    ! The temperature is used as an initial guess for the eos call and will be overwritten.
-    !
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+
+          do i = lo(1), hi(1)
              if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
-                print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
-                print *,'>>> ... negative density ',uin(i,j,k,URHO)
-                call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
-             end if
+                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
+                print *,'>>> ... negative density ', uin(i,j,k,URHO)
+                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
+             else if (uin(i,j,k,URHO) .lt. small_dens) then
+                print *,'   '
+                print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
+                print *,'>>> ... small density ', uin(i,j,k,URHO)
+                call bl_error("Error:: advection_util_nd.f90 :: ctoprim")
+             endif
           end do
 
-          do i = lo(1),hi(1)
+          do i = lo(1), hi(1)
 
              loc = position(i,j,k)
 
