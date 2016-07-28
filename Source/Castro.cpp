@@ -3145,7 +3145,7 @@ Castro::check_for_nan(MultiFab& state)
         {
 	if (state.contains_nan(Density + i, 1, 0,true))
             {
-                std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::advance_hydro()");
+                std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
                 BoxLib::Abort(abort_string.c_str());
             }
         }
