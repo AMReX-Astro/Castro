@@ -239,7 +239,7 @@ Castro::restart (Amr&     papa,
 
 
     if (level == 0)
-      {
+    {
 	// get problem-specific stuff -- note all processors do this,
 	// eliminating the need for a broadcast
 	std::string dir = parent->theRestartFile();
@@ -258,7 +258,22 @@ Castro::restart (Amr&     papa,
 
 	delete [] dir_for_pass;
 
-      }
+    }
+
+#ifdef REACTIONS
+#ifdef SDC
+    react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
+    react_src->setVal(0.0);
+
+    for (int n = 0; n < num_src; ++n) {
+        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
+        new_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
+
+        old_sources[n].setVal(0.0, NUM_GROW);
+        new_sources[n].setVal(0.0, NUM_GROW);
+     }
+#endif
+#endif
 
     BL_ASSERT(flux_reg == 0);
     if (level > 0 && do_reflux)

@@ -261,11 +261,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 		          source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
 		          src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
-		// Add in the reactions source term.
+		// Add in the reactions source term; only done in SDC.
 
 #ifdef REACTIONS
+#ifdef SDC
 		if (do_react)
 		    src_q.plus((*react_src)[mfi],qbx,qbx,0,0,QVAR);
+#endif
 #endif
 
 		// Allocate fabs for fluxes and Godunov velocities.

@@ -434,6 +434,16 @@ Castro::read_params ()
 }
 
 Castro::Castro ()
+    :
+    comp_minus_level_grad_phi(BL_SPACEDIM),
+#ifdef RADIATION
+    rad_fluxes(BL_SPACEDIM),
+#endif
+    fluxes(3),
+    u_gdnv(BL_SPACEDIM),
+    old_sources(num_src, PArrayManage),
+    new_sources(num_src, PArrayManage),
+    prev_state(NUM_STATE_TYPE, PArrayManage)
 {
     flux_reg = 0;
 #ifdef RADIATION
@@ -545,13 +555,16 @@ Castro::Castro (Amr&            papa,
    MultiFab& reactions_new = get_new_data(Reactions_Type);
    reactions_new.setVal(0.0);
 
+#ifdef SDC
    // Initialize reactions source term to zero.
 
    react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
    react_src->setVal(0.0);
 
-#ifdef SDC
-     for (int n = 0; n < num_src; ++n) {
+   // Initialize old and new sources so that they live permanently;
+   // this will only work on a single level.
+
+   for (int n = 0; n < num_src; ++n) {
        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
        new_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
 
