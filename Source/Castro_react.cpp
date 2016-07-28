@@ -28,7 +28,13 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
 
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
+
     react_state(state, reactions, interior_mask, time, dt, ng);
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
 
     reset_internal_energy(state);
 
@@ -50,7 +56,13 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
 
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
+
     react_state(state, reactions, interior_mask, time, dt, ng);
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
 
     reset_internal_energy(state);
 
@@ -72,9 +84,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 
     if (do_react == 1)
     {
-
-      if (verbose && ParallelDescriptor::IOProcessor())
-	std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -105,9 +114,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 
 	}
 
-	if (verbose && ParallelDescriptor::IOProcessor())
-	  std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
-
     }
 
     if (verbose > 0 && do_react)
@@ -137,6 +143,9 @@ Castro::react_state(Real time, Real dt)
     BL_PROFILE("Castro::react_state()");
 
     const Real strt_time = ParallelDescriptor::second();
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "\n" << "... Entering burner and doing full timestep of burning." << "\n";
 
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -197,8 +206,8 @@ Castro::react_state(Real time, Real dt)
 	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
 	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
 
-	if (verbose && ParallelDescriptor::IOProcessor())
-	    std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "... Leaving burner after completing full timestep of burning." << "\n";
 
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
