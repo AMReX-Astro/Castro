@@ -188,14 +188,6 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    // Ensure consistent, normalized species.
-
-    normalize_species(S_new);
-
-    // Update the temperature to be consistent with the new energy.
-
-    computeTemp(S_new);
-
     if (ng > 0)
         BoxLib::fill_boundary(S_new, geom);
 

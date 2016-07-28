@@ -59,13 +59,17 @@ Castro::advance (Real time,
 
 	    react_state(time, dt);
 
+	    MultiFab& S_new = get_new_data(State_Type);
+
+	    clean_state(S_new);
+
 	    // Compute the reactive source term for use in the next iteration.
 
 	    get_react_source_prim(*react_src, dt);
 
 	    // Check for NaN's.
 
-	    check_for_nan(get_new_data(State_Type));
+	    check_for_nan(S_new);
 
         }
 #endif
@@ -176,16 +180,11 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
+
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, *hydro_source, dt);
 
-	// Enforce non-negative densities.
-
-	frac_change = enforce_min_density(S_old, S_new);
-
-	// Renormalize the species.
-
-	normalize_species(S_new);
+	frac_change = clean_state(S_new);
 
     }
 
@@ -209,10 +208,6 @@ Castro::do_advance (Real time,
 	make_radial_data(is_new);
     }
 #endif
-
-    // Compute the current temperature for use in the source term evaluation.
-
-    computeTemp(S_new);
 
     // Construct the new-time source terms.
 
