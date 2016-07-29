@@ -628,7 +628,9 @@ Castro::~Castro ()
     delete fine_mask;
 
 #ifdef REACTIONS
+#ifdef SDC
     delete react_src;
+#endif
 #endif
 }
 
