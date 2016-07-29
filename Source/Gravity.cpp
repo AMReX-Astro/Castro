@@ -1829,7 +1829,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
 
 	    source = coarse_level->derive("density", time, 0);
 
-            if (lev < parent->finestLevel())
+            if (lev < lev_max)
             {
 		Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 
