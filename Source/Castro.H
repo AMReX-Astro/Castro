@@ -51,22 +51,19 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources { ext_src = 0,
-	       sponge_src,
-#ifdef GRAVITY
-	       grav_src,
-#endif
-#ifdef ROTATION
-	       rot_src,
-#endif
-#ifdef REACTIONS
-	       react_src,
-#endif
+enum sources { sponge_src = 0,
+               ext_src,
 #ifdef DIFFUSION
-	       diff_src,
+               diff_src,
 #endif
 #ifdef HYBRID_MOMENTUM
-	       hybrid_src,
+               hybrid_src,
+#endif
+#ifdef GRAVITY
+               grav_src,
+#endif
+#ifdef ROTATION
+               rot_src,
 #endif
 	       num_src };
 

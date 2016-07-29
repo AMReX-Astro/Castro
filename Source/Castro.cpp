@@ -3061,17 +3061,17 @@ Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iterati
     if (add_ext_src)
         construct_old_ext_source(time, dt);
 
-#ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_gravity_source(time, dt);
-#endif
-
 #ifdef DIFFUSION
     construct_old_diff_source(time, dt);
 #endif
 
 #ifdef HYBRID_MOMENTUM
     construct_old_hybrid_source(time, dt);
+#endif
+
+#ifdef GRAVITY
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_old_gravity_source(time, dt);
 #endif
 
 #ifdef ROTATION
@@ -3125,10 +3125,6 @@ Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iterati
     if (add_ext_src)
        construct_new_ext_source(time, dt);
 
-#ifdef HYBRID_MOMENTUM
-    construct_new_hybrid_source(time, dt);
-#endif
-
 #ifdef DIFFUSION
     NewTempDiffTerm = OldTempDiffTerm;
     NewSpecDiffTerm = OldSpecDiffTerm;
@@ -3136,6 +3132,10 @@ Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iterati
     NewViscousTermforEnergy   = OldViscousTermforEnergy;
 
     construct_new_diff_source(time, dt);
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    construct_new_hybrid_source(time, dt);
 #endif
 
 #ifdef GRAVITY
