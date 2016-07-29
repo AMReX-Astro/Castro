@@ -245,9 +245,9 @@ public:
 
     void cons_to_prim(MultiFab& u, MultiFab& q);
 
-    void construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
+    void construct_old_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
-    void construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
+    void construct_new_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
 
     void sum_of_sources(MultiFab& source);
 

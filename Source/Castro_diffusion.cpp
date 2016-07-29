@@ -10,6 +10,10 @@ using std::string;
 void
 Castro::construct_old_diff_source(Real time, Real dt)
 {
+    int ng = (*Sborder).nGrow();
+
+    old_sources[diff_src].setVal(0.0, ng);
+
     add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
 
 #if (BL_SPACEDIM == 1)
@@ -27,6 +31,12 @@ Castro::construct_old_diff_source(Real time, Real dt)
 void
 Castro::construct_new_diff_source(Real time, Real dt)
 {
+    MultiFab& S_new = get_new_data(State_Type);
+
+    int ng = S_new.nGrow();
+
+    new_sources[diff_src].setVal(0.0, ng);
+
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
 
 #if (BL_SPACEDIM == 1)

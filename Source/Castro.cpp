@@ -3049,106 +3049,96 @@ Castro::expand_state(MultiFab& Sborder, Real time, int ng)
 }
 
 void
-Castro::construct_old_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
+Castro::construct_old_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
+    BL_ASSERT(src >= 0 && src < num_src);
 
-    for (int n = 0; n < num_src; ++n)
-	old_sources[n].setVal(0.0);
+    switch(src) {
 
-    sources_for_hydro->setVal(0.0,NUM_GROW);
+    case sponge_src:
+	construct_old_sponge_source(time, dt);
+	break;
 
-    if (do_sponge)
-        construct_old_sponge_source(time, dt);
-
-    if (add_ext_src)
-        construct_old_ext_source(time, dt);
+    case ext_src:
+	construct_old_ext_source(time, dt);
+	break;
 
 #ifdef DIFFUSION
-    construct_old_diff_source(time, dt);
+    case diff_src:
+	construct_old_diff_source(time, dt);
+	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    construct_old_hybrid_source(time, dt);
+    case hybrid_src:
+	construct_old_hybrid_source(time, dt);
+	break;
 #endif
 
 #ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_gravity_source(time, dt);
+    case grav_src:
+	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	construct_old_gravity_source(time, dt);
+	break;
 #endif
 
 #ifdef ROTATION
-    construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_old_rotation_source(time, dt);
+    case rot_src:
+	construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	construct_old_rotation_source(time, dt);
+	break;
 #endif
 
-    // If we're doing SDC, time-center the source term (using the current iteration's old sources
-    // and the last iteration's new sources). Since the new_sources are just the corrector step
-    // of the predictor-corrector formalism, we want to add the full value of each to get the
-    // time-centered value.
-
-#ifdef SDC
-
-    for (int n = 0; n < num_src; ++n)
-        MultiFab::Add(*sources_for_hydro, new_sources[n], 0, 0, NUM_STATE, 0);
-
-    BoxLib::fill_boundary(*sources_for_hydro, geom);
-
-#endif
-
+    } // end switch
 }
 
 void
-Castro::construct_new_sources(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
+Castro::construct_new_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
 {
+    BL_ASSERT(src >= 0 && src < num_src);
 
-#ifndef SDC
-    // Update the dSdt MultiFab. Get rid of the dt/2 * dS/dt that
-    // we added from the last timestep, then subtract the old sources
-    // data to get the first half of the update, which is needed for
-    // the next calculation of dS/dt.
+    switch(src) {
 
-    if (source_term_predictor == 1) {
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-      MultiFab::Subtract(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
-      dSdt_new.setVal(0.0, NUM_GROW);
-      MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
-    }
-#endif
+    case sponge_src:
+	construct_new_sponge_source(time, dt);
+	break;
 
-    for (int n = 0; n < num_src; ++n) {
-	new_sources[n].setVal(0.0);
-    }
-
-    sources_for_hydro->setVal(0.0,NUM_GROW);
-
-    if (do_sponge)
-        construct_new_sponge_source(time, dt);
-
-    if (add_ext_src)
-       construct_new_ext_source(time, dt);
+    case ext_src:
+	construct_new_ext_source(time, dt);
+	break;
 
 #ifdef DIFFUSION
-    NewTempDiffTerm = OldTempDiffTerm;
-    NewSpecDiffTerm = OldSpecDiffTerm;
-    NewViscousTermforMomentum = OldViscousTermforMomentum;
-    NewViscousTermforEnergy   = OldViscousTermforEnergy;
+    case diff_src:
+	NewTempDiffTerm = OldTempDiffTerm;
+	NewSpecDiffTerm = OldSpecDiffTerm;
+	NewViscousTermforMomentum = OldViscousTermforMomentum;
+	NewViscousTermforEnergy   = OldViscousTermforEnergy;
 
-    construct_new_diff_source(time, dt);
+	construct_new_diff_source(time, dt);
+	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    construct_new_hybrid_source(time, dt);
+    case hybrid_src:
+	construct_new_hybrid_source(time, dt);
+	break;
 #endif
 
 #ifdef GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_new_gravity_source(time, dt);
+    case grav_src:
+	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	construct_new_gravity_source(time, dt);
+	break;
 #endif
 
 #ifdef ROTATION
-    construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-    construct_new_rotation_source(time, dt);
+    case rot_src:
+	construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	construct_new_rotation_source(time, dt);
+	break;
 #endif
+
+    } // end switch
 }
 
 void

@@ -169,7 +169,10 @@ Castro::do_advance (Real time,
 
     // Construct the old-time sources.
 
-    construct_old_sources(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time, dt);
+    sources_for_hydro->setVal(0.0, NUM_GROW);
+
+    for (int n = 0; n < num_src; ++n)
+	construct_old_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time, dt);
 
     // Apply the old-time sources.
 
@@ -180,12 +183,9 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
-
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, *hydro_source, dt);
-
 	frac_change = clean_state(S_new);
-
     }
 
     // Check for NaN's.
@@ -209,9 +209,26 @@ Castro::do_advance (Real time,
     }
 #endif
 
+#ifndef SDC
+    // Update the dSdt MultiFab. Get rid of the dt/2 * dS/dt that
+    // we added from the last timestep, then subtract the old sources
+    // data to get the first half of the update, which is needed for
+    // the next calculation of dS/dt.
+
+    if (source_term_predictor == 1) {
+        MultiFab& dSdt_new = get_new_data(Source_Type);
+        MultiFab::Subtract(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+	dSdt_new.setVal(0.0, NUM_GROW);
+	MultiFab::Subtract(dSdt_new,*sources_for_hydro,0,0,NUM_STATE,0);
+    }
+#endif
+
     // Construct the new-time source terms.
 
-    construct_new_sources(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+    sources_for_hydro->setVal(0.0,NUM_GROW);
+
+    for (int n = 0; n < num_src; ++n)
+	construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
 
     // Apply the new-time sources to the state.
 

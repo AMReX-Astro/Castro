@@ -4,8 +4,9 @@
 void
 Castro::construct_old_hybrid_source(Real time, Real dt)
 {
-
     int ng = (*Sborder).nGrow();
+
+    old_sources[hybrid_src].setVal(0.0, ng);
 
     fill_hybrid_hydro_source(old_sources[hybrid_src], (*Sborder));
 
@@ -24,6 +25,8 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
     MultiFab& S_new = get_new_data(State_Type);
 
     int ng = S_new.nGrow();
+
+    new_sources[hybrid_src].setVal(0.0, ng);
 
     fill_hybrid_hydro_source(new_sources[hybrid_src], S_new);
 

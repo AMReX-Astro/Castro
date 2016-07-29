@@ -6,11 +6,14 @@ Castro::construct_old_ext_source(Real time, Real dt)
 {
     int ng = (*Sborder).nGrow();
 
-    if (add_ext_src) {
-      fill_ext_source(time, dt, *Sborder, *Sborder, old_sources[ext_src], ng);
-      BoxLib::fill_boundary(old_sources[ext_src], geom);
-      MultiFab::Add(*sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
-    }
+    old_sources[ext_src].setVal(0.0, ng);
+
+    if (!add_ext_src) return;
+
+    fill_ext_source(time, dt, *Sborder, *Sborder, old_sources[ext_src], ng);
+    BoxLib::fill_boundary(old_sources[ext_src], geom);
+    MultiFab::Add(*sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
+
 }
 
 
@@ -23,21 +26,23 @@ Castro::construct_new_ext_source(Real time, Real dt)
 
     int ng = S_new.nGrow();
 
-    if (add_ext_src) {
-      fill_ext_source(time, dt, S_old, S_new, new_sources[ext_src], ng);
+    new_sources[ext_src].setVal(0.0, ng);
 
-      // Time center the source term.
+    if (!add_ext_src) return;
 
-      old_sources[ext_src].mult(-0.5);
-      new_sources[ext_src].mult( 0.5);
+    fill_ext_source(time, dt, S_old, S_new, new_sources[ext_src], ng);
 
-      MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,ng);
+    // Time center the source term.
 
-      if (source_term_predictor == 1)
+    old_sources[ext_src].mult(-0.5);
+    new_sources[ext_src].mult( 0.5);
+
+    MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,ng);
+
+    if (source_term_predictor == 1)
           MultiFab::Add(*sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,ng);
 
-      old_sources[ext_src].mult(-2.0);
-    }
+    old_sources[ext_src].mult(-2.0);
 
 }
 

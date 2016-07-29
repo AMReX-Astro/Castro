@@ -27,6 +27,16 @@ Castro::construct_hydro_source(Real time, Real dt)
       MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
 
     }
+#else
+    // If we're doing SDC, time-center the source term (using the current iteration's old sources
+    // and the last iteration's new sources). Since the new_sources are just the corrector step
+    // of the predictor-corrector formalism, we want to add the full value of each to get the
+    // time-centered value.
+
+    for (int n = 0; n < num_src; ++n)
+	MultiFab::Add(*sources_for_hydro, new_sources[n], 0, 0, NUM_STATE, 0);
+
+    BoxLib::fill_boundary(*sources_for_hydro, geom);
 #endif
 
     int finest_level = parent->finestLevel();
