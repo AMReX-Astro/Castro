@@ -15,3 +15,5 @@ These are things that need to be better documented:
 -- problem tagging, problem specific files / includes
 
 -- the network design
+
+-- problem_post_init
