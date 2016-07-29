@@ -9,10 +9,6 @@ Castro::construct_old_hybrid_source(Real time, Real dt)
     old_sources[hybrid_src].setVal(0.0, ng);
 
     fill_hybrid_hydro_source(old_sources[hybrid_src], (*Sborder));
-
-    // Add to the hydro source terms.
-
-    MultiFab::Add(*sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
 }
 
 
@@ -34,11 +30,6 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
     new_sources[hybrid_src].mult(0.5);
 
     MultiFab::Saxpy(new_sources[hybrid_src],-0.5,old_sources[hybrid_src],0,0,NUM_STATE,ng);
-
-    // Add to the hydro source terms.
-
-    if (source_term_predictor == 1)
-        MultiFab::Add(*sources_for_hydro,old_sources[hybrid_src],0,0,NUM_STATE,ng);
 }
 
 

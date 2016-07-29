@@ -119,8 +119,6 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 #endif
     }
 
-    add_force_to_sources(rot_old, *sources_for_hydro, (*Sborder));
-
 }
 
 
@@ -207,12 +205,6 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 	    });
 #endif
     }
-
-    // Add this to the source term array if we're using the source term predictor.
-    // If not, don't bother because sources isn't actually used in the update after this point.
-
-    if (source_term_predictor == 1)
-	add_force_to_sources(rot_new, *sources_for_hydro, S_new);
 
 }
 

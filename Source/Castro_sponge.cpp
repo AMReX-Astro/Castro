@@ -11,8 +11,6 @@ Castro::construct_old_sponge_source(Real time, Real dt)
     old_sources[sponge_src].setVal(0.0, ng);
 
     if (!do_sponge) return;
-
-    add_force_to_sources(old_sources[sponge_src], *sources_for_hydro, (*Sborder));
 }
 
 void
@@ -79,7 +77,4 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 	    });
 #endif
     }
-
-    if (source_term_predictor == 1)
-	add_force_to_sources(new_sources[sponge_src], *sources_for_hydro, S_new);
 }

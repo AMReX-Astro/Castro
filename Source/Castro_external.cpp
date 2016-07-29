@@ -11,8 +11,8 @@ Castro::construct_old_ext_source(Real time, Real dt)
     if (!add_ext_src) return;
 
     fill_ext_source(time, dt, *Sborder, *Sborder, old_sources[ext_src], ng);
+
     BoxLib::fill_boundary(old_sources[ext_src], geom);
-    MultiFab::Add(*sources_for_hydro,old_sources[ext_src],0,0,NUM_STATE,ng);
 
 }
 
@@ -37,9 +37,6 @@ Castro::construct_new_ext_source(Real time, Real dt)
     new_sources[ext_src].mult(0.5);
 
     MultiFab::Saxpy(new_sources[ext_src],-0.5,old_sources[ext_src],0,0,NUM_STATE,ng);
-
-    if (source_term_predictor == 1)
-          MultiFab::Add(*sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,ng);
 
 }
 

@@ -22,10 +22,6 @@ Castro::construct_old_diff_source(Real time, Real dt)
 #endif
 
     BoxLib::fill_boundary(old_sources[diff_src], geom);
-
-    // Add to the hydro source terms.
-
-    MultiFab::Add(*sources_for_hydro,old_sources[diff_src],0,0,NUM_STATE,NUM_GROW);
 }
 
 void
@@ -49,11 +45,6 @@ Castro::construct_new_diff_source(Real time, Real dt)
     new_sources[diff_src].mult(0.5);
 
     MultiFab::Saxpy(new_sources[diff_src],-0.5,old_sources[diff_src],0,0,NUM_STATE,0);
-
-    // Add to the hydro source terms.
-
-    if (source_term_predictor == 1)
-        MultiFab::Add(*sources_for_hydro,new_sources[diff_src],0,0,NUM_STATE,0);
 
 }
 

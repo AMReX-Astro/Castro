@@ -8,7 +8,12 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
-    const Real cur_time = state[State_Type].curTime();
+    // Set up the source terms to go into the hydro.
+
+    sources_for_hydro->setVal(0.0, NUM_GROW);
+
+    for (int n = 0; n < num_src; ++n)
+	MultiFab::Add(*sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
 #ifndef SDC
     // Optionally we can predict the source terms to t + dt/2,
@@ -20,11 +25,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       MultiFab& dSdt_new = get_new_data(Source_Type);
 
-      AmrLevel::FillPatch(*this,dSdt_new,NUM_GROW,cur_time,Source_Type,0,NUM_STATE);
+      BoxLib::fill_boundary(dSdt_new, geom);
 
-      dSdt_new.mult(dt / 2.0, NUM_GROW);
-
-      MultiFab::Add(*sources_for_hydro,dSdt_new,0,0,NUM_STATE,NUM_GROW);
+      MultiFab::Saxpy(*sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
 
     }
 #else
