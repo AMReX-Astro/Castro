@@ -45,6 +45,7 @@ pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 pp.query("sponge_implicit", sponge_implicit);
+pp.query("update_state_between_sources", update_state_between_sources);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);

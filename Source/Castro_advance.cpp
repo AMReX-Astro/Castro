@@ -207,19 +207,36 @@ Castro::do_advance (Real time,
     }
 #endif
 
-    // Construct the new-time source terms.
+    // For the new-time source terms, we have an option for how to proceed.
+    // We can either construct all of the old-time sources using the same
+    // state that comes out of the hydro update, or we can evaluate the sources
+    // one by one and apply them as we go.
 
-    for (int n = 0; n < num_src; ++n)
-	construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+    if (update_state_between_sources) {
 
-    // Apply the new-time sources to the state.
+	for (int n = 0; n < num_src; ++n) {
+	    construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+	    apply_source_to_state(S_new, new_sources[n], dt);
+	    computeTemp(S_new);
+	}
 
-    for (int n = 0; n < num_src; ++n)
-        apply_source_to_state(S_new, new_sources[n], dt);
+    } else {
 
-    // Sync up the temperature now that all sources have been applied.
+	// Construct the new-time source terms.
 
-    computeTemp(S_new);
+	for (int n = 0; n < num_src; ++n)
+	    construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+
+	// Apply the new-time sources to the state.
+
+	for (int n = 0; n < num_src; ++n)
+	    apply_source_to_state(S_new, new_sources[n], dt);
+
+	// Sync up the temperature now that all sources have been applied.
+
+	computeTemp(S_new);
+
+    }
 
     // Do the second half of the reactions.
 
