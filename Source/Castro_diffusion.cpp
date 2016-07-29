@@ -46,12 +46,9 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     // Time center the source term.
 
-    old_sources[diff_src].mult(-0.5);
-    new_sources[diff_src].mult( 0.5);
+    new_sources[diff_src].mult(0.5);
 
-    MultiFab::Add(new_sources[diff_src],old_sources[diff_src],0,0,NUM_STATE,0);
-
-    old_sources[diff_src].mult(-2.0);
+    MultiFab::Saxpy(new_sources[diff_src],-0.5,old_sources[diff_src],0,0,NUM_STATE,0);
 
     // Add to the hydro source terms.
 

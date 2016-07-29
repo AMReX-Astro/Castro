@@ -2737,18 +2737,8 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& src_old, MultiFab &s
 
   // Subtract off half of the old source term, and add half of the new.
 
-  src_old.mult(-0.5*dt);
-  src_new.mult( 0.5*dt);
-
-  MultiFab::Add(S_new,src_old,0,0,S_new.nComp(),0);
-  MultiFab::Add(S_new,src_new,0,0,S_new.nComp(),0);
-
-  // Return the source terms to their original form.
-
-  if (dt > 0.0) {
-    src_old.mult(1.0/(-0.5*dt));
-    src_new.mult(1.0/( 0.5*dt));
-  }
+  MultiFab::Saxpy(S_new,-0.5*dt,src_old,0,0,S_new.nComp(),0);
+  MultiFab::Saxpy(S_new, 0.5*dt,src_new,0,0,S_new.nComp(),0);
 }
 
 void

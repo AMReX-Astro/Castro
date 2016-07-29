@@ -34,15 +34,12 @@ Castro::construct_new_ext_source(Real time, Real dt)
 
     // Time center the source term.
 
-    old_sources[ext_src].mult(-0.5);
-    new_sources[ext_src].mult( 0.5);
+    new_sources[ext_src].mult(0.5);
 
-    MultiFab::Add(new_sources[ext_src],old_sources[ext_src],0,0,NUM_STATE,ng);
+    MultiFab::Saxpy(new_sources[ext_src],-0.5,old_sources[ext_src],0,0,NUM_STATE,ng);
 
     if (source_term_predictor == 1)
           MultiFab::Add(*sources_for_hydro,new_sources[ext_src],0,0,NUM_STATE,ng);
-
-    old_sources[ext_src].mult(-2.0);
 
 }
 
