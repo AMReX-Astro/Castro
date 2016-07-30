@@ -356,7 +356,7 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
 			 &cell_cons_interp, state_data_extrap,store_in_checkpoint);
-  
+
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
@@ -387,9 +387,27 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+#ifdef SDC
+  // For SDC we want to store the source terms.
+
+  store_in_checkpoint = true;
+  desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
+			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+
+  // We also want to store the reactions source.
+
+#ifdef REACTIONS
+  store_in_checkpoint = true;
+  desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point,NUM_GROW,QVAR,
+			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+#endif
+#endif
+
   Array<BCRec>       bcs(NUM_STATE);
   Array<std::string> name(NUM_STATE);
-  
+
   BCRec bc;
   cnt = 0;
   set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "density";
@@ -404,14 +422,14 @@ Castro::variableSetUp ()
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Temp";
-  
+
   for (int i=0; i<NumAdv; ++i)
     {
       char buf[64];
       sprintf(buf, "adv_%d", i);
       cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = string(buf);
     }
-  
+
   // Get the species names from the network model.
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
@@ -425,7 +443,7 @@ Castro::variableSetUp ()
     char_spec_names[len] = '\0';
     spec_names.push_back(std::string(char_spec_names));
   }
-  
+
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
@@ -506,13 +524,13 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> sources_name(NUM_STATE);    
-    
+  Array<std::string> sources_name(NUM_STATE);
+
   for (int i = 0; i < NUM_STATE; i++)
     sources_name[i] = name[i] + "_source";
-    
+
   desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));       
-    
+
 #ifdef LEVELSET
   desc_lst.setComponent(LS_State_Type,0,"LSphi",bc, BndryFunc(ca_phifill));
 #endif
@@ -527,6 +545,20 @@ Castro::variableSetUp ()
     }
   desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_reactfill));
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
+#endif
+
+#ifdef SDC
+  for (int i = 0; i < NUM_STATE; ++i)
+      sources_name[i] = "sdc_sources_" + name[i];
+  desc_lst.setComponent(SDC_Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+#ifdef REACTIONS
+  for (int i = 0; i < QVAR; ++i) {
+      char buf[64];
+      sprintf(buf, "sdc_react_source_%d", i);
+      set_scalar_bc(bc,phys_bc);
+      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_denfill));
+  }
+#endif
 #endif
 
 #ifdef RADIATION

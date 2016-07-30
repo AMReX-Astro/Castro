@@ -47,6 +47,12 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
+#ifdef SDC
+		 SDC_Source_Type,
+#ifdef REACTIONS
+		 SDC_React_Type,
+#endif
+#endif
                  NUM_STATE_TYPE };
 
 // Create storage for all source terms.
@@ -574,13 +580,6 @@ protected:
     // Source term representing hydrodynamics update.
     //
     MultiFab* hydro_source;
-
-#ifdef REACTIONS
-    //
-    // Source term to primitive variables from reactions.
-    //
-    MultiFab* react_src;
-#endif
 
     //
     // Hydrodynamic (and radiation) fluxes.

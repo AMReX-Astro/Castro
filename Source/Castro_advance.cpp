@@ -65,7 +65,8 @@ Castro::advance (Real time,
 
 	    // Compute the reactive source term for use in the next iteration.
 
-	    get_react_source_prim(*react_src, dt);
+	    MultiFab& SDC_react_new = get_new_data(SDC_React_Type);
+	    get_react_source_prim(SDC_react_new, dt);
 
 	    // Check for NaN's.
 
@@ -360,7 +361,16 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	dSdt_new.mult(1.0 / dt);
 
     }
+#else
+    // For SDC, store the sum of the new_sources data in the state data.
+
+    MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
+    SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
+    for (int n = 0; n < num_src; ++n)
+	MultiFab::Add(SDC_source_new, new_sources[n], 0, 0, NUM_STATE, new_sources[n].nGrow());
 #endif
+
+
 
     // Sync up the hybrid and linear momenta.
 
@@ -416,15 +426,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
             for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
 	        // The following is a hack to make sure that
-	        // we only ever have new data for the Source_Type;
+	        // we only ever have new data for a few state
+		// types that only ever need new time data;
 	        // by doing a swap now, we'll guarantee that
 	        // allocOldData() does nothing. We do this because
 	        // we never need the old data, so we don't want to
 	        // allocate memory for it.
 
-	        if (k == Source_Type) {
-		  getLevel(lev).state[k].swapTimeLevels(0.0);
-		}
+	        if (k == Source_Type)
+		    getLevel(lev).state[k].swapTimeLevels(0.0);
+#ifdef SDC
+		else if (k == SDC_Source_Type)
+		    getLevel(lev).state[k].swapTimeLevels(0.0);
+#ifdef REACTIONS
+		else if (k == SDC_React_Type)
+		    getLevel(lev).state[k].swapTimeLevels(0.0);
+#endif
+#endif
 
 	        getLevel(lev).state[k].allocOldData();
                 getLevel(lev).state[k].swapTimeLevels(dt_lev);
@@ -456,12 +474,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // These arrays hold all source terms that update the state.
 
-#ifndef SDC
     for (int n = 0; n < num_src; ++n) {
         old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
         new_sources.set(n, new MultiFab(grids, NUM_STATE, 0));
     }
-#endif
 
     // This array holds the hydrodynamics update.
 
@@ -537,10 +553,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     delete hydro_source;
     delete sources_for_hydro;
 
-#ifndef SDC
     old_sources.clear();
     new_sources.clear();
-#endif
 
     for (int n = 0; n < 3; ++n)
         delete fluxes[n];
@@ -646,15 +660,23 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	for (int k = 0; k < NUM_STATE_TYPE; k++) {
 
 	  if (prev_state[k].hasOldData())
-	    state[k].copyOld(prev_state[k]);
+	      state[k].copyOld(prev_state[k]);
 
 	  if (prev_state[k].hasNewData())
-	    state[k].copyNew(prev_state[k]);
+	      state[k].copyNew(prev_state[k]);
 
 	  // Anticipate the swapTimeLevels to come.
 
 	  if (k == Source_Type)
-	    state[k].swapTimeLevels(0.0);
+	      state[k].swapTimeLevels(0.0);
+#ifdef SDC
+	  else if (k == SDC_Source_Type)
+	      state[k].swapTimeLevels(0.0);
+#ifdef REACTIONS
+	  else if (k == SDC_React_Type)
+	      state[k].swapTimeLevels(0.0);
+#endif
+#endif
 
 	  state[k].swapTimeLevels(0.0);
 
@@ -690,6 +712,14 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	        if (k == Source_Type)
 		    state[k].swapTimeLevels(0.0);
+#ifdef SDC
+		else if (k == SDC_Source_Type)
+		    state[k].swapTimeLevels(0.0);
+#ifdef REACTIONS
+		else if (k == SDC_React_Type)
+		    state[k].swapTimeLevels(0.0);
+#endif
+#endif
 
 		state[k].swapTimeLevels(dt_advance);
 

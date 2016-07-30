@@ -555,26 +555,22 @@ Castro::Castro (Amr&            papa,
    MultiFab& reactions_new = get_new_data(Reactions_Type);
    reactions_new.setVal(0.0);
 
+#endif
+
 #ifdef SDC
+   // Initialize old and new source terms to zero.
+
+   MultiFab& sources_new = get_new_data(SDC_Source_Type);
+   sources_new.setVal(0.0);
+
    // Initialize reactions source term to zero.
 
-   react_src = new MultiFab(grids, QVAR, NUM_GROW, Fab_allocate);
-   react_src->setVal(0.0);
-
-   // Initialize old and new sources so that they live permanently;
-   // this will only work on a single level.
-
-   for (int n = 0; n < num_src; ++n) {
-       old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
-       new_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate));
-
-       old_sources[n].setVal(0.0, NUM_GROW);
-       new_sources[n].setVal(0.0, NUM_GROW);
-     }
+#ifdef REACTIONS
+   MultiFab& react_src_new = get_new_data(SDC_React_Type);
+   react_src_new.setVal(0.0);
+#endif
 #endif
 
-#endif
-   
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0) 
@@ -626,12 +622,6 @@ Castro::~Castro ()
     }
 #endif
     delete fine_mask;
-
-#ifdef REACTIONS
-#ifdef SDC
-    delete react_src;
-#endif
-#endif
 }
 
 
@@ -825,6 +815,16 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
+#ifdef SDC
+   MultiFab& sources_new = get_new_data(SDC_Source_Type);
+   sources_new.setVal(0.0);
+#ifdef REACTIONS
+   MultiFab& react_src_new = get_new_data(SDC_React_Type);
+   react_src_new.setVal(0.0);
+#endif
+#endif
+
+
 #ifdef MAESTRO_INIT
     MAESTRO_init();
 #else
@@ -1005,9 +1005,11 @@ Castro::init (AmrLevel &old)
     }
 #endif
 
-    MultiFab& dSdt_new = get_new_data(Source_Type);
-    FillPatch(old,dSdt_new,0,cur_time,Source_Type,0,NUM_STATE);
-    
+    {
+	MultiFab& dSdt_new = get_new_data(Source_Type);
+	FillPatch(old,dSdt_new,0,cur_time,Source_Type,0,NUM_STATE);
+    }
+
 #ifdef REACTIONS
     {
 	MultiFab& React_new = get_new_data(Reactions_Type);
@@ -1015,8 +1017,27 @@ Castro::init (AmrLevel &old)
 
         FillPatch(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
     }
-
 #endif
+
+
+#ifdef SDC
+    {
+	MultiFab& sources_new = get_new_data(SDC_Source_Type);
+	int ncomp = sources_new.nComp();
+
+	FillPatch(old,sources_new,0,cur_time,SDC_Source_Type,0,ncomp);
+
+    }
+#ifdef REACTIONS
+    {
+	MultiFab& react_src_new = get_new_data(SDC_React_Type);
+	int ncomp = react_src_new.nComp();
+
+	FillPatch(old,react_src_new,0,cur_time,SDC_React_Type,0,ncomp);
+    }
+#endif
+#endif
+
 
 #ifdef LEVELSET
     MultiFab& LS_new = get_new_data(LS_State_Type);
@@ -2221,6 +2242,13 @@ Castro::avgDown ()
   avgDown(Reactions_Type);
 #endif
 
+#ifdef SDC
+  avgDown(SDC_Source_Type);
+#ifdef REACTIONS
+  avgDown(SDC_React_Type);
+#endif
+#endif
+
 #ifdef LEVELSET
   avgDown(LS_State_Type);
 #endif
@@ -3223,11 +3251,11 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute the reaction source term.
 
-    react_src.setVal(0.0);
+    react_src.setVal(0.0, react_src.nGrow());
 
     if (dt > 0.0) {
         MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, 0);
-	MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, 0);
+        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, 0);
     }
 
     MultiFab::Add(react_src, A_prim, 0, 0, QVAR, 0);

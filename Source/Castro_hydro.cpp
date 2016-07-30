@@ -32,14 +32,19 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 #else
     // If we're doing SDC, time-center the source term (using the current iteration's old sources
-    // and the last iteration's new sources). Since the new_sources are just the corrector step
-    // of the predictor-corrector formalism, we want to add the full value of each to get the
-    // time-centered value.
+    // and the last iteration's new sources).
 
-    for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(*sources_for_hydro, new_sources[n], 0, 0, NUM_STATE, 0);
+    MultiFab& SDC_source = get_new_data(SDC_Source_Type);
+
+    MultiFab::Add(*sources_for_hydro, SDC_source, 0, 0, NUM_STATE, 0);
 
     BoxLib::fill_boundary(*sources_for_hydro, geom);
+#ifdef REACTIONS
+    // Make sure that we have valid data on the ghost zones of the reactions source.
+
+    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
+    BoxLib::fill_boundary(SDC_react_source, geom);
+#endif
 #endif
 
     int finest_level = parent->finestLevel();
@@ -276,10 +281,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 		// Add in the reactions source term; only done in SDC.
 
-#ifdef REACTIONS
 #ifdef SDC
+#ifdef REACTIONS
 		if (do_react)
-		    src_q.plus((*react_src)[mfi],qbx,qbx,0,0,QVAR);
+		    src_q.plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
 #endif
 #endif
 
