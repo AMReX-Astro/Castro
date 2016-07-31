@@ -281,8 +281,6 @@ contains
 
              ! Update the state data.
 
-             unew(i,j,k,URHO)            = burn_state_out % y(SRHO)
-             unew(i,j,k,UMX:UMZ)         = burn_state_out % y(SMX:SMZ)
              unew(i,j,k,UEDEN)           = burn_state_out % y(SEDEN)
              unew(i,j,k,UEINT)           = burn_state_out % y(SEINT)
              unew(i,j,k,UFS:UFS+nspec-1) = burn_state_out % y(SFS:SFS+nspec-1)
