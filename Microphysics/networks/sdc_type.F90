@@ -8,15 +8,16 @@ module sdc_type_module
   ! A generic structure holding data necessary to do a nuclear burn
   ! in the SDC formalism.
 
-  integer, parameter :: SRHO  = 1
-  integer, parameter :: SMX   = 2
-  integer, parameter :: SMY   = 3
-  integer, parameter :: SMZ   = 4
-  integer, parameter :: SEDEN = 5
-  integer, parameter :: SEINT = 6
-  integer, parameter :: SFS   = 7
+  integer, parameter :: SEDEN = 1
+  integer, parameter :: SEINT = 2
+  integer, parameter :: SFS   = 3
+  integer, parameter :: SRHO  = SFS + nspec
+  integer, parameter :: SMX   = SRHO + 1
+  integer, parameter :: SMY   = SRHO + 2
+  integer, parameter :: SMZ   = SRHO + 3
 
-  integer, parameter :: SVAR  = SFS + nspec - 1
+  integer, parameter :: SVAR  = SMZ
+  integer, parameter :: SVAR_EVOLVE = SRHO - 1
 
   type :: sdc_t
 
