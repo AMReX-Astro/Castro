@@ -1,65 +1,73 @@
+\section{Introduction}
 
-\subsection{List of Parameters}
-
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|}\hline
-Parameter & Definition & Acceptable Values & Default\\
-\hline
-{\bf castro.do\_rotation} & Include rotation as a forcing term & 0 if false, 1 if true & 0 \\
-{\bf castro.rotational\_period} & Period (s) of rotation & Real & 0.0 \\
-{\bf castro.rotational\_dPdt} & d(Period) / dt for rotation & Real & 0.0 \\
-\hline
-\end{tabular}
-\end{center}
-\end{scriptsize}
-\end{table*}
-
-\subsection{Notes}
-This is for constant, solid-body rotation about a fixed axis.  See the Rotation section for more detail.
-\begin{itemize}
-\item To include rotation you must set
-\begin{itemize}
-\item USE\_ROTATION = TRUE in the GNUMakefile
-\item {\bf castro.do\_rotation} = 1 in the inputs file
-\end{itemize}
-\item {\bf castro.rotational\_period} is only relevant if {\bf castro.do\_rotation} = 1, and must be specified in that case.
-\end{itemize}
-
-Currently, CASTRO supports contant, solid-body rotation about a fixed
+Currently, \castro\ supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
-equations to the rotating frame of reference.  The rotational
-period (in s) is specified by setting {\bf
-  castro.rotational\_period} in the inputs file.  Note that this
-parameter is only relevant if USE\_ROTATION = TRUE in the GNUmakefile
-and {\bf castro.do\_rotation} = 1 in the inputs file.  The rotational
-period specified by {\bf castro.rotational\_period} is internally
+equations to the rotating frame of reference.  
+
+To include rotation you must set
+\begin{verbatim}
+USE_ROTATION = TRUE
+\end{verbatim}
+in the {\tt GNUMakefile}.  Rotation can then be enabled via
+\begin{verbatim}
+castro.do_rotation = 1
+\end{verbatim}
+in the {\tt inputs} file.  The rotational period must then be set via
+{\tt castro.rotational\_period}.  The rotational period is internally
 converted to an angular frequency for use in the source term
 equations.
 
 The axis of rotation currently depends on the dimensionality of the
-problem and the value of {\bf coord\_sys}; in all cases, however, the
-default axis of rotation points from {\bf center}, which is typically
-defined in a Prob\_\$(DIM)d.f90 routine, to the typical ``vertical
-direction.''  The vertical direction is defined as follows
+problem and the value of {\tt coord\_sys}; in all cases, however, the
+default axis of rotation points from {\tt center}, which is typically
+defined in a {\tt Prob\_\$(DIM)d.f90} routine, to the typical ``vertical
+direction.''  The vertical direction is defined as follows:
 \begin{itemize}
 \item 2D
 \begin{itemize}
-\item {\bf coord\_sys} = 0, (x,y): out of the (x,y)-plane along the ``z''-axis
-\item {\bf coord\_sys} = 1, (r,z): along the z-axis
+\item {\tt coord\_sys = 0}, (x,y): out of the (x,y)-plane along the ``z''-axis
+\item {\tt coord\_sys = 1}, (r,z): along the z-axis
 \end{itemize}
+
 \item 3D
 \begin{itemize}
-\item {\bf coord\_sys} = 0, (x,y,z): along the z-axis
+\item {\tt coord\_sys} = 0, (x,y,z): along the z-axis
 \end{itemize}
 \end{itemize}
-To change these defaults, the {\bf omega} vector in the ca\_rotate
-routine found in the Rotate\_\$(DIM)d.f90 file.
+To change these defaults, modify the {\tt omega} vector in the {\tt
+  ca\_rotate} routine found in the {\tt Rotate\_\$(DIM)d.f90} file.
+
+
+The main parameters that affect rotation are:
+\begin{itemize}
+
+\item {\tt castro.do\_rotation} : include rotation as a forcing term
+  (0 or 1; default: 0) 
+
+\item {\tt castro.rotational\_period} : period (s) of rotation (default:  0.0)
+
+\item {\tt castro.rotational\_dPdt} : d(period) / dt for rotation (default: 0.0)
+
+\item {\tt castro.rotation\_include\_centrifugal} :
+
+\item {\tt castro.rotation\_include\_coriolis} :
+
+\item {\tt castro.rotation\_include\_domegadt} :
+
+\item {\tt state\_in\_rotating\_frame} :
+
+\item {\tt rot\_source\_type} :
+
+\item {\tt implicit\_rotation\_update} :
+
+\item {\tt rot\_axis} :
+
+\end{itemize}
 
 For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
 switching to a rotating reference frame.
+
 
 \section{Coordinate transformation to rotating frame}
 Consider an intertial reference frame \(C\) and a non-inertial
