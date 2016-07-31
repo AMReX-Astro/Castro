@@ -38,6 +38,13 @@ CWARNING = """
 """
 
 class Param(object):
+    """ the basic parameter class.  For each parameter, we hold the name,
+        type, and default.  For some parameters, we also take a second
+        value of the default, for use in debug mode (delimited via
+        #ifdef DEBUG)
+
+    """
+
     def __init__(self, name, dtype, default,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
@@ -46,7 +53,7 @@ class Param(object):
         self.name = name
         self.dtype = dtype
         self.default = default
-        self.debug_default=debug_default
+        self.debug_default = debug_default
         self.in_fortran = in_fortran
 
         if ifdef == "None":
