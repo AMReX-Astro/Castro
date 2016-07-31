@@ -1,5 +1,20 @@
 * changes since the last release:
 
+  -- We changed the defaults for the gravity and rotation sources.
+     now we do grav_source_type and rot_source_type = 4 by default.
+     This is a conservative formulation for the energy equation that
+     incorporates the source as a flux in the energy equation.  See
+     Katz et al. 2016 for details.
+
+     We also do implicit_rotation_update = 1 by default -- this does a
+     slightly better coupling of the Coriolis force in the momentum
+     equation by doing an implicit velocity update
+
+
+previous changes:
+
+* 16.08
+
   -- A new parameter gravity.max_multipole_moment_level was added.
      This comes into play when using the multipole solver to compute
      the boundary conditions on the domain for isolated mass
@@ -27,7 +42,6 @@
   -- a number of changes were done in the Microphysics repo -- see
      Microphysics/CHANGES for a log of those
 
-previous changes:
 
 * 16.07
   
