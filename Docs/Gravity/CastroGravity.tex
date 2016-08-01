@@ -103,8 +103,90 @@ defined in the inputs file by
 
 \noindent {\tt gravity.const\_grav = -9.8}
 
-for example, to set the gravity to have magnitude 9.8 in the
+for example, to set the gravity to have magnitude $9.8$ in the
 negative $y$-direction if in 2D, negative $z$-direction if in 3-D.
+The actual setting is done in {\tt Gravity.cpp} as:
+\begin{lstlisting}
+ grav.setVal(const_grav, BL_SPACEDIM-1, 1, ng);
+\end{lstlisting}
+
+\MarginPar{do we fill any Phi field ever? what happens if we put it in the plotfile?}
+
+Note: {\tt ConstantGrav} can only be used along a Cartesian direction
+(vertical for 2D axisymmetric).
+
+
+\subsection{{\tt MonopoleGrav}}
+\label{sec-monopole-grav}
+
+{\tt MonopoleGrav} integrates the mass distribution on the grid
+in spherical shells, defining an {\tt enclosed mass} and uses this
+to compute the gravitational potential and acceleration in a 
+spherically-symmetric fashion.
+
+\begin{itemize}
+
+\item In 1D spherical coordinates we compute
+  \begin{equation}
+    g(r) = -\frac{G M_{\rm enclosed}}{ r^2}
+  \end{equation}
+  where $M_{\rm enclosed}$ is calculated from the density at the time
+  of the call.  
+
+  For levels above the coarsest level we define the extent of that
+  level's radial arrays as ranging from the center of the star ($r=0$)
+  to the cell at that level farthest away from the origin.  If there
+  are gaps between fine grids in that range then we interpolate the
+  density from a coarser level in order to construct a continuous
+  density profile.  We note that the location of values in the density
+  profile and in the gravitational field exactly match the location of
+  data at that level so there is no need to interpolate between points
+  when mapping the 1D radial profile of $g$ back onto the original
+  grid.
+
+\item In 2D or 3D we compute a 1D radial average of density and use
+  this to compute gravity as a one-dimensional integral, then
+  interpolate the gravity vector back onto the Cartesian grid
+  cells. At the coarsest level we define the extent of the 1D arrays
+  as ranging from the center of the star to the farthest possible
+  point in the grid (plus a few extra cells so that we can fill ghost
+  cell values of gravity).  At finer levels we first define a single
+  box that contains all boxes on that fine level, then we interpolate
+  density from coarser levels as needed to fill the value of density
+  at every fine cell in that box.  The extent of the radial array is
+  from the center of the star to the {\em nearest} cell on one of the
+  faces of the single box.  This ensures that all cells at that
+  maximum radius of the array are contained in this box.
+
+We then average the density onto a 1D radial array.  We note that
+there is a mapping from the Cartesian cells to the radial array and
+back; unlike the 1D case this requires interpolation. We use quadratic
+interpolation with limiting so that the interpolation does not create
+new maxima or minima.
+
+The default resolution of the radial arrays at a level is the grid
+cell spacing at that level, i.e., $\Delta r = \Delta x$. O For
+increased accuracy, one can define {\tt castro.drdxfac} as a number
+greater than $1$ ($2$ or $4$ are recommended) and the spacing of the
+radial array will then satisfy $\Delta x / \Delta r = $ {\tt drdxfac}.
+Individual Cartesian grid cells are subdivided by {\tt drdxfac} in
+each coordinate direction for the purposing of averaging the density,
+and the integration that creates $g$ is done at the finer resolution
+of the new $\Delta r$.
+
+Note that the center of the star is defined in the subroutine {\tt PROBINIT}
+and the radius is computed as the distance from that center.
+
+\MarginPar{there is an additional correction at the corners in {\tt
+    make\_radial\_grav} that accounts for the volume in a shell that
+  is not part of the grid}
+
+\end{itemize}
+
+
+{\color{red} What about the potential in this case? when does {\tt
+    make\_radial\_phi} come into play?}
+
 
 \subsection{{\tt PoissonGrav}}
 
@@ -116,9 +198,14 @@ where $\phi$ is defined by solving
 \begin{equation}
 \mathbf{\Delta} \phi = -4 \pi G \rho .\label{eq:Self Gravity}
 \end{equation}
-(We note that the sign convention used for $\phi$ here is opposite
-that traditionally used in astrophysics, but the resulting
-gravitational acceleration will be the same.)
+
+{\bf Note: that the sign convention used for $\phi$ here is opposite
+  that traditionally used in astrophysics, but the resulting
+  gravitational acceleration will be the same.}  The reason for this
+difference in sign convention is that many linear systems solvers
+(including those in \boxlib) implement a general Helmholtz operator of
+the form $a \alpha({\bf x}) - b \nabla \cdot (\beta({\bf x}) \cdot
+\nabla \phi$).
 
 We only allow {\tt PoissonGrav} in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
@@ -240,57 +327,6 @@ setting \texttt{gravity.direct\_sum\_bcs = 1} in your inputs file.
 
 \end{itemize}
 
-\subsection{{\tt MonopoleGrav}}
-\label{sec-monopole-grav}
-\begin{itemize}
-
-\item In 1D spherical coordinates we compute
-\[g(r) = G * ({\rm Mass_{enclosed}}) / r^2 \; \; , \]
-where ${\rm Mass_{enclosed}}$ is calculated from the density at the
-time of the call.  For levels above the coarsest level we define the
-extent of that level's radial arrays as ranging from the center of the
-star ($r=0$) to the cell at that level farthest away from the origin.
-If there are gaps between fine grids in that range then we interpolate
-the density from a coarser level in order to construct a continuous
-density profile.  We note that the location of values in the density
-profile and in the gravitational field exactly match the location of
-data at that level so there is no need to interpolate between points
-when mapping the 1D radial profile of $g$ back onto the original grid.
-
-\item In 2D or 3D we compute a 1D radial average of density and use
-  this to compute gravity as a one-dimensional integral, then
-  interpolate the gravity vector back onto the Cartesian grid
-  cells. At the coarsest level we define the extent of the 1D arrays
-  as ranging from the center of the star to the farthest possible
-  point in the grid (plus a few extra cells so that we can fill ghost
-  cell values of gravity).  At finer levels we first define a single
-  box that contains all boxes on that fine level, then we interpolate
-  density from coarser levels as needed to fill the value of density
-  at every fine cell in that box.  The extent of the radial array is
-  from the center of the star to the {\em nearest} cell on one of the
-  faces of the single box.  This ensures that all cells at that
-  maximum radius of the array are contained in this box.
-
-We then average the density onto a 1D radial array.  We note that
-there is a mapping from the Cartesian cells to the radial array and
-back; unlike the 1D case this requires interpolation. We use quadratic
-interpolation with limiting so that the interpolation does not create
-new maxima or minima.
-
-The default resolution of the radial arrays at a level is the grid
-cell spacing at that level, i.e. $\Delta r = \Delta x.$ One
-optimization we have recently added is that one can define {\bf
-  castro.drdxfac} as a number greater than 1 (2 or 4 are recommended)
-and the spacing of the radial array will then satisfy $\Delta x /
-\Delta r = $ {\bf drdxfac}.  Individual Cartesian grid cells are
-subdivided by {\bf drdxfac} in each coordinate direction for the
-purposing of averaging the density, and the integration that creates
-$g$ is done at the finer resolution of the new $\Delta r.$
-
-Note that the center of the star is defined in the subroutine PROBINIT
-and the radius is computed as the distance from that center.
-
-\end{itemize}
 
 \subsection{{\tt PrescribedGrav}}
 
@@ -345,18 +381,18 @@ expression of $T_{ik}$ and $ds$ into (\ref{field}), then field
 equations can be reduced to 3 ordinary differential equations:
 \begin{equation}\label{diff1}
    \frac{\kappa P}{c^{2}} =
-   e^{-\lambda}(\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}})-\frac{1}{r^{2}}
+   e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
    \quad ,
 \end{equation}
 \begin{equation}\label{diff2}
   \frac{\kappa P}{c^{2}} =
-  \frac{1}{2}e^{-\lambda}(\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
+  \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
     {\prime}-\lambda^{\prime}}{r}
-   -\frac{\nu^{\prime}\lambda^{\prime}}{2}) \quad ,
+   -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
 \end{equation}
 \begin{equation}\label{diff3}
   \kappa \varrho =
-  e^{-\lambda}(\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}})+\frac{1}{r^{2}} \quad ,
+  e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,
 \end{equation}
 where primes means the derivatives with respect to $r$. After
 multiplying with $4\pi r^2$, (\ref{diff3}) can be integrated and
@@ -380,8 +416,8 @@ $\lambda,\lambda^{\prime},\nu,\nu^{\prime}$ can be eliminated by
 \textit{Tolman-Oppenheinmer-Volkoff(TOV)} equation for hydrostatic
 equilibrium in general relativity:
 \begin{equation}\label{tov}
-  \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho (1+\frac{P}{\varrho
-    c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1} \quad .
+  \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
+    c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .
 \end{equation}
 For Newtonian case $c^2 \rightarrow  \infty $, it reverts to usual form
 \begin{equation}\label{newton}
@@ -392,11 +428,23 @@ Now we take effective monopole gravity as
 \tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
   c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
 \end{equation}
-For general situations, we neglect the $U/c^2$ and potential energy in m because they are usually
-much smaller than $\varrho_0$. Only when $T$ reaches $10^{13} K$ ($KT \approx m_{p} c^2$, $m_p$ is proton mass)
- before it really makes a difference. So (\ref{tov2}) can be expressed as
+For general situations, we neglect the $U/c^2$ and potential energy in
+m because they are usually much smaller than $\varrho_0$. Only when
+$T$ reaches $10^{13} K$ ($KT \approx m_{p} c^2$, $m_p$ is proton mass)
+before it really makes a difference. So (\ref{tov2}) can be expressed
+as
 \begin{equation}\label{tov3}
-  \tilde{g} = -\frac{GM_{enc}}{r^{2}} (1+\frac{P}{\varrho
-    c^{2}})(1+\frac{4\pi r^3 P}{M_{enc} c^{2}}) (1-\frac{2GM_{enc}}{r c^{2}})^{-1} \quad ,
+  \tilde{g} = -\frac{GM_{\rm enclosed}}{r^{2}} \left (1+\frac{P}{\varrho
+    c^{2}} \right )\left (1+\frac{4\pi r^3 P}{M_{\rm enclosed} c^{2}} \right ) \left (1-\frac{2GM_{\rm enclosed}}{r c^{2}} \right )^{-1} \quad ,
 \end{equation}
-where $M_{enc}$ is identical to $Mass_{enclosed}$ in the previous section.
+where $M_{enclosed}$ has the same meaning as with the {\tt
+  MonopoleGrav} approximation.
+
+
+
+\section{Hydrodynamics Source Terms}
+
+There are several options to incorporate the effects of gravity into the 
+hydrodynamics system.  The main parameter here is {\tt castro.grav\_source\_type}.
+
+{\color{red} Need to discuss the different methods, using rotation section as template}
