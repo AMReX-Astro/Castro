@@ -198,9 +198,14 @@ where $\phi$ is defined by solving
 \begin{equation}
 \mathbf{\Delta} \phi = -4 \pi G \rho .\label{eq:Self Gravity}
 \end{equation}
-(We note that the sign convention used for $\phi$ here is opposite
-that traditionally used in astrophysics, but the resulting
-gravitational acceleration will be the same.)
+
+{\bf Note: that the sign convention used for $\phi$ here is opposite
+  that traditionally used in astrophysics, but the resulting
+  gravitational acceleration will be the same.}  The reason for this
+difference in sign convention is that many linear systems solvers
+(including those in \boxlib) implement a general Helmholtz operator of
+the form $a \alpha({\bf x}) - b \nabla \cdot (\beta({\bf x}) \cdot
+\nabla \phi$).
 
 We only allow {\tt PoissonGrav} in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
