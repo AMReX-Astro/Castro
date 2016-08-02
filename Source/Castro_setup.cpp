@@ -327,23 +327,26 @@ Castro::variableSetUp ()
   bool store_in_checkpoint;
 
 #ifdef RADIATION
-  int ngrow_state = 1;
+  // Radiation should always have at least one ghost zone.
+  int ngrow_state = std::max(1, state_nghost);
 #else
-  int ngrow_state = 0;
+  int ngrow_state = state_nghost;
 #endif
+
+  BL_ASSERT(ngrow_state >= 0);
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
-  
+
 #ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, 1, 1,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
-  
+
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,3,

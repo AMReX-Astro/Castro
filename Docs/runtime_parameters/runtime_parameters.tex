@@ -42,6 +42,8 @@
 \rowcolor{tableShade}
 \verb= lin_limit_state_interp = &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
 \verb= state_interp_order = &  highest order used in interpolation & 1 \\
+\rowcolor{tableShade}
+\verb= state_nghost = &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
 
 
 \end{longtable}
@@ -175,8 +177,8 @@
 \verb= do_grav = &  permits gravity calculation to be turned on and off & -1 \\
 \verb= do_rotation = &  permits rotation calculation to be turned on and off & -1 \\
 \rowcolor{tableShade}
-\verb= grav_source_type = &  determines how the gravitational source term is added to the momentum and energy state variables. & 2 \\
-\verb= implicit_rotation_update = &  we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms & 0 \\
+\verb= grav_source_type = &  determines how the gravitational source term is added to the momentum and energy state variables. & 4 \\
+\verb= implicit_rotation_update = &  we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms & 1 \\
 \rowcolor{tableShade}
 \verb= moving_center = &  to we recompute the center used for the multipole gravity solve each step? & 0 \\
 \verb= point_mass = &  include a central point mass & 0.0 \\
@@ -184,7 +186,7 @@
 \verb= point_mass_fix_solution = &  if we have a central point mass, we can prevent mass from building up in the zones adjacent to it by keeping their density constant and adding their mass to the point mass object & 1 \\
 \verb= rot_axis = &  the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector & 3 \\
 \rowcolor{tableShade}
-\verb= rot_source_type = &  determines how the rotation source terms are added to the momentum and energy equations & 1 \\
+\verb= rot_source_type = &  determines how the rotation source terms are added to the momentum and energy equations & 4 \\
 \verb= rotation_include_centrifugal = &  permits the centrifugal terms in the rotation to be turned on and off & 1 \\
 \rowcolor{tableShade}
 \verb= rotation_include_coriolis = &  permits the Coriolis terms in the rotation to be turned on and off & 1 \\
@@ -238,7 +240,7 @@
 \verb= allow_negative_energy = &  Whether or not to allow internal energy to be less than zero & 1 \\
 \rowcolor{tableShade}
 \verb= allow_small_energy = &  Whether or not to allow the internal energy to be less than the internal energy corresponding to small\_temp & 1 \\
-\verb= cg_blend = &  for the Colella \& Glaz Riemann solver, what to do if we do not converge to a solution for the star state. 0 = do nothing; print iterations and exit 1 = revert to the original guess for p-star 2 = do a bisection search for another 2 * cg\_maxiter iterations. & 0 \\
+\verb= cg_blend = &  for the Colella \& Glaz Riemann solver, what to do if we do not converge to a solution for the star state. 0 = do nothing; print iterations and exit 1 = revert to the original guess for p-star 2 = do a bisection search for another 2 * cg\_maxiter iterations. & 2 \\
 \rowcolor{tableShade}
 \verb= cg_maxiter = &  for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state & 12 \\
 \verb= cg_tol = &  for the Colella \& Glaz Riemann solver, the tolerance to demand in finding the star state & 1.0e-5 \\

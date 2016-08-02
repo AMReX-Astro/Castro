@@ -2725,9 +2725,9 @@ void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
 
-  BL_ASSERT(source.nGrow() >= state.nGrow());
+  BL_ASSERT(source.nGrow() <= state.nGrow());
 
-  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
+  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, source.nGrow());
 
 }
 
@@ -3156,9 +3156,9 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q)
 
     BL_ASSERT(u.nComp() == NUM_STATE);
     BL_ASSERT(q.nComp() == QVAR);
-    BL_ASSERT(q.nGrow() >= u.nGrow());
+    BL_ASSERT(u.nGrow() >= q.nGrow());
 
-    int ng = u.nGrow();
+    int ng = q.nGrow();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3205,47 +3205,49 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+    int ng = 0;
+
     // Carries the contribution of all non-reacting source terms.
 
-    MultiFab A(grids, NUM_STATE, 0, Fab_allocate);
+    MultiFab A(grids, NUM_STATE, ng, Fab_allocate);
 
     sum_of_sources(A);
 
     // Compute the state that has effectively only been updated with advection.
 
-    MultiFab S_noreact(grids, NUM_STATE, 0, Fab_allocate);
+    MultiFab S_noreact(grids, NUM_STATE, ng, Fab_allocate);
 
-    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, S_noreact.nGrow());
-    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, S_noreact.nGrow());
+    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
 
     clean_state(S_noreact);
 
     // Compute its primitive counterpart.
 
-    MultiFab q_noreact(grids, QVAR, 0, Fab_allocate);
+    MultiFab q_noreact(grids, QVAR, ng, Fab_allocate);
 
     cons_to_prim(S_noreact, q_noreact);
 
     // Compute the primitive version of the old state.
 
-    MultiFab q_old(grids, QVAR, 0, Fab_allocate);
+    MultiFab q_old(grids, QVAR, ng, Fab_allocate);
 
     cons_to_prim(S_old, q_old);
 
     // Compute the effective advective update on the primitive state.
 
-    MultiFab A_prim(grids, QVAR, 0, Fab_allocate);
+    MultiFab A_prim(grids, QVAR, ng, Fab_allocate);
 
     A_prim.setVal(0.0);
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(A_prim, -1.0 / dt, q_noreact, 0, 0, QVAR, 0);
-	MultiFab::Saxpy(A_prim,  1.0 / dt, q_old,     0, 0, QVAR, 0);
+        MultiFab::Saxpy(A_prim, -1.0 / dt, q_noreact, 0, 0, QVAR, ng);
+	MultiFab::Saxpy(A_prim,  1.0 / dt, q_old,     0, 0, QVAR, ng);
     }
 
     // Compute the primitive version of the new state.
 
-    MultiFab q_new(grids, QVAR, 0, Fab_allocate);
+    MultiFab q_new(grids, QVAR, ng, Fab_allocate);
 
     cons_to_prim(S_new, q_new);
 
@@ -3254,11 +3256,11 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     react_src.setVal(0.0, react_src.nGrow());
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, 0);
-        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, 0);
+        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, ng);
+        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, ng);
     }
 
-    MultiFab::Add(react_src, A_prim, 0, 0, QVAR, 0);
+    MultiFab::Add(react_src, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
 
