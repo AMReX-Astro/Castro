@@ -750,8 +750,9 @@ parameters apply:
 
     \item {\tt 1}: the Colella \& Glaz solver
 
-    \item {\tt 2}: the HLLC solver.  Note: this should only be used in 3-d
-      at the moment.
+    \item {\tt 2}: the HLLC solver.  Note: this should only be used with Cartesian
+      geometries because it relies on the pressure term being part of the flux
+      in the momentum equation.
   \end{itemize}
 
   The default is to use the solver based on an unpublished Colella,
@@ -766,6 +767,27 @@ parameters apply:
     
   \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
      for the ``star'' state (Real; default: 1.0e-5)
+
+  \item {\tt castro.cg\_blend}: this controls what happens if the root
+     finding in the CG solver fails.  There is a nonlinear equation to find
+     the pressure in the {\em star} region from the jump conditions for a 
+     shock (this is the two-shock approximation---the left and right states
+     are linked to the star region each by a shock).  The default root 
+     finding algorithm is a secant method, but this can sometimes fail.
+     
+     The options here are:
+     \begin{itemize}
+     \item {\tt 0} : do nothing.  The pressure from each iteration is
+       printed and the code aborts with a failure
+
+     \item {\tt 1} : revert to the original guess for p-star and carry
+       through on the remainder of the Riemann solve.  This is almost like
+       dropping down to the CGF solver.  The p-star used is very approximate.
+
+     \item {\tt 2} : switch to bisection and do an additional {\tt cg\_maxiter}
+       iterations to find the root.  Sometimes this can work where the 
+       secant method fails.
+     \end{itemize}
   \end{itemize}
 
 \item {\tt castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
