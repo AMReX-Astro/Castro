@@ -10,6 +10,12 @@
      slightly better coupling of the Coriolis force in the momentum
      equation by doing an implicit velocity update
 
+  -- we now set castro.cg_blend = 2 by default.  This has no effect for
+     the default CGF Riemann solver, but for the Colella & Glaz solver
+     (castro.riemann_solver = 1), this will augment the secant iteration
+     for the pstar find with bisection if we fail to converge.  This
+     makes the root find for the star state more robust.
+
 
 previous changes:
 

@@ -162,7 +162,7 @@ contains
     riemann_solver = 0;
     cg_maxiter = 12;
     cg_tol = 1.0d-5;
-    cg_blend = 0;
+    cg_blend = 2;
     use_flattening = 1;
     ppm_flatten_before_integrals = 1;
     transverse_use_eos = 0;
