@@ -159,7 +159,7 @@ contains
     riemann_solver = 0;
     cg_maxiter = 12;
     cg_tol = 1.0d-5;
-    cg_blend = 0;
+    cg_blend = 2;
     use_flattening = 1;
     ppm_flatten_before_integrals = 1;
     transverse_use_eos = 0;
@@ -189,7 +189,7 @@ contains
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
     do_grav = -1;
-    grav_source_type = 2;
+    grav_source_type = 4;
     do_rotation = -1;
     rot_period = -1.d200;
     rot_period_dot = 0.0d0;
@@ -197,8 +197,8 @@ contains
     rotation_include_coriolis = 1;
     rotation_include_domegadt = 1;
     state_in_rotating_frame = 1;
-    rot_source_type = 1;
-    implicit_rotation_update = 0;
+    rot_source_type = 4;
+    implicit_rotation_update = 1;
     rot_axis = 3;
     point_mass = 0.0d0;
     point_mass_fix_solution = 1;

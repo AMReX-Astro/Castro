@@ -27,7 +27,7 @@ int         Castro::use_colglaz = -1;
 int         Castro::riemann_solver = 0;
 int         Castro::cg_maxiter = 12;
 Real        Castro::cg_tol = 1.0e-5;
-int         Castro::cg_blend = 0;
+int         Castro::cg_blend = 2;
 int         Castro::use_flattening = 1;
 int         Castro::ppm_flatten_before_integrals = 1;
 int         Castro::transverse_use_eos = 0;
@@ -68,7 +68,7 @@ Real        Castro::react_rho_max = 1.e200;
 int         Castro::disable_shock_burning = 0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
-int         Castro::grav_source_type = 2;
+int         Castro::grav_source_type = 4;
 int         Castro::source_term_predictor = 0;
 int         Castro::do_rotation = -1;
 #ifdef ROTATION
@@ -90,10 +90,10 @@ int         Castro::rotation_include_domegadt = 1;
 int         Castro::state_in_rotating_frame = 1;
 #endif
 #ifdef ROTATION
-int         Castro::rot_source_type = 1;
+int         Castro::rot_source_type = 4;
 #endif
 #ifdef ROTATION
-int         Castro::implicit_rotation_update = 0;
+int         Castro::implicit_rotation_update = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rot_axis = 3;

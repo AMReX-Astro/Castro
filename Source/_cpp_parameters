@@ -109,7 +109,7 @@ cg_tol                       Real          1.0e-5             y
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
 # 2 = do a bisection search for another 2 * cg\_maxiter iterations.
-cg_blend                     int           0                  y
+cg_blend                     int           2                  y
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
@@ -286,7 +286,7 @@ moving_center                int           0
 
 # determines how the gravitational source term is added to the momentum and
 # energy state variables.
-grav_source_type             int           2                  y
+grav_source_type             int           4                  y
 
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
 # timelevel for use in the interface state prediction
@@ -321,11 +321,11 @@ state_in_rotating_frame      int           1                  y        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations
-rot_source_type              int           1                  y        ROTATION
+rot_source_type              int           4                  y        ROTATION
 
 # we can do a implicit solution of the rotation update to allow
 # for better coupling of the Coriolis terms
-implicit_rotation_update     int           0                  y        ROTATION
+implicit_rotation_update     int           1                  y        ROTATION
 
 # the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
 rot_axis                     int           3                  y        ROTATION

@@ -1,65 +1,73 @@
+\section{Introduction}
 
-\subsection{List of Parameters}
-
-\begin{table*}[h]
-\begin{scriptsize}
-\begin{center}
-\begin{tabular}{|l|l|l|l|}\hline
-Parameter & Definition & Acceptable Values & Default\\
-\hline
-{\bf castro.do\_rotation} & Include rotation as a forcing term & 0 if false, 1 if true & 0 \\
-{\bf castro.rotational\_period} & Period (s) of rotation & Real & 0.0 \\
-{\bf castro.rotational\_dPdt} & d(Period) / dt for rotation & Real & 0.0 \\
-\hline
-\end{tabular}
-\end{center}
-\end{scriptsize}
-\end{table*}
-
-\subsection{Notes}
-This is for constant, solid-body rotation about a fixed axis.  See the Rotation section for more detail.
-\begin{itemize}
-\item To include rotation you must set
-\begin{itemize}
-\item USE\_ROTATION = TRUE in the GNUMakefile
-\item {\bf castro.do\_rotation} = 1 in the inputs file
-\end{itemize}
-\item {\bf castro.rotational\_period} is only relevant if {\bf castro.do\_rotation} = 1, and must be specified in that case.
-\end{itemize}
-
-Currently, CASTRO supports contant, solid-body rotation about a fixed
+Currently, \castro\ supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
-equations to the rotating frame of reference.  The rotational
-period (in s) is specified by setting {\bf
-  castro.rotational\_period} in the inputs file.  Note that this
-parameter is only relevant if USE\_ROTATION = TRUE in the GNUmakefile
-and {\bf castro.do\_rotation} = 1 in the inputs file.  The rotational
-period specified by {\bf castro.rotational\_period} is internally
+equations to the rotating frame of reference.  
+
+To include rotation you must set
+\begin{verbatim}
+USE_ROTATION = TRUE
+\end{verbatim}
+in the {\tt GNUMakefile}.  Rotation can then be enabled via
+\begin{verbatim}
+castro.do_rotation = 1
+\end{verbatim}
+in the {\tt inputs} file.  The rotational period must then be set via
+{\tt castro.rotational\_period}.  The rotational period is internally
 converted to an angular frequency for use in the source term
 equations.
 
 The axis of rotation currently depends on the dimensionality of the
-problem and the value of {\bf coord\_sys}; in all cases, however, the
-default axis of rotation points from {\bf center}, which is typically
-defined in a Prob\_\$(DIM)d.f90 routine, to the typical ``vertical
-direction.''  The vertical direction is defined as follows
+problem and the value of {\tt coord\_sys}; in all cases, however, the
+default axis of rotation points from {\tt center}, which is typically
+defined in a {\tt Prob\_\$(DIM)d.f90} routine, to the typical ``vertical
+direction.''  The vertical direction is defined as follows:
 \begin{itemize}
 \item 2D
 \begin{itemize}
-\item {\bf coord\_sys} = 0, (x,y): out of the (x,y)-plane along the ``z''-axis
-\item {\bf coord\_sys} = 1, (r,z): along the z-axis
+\item {\tt coord\_sys = 0}, (x,y): out of the (x,y)-plane along the ``z''-axis
+\item {\tt coord\_sys = 1}, (r,z): along the z-axis
 \end{itemize}
+
 \item 3D
 \begin{itemize}
-\item {\bf coord\_sys} = 0, (x,y,z): along the z-axis
+\item {\tt coord\_sys} = 0, (x,y,z): along the z-axis
 \end{itemize}
 \end{itemize}
-To change these defaults, the {\bf omega} vector in the ca\_rotate
-routine found in the Rotate\_\$(DIM)d.f90 file.
+To change these defaults, modify the {\tt omega} vector in the {\tt
+  ca\_rotate} routine found in the {\tt Rotate\_\$(DIM)d.f90} file.
+
+
+The main parameters that affect rotation are:
+\begin{itemize}
+
+\item {\tt castro.do\_rotation} : include rotation as a forcing term
+  (0 or 1; default: 0) 
+
+\item {\tt castro.rotational\_period} : period (s) of rotation (default:  0.0)
+
+\item {\tt castro.rotational\_dPdt} : d(period) / dt for rotation (default: 0.0)
+
+\item {\tt castro.rotation\_include\_centrifugal} :
+
+\item {\tt castro.rotation\_include\_coriolis} :
+
+\item {\tt castro.rotation\_include\_domegadt} :
+
+\item {\tt castro.state\_in\_rotating\_frame} :
+
+\item {\tt castro.rot\_source\_type} :
+
+\item {\tt castro.implicit\_rotation\_update} :
+
+\item {\tt castro.rot\_axis} :
+
+\end{itemize}
 
 For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
 switching to a rotating reference frame.
+
 
 \section{Coordinate transformation to rotating frame}
 Consider an intertial reference frame \(C\) and a non-inertial
@@ -194,41 +202,62 @@ reference:
 
 \section{Adding the forcing to the hydrodynamics}
 
-There are several ways to incorporate the effect of the rotation forcing
-on the hydrodynamical evolution. We control this through the use of the
-runtime parameter {\tt castro.rot\_source\_type}. This is an integer
-with values currently ranging from 1 through 4, and these values are all
-analogous to the way that gravity is used to update the momentum and
-energy. For the most part, the differences are in how the energy update is done.
+There are several ways to incorporate the effect of the rotation
+forcing on the hydrodynamical evolution. We control this through the
+use of the runtime parameter {\tt castro.rot\_source\_type}. This is
+an integer with values currently ranging from 1 through 4, and these
+values are all analogous to the way that gravity is used to update the
+momentum and energy. For the most part, the differences are in how the
+energy update is done:
+\begin{itemize}
 
-When {\tt castro.rot\_source\_type == 1}, we use a standard predictor-corrector
-formalism for updating the momentum and energy. Specifically, our first update
-is equal to $\Delta t \times \mathbf{S}^n$ , where $\mathbf{S}^n$ is the value
-of the source terms at the old-time (which is usually called time-level $n$).
-At the end of the timestep, we do a corrector step where we subtract off
-$\Delta t / 2 \times \mathbf{S}^n$ and add on $\Delta t / 2 \times \mathbf{S}^{n+1}$,
-so that at the end of the timestep the source term is properly time centered.
+\item {\tt castro.rot\_source\_type == 1} :  we use a standard
+  predictor-corrector formalism for updating the momentum and
+  energy. Specifically, our first update is equal to $\Delta t \times
+  \mathbf{S}^n$ , where $\mathbf{S}^n$ is the value of the source
+  terms at the old-time (which is usually called time-level $n$).  At
+  the end of the timestep, we do a corrector step where we subtract
+  off $\Delta t / 2 \times \mathbf{S}^n$ and add on $\Delta t / 2
+  \times \mathbf{S}^{n+1}$, so that at the end of the timestep the
+  source term is properly time centered.
 
-When {\tt castro.rot\_source\_type == 2}, we do something very similar. The
-major difference is that when evaluating the energy source term at the
-new time (which is equal to $\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}$,
-where the latter is the momentum source term evaluated at the new time), we first update
-the momentum, rather than using the value of $\mathbf{u}$ before entering the
-rotation source terms. This permits a tighter coupling between the momentum and
-energy update and we have seen that it usually results in a more accurate evolution.
+\item {\tt castro.rot\_source\_type == 2} : we do something very
+  similar to {\tt 1}. The major difference is that when evaluating the
+  energy source term at the new time (which is equal to $\mathbf{u}
+  \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}$, where the latter is the
+  momentum source term evaluated at the new time), we first update the
+  momentum, rather than using the value of $\mathbf{u}$ before
+  entering the rotation source terms. This permits a tighter coupling
+  between the momentum and energy update and we have seen that it
+  usually results in a more accurate evolution.
 
-When {\tt castro.rot\_source\_type == 3}, we do the same momentum update as the
-previous two, but for the energy update, we put all of the work into updating
-the kinetic energy alone. In particular, we explicitly ensure that $(rho e)$ maintains
-the same, and update $(rho K)$ with the work due to rotation, adding the new
-kinetic energy to the old internal energy to determine the final total gas energy.
-The physical motivation is that work should be done on the velocity, and should not
-directly update the temperature -- only indirectly through things like shocks.
+\item {\tt castro.rot\_source\_type == 3} : we do the same momentum
+  update as the previous two, but for the energy update, we put all of
+  the work into updating the kinetic energy alone. In particular, we
+  explicitly ensure that $(rho e)$ maintains the same, and update
+  $(rho K)$ with the work due to rotation, adding the new kinetic
+  energy to the old internal energy to determine the final total gas
+  energy.  The physical motivation is that work should be done on the
+  velocity, and should not directly update the temperature -- only
+  indirectly through things like shocks.
 
-When {\tt castro.rot\_source\_type == 4}, the energy update is done in a ``conservative'' fashion.
-The previous methods all evaluate the value of the source term at the cell center,
-but this method evaluates the change in energy at cell edges, using the hydrodynamical mass
-fluxes, permitting total energy to be conserved (excluding possible losses at open domain
-boundaries). Additionally, the velocity update is slightly different -- for the corrector step,
-we note that there is an implicit coupling between the velocity components, and we directly solve
-this coupled equation, which results in a slightly better coupling and a more accurate evolution.
+\item {\tt castro.rot\_source\_type == 4} : the energy update is done
+  in a ``conservative'' fashion.  The previous methods all evaluate
+  the value of the source term at the cell center, but this method
+  evaluates the change in energy at cell edges, using the
+  hydrodynamical mass fluxes, permitting total energy to be conserved
+  (excluding possible losses at open domain boundaries). Additionally,
+  the velocity update is slightly different -- for the corrector step,
+  we note that there is an implicit coupling between the velocity
+  components, and we directly solve this coupled equation, which
+  results in a slightly better coupling and a more accurate evolution.
+\end{itemize}
+
+The other major option is {\tt castro.implicit\_rotation\_update}.
+This does the update of the Coriolis term in the momentum equation
+implicitly (e.g., the velocity in the Coriolis force for the zone
+depends on the updated momentum).  The energy update is unchanged.
+
+A detailed discussion of these options and some verification 
+tests is presented in \cite{katz:2016}.
+

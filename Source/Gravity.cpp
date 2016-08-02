@@ -30,6 +30,7 @@ int  Gravity::lnum           = 0;
 int  Gravity::direct_sum_bcs = 0;
 int  Gravity::get_g_from_phi = 0;
 int  Gravity::max_solve_level = MAX_LEV-1;
+int  Gravity::max_multipole_moment_level = 0;
 Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
@@ -141,6 +142,11 @@ Gravity::read_params ()
 	// gravity and associated potential. Above that level, we interpolate from coarser levels.
 
 	pp.query("max_solve_level", max_solve_level);
+
+	// For multipole gravity calculations, this is the maximum level used for constructing the
+	// multipole moments.
+
+	pp.query("max_multipole_moment_level", max_multipole_moment_level);
 
         // Check if the user wants to compute the boundary conditions using the brute force method.
         // Default is false, since this method is slow.
@@ -676,11 +682,16 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
         fill_direct_sum_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
-      else
-        fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+      else {
+        bool use_rhs = true;
+	Real time = 0.0;
+        fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level],time,use_rhs);
+      }
 #elif (BL_SPACEDIM == 2)
       if (lnum > 0) {
-	fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
+	bool use_rhs = true;
+	Real time = 0.0;
+	fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level],time,use_rhs);
       } else {
 	int fill_interior = 0;
 	make_radial_phi(crse_level,CrseRhsAvgDown,delta_phi[crse_level],fill_interior);
@@ -1743,7 +1754,7 @@ Gravity::init_multipole_grav()
 }
 
 void
-Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
+Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, bool use_rhs)
 {
     BL_ASSERT(level==0);
 
@@ -1796,124 +1807,157 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
 #else
     const int boundary_only = 1;
 #endif
-    
-    // Loop through the grids and compute the individual contributions
-    // to the various moments. The multipole moment constructor
-    // is coded to only add to the moment arrays, so it is safe
-    // to directly hand the arrays to them.
 
-    const Box& domain = parent->Geom(level).Domain();
+    int lev_max;
+
+    if (use_rhs)
+        lev_max = 0;
+    else
+        lev_max = std::min(max_multipole_moment_level, parent->finestLevel());
+
+    for (int lev = 0; lev <= lev_max; ++lev) {
+
+        MultiFab* source;
+
+        if (use_rhs) {
+
+	  source = &Rhs;
+
+	} else {
+
+	    Castro* coarse_level = dynamic_cast<Castro*>(&(parent->getLevel(level)));
+
+	    source = coarse_level->derive("density", time, 0);
+
+            if (lev < lev_max)
+            {
+		Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+
+		const MultiFab* mask = fine_level->build_fine_mask();
+		MultiFab::Multiply(*source, *mask, 0, 0, 1, 0);
+	    }
+
+	}
+
+        // Loop through the grids and compute the individual contributions
+        // to the various moments. The multipole moment constructor
+        // is coded to only add to the moment arrays, so it is safe
+        // to directly hand the arrays to them.
+
+        const Box& domain = parent->Geom(lev).Domain();
 
 #ifdef _OPENMP
-    int nthreads = omp_get_max_threads();
-    PArray<FArrayBox> priv_qL0(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_qLC(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_qLS(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_qU0(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_qUC(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_qUS(nthreads, PArrayManage);
-    for (int i=0; i<nthreads; i++) {
-	priv_qL0.set(i, new FArrayBox(boxq0));
-	priv_qLC.set(i, new FArrayBox(boxqC));
-	priv_qLS.set(i, new FArrayBox(boxqS));
-        priv_qU0.set(i, new FArrayBox(boxq0));
-	priv_qUC.set(i, new FArrayBox(boxqC));
-	priv_qUS.set(i, new FArrayBox(boxqS));
-    }
+	int nthreads = omp_get_max_threads();
+	PArray<FArrayBox> priv_qL0(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_qLC(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_qLS(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_qU0(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_qUC(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_qUS(nthreads, PArrayManage);
+	for (int i=0; i<nthreads; i++) {
+	    priv_qL0.set(i, new FArrayBox(boxq0));
+	    priv_qLC.set(i, new FArrayBox(boxqC));
+	    priv_qLS.set(i, new FArrayBox(boxqS));
+	    priv_qU0.set(i, new FArrayBox(boxq0));
+	    priv_qUC.set(i, new FArrayBox(boxqC));
+	    priv_qUS.set(i, new FArrayBox(boxqS));
+	}
 #pragma omp parallel
 #endif
-    {
-#ifdef _OPENMP
-	int tid = omp_get_thread_num();
-	priv_qL0[tid].setVal(0.0);
-	priv_qLC[tid].setVal(0.0);
-	priv_qLS[tid].setVal(0.0);
-	priv_qU0[tid].setVal(0.0);
-	priv_qUC[tid].setVal(0.0);
-	priv_qUS[tid].setVal(0.0);	
-#endif
-	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx = mfi.tilebox();
-	    ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-					 ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()), 
-					 ZFILL(dx),BL_TO_FORTRAN_3D(Rhs[mfi]),
-					 BL_TO_FORTRAN_3D(volume[level][mfi]),
-					 &lnum,
 #ifdef _OPENMP
-					 priv_qL0[tid].dataPtr(),
-					 priv_qLC[tid].dataPtr(),priv_qLS[tid].dataPtr(),
-					 priv_qU0[tid].dataPtr(),
-					 priv_qUC[tid].dataPtr(),priv_qUS[tid].dataPtr(),
-#else
-					 qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-					 qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+	    int tid = omp_get_thread_num();
+	    priv_qL0[tid].setVal(0.0);
+	    priv_qLC[tid].setVal(0.0);
+	    priv_qLS[tid].setVal(0.0);
+	    priv_qU0[tid].setVal(0.0);
+	    priv_qUC[tid].setVal(0.0);
+	    priv_qUS[tid].setVal(0.0);
 #endif
-					 &npts,&boundary_only);
-
+	    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	    {
+	        const Box& bx = mfi.tilebox();
+		ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
+					     ZFILL(dx),BL_TO_FORTRAN_3D((*source)[mfi]),
+					     BL_TO_FORTRAN_3D(volume[level][mfi]),
+					     &lnum,
+#ifdef _OPENMP
+					     priv_qL0[tid].dataPtr(),
+					     priv_qLC[tid].dataPtr(),priv_qLS[tid].dataPtr(),
+					     priv_qU0[tid].dataPtr(),
+					     priv_qUC[tid].dataPtr(),priv_qUS[tid].dataPtr(),
+#else
+					     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
+					     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+#endif
+					     &npts,&boundary_only);
 	}
 
 #ifdef _OPENMP
-	int np0 = boxq0.numPts();
-	int npC = boxqC.numPts();
-	int npS = boxqS.numPts();
-	Real* pL0 = qL0.dataPtr();
-	Real* pLC = qLC.dataPtr();
-	Real* pLS = qLS.dataPtr();
-	Real* pU0 = qU0.dataPtr();
-	Real* pUC = qUC.dataPtr();
-	Real* pUS = qUS.dataPtr();
+	    int np0 = boxq0.numPts();
+	    int npC = boxqC.numPts();
+	    int npS = boxqS.numPts();
+	    Real* pL0 = qL0.dataPtr();
+	    Real* pLC = qLC.dataPtr();
+	    Real* pLS = qLS.dataPtr();
+	    Real* pU0 = qU0.dataPtr();
+	    Real* pUC = qUC.dataPtr();
+	    Real* pUS = qUS.dataPtr();
 #pragma omp barrier
 #pragma omp for nowait
-	for (int i=0; i<np0; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qL0[it].dataPtr();
-		pL0[i] += pp[i];
+	    for (int i=0; i<np0; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		    const Real* pp = priv_qL0[it].dataPtr();
+		    pL0[i] += pp[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-	for (int i=0; i<npC; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qLC[it].dataPtr();
-		pLC[i] += pp[i];
+	    for (int i=0; i<npC; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		    const Real* pp = priv_qLC[it].dataPtr();
+		    pLC[i] += pp[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-	for (int i=0; i<npS; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qLS[it].dataPtr();
-		pLS[i] += pp[i];
+	    for (int i=0; i<npS; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		    const Real* pp = priv_qLS[it].dataPtr();
+		    pLS[i] += pp[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-	for (int i=0; i<np0; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qU0[it].dataPtr();
-		pU0[i] += pp[i];
+	    for (int i=0; i<np0; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		  const Real* pp = priv_qU0[it].dataPtr();
+		  pU0[i] += pp[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-	for (int i=0; i<npC; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qUC[it].dataPtr();
-		pUC[i] += pp[i];
+	    for (int i=0; i<npC; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		  const Real* pp = priv_qUC[it].dataPtr();
+		  pUC[i] += pp[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-	for (int i=0; i<npS; ++i)
-	{
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pp = priv_qUS[it].dataPtr();
-		pUS[i] += pp[i];
+	    for (int i=0; i<npS; ++i)
+	    {
+	        for (int it=0; it<nthreads; it++) {
+		    const Real* pp = priv_qUS[it].dataPtr();
+		    pUS[i] += pp[i];
+		}
 	    }
-	}
 #endif
-    }
+
+	} // end OpenMP parallel loop
+
+    } // end loop over levels
 
     // Now, do a global reduce over all processes.
 
@@ -1930,6 +1974,8 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi)
     // Finally, construct the boundary conditions using the
     // complete multipole moments, for all points on the
     // boundary that are held on this process.
+
+    const Box& domain = parent->Geom(level).Domain();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2680,11 +2726,13 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	if ( direct_sum_bcs ) {
 	    fill_direct_sum_BCs(crse_level, rhs[0], phi[0]);
         } else {
-	    fill_multipole_BCs(crse_level, rhs[0], phi[0]);
+	    bool use_rhs = false;
+	    fill_multipole_BCs(crse_level, rhs[0], phi[0], time, use_rhs);
 	}
 #elif (BL_SPACEDIM == 2)
 	if (lnum > 0) {
-	  fill_multipole_BCs(crse_level, rhs[0], phi[0]);
+	  bool use_rhs = false;
+	  fill_multipole_BCs(crse_level, rhs[0], phi[0], time, use_rhs);
 	} else {
 	  int fill_interior = 0;
 	  make_radial_phi(crse_level, rhs[0], phi[0], fill_interior);

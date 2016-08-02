@@ -1,17 +1,53 @@
 * changes since the last release:
 
--- The file sponge_nd.f90 in Source/Src_nd/ has been renamed to
-     sponge_nd.F90, the file extension change indicating that it
-     can now be run through the preprocessor. Please update your
-     local name for this file if you're overriding it in your
-     problem setup.
+  -- We changed the defaults for the gravity and rotation sources.
+     now we do grav_source_type and rot_source_type = 4 by default.
+     This is a conservative formulation for the energy equation that
+     incorporates the source as a flux in the energy equation.  See
+     Katz et al. 2016 for details.
+
+     We also do implicit_rotation_update = 1 by default -- this does a
+     slightly better coupling of the Coriolis force in the momentum
+     equation by doing an implicit velocity update
+
+  -- we now set castro.cg_blend = 2 by default.  This has no effect for
+     the default CGF Riemann solver, but for the Colella & Glaz solver
+     (castro.riemann_solver = 1), this will augment the secant iteration
+     for the pstar find with bisection if we fail to converge.  This
+     makes the root find for the star state more robust.
+
+
+previous changes:
+
+* 16.08
+
+  -- A new parameter gravity.max_multipole_moment_level was added.
+     This comes into play when using the multipole solver to compute
+     the boundary conditions on the domain for isolated mass
+     distributions.  The default behavior in Castro when constructing
+     boundary conditions for the gravity solve is to do a multipole
+     expansion sum over the density on the coarse grid only.  If you
+     increase the value of that new parameter from its default of 0 to
+     some higher number, it will use the data from those more refined
+     levels in constructing the boundary condition values.
+
+  -- The file sponge_nd.f90 in Source/Src_nd/ has been renamed to
+     sponge_nd.F90, the file extension change indicating that it can
+     now be run through the preprocessor. Please update your local
+     name for this file if you're overriding it in your problem setup.
 
   -- The sponge update is usually done in an implicit fashion,
      but you can now instead do an explicit update with
      castro.sponge_implicit == 0.
 
+  -- the shock variable is now output if we are running with shock
+     detection enabled
 
-previous changes:
+  -- Microphysics/eos is now Microphysics/EOS
+
+  -- a number of changes were done in the Microphysics repo -- see
+     Microphysics/CHANGES for a log of those
+
 
 * 16.07
   

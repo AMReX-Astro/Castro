@@ -94,22 +94,28 @@ We augment these with an internal energy equation:
                                         + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \nonumber\\
 && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
 \end{eqnarray}
-This has two benefits. First, for a general equation of state, carrying around an additional
-thermodynamic quantity allows us to avoid equation of state calls. Second, it is sometimes
-the case that the internal energy calculated as $e_T \equiv E - \mathbf{v}^2 / 2$ is unreliable.
-This has two usual causes: one, for high Mach number flows, the kinetic energy can dominate the
-total gas energy, making the subtraction numerically unreliable; two, if you use gravity or
-other source terms, these can indirectly alter the value of the internal energy if obtained
-from the total energy. For this reason, we have implemented the dual energy formalism from ENZO
-\cite{bryan:1995,bryan:2014}, where we switch between $(\rho e)$ and $(\rho e_T)$
-depending on the local state of the fluid. To do so, we define parameters $\eta_1$, $\eta_2$, and
-$\eta_3$, corresponding to the code parameters {\tt castro.dual\_energy\_eta1},
-{\tt castro.dual\_energy\_eta2}, and {\tt castro.dual\_energy\_eta3}. We then consider the ratio
-$e_T / E$, the ratio of the internal energy (derived from the total energy)
-to the total energy. If $e_T > \eta_1 E$, then we use $e_T$ for the purpose of calculating the pressure
-in the hydrodynamics update. Otherwise, we use the $e$ from the internal energy equation in our EOS call to get
-the pressure. Similarly, if $e_T > \eta_3 E$, we use $e_T$ for the purposes of our nuclear reactions,
-otherwise, we use $e$.
+This has two benefits. First, for a general equation of state,
+carrying around an additional thermodynamic quantity allows us to
+avoid equation of state calls. Second, it is sometimes the case that
+the internal energy calculated as $e_T \equiv E - \mathbf{v}^2 / 2$ is
+unreliable.  This has two usual causes: one, for high Mach number
+flows, the kinetic energy can dominate the total gas energy, making
+the subtraction numerically unreliable; two, if you use gravity or
+other source terms, these can indirectly alter the value of the
+internal energy if obtained from the total energy. For this reason, we
+have implemented the dual energy formalism from ENZO
+\cite{bryan:1995,bryan:2014}, where we switch between $(\rho e)$ and
+$(\rho e_T)$ depending on the local state of the fluid. To do so, we
+define parameters $\eta_1$, $\eta_2$, and $\eta_3$, corresponding to
+the code parameters {\tt castro.dual\_energy\_eta1}, {\tt
+  castro.dual\_energy\_eta2}, and {\tt castro.dual\_energy\_eta3}. We
+then consider the ratio $e_T / E$, the ratio of the internal energy
+(derived from the total energy) to the total energy. If $e_T > \eta_1
+E$, then we use $e_T$ for the purpose of calculating the pressure in
+the hydrodynamics update. Otherwise, we use the $e$ from the internal
+energy equation in our EOS call to get the pressure. Similarly, if
+$e_T > \eta_3 E$, we use $e_T$ for the purposes of our nuclear
+reactions, otherwise, we use $e$.
 
 At the end of each hydro advance, we examine whether $e_T > \eta_2 E$. If so, we reset
 $e$ to be equal to $e_T$, discarding the results of the internal energy equation. Otherwise,
@@ -750,8 +756,9 @@ parameters apply:
 
     \item {\tt 1}: the Colella \& Glaz solver
 
-    \item {\tt 2}: the HLLC solver.  Note: this should only be used in 3-d
-      at the moment.
+    \item {\tt 2}: the HLLC solver.  Note: this should only be used with Cartesian
+      geometries because it relies on the pressure term being part of the flux
+      in the momentum equation.
   \end{itemize}
 
   The default is to use the solver based on an unpublished Colella,
@@ -766,13 +773,34 @@ parameters apply:
     
   \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
      for the ``star'' state (Real; default: 1.0e-5)
+
+  \item {\tt castro.cg\_blend}: this controls what happens if the root
+     finding in the CG solver fails.  There is a nonlinear equation to find
+     the pressure in the {\em star} region from the jump conditions for a 
+     shock (this is the two-shock approximation---the left and right states
+     are linked to the star region each by a shock).  The default root 
+     finding algorithm is a secant method, but this can sometimes fail.
+     
+     The options here are:
+     \begin{itemize}
+     \item {\tt 0} : do nothing.  The pressure from each iteration is
+       printed and the code aborts with a failure
+
+     \item {\tt 1} : revert to the original guess for p-star and carry
+       through on the remainder of the Riemann solve.  This is almost like
+       dropping down to the CGF solver.  The p-star used is very approximate.
+
+     \item {\tt 2} : switch to bisection and do an additional {\tt cg\_maxiter}
+       iterations to find the root.  Sometimes this can work where the 
+       secant method fails.
+     \end{itemize}
   \end{itemize}
 
 \item {\tt castro.hybrid\_riemann}: switch to an HLL Riemann solver when we are
   in a zone with a shock (0 or 1; default 0)
 
   This eliminates an odd-even decoupling issue (see the {\tt oddeven}
-  problem.  Note, this cannot be used with the HLLC solver.
+  problem).  Note, this cannot be used with the HLLC solver.
   
 \end{itemize}
 
@@ -789,3 +817,17 @@ advance the solution:
 Again, note that since the source term is not time centered, this is
 not a second-order method.  After the advective update, we correct the
 solution, effectively time-centering the source term.
+
+
+\section{Resets}
+
+\subsection{Density Resets}
+
+Need to document {\tt density\_reset\_method}
+
+
+\subsection{Energy}
+
+Need to document {\tt allow\_negative\_energy} and {\tt allow\_small\_energy}
+
+
