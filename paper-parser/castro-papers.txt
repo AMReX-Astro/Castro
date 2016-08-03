@@ -1,3 +1,4 @@
+# PPM temp
 algorithm: http://adsabs.harvard.edu/abs/2015ApJS..216...31Z
 
 
@@ -78,6 +79,3 @@ core-collapse supernovae: http://adsabs.harvard.edu/abs/2016arXiv160407989C
 
 # Low Energy Population III Supernovae and the Origin of the Extremely Metal-Poor Star SMSS J031300.36-670839.3
 pop III supernovae: http://adsabs.harvard.edu/abs/2016arXiv160106896C
-
-# PPM temperature paper
-algorithm: http://adsabs.harvard.edu/abs/2015ApJS..216...31Z
