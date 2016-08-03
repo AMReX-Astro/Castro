@@ -2725,9 +2725,9 @@ void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
 
-  BL_ASSERT(source.nGrow() <= state.nGrow());
+  BL_ASSERT(state.nGrow() <= source.nGrow());
 
-  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, source.nGrow());
+  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
 
 }
 
