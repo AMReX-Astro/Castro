@@ -19,6 +19,8 @@ Castro::construct_hydro_source(Real time, Real dt)
     for (int n = 0; n < num_src; ++n)
 	MultiFab::Add(*sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
+    BoxLib::fill_boundary(*sources_for_hydro, geom);
+
 #ifndef SDC
     // Optionally we can predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
