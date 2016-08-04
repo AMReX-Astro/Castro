@@ -449,7 +449,7 @@ contains
 
     double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    double precision :: zm, zp
+    double precision :: zl, zr
     double precision :: denom, dpditer, dpjmp
     double precision :: gamc_bar, game_bar
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
@@ -460,9 +460,9 @@ contains
 
     logical :: converged
 
-    double precision :: pstnm1
+    double precision :: pstar_old
     double precision :: taul, taur, tauo
-    double precision :: ustarm, ustarp, ustnm1, ustnp1
+    double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
     double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
 
     double precision, parameter :: weakwv = 1.d-3
@@ -615,15 +615,15 @@ contains
           call wsqge(pr,taur,gamer,gdot,  &
                      gamstar,pstar,wrsq,clsqr,gmin,gmax)
 
-          pstnm1 = pstar
+          pstar_old = pstar
 
           wl = sqrt(wlsq)
           wr = sqrt(wrsq)
 
           ! R-H jump conditions give ustar across each wave -- these should
           ! be equal when we are done iterating
-          ustarp = ul - (pstar-pl)/wl
-          ustarm = ur + (pstar-pr)/wr
+          ustar_l = ul - (pstar-pl)/wl
+          ustar_r = ur + (pstar-pr)/wr
 
           ! revise our pstar guess
           !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
@@ -644,31 +644,39 @@ contains
              wl = ONE / sqrt(wlsq)
              wr = ONE / sqrt(wrsq)
 
-             ustnm1 = ustarm
-             ustnp1 = ustarp
+             ustar_l_old = ustar_l
+             ustar_r_old = ustar_r
 
-             ustarm = ur-(pr-pstar)*wr
-             ustarp = ul+(pl-pstar)*wl
+             ! note that wl, wr here are already inverses
+             ustar_l = ul - (pstar - pl)*wl
+             ustar_r = ur + (pstar - pr)*wr
 
-             dpditer=abs(pstnm1-pstar)
+             dpditer = abs(pstar - pstar_old)
 
-             zp=abs(ustarp-ustnp1)
-             if(zp-weakwv*cav(i,j) <= ZERO)then
-                zp = dpditer*wl
-             endif
+             zl = abs(ustar_l - ustar_l_old)
+             !if (zp-weakwv*cav(i,j) <= ZERO) then
+             !   zp = dpditer*wl
+             !endif
 
-             zm=abs(ustarm-ustnm1)
-             if(zm-weakwv*cav(i,j) <= ZERO)then
-                zm = dpditer*wr
-             endif
+             zr = abs(ustar_r - ustar_r_old)
+             !if (zm-weakwv*cav(i,j) <= ZERO) then
+             !   zm = dpditer*wr
+             !endif
 
              ! the new pstar is found via CG Eq. 18
-             denom=dpditer/max(zp+zm,small*(cav(i,j)))
-             pstnm1 = pstar
-             pstar=pstar-denom*(ustarm-ustarp)
-             pstar=max(pstar,small_pres)
 
-             err = abs(pstar - pstnm1)
+             !denom = zp + zm
+             denom = zl + zr
+
+             pstar_old = pstar
+
+             if (abs(denom) > small_pres) then
+                pstar = pstar - (ustar_r - ustar_l)*dpditer/denom
+             endif
+
+             pstar = max(pstar, small_pres)
+
+             err = abs(pstar - pstar_old)
              if (err < tol*pstar) converged = .true.
 
              pstar_hist(iter) = pstar
@@ -723,10 +731,10 @@ contains
                    wl = ONE / sqrt(wlsq)
                    wr = ONE / sqrt(wrsq)
 
-                   ustarm = ur-(pr-pstar)*wr
-                   ustarp = ul+(pl-pstar)*wl
+                   ustar_r = ur - (pr-pstar)*wr
+                   ustar_l = ul + (pl-pstar)*wl
 
-                   pfuncc = ustarp - ustarm
+                   pfuncc = ustar_l - ustar_r
 
                    if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
                       converged = .true.
@@ -743,10 +751,10 @@ contains
                    wl = ONE / sqrt(wlsq)
                    wr = ONE / sqrt(wrsq)
 
-                   ustarm = ur-(pr-pstar)*wr
-                   ustarp = ul+(pl-pstar)*wl
+                   ustar_r = ur-(pr-pstar)*wr
+                   ustar_l = ul+(pl-pstar)*wl
 
-                   pfuncu = ustarp - ustarm
+                   pfuncu = ustar_l - ustar_r
 
                    if (pfuncc * pfuncu < ZERO) then
 
@@ -790,10 +798,10 @@ contains
 
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves, using the updated wave speeds
-          ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-          ustarp = ul+(pl-pstar)*wl
+          ustar_r = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
+          ustar_l = ul+(pl-pstar)*wl
 
-          ustar = HALF* ( ustarp + ustarm )
+          ustar = HALF*(ustar_l + ustar_r)
 
           ! for symmetry preservation, if ustar is really small, then we
           ! set it to zero
