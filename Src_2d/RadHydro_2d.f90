@@ -531,7 +531,7 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   use fluxlimiter_module, only : Edd_factor
   use advection_util_2d_module, only : normalize_species_fluxes
   use prob_params_module, only : coord_type
-  
+
   implicit none
 
   integer nstep_fsp
@@ -656,19 +656,14 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
 
   ! do the conservative update
   do n = 1, NVAR
-     if (n == UTEMP) then
-        uout(lo(1):hi(1),lo(2):hi(2),n) = uin(lo(1):hi(1),lo(2):hi(2),n)
-     else
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              uout(i,j,n) = uin(i,j,n) + dt * &
-                   ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                     flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j) 
-           enddo
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           uout(i,j,n) = uout(i,j,n) + dt * ( flux1(i,j,n) - flux1(i+1,j,n) + &
+                                              flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
         enddo
-     end if
+     enddo
   enddo
-  
+
   do g = 0, ngroups-1
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -679,14 +674,12 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      enddo
   end do
 
-  
   ! Add source term to (rho e)
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
         uout(i,j,UEINT) = uout(i,j,UEINT) - dt * pdivu(i,j)
      enddo
   enddo
-  
 
   ! Add gradp term to momentum equation -- only for axisymmetry coords
   ! (and only for the radial flux)
@@ -702,7 +695,7 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         else
            dpdx = ZERO
         endif
-        
+
         dpdy = ZERO
 
         ! radiation pressure contribution
@@ -723,7 +716,7 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         uout(i,j,UMY) = uout(i,j,UMY) - dt * dprdy
         ek2 = (uout(i,j,UMX)**2 + uout(i,j,UMY)**2) / (2.d0*uout(i,j,URHO))
         dek = ek2 - ek1
-        
+
         uout(i,j,UEDEN) = uout(i,j,UEDEN) + dek
         if (.not. comoving) then ! mixed-frame (single group only)
            Erout(i,j,0) = Erout(i,j,0) - dek
