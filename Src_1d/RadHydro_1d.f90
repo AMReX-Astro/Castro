@@ -419,7 +419,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
   do n = 1, NVAR
-     if ( n.eq.UTEMP ) then
+     if ( n == UTEMP ) then
         flux(:,n) = 0.d0
      else
         do i = lo(1),hi(1)+1
@@ -441,16 +441,9 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   end do
 
   do n = 1, NVAR
-     if ( n.eq.UTEMP) then
-        do i = lo(1),hi(1)
-           uout(i,n) = uin(i,n)
-        enddo
-     else
-        do i = lo(1),hi(1)
-           uout(i,n) = uin(i,n) &
-                + ( flux(i,n) - flux(i+1,n) ) / vol(i)
-        enddo
-     end if
+     do i = lo(1),hi(1)
+        uout(i,n) = uout(i,n) + ( flux(i,n) - flux(i+1,n) ) / vol(i)
+     enddo
   enddo
 
   do g=0, ngroups-1
@@ -461,7 +454,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   ! Add source term to (rho e)
   do i = lo(1),hi(1)
-     uout(i,UEINT) = uout(i,UEINT)  - dt * pdivu(i)
+     uout(i,UEINT) = uout(i,UEINT) - dt * pdivu(i)
   enddo
 
   ! Add gradp term to momentum equation
