@@ -18,7 +18,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(old_sources[diff_src],*OldSpecDiffTerm,time);
-    add_viscous_term_to_source(old_sources[diff_src],*OldViscousTermforMomentum,OldViscousTermforEnergy,time);
+    add_viscous_term_to_source(old_sources[diff_src],*OldViscousTermforMomentum,*OldViscousTermforEnergy,time);
 #endif
 
     BoxLib::fill_boundary(old_sources[diff_src], geom);
@@ -37,7 +37,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
-    add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,NewViscousTermforEnergy,time);
+    add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,*NewViscousTermforEnergy,time);
 #endif
 
     // Time center the source term.
