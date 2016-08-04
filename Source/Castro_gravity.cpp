@@ -149,7 +149,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 
     int ng = (*Sborder).nGrow();
 
-    old_sources[grav_src].setVal(0.0, ng);
+    old_sources[grav_src].setVal(0.0);
 
     if (!do_grav) return;
 
@@ -230,9 +230,9 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
 
-    int ng = S_new.nGrow();
+    int ng = 0;
 
-    new_sources[grav_src].setVal(0.0, ng);
+    new_sources[grav_src].setVal(0.0);
 
     if (!do_grav) return;
 

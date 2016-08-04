@@ -483,7 +483,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // This array holds the hydrodynamics update.
 
-    hydro_source = new MultiFab(grids,NUM_STATE,S_new.nGrow(),Fab_allocate);
+    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the

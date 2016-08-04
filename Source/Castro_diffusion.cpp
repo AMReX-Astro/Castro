@@ -12,7 +12,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
 {
     int ng = (*Sborder).nGrow();
 
-    old_sources[diff_src].setVal(0.0, ng);
+    old_sources[diff_src].setVal(0.0);
 
     add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
 
@@ -29,9 +29,9 @@ Castro::construct_new_diff_source(Real time, Real dt)
 {
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = S_new.nGrow();
+    int ng = 0;
 
-    new_sources[diff_src].setVal(0.0, ng);
+    new_sources[diff_src].setVal(0.0);
 
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
 
@@ -44,7 +44,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     new_sources[diff_src].mult(0.5);
 
-    MultiFab::Saxpy(new_sources[diff_src],-0.5,old_sources[diff_src],0,0,NUM_STATE,0);
+    MultiFab::Saxpy(new_sources[diff_src],-0.5,old_sources[diff_src],0,0,NUM_STATE,ng);
 
 }
 

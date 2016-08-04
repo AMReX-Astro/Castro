@@ -2727,7 +2727,7 @@ Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 
   BL_ASSERT(state.nGrow() <= source.nGrow());
 
-  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
+  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, 0);
 
 }
 
@@ -3183,7 +3183,7 @@ Castro::sum_of_sources(MultiFab& source)
 
   int ng = source.nGrow();
 
-  source.setVal(0.0, ng);
+  source.setVal(0.0);
 
   for (int n = 0; n < num_src; ++n)
       MultiFab::Add(source, old_sources[n], 0, 0, NUM_STATE, ng);

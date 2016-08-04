@@ -58,7 +58,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 
     int ng = (*Sborder).nGrow();
 
-    old_sources[rot_src].setVal(0.0, ng);
+    old_sources[rot_src].setVal(0.0);
 
     if (!do_rotation) return;
 
@@ -134,9 +134,9 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    int ng = S_new.nGrow();
+    int ng = 0;
 
-    new_sources[rot_src].setVal(0.0, ng);
+    new_sources[rot_src].setVal(0.0);
 
     if (!do_rotation) return;
 

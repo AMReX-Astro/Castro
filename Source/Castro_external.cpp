@@ -6,7 +6,7 @@ Castro::construct_old_ext_source(Real time, Real dt)
 {
     int ng = (*Sborder).nGrow();
 
-    old_sources[ext_src].setVal(0.0, ng);
+    old_sources[ext_src].setVal(0.0);
 
     if (!add_ext_src) return;
 
@@ -24,9 +24,9 @@ Castro::construct_new_ext_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = S_new.nGrow();
+    int ng = 0;
 
-    new_sources[ext_src].setVal(0.0, ng);
+    new_sources[ext_src].setVal(0.0);
 
     if (!add_ext_src) return;
 
