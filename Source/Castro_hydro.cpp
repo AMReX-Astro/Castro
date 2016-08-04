@@ -14,7 +14,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     // Set up the source terms to go into the hydro.
 
-    sources_for_hydro->setVal(0.0, NUM_GROW);
+    sources_for_hydro->setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
 	MultiFab::Add(*sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);

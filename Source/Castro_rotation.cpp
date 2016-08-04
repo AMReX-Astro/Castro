@@ -76,7 +76,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 #endif
     for (MFIter mfi((*Sborder),true); mfi.isValid(); ++mfi)
     {
-	const Box& bx = mfi.tilebox();
+	const Box& bx = mfi.growntilebox();
 
 	Real mom_added[3] = { 0.0 };
 
