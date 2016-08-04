@@ -694,7 +694,7 @@ contains
                 print *, ' '
                 print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                 print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
+                print *, 'cav, smallc:',  cav(i,j), csmall
                 call bl_error("ERROR: non-convergence in the Riemann solver")
 
              else if (cg_blend .eq. 1) then
@@ -773,7 +773,8 @@ contains
                    print *, ' '
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
+                   print *, 'cav, smallc:',  cav(i,j), csmall
+                   
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif
