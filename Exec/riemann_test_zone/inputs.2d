@@ -18,6 +18,11 @@ castro.lo_bc       =  2   2
 castro.hi_bc       =  2   2
 
 
+castro.small_temp = 1.e3                                                        
+castro.small_dens = 1.e-6                                                       
+castro.small_pres = 1.e0  
+
+
 amr.max_level = 0
 
 # PROBIN FILENAME
