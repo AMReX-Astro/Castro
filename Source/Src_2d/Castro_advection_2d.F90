@@ -51,7 +51,7 @@ contains
     use riemann_module, only: cmpflx, shock
     use bl_constants_module, only : ZERO, HALF
 #ifdef SHOCK_VAR
-    use meth_params_,odule, only : USHK
+    use meth_params_module, only : USHK
 #endif
 
     implicit none
