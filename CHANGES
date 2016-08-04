@@ -16,6 +16,10 @@
      for the pstar find with bisection if we fail to converge.  This
      makes the root find for the star state more robust.
 
+  -- a new "fake" setup, riemann_test_zone can be use to send a left /
+     right hydro state to the CG Riemann solver for testing -- this acts
+     as a unit test for that solver.
+     
 
 previous changes:
 
