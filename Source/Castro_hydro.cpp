@@ -1,6 +1,10 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+#ifdef RADIATION
+#include "Radiation.H"
+#endif
+
 void
 Castro::construct_hydro_source(Real time, Real dt)
 {
@@ -75,6 +79,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef RADIATION
+    MultiFab& Er_new = get_new_data(Rad_Type);
     if (Radiation::rad_hydro_combined) {
 
 	FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
