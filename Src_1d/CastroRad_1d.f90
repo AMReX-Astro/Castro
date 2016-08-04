@@ -18,9 +18,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use meth_params_module, only : QVAR, QU, NVAR, NHYP
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
-  use advection_util_module, only : enforce_minimum_density
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
-  use castro_util_module, only : ca_normalize_species
   
   implicit none
 
@@ -65,7 +63,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: srcQ(:,:)
   double precision, allocatable:: pdivu(:)
   
-  double precision dx,mass_added,eint_added,eden_added,frac_change
+  double precision dx
   integer i,ngf,ngq,iflaten
   integer q_l1, q_h1
 
@@ -148,20 +146,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt, &
        nstep_fsp)
-
-  ! Enforce the density >= small_dens.
-  mass_added = 0.d0
-  eint_added = 0.d0
-  eden_added = 0.d0
-
-  call enforce_minimum_density(uin,[uin_l1,0,0],[uin_h1,0,0], &
-                               uout,[uout_l1,0,0],[uout_h1,0,0], &
-                               vol,[vol_l1,0,0],[vol_h1,0,0], &
-                               [lo(1),0,0],[hi(1),0,0], &
-                               mass_added,eint_added,eden_added,frac_change,verbose)
-  
-  ! Renormalize the species mass fractions
-  call ca_normalize_species(uout,[uout_l1,0,0],[uout_h1,0,0],[lo(1),0,0],[hi(1),0,0])
   
   deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
 
