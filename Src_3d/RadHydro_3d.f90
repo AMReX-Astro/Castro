@@ -1162,9 +1162,9 @@ contains
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                uout(i,j,k,n) = uout(i,j,k,n) + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                                              +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                                              +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                uout(i,j,k,n) = uin(i,j,k,n) + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                                             +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                                             +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
 
                 !
                 ! Add the source term to (rho e)
