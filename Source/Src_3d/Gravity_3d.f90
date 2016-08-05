@@ -444,7 +444,7 @@ contains
 
                    r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
 
-                   bcXYLo(l,m) = bcXYLo(l,m) + Gconst * rho(i,j,k) * dV / r
+                   bcXYLo(l,m) = bcXYLo(l,m) - Gconst * rho(i,j,k) * dV / r
 
                    ! Now, add any contributions from mass that is hidden behind
                    ! a symmetric boundary.
@@ -475,7 +475,7 @@ contains
 
                    r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
 
-                   bcXYHi(l,m) = bcXYHi(l,m) + Gconst * rho(i,j,k) * dV / r
+                   bcXYHi(l,m) = bcXYHi(l,m) - Gconst * rho(i,j,k) * dV / r
 
                    if ( doSymmetricAdd ) then
 
@@ -505,7 +505,7 @@ contains
 
                    r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
-                   bcXZLo(l,n) = bcXZLo(l,n) + Gconst * rho(i,j,k) * dV / r
+                   bcXZLo(l,n) = bcXZLo(l,n) - Gconst * rho(i,j,k) * dV / r
 
                    if ( doSymmetricAdd ) then
 
@@ -531,7 +531,7 @@ contains
 
                    r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
-                   bcXZHi(l,n) = bcXZHi(l,n) + Gconst * rho(i,j,k) * dV / r
+                   bcXZHi(l,n) = bcXZHi(l,n) - Gconst * rho(i,j,k) * dV / r
 
                    if ( doSymmetricAdd ) then
 
@@ -572,7 +572,7 @@ contains
 
                    r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
-                   bcYZLo(m,n) = bcYZLo(m,n) + Gconst * rho(i,j,k) * dV / r
+                   bcYZLo(m,n) = bcYZLo(m,n) - Gconst * rho(i,j,k) * dV / r
 
                    if ( doSymmetricAdd ) then
 
@@ -597,7 +597,7 @@ contains
 
                    r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
 
-                   bcYZHi(m,n) = bcYZHi(m,n) + Gconst * rho(i,j,k) * dV / r
+                   bcYZHi(m,n) = bcYZHi(m,n) - Gconst * rho(i,j,k) * dV / r
 
                    if ( doSymmetricAdd ) then
 
@@ -726,7 +726,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
        if ( doSymmetricAddLo(2) ) then
 
@@ -736,7 +736,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -748,7 +748,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -760,7 +760,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -774,7 +774,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
        if ( doSymmetricAddLo(3) ) then
 
@@ -784,7 +784,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -798,7 +798,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
     endif
 
@@ -812,7 +812,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
        if ( doSymmetricAddHi(2) ) then
 
@@ -822,7 +822,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -834,7 +834,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -846,7 +846,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -860,7 +860,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
        if ( doSymmetricAddHi(3) ) then
 
@@ -870,7 +870,7 @@ contains
 
           r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-          bcTerm = bcTerm + Gconst * rho * dV / r
+          bcTerm = bcTerm - Gconst * rho * dV / r
 
        endif
 
@@ -884,7 +884,7 @@ contains
 
        r = ( (x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2 )**HALF
 
-       bcTerm = bcTerm + Gconst * rho * dV / r
+       bcTerm = bcTerm - Gconst * rho * dV / r
 
     endif
 

@@ -256,10 +256,6 @@ contains
        ! using fluxes evaluated at that time. To second order we can 
        ! average the new and old potentials.
 
-       ! We will also negate the answer so that phi is negative,
-       ! the usual physics convention, which will make the energy 
-       ! update more easy to understand.
-
        phi = ZERO
        grav = ZERO
        gravx = ZERO
@@ -269,7 +265,7 @@ contains
        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))
+                phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
                 grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
              enddo
           enddo
