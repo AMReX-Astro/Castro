@@ -1069,7 +1069,7 @@ contains
 
     do n = 1, NVAR
 
-       if ( n == UTEMP ) then
+       if ( n.eq.UTEMP ) then
 
           flux1(:,:,:,n) = 0.d0
           flux2(:,:,:,n) = 0.d0
@@ -1159,22 +1159,36 @@ contains
                                   lo,hi)
 
     do n = 1, NVAR
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                uout(i,j,k,n) = uin(i,j,k,n) + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                                             +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                                             +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
 
-                !
-                ! Add the source term to (rho e)
-                !
-                if (n .eq. UEINT) then
-                   uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
-                endif
+       ! pass temperature through
+       if (n .eq. UTEMP) then
+          do k = lo(3),hi(3)
+             do j = lo(2),hi(2)
+                do i = lo(1),hi(1)
+                   uout(i,j,k,n) = uin(i,j,k,n)
+                enddo
              enddo
           enddo
-       enddo
+       else
+          ! update everything else with fluxes and source terms
+          do k = lo(3),hi(3)
+             do j = lo(2),hi(2)
+                do i = lo(1),hi(1)
+                   uout(i,j,k,n) = uin(i,j,k,n) &
+                        + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
+                        +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
+                        +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                   !
+                   ! Add the source term to (rho e)
+                   !
+                   if (n .eq. UEINT) then
+                      uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                   endif
+                enddo
+             enddo
+          enddo
+       endif
+
     enddo
 
     ! update everything else with fluxes
