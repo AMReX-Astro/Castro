@@ -88,16 +88,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 	MultiFab& Erborder = fpi_rad.get_mf();
 
 	MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
-	MultiFab kappa_s;
-	if (radiation->do_inelastic_scattering) {
-	    kappa_s.define(grids, 1, NUM_GROW, Fab_allocate);
-	    kappa_s.setVal(0.0, NUM_GROW);
-	}
 	if (radiation->pure_hydro) {
 	    lamborder.setVal(0.0, NUM_GROW);
 	}
 	else {
-	    radiation->compute_limiter(level, grids, *Sborder, Erborder, lamborder, kappa_s);
+	    radiation->compute_limiter(level, grids, *Sborder, Erborder, lamborder);
 	}
 
 	int nstep_fsp = -1;
@@ -177,15 +172,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 			(*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
 		    }
 		}
-
-		if (radiation->do_inelastic_scattering) {
-		    ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				     BL_TO_FORTRAN_3D(stateout),
-				     BL_TO_FORTRAN_3D(Erout),
-				     BL_TO_FORTRAN_3D(kappa_s[mfi]),
-				     dt);
-		}
-
 	    }
 
 #ifdef _OPENMP
