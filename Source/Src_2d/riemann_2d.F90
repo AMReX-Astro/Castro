@@ -418,6 +418,7 @@ contains
     use prob_params_module, only : coord_type
 
     double precision, parameter:: small = 1.d-8
+    double precision, parameter :: small_u = 1.d-10
 
     integer :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer :: gd_l1,gd_l2,gd_h1,gd_h2
@@ -463,7 +464,7 @@ contains
     double precision :: pstar_old
     double precision :: taul, taur, tauo
     double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    double precision :: pstar_lo, pstar_c, pstar_hi, f_lo, f_c, f_hi
 
     double precision, parameter :: weakwv = 1.d-3
 
@@ -592,6 +593,8 @@ contains
           gmin = min(gamel, gamer, ONE, FOUR3RD)
           gmax = max(gamel, gamer, TWO, FIVE3RD)
 
+          print *, gamel, gamer
+
           game_bar = HALF*(gamel + gamer)
           gamc_bar = HALF*(gcl + gcr)
 
@@ -651,27 +654,28 @@ contains
              ustar_l = ul - (pstar - pl)*wl
              ustar_r = ur + (pstar - pr)*wr
 
-             dpditer = abs(pstar - pstar_old)
+             dpditer = pstar - pstar_old
 
-             zl = abs(ustar_l - ustar_l_old)
+             zl = ustar_l - ustar_l_old
              !if (zp-weakwv*cav(i,j) <= ZERO) then
              !   zp = dpditer*wl
              !endif
 
-             zr = abs(ustar_r - ustar_r_old)
+             zr = ustar_r - ustar_r_old
              !if (zm-weakwv*cav(i,j) <= ZERO) then
              !   zm = dpditer*wr
              !endif
-
+             
              ! the new pstar is found via CG Eq. 18
 
              !denom = zp + zm
-             denom = zl + zr
+             denom = zl - zr
+             denom = (ustar_l - ustar_r) - (ustar_l_old - ustar_r_old)
 
              pstar_old = pstar
 
-             if (abs(denom) > small_pres) then
-                pstar = pstar - (ustar_r - ustar_l)*dpditer/denom
+             if (abs(denom) > small_u .and. abs(dpditer) > small_pres) then
+                pstar = pstar - (ustar_l - ustar_r)*dpditer/denom
              endif
 
              pstar = max(pstar, small_pres)
@@ -680,6 +684,7 @@ contains
              if (err < tol*pstar) converged = .true.
 
              pstar_hist(iter) = pstar
+             print *, iter, pstar
 
              iter = iter + 1
 
@@ -711,60 +716,87 @@ contains
 
              else if (cg_blend .eq. 2) then
 
-                pstarl = minval(pstar_hist(iter_max-5:iter_max))
-                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+                ! we want to zero
+                ! f(p*) = u*_l(p*) - u*_r(p*)
+                ! we'll do bisection
 
+                ! first try to find a reasonable bounds 
+                pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
+                pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
+
+                !pstar_hi = max(pstar_hi, pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr))
+
+                print *, "bounds : ", pstar_lo, pstar_hi
+
+                ! lo bounds
+                call wsqge(pl, taul, gamel, gdot,  &
+                           gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
+
+                call wsqge(pr, taur, gamer, gdot,  &
+                           gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
+
+                wl = ONE / sqrt(wlsq)
+                wr = ONE / sqrt(wrsq)
+
+                ustar_l = ul - (pstar_lo - pstar)*wl
+                ustar_r = ur + (pstar_lo - pstar)*wr
+
+                f_lo = ustar_l - ustar_r
+
+
+                ! hi bounds
+                call wsqge(pl, taul, gamel, gdot,  &
+                           gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
+
+                call wsqge(pr, taur, gamer, gdot,  &
+                           gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
+
+                wl = ONE / sqrt(wlsq)
+                wr = ONE / sqrt(wrsq)
+
+                ustar_l = ul - (pstar_hi - pstar)*wl
+                ustar_r = ur + (pstar_hi - pstar)*wr
+
+                f_hi = ustar_l - ustar_r
+                
+                print *, "about to bisect: ", f_lo, f_hi
+                ! bisection
                 iter = 1
+                do while (iter <= iter_max)
 
-                do while (iter <= 2 * iter_max .and. .not. converged)
+                   pstar_c = HALF * (pstar_lo + pstar_hi)
 
-                   pstarc = HALF * (pstaru + pstarl)
+                   pstar_hist_extra(iter) = pstar_c
 
-                   pstar_hist_extra(iter) = pstarc
+                   call wsqge(pl, taul, gamel, gdot,  &
+                              gamstar, pstar_c, wlsq, clsql, gmin, gmax)
 
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
+                   call wsqge(pr, taur, gamer, gdot,  &
+                              gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
 
                    wl = ONE / sqrt(wlsq)
                    wr = ONE / sqrt(wrsq)
 
-                   ustar_r = ur - (pr-pstar)*wr
-                   ustar_l = ul + (pl-pstar)*wl
+                   ustar_l = ul - (pstar_c - pl)*wl
+                   ustar_r = ur - (pstar_c - pr)*wr
 
-                   pfuncc = ustar_l - ustar_r
+                   f_c = ustar_l - ustar_r
 
-                   if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
+                   if ( HALF * abs(pstar_lo - pstar_hi) < cg_tol * pstar_c ) then
                       converged = .true.
+                      exit
                    endif
 
-                   iter = iter + 1
-
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustar_r = ur-(pr-pstar)*wr
-                   ustar_l = ul+(pl-pstar)*wl
-
-                   pfuncu = ustar_l - ustar_r
-
-                   if (pfuncc * pfuncu < ZERO) then
-
-                      pstarl = pstarc
-
+                   if (f_lo * f_c < ZERO) then
+                      ! root is in the left half
+                      pstar_hi = pstar_c
+                      f_hi = f_c
                    else
-
-                      pstaru = pstarc
-
+                      pstar_lo = pstar_c
+                      f_lo = f_c
                    endif
+
+                   print *, "here, ", pstar_c
 
                 enddo
 
@@ -786,6 +818,8 @@ contains
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif
+
+                pstar = pstar_c
 
              else
 
