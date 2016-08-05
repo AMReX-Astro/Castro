@@ -1,3 +1,8 @@
+
+! This file is automatically created by parse_castro_params.py.  To update
+! or add runtime parameters, please edit _cpp_parameters and then run
+! mk_params.sh
+
 ! This module stores the runtime parameters and integer names for 
 ! indexing arrays.
 !
@@ -20,11 +25,8 @@ module meth_params_module
   ! QTHERM: number of primitive variables
   integer         , save :: QTHERM, QVAR
   integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP
-  integer         , save :: QGAMC, QGAME
+  integer         , save :: QGAMC, QGAME, QC, QCSML, QDPDR, QDPDE
   integer         , save :: QFA, QFS, QFX
-
-  ! These are only used when we use the SGS model.
-  integer         , save :: UESGS,QESGS
 
   integer         , save :: nadv
 
@@ -192,7 +194,7 @@ contains
     riemann_solver = 0;
     cg_maxiter = 12;
     cg_tol = 1.0d-5;
-    cg_blend = 0;
+    cg_blend = 2;
     use_flattening = 1;
     ppm_flatten_before_integrals = 1;
     transverse_use_eos = 0;
@@ -222,7 +224,7 @@ contains
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
     do_grav = -1;
-    grav_source_type = 2;
+    grav_source_type = 4;
     do_rotation = -1;
     rot_period = -1.d200;
     rot_period_dot = 0.0d0;
@@ -230,8 +232,8 @@ contains
     rotation_include_coriolis = 1;
     rotation_include_domegadt = 1;
     state_in_rotating_frame = 1;
-    rot_source_type = 1;
-    implicit_rotation_update = 0;
+    rot_source_type = 4;
+    implicit_rotation_update = 1;
     rot_axis = 3;
     point_mass = 0.0d0;
     point_mass_fix_solution = 1;

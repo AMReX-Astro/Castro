@@ -1,5 +1,11 @@
+
+// This file is automatically created by parse_castro_params.py.  To update
+// or add runtime parameters, please edit _cpp_parameters and then run
+// mk_params.sh
+
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
+int         Castro::state_nghost = 0;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;
@@ -22,7 +28,7 @@ int         Castro::use_colglaz = -1;
 int         Castro::riemann_solver = 0;
 int         Castro::cg_maxiter = 12;
 Real        Castro::cg_tol = 1.0e-5;
-int         Castro::cg_blend = 0;
+int         Castro::cg_blend = 2;
 int         Castro::use_flattening = 1;
 int         Castro::ppm_flatten_before_integrals = 1;
 int         Castro::transverse_use_eos = 0;
@@ -40,9 +46,7 @@ int         Castro::allow_negative_energy = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-#ifdef SGS
-Real        Castro::sum_turb_src = 0.0;
-#endif
+int         Castro::update_state_between_sources = 1;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
@@ -52,6 +56,7 @@ Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
 int         Castro::use_retry = 0;
 Real        Castro::retry_neg_dens_factor = 1.e-1;
+int         Castro::sdc_iters = 2;
 Real        Castro::dtnuc_e = 1.e200;
 Real        Castro::dtnuc_X = 1.e200;
 int         Castro::dtnuc_mode = 1;
@@ -64,7 +69,7 @@ Real        Castro::react_rho_max = 1.e200;
 int         Castro::disable_shock_burning = 0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
-int         Castro::grav_source_type = 2;
+int         Castro::grav_source_type = 4;
 int         Castro::source_term_predictor = 0;
 int         Castro::do_rotation = -1;
 #ifdef ROTATION
@@ -86,10 +91,10 @@ int         Castro::rotation_include_domegadt = 1;
 int         Castro::state_in_rotating_frame = 1;
 #endif
 #ifdef ROTATION
-int         Castro::rot_source_type = 1;
+int         Castro::rot_source_type = 4;
 #endif
 #ifdef ROTATION
-int         Castro::implicit_rotation_update = 0;
+int         Castro::implicit_rotation_update = 1;
 #endif
 #ifdef ROTATION
 int         Castro::rot_axis = 3;

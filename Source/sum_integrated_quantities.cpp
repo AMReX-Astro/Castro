@@ -10,9 +10,8 @@
 void
 Castro::sum_integrated_quantities ()
 {
-#ifndef SGS
+
     if (verbose <= 0) return;
-#endif
 
     bool local_flag = true;
 
@@ -32,16 +31,6 @@ Castro::sum_integrated_quantities ()
     Real rho_phi     = 0.0;
 #ifdef GRAVITY
     Real total_energy = 0.0;
-#endif
-#ifdef SGS
-    Real dt_crse     = parent->dtLevel(0);
-    Real Etot        = 0.0;
-    Real delta_E     = 0.0;
-    Real delta_K     = 0.0;
-    Real prod_sgs    = 0.0;
-    Real diss_sgs    = 0.0;
-    Real turb_src    = 0.0;
-    Real rms_mach    = 0.0;
 #endif
 
     int datwidth     = 14;
@@ -79,44 +68,11 @@ Castro::sum_integrated_quantities ()
        rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
 #endif
 
-#ifdef SGS
-        Real  cur_time = state[SGS_Type].curTime();
-        Real prev_time = state[SGS_Type].prevTime();
-
-        delta_E  += ca_lev.volWgtSum("rho_E", cur_time, local_flag);
-        delta_E  -= ca_lev.volWgtSum("rho_E", prev_time, local_flag);
-
-        delta_K  += ca_lev.volWgtSum("kineng", cur_time, local_flag);
-        delta_K  -= ca_lev.volWgtSum("kineng", prev_time, local_flag);
-
-        rms_mach  += ca_lev.volWgtSquaredSum("MachNumber", time, local_flag);
-
-        prod_sgs += 0.5 * ca_lev.volWgtSum("prod_sgs", prev_time, local_flag) * dt_crse;
-        prod_sgs += 0.5 * ca_lev.volWgtSum("prod_sgs",  cur_time, local_flag) * dt_crse;
-        diss_sgs += 0.5 * ca_lev.volWgtSum("diss_sgs", prev_time, local_flag) * dt_crse;
-        diss_sgs += 0.5 * ca_lev.volWgtSum("diss_sgs",  cur_time, local_flag) * dt_crse;
-        turb_src += 0.5 * ca_lev.volWgtSum("turb_src", prev_time, local_flag) * dt_crse;
-        turb_src += 0.5 * ca_lev.volWgtSum("turb_src",  cur_time, local_flag) * dt_crse;
-
-        sum_turb_src = sum_turb_src + turb_src;
-#endif
     }
  
     if (verbose > 0)
     {
-#ifdef SGS
-#ifdef HYBRID_MOMENTUM
-	const int nfoo = 21;
-#else
-	const int nfoo = 18;
-#endif
-	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
-#ifdef HYBRID_MOMENTUM
-			  hyb_mom[0], hyb_mom[1], hyb_mom[2],
-#endif
-			  rho_e, rho_K, rho_E, rho_phi, Etot, delta_E, delta_K, 
-			  prod_sgs, diss_sgs, turb_src, rms_mach};
-#else
+
 #ifdef HYBRID_MOMENTUM
 	const int nfoo = 14;
 #else
@@ -127,7 +83,6 @@ Castro::sum_integrated_quantities ()
 			  hyb_mom[0], hyb_mom[1], hyb_mom[2],
 #endif
 			  rho_e, rho_K, rho_E, rho_phi};
-#endif
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -157,15 +112,6 @@ Castro::sum_integrated_quantities ()
 	    rho_K      = foo[i++];
             rho_E      = foo[i++];
 	    rho_phi    = foo[i++];
-#ifdef SGS
-	    Etot       = foo[i++];
-	    delta_E    = foo[i++];
-	    delta_K    = foo[i++];
-	    prod_sgs   = foo[i++];
-	    diss_sgs   = foo[i++];
-	    turb_sgs   = foo[i++];
-	    rms_mach   = foo[i++];
-#endif
 
 #ifdef GRAVITY
 	    // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
@@ -196,17 +142,6 @@ Castro::sum_integrated_quantities ()
 #ifdef GRAVITY
 	    std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
 	    std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';	    
-#endif
-#ifdef SGS
-	    Etot     = rho_E + rho_K;
-	    std::cout << "TIME= " << time << " TOTAL E     = "   << Etot      << '\n';
-	    std::cout << "TIME= " << time << " DELTA E     = "   << delta_E   << '\n';
-	    std::cout << "TIME= " << time << " DELTA K     = "   << delta_K   << '\n';
-	    std::cout << "TIME= " << time << " DELTA TOT   = "   << delta_K+delta_E   << '\n';
-	    std::cout << "TIME= " << time << " PROD_SGS    = "   << prod_sgs  << '\n';
-	    std::cout << "TIME= " << time << " DISS_SGS    = "   << diss_sgs  << '\n';
-	    std::cout << "TIME= " << time << " TURB_SRC    = "   << turb_src  << '\n';
-	    std::cout << "TIME= " << time << " DE+DK-TURB_SRC = "   << delta_E+delta_K-turb_src  << '\n';
 #endif
 	    if (parent->NumDataLogs() > 0 ) {
 
@@ -264,39 +199,6 @@ Castro::sum_integrated_quantities ()
 	       }
 
 	    }
-
-#ifdef SGS
-	    if (parent->NumDataLogs() > 1) { 
-
-	       std::ostream& data_log2 = parent->DataLog(1);
-
-	       if (data_log2.good()) {
-
-		  // Write the quantities that represent changes from prev_time to cur_time
-		  if (time == 0.0) {
-		      data_log2 << std::setw(datwidth) <<  "      time    ";
-		      data_log2 << std::setw(datwidth) <<  "         Etot ";
-		      data_log2 << std::setw(datwidth) <<  " Etot-sum_turb";
-		      data_log2 << std::setw(datwidth) <<  "      rms_mach";
-		      data_log2 << std::setw(datwidth) <<  "      delta_E ";
-		      data_log2 << std::setw(datwidth) <<  "      delta_K ";
-		      data_log2 << std::setw(datwidth) <<  "      prod_sgs";
-		      data_log2 << std::setw(datwidth) <<  "      diss_sgs";
-		      data_log2 << std::setw(datwidth) <<  "      turb_src" << std::endl;
-		  }
-
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << time;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << Etot;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << delta_E;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << delta_K;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << Etot-sum_turb_src;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << rms_mach;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << prod_sgs;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << diss_sgs;
-		  data_log2 << std::setw(datwidth) <<  std::setprecision(datprecision) << turb_src << std::endl;
-	       }
-	    }
-#endif
 	    
 	    if (show_center_of_mass) {
 	        for (int i = 0; i <= 2; i++) {

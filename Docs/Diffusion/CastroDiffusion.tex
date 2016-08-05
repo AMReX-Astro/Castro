@@ -15,11 +15,12 @@ Finally, ignore hydrodynamics, so $U = 0$.  This gives:
 \begin{equation}
 \frac{\partial T}{\partial t} = D \nabla^2 T
 \end{equation}
-where $D \equiv k_\mathrm{th}/(\rho c_v)$.  Solving this equation explicitly requires
-a timestep limiter of
+where $D \equiv k_\mathrm{th}/(\rho c_v)$.  Solving this equation
+explicitly requires a timestep limiter of
 \begin{equation}
 \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 \end{equation}
+(this is implemented in {\tt Castro/Source/Src\_nd/timestep.F90}).
 
 Support for diffusion must be compiled into the code by setting
 {\tt USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.

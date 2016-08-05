@@ -43,6 +43,30 @@ contains
 
 
 
+  subroutine eos_get_max_temp(max_temp_out)
+
+    implicit none
+
+    double precision, intent(out) :: max_temp_out
+
+    max_temp_out = maxtemp
+
+  end subroutine eos_get_max_temp
+
+
+
+  subroutine eos_get_max_dens(max_dens_out)
+
+    implicit none
+
+    double precision, intent(out) :: max_dens_out
+
+    max_dens_out = maxdens
+
+  end subroutine eos_get_max_dens
+
+
+
   ! EOS initialization routine: read in general EOS parameters, then 
   ! call any specific initialization used by the EOS.
 

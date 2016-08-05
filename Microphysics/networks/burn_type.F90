@@ -38,7 +38,6 @@ module burn_type_module
     double precision :: rho              = init_num
     double precision :: T                = init_num
     double precision :: e                = init_num
-    double precision :: h                = init_num
     double precision :: xn(nspec)        = init_num
 #if naux > 0
     double precision :: aux(naux)        = init_num
@@ -169,5 +168,22 @@ contains
     if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
   end subroutine burn_to_eos
+
+
+  subroutine normalize_abundances_burn(state)
+
+    !$acc routine seq
+
+    use bl_constants_module, only: ONE
+    use extern_probin_module, only: small_x
+
+    implicit none
+
+    type (burn_t), intent(inout) :: state
+
+    state % xn(:) = max(small_x, min(ONE, state % xn(:)))
+    state % xn(:) = state % xn(:) / sum(state % xn(:))
+
+  end subroutine normalize_abundances_burn
 
 end module burn_type_module

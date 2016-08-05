@@ -8,14 +8,16 @@ contains
        bind(C, name="ca_prescribe_grav")
 
     use bl_constants_module, only: ZERO
+    ! use bl_constants_module, only: HALF
     ! use fundamental_constants_module, only: Gconst, M_PI
-    ! use prob_params_module, only: problo, center, dim
+    use prob_params_module, only: dim
+    ! use prob_params_module, only: problo, center
 
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: g_lo(3), g_hi(3)
-    double precision :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),3)
+    double precision :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),dim)
     double precision :: dx(3)
 
     ! Local variables

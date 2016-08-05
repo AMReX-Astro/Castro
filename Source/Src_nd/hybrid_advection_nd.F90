@@ -225,7 +225,7 @@ contains
 
 
   subroutine add_hybrid_advection_source(lo, hi, dt, &
-                                         state, s_lo, s_hi, &
+                                         update, u_lo, u_hi, &
                                          qx, qx_lo, qx_hi, &
                                          qy, qy_lo, qy_hi, &
                                          qz, qz_lo, qz_hi)
@@ -238,11 +238,11 @@ contains
     implicit none
 
     integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
+    integer          :: u_lo(3), u_hi(3)
     integer          :: qx_lo(3), qx_hi(3)
     integer          :: qy_lo(3), qy_hi(3)
     integer          :: qz_lo(3), qz_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    double precision :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     double precision :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     double precision :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     double precision :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
@@ -261,8 +261,8 @@ contains
 
              R = sqrt( loc(1)**2 + loc(2)**2 )
 
-             state(i,j,k,UMR) = state(i,j,k,UMR) - dt * ( (loc(1) / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1) &
-                                                        + (loc(2) / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx(2) )
+             update(i,j,k,UMR) = update(i,j,k,UMR) - ( (loc(1) / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1) + &
+                                                       (loc(2) / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx(2) )
 
           enddo
        enddo

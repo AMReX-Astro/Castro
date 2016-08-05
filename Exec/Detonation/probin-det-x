@@ -23,6 +23,10 @@
 
   temperr = 4.e9
   tempgrad = 1.e8
-  max_temperr_lev = 3
-  max_tempgrad_lev = 3
+  max_temperr_lev = 5
+  max_tempgrad_lev = 5
+/
+
+&extern
+  do_constant_volume_burn = T
 /

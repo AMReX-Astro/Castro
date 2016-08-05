@@ -32,7 +32,7 @@ public:
 
   MultiFab* get_grad_phi_prev_comp(int level,int comp);
 
-  void plus_grad_phi_curr(int level, PArray<MultiFab>& addend);
+  void plus_grad_phi_curr(int level, Array<MultiFab*> addend);
 
   void swapTimeLevels (int level);
 
@@ -61,8 +61,8 @@ public:
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
-  void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
-                                        PArray<MultiFab>& cmlgp);
+  void create_comp_minus_level_grad_phi(int level, MultiFab* cmlp,
+                                        Array<MultiFab*> cmlgp);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,
@@ -93,13 +93,13 @@ public:
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, 
                                  Array<Real>& radial_grav, MultiFab& grav_vector);
-  void make_prescribed_grav(int level, Real time, MultiFab& grav);
 #endif
 
+  void make_prescribed_grav(int level, Real time, MultiFab& grav, MultiFab& phi);
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, bool use_rhs = true);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
@@ -159,6 +159,7 @@ protected:
   static int   direct_sum_bcs;
   static int   get_g_from_phi;
   static int   max_solve_level;
+  static int   max_multipole_moment_level;
   static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;

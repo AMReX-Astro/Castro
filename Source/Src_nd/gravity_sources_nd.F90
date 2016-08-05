@@ -7,14 +7,16 @@ module gravity_sources_module
 contains
 
   subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
-                     uold,uold_lo,uold_hi,unew,unew_lo,unew_hi,vol,vol_lo,vol_hi, &
+                     uold,uold_lo,uold_hi, &
+                     source,src_lo,src_hi,vol,vol_lo,vol_hi, &
                      dx,dt,time,E_added,mom_added) bind(C, name="ca_gsrc")
 
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, UMR, UMP
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use bl_constants_module
     use math_module, only: cross_product
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
+    use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
     use prob_params_module, only: center
@@ -26,13 +28,13 @@ contains
     integer          :: phi_lo(3), phi_hi(3)
     integer          :: grav_lo(3), grav_hi(3)
     integer          :: uold_lo(3), uold_hi(3)
-    integer          :: unew_lo(3), unew_hi(3)
+    integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
 
     double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     double precision :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
     double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision :: unew(unew_lo(1):unew_hi(1),unew_lo(2):unew_hi(2),unew_lo(3):unew_hi(3),NVAR)
+    double precision :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     double precision :: dx(3), dt, time
     double precision :: E_added, mom_added(3)
@@ -42,6 +44,12 @@ contains
     double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
     double precision :: loc(3)
     integer          :: i, j, k
+
+    double precision :: src(NVAR)
+
+    ! Temporary array for seeing what the new state would be if the update were applied here.
+
+    double precision :: snew(NVAR)
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type = 
@@ -59,19 +67,26 @@ contains
 
              loc = position(i,j,k) - center
 
+             src = ZERO
+             snew = uold(i,j,k,:)
+
              ! **** Start Diagnostics ****
-             old_re = unew(i,j,k,UEDEN)
-             old_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
-             old_rhoeint = unew(i,j,k,UEDEN) - old_ke
-             old_mom = unew(i,j,k,UMX:UMZ)
+             old_re = snew(UEDEN)
+             old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
+             old_rhoeint = snew(UEDEN) - old_ke
+             old_mom = snew(UMX:UMZ)
              ! ****   End Diagnostics ****
 
-             Sr = rho * grav(i,j,k,:) * dt
+             Sr = rho * grav(i,j,k,:)
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Sr
+             src(UMX:UMZ) = Sr
+
+             snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Sr)
+             call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
+
+             snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif
 
              if (grav_source_type == 1 .or. grav_source_type == 2) then
@@ -82,7 +97,7 @@ contains
 
              else if (grav_source_type .eq. 3) then
 
-                new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
+                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
                 SrE = new_ke - old_ke
 
              else if (grav_source_type .eq. 4) then
@@ -102,14 +117,19 @@ contains
                 call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
              end if
 
-             unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrE
+             src(UEDEN) = SrE
 
              ! **** Start Diagnostics ****
-             new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoInv
-             new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
+             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
+             new_rhoeint = snew(UEDEN) - new_ke
+             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
+
+             ! Add to the outgoing source array.
+
+             source(i,j,k,:) = src
+
           enddo
        enddo
     enddo
@@ -127,6 +147,7 @@ contains
                          gnew,gn_lo,gn_hi, &
                          uold,uo_lo,uo_hi, &
                          unew,un_lo,un_hi, &
+                         source,sr_lo,sr_hi, &
                          flux1,f1_lo,f1_hi, &
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
@@ -135,14 +156,15 @@ contains
                          E_added,mom_added) bind(C, name="ca_corrgsrc")
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UMR, UMP, UEDEN, &
-         grav_source_type, gravity_type, get_g_from_phi
+    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
+                                   grav_source_type, gravity_type, get_g_from_phi
     use prob_params_module, only : dg, center
     use bl_constants_module
     use multifab_module
     use fundamental_constants_module, only: Gconst
     use castro_util_module, only : position
 #ifdef HYBRID_MOMENTUM
+    use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only : add_hybrid_momentum_source
 #endif
 
@@ -157,6 +179,7 @@ contains
     integer          :: gn_lo(3), gn_hi(3)
     integer          :: uo_lo(3), uo_hi(3)
     integer          :: un_lo(3), un_hi(3)
+    integer          :: sr_lo(3), sr_hi(3)
     integer          :: f1_lo(3), f1_hi(3)
     integer          :: f2_lo(3), f2_hi(3)
     integer          :: f3_lo(3), f3_hi(3)
@@ -176,6 +199,10 @@ contains
 
     double precision :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
     double precision :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+
+    ! The source term to send back
+
+    double precision :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
     ! Hydrodynamics fluxes
 
@@ -197,6 +224,12 @@ contains
     double precision :: old_ke, old_rhoeint, old_re
     double precision :: new_ke, new_rhoeint
     double precision :: old_mom(3), loc(3)
+
+    double precision :: src(NVAR)
+
+    ! Temporary array for seeing what the new state would be if the update were applied here.
+
+    double precision :: snew(NVAR)
 
     double precision, pointer :: phi(:,:,:)
     double precision, pointer :: grav(:,:,:,:)
@@ -223,10 +256,6 @@ contains
        ! using fluxes evaluated at that time. To second order we can 
        ! average the new and old potentials.
 
-       ! We will also negate the answer so that phi is negative,
-       ! the usual physics convention, which will make the energy 
-       ! update more easy to understand.
-
        phi = ZERO
        grav = ZERO
        gravx = ZERO
@@ -236,7 +265,7 @@ contains
        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                phi(i,j,k) = - HALF * (pnew(i,j,k) + pold(i,j,k))
+                phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
                 grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
              enddo
           enddo
@@ -325,25 +354,28 @@ contains
              rhon    = unew(i,j,k,URHO)
              rhoninv = ONE / unew(i,j,k,URHO)
 
+             src = ZERO
+             snew = unew(i,j,k,:)
+
              ! **** Start Diagnostics ****
-             old_re = unew(i,j,k,UEDEN)
-             old_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoninv
-             old_rhoeint = unew(i,j,k,UEDEN) - old_ke
-             old_mom = unew(i,j,k,UMX:UMZ)
+             old_re = snew(UEDEN)
+             old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
+             old_rhoeint = snew(UEDEN) - old_ke
+             old_mom = snew(UMX:UMZ)
              ! ****   End Diagnostics ****
 
              ! Define old source terms
 
              vold = uold(i,j,k,UMX:UMZ) * rhooinv
 
-             Sr_old = rhoo * gold(i,j,k,:) * dt
+             Sr_old = rhoo * gold(i,j,k,:)
              SrE_old = dot_product(vold, Sr_old)
 
              ! Define new source terms
 
-             vnew = unew(i,j,k,UMX:UMZ) * rhoninv
+             vnew = snew(UMX:UMZ) * rhoninv
 
-             Sr_new = rhon * gnew(i,j,k,:) * dt
+             Sr_new = rhon * gnew(i,j,k,:)
              SrE_new = dot_product(vnew, Sr_new)
 
              ! Define corrections to source terms
@@ -352,11 +384,15 @@ contains
 
              ! Correct momenta
 
-             unew(i,j,k,UMX:UMZ) = unew(i,j,k,UMX:UMZ) + Srcorr
+             src(UMX:UMZ) = Srcorr
+
+             snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, unew(i,j,k,UMR:UMP), Srcorr)
-#endif             
+             call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
+
+             snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
+#endif
 
              ! Correct energy
 
@@ -371,7 +407,7 @@ contains
                 ! For this source type, we first update the momenta
                 ! before we calculate the energy source term.
 
-                vnew = unew(i,j,k,UMX:UMZ) * rhoninv
+                vnew = snew(UMX:UMZ) * rhoninv
                 SrE_new = dot_product(vnew, Sr_new)
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
@@ -381,7 +417,7 @@ contains
                 ! Instead of calculating the energy source term explicitly,
                 ! we simply update the kinetic energy.
 
-                new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoninv
+                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
                 SrEcorr = new_ke - old_ke
 
              else if (grav_source_type .eq. 4) then
@@ -410,12 +446,12 @@ contains
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
                      .and. get_g_from_phi) ) then
 
-                   SrEcorr = SrEcorr - HALF * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                       flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                       flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                       flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                       flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                       flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                    ! However, at present phi is only actually filled for Poisson gravity,
                    ! and optionally monopole gravity if the user species get_g_from_phi.   
@@ -425,12 +461,12 @@ contains
 
                 else
 
-                   SrEcorr = SrEcorr + HALF * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
-                                                flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
-                                                flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
-                                                flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
-                                                flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                                                flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
+                                                       flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
+                                                       flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
 
                 endif
 
@@ -438,14 +474,18 @@ contains
                 call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
              end if
 
-             unew(i,j,k,UEDEN) = unew(i,j,k,UEDEN) + SrEcorr
+             src(UEDEN) = SrEcorr
 
              ! **** Start Diagnostics ****
-             new_ke = HALF * sum(unew(i,j,k,UMX:UMZ)**2) * rhoninv
-             new_rhoeint = unew(i,j,k,UEDEN) - new_ke
-             E_added =  E_added + (unew(i,j,k,UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (unew(i,j,k,UMX:UMZ) - old_mom) * vol(i,j,k)
+             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
+             new_rhoeint = snew(UEDEN) - new_ke
+             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
+             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
              ! ****   End Diagnostics ****
+
+             ! Add to the outgoing source array.
+
+             source(i,j,k,:) = src
 
           enddo
        enddo

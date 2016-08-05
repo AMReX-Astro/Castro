@@ -164,7 +164,6 @@ Castro::variableSetUp ()
   //
   // Set number of state variables and pointers to components
   //
-  int use_sgs = 0;
 
   int cnt = 0;
   Density = cnt++;
@@ -178,10 +177,6 @@ Castro::variableSetUp ()
 #endif
   Eden = cnt++;
   Eint = cnt++;
-#ifdef SGS
-  Esgs = cnt++;
-  use_sgs = 1;
-#endif
   Temp = cnt++;
   
 #ifdef NUM_ADV
@@ -260,9 +255,12 @@ Castro::variableSetUp ()
 #endif
 		    gravity_type_name.dataPtr(), &gravity_type_length,
 		    get_g_from_phi,
-		    use_sgs,
 		    diffuse_cutoff_density,
 		    const_grav);
+
+  // Get the number of primitive variables from Fortran.
+
+  get_qvar(&QVAR);
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
  
@@ -329,23 +327,26 @@ Castro::variableSetUp ()
   bool store_in_checkpoint;
 
 #ifdef RADIATION
-  int ngrow_state = 1;
+  // Radiation should always have at least one ghost zone.
+  int ngrow_state = std::max(1, state_nghost);
 #else
-  int ngrow_state = 0;
+  int ngrow_state = state_nghost;
 #endif
+
+  BL_ASSERT(ngrow_state >= 0);
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
-  
+
 #ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, 1, 1,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
-  
+
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,3,
@@ -358,7 +359,7 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
 			 &cell_cons_interp, state_data_extrap,store_in_checkpoint);
-  
+
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
@@ -389,19 +390,27 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-#ifdef SGS
-  // Component 0: prod_sgs
-  // Component 1: diss_sgs
-  // Component 2: turbulent forcing
+#ifdef SDC
+  // For SDC we want to store the source terms.
+
   store_in_checkpoint = true;
-  desc_lst.addDescriptor(SGS_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,1,3,
+  desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+
+  // We also want to store the reactions source.
+
+#ifdef REACTIONS
+  store_in_checkpoint = true;
+  desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point,NUM_GROW,QVAR,
+			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+#endif
 #endif
 
   Array<BCRec>       bcs(NUM_STATE);
   Array<std::string> name(NUM_STATE);
-  
+
   BCRec bc;
   cnt = 0;
   set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "density";
@@ -415,18 +424,15 @@ Castro::variableSetUp ()
 #endif
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_E";
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_e";
-#ifdef SGS
-  cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "rho_K";
-#endif
   cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = "Temp";
-  
+
   for (int i=0; i<NumAdv; ++i)
     {
       char buf[64];
       sprintf(buf, "adv_%d", i);
       cnt++; set_scalar_bc(bc,phys_bc); bcs[cnt] = bc; name[cnt] = string(buf);
     }
-  
+
   // Get the species names from the network model.
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
@@ -440,7 +446,7 @@ Castro::variableSetUp ()
     char_spec_names[len] = '\0';
     spec_names.push_back(std::string(char_spec_names));
   }
-  
+
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
@@ -521,13 +527,13 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> sources_name(NUM_STATE);    
-    
+  Array<std::string> sources_name(NUM_STATE);
+
   for (int i = 0; i < NUM_STATE; i++)
     sources_name[i] = name[i] + "_source";
-    
+
   desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));       
-    
+
 #ifdef LEVELSET
   desc_lst.setComponent(LS_State_Type,0,"LSphi",bc, BndryFunc(ca_phifill));
 #endif
@@ -544,11 +550,18 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
-#ifdef SGS
-  set_scalar_bc(bc,phys_bc);
-  desc_lst.setComponent(SGS_Type, 0, "prod_sgs", bc, BndryFunc(ca_sgsfill));
-  desc_lst.setComponent(SGS_Type, 1, "diss_sgs", bc, BndryFunc(ca_sgsfill));
-  desc_lst.setComponent(SGS_Type, 2, "turb_src", bc, BndryFunc(ca_sgsfill));
+#ifdef SDC
+  for (int i = 0; i < NUM_STATE; ++i)
+      sources_name[i] = "sdc_sources_" + name[i];
+  desc_lst.setComponent(SDC_Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+#ifdef REACTIONS
+  for (int i = 0; i < QVAR; ++i) {
+      char buf[64];
+      sprintf(buf, "sdc_react_source_%d", i);
+      set_scalar_bc(bc,phys_bc);
+      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_denfill));
+  }
+#endif
 #endif
 
 #ifdef RADIATION
@@ -739,21 +752,6 @@ Castro::variableSetUp ()
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,Density,NUM_STATE);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
-#endif
-
-#ifdef SGS
-  derive_lst.add("K",IndexType::TheCellType(),1,ca_dervel,the_same_box);
-  derive_lst.addComponent("K",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("K",desc_lst,State_Type,Esgs,1);
-
-  derive_lst.add("forcex",IndexType::TheCellType(),1,ca_derforcex,the_same_box);
-  derive_lst.addComponent("forcex",desc_lst,State_Type,Density,1);
-
-  derive_lst.add("forcey",IndexType::TheCellType(),1,ca_derforcey,the_same_box);
-  derive_lst.addComponent("forcey",desc_lst,State_Type,Density,1);
-
-  derive_lst.add("forcez",IndexType::TheCellType(),1,ca_derforcez,the_same_box);
-  derive_lst.addComponent("forcez",desc_lst,State_Type,Density,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);

@@ -15,7 +15,7 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, &
+                                     QREINT, QPRES, &
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
@@ -214,36 +214,6 @@ contains
          enddo
       enddo
 
-      ! Treat K as a passively advected quantity
-      if (QESGS .gt. -1) then
-         n = QESGS
-         do j = ilo2-1, ihi2+1
-            ! Right state
-            do i = ilo1, ihi1+1
-               u = q(i,j,k3d,QU)
-               if (u .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = u*dtdx
-               endif
-               acmprght = HALF*(-ONE - spzero )*dqx(i,j,kc,n)
-               qxp(i,j,kc,n) = q(i,j,k3d,n) + acmprght
-            enddo
- 
-            ! Left state
-            do i = ilo1-1, ihi1
-               u = q(i,j,k3d,QU)
-               if (u .ge. ZERO) then
-                  spzero = u*dtdx
-               else
-                  spzero = ONE
-               endif
-               acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
-               qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
-            enddo
-         enddo
-      endif
-
       do ipassive = 1, npassive
          n = qpass_map(ipassive)
 
@@ -414,37 +384,6 @@ contains
          enddo
       enddo
 
-      ! Treat K as a passively advected quantity
-      if (QESGS .gt. -1) then
-         n = QESGS
-         do i = ilo1-1, ihi1+1
- 
-            ! Top state
-            do j = ilo2, ihi2+1
-               v = q(i,j,k3d,QV)
-               if (v .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = v*dtdy
-               endif
-               acmptop = HALF*(-ONE - spzero )*dqy(i,j,kc,n)
-               qyp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
-            enddo
- 
-            ! Bottom state
-            do j = ilo2-1, ihi2
-               v = q(i,j,k3d,QV)
-               if (v .ge. ZERO) then
-                  spzero = v*dtdy
-               else
-                  spzero = ONE
-               endif
-               acmpbot = HALF*(ONE - spzero )*dqy(i,j,kc,n)
-               qym(i,j+1,kc,n) = q(i,j,k3d,n) + acmpbot
-            enddo
-         enddo
-      endif
-
       do ipassive = 1, npassive
          n = qpass_map(ipassive)
 
@@ -490,7 +429,7 @@ contains
 
       use network, only : nspec, naux
       use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                     QREINT, QESGS, QPRES, &
+                                     QREINT, QPRES, &
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
@@ -697,36 +636,6 @@ contains
 
          enddo
       enddo
-
-      ! Treat K as a passively advected quantity
-      if (QESGS .gt. -1) then
-         n = QESGS
-         do j = ilo2-1, ihi2+1
-            do i = ilo1-1, ihi1+1
- 
-               ! Top state
-               w = q(i,j,k3d,QW)
-               if (w .gt. ZERO) then
-                  spzero = -ONE
-               else
-                  spzero = w*dtdz
-               endif
-               acmptop = HALF*(-ONE - spzero )*dqz(i,j,kc,n)
-               qzp(i,j,kc,n) = q(i,j,k3d,n) + acmptop
- 
-               ! Bottom state
-               w = q(i,j,k3d-1,QW)
-               if (w .ge. ZERO) then
-                  spzero = w*dtdz
-               else
-                  spzero = ONE
-               endif
-               acmpbot = HALF*(ONE - spzero )*dqz(i,j,km,n)
-               qzm(i,j,kc,n) = q(i,j,k3d-1,n) + acmpbot
- 
-            enddo
-         enddo
-      endif
 
       do ipassive = 1, npassive
          n = qpass_map(ipassive)

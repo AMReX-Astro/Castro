@@ -34,8 +34,8 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 endif
 
-ifeq ($(USE_SGS), TRUE)
-  DEFINES += -DSGS
+ifeq ($(USE_SDC), TRUE)
+  DEFINES += -DSDC
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -130,7 +130,7 @@ ifndef MICROPHYSICS_HOME
 endif
 
 ifdef MICROPHYSICS_HOME
-      EOS_PATH := $(MICROPHYSICS_HOME)/eos/$(strip $(EOS_dir))
+      EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
       NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
 endif
 
@@ -183,7 +183,7 @@ EXTERN_CORE += $(NETWORK_PATH)
 # since it has actions that depend on variables set there.
 
 ifdef MICROPHYSICS_HOME
-  include $(MICROPHYSICS_HOME)/eos/Make.package
+  include $(MICROPHYSICS_HOME)/EOS/Make.package
   include $(MICROPHYSICS_HOME)/networks/Make.package
 endif
 
@@ -216,20 +216,6 @@ endif
 ifeq ($(USE_RAD), TRUE)
   INCLUDE_LOCATIONS += $(OPAC_PATH)
   VPATH_LOCATIONS   += $(OPAC_PATH)
-endif
-
-ifeq ($(USE_REACT), TRUE)
-VODE_dir    := $(TOP)/Util/VODE
-include $(VODE_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/VODE
-INCLUDE_LOCATIONS += $(VODE_dir) 
-VPATH_LOCATIONS   += $(VODE_dir) 
-
-BLAS_dir    := $(TOP)/Util/BLAS
-include $(BLAS_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/BLAS
-INCLUDE_LOCATIONS += $(BLAS_dir) 
-VPATH_LOCATIONS   += $(BLAS_dir) 
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -388,4 +374,3 @@ clean::
 # e.g. Fmlocs, simply do "make print-Fmlocs".  This will
 # print out the value.
 print-%: ; @echo $* is $($*) ; $(SILENT) $(RM) buildInfo.cpp
-

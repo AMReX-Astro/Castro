@@ -31,12 +31,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! Define reference pressure
   p_ref = 1.0d0
+
   ! Define r_0
   r_0   = 0.25d0
+
   ! Define rotating mach
   mach  = 0.0796d0
+
   ! Define ratio_c = r_c/r_0
   ratio_c = 0.15d0
+
   ! Define r_circ = circ/r_0*c_0
   r_circ  = 1.0d0
 
@@ -48,10 +52,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! Define rho_0
   rho_0 = p_ref**(1d0/gamma_const)
+
   ! Define c_0
   c_0   = sqrt(gamma_const*p_ref/rho_0)
+
   ! Define r_c, radius of each vortex
   r_c   = ratio_c*r_0
+
   ! Define circ
   circ  = r_circ*r_0*c_0 !4d0*M_PI*r_0*c_0*mach
  
@@ -132,7 +139,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         u =   vel_theta_1 * sin_theta_1 + vel_theta_2 * sin_theta_2 
         v = - vel_theta_1 * cos_theta_1 - vel_theta_2 * cos_theta_2
-       
+
         ! single species for all zones
         state(i,j,UFS) = 1.0d0
            
