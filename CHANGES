@@ -1,18 +1,21 @@
 * changes since the last release:
 
-  -- The sign on the gravitational potential has been flipped to be consistent
-     with the usual convention in the physics literature, i.e. the potential
-     is negative and we solve del**2 phi = 4 * pi * G * rho.
+  -- The sign on the gravitational potential has been flipped to be
+     consistent with the usual convention in the physics literature,
+     i.e. the potential is negative and we solve del**2 phi = 4 * pi *
+     G * rho.
 
-  -- Castro_advance.cpp has been significantly cleaned up. Each source term
-     (gravity, rotation, diffusion, etc.) has a MultiFab associated with it
-     through which it affects the state data. This has changed results slightly
-     (typically a relative change no larger than the 1e-4 level) due to updates
-     in the order of operations and consistency in usage on ghost zones.
+  -- Castro_advance.cpp has been significantly cleaned up. Each source
+     term (gravity, rotation, diffusion, etc.) has a MultiFab
+     associated with it through which it affects the state data. This
+     has changed results slightly (typically a relative change no
+     larger than the 1e-4 level) due to updates in the order of
+     operations and consistency in usage on ghost zones.
 
-  -- An iterative solver for coupling between reactions and hydrodynamics has been
-     introduced, which you can enable with USE_SDC = TRUE in the makefile. The number
-     of iterations done for each timestep is controlled with castro.sdc_max_iters.
+  -- An iterative solver for coupling between reactions and
+     hydrodynamics has been introduced, which you can enable with
+     USE_SDC = TRUE in the makefile. The number of iterations done for
+     each timestep is controlled with castro.sdc_max_iters.
 
   -- We changed the defaults for the gravity and rotation sources.
      now we do grav_source_type and rot_source_type = 4 by default.
