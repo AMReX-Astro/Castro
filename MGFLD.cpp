@@ -950,8 +950,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 void Radiation::compute_limiter(int level, const BoxArray& grids,
 				const MultiFab &Sborder, 
 				const MultiFab &Erborder,
-				MultiFab &lamborder,
-				MultiFab & kps)
+				MultiFab &lamborder)
 { // it works for both single- and multi-group
   int ngrow = lamborder.nGrow();
 
@@ -969,11 +968,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     MultiFab kpr(grids,Radiation::nGroups,ngrow);  
 
     if (do_multigroup) {
-	if (do_inelastic_scattering) {
-	    MGFLD_compute_rosseland_scattering(kpr, kps, Sborder);
-	} else {
-	    MGFLD_compute_rosseland(kpr, Sborder); 
-	}
+	MGFLD_compute_rosseland(kpr, Sborder); 
     }
     else {
       SGFLD_compute_rosseland(kpr, Sborder); 
@@ -1126,61 +1121,40 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
     }
 }
 
-
-void Radiation::MGFLD_compute_rosseland_scattering(MultiFab& kappa_r, MultiFab& kappa_s, const MultiFab& state)
+void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& state)
 {
-    BL_PROFILE("Radiation::MGFLD_compute_rosseland (MultiFab)");
+    BL_PROFILE("Radiation::MGFLD_compute_scattering");
+
+    const Box& kbox = kappa_s.box();
 
 #ifdef NEUTRINO
-    BoxLib::Error("Neutrino solver does not support inelastic scattering");
-#endif
-
-    BL_ASSERT(kappa_r_exp_p[0] == 0.0 && kappa_p_exp_p[0] == 0.0 && scattering_exp_p[0] == 0.0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi) {
-	const Box& bx = mfi.growntilebox();
-
-	if (use_opacity_table_module) {
-	    BL_FORT_PROC_CALL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
-		(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		 BL_TO_FORTRAN_3D(kappa_r[mfi]), 
-		 BL_TO_FORTRAN_3D(kappa_s[mfi]), 
-		 BL_TO_FORTRAN_3D(state[mfi]));
-	}
-	else {
-	    // a hack
+    BoxLib::Abort("MGFLD_compute_scattering: not supposted to be here");
+#else
+    if (use_opacity_table_module) {
+	BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
+		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
+		 BL_TO_FORTRAN_3D(kappa_s), 
+		 BL_TO_FORTRAN_3D(state));
+    } else {
+	BL_ASSERT(kappa_r_exp_p[0] == 0.0 && kappa_p_exp_p[0] == 0.0 && scattering_exp_p[0] == 0.0);
+	if (const_kappa_r[0] < 0.0) {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		 &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
-		 &prop_temp_floor[0], &kappa_r_floor);
-	    kappa_s[mfi].copy(kappa_r[mfi], bx, 0, bx, 0, 1);
-	    kappa_s[mfi].negate(bx);
-
-	    if (const_kappa_r[0] < 0.0) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
-		     &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
-		     &prop_temp_floor[0], &kappa_r_floor);	 
-	    }
-	    else {
-		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
-		     &prop_temp_floor[0], &kappa_r_floor);	 
-	    }
-
-	    kappa_s[mfi].plus(kappa_r[mfi], bx, 0, 0);
+		(kbox.loVect(), kbox.hiVect(),
+		 BL_TO_FORTRAN(kappa_s), BL_TO_FORTRAN(state),
+		 &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
+		 &prop_temp_floor[0], &kappa_r_floor);	 
+	    
+	} else {
+	    BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
+		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
+		 BL_TO_FORTRAN_3D(kappa_s), BL_TO_FORTRAN_3D(state),
+		 &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], 
+		 &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0],
+		 &prop_temp_floor[0], &kappa_r_floor);	 
 	}
     }
+#endif
 }
-
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
 			      MultiFab& rhoYe_new, MultiFab& Ye_new, 
@@ -1242,6 +1216,40 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 	    BL_FORT_PROC_CALL(CA_RHSTOER, ca_rhstoer)
 		(reg.loVect(), reg.hiVect(),
 		 BL_TO_FORTRAN(rhs[ri]), r.dataPtr(), &dt);
+	}
+    }
+}
+
+void Radiation::inelastic_scattering(int level)
+{
+    if (do_inelastic_scattering) {
+	Real dt = parent->dtLevel(level);
+	Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+	MultiFab& S_new = castro->get_new_data(State_Type);
+	MultiFab& Er_new = castro->get_new_data(Rad_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	{
+	    FArrayBox kps;
+	    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx = mfi.tilebox();
+
+		kps.resize(bx,1); // we assume scattering is independent of nu
+		MGFLD_compute_scattering(kps, S_new[mfi]);
+
+		ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				 BL_TO_FORTRAN_3D(S_new[mfi]),
+				 BL_TO_FORTRAN_3D(Er_new[mfi]),
+				 BL_TO_FORTRAN_3D(kps),
+				 dt);		
+	    }
+	}
+
+	if (do_real_eos > 0) {
+	    computeTemp(S_new, 0);
 	}
     }
 }

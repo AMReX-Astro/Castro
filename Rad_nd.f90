@@ -254,8 +254,7 @@
 
 ! ::: -----------------------------------------------------------
 
-      subroutine ca_compute_ros_sct(lo, hi, &
-           kpr,kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3, &
+      subroutine ca_compute_scattering(lo, hi, &
            kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
            sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3)
 
@@ -267,48 +266,92 @@
         implicit none
 
         integer, intent(in) :: lo(3), hi(3)
-        integer, intent(in) :: kpr_l1,kpr_l2,kpr_l3,kpr_h1,kpr_h2,kpr_h3
         integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
         integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
-        double precision, intent(inout) :: kpr(kpr_l1:kpr_h1,kpr_l2:kpr_h2,kpr_l3:kpr_h3,0:ngroups-1)
         double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
         double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
 
-        integer :: i, j, k, g
+        integer :: i, j, k
         double precision :: kp, kr, nu, rho, temp, Ye
         logical, parameter :: comp_kp = .true.
         logical, parameter :: comp_kr = .true.
 
-        do g=0, ngroups-1
+        ! scattering is assumed to be independent of nu.
 
-           nu = nugroup(g)
+        nu = nugroup(0)
 
-           do k = lo(3), hi(3)
+        do k = lo(3), hi(3)
            do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
+              do i = lo(1), hi(1)
 
-              rho = sta(i,j,k,URHO)
-              temp = sta(i,j,k,UTEMP)
-              if (naux > 0) then
-                 Ye = sta(i,j,k,UFX)
-              else
-                 Ye = 0.d0
-              end if
+                 rho = sta(i,j,k,URHO)
+                 temp = sta(i,j,k,UTEMP)
+                 if (naux > 0) then
+                    Ye = sta(i,j,k,UFX)
+                 else
+                    Ye = 0.d0
+                 end if
+                 
+                 call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
 
-              call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-              kpr(i,j,k,g) = kr
-
-              if (g .eq. 0) then
                  kps(i,j,k) = max(kr - kp, 0.d0)
-              end if
-
-           end do
-           end do
+              end do
            end do
         end do
 
-      end subroutine ca_compute_ros_sct
+      end subroutine ca_compute_scattering
+
+      subroutine ca_compute_scattering_2(lo, hi, &
+           kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
+           sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3, &
+           k0_p, m_p, n_p, &
+           k0_r, m_r, n_r, &
+           Tfloor, kfloor)
+
+        use rad_params_module, only : ngroups, nugroup
+        use meth_params_module, only : NVAR, URHO, UTEMP
+
+        implicit none
+
+        integer, intent(in) :: lo(3), hi(3)
+        integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
+        integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
+        double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
+        double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
+        double precision, intent(in) :: k0_p, m_p, n_p
+        double precision, intent(in) :: k0_r, m_r, n_r
+        double precision, intent(in) :: Tfloor, kfloor
+
+        integer :: i, j, k
+        double precision, parameter :: tiny = 1.0d-50
+        double precision :: Teff, k_p, k_r
+
+        ! scattering is assumed to be independent of nu.
+
+        if ( m_p.eq.0.d0 .and. n_p.eq.0.d0 .and. &
+             m_r.eq.0.d0 .and. n_r.eq.0.d0 ) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)
+                    kps(i,j,k) = k0_r - k0_p
+                 end do
+              end do
+           end do
+        else 
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)
+                    Teff = max(sta(i,j,k,UTEMP), tiny)
+                    Teff = Teff + Tfloor * exp(-Teff / (Tfloor + tiny))
+                    k_p = k0_p * (sta(i,j,k,URHO) ** m_p) * (Teff ** (-n_p))
+                    k_r = k0_r * (sta(i,j,k,URHO) ** m_r) * (Teff ** (-n_r))
+                    kps(i,j,k) = max(k_r-k_p, kfloor)
+                 end do
+              end do
+           end do
+        end if
+
+      end subroutine ca_compute_scattering_2
 
       subroutine init_godunov_indices_rad() bind(C)
 

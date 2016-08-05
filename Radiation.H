@@ -159,6 +159,8 @@ public:
 
   void MGFLD_implicit_update(int level, int iteration, int ncycle);
 
+  void inelastic_scattering(int level);
+
   void write_groups(ostream& os);
 
   void reflux(int level);
@@ -166,8 +168,7 @@ public:
   void compute_limiter(int level, const BoxArray& grids,
 		       const MultiFab &Sborder, 
 		       const MultiFab &Erborder,
-		       MultiFab &lamborder,
-		       MultiFab &kappa_s);
+		       MultiFab &lamborder);
 
   void estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
 		       FArrayBox& gPr, const Real* dx, const Box& box);
@@ -400,7 +401,8 @@ protected:
   // for the hyperbolic solver
   void MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state);
   void MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& state);
-  void MGFLD_compute_rosseland_scattering(MultiFab& kappa_r, MultiFab& kappa_s, const MultiFab& state);
+
+  void MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& state);
 
   void rhstoEr(MultiFab& rhs, Real dt, int level);
 

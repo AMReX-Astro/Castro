@@ -574,11 +574,17 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
-BL_FORT_PROC_DECL(CA_COMPUTE_ROS_SCT, ca_compute_ros_sct)
+BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
    (const int * lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(kpr),
     BL_FORT_FAB_ARG_3D(kps),
     const BL_FORT_FAB_ARG_3D(state));
+BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
+   (const int * lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(kps),
+    const BL_FORT_FAB_ARG_3D(state),
+    const Real* k0_p, const Real* m_p, const Real* n_p,
+    const Real* k0_r, const Real* m_r, const Real* n_r,
+    const Real* Tfloor, const Real* kfloor);
 BL_FORT_PROC_DECL(CA_COMPUTE_PLANCK, ca_compute_planck)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpp),

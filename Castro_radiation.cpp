@@ -36,6 +36,7 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
 		MultiFab& Er_new = get_new_data(Rad_Type);
 		Er_new.copy(Er_old);	
 	    }
+	    radiation->inelastic_scattering(level);
 	    radiation->MGFLD_implicit_update(level, iteration, ncycle);
 	}
 	else if (Radiation::SolverType == Radiation::SGFLDSolver) {
