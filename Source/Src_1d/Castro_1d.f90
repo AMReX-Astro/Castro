@@ -56,7 +56,6 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   double precision :: dx,E_added_flux,mass_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
-  double precision :: mass_added, eint_added, eden_added, frac_change
   double precision :: mass_lost,xmom_lost,ymom_lost,zmom_lost
   double precision :: eden_lost,xang_lost,yang_lost,zang_lost
   integer i,ngf,ngq
