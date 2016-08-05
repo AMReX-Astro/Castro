@@ -505,7 +505,7 @@ contains
     endif
 
     allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(2*iter_max))
+    allocate (pstar_hist_extra(iter_max))
 
     do j = jlo, jhi
        do i = ilo, ihi
@@ -592,8 +592,6 @@ contains
           ! gammas
           gmin = min(gamel, gamer, ONE, FOUR3RD)
           gmax = max(gamel, gamer, TWO, FIVE3RD)
-
-          print *, gamel, gamer
 
           game_bar = HALF*(gamel + gamer)
           gamc_bar = HALF*(gcl + gcr)
@@ -684,7 +682,6 @@ contains
              if (err < tol*pstar) converged = .true.
 
              pstar_hist(iter) = pstar
-             print *, iter, pstar
 
              iter = iter + 1
 
@@ -716,110 +713,34 @@ contains
 
              else if (cg_blend .eq. 2) then
 
-                ! we want to zero
-                ! f(p*) = u*_l(p*) - u*_r(p*)
-                ! we'll do bisection
-
                 ! first try to find a reasonable bounds 
                 pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
                 pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
 
-                !pstar_hi = max(pstar_hi, pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr))
-
-                print *, "bounds : ", pstar_lo, pstar_hi
-
-                ! lo bounds
-                call wsqge(pl, taul, gamel, gdot,  &
-                           gamstar, pstar_lo, wlsq, clsql, gmin, gmax)
-
-                call wsqge(pr, taur, gamer, gdot,  &
-                           gamstar, pstar_lo, wrsq, clsqr, gmin, gmax)
-
-                wl = ONE / sqrt(wlsq)
-                wr = ONE / sqrt(wrsq)
-
-                ustar_l = ul - (pstar_lo - pstar)*wl
-                ustar_r = ur + (pstar_lo - pstar)*wr
-
-                f_lo = ustar_l - ustar_r
-
-
-                ! hi bounds
-                call wsqge(pl, taul, gamel, gdot,  &
-                           gamstar, pstar_hi, wlsq, clsql, gmin, gmax)
-
-                call wsqge(pr, taur, gamer, gdot,  &
-                           gamstar, pstar_hi, wrsq, clsqr, gmin, gmax)
-
-                wl = ONE / sqrt(wlsq)
-                wr = ONE / sqrt(wrsq)
-
-                ustar_l = ul - (pstar_hi - pstar)*wl
-                ustar_r = ur + (pstar_hi - pstar)*wr
-
-                f_hi = ustar_l - ustar_r
-                
-                print *, "about to bisect: ", f_lo, f_hi
-                ! bisection
-                iter = 1
-                do while (iter <= iter_max)
-
-                   pstar_c = HALF * (pstar_lo + pstar_hi)
-
-                   pstar_hist_extra(iter) = pstar_c
-
-                   call wsqge(pl, taul, gamel, gdot,  &
-                              gamstar, pstar_c, wlsq, clsql, gmin, gmax)
-
-                   call wsqge(pr, taur, gamer, gdot,  &
-                              gamstar, pstar_c, wrsq, clsqr, gmin, gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustar_l = ul - (pstar_c - pl)*wl
-                   ustar_r = ur - (pstar_c - pr)*wr
-
-                   f_c = ustar_l - ustar_r
-
-                   if ( HALF * abs(pstar_lo - pstar_hi) < cg_tol * pstar_c ) then
-                      converged = .true.
-                      exit
-                   endif
-
-                   if (f_lo * f_c < ZERO) then
-                      ! root is in the left half
-                      pstar_hi = pstar_c
-                      f_hi = f_c
-                   else
-                      pstar_lo = pstar_c
-                      f_lo = f_c
-                   endif
-
-                   print *, "here, ", pstar_c
-
-                enddo
+                call pstar_bisection(pstar_lo, pstar_hi, &
+                                     ul, pl, taul, gamel, clsql, &
+                                     ur, pr, taur, gamer, clsqr, &
+                                     gdot, gmin, gmax, &
+                                     pstar, gamstar, converged, pstar_hist_extra)
 
                 if (.not. converged) then
-
+                   ! abort -- doesn't seem solvable
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
                    enddo
-                   do iter = 1, 2 * iter_max
-                      print *, iter + iter_max, pstar_hist_extra(iter)
+
+                   do iter = 1, iter_max
+                      print *, iter+iter_max, pstar_hist_extra(iter)
                    enddo
 
                    print *, ' '
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                    print *, 'cav, smallc:',  cav(i,j), csmall
-                   
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif
-
-                pstar = pstar_c
 
              else
 
