@@ -434,13 +434,14 @@ public:
                             Real dt);
 
 #ifdef DIFFUSION
-  void construct_old_diff_source(Real time, Real dt);
-
-  void construct_new_diff_source(Real time, Real dt);
+    void construct_old_diff_source(Real time, Real dt);
+    void construct_new_diff_source(Real time, Real dt);
 
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+#if (BL_SPACEDIM == 1)
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
+#endif
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
     void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
@@ -452,17 +453,12 @@ public:
 #endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void time_center_enth_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
+#if (BL_SPACEDIM == 1)
     void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void full_spec_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
+#endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
                                        MultiFab& ViscousTermforEnergy, Real t);
-    void time_center_viscous_term     (MultiFab& S_new, MultiFab& OldViscousTermforMomentum, 
-                                       MultiFab& ViscousTermforEnergy, Real  cur_time, Real dt);
 #endif
 #endif
 
