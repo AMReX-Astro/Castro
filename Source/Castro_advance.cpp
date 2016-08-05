@@ -393,6 +393,14 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     }
 #endif
 
+#ifdef RADIATION
+    if (!do_hydro && Radiation::rad_hydro_combined) {
+	MultiFab& Er_old = get_old_data(Rad_Type);
+	MultiFab& Er_new = get_new_data(Rad_Type);
+	Er_new.copy(Er_old);
+    }
+#endif
+
 }
 
 
