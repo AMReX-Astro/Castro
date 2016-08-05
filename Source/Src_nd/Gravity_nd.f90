@@ -126,14 +126,14 @@ contains
   ! ::
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! Integrates radial mass elements of a spherically symmetric          
-  ! mass distribution to calculate both the gravitational acceleration,  
-  ! grav, and the gravitational potential, phi. Here the mass variable   
-  ! gives the mass contained in each radial shell.                      
-  !                                                                     
-  ! The convention in Castro for Poisson's equation is                  
-  !                                                                     
-  !     laplacian(phi) = -4*pi*G*rho                                    
+  ! Integrates radial mass elements of a spherically symmetric
+  ! mass distribution to calculate both the gravitational acceleration,
+  ! grav, and the gravitational potential, phi. Here the mass variable
+  ! gives the mass contained in each radial shell.
+  !
+  ! The convention in Castro for Poisson's equation is
+  !
+  !     laplacian(phi) = 4*pi*G*rho
   !
   ! The gravitational acceleration is then
   !
@@ -144,7 +144,7 @@ contains
   ! The strategy for calculating the potential is to calculate the potential
   ! at the boundary assuming all the mass is enclosed:
   !
-  !     phi(R) = G * M / R 
+  !     phi(R) = -G * M / R
   !
   ! Then, the potential in all other zones can be found using
   !
@@ -155,7 +155,7 @@ contains
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
-       bind(C, name="ca_integrate_phi")
+                               bind(C, name="ca_integrate_phi")
 
     use fundamental_constants_module, only : Gconst
 
@@ -179,7 +179,7 @@ contains
     enddo
 
     mass_encl = mass_encl + mass(numpts_1d-1)
-    phiBC = Gconst * mass_encl / (numpts_1d*dr)
+    phiBC = -Gconst * mass_encl / (numpts_1d*dr)
     gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
     phi(numpts_1d-1) = phiBC - gravBC * dr
 
@@ -549,7 +549,7 @@ contains
 
                 enddo
 
-                phi(i,j,k) = Gconst * phi(i,j,k) / rmax
+                phi(i,j,k) = -Gconst * phi(i,j,k) / rmax
 
              endif
 

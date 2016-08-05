@@ -45,7 +45,7 @@ Update the solution due to the effect of reactions over half a time step.
 Solve for gravity using:
 \begin{equation}
 \gb^n = \nabla\phi^n, \qquad 
-\Delta\phi^n = -4\pi G\rho^n,
+\Delta\phi^n = 4\pi G\rho^n,
 \end{equation}
 or use one of the simpler gravity types.
 
@@ -118,7 +118,7 @@ Section \ref{Sec:Advection Step}.  Here is the summarized version:
 
 Solve for gravity using:
 \begin{equation}
-\gb^{n+1} = \nabla\phi^{n+1}; \qquad \Delta\phi^{n+1} = -4\pi G\rho^{n+1},
+\gb^{n+1} = \nabla\phi^{n+1}; \qquad \Delta\phi^{n+1} = 4\pi G\rho^{n+1},
 \end{equation}
 or use one of the simpler gravity types.
 \item[Step 6:] {\em Correct solution with time-centered source terms.}

@@ -5,6 +5,7 @@
 
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
+int         Castro::state_nghost = 0;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;
@@ -45,9 +46,7 @@ int         Castro::allow_negative_energy = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-#ifdef SGS
-Real        Castro::sum_turb_src = 0.0;
-#endif
+int         Castro::update_state_between_sources = 1;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
@@ -57,6 +56,7 @@ Real        Castro::init_shrink = 1.0;
 Real        Castro::change_max = 1.1;
 int         Castro::use_retry = 0;
 Real        Castro::retry_neg_dens_factor = 1.e-1;
+int         Castro::sdc_iters = 2;
 Real        Castro::dtnuc_e = 1.e200;
 Real        Castro::dtnuc_X = 1.e200;
 int         Castro::dtnuc_mode = 1;

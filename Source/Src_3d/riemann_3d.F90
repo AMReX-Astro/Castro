@@ -4,9 +4,9 @@ module riemann_module
   use bl_constants_module
   use riemann_util_module
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                 QPRES, QGAME, QREINT, QESGS, QFS, &
+                                 QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                 UESGS, UFS, UFX, &
+                                 UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
@@ -1031,29 +1031,6 @@ contains
           uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
           uflx(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
 
-
-          ! Treat K as a passively advected quantity but allow it to
-          ! affect fluxes of (rho E) and momenta.
-          if (UESGS .gt. -1) then
-             n  = UESGS
-             nq = QESGS
-             if (ustar .gt. ZERO) then
-                qavg = ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                qavg = qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-             endif
-
-             uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-
-             rho_K_contrib =  TWO3RD * qint(i,j,kc,GDRHO) * qavg
-
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
-
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + u_adv * rho_K_contrib
-          end if
-
           us1d(i) = ustar
        end do
 
@@ -1521,31 +1498,6 @@ contains
           uflx(i,j,kflux,UEINT) = u_adv*regdnv
 #endif
 
-          ! Treat K as a passively advected quantity but allow it to
-          ! affect fluxes of (rho E) and momenta.
-          if (UESGS > -1) then
-             n  = UESGS
-             nq = QESGS
-
-             if (ustar > ZERO) then
-                qavg = ql(i,j,kc,nq)
-
-             else if (ustar < ZERO) then
-                qavg = qr(i,j,kc,nq)
-
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-             endif
-
-             uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-
-             rho_K_contrib =  TWO3RD * qint(i,j,kc,GDRHO) * qavg
-
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
-
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + u_adv * rho_K_contrib
-          end if
-
           ! store this for vectorization
           us1d(i) = ustar
 
@@ -1655,10 +1607,6 @@ contains
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c
-
-    if (UESGS > 0) then
-       call bl_error("ERROR: HLLC doesn't support SGS")
-    endif
 
     if (idir .eq. 1) then
        iu = QU

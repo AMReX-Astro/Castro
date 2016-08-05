@@ -37,7 +37,7 @@ castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
-amr.data_log          = "toy_flame"
+amr.data_log          = "toy_flame.log"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 

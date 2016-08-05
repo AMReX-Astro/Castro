@@ -1,6 +1,7 @@
 
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
+CEXE_sources += Castro_hydro.cpp
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_error.cpp 
 CEXE_sources += Castro_io.cpp 
@@ -11,13 +12,14 @@ CEXE_headers += castro_params.H
 CEXE_headers += castro_queries.H
 CEXE_headers += castro_defaults.H
 
-
 CEXE_headers += Castro.H
 CEXE_headers += Castro_io.H
 CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 FEXE_headers += Problem_Derive_F.H
 
+CEXE_sources += Castro_sponge.cpp
+CEXE_sources += Castro_external.cpp
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 CEXE_sources += Prob.cpp
@@ -34,6 +36,11 @@ ifeq ($(USE_GRAV), TRUE)
 CEXE_sources += Gravity.cpp
 CEXE_headers += Gravity.H
 FEXE_headers += Gravity_F.H
+CEXE_sources += Castro_gravity.cpp
+endif
+
+ifeq ($(USE_POINTMASS), TRUE)
+CEXE_sources += Castro_pointmass.cpp
 endif
 
 ifeq ($(USE_ROTATION), TRUE)
@@ -44,8 +51,16 @@ ifeq ($(USE_PARTICLES), TRUE)
 CEXE_sources += CastroParticles.cpp
 endif
 
+ifeq ($(USE_LEVELSET), TRUE)
+CEXE_sources += Castro_levelset.cpp
+endif
+
 ifeq ($(USE_DIFFUSION), TRUE)
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
 CEXE_headers += Diffusion.H
+endif
+
+ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
+CEXE_sources += Castro_hybrid.cpp
 endif
