@@ -12,8 +12,8 @@ module actual_eos_module
 
   implicit none
 
-  character (len=64) :: eos_name = "gamma_law"  
-  
+  character (len=64) :: eos_name = "gamma_law"
+
   double precision, save :: gamma_const
 
   logical, save :: assume_neutral
@@ -25,7 +25,7 @@ contains
     use extern_probin_module, only: eos_gamma, eos_assume_neutral
 
     implicit none
- 
+
     ! constant ratio of specific heats
     if (eos_gamma .gt. 0.d0) then
        gamma_const = eos_gamma
@@ -54,19 +54,19 @@ contains
     double precision :: poverrho
 
     ! Calculate mu.
-    
+
     if (assume_neutral) then
        state % mu = state % abar
     else
        state % mu = ONE / sum( (ONE + zion(:)) * state % xn(:) / aion(:) )
-    endif    
-    
+    endif
+
     select case (input)
 
     case (eos_input_rt)
 
        ! dens, temp and xmass are inputs
-       state % cv = R / (state % mu * (gamma_const-ONE)) 
+       state % cv = R / (state % mu * (gamma_const-ONE))
        state % e = state % cv * state % T
        state % p = (gamma_const-ONE) * state % rho * state % e
        state % gam1 = gamma_const
@@ -75,14 +75,18 @@ contains
 
        ! dens, enthalpy, and xmass are inputs
 
-!       call bl_error('EOS: eos_input_rh is not supported in this EOS.')
+#ifndef ACC
+       call bl_error('EOS: eos_input_rh is not supported in this EOS.')
+#endif
 
     case (eos_input_tp)
 
        ! temp, pres, and xmass are inputs
 
-!       call bl_error('EOS: eos_input_tp is not supported in this EOS.')
-       
+#ifndef ACC
+       call bl_error('EOS: eos_input_tp is not supported in this EOS.')
+#endif
+
     case (eos_input_rp)
 
        ! dens, pres, and xmass are inputs
@@ -101,43 +105,51 @@ contains
        state % p = poverrho * state % rho
        state % T = poverrho * state % mu * (ONE/R)
        state % gam1 = gamma_const
-       
+
        ! sound speed
        state % cs = sqrt(gamma_const * poverrho)
 
        state % dpdr_e = poverrho
        state % dpde = (gamma_const-ONE) * state % rho
 
-       ! Try to avoid the expensive log function.  Since we don't need entropy 
+       ! Try to avoid the expensive log function.  Since we don't need entropy
        ! in hydro solver, set it to an invalid but "nice" value for the plotfile.
-       state % s = ONE  
+       state % s = ONE
 
     case (eos_input_ps)
 
        ! pressure entropy, and xmass are inputs
 
+#ifndef ACC
        call bl_error('EOS: eos_input_ps is not supported in this EOS.')
-       
+#endif
+
     case (eos_input_ph)
 
        ! pressure, enthalpy and xmass are inputs
 
+#ifndef ACC
        call bl_error('EOS: eos_input_ph is not supported in this EOS.')
-       
+#endif
+
     case (eos_input_th)
 
        ! temperature, enthalpy and xmass are inputs
 
        ! This system is underconstrained.
-       
+
+#ifndef ACC
        call bl_error('EOS: eos_input_th is not a valid input for the gamma law EOS.')
+#endif
 
     case default
-       
+
+#ifndef ACC
        call bl_error('EOS: invalid input.')
-       
+#endif
+
     end select
-    
+
   end subroutine actual_eos
 
 end module actual_eos_module
