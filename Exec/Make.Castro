@@ -11,7 +11,7 @@ EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS, Networks and Util
 # this list will be searched for runtime parameters
-EXTERN_CORE :=
+EXTERN_CORE ?=
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 
