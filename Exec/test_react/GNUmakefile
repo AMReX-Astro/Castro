@@ -26,7 +26,8 @@ INTEGRATOR_DIR := BS
 
 f90EXE_sources += testburn.f90
 
-BLOCS += .
+BLOCS = .
+EXTERN_CORE = .
 
 include $(CASTRO_HOME)/Exec/Make.Castro
 

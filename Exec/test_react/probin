@@ -13,4 +13,11 @@
   atol_temp = 1.d-6
   use_tables = T
 
+  ncell = 8
+  dt = 1.d-3
+  dens_min = 1.0d7
+  dens_max = 1.0d7
+  temp_min = 5.0d9
+  temp_max = 5.0d9
+
 /

@@ -7,26 +7,20 @@ subroutine do_burn() bind(C)
   use actual_rhs_module, only: actual_rhs_init
   use meth_params_module
   use reactions_module, only: ca_react_state
-  use extern_probin_module
+  use extern_probin_module, only: ncell, dt, dens_min, dens_max, temp_min, temp_max
 
   implicit none
 
   integer, parameter :: nv = 7 + nspec
 
-  double precision, parameter :: time = 0.0d0, dt = 1.0d-3
+  double precision, parameter :: time = 0.0d0
 
-  integer, parameter :: lo(3) = [0, 0, 0]
-  integer, parameter :: hi(3) = [7, 7, 7]
-  integer, parameter :: w(3) = hi - lo + 1
-
-  double precision, parameter :: dens_min = 1.0d7, dens_max = 5.0d7
-  double precision, parameter :: temp_min = 1.0d9, temp_max = 5.0d9
+  integer :: lo(3), hi(3), w(3)
 
   double precision :: dlogrho, dlogT
 
-  double precision :: state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nv)
-  double precision :: reactions(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nspec+2)
-  integer          :: mask(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
+  double precision, allocatable :: state(:,:,:,:), reactions(:,:,:,:)
+  integer, allocatable :: mask(:,:,:)
 
   integer :: i, j, k
 
@@ -67,7 +61,13 @@ subroutine do_burn() bind(C)
 
   !$acc update device(URHO, UTEMP, UEINT, UEDEN, UMX, UMY, UMZ, UFS, UFX)
 
-  ! Update the extern probin variables
+  lo = [0, 0, 0]
+  hi = [ncell, ncell, ncell]
+  w = hi - lo + 1
+
+  allocate(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),NVAR))
+  allocate(reactions(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nspec+2))
+  allocate(mask(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
 
   dlogrho = (log10(dens_max) - log10(dens_min)) / w(1)
   dlogT   = (log10(temp_max) - log10(temp_min)) / w(2)
