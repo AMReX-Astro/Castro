@@ -1,7 +1,5 @@
 module actual_rhs_module
 
-  use burn_type_module
-
   implicit none
 
 contains
@@ -15,6 +13,11 @@ contains
 
 
   subroutine actual_rhs(state)
+
+    !$acc routine seq
+
+    use burn_type_module, only: burn_t
+    use bl_constants_module, only: ZERO
 
     implicit none
 
@@ -30,6 +33,11 @@ contains
 
   subroutine actual_jac(state)
 
+    !$acc routine seq
+
+    use burn_type_module, only: burn_t
+    use bl_constants_module, only: ZERO
+
     implicit none
 
     type (burn_t) :: state
@@ -40,9 +48,13 @@ contains
 
   end subroutine actual_jac
 
+
+
   subroutine update_unevolved_species(state)
 
     !$acc routine seq
+
+    use burn_type_module, only: burn_t
 
     implicit none
 
