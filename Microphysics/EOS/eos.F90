@@ -153,11 +153,7 @@ contains
     state % smallt = mintemp
     state % smalld = mindens
 
-    ! Check to make sure the inputs are valid.
-
-#ifndef ACC
-    call check_inputs(input, state)
-#endif
+    ! Force the inputs to be valid.
 
     has_been_reset = .false.
     call reset_inputs(input, state, has_been_reset)
@@ -273,16 +269,12 @@ contains
 
     !$acc routine seq
 
-    use meth_params_module, only: allow_negative_energy
-
     implicit none
 
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
-    if (state % e .le. ZERO .and. allow_negative_energy .eq. 0) then
-       state % T = min(maxtemp, max(mintemp, state % T))
-       state % rho = min(maxdens, max(mindens, state % rho))
+    if (state % e .lt. mine .or. state % e .gt. maxe) then
        call eos_reset(state, has_been_reset)
     endif
 
@@ -299,9 +291,7 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
-    if (state % h .le. ZERO) then
-       state % T = min(maxtemp, max(mintemp, state % T))
-       state % rho = min(maxdens, max(mindens, state % rho))
+    if (state % h .lt. minh .or. state % h .gt. maxh) then
        call eos_reset(state, has_been_reset)
     endif
 
@@ -318,9 +308,7 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
-    if (state % s .le. ZERO) then
-       state % T = min(maxtemp, max(mintemp, state % T))
-       state % rho = min(maxdens, max(mindens, state % rho))
+    if (state % s .lt. mins .or. state % s .gt. maxs) then
        call eos_reset(state, has_been_reset)
     endif
 
@@ -337,13 +325,36 @@ contains
     type (eos_t), intent(inout) :: state
     logical,      intent(inout) :: has_been_reset
 
-    if (state % p .le. ZERO) then
-       state % T = min(maxtemp, max(mintemp, state % T))
-       state % rho = min(maxdens, max(mindens, state % rho))
+    if (state % p .lt. minp .or. state % p .gt. maxp) then
        call eos_reset(state, has_been_reset)
     endif
 
   end subroutine reset_p
+
+
+
+  ! Given an EOS state, ensure that rho and T are
+  ! valid, then call with eos_input_rt.
+
+  subroutine eos_reset(state, has_been_reset)
+
+    !$acc routine seq
+
+    use actual_eos_module
+
+    implicit none
+
+    type (eos_t), intent(inout) :: state
+    logical,      intent(inout) :: has_been_reset
+
+    state % T = min(maxtemp, max(mintemp, state % T))
+    state % rho = min(maxdens, max(mindens, state % rho))
+
+    call actual_eos(eos_input_rt, state)
+
+    has_been_reset = .true.
+
+  end subroutine eos_reset
 
 
 
@@ -542,29 +553,5 @@ contains
 
   end subroutine check_p
 #endif
-
-
-
-  ! Given an EOS vector and an input i,
-  ! the code has reset some characteristic of that
-  ! state element and we now want to call the EOS just
-  ! on that zone to reset its state values.
-
-  subroutine eos_reset(state, has_been_reset)
-
-    !$acc routine seq
-
-    use actual_eos_module
-
-    implicit none
-
-    type (eos_t), intent(inout) :: state
-    logical,      intent(inout) :: has_been_reset
-
-    call actual_eos(eos_input_rt, state)
-
-    has_been_reset = .true.
-
-  end subroutine eos_reset
 
 end module eos_module
