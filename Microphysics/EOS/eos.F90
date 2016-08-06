@@ -327,6 +327,7 @@ contains
        else if (state % xn(n) .gt. maxx) then
           call print_state(state)
           call bl_error('EOS: mass fraction more than maximum possible mass fraction.')
+       endif
     enddo
 
     if (state % y_e .lt. minye) then
