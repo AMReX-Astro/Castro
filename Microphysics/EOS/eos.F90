@@ -155,14 +155,12 @@ contains
 
     ! Check to make sure the inputs are valid.
 
-    has_been_reset = .false.
-
-    if (state % check_inputs) then
 #ifndef ACC
-       call check_inputs(input, state)
+    call check_inputs(input, state)
 #endif
-       call reset_inputs(input, state, has_been_reset)
-    endif
+
+    has_been_reset = .false.
+    call reset_inputs(input, state, has_been_reset)
 
     ! Call the EOS.
 

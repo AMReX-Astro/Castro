@@ -98,17 +98,7 @@ module eos_type_module
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
 
-  ! Initialize the main quantities to an unphysical number
-  ! so that we know if the user forgot to initialize them
-  ! when calling the EOS in a particular mode.
-
-  double precision, parameter :: init_num  = -1.0d200
-  double precision, parameter :: init_test = -1.0d199
-
   type :: eos_t
-
-    ! Input quantities; these should be initialized
-    ! so that we can do sanity checks.
 
     double precision :: rho
     double precision :: T
@@ -118,10 +108,6 @@ module eos_type_module
     double precision :: s
     double precision :: xn(nspec)
     double precision :: aux(naux)
-
-    ! We choose not to initialize other quantities,
-    ! due to a compiler bug in PGI that prevents us
-    ! from using them correctly on GPUs with OpenACC.
 
     double precision :: dpdT
     double precision :: dpdr
@@ -160,10 +146,6 @@ module eos_type_module
 
     double precision :: smallt
     double precision :: smalld
-
-    logical :: reset
-    logical :: check_small
-    logical :: check_inputs
 
   end type eos_t
 

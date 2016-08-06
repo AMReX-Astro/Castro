@@ -165,8 +165,6 @@ contains
     eos_state % abar = burn_state % abar
     eos_state % zbar = burn_state % zbar
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
   end subroutine burn_to_eos
 
 

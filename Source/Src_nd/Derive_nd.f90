@@ -120,8 +120,6 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -182,8 +180,6 @@ contains
              eos_state % rho = dat(i,j,k,URHO)
              eos_state % xn  = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
              eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
 
              call eos(eos_input_re, eos_state)
 
@@ -501,8 +497,6 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -626,8 +620,6 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -677,8 +669,6 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -727,8 +717,6 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

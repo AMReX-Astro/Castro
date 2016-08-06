@@ -38,8 +38,6 @@ contains
     double precision :: vel(3)
 #endif
 
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
     ! Call EOS for the purpose of computing sound speed
 
     do k = lo(3), hi(3)

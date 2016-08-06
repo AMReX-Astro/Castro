@@ -105,8 +105,6 @@ contains
 
     logical :: reset_state
 
-    eos_state % check_small = .false.
-
     !-------------------------------------------------------------------
     ! add the transverse flux difference in the x-direction to y-states
     ! for the fluid variables
@@ -552,9 +550,6 @@ contains
     type (eos_t) :: eos_state
 
     logical :: reset_state
-
-    eos_state % check_small = .false.
-
 
     !-------------------------------------------------------------------
     ! add the transverse flux difference in the y-direction to x-states
