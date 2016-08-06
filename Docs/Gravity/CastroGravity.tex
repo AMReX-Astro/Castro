@@ -7,7 +7,7 @@ USE_GRAV = TRUE
 \end{verbatim}
 in the {\tt GNUmakefile}, and then turn it on in the {\tt inputs} file
 via {\tt castro.do\_grav = 1}.  If you want to incorporate a point mass
-(through {\tt castro.point\_mass}, you must have
+(through {\tt castro.point\_mass}), you must have
 \begin{verbatim}
 USE_POINTMASS = TRUE
 \end{verbatim}
@@ -25,9 +25,6 @@ abort.
 Some additional notes:
 \begin{itemize}
 
-\item Gravity types are {\tt ConstantGrav}, {\tt PoissonGrav}, or {\tt
-  MonopoleGrav}.  This is only relevant if {\tt castro.do\_grav = 1}
-
 \item For the full Poisson solver ({\tt gravity.gravity\_type =
   PoissonGrav}), the behavior of the full Poisson solve / multigrid
 solver is controlled by {\tt gravity.no\_sync} and {\tt
@@ -39,10 +36,8 @@ and {\tt gravity.direct\_sum\_bcs} control the accuracy of the
 Dirichlet boundary conditions.  These are described in Section
 \ref{sec-poisson-3d-bcs}.
 
-\item {\tt MonopoleGrav} and {\tt PoissonGrav} are only correct for
-  spherical stars, i.e., in 1D we must have {\tt coord\_sys = 2}, in
-  2D we must have {\tt coord\_sys = 1}, and in 3D we only support {\tt
-    coord\_sys = 0}.
+\item For {\tt MonopoleGrav}, in 1D we must have {\tt coord\_sys = 2}, and in
+  2D we must have {\tt coord\_sys = 1}.
 \end{itemize}
 
 The following parameters apply to gravity
@@ -51,8 +46,8 @@ solves:
 
 \item {\tt castro.do\_grav} : include gravity as a forcing term (0 or 1)
 
-\item {\tt gravity.gravity\_type} : how should we calculation gravity?
-  Can be {\tt ConstantGrav}, {\tt PoissonGrav}, or {\tt MonopoleGrav}
+\item {\tt gravity.gravity\_type} : how should we calculate gravity?
+  Can be {\tt ConstantGrav}, {\tt PoissonGrav}, {\tt MonopoleGrav}, or {\tt PrescribedGrav}
 
 \item {\tt gravity.const\_grav} : if {\tt gravity.gravity\_type =
   ConstantGrav}, set the value of constant gravity (default: 0.0)
@@ -110,7 +105,8 @@ The actual setting is done in {\tt Gravity.cpp} as:
  grav.setVal(const_grav, BL_SPACEDIM-1, 1, ng);
 \end{lstlisting}
 
-\MarginPar{do we fill any Phi field ever? what happens if we put it in the plotfile?}
+Note that at present we do not fill the gravitational potential $\phi$ in
+this mode; it will be set to zero.
 
 Note: {\tt ConstantGrav} can only be used along a Cartesian direction
 (vertical for 2D axisymmetric).
@@ -196,16 +192,8 @@ The most general case is a self-induced gravitational field,
 \end{equation}
 where $\phi$ is defined by solving
 \begin{equation}
-\mathbf{\Delta} \phi = -4 \pi G \rho .\label{eq:Self Gravity}
+\mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
 \end{equation}
-
-{\bf Note: that the sign convention used for $\phi$ here is opposite
-  that traditionally used in astrophysics, but the resulting
-  gravitational acceleration will be the same.}  The reason for this
-difference in sign convention is that many linear systems solvers
-(including those in \boxlib) implement a general Helmholtz operator of
-the form $a \alpha({\bf x}) - b \nabla \cdot (\beta({\bf x}) \cdot
-\nabla \phi$).
 
 We only allow {\tt PoissonGrav} in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
@@ -237,7 +225,7 @@ of the boundary conditions. According to, for example, Jackson's
 Poisson's equation for electric charges and gravitational
 ''charges''), an expansion in spherical harmonics for $\phi$ is
 \begin{equation}
-  \phi(\mathbf{x}) = G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
+  \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
 \end{equation}
 The origin of the coordinate system is taken to be the \texttt{center}
 variable, that must be declared and stored in the \texttt{probdata}
@@ -267,7 +255,7 @@ $P_l$ are the Legendre polynomials. After some algebraic
 simplification, the potential outside of the mass distribution can be
 written in the following way:
 \begin{equation}
-  \Phi(\mathbf{x}) \approx G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} \frac{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] \frac{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
+  \phi(\mathbf{x}) \approx -G\sum_{l=0}^{l_{\text{max}}} \left[Q_l^{(0)} \frac{P_l(\text{cos}\, \theta)}{r^{l+1}} + \sum_{m = 1}^{l}\left[ Q_{lm}^{(C)}\, \text{cos}(m\phi) + Q_{lm}^{(S)}\, \text{sin}(m\phi)\right] \frac{P_{l}^{m}(\text{cos}\, \theta)}{r^{l+1}} \right].
 \end{equation}
 The modified multipole moments are:
 \begin{align}
@@ -303,7 +291,7 @@ outside of the grid, at location $\mathbf{r}^\prime \equiv (x^\prime,
 y^\prime, z^\prime)$. By the principle of linear superposition as
 applied to the gravitational potential,
 \begin{equation}
-  \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} \frac{G \rho_{\text{ijk}}\, \Delta V_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
+  \phi(\mathbf{r}^\prime) = \sum_{\text{ijk}} \frac{-G \rho_{\text{ijk}}\, \Delta V_{\text{ijk}}}{\left[(x - x^\prime)^2 + (y - y^\prime)^2 + (z - z^\prime)^2\right]^{1/2}},
 \end{equation}
 where $x = x(i)$, $y = y(j)$ and $z = z(k)$ are constructed in the
 usual sense from the zone indices. The sum here runs over every cell

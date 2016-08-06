@@ -418,6 +418,7 @@ contains
     use prob_params_module, only : coord_type
 
     double precision, parameter:: small = 1.d-8
+    double precision, parameter :: small_u = 1.d-10
 
     integer :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer :: gd_l1,gd_l2,gd_h1,gd_h2
@@ -463,7 +464,7 @@ contains
     double precision :: pstar_old
     double precision :: taul, taur, tauo
     double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    double precision :: pstar_lo, pstar_c, pstar_hi, f_lo, f_c, f_hi
 
     double precision, parameter :: weakwv = 1.d-3
 
@@ -504,7 +505,7 @@ contains
     endif
 
     allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(2*iter_max))
+    allocate (pstar_hist_extra(iter_max))
 
     do j = jlo, jhi
        do i = ilo, ihi
@@ -651,27 +652,28 @@ contains
              ustar_l = ul - (pstar - pl)*wl
              ustar_r = ur + (pstar - pr)*wr
 
-             dpditer = abs(pstar - pstar_old)
+             dpditer = pstar - pstar_old
 
-             zl = abs(ustar_l - ustar_l_old)
+             zl = ustar_l - ustar_l_old
              !if (zp-weakwv*cav(i,j) <= ZERO) then
              !   zp = dpditer*wl
              !endif
 
-             zr = abs(ustar_r - ustar_r_old)
+             zr = ustar_r - ustar_r_old
              !if (zm-weakwv*cav(i,j) <= ZERO) then
              !   zm = dpditer*wr
              !endif
-
+             
              ! the new pstar is found via CG Eq. 18
 
              !denom = zp + zm
-             denom = zl + zr
+             denom = zl - zr
+             denom = (ustar_l - ustar_r) - (ustar_l_old - ustar_r_old)
 
              pstar_old = pstar
 
-             if (abs(denom) > small_pres) then
-                pstar = pstar - (ustar_r - ustar_l)*dpditer/denom
+             if (abs(denom) > small_u .and. abs(dpditer) > small_pres) then
+                pstar = pstar - (ustar_l - ustar_r)*dpditer/denom
              endif
 
              pstar = max(pstar, small_pres)
@@ -711,78 +713,31 @@ contains
 
              else if (cg_blend .eq. 2) then
 
-                pstarl = minval(pstar_hist(iter_max-5:iter_max))
-                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+                ! first try to find a reasonable bounds 
+                pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
+                pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
 
-                iter = 1
-
-                do while (iter <= 2 * iter_max .and. .not. converged)
-
-                   pstarc = HALF * (pstaru + pstarl)
-
-                   pstar_hist_extra(iter) = pstarc
-
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustar_r = ur - (pr-pstar)*wr
-                   ustar_l = ul + (pl-pstar)*wl
-
-                   pfuncc = ustar_l - ustar_r
-
-                   if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
-                      converged = .true.
-                   endif
-
-                   iter = iter + 1
-
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustar_r = ur-(pr-pstar)*wr
-                   ustar_l = ul+(pl-pstar)*wl
-
-                   pfuncu = ustar_l - ustar_r
-
-                   if (pfuncc * pfuncu < ZERO) then
-
-                      pstarl = pstarc
-
-                   else
-
-                      pstaru = pstarc
-
-                   endif
-
-                enddo
+                call pstar_bisection(pstar_lo, pstar_hi, &
+                                     ul, pl, taul, gamel, clsql, &
+                                     ur, pr, taur, gamer, clsqr, &
+                                     gdot, gmin, gmax, &
+                                     pstar, gamstar, converged, pstar_hist_extra)
 
                 if (.not. converged) then
-
+                   ! abort -- doesn't seem solvable
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
                    enddo
-                   do iter = 1, 2 * iter_max
-                      print *, iter + iter_max, pstar_hist_extra(iter)
+
+                   do iter = 1, iter_max
+                      print *, iter+iter_max, pstar_hist_extra(iter)
                    enddo
 
                    print *, ' '
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                    print *, 'cav, smallc:',  cav(i,j), csmall
-                   
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif

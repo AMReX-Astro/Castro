@@ -5,6 +5,7 @@
 
 static int state_interp_order;
 static int lin_limit_state_interp;
+static int state_nghost;
 static Real difmag;
 static Real small_dens;
 static Real small_temp;
@@ -45,9 +46,7 @@ static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
-#ifdef SGS
-static Real sum_turb_src;
-#endif
+static int update_state_between_sources;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;
@@ -57,6 +56,7 @@ static Real init_shrink;
 static Real change_max;
 static int use_retry;
 static Real retry_neg_dens_factor;
+static int sdc_iters;
 static Real dtnuc_e;
 static Real dtnuc_X;
 static int dtnuc_mode;

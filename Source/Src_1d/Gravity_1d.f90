@@ -85,7 +85,7 @@ contains
     ! We need a temporary arrays to do edge-based indexing for phi.
     ! Note that we come into this routine with the full 1D density
     ! array, so we can compute the gravity in one pass.
-    
+
     double precision :: phi_temp(r_l1-1:r_h1+1) ! Cell-centered
     double precision :: phi_edge(r_l1-2:r_h1+2) ! Edge-centered
 
@@ -128,7 +128,7 @@ contains
 
              if (j .lt. i) then
 
-                phi_edge(i) = phi_edge(i) + Gconst * dm / rc
+                phi_edge(i) = phi_edge(i) - Gconst * dm / rc
 
                 ! If the mass shell is exterior, the potential is G * M / R where
                 ! R is the radius of the shell for a point mass. More generally for
@@ -137,7 +137,7 @@ contains
 
              else
 
-                phi_edge(i) = phi_edge(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
+                phi_edge(i) = phi_edge(i) - Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
 
              endif
 
@@ -175,7 +175,7 @@ contains
 
     else
 
-       mass_encl = ZERO      
+       mass_encl = ZERO
 
        do i = 0, r_h1
           rlo = problo(1) + dble(i) * dx

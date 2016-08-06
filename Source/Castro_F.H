@@ -4,11 +4,11 @@
 
 extern "C"
 {
-  
+
   void ca_network_init();
 
   void burner_init();
-  
+
   void ca_extern_init(const int* name, const int* namlen);
 
   void get_num_spec(int* nspec);
@@ -21,8 +21,10 @@ extern "C"
 
   void get_aux_names(int* aux_names, int* iaux, int* len);
 
-  void ca_set_special_tagging_flag(const Real& max_den, const int* flag);  
-  
+  void get_qvar(int* qvar);
+
+  void ca_set_special_tagging_flag(const Real& max_den, const int* flag);
+
   void set_amr_info(const int& level, const int& iteration, const int& ncycle,
 		    const Real& time, const Real& dt);
 
@@ -32,9 +34,9 @@ extern "C"
   void get_numpts_1d(int* numpts_1d);
   void set_numpts_1d(int* numpts_1d);
   void allocate_outflow_data(const int* n1d, const int* nc);
-  void set_old_outflow_data(Real* radial, Real* time, 
+  void set_old_outflow_data(Real* radial, Real* time,
 			    int* numpts, int* nc);
-  void set_new_outflow_data(Real* radial, Real* time, 
+  void set_new_outflow_data(Real* radial, Real* time,
 			    int* numpts, int* nc);
   void swap_outflow_data();
 #endif
@@ -51,8 +53,7 @@ extern "C"
 #endif
      const int* gravity_type, const int* gravity_type_len,
      const int& get_g_from_phi,
-     const int& use_sgs,
-     const Real& diffuse_cutoff_density, 
+     const Real& diffuse_cutoff_density,
      const Real& const_grav);
 
   void set_castro_method_params();
@@ -67,7 +68,7 @@ extern "C"
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Interior_value, const int& Inflow_value,
-     const int& Outflow_value, const int& Symmetry_value, 
+     const int& Outflow_value, const int& Symmetry_value,
      const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const Real* problo, const Real* probhi,
@@ -89,7 +90,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(S  ), const Real* avgden,
      const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
-#endif  
+#endif
 
 #ifdef HYBRID_MOMENTUM
   void init_hybrid_momentum
@@ -105,6 +106,15 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state));
 #endif
 
+  void ctoprim(const int* lo, const int* hi,
+	       const Real* u, const int* u_lo, const int* u_hi,
+	       const Real* q, const int* q_lo, const int* q_hi);
+
+  void srctoprim(const int* lo,   const int* hi,
+		 const Real* q,   const int* q_lo,   const int* q_hi,
+		 const Real* src, const int* src_lo, const int* src_hi,
+		 const Real* srQ, const int* srQ_lo, const int* srQ_hi);
+
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
@@ -118,23 +128,23 @@ extern "C"
      const int* verbose);
 
   void ca_normalize_species
-    (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);  
+    (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);
 
   void get_center(Real* center);
   void set_center(Real* center);
   void find_center(Real* data, Real* center, int* icen,
-		   const Real* dx, const Real* problo);  
-  
+		   const Real* dx, const Real* problo);
+
   void compute_temp
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state));  
-  
+     const BL_FORT_FAB_ARG_3D(state));
+
   void ca_enforce_consistent_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void reset_internal_e
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(S_new), 
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(S_new),
      const int& verbose);
 
 #ifdef DIMENSION_AGNOSTIC
@@ -154,25 +164,25 @@ extern "C"
   void ca_xmomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_ymomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_zmomfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_zerofill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_default_fill
@@ -185,7 +195,7 @@ extern "C"
   void ca_radfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 #endif
 
@@ -193,20 +203,12 @@ extern "C"
   void ca_phifill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 #endif
 
 #ifdef REACTIONS
   void ca_reactfill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
-     const Real* time, const int* bc);
-#endif
-
-#ifdef SGS
-  void ca_sgsfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
@@ -223,19 +225,19 @@ extern "C"
   void ca_gravxfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_gravyfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_gravzfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 #endif
 
@@ -243,64 +245,64 @@ extern "C"
   void ca_phirotfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_rotxfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_rotyfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 
   void ca_rotzfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo, 
+     const Real* dx, const Real* glo,
      const Real* time, const int* bc);
 #endif
-  
+
 #else
 
   void ca_hypfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_denfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_xmomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_ymomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_zmomfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_zerofill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_default_fill
@@ -313,7 +315,7 @@ extern "C"
   void ca_radfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
 
@@ -321,7 +323,7 @@ extern "C"
   void ca_phifill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
 
@@ -329,15 +331,7 @@ extern "C"
   void ca_reactfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
-     const Real* time, const int bc[]);
-#endif
-
-#ifdef SGS
-  void ca_sgsfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
 
@@ -345,25 +339,25 @@ extern "C"
   void ca_phigravfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_gravxfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_gravyfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_gravzfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
 
@@ -371,42 +365,42 @@ extern "C"
   void ca_phirotfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_rotxfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_rotyfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 
   void ca_rotzfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[], 
+     const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
 
 #endif
-  
+
   void ca_estdt
-    (const int* lo, const int* hi, 
+    (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
 
 #ifdef DIFFUSION
   void ca_estdt_temp_diffusion
-    (const int* lo, const int* hi, 
+    (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
   void ca_estdt_enth_diffusion
-    (const int* lo, const int* hi, 
+    (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, Real* dt);
 #endif
@@ -441,11 +435,14 @@ extern "C"
 
   void ca_umdrv
     (const int* is_finest_level,
-     const Real* time, 
+     const Real* time,
      const int    lo[], const int    hi[],
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
+     BL_FORT_FAB_ARG(q),
+     BL_FORT_FAB_ARG(src_q),
+     BL_FORT_FAB_ARG(update),
      BL_FORT_FAB_ARG(ugdnvx),
 #if (BL_SPACEDIM >= 2)
      BL_FORT_FAB_ARG(ugdnvy),
@@ -453,7 +450,6 @@ extern "C"
 #if (BL_SPACEDIM == 3)
      BL_FORT_FAB_ARG(ugdnvz),
 #endif
-     const BL_FORT_FAB_ARG(src),
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
@@ -467,10 +463,6 @@ extern "C"
      const BL_FORT_FAB_ARG(volume),
      Real* cflLoc,
      const int&  verbose,
-     Real& mass_added,
-     Real& eint_added,
-     Real& eden_added,
-     Real& frac_change,
      Real& mass_added_flux,
      Real& xmom_added_flux,
      Real& ymom_added_flux,
@@ -519,8 +511,8 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG(volume),
      Real* cflLoc,
-     const int& verbose, 
-     int* nstep_fsp); 
+     const int& verbose,
+     int* nstep_fsp);
 
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -533,11 +525,12 @@ extern "C"
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time, 
+     const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
 
-  void update_sponge_params(const Real* time);  
+  void update_sponge_params(const Real* time);
 
   void flush_output();
 
@@ -557,7 +550,7 @@ extern "C"
      const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
 #endif
-  
+
 #ifdef GRAVITY
 
   void ca_gsrc
@@ -566,7 +559,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
      const BL_FORT_FAB_ARG_3D(s_old),
-     BL_FORT_FAB_ARG_3D(s_new),
+     BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
@@ -579,7 +572,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav_old),
      const BL_FORT_FAB_ARG_3D(grav_new),
      const BL_FORT_FAB_ARG_3D(S_old),
-     BL_FORT_FAB_ARG_3D(S_new),
+     const BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(xflux),
      BL_FORT_FAB_ARG_3D(yflux),
      BL_FORT_FAB_ARG_3D(zflux),
@@ -594,8 +588,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(S),
      const BL_FORT_FAB_ARG_3D(dS),
      BL_FORT_FAB_ARG_3D(src),
-     const Real& dt);  
-  
+     const Real& dt);
+
 #endif
 
 #ifdef ROTATION
@@ -617,9 +611,9 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(s_old),
-     BL_FORT_FAB_ARG_3D(s_new),
+     BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time, 
+     const Real* dx, const Real& dt, const Real* time,
      const Real& E_added, const Real* mom_added);
 
   void ca_corrrsrc
@@ -630,28 +624,29 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(rot_old),
      const BL_FORT_FAB_ARG_3D(rot_new),
      const BL_FORT_FAB_ARG_3D(S_old),
-     BL_FORT_FAB_ARG_3D(S_new),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     const Real* dx, const Real& dt, const Real* time, 
-     const BL_FORT_FAB_ARG_3D(volume), 
+     const BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(source),
+     const BL_FORT_FAB_ARG_3D(xflux),
+     const BL_FORT_FAB_ARG_3D(yflux),
+     const BL_FORT_FAB_ARG_3D(zflux),
+     const Real* dx, const Real& dt, const Real* time,
+     const BL_FORT_FAB_ARG_3D(volume),
      const Real& E_added, const Real* mom_added);
 
 #endif
-  
+
   void ca_summass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
-  
+
   void ca_sumsquared
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
-  
+
   void ca_sumlocmass
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
-  
+
   void ca_sumlocmass2d
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir1, const int& idir2);
@@ -664,6 +659,17 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
 
+#ifdef REACTIONS
+#ifdef SDC
+  void ca_react_state
+    (const int* lo, const int* hi,
+     const Real* uold, const int* uo_lo, const int* uo_hi,
+     const Real* unew, const int* un_lo, const int* un_hi,
+     const Real* asrc, const int* as_lo, const int* as_hi,
+     const Real* reactions, const int* r_lo, const int* r_hi,
+     const int* mask, const int* m_lo, const int* m_hi,
+     const Real& time, const Real& dt_react);
+#else
   void ca_react_state
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
@@ -673,6 +679,8 @@ extern "C"
 #endif
      const BL_FORT_IFAB_ARG_3D(mask),
      const Real& time, const Real& dt_react);
+#endif
+#endif
 
   void ca_tempdiffextrap
     (const int* lo, const int* hi,
@@ -682,7 +690,7 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
            BL_FORT_FAB_ARG_3D(enth));
-  
+
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
@@ -692,7 +700,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
      const BL_FORT_FAB_ARG_3D(zcoeffs));
-  
+
   void ca_fill_enth_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
@@ -720,7 +728,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
      const BL_FORT_FAB_ARG_3D(zcoeffs));
-  
+
   void ca_compute_div_tau_u
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(div_tau_u),
@@ -742,27 +750,18 @@ extern "C"
      BL_FORT_FAB_ARG(state_new),
      const int* lo, const int* hi,
      const Real * dt);
-#endif  
-
-#ifdef SGS
-  void ca_reset_sgs
-    (BL_FORT_FAB_ARG(S_new), 
-     BL_FORT_FAB_ARG(sgs_old), 
-     BL_FORT_FAB_ARG(sgs_new), 
-     const int lo[], const int hi[], 
-     const int& verbose, const int& is_old, const Real& dt);
-#endif  
+#endif
 
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
-#endif  
-  
+#endif
+
 }
 
 #ifdef DIMENSION_AGNOSTIC
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const Real& time, 
+    (const int& level, const Real& time,
      const int* lo, const int* hi,
      const int& num_state,
      BL_FORT_FAB_ARG_3D(state),
@@ -771,7 +770,7 @@ BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
 #else
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const Real& time, 
+    (const int& level, const Real& time,
      const int* lo, const int* hi,
      const int& num_state,
      BL_FORT_FAB_ARG(state),
@@ -793,16 +792,16 @@ BL_FORT_PROC_DECL(CA_INITDATA_MAKEMODEL,ca_initdata_makemodel)
    const Real dx[], const Real& dr, const int& r_model_start);
 
 BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
-  (const int* lo, const int* hi, 
+  (const int* lo, const int* hi,
    BL_FORT_FAB_ARG(state),
-   const Real model[], const int& model_size, const int& MAESTRO_npts_model, 
+   const Real model[], const int& model_size, const int& MAESTRO_npts_model,
    const Real dx[], const Real& dr, const Real xlo[], const Real xhi[],
    const int& r_model_start);
 #endif
 
 #ifdef LEVELSET
 BL_FORT_PROC_DECL(CA_INITPHI,ca_initphi)
-    (const int& level, const Real& time, 
+    (const int& level, const Real& time,
      const int* lo, const int* hi,
      const int& num_state,
      BL_FORT_FAB_ARG(state),
@@ -819,26 +818,13 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const Real dx[], const Real xlo[], const Real xhi[]);
 #endif
 
-#ifdef SGS
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(old_state),
-     BL_FORT_FAB_ARG(fluxx),
-     BL_FORT_FAB_ARG(fluxy),
-     BL_FORT_FAB_ARG(fluxz),
-     BL_FORT_FAB_ARG(ext_src),
-     BL_FORT_FAB_ARG(prod_sgs),
-     BL_FORT_FAB_ARG(diff_sgs),
-     BL_FORT_FAB_ARG(turb_src),
-     const Real* dx, const Real* time, const Real* dt);
-#else
 #ifdef DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),
      const BL_FORT_FAB_ARG_3D(new_state),
      BL_FORT_FAB_ARG_3D(ext_src),
-     const Real* prob_lo, const Real* dx, 
+     const Real* prob_lo, const Real* dx,
      const Real* time, const Real* dt);
 #else
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
@@ -846,9 +832,8 @@ BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
      const BL_FORT_FAB_ARG(old_state),
      const BL_FORT_FAB_ARG(new_state),
      BL_FORT_FAB_ARG(ext_src),
-     const Real* prob_lo, const Real* dx, 
+     const Real* prob_lo, const Real* dx,
      const Real* time, const Real* dt);
-#endif
 #endif
 
 /* problem-specific includes */

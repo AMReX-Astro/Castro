@@ -5,6 +5,7 @@
 
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
+pp.query("state_nghost", state_nghost);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);
 pp.query("small_temp", small_temp);
@@ -45,9 +46,7 @@ pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 pp.query("sponge_implicit", sponge_implicit);
-#ifdef SGS
-pp.query("sum_turb_src", sum_turb_src);
-#endif
+pp.query("update_state_between_sources", update_state_between_sources);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
@@ -57,6 +56,7 @@ pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
 pp.query("use_retry", use_retry);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
+pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_mode", dtnuc_mode);

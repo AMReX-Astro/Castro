@@ -47,10 +47,31 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
-#ifdef SGS
-                 SGS_Type,
+#ifdef SDC
+		 SDC_Source_Type,
+#ifdef REACTIONS
+		 SDC_React_Type,
+#endif
 #endif
                  NUM_STATE_TYPE };
+
+// Create storage for all source terms.
+
+enum sources { sponge_src = 0,
+               ext_src,
+#ifdef DIFFUSION
+               diff_src,
+#endif
+#ifdef HYBRID_MOMENTUM
+               hybrid_src,
+#endif
+#ifdef GRAVITY
+               grav_src,
+#endif
+#ifdef ROTATION
+               rot_src,
+#endif
+	       num_src };
 
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media
@@ -114,19 +135,19 @@ public:
     void writeJobInfo (const std::string& dir);
 
     //
-    //Define data descriptors.
+    // Define data descriptors.
     //
     static void variableSetUp ();
     //
-    //Define tagging functions.
+    // Define tagging functions.
     //
     static void ErrorSetUp ();
     //
-    //Cleanup data descriptors at end of run.
+    // Cleanup data descriptors at end of run.
     //
     static void variableCleanUp ();
     //
-    //Initialize grid data at problem start-up.
+    // Initialize grid data at problem start-up.
     //
     virtual void initData () BL_OVERRIDE;
 
@@ -136,7 +157,7 @@ public:
     //
     static void read_particle_params ();
     //
-    //Initialize particle locations and velocities (and strengths if relevant)
+    // Initialize particle locations and velocities (and strengths if relevant)
     //
     void init_particles ();
     //
@@ -158,6 +179,10 @@ public:
     //
     void TimestampParticles (int ngrow); 
     //
+    // Advance the particles by dt
+    //
+    void advance_particles (int iteration, Real time, Real dt);
+    //
     // Default verbosity of Particle class
     //
     static int particle_verbose;
@@ -169,67 +194,108 @@ public:
 #endif
 
     //
-    //Get problem metrics.
+    // Get problem metrics.
     //
     MultiFab* Area ();
     MultiFab& Area (int dir);
     //
-    //The volume of the multifab.
+    // The volume of the multifab.
     //
     MultiFab& Volume ();
     //
-    //Set time levels of state data.
+    // Set time levels of state data.
     //
     virtual void setTimeLevel (Real time,
                                Real dt_old,
                                Real dt_new) BL_OVERRIDE;
     //
-    //Initialize data on this level from another Castro (during regrid).
+    // Initialize data on this level from another Castro (during regrid).
     //
     virtual void init (AmrLevel& old) BL_OVERRIDE;
     //
-    //Initialize data on this level after regridding if old level did not previously exist
+    // Initialize data on this level after regridding if old level did not previously exist
     //
     virtual void init () BL_OVERRIDE;
     //
-    //Proceed with next timestep?
+    // Proceed with next timestep?
     //
     virtual int okToContinue () BL_OVERRIDE;
     //
-    //Advance grids at this level in time.
+    // Advance grids at this level in time.
     //
     virtual Real advance (Real time,
                           Real dt,
                           int  iteration,
                           int  ncycle) BL_OVERRIDE;
 
-    Real advance_hydro (Real time,
-                        Real dt,
-                        int  iteration,
-                        int  ncycle,
-			int  subcycle_iter);
+    Real do_advance (Real time,
+                     Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle,
+                     int  sub_iteration,
+                     int  sub_ncycle);
 
-    Real advance_no_hydro (Real time,
-                           Real dt,
-                           int  iteration,
-                           int  ncycle,
-			   int  subcycle_iter);
+    Real retry_advance (Real time, Real dt, int amr_iteration, int amr_ncycle);
+
+    void initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
+
+    void finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle);
+
+    void initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+
+    void finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+
+    void construct_hydro_source(Real time, Real dt);
+
+    void check_for_nan(MultiFab& state);
+
+    void cons_to_prim(MultiFab& u, MultiFab& q);
+
+    void construct_old_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
+
+    void construct_new_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt);
+
+    void sum_of_sources(MultiFab& source);
 
     void time_center_source_terms (MultiFab& S_new,
-                                   MultiFab& ext_src_old,
-                                   MultiFab& ext_src_new,
-                                   Real dt);
+				   MultiFab& src_old,
+				   MultiFab& src_new,
+				   Real dt = 1.0);
+
+    void construct_old_sponge_source(Real time, Real dt);
+
+    void construct_new_sponge_source(Real time, Real dt);
+
+    void construct_old_ext_source(Real time, Real dt);
+
+    void construct_new_ext_source(Real time, Real dt);
+
+    void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
+
+#ifdef GRAVITY
+    void construct_old_gravity(int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time);
+
+    void construct_new_gravity(int amr_iteration, int amr_ncycle,
+			       int sub_iteration, int sub_ncycle,
+			       Real time);
+
+    void construct_old_gravity_source(Real time, Real dt);
+
+    void construct_new_gravity_source(Real time, Real dt);
+#endif
 
     //
-    //Estimate time step.
+    // Estimate time step.
     //
     Real estTimeStep (Real dt_old);
     //
-    //Compute initial time step.
+    // Compute initial time step.
     //
     Real initialTimeStep ();
     //
-    //Compute initial `dt'.
+    // Compute initial `dt'.
     //
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
@@ -238,7 +304,7 @@ public:
                                    Array<Real>&          dt_level,
                                    Real                  stop_time) BL_OVERRIDE;
     //
-    //Compute new `dt'.
+    // Compute new `dt'.
     //
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
@@ -249,23 +315,23 @@ public:
                                Real                  stop_time,
                                int                   post_regrid_flag) BL_OVERRIDE;
     //
-    //Allocate data at old time.
+    // Allocate data at old time.
     //
     virtual void allocOldData () BL_OVERRIDE;
     //
-    //Remove data at old time.
+    // Remove data at old time.
     //
     virtual void removeOldData () BL_OVERRIDE;
     //
-    //Passes some data about the grid to a Fortran module.
+    // Passes some data about the grid to a Fortran module.
     //
     void setGridInfo();
     //
-    //Print information about energy budget.
+    // Print information about energy budget.
     //
     void do_energy_diagnostics();
     //
-    //Do work after timestep().
+    // Do work after timestep().
     //
     virtual void post_timestep (int iteration) BL_OVERRIDE;
     //
@@ -273,24 +339,24 @@ public:
     //
     virtual void postCoarseTimeStep (Real cumtime) BL_OVERRIDE;
     //
-    //Do work after regrid().
+    // Do work after regrid().
     //
     virtual void post_regrid (int lbase,
                               int new_finest) BL_OVERRIDE;   
     //
-    //Do work after a restart().
+    // Do work after a restart().
     //
     virtual void post_restart () BL_OVERRIDE;
     //
-    //Do work after init().
+    // Do work after init().
     //
     virtual void post_init (Real stop_time) BL_OVERRIDE;
     //
-    //Do work after restart with grown_factor > 1
+    // Do work after restart with grown_factor > 1
     //
     void post_grown_restart ();
     //
-    //Error estimation for regridding.
+    // Error estimation for regridding.
     //
     virtual void errorEst (TagBoxArray& tb,
                            int          clearval,
@@ -316,15 +382,21 @@ public:
     static int numGrow();
 
 #ifdef REACTIONS
-    void react_half_dt(MultiFab& state,
-		       MultiFab& reactions,
-#ifdef TAU
-		       MultiFab& tau,
+#ifndef SDC
+    void react_state(MultiFab& state,
+		     MultiFab& reactions,
+		     const iMultiFab& mask,
+		     Real time,
+		     Real dt_react,
+		     int  ngrow = 0);
+
+    void strang_react_first_half(Real time, Real dt);
+
+    void strang_react_second_half(Real time, Real dt);
+#else
+    void react_state(Real time, Real dt);
+    void get_react_source_prim(MultiFab& source, Real dt);
 #endif
-		       const iMultiFab& mask,
-		       Real time, 
-		       Real dt,
-		       int  ngrow = 0);
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
@@ -336,6 +408,14 @@ public:
 #endif
 
 #ifdef ROTATION
+    void construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time);
+
+    void construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time);
+
+    void construct_old_rotation_source(Real time, Real dt);
+
+    void construct_new_rotation_source(Real time, Real dt);
+
     void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
 #endif
 
@@ -343,11 +423,6 @@ public:
     void final_radiation_call (MultiFab& S_new, 
                                int iteration, 
                                int ncycle);
-#endif
-
-#ifdef SGS 
-    void reset_old_sgs (Real dt);
-    void reset_new_sgs (Real dt);
 #endif
 
     void reset_internal_energy (MultiFab& State);
@@ -358,16 +433,15 @@ public:
                             PArray<FArrayBox>& flux, MultiFab& volume,
                             Real dt);
 
-#ifdef SGS
-    void getSource (Real time, Real dt, MultiFab& state, MultiFab& src, MultiFab& sgs_state, MultiFab* sgs_fluxes);
-#else
-    void getSource (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& src, int ngrow = 0);
-#endif
-
 #ifdef DIFFUSION
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, MultiFab* tau = 0);
+    void construct_old_diff_source(Real time, Real dt);
+    void construct_new_diff_source(Real time, Real dt);
+
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+#if (BL_SPACEDIM == 1)
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
+#endif
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
     void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
@@ -375,26 +449,16 @@ public:
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
 #ifdef TAU
-    void define_tau (MultiFab& tau_diff, MultiFab& grav_vector, Real time);
-    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, MultiFab& tau_diff);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt, MultiFab& tau_diff);
-    void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt, MultiFab& tau_diff);
-#else
+    void define_tau (MultiFab& grav_vector, Real time);
+#endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void time_center_enth_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void time_center_temp_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void full_temp_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
-#endif
+#if (BL_SPACEDIM == 1)
     void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void time_center_spec_diffusion   (MultiFab& S_new, MultiFab& OldDiffTerm, Real  cur_time, Real dt);
-    void full_spec_diffusion_update   (MultiFab& S_new, Real prev_time, Real cur_time, Real dt);
+#endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
                                        MultiFab& ViscousTermforEnergy, Real t);
-    void time_center_viscous_term     (MultiFab& S_new, MultiFab& OldViscousTermforMomentum, 
-                                       MultiFab& ViscousTermforEnergy, Real  cur_time, Real dt);
 #endif
 #endif
 
@@ -426,10 +490,18 @@ public:
     void set_special_tagging_flag (Real time);
 
 #ifdef HYBRID_MOMENTUM
-    void add_hybrid_hydro_source (MultiFab& sources, MultiFab& state);
+    void construct_old_hybrid_source(Real time, Real dt);
+
+    void construct_new_hybrid_source(Real time, Real dt);
+
+    void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
 #endif
 
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
+
+    void apply_source_to_state (MultiFab& state, MultiFab& source, Real dt);
+
+    void expand_state(MultiFab& Sborder, Real time, int ng);
 
     void make_radial_data (int is_new);
 
@@ -454,10 +526,7 @@ public:
 #ifdef SHOCK_VAR
     static int       Shock;
 #endif
-#ifdef SGS
-    static int       Esgs;
-    static Real      sum_turb_src;
-#endif
+    static int       QVAR;
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
@@ -488,9 +557,49 @@ protected:
     int get_numpts();
 
     //
-    // Need to pass ugdnv out of cmpflx to do level sets
+    // Difference between composite and level solve for phi.
     //
-    MultiFab* u_gdnv;
+    MultiFab* comp_minus_level_phi;
+    Array<MultiFab*> comp_minus_level_grad_phi;
+
+    //
+    // A state array with ghost zones.
+    //
+    MultiFab* Sborder;
+
+    //
+    // Source terms to the hydrodynamics solve.
+    //
+    MultiFab* sources_for_hydro;
+
+    //
+    // Source term representing hydrodynamics update.
+    //
+    MultiFab* hydro_source;
+
+    //
+    // Hydrodynamic (and radiation) fluxes.
+    //
+    Array<MultiFab*> fluxes;
+#ifdef RADIATION
+    Array<MultiFab*> rad_fluxes;
+#endif
+
+    //
+    // Face-centered velocities from the Riemann solve.
+    //
+    Array<MultiFab*> u_gdnv;
+
+    //
+    // Non-hydro source terms.
+    //
+    PArray<MultiFab> old_sources;
+    PArray<MultiFab> new_sources;
+
+    //
+    // State data to hold if we want to do a retry.
+    //
+    PArray<StateData> prev_state;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -503,11 +612,6 @@ protected:
 
     Castro& getLevel (int lev);
 
-#ifdef SGS
-    FluxRegister& getSGSFluxReg ();
-    FluxRegister& getSGSFluxReg (int lev);
-#endif
-
 #ifdef RADIATION
     FluxRegister& getRADFluxReg ();
     FluxRegister& getRADFluxReg (int lev);
@@ -515,9 +619,13 @@ protected:
 
     void reflux ();
 
-    void enforce_nonnegative_species (MultiFab& S_new);
+    void normalize_species (MultiFab& S_new);
 
     void enforce_consistent_e (MultiFab& S);
+
+    Real enforce_min_density (MultiFab& S_old, MultiFab& S_new);
+
+    Real clean_state (MultiFab& state);
 
     void avgDown ();
 
@@ -538,6 +646,10 @@ protected:
     void write_center ();
 #endif
 
+#ifdef POINTMASS
+    void pointmass_update(Real time, Real dt);
+#endif
+
     void stopJob ();
 
     //
@@ -547,9 +659,6 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
-#ifdef SGS
-    FluxRegister*        sgs_flux_reg;
-#endif
 #ifdef RADIATION
     FluxRegister*        rad_flux_reg;
 #endif
@@ -591,6 +700,20 @@ protected:
     static int       diffuse_spec;
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
+
+    MultiFab* OldTempDiffTerm;
+    MultiFab* OldSpecDiffTerm;
+    MultiFab* OldViscousTermforMomentum;
+    MultiFab* OldViscousTermforEnergy;
+
+    MultiFab* NewTempDiffTerm;
+    MultiFab* NewSpecDiffTerm;
+    MultiFab* NewViscousTermforMomentum;
+    MultiFab* NewViscousTermforEnergy;
+#endif
+
+#ifdef TAU
+    MultiFab* tau_diff;
 #endif
 
 #ifdef PARTICLES
@@ -695,23 +818,6 @@ Castro::getFluxReg (int lev)
 {
     return getLevel(lev).getFluxReg();
 }
-
-#ifdef SGS
-inline
-FluxRegister&
-Castro::getSGSFluxReg ()
-{
-    BL_ASSERT(sgs_flux_reg);
-    return *sgs_flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getSGSFluxReg (int lev)
-{
-    return getLevel(lev).getSGSFluxReg();
-}
-#endif
 
 #ifdef RADIATION
 inline
