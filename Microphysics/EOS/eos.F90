@@ -1,6 +1,6 @@
 module eos_module
 
-  use bl_types
+  use bl_types, only: dp_t
   use bl_error_module
   use bl_constants_module
   use network, only: nspec, aion, zion
@@ -9,63 +9,11 @@ module eos_module
 
   implicit none
 
-  public eos_init, eos, eos_get_small_temp, eos_get_small_dens
+  public eos_init, eos
 
   logical, save :: initialized = .false.  
 
 contains
-
-  subroutine eos_get_small_temp(small_temp_out)
-
-    !$acc routine seq
-
-    implicit none
-
-    double precision, intent(out) :: small_temp_out
-
-    small_temp_out = mintemp
-
-  end subroutine eos_get_small_temp
-
-
-
-  subroutine eos_get_small_dens(small_dens_out)
-
-    !$acc routine seq
-
-    implicit none
-
-    double precision, intent(out) :: small_dens_out
-
-    small_dens_out = mindens
-
-  end subroutine eos_get_small_dens
-
-
-
-  subroutine eos_get_max_temp(max_temp_out)
-
-    implicit none
-
-    double precision, intent(out) :: max_temp_out
-
-    max_temp_out = maxtemp
-
-  end subroutine eos_get_max_temp
-
-
-
-  subroutine eos_get_max_dens(max_dens_out)
-
-    implicit none
-
-    double precision, intent(out) :: max_dens_out
-
-    max_dens_out = maxdens
-
-  end subroutine eos_get_max_dens
-
-
 
   ! EOS initialization routine: read in general EOS parameters, then 
   ! call any specific initialization used by the EOS.
@@ -77,8 +25,8 @@ contains
 
     implicit none
 
-    double precision, optional :: small_temp
-    double precision, optional :: small_dens
+    real(dp_t), optional :: small_temp
+    real(dp_t), optional :: small_dens
 
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
