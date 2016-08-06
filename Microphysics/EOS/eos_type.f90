@@ -36,16 +36,28 @@ module eos_type_module
   integer, parameter :: ierr_out_of_bounds   = 11
   integer, parameter :: ierr_not_implemented = 12
 
-  ! Minimum and maximum temperature, density, and ye permitted by the EOS.
+  ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
   double precision, save :: mintemp = 1.d-200
   double precision, save :: maxtemp = 1.d200
   double precision, save :: mindens = 1.d-200
   double precision, save :: maxdens = 1.d200
+  double precision, save :: minx    = 1.d-200
+  double precision, save :: maxx    = 1.d0 + 1.d-12
   double precision, save :: minye   = 1.d-200
   double precision, save :: maxye   = 1.d0 + 1.d-12
+  double precision, save :: mine    = 1.d-200
+  double precision, save :: maxe    = 1.d200
+  double precision, save :: minp    = 1.d-200
+  double precision, save :: maxp    = 1.d200
+  double precision, save :: mins    = 1.d-200
+  double precision, save :: maxs    = 1.d200
+  double precision, save :: minh    = 1.d-200
+  double precision, save :: maxh    = 1.d200
 
-  !$acc declare create(mintemp, maxtemp, mindens, maxdens, minye, maxye)
+  !$acc declare &
+  !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
+  !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -98,60 +110,60 @@ module eos_type_module
     ! Input quantities; these should be initialized
     ! so that we can do sanity checks.
 
-    double precision :: rho         = init_num
-    double precision :: T           = init_num
-    double precision :: p           = init_num
-    double precision :: e           = init_num
-    double precision :: h           = init_num
-    double precision :: s           = init_num
-    double precision :: xn(nspec)   = init_num
-    double precision :: aux(naux)   = init_num
+    double precision :: rho
+    double precision :: T
+    double precision :: p
+    double precision :: e
+    double precision :: h
+    double precision :: s
+    double precision :: xn(nspec)
+    double precision :: aux(naux)
 
     ! We choose not to initialize other quantities,
     ! due to a compiler bug in PGI that prevents us
     ! from using them correctly on GPUs with OpenACC.
 
-    double precision :: dpdT        != init_num
-    double precision :: dpdr        != init_num
-    double precision :: dedT        != init_num
-    double precision :: dedr        != init_num
-    double precision :: dhdT        != init_num
-    double precision :: dhdr        != init_num
-    double precision :: dsdT        != init_num
-    double precision :: dsdr        != init_num
-    double precision :: dpde        != init_num
-    double precision :: dpdr_e      != init_num
+    double precision :: dpdT
+    double precision :: dpdr
+    double precision :: dedT
+    double precision :: dedr
+    double precision :: dhdT
+    double precision :: dhdr
+    double precision :: dsdT
+    double precision :: dsdr
+    double precision :: dpde
+    double precision :: dpdr_e
 
-    double precision :: cv          != init_num
-    double precision :: cp          != init_num
-    double precision :: xne         != init_num
-    double precision :: xnp         != init_num
-    double precision :: eta         != init_num
-    double precision :: pele        != init_num
-    double precision :: ppos        != init_num
-    double precision :: mu          != init_num
-    double precision :: mu_e        != init_num
-    double precision :: y_e         != init_num
-    double precision :: dedX(nspec) != init_num
-    double precision :: dpdX(nspec) != init_num
-    double precision :: dhdX(nspec) != init_num
-    double precision :: gam1        != init_num
-    double precision :: cs          != init_num
+    double precision :: cv
+    double precision :: cp
+    double precision :: xne
+    double precision :: xnp
+    double precision :: eta
+    double precision :: pele
+    double precision :: ppos
+    double precision :: mu
+    double precision :: mu_e
+    double precision :: y_e
+    double precision :: dedX(nspec)
+    double precision :: dpdX(nspec)
+    double precision :: dhdX(nspec)
+    double precision :: gam1
+    double precision :: cs
 
-    double precision :: abar        != init_num
-    double precision :: zbar        != init_num
-    double precision :: dpdA        != init_num
+    double precision :: abar
+    double precision :: zbar
+    double precision :: dpdA
 
-    double precision :: dpdZ        != init_num
-    double precision :: dedA        != init_num
-    double precision :: dedZ        != init_num
+    double precision :: dpdZ
+    double precision :: dedA
+    double precision :: dedZ
 
-    double precision :: smallt      != init_num
-    double precision :: smalld      != init_num
+    double precision :: smallt
+    double precision :: smalld
 
-    logical :: reset                != .false.
-    logical :: check_small          != .true.
-    logical :: check_inputs         != .true.
+    logical :: reset
+    logical :: check_small
+    logical :: check_inputs
 
   end type eos_t
 
@@ -256,5 +268,22 @@ contains
     state % rho = min(maxdens, max(mindens, state % rho))
 
   end subroutine clean_state
+
+
+
+  ! Print out details of the state.
+
+  subroutine print_state(state)
+
+    implicit none
+
+    type (eos_t), intent(in) :: state
+
+    print *, 'DENS = ', state % rho
+    print *, 'TEMP = ', state % T
+    print *, 'X    = ', state % xn
+    print *, 'Y_E  = ', state % y_e
+
+  end subroutine print_state
 
 end module eos_type_module

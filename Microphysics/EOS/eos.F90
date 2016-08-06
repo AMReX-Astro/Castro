@@ -117,7 +117,9 @@ contains
 
     initialized = .true.
 
-    !$acc update device(mintemp, maxtemp, mindens, maxdens, minye, maxye)
+    !$acc update &
+    !$acc device(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
+    !$acc device(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
   end subroutine eos_init
 
@@ -156,7 +158,9 @@ contains
     has_been_reset = .false.
 
     if (state % check_inputs) then
+#ifndef ACC
        call check_inputs(input, state)
+#endif
        call reset_inputs(input, state, has_been_reset)
     endif
 
@@ -345,6 +349,7 @@ contains
 
 
 
+#ifndef ACC
   subroutine check_inputs(input, state)
 
     !$acc routine seq
@@ -359,33 +364,21 @@ contains
     ! Check the inputs for validity.
 
     do n = 1, nspec
-       if (state % xn(n) .lt. init_test) then
-#ifndef ACC
-          call bl_error('EOS: mass fractions not initialized.')
-#endif
-       endif
+       if (state % xn(n) .lt. minx) then
+          call print_state(state)
+          call bl_error('EOS: mass fraction less than minimum possible mass fraction.')
+       else if (state % xn(n) .gt. maxx) then
+          call print_state(state)
+          call bl_error('EOS: mass fraction more than maximum possible mass fraction.')
     enddo
 
-    if ( state % y_e .lt. minye ) then
-#ifndef ACC
-       print *, 'Y_E  = ', state % y_e
-       print *, 'DENS = ', state % rho
-       print *, 'TEMP = ', state % T
-       print *, 'X    = ', state % xn
+    if (state % y_e .lt. minye) then
+       call print_state(state)
        call bl_error('EOS: y_e less than minimum possible electron fraction.')
-#endif
-    endif
-    if ( state % y_e .gt. maxye ) then
-#ifndef ACC
-       print *, 'Y_E  = ', state % y_e
-       print *, 'DENS = ', state % rho
-       print *, 'TEMP = ', state % T
-       print *, 'X    = ', state % xn
+    else if (state % y_e .gt. maxye) then
+       call print_state(state)
        call bl_error('EOS: y_e greater than maximum possible electron fraction.')
-#endif
     endif
-
-    ! Check if the inputs are below the minimum allowed values.
 
     if (input .eq. eos_input_rt) then
 
@@ -439,24 +432,14 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
     if (state % rho .lt. mindens) then
-#ifndef ACC
-       print *, 'DENS = ', state % rho
-       print *, 'TEMP = ', state % T
-       print *, 'X    = ', state % xn
+       call print_state(state)
        call bl_error('EOS: rho smaller than mindens.')
-#endif
-    endif
-
-    if (state % rho .gt. maxdens) then
-#ifndef ACC
-       print *, 'DENS = ', state % rho
-       print *, 'TEMP = ', state % T
-       print *, 'X    = ', state % xn
+    else if (state % rho .gt. maxdens) then
+       call print_state(state)
        call bl_error('EOS: rho greater than maxdens.')
-#endif
     endif
 
   end subroutine check_rho
@@ -469,24 +452,14 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
     if (state % T .lt. mintemp) then
-#ifndef ACC
-       print *, 'TEMP = ', state % T
-       print *, 'DENS = ', state % rho
-       print *, 'X    = ', state % xn
+       call print_state(state)
        call bl_error('EOS: T smaller than mintemp.')
-#endif
-    endif
-
-    if (state % T .gt. maxdens) then
-#ifndef ACC
-       print *, 'TEMP = ', state % T
-       print *, 'DENS = ', state % rho
-       print *, 'X    = ', state % xn
+    else if (state % T .gt. maxdens) then
+       call print_state(state)
        call bl_error('EOS: T greater than maxtemp.')
-#endif
     endif
 
   end subroutine check_T
@@ -499,12 +472,14 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
-    if (state % e .le. ZERO) then
-#ifndef ACC
-       call bl_error('EOS: e smaller than zero.')
-#endif
+    if (state % e .lt. mine) then
+       call print_state(state)
+       call bl_error('EOS: e smaller than mine.')
+    else if (state % e .gt. maxe) then
+       call print_state(state)
+       call bl_error('EOS: e greater than maxe.')
     endif
 
   end subroutine check_e
@@ -517,12 +492,14 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
-    if (state % h .le. ZERO) then
-#ifndef ACC
-       call bl_error('EOS: h smaller than zero.')
-#endif
+    if (state % h .lt. minh) then
+       call print_state(state)
+       call bl_error('EOS: h smaller than minh.')
+    else if (state % h .gt. maxh) then
+       call print_state(state)
+       call bl_error('EOS: h greater than maxh.')
     endif
 
   end subroutine check_h
@@ -535,12 +512,14 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
-    if (state % s .le. ZERO) then
-#ifndef ACC
-       call bl_error('EOS: s smaller than zero.')
-#endif
+    if (state % s .lt. mins) then
+       call print_state(state)
+       call bl_error('EOS: s smaller than mins.')
+    else if (state % s .gt. maxs) then
+       call print_state(state)
+       call bl_error('EOS: s greater than maxs.')
     endif
 
   end subroutine check_s
@@ -553,15 +532,18 @@ contains
 
     implicit none
 
-    type (eos_t), intent(inout) :: state
+    type (eos_t), intent(in) :: state
 
-    if (state % p .le. ZERO) then
-#ifndef ACC
-       call bl_error('EOS: p smaller than zero.')
-#endif
+    if (state % p .lt. minp) then
+       call print_state(state)
+       call bl_error('EOS: p smaller than minp.')
+    else if (state % p .gt. maxp) then
+       call print_state(state)
+       call bl_error('EOS: p greater than maxp.')
     endif
 
   end subroutine check_p
+#endif
 
 
 
