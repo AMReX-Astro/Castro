@@ -23,7 +23,7 @@ contains
 
     double precision, intent(out) :: small_temp_out
 
-    small_temp_out = smallt
+    small_temp_out = mintemp
 
   end subroutine eos_get_small_temp
 
@@ -37,7 +37,7 @@ contains
 
     double precision, intent(out) :: small_dens_out
 
-    small_dens_out = smalld
+    small_dens_out = mindens
 
   end subroutine eos_get_small_dens
 
@@ -85,40 +85,39 @@ contains
     call actual_eos_init
 
     ! If they exist, save the minimum permitted user temperature and density.
-    ! These cannot be less than zero and they also cannot be less than the 
-    ! minimum possible EOS quantities.
+    ! These are only relevant to this module if they are larger than the minimum
+    ! possible EOS quantities. We will reset them to be equal to the EOS minimum
+    ! if they are smaller than that.
 
     ! Note that in this routine we use the Fortran-based parallel_IOProcessor()
     ! command rather than the C++-based version used elsewhere in Castro; this
     ! ensures compatibility with Fortran-based test programs.
 
     if (present(small_temp)) then
-       if (small_temp > ZERO) then
-          if (small_temp < mintemp) then
-             if (parallel_IOProcessor()) then
-                call bl_warn('EOS: small_temp cannot be less than the mintemp allowed by the EOS. Resetting smallt to mintemp.')
-             endif
-             small_temp = mintemp
+       if (small_temp < mintemp) then
+          if (parallel_IOProcessor()) then
+             call bl_warn('EOS: small_temp cannot be less than the mintemp allowed by the EOS. Resetting small_temp to mintemp.')
           endif
-          smallt = small_temp
+          small_temp = mintemp
+       else
+          mintemp = small_temp
        endif
     endif
 
     if (present(small_dens)) then
-       if (small_dens > ZERO) then
-          if (small_dens < mindens) then
-             if (parallel_IOProcessor()) then
-                call bl_warn('EOS: small_dens cannot be less than the mindens allowed by the EOS. Resetting smalld to mindens.')
-             endif
-             small_dens = mindens
+       if (small_dens < mindens) then
+          if (parallel_IOProcessor()) then
+             call bl_warn('EOS: small_dens cannot be less than the mindens allowed by the EOS. Resetting small_dens to mindens.')
           endif
-          smalld = small_dens
+          small_dens = mindens
+       else
+          mindens = small_dens
        endif
     endif
 
     initialized = .true.
 
-    !$acc update device(smallt, smalld, mintemp, maxtemp, mindens, maxdens, minye, maxye)
+    !$acc update device(mintemp, maxtemp, mindens, maxdens, minye, maxye)
 
   end subroutine eos_init
 
@@ -149,8 +148,8 @@ contains
 
     ! Set small variables.
 
-    state % smallt = smallt
-    state % smalld = smalld
+    state % smallt = mintemp
+    state % smalld = mindens
 
     ! Check to make sure the inputs are valid.
 
@@ -218,9 +217,9 @@ contains
     ! Our strategy for testing the validity of the inputs is as follows.
     ! First, if the quantities for the given call type haven't been initialized,
     ! then throw an error. Second, if the quantity is rho or T and it has been initialized
-    ! but is less than smalld or smallt, reset to smalld or smallt. Third, if the
+    ! but is less than mindens or mintemp, reset to mindens or mintemp. Third, if the
     ! quantity is something else (e, h, etc.) and is less than zero in a zone,
-    ! make sure both T and rho are at least as large as smallt and small d, then
+    ! make sure both T and rho are at least as large as mintemp and mindens, then
     ! call the EOS in (rho, T) mode just on that zone.
 
     if (input .eq. eos_input_rt) then
@@ -284,9 +283,9 @@ contains
 #endif
     endif
 
-    if (state % rho .lt. smalld .and. state % check_small) then
+    if (state % rho .lt. mindens .and. state % check_small) then
        if (state % reset) then
-          state % rho = smalld
+          state % rho = mindens
        else
 #ifndef ACC
           print *, 'DENS = ', state % rho
@@ -325,9 +324,9 @@ contains
 #endif
     endif
 
-    if (state % T .lt. smallt .and. state % check_small) then
+    if (state % T .lt. mintemp .and. state % check_small) then
        if (state % reset) then
-          state % T = smallt
+          state % T = mintemp
        else
 #ifndef ACC
           print *, 'TEMP = ', state % T
@@ -370,8 +369,8 @@ contains
 
     if (state % e .lt. ZERO .and. allow_negative_energy .eq. 0) then
        if (state % reset) then
-          state % T = max(smallt, state % T)
-          state % rho = max(smalld, state % rho)
+          state % T = max(mintemp, state % T)
+          state % rho = max(mindens, state % rho)
           call eos_reset(state, reset)
        else
 #ifndef ACC
@@ -401,8 +400,8 @@ contains
 
     if (state % h .lt. ZERO) then
        if (state % reset) then
-          state % T = max(smallt, state % T)
-          state % rho = max(smalld, state % rho)
+          state % T = max(mintemp, state % T)
+          state % rho = max(mindens, state % rho)
           call eos_reset(state, reset)
        else
 #ifndef ACC
@@ -432,8 +431,8 @@ contains
 
     if (state % s .lt. ZERO) then
        if (state % reset) then
-          state % T = max(smallt, state % T)
-          state % rho = max(smalld, state % rho)
+          state % T = max(mintemp, state % T)
+          state % rho = max(mindens, state % rho)
           call eos_reset(state, reset)
        else
 #ifndef ACC
@@ -463,8 +462,8 @@ contains
 
     if (state % p .lt. ZERO) then
        if (state % reset) then
-          state % T = max(smallt, state % T)
-          state % rho = max(smalld, state % rho)
+          state % T = max(mintemp, state % T)
+          state % rho = max(mindens, state % rho)
           call eos_reset(state, reset)
        else
 #ifndef ACC

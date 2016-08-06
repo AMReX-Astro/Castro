@@ -554,25 +554,23 @@
            small_ener = 1.d-200
         endif
 
+        ! Note that the EOS may modify our choices because of its
+        ! internal limitations, so the small_dens and small_temp
+        ! may be modified coming back out of this routine.
+
         call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-        ! The EOS might have modified our choices because of its
-        ! internal limitations, so let's get small_dens and small_temp
-        ! again just to make sure we're consistent with the EOS.
-
-        call eos_get_small_dens(small_dens)
-        call eos_get_small_temp(small_temp)
 
         ! Update device variables
 
         !$acc update &
         !$acc device(NTHERM, NVAR) &
-        !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
+        !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
         !$acc device(USHK) &
         !$acc device(QTHERM, QVAR) &
         !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
         !$acc device(QGAMC, QGAME) &
-        !$acc device(QFA, QFS, QFX)
+        !$acc device(QFA, QFS, QFX), &
+        !$acc device(small_dens, small_temp)
 
       end subroutine set_method_params
 

@@ -36,11 +36,6 @@ module eos_type_module
   integer, parameter :: ierr_out_of_bounds   = 11
   integer, parameter :: ierr_not_implemented = 12
 
-  ! Smallest possible temperature and density permitted by the user.
-
-  double precision, save :: smallt = 1.d-200
-  double precision, save :: smalld = 1.d-200
-
   ! Minimum and maximum temperature, density, and ye permitted by the EOS.
 
   double precision, save :: mintemp = 1.d-200
@@ -50,7 +45,7 @@ module eos_type_module
   double precision, save :: minye   = 1.d-200
   double precision, save :: maxye   = 1.d0 + 1.d-12
 
-  !$acc declare create(smallt, smalld, mintemp, maxtemp, mindens, maxdens, minye, maxye)
+  !$acc declare create(mintemp, maxtemp, mindens, maxdens, minye, maxye)
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
