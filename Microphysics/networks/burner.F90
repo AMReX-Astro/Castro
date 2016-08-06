@@ -35,8 +35,7 @@ contains
 
     !$acc routine seq
 
-    use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max, &
-                                  disable_shock_burning
+    use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max
 
     implicit none
 
@@ -46,14 +45,14 @@ contains
     ok_to_burn = .true.
 
     if (state % T < react_T_min .or. state % T > react_T_max .or. &
-        state % rho < react_rho_min .or. state % rho > react_rho_max .or. &
-        (disable_shock_burning .eq. 1 .and. state % shock) ) then
+        state % rho < react_rho_min .or. state % rho > react_rho_max) then
 
        ok_to_burn = .false.
 
     endif
 
   end function ok_to_burn
+
 
 
 #ifndef SDC

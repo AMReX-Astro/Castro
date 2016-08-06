@@ -59,10 +59,6 @@ module burn_type_module
 
     logical          :: self_heat
 
-    ! Whether we are inside a shock.
-
-    logical          :: shock
-
     ! Zone index information.
 
     integer          :: i

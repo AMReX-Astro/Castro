@@ -21,7 +21,7 @@ contains
     use meth_params_module, only : UFX
 #endif
 #ifdef SHOCK_VAR
-    use meth_params_module, only : USHK
+    use meth_params_module, only : USHK, disable_shock_burning
 #endif
 #ifdef ACC
     use meth_params_module, only : do_acc
@@ -72,6 +72,12 @@ contains
              ! Don't burn on zones that we are intentionally masking out.
 
              if (mask(i,j,k) /= 1) cycle
+
+             ! Don't burn on zones inside shock regions, if the relevant option is set.
+
+#ifdef SHOCK_VAR
+             if (state(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
+#endif
 
              rhoInv = ONE / state(i,j,k,URHO)
 
@@ -127,14 +133,6 @@ contains
              ! Now reset the internal energy to zero for the burn state.
 
              burn_state_in % e = ZERO
-
-             burn_state_in % shock = .false.
-
-#ifdef SHOCK_VAR
-             if (state(i,j,k,USHK) > ZERO) then
-                burn_state_in % shock = .true.
-             endif
-#endif
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
@@ -209,10 +207,10 @@ contains
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, dual_energy_eta3, disable_shock_burning, &
+                                   UFS, UFX, dual_energy_eta3, &
                                    react_T_min, react_T_max, react_rho_min, react_rho_max
 #ifdef SHOCK_VAR
-    use meth_params_module, only : USHK
+    use meth_params_module, only : USHK, disable_shock_burning
 #endif
     use integrator_module, only : integrator
     use bl_constants_module, only : ZERO, HALF, ONE
