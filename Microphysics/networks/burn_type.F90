@@ -1,19 +1,11 @@
 module burn_type_module
 
-  use bl_constants_module, only: ZERO
-  use actual_network, only: nspec, nspec_evolve, naux, nrates
-  use eos_module, only: eos_t
+  use bl_types, only: dp_t
+  use actual_network, only: nspec, nspec_evolve, naux
 
   implicit none
 
   ! A generic structure holding data necessary to do a nuclear burn.
-
-  ! Initialize the main quantities to an unphysical number
-  ! so that we know if the user forgot to initialize them
-  ! when calling the burner.
-
-  double precision, parameter :: init_num  = -1.0d200
-  double precision, parameter :: init_test = -1.0d199
 
   ! Set the number of independent variables -- this should be
   ! temperature, enuc + the number of species which participate
@@ -26,53 +18,33 @@ module burn_type_module
   integer, parameter :: net_itemp = nspec_evolve + 1
   integer, parameter :: net_ienuc = nspec_evolve + 2
 
-  ! Number of rates groups to store.
-
-  integer, parameter :: num_rate_groups = 4
-
   type :: burn_t
 
-    ! Input quantities; these should be initialized
-    ! so that we can do sanity checks.
-
-    double precision :: rho              = init_num
-    double precision :: T                = init_num
-    double precision :: e                = init_num
-    double precision :: xn(nspec)        = init_num
+    real(dp_t) :: rho
+    real(dp_t) :: T
+    real(dp_t) :: e
+    real(dp_t) :: xn(nspec)
 #if naux > 0
-    double precision :: aux(naux)        = init_num
+    real(dp_t) :: aux(naux)
 #endif
 
-    ! We choose not to initialize other quantities,
-    ! due to a compiler bug in PGI that prevents us
-    ! from using them correctly on GPUs with OpenACC.
-
-    double precision :: cv               != init_num
-    double precision :: cp               != init_num
-    double precision :: y_e              != init_num
-    double precision :: eta              != init_num
-    double precision :: cs               != init_num
-    double precision :: dx               != init_num
-    double precision :: dedX(nspec)      != init_num
-    double precision :: dhdX(nspec)      != init_num
-    double precision :: abar             != init_num
-    double precision :: zbar             != init_num
+    real(dp_t) :: cv
+    real(dp_t) :: cp
+    real(dp_t) :: y_e
+    real(dp_t) :: eta
+    real(dp_t) :: cs
+    real(dp_t) :: dx
+    real(dp_t) :: dedX(nspec)
+    real(dp_t) :: dhdX(nspec)
+    real(dp_t) :: abar
+    real(dp_t) :: zbar
 
     ! Last temperature we evaluated the EOS at
-    double precision :: T_old            != init_num
+    real(dp_t) :: T_old
 
     ! Temperature derivatives of specific heat
-    double precision :: dcvdT            != init_num
-    double precision :: dcpdT            != init_num
-
-    ! Do we have valid rates data stored?
-
-    logical          :: have_rates       != .false.
-
-    ! Rates data. We have multiple entries so that
-    ! we can store both the rates and their derivatives.
-
-    double precision :: rates(num_rate_groups, nrates) != init_num
+    real(dp_t) :: dcvdT
+    real(dp_t) :: dcpdT
 
     ! The following are the actual integration data.
     ! To avoid potential incompatibilities we won't
@@ -80,24 +52,26 @@ module burn_type_module
     ! It can be reconstructed from all of the above
     ! data, particularly xn, e, and T.
 
-    double precision :: ydot(neqs)       != ZERO
-    double precision :: jac(neqs, neqs)  != ZERO
+    real(dp_t) :: ydot(neqs)
+    real(dp_t) :: jac(neqs, neqs)
 
     ! Whether we are self-heating or not.
 
-    logical          :: self_heat        != .true.
+    logical          :: self_heat
 
     ! Whether we are inside a shock.
 
-    logical          :: shock            != .false.
+    logical          :: shock
 
     ! Zone index information.
 
-    integer          :: i != -100
-    integer          :: j != -100
-    integer          :: k != -100
+    integer          :: i
+    integer          :: j
+    integer          :: k
 
-    double precision :: time != -1.d0
+    ! Integration time.
+
+    real(dp_t) :: time
 
   end type burn_t
 
@@ -108,6 +82,8 @@ contains
   subroutine eos_to_burn(eos_state, burn_state)
 
     !$acc routine seq
+
+    use eos_module, only: eos_t
 
     implicit none
 
@@ -141,7 +117,7 @@ contains
 
     !$acc routine seq
 
-    use meth_params_module, only: allow_negative_energy
+    use eos_module, only: eos_t
 
     implicit none
 
