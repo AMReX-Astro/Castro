@@ -219,6 +219,7 @@ contains
   end subroutine composition_derivatives
 
 
+
   ! Normalize the mass fractions: they must be individually positive
   ! and less than one, and they must all sum to unity.
 
@@ -238,5 +239,22 @@ contains
     state % xn = state % xn / sum(state % xn)
 
   end subroutine normalize_abundances
+
+
+
+  ! Ensure that inputs are within reasonable limits.
+
+  subroutine clean_state(state)
+
+    !$acc routine seq
+
+    implicit none
+
+    type (eos_t), intent(inout) :: state
+
+    state % T = min(maxtemp, max(mintemp, state % T))
+    state % rho = min(maxdens, max(mindens, state % rho))
+
+  end subroutine clean_state
 
 end module eos_type_module
