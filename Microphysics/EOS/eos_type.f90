@@ -145,9 +145,6 @@ module eos_type_module
     real(dp_t) :: dedA
     real(dp_t) :: dedZ
 
-    real(dp_t) :: smallt
-    real(dp_t) :: smalld
-
   end type eos_t
 
 contains

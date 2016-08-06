@@ -96,11 +96,6 @@ contains
 
     call composition(state)
 
-    ! Set small variables.
-
-    state % smallt = mintemp
-    state % smalld = mindens
-
     ! Force the inputs to be valid.
 
     has_been_reset = .false.
