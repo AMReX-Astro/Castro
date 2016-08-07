@@ -235,11 +235,11 @@ contains
     double precision, pointer :: phi(:,:,:)
 
     ! Rotation source options for how to add the work to (rho E):
-    ! rot_source_type = 
+    ! rot_source_type =
     ! 1: Standard version ("does work")
     ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
-    ! 3: Puts all work into KE, not (rho e)
-    ! 4: Conservative rotation approach (discussed in first white dwarf merger paper)
+    ! 3: Puts all rotational work into KE, not (rho e)
+    ! 4: Conservative energy formulation
 
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
@@ -340,6 +340,7 @@ contains
              if (implicit_rotation_update == 1) then
 
                 ! Coupled/implicit momentum update (wdmerger paper I; Section 2.4)
+                ! http://adsabs.harvard.edu/abs/2016ApJ...819...94K
 
                 ! Do the full corrector step with the old contribution (subtract 1/2 times the old term) and do
                 ! the non-Coriolis parts of the new contribution (add 1/2 of the new term).
@@ -376,7 +377,7 @@ contains
 
              if (rot_source_type == 1) then
 
-                ! If rot_source_type == 1, then calculate SrEcorr before updating the velocities.
+                ! If rot_source_type == 1, then we calculated SrEcorr before updating the velocities.
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
 
@@ -409,20 +410,22 @@ contains
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the rotational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
+                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
                 ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
                 ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
                 ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
                 ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
                 ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in 
-                ! the other source options, which effectively are equal to 
+                ! This is a generalization of the cell-centered approach implemented in
+                ! the other source options, which effectively are equal to
                 ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                ! Note that in the hydrodynamics step, the fluxes used here were already 
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to 
-                ! get the density change (flux * dt * dA / dV).
+                ! Note that in the hydrodynamics step, the fluxes used here were already
+                ! multiplied by dA and dt, so dividing by the cell volume is enough to
+                ! get the density change (flux * dt * dA / dV). We then divide by dt
+                ! so that we get the source term and not the actual update, which will
+                ! be applied later by multiplying by dt.
 
                 SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
                                                     flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
@@ -431,8 +434,10 @@ contains
                                                     flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
                                                     flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
-                ! Correct for the time rate of change of the potential, which acts 
-                ! purely as a source term.
+                ! Correct for the time rate of change of the potential, which acts
+                ! purely as a source term. This is only necessary for this source type;
+                ! it is captured automatically for the others since the time rate of change
+                ! of omega also appears in the velocity source term.
 
                 Sr_old = - rhoo * cross_product(domegadt_old, loc)
                 Sr_new = - rhon * cross_product(domegadt_new, loc)
@@ -448,7 +453,6 @@ contains
              src(UEDEN) = SrEcorr
 
              ! **** Start Diagnostics ****
-             ! This is the new (rho e) as stored in (rho E) after the gravitational work is added
              new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
              new_rhoeint = snew(UEDEN) - new_ke
              E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)

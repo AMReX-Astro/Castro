@@ -52,9 +52,9 @@ contains
     double precision :: snew(NVAR)
 
     ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type = 
+    ! grav_source_type =
     ! 1: Original version ("does work")
-    ! 2: same as original, except in correction, it uses updates U
+    ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
     ! 3: Puts all gravitational work into KE, not (rho e)
     ! 4: Conservative energy formulation
 
@@ -113,8 +113,8 @@ contains
 
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
-             else 
-                call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
+             else
+                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
              end if
 
              src(UEDEN) = SrE
@@ -238,7 +238,7 @@ contains
     double precision, pointer :: gravz(:,:,:)
 
     ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type = 
+    ! grav_source_type =
     ! 1: Original version ("does work")
     ! 2: Modification of type 1 that updates the U before constructing SrEcorr
     ! 3: Puts all gravitational work into KE, not (rho e)
@@ -252,8 +252,8 @@ contains
        call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
        call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
-       ! For our purposes, we want the time-level n+1/2 phi because we are 
-       ! using fluxes evaluated at that time. To second order we can 
+       ! For our purposes, we want the time-level n+1/2 phi because we are
+       ! using fluxes evaluated at that time. To second order we can
        ! average the new and old potentials.
 
        phi = ZERO
@@ -309,8 +309,7 @@ contains
 
        endif
 
-       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
-            .and. get_g_from_phi) ) ) then
+       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi) ) ) then
 
           ! Construct the time-averaged edge-centered gravity.
 
@@ -398,7 +397,7 @@ contains
 
              if (grav_source_type .eq. 1) then
 
-                ! If grav_source_type == 1, then calculate SrEcorr before updating the velocities.
+                ! If grav_source_type == 1, then we calculated SrEcorr before updating the velocities.
 
                 SrEcorr = HALF * (SrE_new - SrE_old)
 
@@ -428,23 +427,24 @@ contains
 
                 ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
                 ! the change in the gravitational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_g + rho * phi, to be conserved.
+                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
                 ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
                 ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
                 ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
                 ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
                 ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in 
-                ! the other source options, which effectively are equal to 
+                ! This is a generalization of the cell-centered approach implemented in
+                ! the other source options, which effectively are equal to
                 ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
                 ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-                ! Note that in the hydrodynamics step, the fluxes used here were already 
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to 
-                ! get the density change (flux * dt * dA / dV). 
+                ! Note that in the hydrodynamics step, the fluxes used here were already
+                ! multiplied by dA and dt, so dividing by the cell volume is enough to
+                ! get the density change (flux * dt * dA / dV). We then divide by dt
+                ! so that we get the source term and not the actual update, which will
+                ! be applied later by multiplying by dt.
 
-                if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" &
-                     .and. get_g_from_phi) ) then
+                if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi) ) then
 
                    SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
                                                        flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
@@ -453,13 +453,12 @@ contains
                                                        flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
                                                        flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
-                   ! However, at present phi is only actually filled for Poisson gravity,
-                   ! and optionally monopole gravity if the user species get_g_from_phi.   
+                else
+
+                   ! However, at present phi is usually only actually filled for Poisson gravity.
                    ! Here's an alternate version that only requires the use of the
                    ! gravitational acceleration. It relies on the concept that, to second order,
                    ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
-
-                else
 
                    SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
                                                        flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
@@ -470,8 +469,8 @@ contains
 
                 endif
 
-             else 
-                call bl_error("Error:: gravity_sources_nd.f90 :: invalid grav_source_type")
+             else
+                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
              end if
 
              src(UEDEN) = SrEcorr
