@@ -111,7 +111,7 @@ contains
 
     gd_lo = (/ ilo, jlo /)
     gd_hi = (/ ihi, jhi /)
-    
+
     call bl_allocate ( smallc, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate (   cavg, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate (  gamcm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
@@ -183,7 +183,7 @@ contains
              ! minus state
              eos_state % rho = qm(i,j,kc,QRHO)
              eos_state % p   = qm(i,j,kc,QPRES)
-             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO) 
+             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
              eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
              eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
 
@@ -1407,7 +1407,7 @@ contains
           qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
           regdnv = frac*estar + (ONE - frac)*reo
 #endif
-          
+
           if (spout < ZERO) then
              qint(i,j,kc,GDRHO) = ro
              qint(i,j,kc,iu  ) = uo
@@ -1441,8 +1441,8 @@ contains
           do g=0, ngroups-1
              qint(i,j,kc,GDERADS+g) = max(regdnv_r(g), 0.d0)
           end do
-          
-          qint(i,j,kc,GDPRES) = pgdnv_g          
+
+          qint(i,j,kc,GDPRES) = pgdnv_g
           qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
 
           qint(i,j,kc,GDGAME) = pgdnv_g/regdnv_g + ONE
@@ -1480,16 +1480,16 @@ contains
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu ) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
- 
+
 #ifdef HYBRID_MOMENTUM
           call compute_hybrid_flux(qint(i,j,kc,:), uflx(i,j,kflux,:), idir, [i, j, k3d])
 #endif
 
 #ifdef RADIATION
           rhoetot = regdnv_g + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
-          
+
           uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + pgdnv_g)
-          
+
           uflx(i,j,kflux,UEINT) = u_adv*regdnv_g
 #else
           rhoetot = regdnv + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
@@ -1534,7 +1534,7 @@ contains
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-          
+
        enddo
     enddo
 
@@ -1737,7 +1737,7 @@ contains
 
           entho = (reo + po)*co2inv/ro
           estar = reo + (pstar - po)*entho
-          
+
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
 
@@ -1778,7 +1778,7 @@ contains
           end if
 
           bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
-          
+
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
@@ -1796,7 +1796,7 @@ contains
              ! R* region
              call cons_state(qr(i,j,kc,:), U_state)
              call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
-             
+
              call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
 
              ! correct the flux

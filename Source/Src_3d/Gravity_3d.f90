@@ -3,9 +3,9 @@ module gravity_3D_module
   implicit none
 
   public
-  
+
 contains
-  
+
   subroutine ca_test_residual(lo, hi, &
        rhs, rhl1, rhl2, rhl3, rhh1, rhh2, rhh3, &
        ecx, ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3, &
@@ -50,7 +50,7 @@ contains
        rho,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
        radial_mass,radial_vol,problo,&
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
-    
+
     use bl_constants_module
     use prob_params_module, only: center
 
@@ -109,7 +109,7 @@ contains
              if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
-                   print *,'   '  
+                   print *,'   '
                    print *,'>>> Error: Gravity_3d::ca_compute_radial_mass ',i,j,k
                    print *,'>>> ... index too big: ', index,' > ',n1d-1
                    print *,'>>> ... at (i,j,k)   : ',i,j,k
@@ -202,7 +202,7 @@ contains
              else if (index .gt. n1d-1) then
 
                 if (level .eq. 0) then
-                   print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1 
+                   print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ',index,' > ',n1d-1
                    print *,'AT (i,j,k) ',i,j,k
                    print *,'X Y Z ',x,y,z
                    print *,'R / DR ',r,dr
@@ -241,13 +241,13 @@ contains
 
   end subroutine ca_put_radial_grav
 
-  
+
 
   subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
        phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
        radial_phi,problo,&
        numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
-    
+
     use bl_constants_module
     use prob_params_module, only: center
 
@@ -277,7 +277,7 @@ contains
           z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
        else if (k .lt. domlo(3)) then
           z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
-       else 
+       else
           z = problo(3) + (dble(k  )+HALF) * dx(3) - center(3)
        end if
 
@@ -286,7 +286,7 @@ contains
              y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
           else if (j .lt. domlo(2)) then
              y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
-          else 
+          else
              y = problo(2) + (dble(j  )+HALF) * dx(2) - center(2)
           end if
 
@@ -295,7 +295,7 @@ contains
                 x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
              else if (i .lt. domlo(1)) then
                 x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
-             else 
+             else
                 x = problo(1) + (dble(i  )+HALF) * dx(1) - center(1)
              end if
 
@@ -312,7 +312,7 @@ contains
              if ( (fill_interior .eq. 1) .or. &
                   ( i.lt.domlo(1).or.i.gt.domhi(1)  .or. &
                   j.lt.domlo(2).or.j.gt.domhi(2)  .or. &
-                  k.lt.domlo(3).or.k.gt.domhi(3)  ) ) then  
+                  k.lt.domlo(3).or.k.gt.domhi(3)  ) ) then
                 cen = (dble(index)+HALF)*dr
                 xi  = r - cen
                 if (index == 0) then
@@ -358,7 +358,7 @@ contains
        problo, probhi, &
        bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
        bind(C, name="ca_compute_direct_sum_bc")
-    
+
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
@@ -622,7 +622,7 @@ contains
   subroutine ca_put_direct_sum_bc (lo,hi,domlo,domhi,phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
        bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
        bind(C, name="ca_put_direct_sum_bc")
-    
+
     implicit none
 
     integer          :: lo(3),hi(3)

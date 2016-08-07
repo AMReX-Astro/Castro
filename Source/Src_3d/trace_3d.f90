@@ -5,7 +5,7 @@ module trace_module
   private
 
   public tracexy, tracez
-  
+
 contains
 
       subroutine tracexy(q,c,qd_lo,qd_hi, &
@@ -73,7 +73,7 @@ contains
       !-----------------------------------------------------------------------
       ! x-direction
       !-----------------------------------------------------------------------
-      
+
       ! Compute left and right traced states
 
       ! construct the right state on the i interface
@@ -148,7 +148,7 @@ contains
             !azv1rght = HALF*(-ONE - spzero )*alpha0v
             !azw1rght = HALF*(-ONE - spzero )*alpha0w
 
-            
+
             if (i .ge. ilo1) then
                qxp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
                qxp(i,j,kc,QRHO) = max(small_dens, qxp(i,j,kc,QRHO))
@@ -307,7 +307,7 @@ contains
 
             apright = 0.25d0*dtdy*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
             amright = 0.25d0*dtdy*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
-            
+
             azrright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0r
             azeright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
             azu1rght = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0u
@@ -418,9 +418,9 @@ contains
 
     end subroutine tracexy
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine tracez(q,c,qd_lo,qd_hi, &
                         dqz,dq_lo,dq_hi, &
@@ -475,11 +475,11 @@ contains
       end if
 
       dtdz = dt/dx(3)
-      
+
       !!!!!!!!!!!!!!!
       ! NON-PPM CODE
       !!!!!!!!!!!!!!!
-      
+
       do j = ilo2-1, ihi2+1
          do i = ilo1-1, ihi1+1
 

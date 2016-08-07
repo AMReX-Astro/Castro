@@ -17,7 +17,7 @@ contains
     ! here we normalize the fluxes of the mass fractions so that
     ! they sum to 0.  This is essentially the CMA procedure that is
     ! defined in Plewa & Muller, 1999, A&A, 342, 179
-    
+
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
@@ -31,11 +31,11 @@ contains
     double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    
+
     ! Local variables
     integer          :: i, j, k, n
     double precision :: sum, fac
-    
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1
@@ -262,15 +262,15 @@ contains
 
   end subroutine limit_hydro_fluxes_on_small_dens
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
   subroutine divu(lo,hi,q,q_lo,q_hi,dx,div,div_lo,div_hi)
-    
+
     use meth_params_module, only : QU, QV, QW, QVAR
     use bl_constants_module
-    
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -290,7 +290,7 @@ contains
     do k=lo(3),hi(3)+1
        do j=lo(2),hi(2)+1
           do i=lo(1),hi(1)+1
-             
+
              ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &
@@ -314,7 +314,7 @@ contains
           enddo
        enddo
     enddo
-    
+
   end subroutine divu
 
 end module advection_util_3d_module

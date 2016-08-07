@@ -570,7 +570,7 @@ contains
           ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
-#endif          
+#endif
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -1503,7 +1503,7 @@ contains
                + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
 #ifdef RADIATION
-          erl  = qzm(i,j,kc,qrad:qradhi)                                                                          
+          erl  = qzm(i,j,kc,qrad:qradhi)
 #endif
 
           ! Add transverse predictor
@@ -1513,10 +1513,10 @@ contains
           rwnewlz = rwlz - cdtdy*(fy(i,j+1,km,UMZ) - fy(i,j,km,UMZ))
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
 #ifdef RADIATION
-          rvnewlz = rvnewlz + dmom                                                                                
+          rvnewlz = rvnewlz + dmom
           renewlz = renewlz + dre
-          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,km,:)- rfy(i,j,km,:)) &                                             
-               + der      
+          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,km,:)- rfy(i,j,km,:)) &
+               + der
 #endif
 
           ! Reset to original value if adding transverse terms made density negative
@@ -2144,7 +2144,7 @@ contains
   !===========================================================================
   subroutine transxy( &
 #ifdef RADIATION
-                     lam, lam_lo, lam_hi, &       
+                     lam, lam_lo, lam_hi, &
 #endif
                      qm,qmo,qp,qpo,qd_lo,qd_hi, &
                      fxy, &
@@ -3208,7 +3208,7 @@ contains
           lugey = HALF*(ugyp+ugym) * lgey(:)
           lugez = HALF*(ugzp+ugzm) * lgez(:)
           dre = -cdtdy*sum(lugey) - cdtdz*sum(lugez)
-          
+
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
@@ -3322,7 +3322,7 @@ contains
                 qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
-             
+
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)

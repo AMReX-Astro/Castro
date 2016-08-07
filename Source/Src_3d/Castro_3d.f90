@@ -16,7 +16,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
                     vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
                     courno,verbose, &
-                    mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux,&
+                    mass_added_flux,xmom_added_flux,ymom_added_flux,zmom_added_flux, &
                     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
@@ -80,14 +80,14 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer:: q1(:,:,:,:)
   double precision, pointer:: q2(:,:,:,:)
   double precision, pointer:: q3(:,:,:,:)
-  
+
   integer :: ngq, ngf
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
   integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
   integer :: flux2_lo(3), flux2_hi(3)
-  integer :: flux3_lo(3), flux3_hi(3)  
+  integer :: flux3_lo(3), flux3_hi(3)
   integer :: area1_lo(3), area1_hi(3)
   integer :: area2_lo(3), area2_hi(3)
   integer :: area3_lo(3), area3_hi(3)
@@ -101,7 +101,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ngq = NHYP
   ngf = 1
-    
+
   q_lo = [ q_l1, q_l2, q_l3 ]
   q_hi = [ q_h1, q_h2, q_h3 ]
 
@@ -110,7 +110,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   uin_lo = [ uin_l1, uin_l2, uin_l3 ]
   uin_hi = [ uin_h1, uin_h2, uin_h3 ]
-  
+
   uout_lo = [ uout_l1, uout_l2, uout_l3 ]
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
@@ -124,8 +124,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   flux2_hi = [ flux2_h1, flux2_h2, flux2_h3 ]
 
   flux3_lo = [ flux3_l1, flux3_l2, flux3_l3 ]
-  flux3_hi = [ flux3_h1, flux3_h2, flux3_h3 ]  
-  
+  flux3_hi = [ flux3_h1, flux3_h2, flux3_h3 ]
+
   area1_lo = [ area1_l1, area1_l2, area1_l3 ]
   area1_hi = [ area1_h1, area1_h2, area1_h3 ]
 
@@ -140,7 +140,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   call bl_allocate( flatn, q_lo, q_hi)
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)  
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
   ugdnvx_lo = [ugdnvx_l1, ugdnvx_l2, ugdnvx_l3]
@@ -214,7 +214,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   ugdnvx_out(:,:,:) = q1(:,:,:,GDU)
   ugdnvy_out(:,:,:) = q2(:,:,:,GDV)
   ugdnvz_out(:,:,:) = q3(:,:,:,GDW)
-  
+
   call bl_deallocate( flatn)
 
   call bl_deallocate(   div)
@@ -223,5 +223,5 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_deallocate(    q1)
   call bl_deallocate(    q2)
   call bl_deallocate(    q3)
-  
+
 end subroutine ca_umdrv
