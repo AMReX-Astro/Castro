@@ -2052,12 +2052,11 @@ Castro::post_grown_restart ()
         return;
 
 #ifdef GRAVITY
-
-    int finest_level = parent->finestLevel();
-    Real cur_time = state[State_Type].curTime();
-
     if (do_grav) {
-       if (gravity->get_gravity_type() == "PoissonGrav") {
+	int finest_level = parent->finestLevel();
+	Real cur_time = state[State_Type].curTime();
+
+	if (gravity->get_gravity_type() == "PoissonGrav") {
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -2096,6 +2095,8 @@ Castro::post_grown_restart ()
       // controlled within the radiation class.
 
       radiation->post_init(level);
+
+      int finest_level = parent->finestLevel();
 
       for (int k = finest_level-1; k>= 0; k--) {
         getLevel(k).avgDown(Rad_Type);
