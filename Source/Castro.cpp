@@ -2081,8 +2081,10 @@ Castro::post_grown_restart ()
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation)
+    if (do_rotation) {
+      Real cur_time = state[State_Type].curTime();
       fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    }
     else {
       phirot_new.setVal(0.0);
       rot_new.setVal(0.0);
