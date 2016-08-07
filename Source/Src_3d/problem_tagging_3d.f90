@@ -16,8 +16,7 @@ contains
                               dx,problo,time,level) &
                               bind(C, name="set_problem_tags")
 
-    use bl_constants_module, only: ZERO
-    use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN, NVAR
+    use meth_params_module, only: NVAR
 
     implicit none
 

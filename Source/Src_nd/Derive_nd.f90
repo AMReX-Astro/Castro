@@ -99,8 +99,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -149,8 +148,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -476,9 +474,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
-
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -600,8 +596,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -649,8 +644,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -698,8 +692,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
