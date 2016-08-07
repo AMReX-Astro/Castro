@@ -78,11 +78,11 @@ in Fortran -- it is all local.  You don't need to know about neighbors, etc.
 
 
 
-  
-
-
-
-
-
-
-
+CastroBld is an implementation of the virtual functions in LevelBld.H
+that the Amr class uses to construct new instances of Castro AmrLevels
+when Amr wants to create a new amrlevel (at initialization, or on a
+regrid, say) it doesn't directly call the AmrLevel derived class
+constructors themselves but it goes through levelbld also,
+nyx:variableSetup() only looks cleaner than the version in Castro
+because they shunted off some functions to new routines, but it's not
+fundamentally much different
