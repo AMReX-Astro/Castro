@@ -323,12 +323,6 @@ contains
     integer domlo(3), domhi(3)
     double precision loc(3), ang_mom(3)
 
-    ! Normalize the species fluxes.
-
-    call normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                                  lo,hi)
-
     ! Correct the fluxes to include the effects of the artificial viscosity.
 
     do n = 1, NVAR
@@ -367,6 +361,12 @@ contains
 
        endif
     enddo
+
+    ! Normalize the species fluxes.
+
+    call normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
+                                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                                  lo,hi)
 
     ! Fill the update array.
 

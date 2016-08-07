@@ -146,16 +146,12 @@ contains
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision mass_lost, xmom_lost, ymom_lost, zmom_lost
     double precision eden_lost, xang_lost, yang_lost, zang_lost
-    
+
     integer          :: i, j, k, n
     double precision :: div1
     integer          :: domlo(3), domhi(3)
     double precision :: loc(3), ang_mom(3)
-    
-    ! Normalize the species fluxes.
 
-    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
-    
     do n = 1, NVAR
        if ( n == UTEMP ) then
           flux(:,n) = ZERO
@@ -172,6 +168,10 @@ contains
           enddo
        endif
     enddo
+
+    ! Normalize the species fluxes.
+
+    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
     ! Fill the update array.
 
