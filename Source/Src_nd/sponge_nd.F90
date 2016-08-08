@@ -2,9 +2,10 @@ module sponge_module
 
   implicit none
 
+  double precision, save :: sponge_lower_factor, sponge_upper_factor
   double precision, save :: sponge_lower_radius, sponge_upper_radius
   double precision, save :: sponge_lower_density, sponge_upper_density
-  double precision, save :: sponge_timescale  
+  double precision, save :: sponge_timescale
 
 contains
 
@@ -19,9 +20,9 @@ contains
     use meth_params_module,   only: UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
-    
+
     implicit none
-    
+
     integer          :: lo(3),hi(3)
     integer          :: state_lo(3), state_hi(3)
     integer          :: src_lo(3), src_hi(3)
@@ -40,23 +41,23 @@ contains
     double precision :: delta_r, delta_rho
     double precision :: rho, rhoInv
     double precision :: update_factor
-    
+
     integer          :: i, j, k
 
     double precision :: src(NVAR), snew(NVAR)
 
     ! Radial distance between upper and lower boundaries.
-    
+
     delta_r = sponge_upper_radius - sponge_lower_radius
 
     ! Density difference between upper and lower cutoffs.
-    
+
     delta_rho = sponge_lower_density - sponge_upper_density
-    
+
     ! alpha is a dimensionless measure of the timestep size; if
     ! sponge_timescale < dt, then the sponge will have a larger effect,
     ! and if sponge_timescale > dt, then the sponge will have a diminished effect.
-    
+
     if (sponge_timescale > ZERO) then
        alpha = dt / sponge_timescale
     else
@@ -92,11 +93,12 @@ contains
                 radius = sqrt(sum(r**2))
 
                 if (radius < sponge_lower_radius) then
-                   sponge_factor = ZERO
+                   sponge_factor = sponge_lower_factor
                 else if (radius >= sponge_lower_radius .and. radius <= sponge_upper_radius) then
-                   sponge_factor = HALF * (ONE - cos(M_PI * (radius - sponge_lower_radius) / delta_r))
+                   sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
+                                                         (ONE - cos(M_PI * (radius - sponge_lower_radius) / delta_r))
                 else
-                   sponge_factor = ONE
+                   sponge_factor = sponge_upper_factor
                 endif
 
              endif
@@ -110,11 +112,12 @@ contains
              if (sponge_upper_density > ZERO .and. sponge_lower_density > ZERO) then
 
                 if (rho > sponge_upper_density) then
-                   sponge_factor = ZERO
+                   sponge_factor = sponge_lower_factor
                 else if (rho <= sponge_upper_density .and. rho >= sponge_lower_density) then
-                   sponge_factor = HALF * (ONE - cos(M_PI * (rho - sponge_upper_density) / delta_rho))
+                   sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
+                                                         (ONE - cos(M_PI * (rho - sponge_upper_density) / delta_rho))
                 else
-                   sponge_factor = ONE
+                   sponge_factor = sponge_upper_factor
                 endif
 
              endif

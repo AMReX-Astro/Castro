@@ -831,8 +831,7 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
-      subroutine get_sponge_params(name, namlen) &
-           bind(C, name="get_sponge_params")
+      subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
         use sponge_module
 
@@ -847,11 +846,15 @@
         character (len=maxlen) :: probin
 
         namelist /sponge/ &
+             sponge_lower_factor, sponge_upper_factor, &
              sponge_lower_radius, sponge_upper_radius, &
              sponge_lower_density, sponge_upper_density, &
              sponge_timescale
 
         ! Set namelist defaults
+
+        sponge_lower_factor = 0.d0
+        sponge_upper_factor = 1.d0
 
         sponge_lower_radius = -1.d0
         sponge_upper_radius = -1.d0
@@ -885,5 +888,15 @@
         endif
 
         close (unit=un)
+
+        ! Sanity check
+
+        if (sponge_lower_factor < 0.d0 .or. sponge_lower_factor > 1.d0) then
+           call bl_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+        endif
+
+        if (sponge_upper_factor < 0.d0 .or. sponge_upper_factor > 1.d0) then
+           call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+        endif
 
       end subroutine get_sponge_params
