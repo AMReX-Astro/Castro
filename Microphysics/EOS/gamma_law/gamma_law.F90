@@ -150,6 +150,10 @@ contains
 
     end select
 
+    ! Give dpdr a value for the purposes of the composition_derivatives routine.
+
+    state % dPdr = ZERO
+
   end subroutine actual_eos
 
 end module actual_eos_module
