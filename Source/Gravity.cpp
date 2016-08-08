@@ -635,8 +635,8 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
         MultiFab::Copy(CrseRhsAvgDown,CrseRhsSync,0,0,1,0);
 
 	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(crse_level+1)));
-	const MultiFab* mask = fine_level->build_fine_mask();
-	MultiFab::Multiply(CrseRhsSync, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = fine_level->build_fine_mask();
+	MultiFab::Multiply(CrseRhsSync, mask, 0, 0, 1, 0);
     }
 
     CrseRhsSync.mult(Ggravity);
@@ -1836,8 +1836,8 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
             {
 		Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 
-		const MultiFab* mask = fine_level->build_fine_mask();
-		MultiFab::Multiply(*source, *mask, 0, 0, 1, 0);
+		const MultiFab& mask = fine_level->build_fine_mask();
+		MultiFab::Multiply(*source, mask, 0, 0, 1, 0);
 	    }
 
 	}
@@ -2397,8 +2397,8 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
     if (level < parent->finestLevel() && mask)
     {
 	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
-	const MultiFab* mask = fine_level->build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = fine_level->build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -2487,8 +2487,8 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         if (lev < level)
         {
 	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-	    const MultiFab* mask = fine_level->build_fine_mask();
-	    MultiFab::Multiply(S, *mask, 0, 0, 1, 0);
+	    const MultiFab& mask = fine_level->build_fine_mask();
+	    MultiFab::Multiply(S, mask, 0, 0, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();

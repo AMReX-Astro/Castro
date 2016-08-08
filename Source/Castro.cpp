@@ -449,7 +449,6 @@ Castro::Castro ()
 #ifdef RADIATION
     rad_flux_reg = 0;
 #endif
-    fine_mask = 0;
 }
 
 Castro::Castro (Amr&            papa,
@@ -491,8 +490,6 @@ Castro::Castro (Amr&            papa,
       rad_flux_reg->setVal(0.0);
     }
 #endif
-
-    fine_mask = 0;
 
 #ifdef GRAVITY
 
@@ -621,7 +618,6 @@ Castro::~Castro ()
       radiation->close(level);
     }
 #endif
-    delete fine_mask;
 }
 
 
@@ -1910,8 +1906,7 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
-    delete fine_mask;
-    fine_mask = 0;
+    fine_mask.clear();
 
 #ifdef PARTICLES
     if (TracerPC && level == lbase) {
@@ -2941,26 +2936,26 @@ Castro::getCPUTime()
 }
 
 
-MultiFab*
+MultiFab&
 Castro::build_fine_mask()
 {
     BL_ASSERT(level > 0); // because we are building a mask for the coarser level
 
-    if (fine_mask != 0) return fine_mask;
+    if (!fine_mask.empty()) return fine_mask;
 
     BoxArray baf = parent->boxArray(level);
     baf.coarsen(crse_ratio);
 
     const BoxArray& bac = parent->boxArray(level-1);
-    fine_mask = new MultiFab(bac,1,0);
-    fine_mask->setVal(1.0);
+    fine_mask.define(bac,1,0,Fab_allocate);
+    fine_mask.setVal(1.0);
     
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(*fine_mask); mfi.isValid(); ++mfi)
+    for (MFIter mfi(fine_mask); mfi.isValid(); ++mfi)
     {
-        FArrayBox& fab = (*fine_mask)[mfi];
+        FArrayBox& fab = fine_mask[mfi];
 
 	const std::vector< std::pair<int,Box> >& isects = baf.intersections(fab.box());
 

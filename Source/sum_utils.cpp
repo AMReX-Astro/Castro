@@ -20,8 +20,8 @@ Castro::sumDerive (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -58,8 +58,8 @@ Castro::volWgtSum (const std::string& name,
 
     if (level < parent->finestLevel() && finemask)
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -108,8 +108,8 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -159,8 +159,8 @@ Castro::locWgtSum (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -211,8 +211,8 @@ Castro::locWgtSum2D (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -308,8 +308,8 @@ Castro::volWgtSumOneSide (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -407,8 +407,8 @@ Castro::locWgtSumOneSide (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -499,9 +499,9 @@ Castro::volProductSum (const std::string& name1,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf1, *mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mf2, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf1, mask, 0, 0, 1, 0);
+	MultiFab::Multiply(*mf2, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -548,8 +548,8 @@ Castro::locSquaredSum (const std::string& name,
 
     if (level < parent->finestLevel())
     {
-	const MultiFab* mask = getLevel(level+1).build_fine_mask();
-	MultiFab::Multiply(*mf, *mask, 0, 0, 1, 0);
+	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP

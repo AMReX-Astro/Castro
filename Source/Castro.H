@@ -542,8 +542,8 @@ public:
     // This coarse MultiFab has to live on the fine level because it must be updated
     // even when only the fine level changes.
     //
-    MultiFab* fine_mask;
-    MultiFab* build_fine_mask();
+    MultiFab fine_mask;
+    MultiFab& build_fine_mask();
 
 protected:
 
