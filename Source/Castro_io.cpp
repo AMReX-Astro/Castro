@@ -272,14 +272,12 @@ Castro::restart (Amr&     papa,
 
     }
 
-    BL_ASSERT(flux_reg == 0);
     if (level > 0 && do_reflux)
-        flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
+        flux_reg.define(grids,crse_ratio,level,NUM_STATE);
 
 #ifdef RADIATION
-    BL_ASSERT(rad_flux_reg == 0);
     if (Radiation::rad_hydro_combined && level > 0 && do_reflux)
-      rad_flux_reg = new FluxRegister(grids,crse_ratio,level,Radiation::nGroups);
+	rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
 #endif
 
     const Real* dx  = geom.CellSize();

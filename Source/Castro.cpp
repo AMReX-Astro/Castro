@@ -445,10 +445,6 @@ Castro::Castro ()
     new_sources(num_src, PArrayManage),
     prev_state(NUM_STATE_TYPE, PArrayManage)
 {
-    flux_reg = 0;
-#ifdef RADIATION
-    rad_flux_reg = 0;
-#endif
 }
 
 Castro::Castro (Amr&            papa,
@@ -475,19 +471,17 @@ Castro::Castro (Amr&            papa,
       material_lost_through_boundary_temp[i] = 0.;
     }
 
-    flux_reg = 0;
     if (level > 0 && do_reflux)
     {
-        flux_reg = new FluxRegister(grids,crse_ratio,level,NUM_STATE);
-        flux_reg->setVal(0.0);
+        flux_reg.define(grids,crse_ratio,level,NUM_STATE);
+        flux_reg.setVal(0.0);
     }
 
 #ifdef RADIATION    
-    rad_flux_reg = 0;
     if (Radiation::rad_hydro_combined && level > 0 && do_reflux) 
     {
-      rad_flux_reg = new FluxRegister(grids,crse_ratio,level,Radiation::nGroups);
-      rad_flux_reg->setVal(0.0);
+	rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
+	rad_flux_reg.setVal(0.0);
     }
 #endif
 
@@ -607,12 +601,7 @@ Castro::Castro (Amr&            papa,
 
 Castro::~Castro () 
 {
-    delete flux_reg;
-
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-      delete rad_flux_reg;
-    }
     if (radiation != 0) {
       //radiation->cleanup(level);
       radiation->close(level);

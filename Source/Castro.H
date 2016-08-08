@@ -531,7 +531,7 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    FluxRegister*        flux_reg;
+    FluxRegister     flux_reg;
 
     FluxRegister& getFluxReg ();
     FluxRegister& getFluxReg (int lev);
@@ -660,7 +660,7 @@ protected:
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
 #ifdef RADIATION
-    FluxRegister*        rad_flux_reg;
+    FluxRegister         rad_flux_reg;
 #endif
 
     //
@@ -808,8 +808,8 @@ inline
 FluxRegister&
 Castro::getFluxReg ()
 {
-    BL_ASSERT(flux_reg);
-    return *flux_reg;
+    BL_ASSERT(flux_reg.size()>0);
+    return flux_reg;
 }
 
 inline
@@ -824,8 +824,8 @@ inline
 FluxRegister&
 Castro::getRADFluxReg ()
 {
-    BL_ASSERT(rad_flux_reg);
-    return *rad_flux_reg;
+    BL_ASSERT(rad_flux_reg.size()>0);
+    return rad_flux_reg;
 }
 
 inline
