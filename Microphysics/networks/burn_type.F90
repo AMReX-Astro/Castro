@@ -34,8 +34,6 @@ module burn_type_module
     real(dp_t) :: eta
     real(dp_t) :: cs
     real(dp_t) :: dx
-    real(dp_t) :: dedX(nspec)
-    real(dp_t) :: dhdX(nspec)
     real(dp_t) :: abar
     real(dp_t) :: zbar
 
@@ -98,8 +96,6 @@ contains
     burn_state % y_e  = eos_state % y_e
     burn_state % eta  = eos_state % eta
     burn_state % cs   = eos_state % cs
-    burn_state % dedX = eos_state % dedX
-    burn_state % dhdX = eos_state % dhdX
     burn_state % abar = eos_state % abar
     burn_state % zbar = eos_state % zbar
 
@@ -132,8 +128,6 @@ contains
     eos_state % y_e  = burn_state % y_e
     eos_state % eta  = burn_state % eta
     eos_state % cs   = burn_state % cs
-    eos_state % dedX = burn_state % dedX
-    eos_state % dhdX = burn_state % dhdX
     eos_state % abar = burn_state % abar
     eos_state % zbar = burn_state % zbar
 
