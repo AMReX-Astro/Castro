@@ -63,6 +63,10 @@ module burn_type_module
     integer          :: j
     integer          :: k
 
+    ! diagnostics
+    integer :: n_rhs
+    integer :: n_jac
+
     ! Integration time.
 
     real(dp_t) :: time

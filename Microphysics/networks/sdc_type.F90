@@ -30,6 +30,9 @@ module sdc_type_module
      integer :: j
      integer :: k
 
+     integer :: n_rhs
+     integer :: n_fac
+
   end type sdc_t
 
 end module sdc_type_module
