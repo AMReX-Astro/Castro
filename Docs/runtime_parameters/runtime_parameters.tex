@@ -287,15 +287,16 @@
 \verb= small_temp = &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
 \verb= sponge_implicit = &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
 \rowcolor{tableShade}
+\verb= time_center_sponge = &  should we time center the sponge? & 0 \\
 \verb= transverse_reset_density = &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
+\rowcolor{tableShade}
 \verb= transverse_reset_rhoe = &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
-\rowcolor{tableShade}
 \verb= transverse_use_eos = &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
+\rowcolor{tableShade}
 \verb= update_state_between_sources = &  should we update the state in between evaluations of the new-time source terms & 1 \\
-\rowcolor{tableShade}
 \verb= use_colglaz = &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
-\verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \rowcolor{tableShade}
+\verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \verb= use_pslope = &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
 
 
