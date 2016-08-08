@@ -4,13 +4,13 @@
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
-    update_sponge_params(&time);
-
     int ng = (*Sborder).nGrow();
 
     old_sources[sponge_src].setVal(0.0);
 
     if (!time_center_sponge || !do_sponge) return;
+
+    update_sponge_params(&time);
 
     Real E_added    = 0.;
     Real xmom_added = 0.;
@@ -69,8 +69,6 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 void
 Castro::construct_new_sponge_source(Real time, Real dt)
 {
-    update_sponge_params(&time);
-
     MultiFab& S_new = get_new_data(State_Type);
 
     int ng = 0;
@@ -78,6 +76,8 @@ Castro::construct_new_sponge_source(Real time, Real dt)
     new_sources[sponge_src].setVal(0.0);
 
     if (!do_sponge) return;
+
+    update_sponge_params(&time);
 
     Real E_added    = 0.;
     Real xmom_added = 0.;
