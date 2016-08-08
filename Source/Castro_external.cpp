@@ -4,13 +4,13 @@
 void
 Castro::construct_old_ext_source(Real time, Real dt)
 {
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[ext_src].setVal(0.0);
 
     if (!add_ext_src) return;
 
-    fill_ext_source(time, dt, *Sborder, *Sborder, old_sources[ext_src], ng);
+    fill_ext_source(time, dt, Sborder, Sborder, old_sources[ext_src], ng);
 
     BoxLib::fill_boundary(old_sources[ext_src], geom);
 

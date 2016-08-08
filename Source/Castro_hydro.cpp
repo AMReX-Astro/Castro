@@ -14,12 +14,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     // Set up the source terms to go into the hydro.
 
-    sources_for_hydro->setVal(0.0);
+    sources_for_hydro.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(*sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
+	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
-    BoxLib::fill_boundary(*sources_for_hydro, geom);
+    BoxLib::fill_boundary(sources_for_hydro, geom);
 
 #ifndef SDC
     // Optionally we can predict the source terms to t + dt/2,
@@ -33,7 +33,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       BoxLib::fill_boundary(dSdt_new, geom);
 
-      MultiFab::Saxpy(*sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
+      MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
 
     }
 #else
@@ -42,9 +42,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     MultiFab& SDC_source = get_new_data(SDC_Source_Type);
 
-    MultiFab::Add(*sources_for_hydro, SDC_source, 0, 0, NUM_STATE, 0);
+    MultiFab::Add(sources_for_hydro, SDC_source, 0, 0, NUM_STATE, 0);
 
-    BoxLib::fill_boundary(*sources_for_hydro, geom);
+    BoxLib::fill_boundary(sources_for_hydro, geom);
 #ifdef REACTIONS
     // Make sure that we have valid data on the ghost zones of the reactions source.
 
@@ -92,7 +92,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    lamborder.setVal(0.0, NUM_GROW);
 	}
 	else {
-	    radiation->compute_limiter(level, grids, *Sborder, Erborder, lamborder);
+	    radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
 	}
 
 	int nstep_fsp = -1;
@@ -118,7 +118,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &statein  = (*Sborder)[mfi];
+		FArrayBox &statein  = Sborder[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
 		FArrayBox &Er = Erborder[mfi];
@@ -145,7 +145,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
 			    BL_TO_FORTRAN(ugdn[1]),
 			    BL_TO_FORTRAN(ugdn[2])),
-		     BL_TO_FORTRAN((*sources_for_hydro)[mfi]),
+		     BL_TO_FORTRAN(sources_for_hydro[mfi]),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
@@ -163,13 +163,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     &cflLoc, verbose, &priv_nstep_fsp);
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    (*u_gdnv[i])[mfi].copy(ugdn[i],mfi.nodaltilebox(i));
+		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
 		if (do_reflux) {
 		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-		        (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i));
-			(*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+		        fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
+			rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
 		    }
 		}
 	    }
@@ -252,11 +252,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
 
-		FArrayBox &statein  = (*Sborder)[mfi];
+		FArrayBox &statein  = Sborder[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
-		FArrayBox &source_in  = (*sources_for_hydro)[mfi];
-		FArrayBox &source_out = (*hydro_source)[mfi];
+		FArrayBox &source_in  = sources_for_hydro[mfi];
+		FArrayBox &source_out = hydro_source[mfi];
 
 		FArrayBox &vol = volume[mfi];
 
@@ -322,14 +322,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 		// Copy the normal velocities from the Riemann solver
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    (*u_gdnv[i])[mfi].copy(ugdn[i],mfi.nodaltilebox(i));
+		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
 		// Since we may need the fluxes later on, we'll copy them
 		// to the fluxes MultiFAB even if we aren't on a fine grid.
 
 		for (int i = 0; i < BL_SPACEDIM ; i++)
-		    (*fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i));
+		    fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 
 	    }
 
@@ -404,20 +404,20 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (do_reflux) {
 	if (current) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        current->FineAdd(*fluxes[i],i,0,0,NUM_STATE,1.);
+	        current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
 	}
 	if (fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                fine->CrseInit(*fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
+                fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
 	}
 #ifdef RADIATION
 	if (rad_current) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_current->FineAdd(*rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
+                rad_current->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
 	}
 	if (rad_fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_fine->CrseInit(*rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
+                rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
         }
 #endif
     }

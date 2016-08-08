@@ -13,7 +13,7 @@ void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_i
 
     if (do_rotation) {
 
-      fill_rotation_field(phirot_old, rot_old, (*Sborder), time);
+      fill_rotation_field(phirot_old, rot_old, Sborder, time);
 
     } else {
 
@@ -56,7 +56,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[rot_src].setVal(0.0);
 
@@ -74,7 +74,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-    for (MFIter mfi((*Sborder),true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.growntilebox();
 
@@ -84,7 +84,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
-		BL_TO_FORTRAN_3D((*Sborder)[mfi]),
+		BL_TO_FORTRAN_3D(Sborder[mfi]),
 		BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time,

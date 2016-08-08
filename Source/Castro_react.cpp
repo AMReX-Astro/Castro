@@ -22,7 +22,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& reactions = get_old_data(Reactions_Type);
 
-    MultiFab& state = (*Sborder);
+    MultiFab& state = Sborder;
 
     const int ng = state.nGrow();
 
@@ -98,7 +98,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 			 BL_TO_FORTRAN_3D(s[mfi]),
 			 BL_TO_FORTRAN_3D(r[mfi]),
 #ifdef TAU
-			 BL_TO_FORTRAN_3D((*tau_diff)[mfi]),
+			 BL_TO_FORTRAN_3D(tau_diff[mfi]),
 #endif
 			 BL_TO_FORTRAN_3D(mask[mfi]),
 			 time, dt_react);

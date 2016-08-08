@@ -32,7 +32,7 @@ public:
 
   MultiFab* get_grad_phi_prev_comp(int level,int comp);
 
-  void plus_grad_phi_curr(int level, Array<MultiFab*> addend);
+  void plus_grad_phi_curr(int level, PArray<MultiFab>& addend);
 
   void swapTimeLevels (int level);
 
@@ -61,8 +61,8 @@ public:
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
-  void create_comp_minus_level_grad_phi(int level, MultiFab* cmlp,
-                                        Array<MultiFab*> cmlgp);
+  void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
+                                        PArray<MultiFab>& cmlgp);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,

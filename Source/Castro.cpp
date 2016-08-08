@@ -435,12 +435,12 @@ Castro::read_params ()
 
 Castro::Castro ()
     :
-    comp_minus_level_grad_phi(BL_SPACEDIM),
+    comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+    fluxes(3, PArrayManage),
 #ifdef RADIATION
-    rad_fluxes(BL_SPACEDIM),
+    rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
-    fluxes(3),
-    u_gdnv(BL_SPACEDIM),
+    u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
     prev_state(NUM_STATE_TYPE, PArrayManage)
@@ -458,12 +458,12 @@ Castro::Castro (Amr&            papa,
                 Real            time)
     :
     AmrLevel(papa,lev,level_geom,bl,time),
-    comp_minus_level_grad_phi(BL_SPACEDIM),
+    comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+    fluxes(3, PArrayManage),
 #ifdef RADIATION
-    rad_fluxes(BL_SPACEDIM),
+    rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
-    fluxes(3),
-    u_gdnv(BL_SPACEDIM),
+    u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
     prev_state(NUM_STATE_TYPE, PArrayManage)
@@ -1768,8 +1768,8 @@ Castro::post_timestep (int iteration)
     computeTemp(S_new);
 
     if (keep_sources_until_end) {
-	delete hydro_source;
-	delete sources_for_hydro;
+	hydro_source.clear();
+	sources_for_hydro.clear();
 
 	old_sources.clear();
 	new_sources.clear();
@@ -2181,7 +2181,7 @@ Castro::define_tau (MultiFab& grav_vector, Real time)
         Box bx(fpi.validbox());
         int i = fpi.index();
         ca_define_tau(bx.loVect(), bx.hiVect(),
-		      BL_TO_FORTRAN((*tau_diff)[fpi]),
+		      BL_TO_FORTRAN(tau_diff[fpi]),
 		      BL_TO_FORTRAN(fpi()),
 		      BL_TO_FORTRAN(grav_vector[fpi]),
 		      dx_fine);
@@ -3034,13 +3034,13 @@ Castro::build_interior_boundary_mask (int ng)
 // Fill a version of the state with ng ghost zones from the state data.
 
 void
-Castro::expand_state(MultiFab& Sborder, Real time, int ng)
+Castro::expand_state(MultiFab& S, Real time, int ng)
 {
-    BL_ASSERT(Sborder.nGrow() >= ng);
+    BL_ASSERT(S.nGrow() >= ng);
 
-    AmrLevel::FillPatch(*this,Sborder,ng,time,State_Type,0,NUM_STATE);
+    AmrLevel::FillPatch(*this,S,ng,time,State_Type,0,NUM_STATE);
 
-    clean_state(Sborder);
+    clean_state(S);
 
 }
 
@@ -3105,10 +3105,10 @@ Castro::construct_new_source(int src, int amr_iteration, int amr_ncycle, int sub
 
 #ifdef DIFFUSION
     case diff_src:
-	NewTempDiffTerm = OldTempDiffTerm;
-	NewSpecDiffTerm = OldSpecDiffTerm;
-	NewViscousTermforMomentum = OldViscousTermforMomentum;
-	NewViscousTermforEnergy   = OldViscousTermforEnergy;
+	NewTempDiffTerm = &OldTempDiffTerm;
+	NewSpecDiffTerm = &OldSpecDiffTerm;
+	NewViscousTermforMomentum = &OldViscousTermforMomentum;
+	NewViscousTermforEnergy   = &OldViscousTermforEnergy;
 
 	construct_new_diff_source(time, dt);
 	break;
@@ -3193,7 +3193,7 @@ Castro::sum_of_sources(MultiFab& source)
   for (int n = 0; n < num_src; ++n)
       MultiFab::Add(source, old_sources[n], 0, 0, NUM_STATE, ng);
 
-  MultiFab::Add(source, *hydro_source, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
   for (int n = 0; n < num_src; ++n)
       MultiFab::Add(source, new_sources[n], 0, 0, NUM_STATE, ng);

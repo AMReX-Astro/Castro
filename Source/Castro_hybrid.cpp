@@ -4,11 +4,11 @@
 void
 Castro::construct_old_hybrid_source(Real time, Real dt)
 {
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[hybrid_src].setVal(0.0);
 
-    fill_hybrid_hydro_source(old_sources[hybrid_src], (*Sborder));
+    fill_hybrid_hydro_source(old_sources[hybrid_src], Sborder);
 }
 
 

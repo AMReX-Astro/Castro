@@ -49,12 +49,11 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 
-	    comp_minus_level_phi = new MultiFab;
-	    comp_minus_level_phi->define(grids,1,0,Fab_allocate);
+	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
 
 	    for (int n = 0; n < BL_SPACEDIM; ++n) {
-	        comp_minus_level_grad_phi[n] = new MultiFab;
-	        comp_minus_level_grad_phi[n]->define(getEdgeBoxArray(n),1,0,Fab_allocate);
+		comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
+		    
 	    }
 
 	    gravity->create_comp_minus_level_grad_phi(level,
@@ -94,7 +93,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    MultiFab& phi_old = get_old_data(PhiGrav_Type);
 	    MultiFab::Copy(phi_new,phi_old,0,0,1,phi_new.nGrow());
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-		phi_new.minus(*comp_minus_level_phi, 0, 1, 0);
+		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 	    }
             int is_new = 1;
             gravity->solve_for_phi(level,
@@ -111,12 +110,11 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    }
 
             if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-	      phi_new.plus(*comp_minus_level_phi, 0, 1, 0);
+	      phi_new.plus(comp_minus_level_phi, 0, 1, 0);
 	      gravity->plus_grad_phi_curr(level,comp_minus_level_grad_phi);
 
-	      delete comp_minus_level_phi;
-	      for (int n = 0; n < BL_SPACEDIM; ++n)
-		delete comp_minus_level_grad_phi[n];
+	      comp_minus_level_phi.clear();
+	      comp_minus_level_grad_phi.clear();
             }
 
             if (gravity->test_results_of_solves() == 1) {
@@ -148,7 +146,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
 
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[grav_src].setVal(0.0);
 
@@ -168,7 +166,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-    for (MFIter mfi((*Sborder),true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.growntilebox();
 
@@ -178,7 +176,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(phi_old[mfi]),
 		BL_TO_FORTRAN_3D(grav_old[mfi]),
-		BL_TO_FORTRAN_3D((*Sborder)[mfi]),
+		BL_TO_FORTRAN_3D(Sborder[mfi]),
 		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time,
@@ -265,9 +263,9 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
 			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
+			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
 			ZFILL(dx),dt,&time,
 			BL_TO_FORTRAN_3D(volume[mfi]),
 			E_added, mom_added);

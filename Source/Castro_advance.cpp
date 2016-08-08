@@ -166,7 +166,7 @@ Castro::do_advance (Real time,
 
     // Initialize the new-time data. This copy needs to come after the reactions.
 
-    MultiFab::Copy(S_new, *Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
     // Construct the old-time sources.
 
@@ -183,7 +183,7 @@ Castro::do_advance (Real time,
     if (do_hydro)
     {
         construct_hydro_source(time, dt);
-	apply_source_to_state(S_new, *hydro_source, dt);
+	apply_source_to_state(S_new, hydro_source, dt);
 	frac_change = clean_state(S_new);
     }
 
@@ -293,7 +293,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
-	u_gdnv[dir]->setVal(1.e40,1);
+	u_gdnv[dir].setVal(1.e40,1);
     }
 
     // Reset the grid loss tracking.
@@ -317,23 +317,23 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 #ifdef DIFFUSION
 #ifdef TAU
-    tau_diff->setVal(0.);
+    tau_diff.setVal(0.);
     define_tau(grav_old,time);
 #endif
 #endif
 
     for (int j = 0; j < 3; j++)
-        fluxes[j]->setVal(0.0);
+        fluxes[j].setVal(0.0);
 
-    hydro_source->setVal(0.0);
+    hydro_source.setVal(0.0);
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    Sborder = new MultiFab(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
     const Real prev_time = state[State_Type].prevTime();
-    expand_state(*Sborder, prev_time, NUM_GROW);
+    expand_state(Sborder, prev_time, NUM_GROW);
 
 }
 
@@ -401,7 +401,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     }
 #endif
 
-    delete Sborder;
+    Sborder.clear();
 
 }
 
@@ -493,51 +493,51 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // This array holds the hydrodynamics update.
 
-    hydro_source = new MultiFab(grids,NUM_STATE,0,Fab_allocate);
+    hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
     // hydro update to store the sum of the new-time sources, so that we can
     // compute the time derivative of the source terms.
 
-    sources_for_hydro = new MultiFab(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
     for (int j = 0; j < BL_SPACEDIM; j++)
     {
-        fluxes[j] = new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate);
+        fluxes.set(j, new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate));
     }
 
     for (int j = BL_SPACEDIM; j < 3; j++)
     {
         BoxArray ba = get_new_data(State_Type).boxArray();
-	fluxes[j] = new MultiFab(ba, NUM_STATE, 0, Fab_allocate);
+	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
     }
 
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
     if (Radiation::rad_hydro_combined) {
         for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	    rad_fluxes[dir] = new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate);
+	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate));
 	}
     }
 #endif
 
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
-	u_gdnv[dir] = new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate);
+	u_gdnv.set(dir, new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate));
     }
 
 #ifdef DIFFUSION
 #ifdef TAU
-    tau_diff = new MultiFab(grids,1,NUM_GROW);
+    tau_diff.define(grids,1,NUM_GROW);
 #endif
 #endif
 
 #ifdef DIFFUSION
-    OldTempDiffTerm = new MultiFab(grids, 1, 1);
-    OldSpecDiffTerm = new MultiFab(grids,NumSpec,1);
-    OldViscousTermforMomentum = new MultiFab(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy = new MultiFab(grids,1,1);
+    OldTempDiffTerm.define(grids, 1, 1);
+    OldSpecDiffTerm.define(grids,NumSpec,1);
+    OldViscousTermforMomentum.define(grids,BL_SPACEDIM,1);
+    OldViscousTermforEnergy.define(grids,1,1);
 #endif
 
 }
@@ -563,37 +563,34 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     set_special_tagging_flag(cur_time);
 
     if (!keep_sources_until_end) {
-	delete hydro_source;
-	delete sources_for_hydro;
+	hydro_source.clear();
+	sources_for_hydro.clear();
 
 	old_sources.clear();
 	new_sources.clear();
     }
 
-    for (int n = 0; n < 3; ++n)
-        delete fluxes[n];
+    fluxes.clear();
 
 #ifdef RADIATION
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-        delete rad_fluxes[n];
+    rad_fluxes.clear();
 #endif
 
 #ifndef LEVELSET
-    for (int n = 0; n < BL_SPACEDIM; ++n)
-        delete u_gdnv[n];
+    u_gdnv.clear();
 #endif
 
     prev_state.clear();
 
 #ifdef DIFFUSION
-    delete OldTempDiffTerm;
-    delete OldSpecDiffTerm;
-    delete OldViscousTermforMomentum;
-    delete OldViscousTermforEnergy;
+    OldTempDiffTerm.clear();
+    OldSpecDiffTerm.clear();
+    OldViscousTermforMomentum.clear();
+    OldViscousTermforEnergy.clear();
 #endif
 
 #ifdef TAU
-    delete tau_diff;
+    tau_diff.clear();
 #endif
 
 }

@@ -501,7 +501,7 @@ public:
 
     void apply_source_to_state (MultiFab& state, MultiFab& source, Real dt);
 
-    void expand_state(MultiFab& Sborder, Real time, int ng);
+    void expand_state(MultiFab& S, Real time, int ng);
 
     void make_radial_data (int is_new);
 
@@ -559,36 +559,36 @@ protected:
     //
     // Difference between composite and level solve for phi.
     //
-    MultiFab* comp_minus_level_phi;
-    Array<MultiFab*> comp_minus_level_grad_phi;
+    MultiFab comp_minus_level_phi;
+    PArray<MultiFab> comp_minus_level_grad_phi;
 
     //
     // A state array with ghost zones.
     //
-    MultiFab* Sborder;
+    MultiFab Sborder;
 
     //
     // Source terms to the hydrodynamics solve.
     //
-    MultiFab* sources_for_hydro;
+    MultiFab sources_for_hydro;
 
     //
     // Source term representing hydrodynamics update.
     //
-    MultiFab* hydro_source;
+    MultiFab hydro_source;
 
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    Array<MultiFab*> fluxes;
+    PArray<MultiFab> fluxes;
 #ifdef RADIATION
-    Array<MultiFab*> rad_fluxes;
+    PArray<MultiFab> rad_fluxes;
 #endif
 
     //
     // Face-centered velocities from the Riemann solve.
     //
-    Array<MultiFab*> u_gdnv;
+    PArray<MultiFab> u_gdnv;
 
     //
     // Non-hydro source terms.
@@ -701,10 +701,10 @@ protected:
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
 
-    MultiFab* OldTempDiffTerm;
-    MultiFab* OldSpecDiffTerm;
-    MultiFab* OldViscousTermforMomentum;
-    MultiFab* OldViscousTermforEnergy;
+    MultiFab OldTempDiffTerm;
+    MultiFab OldSpecDiffTerm;
+    MultiFab OldViscousTermforMomentum;
+    MultiFab OldViscousTermforEnergy;
 
     MultiFab* NewTempDiffTerm;
     MultiFab* NewSpecDiffTerm;
@@ -713,7 +713,7 @@ protected:
 #endif
 
 #ifdef TAU
-    MultiFab* tau_diff;
+    MultiFab tau_diff;
 #endif
 
 #ifdef PARTICLES

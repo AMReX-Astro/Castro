@@ -10,15 +10,15 @@ using std::string;
 void
 Castro::construct_old_diff_source(Real time, Real dt)
 {
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(old_sources[diff_src],*OldTempDiffTerm,time);
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src],*OldSpecDiffTerm,time);
-    add_viscous_term_to_source(old_sources[diff_src],*OldViscousTermforMomentum,*OldViscousTermforEnergy,time);
+    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
+    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
 #endif
 
     BoxLib::fill_boundary(old_sources[diff_src], geom);
@@ -153,7 +153,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm)
 	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     BL_TO_FORTRAN_3D(state_old[mfi]),
 #ifdef TAU
-			     BL_TO_FORTRAN_3D((*tau_diff)[mfi]),
+			     BL_TO_FORTRAN_3D(tau_diff[mfi]),
 #endif
 			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),

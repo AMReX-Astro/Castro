@@ -391,10 +391,10 @@ Gravity::get_grad_phi_curr(int level)
 }
 
 void
-Gravity::plus_grad_phi_curr(int level, Array<MultiFab*> addend)
+Gravity::plus_grad_phi_curr(int level, PArray<MultiFab>& addend)
 {
   for (int n = 0; n < BL_SPACEDIM; n++)
-    grad_phi_curr[level][n].plus(*addend[n],0,1,0);
+    grad_phi_curr[level][n].plus(addend[n],0,1,0);
 }
 
 void
@@ -1284,8 +1284,8 @@ Gravity::test_level_grad_phi_curr(int level)
 }
 
 void
-Gravity::create_comp_minus_level_grad_phi(int level, MultiFab* comp_minus_level_phi,
-                                          Array<MultiFab*> comp_minus_level_grad_phi)
+Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_phi,
+                                          PArray<MultiFab>& comp_minus_level_grad_phi)
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
@@ -1297,9 +1297,9 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab* comp_minus_level_
     SL_phi.define(grids[level],1,1,Fab_allocate);
     MultiFab::Copy(SL_phi,phi_old,0,0,1,1);
 
-    comp_minus_level_phi->setVal(0.);
+    comp_minus_level_phi.setVal(0.);
     for (int n=0; n<BL_SPACEDIM; ++n)
-      comp_minus_level_grad_phi[n]->setVal(0.);
+      comp_minus_level_grad_phi[n].setVal(0.);
 
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
@@ -1317,13 +1317,13 @@ Gravity::create_comp_minus_level_grad_phi(int level, MultiFab* comp_minus_level_
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "... compute difference between level and composite solves at level " << level << '\n';
 
-    comp_minus_level_phi->copy(phi_old,0,0,1);
-    comp_minus_level_phi->minus(SL_phi,0,1,0);
+    comp_minus_level_phi.copy(phi_old,0,0,1);
+    comp_minus_level_phi.minus(SL_phi,0,1,0);
 
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
-        comp_minus_level_grad_phi[n]->copy(grad_phi_prev[level][n],0,0,1);
-        comp_minus_level_grad_phi[n]->minus(SL_grad_phi[n],0,1,0);
+        comp_minus_level_grad_phi[n].copy(grad_phi_prev[level][n],0,0,1);
+        comp_minus_level_grad_phi[n].minus(SL_grad_phi[n],0,1,0);
     }
 
     // Just do this to release the memory

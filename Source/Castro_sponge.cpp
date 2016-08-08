@@ -4,7 +4,7 @@
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
-    int ng = (*Sborder).nGrow();
+    int ng = Sborder.nGrow();
 
     old_sources[sponge_src].setVal(0.0);
 
@@ -22,14 +22,14 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
 #endif
-    for (MFIter mfi(*Sborder,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 	Real mom_added[3] = { 0.0 };
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		  BL_TO_FORTRAN_3D((*Sborder)[mfi]),
+		  BL_TO_FORTRAN_3D(Sborder[mfi]),
 		  BL_TO_FORTRAN_3D(old_sources[sponge_src][mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, &time,
