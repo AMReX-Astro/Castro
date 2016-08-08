@@ -560,11 +560,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
-    delete hydro_source;
-    delete sources_for_hydro;
+    if (!keep_sources_until_end) {
+	delete hydro_source;
+	delete sources_for_hydro;
 
-    old_sources.clear();
-    new_sources.clear();
+	old_sources.clear();
+	new_sources.clear();
+    }
 
     for (int n = 0; n < 3; ++n)
         delete fluxes[n];

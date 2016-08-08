@@ -48,6 +48,8 @@ int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
 int         Castro::time_center_sponge = 0;
 int         Castro::update_state_between_sources = 1;
+int         Castro::keep_sources_until_end = 0;
+int         Castro::source_term_predictor = 0;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
@@ -71,7 +73,6 @@ int         Castro::disable_shock_burning = 0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;
-int         Castro::source_term_predictor = 0;
 int         Castro::do_rotation = -1;
 #ifdef ROTATION
 Real        Castro::rotational_period = -1.e200;

@@ -48,6 +48,8 @@ static int do_sponge;
 static int sponge_implicit;
 static int time_center_sponge;
 static int update_state_between_sources;
+static int keep_sources_until_end;
+static int source_term_predictor;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;
@@ -71,7 +73,6 @@ static int disable_shock_burning;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
-static int source_term_predictor;
 static int do_rotation;
 #ifdef ROTATION
 static Real rotational_period;

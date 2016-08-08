@@ -1771,6 +1771,13 @@ Castro::post_timestep (int iteration)
     // Re-compute temperature after all the other updates.
     computeTemp(S_new);
 
+    if (keep_sources_until_end) {
+	delete hydro_source;
+	delete sources_for_hydro;
+
+	old_sources.clear();
+	new_sources.clear();
+    }
 
 #ifdef PARTICLES
     if (TracerPC)

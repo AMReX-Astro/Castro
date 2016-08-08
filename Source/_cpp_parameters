@@ -193,6 +193,13 @@ time_center_sponge           int           0
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
 
+# retain source terms until end of timestep
+keep_sources_until_end       int           0
+
+# extrapolate the source terms (gravity and rotation) to $n+1/2$
+# timelevel for use in the interface state prediction
+source_term_predictor        int           0
+
 #-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------
@@ -296,10 +303,6 @@ moving_center                int           0
 # determines how the gravitational source term is added to the momentum and
 # energy state variables.
 grav_source_type             int           4                  y
-
-# extrapolate the source terms (gravity and rotation) to $n+1/2$
-# timelevel for use in the interface state prediction
-source_term_predictor        int           0
 
 # permits rotation calculation to be turned on and off 
 do_rotation                  int          -1                  y
