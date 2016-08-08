@@ -401,6 +401,8 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     }
 #endif
 
+    delete Sborder;
+
 }
 
 
