@@ -2197,7 +2197,7 @@ Castro::reflux ()
     if (!Geometry::IsCartesian()) {
 	MultiFab dr(volume.boxArray(),1,volume.nGrow());
 	dr.setVal(geom.CellSize(0));
-//	getPresReg(level+1).Reflux(get_new_data(State_Type),dr,1.0,0,Xmom,1,geom);
+	getPresReg(level+1).Reflux(get_new_data(State_Type),dr,1.0,0,Xmom,1,geom);
     }
 
 #ifdef RADIATION
