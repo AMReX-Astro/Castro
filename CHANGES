@@ -1,5 +1,10 @@
 * changes since the last release:
 
+  -- the flux correction for axisymmetric and 1-d spherical coords
+     has been fixed.  In particular, there is now a separate flux
+     register for the pressure term that enters as a gradient in the
+     momentum equation.
+
   -- The sign on the gravitational potential has been flipped to be
      consistent with the usual convention in the physics literature,
      i.e. the potential is negative and we solve del**2 phi = 4 * pi *
