@@ -13,17 +13,19 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         flux2   ,   flux2_l1,   flux2_l2,   flux2_h1,   flux2_h2, &
                         radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
                         radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
+                        pradial,p_l1,p_l2,p_h1,p_h2,&
                         area1   ,   area1_l1,   area1_l2,   area1_h1,   area1_h2, &
                         area2   ,   area2_l1,   area2_l2,   area2_h1,   area2_h2, &
                         dloga   ,   dloga_l1,   dloga_l2,   dloga_h1,   dloga_h2, &
                         vol     ,     vol_l1,     vol_l2,     vol_h1,     vol_h2, &
                         courno,verbose, nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, GDPRES
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use advection_util_2d_module, only : divu
   use rad_advection_module, only : umeth2d_rad, ctoprim_rad, consup_rad
+  use prob_params_module, only : coord_type
 
   implicit none
 
@@ -42,6 +44,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer    flux2_l1,   flux2_l2,   flux2_h1,   flux2_h2
   integer radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2
   integer radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2
+  integer p_l1,p_l2,p_h1,p_h2
   integer    area1_l1,   area1_l2,   area1_h1,   area1_h2
   integer    area2_l1,   area2_l2,   area2_h1,   area2_h2
   integer    dloga_l1,   dloga_l2,   dloga_h1,   dloga_h2
@@ -60,6 +63,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision flux2   (   flux2_l1:   flux2_h1,   flux2_l2:   flux2_h2,NVAR)
   double precision radflux1(radflux1_l1:radflux1_h1,radflux1_l2:radflux1_h2,0:ngroups-1)
   double precision radflux2(radflux2_l1:radflux2_h1,radflux2_l2:radflux2_h2,0:ngroups-1)
+  double precision pradial (       p_l1:       p_h1,       p_l2:       p_h2)
   double precision area1   (   area1_l1:   area1_h1,   area1_l2:   area1_h2)
   double precision area2   (   area2_l1:   area2_h1,   area2_l2:   area2_h2)
   double precision dloga   (   dloga_l1:   dloga_h1,   dloga_l2:   dloga_h2)
@@ -165,6 +169,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                   vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
                   div,pdivu, &
                   lo,hi,dx,dy,dt, nstep_fsp)
+
+  if (coord_type .eq. 1) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
+  end if
   
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)

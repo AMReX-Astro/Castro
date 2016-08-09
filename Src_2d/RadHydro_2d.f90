@@ -799,9 +799,6 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)+1
         flux1(i,j,1:NVAR) = dt * flux1(i,j,1:NVAR)
-        if (coord_type == 1) then
-           flux1(i,j,UMX) = flux1(i,j,UMX) + dt*area1(i,j)*q1(i,j,GDPRES)
-        endif
      enddo
   enddo
 
@@ -816,7 +813,6 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
   do j = lo(2), hi(2)+1
      do i = lo(1), hi(1)
         flux2(i,j,1:NVAR) = dt * flux2(i,j,1:NVAR)
-        !flux2(i,j,UMY) = flux2(i,j,UMY) + dt*area2(i,j)*pgdy(i,j)
      enddo
   enddo
 

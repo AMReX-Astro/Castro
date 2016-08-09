@@ -361,6 +361,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   use radhydro_nd_module, only : advect_in_fspace
   use fluxlimiter_module, only : Edd_factor
   use advection_util_1d_module, only : normalize_species_fluxes
+  use prob_params_module, only : coord_type
 
   implicit none
   integer nstep_fsp
@@ -520,9 +521,11 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      end do
   end if
 
-  do i = lo(1),hi(1)+1
-     flux(i,UMX) = flux(i,UMX) + dt*area(i)*pgdnv(i)
-  enddo
+  if (coord_type .eq. 0) then
+     do i = lo(1),hi(1)+1
+        flux(i,UMX) = flux(i,UMX) + dt*area(i)*pgdnv(i)
+     enddo
+  end if
 
 end subroutine consup_rad
 

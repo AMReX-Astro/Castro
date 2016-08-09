@@ -10,6 +10,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         delta,dt,&
                         flux,flux_l1,flux_h1,&
                         radflux,radflux_l1,radflux_h1,&
+                        pradial,p_l1,p_h1,&
                         area,area_l1,area_h1,&
                         dloga,dloga_l1,dloga_h1,&
                         vol,vol_l1,vol_h1,courno,verbose, &
@@ -19,6 +20,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
+  use prob_params_module, only : coord_type
   
   implicit none
 
@@ -30,6 +32,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer uout_l1,uout_h1, Erout_l1, Erout_h1
   integer ugdnv_l1,ugdnv_h1
   integer flux_l1,flux_h1, radflux_l1,radflux_h1
+  integer p_l1, p_h1
   integer area_l1,area_h1
   integer dloga_l1,dloga_h1
   integer vol_l1,vol_h1
@@ -43,6 +46,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision   src(  src_l1:  src_h1,NVAR)
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision radflux(radflux_l1: radflux_h1, 0:ngroups-1)
+  double precision pradial(  p_l1:   p_h1)
   double precision  area( area_l1: area_h1     )
   double precision dloga(dloga_l1:dloga_h1     )
   double precision   vol(  vol_l1: vol_h1      )
@@ -146,6 +150,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt, &
        nstep_fsp)
+
+  if (coord_type .gt. 0) then
+     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1)
+  end if
   
   deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
 
