@@ -270,6 +270,9 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
         // Set reflux registers to zero.
         //
         getFluxReg(level+1).setVal(0.0);
+	if (!Geometry::IsCartesian()) {
+	    getPresReg(level+1).setVal(0.0);
+	}
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
 	  getRADFluxReg(level+1).setVal(0.0);
@@ -322,8 +325,21 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #endif
 #endif
 
-    for (int j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++) {
         fluxes[j].setVal(0.0);
+    }
+
+    if (!Geometry::IsCartesian()) {
+	P_radial.setVal(0.0);
+    }
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined) {
+	for (int i = 0; i < BL_SPACEDIM; ++i) {
+	    rad_fluxes[i].setVal(0.0);
+	}
+    }
+#endif
 
     hydro_source.setVal(0.0);
 
@@ -513,6 +529,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
     }
 
+    if (!Geometry::IsCartesian()) {
+	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+    }
+
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
     if (Radiation::rad_hydro_combined) {
@@ -571,6 +591,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     }
 
     fluxes.clear();
+
+    P_radial.clear();
 
 #ifdef RADIATION
     rad_fluxes.clear();

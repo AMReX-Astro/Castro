@@ -533,14 +533,6 @@ contains
 
              flux1(i,j,n) = dt * flux1(i,j,n)
 
-             ! Correct the momentum flux with the grad p part.
-
-             if (coord_type == 1) then
-                if (n == UMX) then
-                   flux1(i,j,n) = flux1(i,j,n) + dt * area1(i,j) * q1(i,j,GDPRES)
-                endif
-             endif
-
           enddo
        enddo
     enddo
@@ -550,10 +542,6 @@ contains
           do i = lo(1), hi(1)
 
              flux2(i,j,n) = dt * flux2(i,j,n)
-
-             !if (n == UMY) then
-                !flux2(i,j,n) = flux2(i,j,n) + dt * area2(i,j) * pgdy(i,j)
-             !endif
 
           enddo
        enddo

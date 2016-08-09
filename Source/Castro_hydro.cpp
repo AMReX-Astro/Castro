@@ -66,6 +66,18 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (do_reflux && level > 0)
       current = &getFluxReg(level);
 
+    FluxRegister *pres_fine    = 0;
+    FluxRegister *pres_current = 0;
+    
+    if (!Geometry::IsCartesian() && do_reflux) {
+	if (level < finest_level) {
+	    pres_fine = &getPresReg(level+1);
+	}
+	if (level > 0) {
+	    pres_current = &getPresReg(level);
+	}
+    }
+
 #ifdef RADIATION
     FluxRegister *rad_fine    = 0;
     FluxRegister *rad_current = 0;
@@ -104,6 +116,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
+	    FArrayBox pradial(Box::TheUnitBox(),1);
 
 	    int priv_nstep_fsp = -1;
 	    Real cflLoc = -1.0e+200;
@@ -130,9 +143,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 		// Allocate fabs for fluxes and Godunov velocities.
 		for (int i = 0; i < BL_SPACEDIM ; i++)  {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
-		    flux[i].resize(BoxLib::surroundingNodes(bx,i),NUM_STATE);
-		    rad_flux[i].resize(BoxLib::surroundingNodes(bx,i),Radiation::nGroups);
+		    flux[i].resize(bxtmp,NUM_STATE);
+		    rad_flux[i].resize(bxtmp,Radiation::nGroups);
 		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
+		}
+
+		if (!Geometry::IsCartesian()) {
+		    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 		}
 
 		ca_umdrv_rad
@@ -153,6 +170,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     D_DECL(BL_TO_FORTRAN(rad_flux[0]),
 			    BL_TO_FORTRAN(rad_flux[1]),
 			    BL_TO_FORTRAN(rad_flux[2])),
+#if (BL_SPACEDIM < 3)
+		     BL_TO_FORTRAN(pradial),
+#endif
 		     D_DECL(BL_TO_FORTRAN(area[0][mfi]),
 			    BL_TO_FORTRAN(area[1][mfi]),
 			    BL_TO_FORTRAN(area[2][mfi])),
@@ -166,11 +186,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
 		}
 
-		if (do_reflux) {
-		    for (int i = 0; i < BL_SPACEDIM ; i++) {
-		        fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
-			rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
-		    }
+		for (int i = 0; i < BL_SPACEDIM ; i++) {
+		    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
+		    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+		}
+		if (!Geometry::IsCartesian()) {
+		    P_radial[mfi].copy(pradial, mfi.nodaltilebox(0));
 		}
 	    }
 
@@ -237,6 +258,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
+	    FArrayBox pradial(Box::TheUnitBox(),1);
 	    FArrayBox q, src_q;
 
 	    Real cflLoc = -1.0e+200;
@@ -288,6 +310,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		}
 
+		if (!Geometry::IsCartesian()) {
+		    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
+		}
+
 		ca_umdrv
 		    (&is_finest_level,&time,
 		     lo, hi, domain_lo, domain_hi,
@@ -303,6 +329,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
 			    BL_TO_FORTRAN(flux[2])),
+#if (BL_SPACEDIM < 3)
+		     BL_TO_FORTRAN(pradial),
+#endif
 		     D_DECL(BL_TO_FORTRAN(area[0][mfi]),
 			    BL_TO_FORTRAN(area[1][mfi]),
 			    BL_TO_FORTRAN(area[2][mfi])),
@@ -331,6 +360,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 		for (int i = 0; i < BL_SPACEDIM ; i++)
 		    fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
 
+		if (!Geometry::IsCartesian()) {
+		    P_radial[mfi].copy(pradial, mfi.nodaltilebox(0));
+		}
 	    }
 
 #ifdef _OPENMP
@@ -409,6 +441,16 @@ Castro::construct_hydro_source(Real time, Real dt)
 	if (fine) {
 	    for (int i = 0; i < BL_SPACEDIM ; i++)
                 fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
+	}
+	if (pres_current) {
+	    Real scale = 1.0;
+#if (BL_SPACEDIM == 2)
+	    scale /= crse_ratio[1];
+#endif	    
+	    pres_current->FineAdd(P_radial,0,0,0,1,dt*scale);
+	}
+	if (pres_fine) {
+	    pres_fine->CrseInit(P_radial,0,0,0,1,-dt,FluxRegister::ADD);
 	}
 #ifdef RADIATION
 	if (rad_current) {

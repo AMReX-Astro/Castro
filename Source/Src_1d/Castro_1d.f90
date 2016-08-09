@@ -8,6 +8,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      ugdnv,ugdnv_l1,ugdnv_h1,&
      delta,dt,&
      flux,flux_l1,flux_h1,&
+     pradial,p_l1,p_h1,&
      area,area_l1,area_h1,&
      dloga,dloga_l1,dloga_h1,&
      vol,vol_l1,vol_h1,courno,verbose,&
@@ -20,6 +21,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
   use flatten_module, only : uflaten
+  use prob_params_module, only : coord_type
 
   implicit none
 
@@ -33,6 +35,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer updt_l1,updt_h1
   integer ugdnv_l1,ugdnv_h1
   integer flux_l1,flux_h1
+  integer p_l1, p_h1
   integer area_l1,area_h1
   integer dloga_l1,dloga_h1
   integer vol_l1,vol_h1
@@ -43,6 +46,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision update(updt_l1: updt_h1,NVAR)
   double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision  flux( flux_l1: flux_h1,NVAR)
+  double precision pradial(  p_l1:   p_h1)
   double precision  area( area_l1: area_h1     )
   double precision dloga(dloga_l1:dloga_h1     )
   double precision   vol(  vol_l1: vol_h1      )
@@ -142,6 +146,10 @@ subroutine ca_umdrv(is_finest_level,time,&
        mass_lost,xmom_lost,ymom_lost,zmom_lost, &
        eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
+
+  if (coord_type .gt. 0) then
+     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1)
+  end if
 
   deallocate(flatn,div,pdivu,pgdnv)
 

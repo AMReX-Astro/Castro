@@ -536,6 +536,11 @@ public:
     FluxRegister& getFluxReg ();
     FluxRegister& getFluxReg (int lev);
 
+    FluxRegister     pres_reg;
+
+    FluxRegister& getPresReg ();
+    FluxRegister& getPresReg (int lev);
+
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
     // to mask out the finer level.  We only build this when it is needed.
@@ -581,6 +586,7 @@ protected:
     // Hydrodynamic (and radiation) fluxes.
     //
     PArray<MultiFab> fluxes;
+    MultiFab         P_radial;
 #ifdef RADIATION
     PArray<MultiFab> rad_fluxes;
 #endif
@@ -817,6 +823,21 @@ FluxRegister&
 Castro::getFluxReg (int lev)
 {
     return getLevel(lev).getFluxReg();
+}
+
+inline
+FluxRegister&
+Castro::getPresReg ()
+{
+    BL_ASSERT(pres_reg.size()>0);
+    return pres_reg;
+}
+
+inline
+FluxRegister&
+Castro::getPresReg (int lev)
+{
+    return getLevel(lev).getPresReg();
 }
 
 #ifdef RADIATION

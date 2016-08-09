@@ -475,15 +475,19 @@ Castro::Castro (Amr&            papa,
     {
         flux_reg.define(grids,crse_ratio,level,NUM_STATE);
         flux_reg.setVal(0.0);
-    }
+
+	if (!Geometry::IsCartesian()) {
+	    pres_reg.define(grids,crse_ratio,level,1);
+	    pres_reg.setVal(0.0);
+	}
 
 #ifdef RADIATION    
-    if (Radiation::rad_hydro_combined && level > 0 && do_reflux) 
-    {
-	rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
-	rad_flux_reg.setVal(0.0);
-    }
+	if (Radiation::rad_hydro_combined) {
+	    rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
+	    rad_flux_reg.setVal(0.0);
+	}
 #endif
+    }
 
 #ifdef GRAVITY
 
@@ -2189,6 +2193,12 @@ Castro::reflux ()
     const Real strt = ParallelDescriptor::second();
 
     getFluxReg(level+1).Reflux(get_new_data(State_Type),volume,1.0,0,0,NUM_STATE,geom);
+
+    if (!Geometry::IsCartesian()) {
+	MultiFab dr(volume.boxArray(),1,volume.nGrow());
+	dr.setVal(geom.CellSize(0));
+//	getPresReg(level+1).Reflux(get_new_data(State_Type),dr,1.0,0,Xmom,1,geom);
+    }
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {

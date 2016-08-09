@@ -119,7 +119,7 @@ contains
                                    UEDEN, UEINT, UTEMP, track_grid_losses
     use bl_constants_module
     use advection_util_1d_module, only: normalize_species_fluxes
-    use prob_params_module, only : domlo_level, domhi_level, center
+    use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 
@@ -272,7 +272,7 @@ contains
 
           ! Correct the momentum flux with the grad p part.
 
-          if (n == UMX) then
+          if (coord_type .eq. 0 .and. n == UMX) then
              flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
           endif
 

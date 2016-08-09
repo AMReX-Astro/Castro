@@ -9,6 +9,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                     flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                    pradial,p_l1,p_l2,p_h1,p_h2,&
                     area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                     area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                     dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
@@ -18,13 +19,14 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, &
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, GDPRES, &
                                  use_flattening, QU, QV, QW, QPRES
   use advection_module, only : umeth2d, consup
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only : uflaten
+  use prob_params_module, only : coord_type
 
   implicit none
 
@@ -40,6 +42,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
   integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
+  integer p_l1,p_l2,p_h1,p_h2
   integer area1_l1,area1_l2,area1_h1,area1_h2
   integer area2_l1,area2_l2,area2_h1,area2_h2
   integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
@@ -54,6 +57,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
   double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+  double precision pradial(  p_l1:    p_h1,    p_l2:p_h2)
   double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
   double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
@@ -164,6 +168,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
+
+  if (coord_type .eq. 1) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
+  end if
 
   ugdx(:,:) = q1(:,:,GDU)
   ugdy(:,:) = q2(:,:,GDV)

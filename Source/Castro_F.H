@@ -454,6 +454,9 @@ extern "C"
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
             BL_FORT_FAB_ARG(zflux)),
+#if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG(pradial),
+#endif
      D_DECL(BL_FORT_FAB_ARG(xarea),
             BL_FORT_FAB_ARG(yarea),
             BL_FORT_FAB_ARG(zarea)),
@@ -503,6 +506,9 @@ extern "C"
      D_DECL(BL_FORT_FAB_ARG(xradflux),
             BL_FORT_FAB_ARG(yradflux),
             BL_FORT_FAB_ARG(zradflux)),
+#if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG(pradial),
+#endif
      D_DECL(const BL_FORT_FAB_ARG(xarea),
             const BL_FORT_FAB_ARG(yarea),
             const BL_FORT_FAB_ARG(zarea)),

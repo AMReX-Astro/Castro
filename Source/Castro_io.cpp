@@ -272,13 +272,19 @@ Castro::restart (Amr&     papa,
 
     }
 
-    if (level > 0 && do_reflux)
+    if (level > 0 && do_reflux) {
         flux_reg.define(grids,crse_ratio,level,NUM_STATE);
 
+	if (!Geometry::IsCartesian()) {
+	    pres_reg.define(grids,crse_ratio,level,1);
+	}
+
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined && level > 0 && do_reflux)
-	rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
+	if (Radiation::rad_hydro_combined) {
+	    rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
+	}
 #endif
+    }
 
     const Real* dx  = geom.CellSize();
 
