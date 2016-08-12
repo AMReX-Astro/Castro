@@ -500,14 +500,20 @@ Castro::Castro (Amr&            papa,
       if (gravity == 0) 
 	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
 
-#if (BL_SPACEDIM > 1)
       // Passing numpts_1d at level 0 
       if (!Geometry::isAllPeriodic() && gravity != 0)
       {
          int numpts_1d = get_numpts();
+
+	 // For 1D, we need to add ghost cells to the numpts
+	 // given to us by Castro.
+
+#if (BL_SPACEDIM == 1)
+	 numpts_1d += 2 * NUM_GROW;
+#endif
+
          gravity->set_numpts_in_gravity(numpts_1d);
       }
-#endif
 
       gravity->install_level(level,this,volume,area);
 

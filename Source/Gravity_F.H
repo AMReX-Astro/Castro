@@ -41,15 +41,13 @@ extern "C"
      BL_FORT_FAB_ARG(edge),
      const Real* dx, const int* coord_type, const int* idir);
 
-  void ca_compute_1d_grav
-    (const BL_FORT_FAB_ARG(den), const int& lo, const int& hi,
-     const Real* grav, const Real* phi, const Real* dx, const Real* problo);
-
 #ifdef GR_GRAV
+#if (BL_SPACEDIM == 1)
   void compute_1d_gr_grav
     (const BL_FORT_FAB_ARG(state),
      const Real* grav, const Real* dx,
      const Real* problo);
+#endif
 #endif
 
   void ca_compute_radial_mass
