@@ -208,7 +208,7 @@ contains
     fix_mass_flux = 0;
     limit_fluxes_on_small_dens = 0;
     density_reset_method = 1;
-    allow_negative_energy = 1;
+    allow_negative_energy = 0;
     allow_small_energy = 1;
     do_sponge = 0;
     sponge_implicit = 1;
