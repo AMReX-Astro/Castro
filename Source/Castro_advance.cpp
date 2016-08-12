@@ -549,15 +549,15 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef DIFFUSION
 #ifdef TAU
-    tau_diff.define(grids,1,NUM_GROW);
+    tau_diff.define(grids, 1, NUM_GROW, Fab_allocate);
 #endif
 #endif
 
 #ifdef DIFFUSION
-    OldTempDiffTerm.define(grids, 1, 1);
-    OldSpecDiffTerm.define(grids,NumSpec,1);
-    OldViscousTermforMomentum.define(grids,BL_SPACEDIM,1);
-    OldViscousTermforEnergy.define(grids,1,1);
+    OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
+    OldSpecDiffTerm.define(grids, NumSpec, 1, Fab_allocate);
+    OldViscousTermforMomentum.define(grids, BL_SPACEDIM, 1, Fab_allocate);
+    OldViscousTermforEnergy.define(grids, 1, 1, Fab_allocate);
 #endif
 
 }

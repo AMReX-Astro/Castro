@@ -305,7 +305,6 @@ Gravity::install_level (int                   level,
           phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
        }
 
-#if (BL_SPACEDIM > 1)
     } else if (gravity_type == "MonopoleGrav") {
 
         if (!Geometry::isAllPeriodic())
@@ -321,7 +320,6 @@ Gravity::install_level (int                   level,
 #endif
         }
 
-#endif
     }
 
     // Compute the maximum radius at which all the mass at that radius is in the domain,
@@ -1009,9 +1007,11 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav") {
 
-#if (BL_SPACEDIM == 1)
+#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
+
        MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
        make_one_d_grav(level,time,grav,phi);
+
 #else
 
        const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
@@ -1093,7 +1093,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav") {
 
-#if (BL_SPACEDIM == 1)
+#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
         MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
         make_one_d_grav(level,time,grav,phi);
 #else
@@ -1477,7 +1477,7 @@ Gravity::reflux_phi (int level, MultiFab& dphi)
     phi_flux_reg[level+1].Reflux(dphi,volume[level],1.0,0,0,1,geom);
 }
 
-#if (BL_SPACEDIM == 1)
+#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
 void
 Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& phi)
 {
@@ -1485,7 +1485,7 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
 
    int ng = grav_vector.nGrow();
 
-   AmrLevel* amrlev =                     &parent->getLevel(level) ;
+   AmrLevel* amrlev = &parent->getLevel(level);
    const Real* dx   = parent->Geom(level).CellSize();
    Box domain(parent->Geom(level).Domain());
 
@@ -1522,14 +1522,6 @@ Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& p
         fpi.isValid(); ++fpi)
    {
       ca_compute_1d_gr_grav(BL_TO_FORTRAN(fpi()),grav_fab.dataPtr(),dx,problo);
-   }
-#else
-   // Fill density, interpolated from coarser levels where needed,
-   //   and compute gravity by integrating outward from the center
-   for (FillPatchIterator fpi(*amrlev,mf,0,time,State_Type,Density,1);
-        fpi.isValid(); ++fpi)
-   {
-      ca_compute_1d_grav(BL_TO_FORTRAN(fpi()),lo,hi,grav_fab.dataPtr(),phi_fab.dataPtr(),dx,problo);
    }
 #endif
 
@@ -1603,7 +1595,6 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     }
 }
 
-#if (BL_SPACEDIM > 1)
 void
 Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector)
 {
@@ -1625,7 +1616,6 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
 			  &n1d,&level);
     }
 }
-#endif
 
 void
 Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior)
@@ -1634,7 +1624,6 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 
     BL_ASSERT(level==0);
 
-#if (BL_SPACEDIM > 1)
     const Real strt = ParallelDescriptor::second();
 
     int n1d = drdxfac*numpts_at_level;
@@ -1667,7 +1656,7 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 #endif
 	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
 	{
-	    const Box& bx =mfi.tilebox();
+	    const Box& bx = mfi.tilebox();
 	    ca_compute_radial_mass(bx.loVect(), bx.hiVect(),dx,&dr,
 				   BL_TO_FORTRAN(Rhs[mfi]),
 #ifdef _OPENMP
@@ -1728,10 +1717,8 @@ Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_inter
 #endif
     }
 
-#else
-    BoxLib::Abort("Can't use make_radial_phi with dim == 1");
-#endif
 }
+
 
 
 #if (BL_SPACEDIM > 1)
@@ -2428,7 +2415,6 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 }
 #endif
 
-#if (BL_SPACEDIM > 1)
 void
 Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 {
@@ -2540,7 +2526,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 				       geom.ProbLo(),&n1d,&drdxfac,&lev);
 
 #ifdef GR_GRAV
-		ca_compute_avgpres(bx.loVect(), bx.hiVect(),dx,&dr,
+		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
 				   BL_TO_FORTRAN(fab),
 #ifdef _OPENMP
 				   priv_radial_pres.dataPtr(),
@@ -2705,8 +2691,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 #endif
     }
 }
-
-#endif
 
 Real
 Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
