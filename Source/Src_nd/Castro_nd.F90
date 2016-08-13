@@ -900,3 +900,19 @@
         endif
 
       end subroutine get_sponge_params
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
+      subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
+
+        use meth_params_module, only: point_mass
+
+        implicit none
+
+        double precision, intent(in) :: pointmass_in
+
+        point_mass = pointmass_in
+
+      end subroutine set_pointmass

@@ -39,6 +39,8 @@ Castro::pointmass_update(Real time, Real dt)
         {
 	    point_mass += mass_change_at_center;
 
+	    set_pointmass(&point_mass);
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif

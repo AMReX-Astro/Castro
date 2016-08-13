@@ -555,6 +555,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(statenew),
      const Real* problo, const Real* dx,
      const Real* time, const Real* dt);
+
+  void set_pointmass(const Real* pointmass);
 #endif
 
 #ifdef GRAVITY
