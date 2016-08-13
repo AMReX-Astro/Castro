@@ -164,7 +164,7 @@ contains
                 rhoe_g_ref = rhoe_g
 
                 ptot_ref = ptot
-                rhoe_ref = rhoe_g
+                rhoe_ref = rhoe
 
                 er_ref(:) = er(:)
              else
