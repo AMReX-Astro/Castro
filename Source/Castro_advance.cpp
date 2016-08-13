@@ -171,7 +171,7 @@ Castro::do_advance (Real time,
     // Construct the old-time sources.
 
     for (int n = 0; n < num_src; ++n)
-	construct_old_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time, dt);
+       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
     // Apply the old-time sources.
 
@@ -216,7 +216,7 @@ Castro::do_advance (Real time,
     if (update_state_between_sources) {
 
 	for (int n = 0; n < num_src; ++n) {
-	    construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 	    apply_source_to_state(S_new, new_sources[n], dt);
 	    computeTemp(S_new);
 	}
@@ -226,7 +226,7 @@ Castro::do_advance (Real time,
 	// Construct the new-time source terms.
 
 	for (int n = 0; n < num_src; ++n)
-	    construct_new_source(n, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time, dt);
+            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
 	// Apply the new-time sources to the state.
 

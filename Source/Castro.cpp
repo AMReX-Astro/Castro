@@ -3050,7 +3050,7 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 }
 
 void
-Castro::construct_old_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
+Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -3094,7 +3094,7 @@ Castro::construct_old_source(int src, int amr_iteration, int amr_ncycle, int sub
 }
 
 void
-Castro::construct_new_source(int src, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time, Real dt)
+Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
