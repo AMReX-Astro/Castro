@@ -333,14 +333,6 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
-#ifdef RADIATION
-    if (ppm_trace_sources == 1)
-      {
-        std::cerr << "ppm_trace_sources = 1 not implemented for radiation yet \n";
-	BoxLib::Error();
-      }
-#endif
-
 
     if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
       {
