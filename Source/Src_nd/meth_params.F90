@@ -236,7 +236,7 @@ contains
     implicit_rotation_update = 1;
     rot_axis = 3;
     point_mass = 0.0d0;
-    point_mass_fix_solution = 1;
+    point_mass_fix_solution = 0;
     do_acc = -1;
     track_grid_losses = 0;
 

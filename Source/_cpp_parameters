@@ -348,7 +348,7 @@ point_mass                   Real          0.0                y        POINTMASS
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           1                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        POINTMASS
 
 #-----------------------------------------------------------------------------
 # category: parallelization

@@ -42,6 +42,11 @@
      right hydro state to the CG Riemann solver for testing -- this acts
      as a unit test for that solver.
 
+  -- the default for castro.allow_negative_energy is now 0 -- this is
+     the safer choice.
+
+  -- the default for castro.point_mass_fix_solution was changed to 0
+     -- this is a more expected behavior for new users.
 
 previous changes:
 
@@ -74,8 +79,6 @@ previous changes:
   -- a number of changes were done in the Microphysics repo -- see
      Microphysics/CHANGES for a log of those
 
-  -- the default for castro.allow_negative_energy is now 0 -- this is
-     the safer choice.
 
 * 16.07
 
