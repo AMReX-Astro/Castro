@@ -183,7 +183,7 @@ contains
     hybrid_hydro = 0;
     ppm_type = 1;
     ppm_reference = 1;
-    ppm_trace_sources = 0;
+    ppm_trace_sources = 1;
     ppm_temp_fix = 0;
     ppm_tau_in_tracing = 0;
     ppm_predict_gammae = 0;

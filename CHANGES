@@ -37,6 +37,10 @@
      slightly better coupling of the Coriolis force in the momentum
      equation by doing an implicit velocity update
 
+     We also make ppm_trace_sources = 1 the default -- this does 
+     parabolic reconstruction of the momentum sources and traces
+     under them when constructing the interface states
+
   -- we now set castro.cg_blend = 2 by default.  This has no effect for
      the default CGF Riemann solver, but for the Colella & Glaz solver
      (castro.riemann_solver = 1), this will augment the secant iteration
