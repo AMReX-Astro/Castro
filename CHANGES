@@ -1,5 +1,10 @@
 * changes since the last release:
 
+  -- the PPM tracing routine for radiation was synced up with the pure
+     hydro version.  In particular, it now supports ppm_trace_sources,
+     implements the reference states and fixes an issue with the
+     flattening.
+
   -- the flux correction for axisymmetric and 1-d spherical coords
      has been fixed.  In particular, there is now a separate flux
      register for the pressure term that enters as a gradient in the
