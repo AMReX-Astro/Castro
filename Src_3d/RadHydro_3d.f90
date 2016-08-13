@@ -49,7 +49,9 @@ contains
                          pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann, &
-                                   GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, ngdnv
+                                   GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, ngdnv, &
+                                   ppm_trace_sources
+
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
     use transverse_module
     use ppm_module
@@ -143,6 +145,7 @@ contains
     double precision, pointer :: qgdnvz(:,:,:,:), qgdnvtmpz1(:,:,:,:), qgdnvtmpz2(:,:,:,:), qgdnvzf(:,:,:,:)
 
     double precision, pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
+    double precision, pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
 
     double precision, pointer :: shk(:,:,:)
 
@@ -246,6 +249,9 @@ contains
     call bl_allocate ( Ip, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 1, 3, 1, 3, 1, QRADVAR)
     call bl_allocate ( Im, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 1, 3, 1, 3, 1, QRADVAR)
 
+    call bl_allocate ( Ip_src, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 1, 3, 1, 3, 1, QRADVAR)
+    call bl_allocate ( Im_src, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 1, 3, 1, 3, 1, QRADVAR)
+
     ! for the hybrid Riemann solver
     call bl_allocate(shk, shk_lo, shk_hi)
 
@@ -307,13 +313,23 @@ contains
                       q(:,:,:,QU:),c,qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), It_lo, It_hi, &
-                      lo(1),lo(2),hi(1),hi(2),(/dx,dy,dz/),dt,k3d,kc)
+                      lo(1),lo(2),hi(1),hi(2),[dx,dy,dz],dt,k3d,kc)
           end do
+
+          if (ppm_trace_sources .eq. 1) then
+             do n=1,QRADVAR
+                call ppm(srcQ(:,:,:,n),src_lo,src_hi, &
+                         q(:,:,:,QU:),c,qd_lo,qd_hi, &
+                         flatn,qd_lo,qd_hi, &
+                         Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n),It_lo,It_hi, &
+                         lo(1),lo(2),hi(1),hi(2),[dx,dy,dz],dt,k3d,kc)
+             enddo
+          endif
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy_ppm_rad(lam, lam_lo, lam_hi, &
                                q, c, cg, flatn, qd_lo, qd_hi, &
-                               Ip,Im, &
+                               Ip, Im, Ip_src, Im_src, &
                                qxm, qxp, qym, qyp, qt_lo, qt_hi, &
                                lo(1),lo(2),hi(1),hi(2),dx,dy,dt,kc,k3d)
 
@@ -384,7 +400,7 @@ contains
           ! Compute U_z at kc (k3d)
           call tracez_ppm_rad(lam, lam_lo, lam_hi, &
                               q, c, cg, flatn, qd_lo, qd_hi, &
-                              Ip,Im, &
+                              Ip, Im, Ip_src, Im_src, &
                               qzm, qzp, qt_lo, qt_hi, &
                               lo(1), lo(2), hi(1), hi(2), dz, dt, km, kc, k3d)
 
