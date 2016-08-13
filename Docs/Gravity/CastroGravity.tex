@@ -333,6 +333,29 @@ adapt {\bf ca\_prescribe\_grav}, both are located in {\tt
   prescribed\_grav\_nd.90}.
 
 
+\subsection{Point Mass}
+
+Pointmass gravity works with all other forms of gravity, it is not a
+separate option.  Since the Poisson equation is linear in potential
+(and its derivative, the acceleration, is also linear), the point mass
+option works by adding the gravitational acceleration of the point
+mass onto the acceleration from whatever other gravity type is under
+in the simulation.
+
+Note that point mass can be $< 0$.
+
+A useful option is {\tt point\_mass\_fix\_solution}.  If set to {\tt
+  1}, then it takes all zones that are adjacent to the location of the
+{\tt center} variable and keeps their density constant.  Any changes
+in density that occur after a hydro update in those zones are reset,
+and the mass deleted is added to the pointmass.  (If there is
+expansion, and the density lowers, then the point mass is reduced and
+the mass is added back to the grid).  This calculation is done in {\tt
+  pm\_compute\_delta\_mass()} in {\tt
+  Source/Src\_nd/pointmass\_nd.f90}.
+
+
+
 \section{GR correction}
 
 
