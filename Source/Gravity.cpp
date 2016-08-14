@@ -682,15 +682,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, int iteration, int ncycle
       if ( direct_sum_bcs )
         fill_direct_sum_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level]);
       else {
-        bool use_rhs = true;
 	Real time = 0.0;
-        fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level],time,use_rhs);
+        fill_multipole_BCs(crse_level,crse_level,CrseRhsAvgDown,delta_phi[crse_level],time);
       }
 #elif (BL_SPACEDIM == 2)
       if (lnum > 0) {
-	bool use_rhs = true;
 	Real time = 0.0;
-	fill_multipole_BCs(crse_level,CrseRhsAvgDown,delta_phi[crse_level],time,use_rhs);
+	fill_multipole_BCs(crse_level,crse_level,CrseRhsAvgDown,delta_phi[crse_level],time);
       } else {
 	int fill_interior = 0;
 	make_radial_phi(crse_level,CrseRhsAvgDown,delta_phi[crse_level],fill_interior);
@@ -1744,9 +1742,11 @@ Gravity::init_multipole_grav()
 }
 
 void
-Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, bool use_rhs)
+Gravity::fill_multipole_BCs(int crse_level, int fine_level, MultiFab& Rhs, MultiFab& phi, Real time)
 {
-    BL_ASSERT(level==0);
+    // Multipole BCs only make sense to construct if we are starting from the coarse level.
+
+    BL_ASSERT(crse_level == 0);
 
     const Real strt = ParallelDescriptor::second();
 
@@ -1795,14 +1795,32 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
     const int boundary_only = 1;
 #endif
 
+    // Whether we want to use fine levels in constructing the
+    // multipole boundary conditions depends on whether this is
+    // a multi-level or single-level solve. For single level solves
+    // we do not want to, because we cannot assume that the finer level
+    // data is synchronized at the same time as the current level data.
+
     int lev_max;
 
-    if (use_rhs)
-        lev_max = 0;
+    if (fine_level == crse_level)
+        lev_max = crse_level;
     else
-        lev_max = std::min(max_multipole_moment_level, parent->finestLevel());
+        lev_max = std::min(max_multipole_moment_level, fine_level);
 
-    for (int lev = level; lev <= lev_max; ++lev) {
+    // Note that if we are doing a single-level calculation, we have to use
+    // the Rhs MultiFab that came in, we cannot do something like obtain
+    // density on the coarse level from the state data, because we may be doing
+    // a sync solve, for which the Rhs is not the same as the state data.
+
+    bool use_rhs;
+
+    if (lev_max != crse_level)
+	use_rhs = false;
+    else
+	use_rhs = true;
+
+    for (int lev = crse_level; lev <= lev_max; ++lev) {
 
         MultiFab* source;
 
@@ -1966,8 +1984,8 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
     // complete multipole moments, for all points on the
     // boundary that are held on this process.
 
-    const Box& domain = parent->Geom(level).Domain();
-    const Real* dx = parent->Geom(level).CellSize();
+    const Box& domain = parent->Geom(crse_level).Domain();
+    const Real* dx = parent->Geom(crse_level).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2715,13 +2733,11 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	if ( direct_sum_bcs ) {
 	    fill_direct_sum_BCs(crse_level, rhs[0], phi[0]);
         } else {
-	    bool use_rhs = false;
-	    fill_multipole_BCs(crse_level, rhs[0], phi[0], time, use_rhs);
+	    fill_multipole_BCs(crse_level, fine_level, rhs[0], phi[0], time);
 	}
 #elif (BL_SPACEDIM == 2)
 	if (lnum > 0) {
-	  bool use_rhs = false;
-	  fill_multipole_BCs(crse_level, rhs[0], phi[0], time, use_rhs);
+	  fill_multipole_BCs(crse_level, fine_level, rhs[0], phi[0], time);
 	} else {
 	  int fill_interior = 0;
 	  make_radial_phi(crse_level, rhs[0], phi[0], fill_interior);
