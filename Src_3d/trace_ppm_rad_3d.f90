@@ -127,6 +127,8 @@ contains
 
           rho = q(i,j,k3d,QRHO)
 
+          ! cgassq is the gas soundspeed **2
+          ! cc is the total soundspeed **2 (gas + radiation)
           cgassq = cg(i,j,k3d)**2
           cc = c(i,j,k3d)
           csq = cc**2
