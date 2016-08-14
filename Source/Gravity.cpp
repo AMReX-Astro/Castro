@@ -1750,9 +1750,6 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
 
     const Real strt = ParallelDescriptor::second();
 
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-
 #if (BL_SPACEDIM == 3)
     const int npts = numpts_at_level;
 #else
@@ -1805,7 +1802,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
     else
         lev_max = std::min(max_multipole_moment_level, parent->finestLevel());
 
-    for (int lev = 0; lev <= lev_max; ++lev) {
+    for (int lev = level; lev <= lev_max; ++lev) {
 
         MultiFab* source;
 
@@ -1815,12 +1812,11 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
 
 	} else {
 
-	    Castro* coarse_level = dynamic_cast<Castro*>(&(parent->getLevel(level)));
+	    Castro* coarse_level = dynamic_cast<Castro*>(&(parent->getLevel(lev)));
 
 	    source = coarse_level->derive("density", time, 0);
 
-            if (lev < lev_max)
-            {
+            if (lev < lev_max) {
 		Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 
 		const MultiFab& mask = fine_level->build_fine_mask();
@@ -1835,6 +1831,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
         // to directly hand the arrays to them.
 
         const Box& domain = parent->Geom(lev).Domain();
+	const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
@@ -1864,13 +1861,14 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
 	    priv_qUC[tid].setVal(0.0);
 	    priv_qUS[tid].setVal(0.0);
 #endif
-	    for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
+	    for (MFIter mfi(*source,true); mfi.isValid(); ++mfi)
 	    {
 	        const Box& bx = mfi.tilebox();
+
 		ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
 					     ZFILL(dx),BL_TO_FORTRAN_3D((*source)[mfi]),
-					     BL_TO_FORTRAN_3D(volume[level][mfi]),
+					     BL_TO_FORTRAN_3D(volume[lev][mfi]),
 					     &lnum,
 #ifdef _OPENMP
 					     priv_qL0[tid].dataPtr(),
@@ -1947,6 +1945,9 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
 
 	} // end OpenMP parallel loop
 
+	if (!use_rhs)
+	    delete source;
+
     } // end loop over levels
 
     // Now, do a global reduce over all processes.
@@ -1966,6 +1967,7 @@ Gravity::fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi, Real time, 
     // boundary that are held on this process.
 
     const Box& domain = parent->Geom(level).Domain();
+    const Real* dx = parent->Geom(level).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
