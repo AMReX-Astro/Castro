@@ -162,7 +162,7 @@ contains
                    q(:,QU),c, &
                    flatn, &
                    Ip_src(:,:,n),Im_src(:,:,n), &
-                   ilo,ilo,dx,dt)
+                   ilo,ihi,dx,dt)
        enddo
     endif
 
