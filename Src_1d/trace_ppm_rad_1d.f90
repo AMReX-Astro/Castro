@@ -159,7 +159,7 @@ contains
     if (ppm_trace_sources == 1) then
        do n=1,QVAR
           call ppm(srcQ(:,n),src_l1,src_h1, &
-                   q(:,QU:),c, &
+                   q(:,QU),c, &
                    flatn, &
                    Ip_src(:,:,n),Im_src(:,:,n), &
                    ilo,ilo,dx,dt)
