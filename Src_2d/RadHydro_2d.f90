@@ -345,7 +345,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2)
-  double precision  srcQ(src_l1:src_h1,src_l2:src_h2)
+  double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
   double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
