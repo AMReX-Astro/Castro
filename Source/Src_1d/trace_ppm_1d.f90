@@ -19,7 +19,7 @@ contains
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals, ppm_predict_gammae, &
+         ppm_predict_gammae, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
@@ -64,8 +64,6 @@ contains
     double precision :: apright, amright, azrright, azeright
     double precision :: apleft, amleft, azrleft, azeleft
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
-
-    double precision :: xi, xi1
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -326,16 +324,6 @@ contains
              qxp(i  ,QU) = qxp(i,QU) + hdt*srcQ(i,QU)
           endif
 
-          ! we may have done the flattening already in the parabola
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE-flatn(i)
-             xi = flatn(i)
-
-             qxp(i,QRHO)   = xi1*rho  + xi*qxp(i,QRHO)
-             qxp(i,QU)     = xi1*u    + xi*qxp(i,QU)
-             qxp(i,QREINT) = xi1*rhoe + xi*qxp(i,QREINT)
-             qxp(i,QPRES)  = xi1*p    + xi*qxp(i,QPRES)
-          endif
        endif
 
 
@@ -474,17 +462,6 @@ contains
              qxm(i+1,QU) = qxm(i+1,QU) + hdt*srcQ(i,QU)
           endif
 
-          ! we may have already done the flattening in the parabola
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE-flatn(i)
-             xi = flatn(i)
-
-             qxm(i+1,QRHO)   = xi1*rho  + xi*qxm(i+1,QRHO)
-             qxm(i+1,QU)     = xi1*u    + xi*qxm(i+1,QU)
-             qxm(i+1,QREINT) = xi1*rhoe + xi*qxm(i+1,QREINT)
-             qxm(i+1,QPRES)  = xi1*p    + xi*qxm(i+1,QPRES)
-          endif
-
        end if
 
 
@@ -545,39 +522,21 @@ contains
        do i = ilo, ihi+1
           u = q(i,QU)
 
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
-          ! the flattening here is a little confusing.  If
-          ! ppm_flatten_before_integrals = 0, then we are blending
-          ! the cell centered state and the edge state here through
-          ! the flattening procedure.  Otherwise, we've already
-          ! took care of flattening.  What we want to do is:
-          !
-          ! q_l*  (1-xi)*q_i + xi*q_l
-          !
-          ! where
+          ! We want to do
           !
           ! q_l = q_ref - Proj{(q_ref - I)}
           !
           ! and Proj{} represents the characteristic projection.
           ! But for these, there is only 1-wave that matters, the u
           ! wave, so no projection is needed.  Since we are not
-          ! projecting, the reference state doesn't matter, so we
-          ! take it to be q_i, therefore, we reduce to
-          !
-          ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
-          !      = q_i + xi*(I - q_i)
+          ! projecting, the reference state doesn't matter
 
           if (u .gt. ZERO) then
              qxp(i,n) = q(i,n)
           else if (u .lt. ZERO) then
-             qxp(i,n) = q(i,n) + xi*(Im(i,2,n) - q(i,n))
+             qxp(i,n) = Im(i,2,n)
           else
-             qxp(i,n) = q(i,n) + HALF*xi*(Im(i,2,n) - q(i,n))
+             qxp(i,n) = q(i,n) + HALF*(Im(i,2,n) - q(i,n))
           endif
        enddo
        if (fix_mass_flux_hi) qxp(ihi+1,n) = q(ihi+1,n)
@@ -586,18 +545,12 @@ contains
        do i = ilo-1, ihi
           u = q(i,QU)
 
-          if (ppm_flatten_before_integrals == 0) then
-             xi = flatn(i)
-          else
-             xi = ONE
-          endif
-
           if (u .gt. ZERO) then
-             qxm(i+1,n) = q(i,n) + xi*(Ip(i,2,n) - q(i,n))
+             qxm(i+1,n) = Ip(i,2,n)
           else if (u .lt. ZERO) then
              qxm(i+1,n) = q(i,n)
           else
-             qxm(i+1,n) = q(i,n) + HALF*xi*(Ip(i,2,n) - q(i,n))
+             qxm(i+1,n) = q(i,n) + HALF*(Ip(i,2,n) - q(i,n))
           endif
        enddo
        if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
