@@ -5,6 +5,9 @@
      implements the reference states and fixes an issue with the
      flattening.
 
+     The 1-d PPM routine was also updated to support tracing
+     and an inconsistency in the flattening was fixed.
+
   -- the flux correction for axisymmetric and 1-d spherical coords
      has been fixed.  In particular, there is now a separate flux
      register for the pressure term that enters as a gradient in the
