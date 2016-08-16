@@ -2,19 +2,22 @@ module trace_ppm_rad_module
 
   implicit none
 
+  private
+
+  public trace_ppm_rad
+
 contains
 
   subroutine trace_ppm_rad(lam, lam_l1, lam_h1, &
-       q,dq,c,cg,flatn,qd_l1,qd_h1, &
+       q,c,cg,flatn,qd_l1,qd_h1, &
        dloga,dloga_l1,dloga_h1, &
        srcQ,src_l1,src_h1,&
        qxm,qxp,qpd_l1,qpd_h1, &
        ilo,ihi,domlo,domhi,dx,dt)
 
     use bl_constants_module
-    use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
-         small_dens, ppm_type, fix_mass_flux, &
+         small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
          ppm_predict_gammae, &
@@ -42,40 +45,39 @@ contains
     double precision    cg(qd_l1:qd_h1)
     double precision dloga(dloga_l1:dloga_h1)
 
-    double precision   dq( qpd_l1: qpd_h1,QRADVAR)
     double precision  qxm( qpd_l1: qpd_h1,QRADVAR)
     double precision  qxp( qpd_l1: qpd_h1,QRADVAR)
 
-    !     Local variables
-    integer i, g
-    integer n, ipassive
+    ! Local variables
+    integer :: i, g
+    integer :: n, ipassive
 
-    double precision hdt,dtdx
-
-    double precision, dimension(0:ngroups-1) :: er,der,alphar,sourcer,qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
-    double precision cc, csq, rho, u, p, ptot, rhoe, enth, cgassq
-    double precision dum, dptotm
-    double precision drho, drhoe, dptot
-    double precision dup, dptotp
+    double precision :: hdt,dtdx
+    double precision :: cc, csq, rho, u, p, rhoe_g
+    double precision :: ptot, rhoe, enth, cgassq
+    double precision :: drho, dptot, drhoe
+    double precision :: dup, dptotp
+    double precision :: dum, dptotm
 
     double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, ptot_ref, rhoe_ref
+
+    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
+    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+
     double precision, dimension(0:ngroups-1) :: er_ref
-    
-    double precision alpham, alphap, alpha0, alphae
-    double precision sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision rhoe_g, h_g, alphae_g, drhoe_g
+    double precision :: alpham, alphap, alpha0r, alpha0e
+    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
 
-    double precision :: xi, xi1
-    
+    double precision :: h_g, alpha0e_g, drhoe_g
+
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     double precision, allocatable :: Ip(:,:,:)
     double precision, allocatable :: Im(:,:,:)
 
     double precision, allocatable :: Ip_src(:,:,:)
-    double precision, allocatable :: Im_src(:,:,:)    
+    double precision, allocatable :: Im_src(:,:,:)
 
     double precision :: er_foo
 
@@ -105,7 +107,7 @@ contains
        call bl_error("ERROR: ppm_reference_eigenvectors not implemented with radiation")
     endif
 
-    hdt = 0.5d0 * dt
+    hdt = HALF * dt
     dtdx = dt/dx
 
     allocate(Ip(ilo-1:ihi+1,3,QRADVAR))
@@ -144,10 +146,8 @@ contains
 
 
     ! Compute Ip and Im -- this does the parabolic reconstruction,
-    ! limiting, and returns the integral of each profile under
-    ! each wave to each interface
-    
-    ! Compute Ip and Im
+    ! limiting, and returns the integral of each profile under each
+    ! wave to each interface
     do n=1,QRADVAR
        call ppm(q(:,n),qd_l1,qd_h1, &
                 q(:,QU),c, &
@@ -169,7 +169,7 @@ contains
     !-------------------------------------------------------------------------
     ! x-direction
     !-------------------------------------------------------------------------
-    
+
     ! Trace to left and right edges using upwind PPM
     do i = ilo-1, ihi+1
 
@@ -180,7 +180,7 @@ contains
        end do
 
        ! cgassq is the gas soundspeed **2
-       ! cc is the total soundspeed **2 (gas + radiation)       
+       ! cc is the total soundspeed **2 (gas + radiation)
        cgassq = cg(i)**2
        cc = c(i)
        csq = cc**2
@@ -190,7 +190,7 @@ contains
        p = q(i,QPRES)
        rhoe_g = q(i,QREINT)
        h_g = (p+rhoe_g) / rho
-       
+
        ptot = q(i,qptot)
        rhoe = q(i,qreitot)
        enth = ( (rhoe+ptot)/rho )/csq
@@ -198,9 +198,9 @@ contains
        er(:) = q(i,qrad:qradhi)
        hr(:) = (lam0+1.d0)*er/rho
 
-       !-------------------------------------------------------------------       
+       !----------------------------------------------------------------------
        ! plus state on face i
-       !-------------------------------------------------------------------
+       !----------------------------------------------------------------------
 
        ! set the reference state
        if (ppm_reference == 0 .or. &
@@ -235,7 +235,7 @@ contains
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
-       
+
        dum    = u_ref    - Im(i,1,QU)
        dptotm = ptot_ref - Im(i,1,qptot)
 
@@ -258,51 +258,51 @@ contains
        ! these are analogous to the beta's from the original
        ! PPM paper (except we work with rho instead of tau).
        ! This is simply (l . dq), where dq = qref - I(q)
-       
-       alpham = 0.5d0*(dptotm/(rho*cc) - dum)*rho/cc
-       alphap = 0.5d0*(dptotp/(rho*cc) + dup)*rho/cc
-       alpha0 = drho - dptot/csq
-       alphae = drhoe - dptot*enth
-       alphae_g = drhoe_g - dptot/csq*h_g
+
+       alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
+       alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
+       alpha0r = drho - dptot/csq
+       alpha0e = drhoe - dptot*enth
+       alpha0e_g = drhoe_g - dptot/csq*h_g
        alphar(:) = der(:) - dptot/csq*hr
 
-       if (u-cc .gt. 0.d0) then
-          alpham = 0.d0
-       else if (u-cc .lt. 0.d0) then
+       if (u-cc .gt. ZERO) then
+          alpham = ZERO
+       else if (u-cc .lt. ZERO) then
           alpham = -alpham
        else
-          alpham = -0.5d0*alpham
+          alpham = -HALF*alpham
        endif
-       if (u+cc .gt. 0.d0) then
-          alphap = 0.d0
-       else if (u+cc .lt. 0.d0) then
+       if (u+cc .gt. ZERO) then
+          alphap = ZERO
+       else if (u+cc .lt. ZERO) then
           alphap = -alphap
        else
-          alphap = -0.5d0*alphap
+          alphap = -HALF*alphap
        endif
-       if (u .gt. 0.d0) then
-          alpha0 = 0.d0
-          alphae = 0.d0
-          alphae_g = 0.d0
-          alphar(:) = 0.d0
-       else if (u .lt. 0.d0) then
-          alpha0 = -alpha0
-          alphae = -alphae
-          alphae_g = -alphae_g
+       if (u .gt. ZERO) then
+          alpha0r = ZERO
+          alpha0e = ZERO
+          alpha0e_g = ZERO
+          alphar(:) = ZERO
+       else if (u .lt. ZERO) then
+          alpha0r = -alpha0r
+          alpha0e = -alpha0e
+          alpha0e_g = -alpha0e_g
           alphar(:) = -alphar(:)
        else
-          alpha0 = -0.5d0*alpha0
-          alphae = -0.5d0*alphae
-          alphae_g = -0.5d0*alphae_g
-          alphar(:) = -0.5d0*alphar(:)
+          alpha0r = -HALF*alpha0r
+          alpha0e = -HALF*alpha0e
+          alpha0e_g = -HALF*alpha0e_g
+          alphar(:) = -HALF*alphar(:)
        endif
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
        if (i .ge. ilo) then
-          qxp(i,QRHO)   = rho_ref + alphap + alpham + alpha0
+          qxp(i,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxp(i,QU)     = u_ref + (alphap - alpham)*cc/rho
-          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
           qxp(i,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -313,11 +313,11 @@ contains
 
           ! enforce small_*
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
-          
+          qxp(i,QPRES) = max(small_pres,qxp(i,QPRES))
+
           ! add source terms
           qxp(i  ,QRHO  )  = qxp(i,QRHO   ) + hdt*srcQ(i,QRHO)
           qxp(i  ,QRHO  )  = max(small_dens,qxp(i,QRHO))
-          qxp(i  ,QU    )  = qxp(i,QU     )
           qxp(i  ,QREINT)  = qxp(i,QREINT ) + hdt*srcQ(i,QREINT)
           qxp(i  ,QPRES )  = qxp(i,QPRES  ) + hdt*srcQ(i,QPRES)
           qxp(i  ,qptot )  = qxp(i,qptot  ) + hdt*srcQ(i,QPRES)
@@ -329,24 +329,24 @@ contains
           endif
 
           do g=0, ngroups-1
-             if (qxp(i,qrad+g) < 0.d0) then
+             if (qxp(i,qrad+g) < ZERO) then
                 er_foo = - qxp(i,qrad+g)
-                qxp(i,qrad+g) = 0.d0
+                qxp(i,qrad+g) = ZERO
                 qxp(i,qptot) = qxp(i,qptot) + lamp(g) * er_foo
                 qxp(i,qreitot) = qxp(i,qreitot) + er_foo
              end if
           end do
 
-          if ( qxp(i,QPRES) < 0.d0 ) then
+          if ( qxp(i,QPRES) < ZERO ) then
              qxp(i,QPRES) = p
           end if
 
        end if
 
 
-       !-------------------------------------------------------------------
+       !----------------------------------------------------------------------
        ! minus state on face i+1
-       !-------------------------------------------------------------------
+       !----------------------------------------------------------------------
 
        ! set the reference state
        if (ppm_reference == 0 .or. &
@@ -367,13 +367,13 @@ contains
           ! this will be the fastest moving state to the right
           rho_ref  = Ip(i,3,QRHO)
           u_ref    = Ip(i,3,QU)
-          
+
           p_ref      = Ip(i,3,QPRES)
           rhoe_g_ref = Ip(i,3,QREINT)
-          
+
           ptot_ref = Ip(i,3,qptot)
           rhoe_ref = Ip(i,3,qreitot)
-          
+
           er_ref(:) = Ip(i,3,qrad:qradhi)
        endif
 
@@ -403,50 +403,50 @@ contains
        ! these are analogous to the beta's from the original
        ! PPM paper (except we work with rho instead of tau).
        ! This is simply (l . dq), where dq = qref - I(q)
-       alpham = 0.5d0*(dptotm/(rho*cc) - dum)*rho/cc
-       alphap = 0.5d0*(dptotp/(rho*cc) + dup)*rho/cc
-       alpha0 = drho - dptot/csq
-       alphae = drhoe - dptot*enth
-       alphae_g = drhoe_g - dptot/csq*h_g
+       alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
+       alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
+       alpha0r = drho - dptot/csq
+       alpha0e = drhoe - dptot*enth
+       alpha0e_g = drhoe_g - dptot/csq*h_g
        alphar(:) = der(:)- dptot/csq*hr
 
-       if (u-cc .gt. 0.d0) then
+       if (u-cc .gt. ZERO) then
           alpham = -alpham
-       else if (u-cc .lt. 0.d0) then
-          alpham = 0.d0
+       else if (u-cc .lt. ZERO) then
+          alpham = ZERO
        else
-          alpham = -0.5d0*alpham
+          alpham = -HALF*alpham
        endif
-       if (u+cc .gt. 0.d0) then
+       if (u+cc .gt. ZERO) then
           alphap = -alphap
-       else if (u+cc .lt. 0.d0) then
-          alphap = 0.d0
+       else if (u+cc .lt. ZERO) then
+          alphap = ZERO
        else
-          alphap = -0.5d0*alphap
+          alphap = -HALF*alphap
        endif
-       if (u .gt. 0.d0) then
-          alpha0 = -alpha0
-          alphae = -alphae
-          alphae_g = -alphae_g
+       if (u .gt. ZERO) then
+          alpha0r = -alpha0r
+          alpha0e = -alpha0e
+          alpha0e_g = -alpha0e_g
           alphar(:) = -alphar(:)
-       else if (u .lt. 0.d0) then
-          alpha0 = 0.d0
-          alphae = 0.d0
-          alphae_g = 0.d0
-          alphar(:) = 0.d0
+       else if (u .lt. ZERO) then
+          alpha0r = ZERO
+          alpha0e = ZERO
+          alpha0e_g = ZERO
+          alphar(:) = ZERO
        else
-          alpha0 = -0.5d0*alpha0
-          alphae = -0.5d0*alphae
-          alphae_g = -0.5d0*alphae_g
-          alphar(:) = -0.5d0*alphar(:)
+          alpha0r = -HALF*alpha0r
+          alpha0e = -HALF*alpha0e
+          alpha0e_g = -HALF*alpha0e_g
+          alphar(:) = -HALF*alphar(:)
        endif
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
        if (i .le. ihi) then
-          qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0
+          qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc/rho
-          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
           qxm(i+1,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -457,11 +457,11 @@ contains
 
           ! enforce small_*
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
-          
+          qxm(i+1,QPRES) = max(qxm(i+1,QPRES),small_pres)
+
           ! add source terms
           qxm(i+1,QRHO   ) = qxm(i+1,QRHO   ) + hdt*srcQ(i,QRHO)
           qxm(i+1,QRHO   ) = max(small_dens, qxm(i+1,QRHO))
-          qxm(i+1,QU     ) = qxm(i+1,QU     )
           qxm(i+1,QREINT ) = qxm(i+1,QREINT ) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES  ) = qxm(i+1,QPRES  ) + hdt*srcQ(i,QPRES)
           qxm(i+1,qptot  ) = qxm(i+1,qptot  ) + hdt*srcQ(i,QPRES)
@@ -473,33 +473,33 @@ contains
           endif
 
           do g=0, ngroups-1
-             if (qxm(i+1,qrad+g) < 0.d0) then
+             if (qxm(i+1,qrad+g) < ZERO) then
                 er_foo = - qxm(i+1,qrad+g)
-                qxm(i+1,qrad+g) = 0.d0
+                qxm(i+1,qrad+g) = ZERO
                 qxm(i+1,qptot) = qxm(i+1,qptot) + lamm(g) * er_foo
                 qxm(i+1,qreitot) = qxm(i+1,qreitot) + er_foo
              end if
           end do
 
-          if ( qxm(i+1,QPRES) < 0.d0 ) then
+          if ( qxm(i+1,QPRES) < ZERO ) then
              qxm(i+1,QPRES) = p
           end if
 
        end if
 
 
-       !-------------------------------------------------------------------
+       !----------------------------------------------------------------------
        ! geometry source terms
-       !-------------------------------------------------------------------
-       
+       !----------------------------------------------------------------------
+
        if(dloga(i).ne.0)then
           courn = dtdx*(cc+abs(u))
-          eta = (1.d0-courn)/(cc*dt*abs(dloga(i)))
-          dlogatmp = min(eta,1.d0)*dloga(i)
-          sourcr = -0.5d0*dt*rho*dlogatmp*u
+          eta = (ONE-courn)/(cc*dt*abs(dloga(i)))
+          dlogatmp = min(eta,ONE)*dloga(i)
+          sourcr = -HALF*dt*rho*dlogatmp*u
           sourcp = sourcr*cgassq
           source = sourcr*h_g
-          sourcer(:) = -0.5d0*dt*dlogatmp*u*(lam0(:)+1.d0)*er(:)
+          sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
           if (i .le. ihi) then
              qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + sourcr
              qxm(i+1,QRHO  ) = max(small_dens, qxm(i+1,QRHO))
@@ -547,7 +547,7 @@ contains
     end if
 
 
-    !-------------------------------------------------------------------------    
+    !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
     !-------------------------------------------------------------------------
 
@@ -559,7 +559,7 @@ contains
        do i = ilo, ihi+1
           u = q(i,QU)
 
-          ! We have
+          ! We want to do
           !
           ! q_l = q_ref - Proj{(q_ref - I)}
           !

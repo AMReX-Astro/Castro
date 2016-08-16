@@ -303,7 +303,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
 !     Trace to edges w/o transverse flux correction terms
   if (ppm_type .gt. 0) then
      call trace_ppm_rad(lam, lam_l1, lam_h1, &       
-          q,dq,c,cg,flatn,qd_l1,qd_h1, &
+          q,c,cg,flatn,qd_l1,qd_h1, &
           dloga,dloga_l1,dloga_h1, &
           srcQ,src_l1,src_h1, &
           qm,qp,ilo-1,ihi+1, &
