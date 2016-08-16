@@ -75,7 +75,7 @@ contains
                        ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
     use bl_constants_module
 
     implicit none
@@ -179,12 +179,10 @@ contains
           sm = sedge(i  ,j)
           sp = sedge(i+1,j)
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other
-             ! monotonization -- this is the method that Flash does
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters -- note this version of the limiting comes
           ! from Colella and Sekora (2008), not the original PPM paper.
@@ -202,13 +200,6 @@ contains
           !     (sp - sm)**2/SIX) then
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
-
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
 
           ! compute x-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
@@ -312,12 +303,10 @@ contains
           sm = sedge(i,j  )
           sp = sedge(i,j+1)
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other
-             ! monotonization -- this is the method that Flash does
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters
           if ((sp-s(i,j,k3d))*(s(i,j,k3d)-sm) .le. ZERO) then
@@ -334,13 +323,6 @@ contains
           !     (sp - sm)**2/SIX) then
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
-
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
 
           ! compute y-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
@@ -458,13 +440,10 @@ contains
           sp = max(sp,min(s(i,j,k),s(i,j,k-1)))
           sp = min(sp,max(s(i,j,k),s(i,j,k-1)))
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other
-             ! monotonization -- this is the method that Flash does
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
-
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters
           if ((sp-s(i,j,k3d))*(s(i,j,k3d)-sm) .le. ZERO) then
@@ -481,13 +460,6 @@ contains
           !     (sp - sm)**2/SIX) then
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
-
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
 
           ! compute z-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
@@ -562,7 +534,7 @@ contains
                        ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
     use bl_constants_module
 
     implicit none
@@ -731,11 +703,9 @@ contains
           sm = s(i,j,k3d) + alpham
           sp = s(i,j,k3d) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           !
           ! Compute x-component of Ip and Im.
@@ -898,11 +868,9 @@ contains
           sm = s(i,j,k3d) + alpham
           sp = s(i,j,k3d) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
 
           !
@@ -1070,11 +1038,9 @@ contains
           sm = s(i,j,k) + alpham
           sp = s(i,j,k) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           !
           ! Compute z-component of Ip and Im.
