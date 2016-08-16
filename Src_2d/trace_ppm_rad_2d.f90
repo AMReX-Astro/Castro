@@ -55,28 +55,29 @@ contains
     double precision dx, dy, dt
 
     ! Local variables
-    integer i, j, g
-    integer n, ipassive
+    integer :: i, j, g
+    integer :: n, ipassive
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
-    
-    double precision dtdx, dtdy
-    double precision cc, csq, Clag, rho, u, v, p, ptot, rhoe, enth, cgassq
-    double precision drho, du, dv, drhoe, dptot
-    double precision dup, dvp, dptotp
-    double precision dum, dvm, dptotm
+    double precision :: dtdx, dtdy
+    double precision :: cc, csq, Clag, rho, u, v, p, ptot, rhoe, enth, cgassq
+    double precision :: drho, drhoe, dptot
+    double precision :: dup, dvp, dptotp
+    double precision :: dum, dvm, dptotm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
     double precision :: ptot_ref, rhoe_g_ref
-    double precision, dimension(0:ngroups-1) :: er_ref
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
 
-    double precision alpham, alphap, alpha0, alphae
-    double precision alphau, alphav
-    double precision sourcr,sourcp,source,courn,eta,dlogatmp
+    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
+    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision rhoe_g, h_g, alphae_g, drhoe_g
+    double precision, dimension(0:ngroups-1) :: er_ref
+
+
+    double precision :: alpham, alphap, alpha0r, alpha0e
+    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+
+    double precision rhoe_g, h_g, alpha0e_g, drhoe_g
 
     double precision :: xi, xi1
     double precision :: halfdt
@@ -160,7 +161,7 @@ contains
     ! each wave to each interface
     do n=1,QRADVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
-                q(:,:,QU:), c, qd_l1,qd_l2,qd_h1,qd_h2,&
+                q(:,:,QU:QV), c, qd_l1,qd_l2,qd_h1,qd_h2,&
                 flatn, &
                 Ip(:,:,:,:,n),Im(:,:,:,:,n), &
                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
@@ -169,18 +170,16 @@ contains
     ! trace the gas gamma to the edge
     !if (ppm_temp_fix /= 1) then
     !      call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
-    !               q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+    !               q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
     !               flatn, &
     !               Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
     !               ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     !   endif
 
-    ! if desired, do parabolic reconstruction of the source
-    ! terms -- we'll use this for the force on the velocity
     if (ppm_trace_sources == 1) then
        do n = 1,QVAR
           call ppm(srcQ(:,:,n),src_l1,src_l2,src_h1,src_h2, &
-                   q(:,:,QU:),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                    flatn, &
                    Ip_src(:,:,:,:,n),Im_src(:,:,:,:,n), &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
@@ -256,6 +255,9 @@ contains
              er_ref(:) = Im(i,j,1,1,qrad:qradhi)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
 
@@ -285,9 +287,9 @@ contains
 
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (u-cc .gt. ZERO) then
@@ -305,28 +307,28 @@ contains
              alphap = -HALF*alphap
           endif
           if (u .gt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else if (u .lt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (i .ge. ilo1) then
-             qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0
+             qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
              qxp(i,j,QU)     = u_ref + (alphap - alpham)*cc/rho
-             qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qxp(i,j,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -337,6 +339,7 @@ contains
 
              ! enforce small_*
              qxp(i,j,QRHO) = max(small_dens,qxp(i,j,QRHO))
+             qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
 
              do g=0, ngroups-1
                 if (qxp(i,j,qrad+g) < ZERO) then
@@ -355,11 +358,6 @@ contains
              ! transverse velocity -- there is no projection here, so
              ! we don't need a reference state.  We only care about
              ! the state traced under the middle wave
-             dv    = Im(i,j,1,2,QV)
-
-             if (ppm_trace_sources == 1) then
-                dv  = dv  + halfdt*Im_src(i,j,1,2,QV)
-             endif
 
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
@@ -371,7 +369,11 @@ contains
                    qxp(i,j,QV) = v
                 endif
              else ! wave moving toward the interface
-                qxp(i,j,QV) = dv
+                qxp(i,j,QV) = Im(i,j,1,2,QV)
+             endif
+
+             if (ppm_trace_sources == 1) then
+                qxp(i,j,QV) = qxp(i,j,QV) + halfdt*Im_src(i,j,1,2,QV)
              endif
 
           end if
@@ -409,6 +411,9 @@ contains
              er_ref(:) = Ip(i,j,1,3,qrad:qradhi)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           !  *m are the jumps carried by u-c
           !  *p are the jumps carried by u+c
 
@@ -437,10 +442,9 @@ contains
           ! This is simply (l . dq), where dq = qref - I(q)
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
-          alphav = dv
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
           if (u-cc .gt. ZERO) then
@@ -458,28 +462,28 @@ contains
              alphap = -HALF*alphap
           endif
           if (u .gt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else if (u .lt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (i .le. ihi1) then
-             qxm(i+1,j,QRHO) = rho_ref + alphap + alpham + alpha0
+             qxm(i+1,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,j,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qxm(i+1,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -490,6 +494,7 @@ contains
 
              ! enforce small_*
              qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
+             qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
 
              do g=0, ngroups-1
                 if (qxm(i+1,j,qrad+g) < ZERO) then
@@ -504,13 +509,9 @@ contains
                 qxm(i+1,j,QPRES) = p
              end if
 
-             ! transverse velocity
-             dv    = Ip(i,j,1,2,QV)
-
-             if (ppm_trace_sources == 1) then
-                dv  = dv  + halfdt*Ip_src(i,j,1,2,QV)
-             endif
-
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about
+             ! the state traced under the middle wave
              if (u < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
@@ -518,8 +519,13 @@ contains
                    qxm(i+1,j,QV) = v
                 endif
              else ! wave moving toward interface
-                qxm(i+1,j,QV) = dv
+                qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
              endif
+
+             if (ppm_trace_sources == 1) then
+                qxm(i+1,j,QV) = qxm(i+1,j,QV) + halfdt*Ip_src(i,j,1,2,QV)
+             endif
+
 
           end if
 
@@ -574,18 +580,14 @@ contains
           do i = ilo1, ihi1+1
              u = q(i,j,QU)
 
-             ! we have
+             ! We have
              !
              ! q_l = q_ref - Proj{(q_ref - I)}
              !
              ! and Proj{} represents the characteristic projection.
              ! But for these, there is only 1-wave that matters, the u
              ! wave, so no projection is needed.  Since we are not
-             ! projecting, the reference state doesn't matter, so we
-             ! take it to be q_i, therefore, we reduce to
-             !
-             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
-             !      = q_i + xi*(I - q_i)
+             ! projecting, the reference state doesn't matter.
 
              if (u .gt. ZERO) then
                 qxp(i,j,n) = q(i,j,n)    ! we might want to change this to
@@ -680,6 +682,9 @@ contains
              er_ref(:) = Im(i,j,2,1,qrad:qradhi)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
           
@@ -708,9 +713,9 @@ contains
           ! is simply (l . dq), where dq = qref - I(q)
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (v-cc .gt. ZERO) then
@@ -727,29 +732,30 @@ contains
           else
              alphap = -HALF*alphap
           endif
+
           if (v .gt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else if (v .lt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j .ge. ilo2) then
-             qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0
+             qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qyp(i,j,QV) = v_ref + (alphap - alpham)*cc/rho
-             qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qyp(i,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -760,6 +766,7 @@ contains
 
              ! enforce small_*
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
+             qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
 
              do g=0, ngroups-1
                 if (qyp(i,j,qrad+g) < ZERO) then
@@ -774,13 +781,9 @@ contains
                 qyp(i,j,QPRES) = p
              end if
 
-             ! transverse velocity
-             du    = Im(i,j,2,2,QU)
-
-             if (ppm_trace_sources == 1) then
-                du  = du  + halfdt*Im_src(i,j,2,2,QU)
-             endif
-
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about
+             ! the state traced under the middle wave
              if (v > ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qyp(i,j,QU)     = Im(i,j,2,2,QU)
@@ -788,7 +791,11 @@ contains
                    qyp(i,j,QU)     = u
                 endif
              else ! wave moving toward the interface
-                qyp(i,j,QU)     = du
+                qyp(i,j,QU)     = Im(i,j,2,2,QU)
+             endif
+
+             if (ppm_trace_sources == 1) then
+                qyp(i,j,QU) = qyp(i,j,QU) + halfdt*Im_src(i,j,2,2,QU)
              endif
 
           end if
@@ -826,6 +833,9 @@ contains
              er_ref(:) = Ip(i,j,2,3,qrad:qradhi)
           endif
 
+          rho_ref = max(rho_ref,small_dens)
+          p_ref = max(p_ref,small_pres)
+
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
 
@@ -853,9 +863,9 @@ contains
           ! paper.  This is simply (l . dq), where dq = qref - I(q)
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
           if (v-cc .gt. ZERO) then
@@ -873,28 +883,28 @@ contains
              alphap = -HALF*alphap
           endif
           if (v .gt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else if (v .lt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j .le. ihi2) then
-             qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0
+             qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0r
              qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qym(i,j+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -905,6 +915,7 @@ contains
 
              ! enforce small_*
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
+             qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
 
              do g=0, ngroups-1
                 if (qym(i,j+1,qrad+g) < ZERO) then
@@ -919,13 +930,9 @@ contains
                 qym(i,j+1,QPRES) = p
              end if
 
-             ! transverse velocity
-             du    =  Ip(i,j,2,2,QU)
-
-             if (ppm_trace_sources == 1) then
-                du  = du  + halfdt*Ip_src(i,j,2,2,QU)
-             endif
-
+             ! transverse velocity -- there is no projection here, so
+             ! we don't need a reference state.  We only care about
+             ! the state traced under the middle wave
              if (v < ZERO) then
                 if (ppm_reference_edge_limit == 1) then
                    qym(i,j+1,QU) = Ip(i,j,2,2,QU)
@@ -933,7 +940,11 @@ contains
                    qym(i,j+1,QU) = u
                 endif
              else
-                qym(i,j+1,QU)     = du
+                qym(i,j+1,QU)     = Ip(i,j,2,2,QU)
+             endif
+             
+             if (ppm_trace_sources == 1) then
+                qym(i,j+1,QU) = qym(i,j+1,QU) + halfdt*Ip_src(i,j,2,2,QU)
              endif
 
           end if
