@@ -16,9 +16,10 @@ contains
 
     use meth_params_module, only : QVAR, QRHO, QU, &
          QREINT, QPRES, &
-         small_dens, small_pres, ppm_type, fix_mass_flux, &
-         ppm_reference, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals, &
+         small_dens, small_pres, fix_mass_flux, &
+         ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
+         ppm_flatten_before_integrals, ppm_predict_gammae, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
@@ -74,6 +75,9 @@ contains
     double precision, allocatable :: Ip_gc(:,:,:)
     double precision, allocatable :: Im_gc(:,:,:)
 
+    double precision, allocatable :: Ip_src(:,:,:)
+    double precision, allocatable :: Im_src(:,:,:)
+
     fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
          .and. (ilo .eq. domlo(1))
     fix_mass_flux_hi = (fix_mass_flux .eq. 1) .and. (physbc_hi(1) .eq. Outflow) &
@@ -84,6 +88,18 @@ contains
        call bl_error("Error:: ppm_1d.f90 :: trace_ppm")
     end if
 
+    if (ppm_tau_in_tracing == 1) then
+       call bl_error("ERROR: ppm_tau_in_tracing not implemented with radiation")
+    endif
+
+    if (ppm_predict_gammae == 1) then
+       call bl_error("ERROR: ppm_predict_gammae not implemented with radiation")
+    endif
+
+    if (ppm_temp_fix > 0) then
+       call bl_error("ERROR: ppm_temp_fix > 0 not implemented with radiation")
+    endif
+
     hdt = HALF * dt
     dtdx = dt/dx
 
@@ -92,6 +108,11 @@ contains
 
     allocate(Ip_gc(ilo-1:ihi+1,3,1))
     allocate(Im_gc(ilo-1:ihi+1,3,1))
+
+    if (ppm_trace_sources == 1) then
+       allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
+       allocate(Im_src(ilo-1:ihi+1,3,QVAR))
+    endif
 
     !=========================================================================
     ! PPM CODE
@@ -136,6 +157,19 @@ contains
              flatn, &
              Ip_gc(:,:,1),Im_gc(:,:,1),ilo,ihi,dx,dt)
 
+    if (ppm_trace_sources == 1) then
+       do n=1,QVAR
+          call ppm(srcQ(:,n),src_l1,src_h1, &
+                   q(:,QU),c, &
+                   flatn, &
+                   Ip_src(:,:,n),Im_src(:,:,n), &
+                   ilo,ihi,dx,dt)
+       enddo
+    endif
+
+    !-------------------------------------------------------------------------
+    ! x-direction
+    !-------------------------------------------------------------------------
 
     ! Trace to left and right edges using upwind PPM
     do i = ilo-1, ihi+1
@@ -196,17 +230,17 @@ contains
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
 
-       dum    = (u_ref    - Im(i,1,QU))
-       dpm    = (p_ref    - Im(i,1,QPRES))
-       drhoem = (rhoe_ref - Im(i,1,QREINT))
+       dum    = u_ref    - Im(i,1,QU)
+       dpm    = p_ref    - Im(i,1,QPRES)
+       drhoem = rhoe_ref - Im(i,1,QREINT)
 
-       drho  = (rho_ref  - Im(i,2,QRHO))
-       dp    = (p_ref    - Im(i,2,QPRES))
-       drhoe = (rhoe_ref - Im(i,2,QREINT))
+       drho  = rho_ref  - Im(i,2,QRHO)
+       dp    = p_ref    - Im(i,2,QPRES)
+       drhoe = rhoe_ref - Im(i,2,QREINT)
 
-       dup    = (u_ref    - Im(i,3,QU))
-       dpp    = (p_ref    - Im(i,3,QPRES))
-       drhoep = (rhoe_ref - Im(i,3,QREINT))
+       dup    = u_ref    - Im(i,3,QU)
+       dpp    = p_ref    - Im(i,3,QPRES)
+       drhoep = rhoe_ref - Im(i,3,QREINT)
 
 
        ! optionally use the reference state in evaluating the
@@ -227,9 +261,9 @@ contains
           p_ev    = p_ref
        endif
 
-       ! these are analogous to the beta's from the original PPM paper
-       ! (except we work with rho instead of tau).  This is simply
-       ! (l . dq), where dq = qref - I(q)
+       ! these are analogous to the beta's from the original
+       ! PPM paper (except we work with rho instead of tau).
+       ! This is simply (l . dq), where dq = qref - I(q)
 
        alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
@@ -266,32 +300,37 @@ contains
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
        if (i .ge. ilo) then
+          qxp(i,QRHO)   = rho_ref  + apright + amright + azrright
+          qxp(i,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
+          qxp(i,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+          qxp(i,QPRES)  = p_ref + (apright + amright)*csq_ev
 
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE-flatn(i)
-             xi = flatn(i)
-          else
-             xi1 = ZERO
-             xi = ONE
-          endif
-
-          qxp(i,QRHO)   = xi1*rho  + xi*(rho_ref + apright + amright + azrright)
-
-          qxp(i,QU)     = xi1*u    + xi*(u_ref + (apright - amright)*cc_ev/rho_ev)
-
-          qxp(i,QPRES)  = xi1*p    + xi*(p_ref + (apright + amright)*csq_ev)
-          qxp(i,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright)
-
+          ! enforce small_*
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
           qxp(i,QPRES) = max(small_pres,qxp(i,QPRES))
 
           ! add source terms
           qxp(i  ,QRHO  ) = qxp(i,QRHO  ) + hdt*srcQ(i,QRHO)
           qxp(i  ,QRHO  ) = max(small_dens,qxp(i,QRHO))
-          qxp(i  ,QU    ) = qxp(i,QU    ) + hdt*srcQ(i,QU)
           qxp(i  ,QREINT) = qxp(i,QREINT) + hdt*srcQ(i,QREINT)
           qxp(i  ,QPRES ) = qxp(i,QPRES ) + hdt*srcQ(i,QPRES)
-       end if
+
+          ! add traced source terms as needed
+          if (ppm_trace_sources == 0) then
+             qxp(i  ,QU) = qxp(i,QU) + hdt*srcQ(i,QU)
+          endif
+
+          ! we may have done the flattening already in the parabola
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE-flatn(i)
+             xi = flatn(i)
+
+             qxp(i,QRHO)   = xi1*rho  + xi*qxp(i,QRHO)
+             qxp(i,QU)     = xi1*u    + xi*qxp(i,QU)
+             qxp(i,QREINT) = xi1*rhoe + xi*qxp(i,QREINT)
+             qxp(i,QPRES)  = xi1*p    + xi*qxp(i,QPRES)
+          endif
+       endif
 
 
        !----------------------------------------------------------------------
@@ -333,17 +372,17 @@ contains
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
-       dum    = (u_ref    - Ip(i,1,QU))
-       dpm    = (p_ref    - Ip(i,1,QPRES))
-       drhoem = (rhoe_ref - Ip(i,1,QREINT))
+       dum    = u_ref    - Ip(i,1,QU)
+       dpm    = p_ref    - Ip(i,1,QPRES)
+       drhoem = rhoe_ref - Ip(i,1,QREINT)
 
-       drho  = (rho_ref  - Ip(i,2,QRHO))
-       dp    = (p_ref    - Ip(i,2,QPRES))
-       drhoe = (rhoe_ref - Ip(i,2,QREINT))
+       drho  = rho_ref  - Ip(i,2,QRHO)
+       dp    = p_ref    - Ip(i,2,QPRES)
+       drhoe = rhoe_ref - Ip(i,2,QREINT)
 
-       dup    = (u_ref    - Ip(i,3,QU))
-       dpp    = (p_ref    - Ip(i,3,QPRES))
-       drhoep = (rhoe_ref - Ip(i,3,QREINT))
+       dup    = u_ref    - Ip(i,3,QU)
+       dpp    = p_ref    - Ip(i,3,QPRES)
+       drhoep = rhoe_ref - Ip(i,3,QREINT)
 
 
        ! optionally use the reference state in evaluating the
@@ -364,10 +403,9 @@ contains
           p_ev    = p_ref
        endif
 
-
-       ! these are analogous to the beta's from the original PPM paper
-       ! (except we work with rho instead of tau).  This is simply
-       ! (l . dq), where dq = qref - I(q)
+       ! these are analogous to the beta's from the original
+       ! PPM paper (except we work with rho instead of tau).
+       ! This is simply (l . dq), where dq = qref - I(q)
        alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dp/csq_ev
@@ -403,30 +441,37 @@ contains
        ! the final interface states are just
        ! q_s = q_ref - sum (l .dq) r
        if (i .le. ihi) then
+          qxm(i+1,QRHO)   = rho_ref + apleft + amleft + azrleft
+          qxm(i+1,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev
+          qxm(i+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
+          qxm(i+1,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
 
-          if (ppm_flatten_before_integrals == 0) then
-             xi1 = ONE-flatn(i)
-             xi = flatn(i)
-          else
-             xi1 = ZERO
-             xi = ONE
-          endif
-
-          qxm(i+1,QRHO)   = xi1*rho  + xi*(rho_ref + apleft + amleft + azrleft)
-          qxm(i+1,QU)     = xi1*u    + xi*(u_ref + (apleft - amleft)*cc_ev/rho_ev)
-
-          qxm(i+1,QPRES)  = xi1*p    + xi*(p_ref + (apleft + amleft)*csq_ev)
-          qxm(i+1,QREINT) = xi1*rhoe + xi*(rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft)
-
+          ! enforce small_*
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
           qxm(i+1,QPRES) = max(qxm(i+1,QPRES),small_pres)
 
           ! add source terms
           qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + hdt*srcQ(i,QRHO)
           qxm(i+1,QRHO  ) = max(small_dens, qxm(i+1,QRHO))
-          qxm(i+1,QU    ) = qxm(i+1,QU    ) + hdt*srcQ(i,QU)
           qxm(i+1,QREINT) = qxm(i+1,QREINT) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
+
+          ! add traced source terms as needed
+          if (ppm_trace_sources == 0) then
+             qxm(i+1,QU) = qxm(i+1,QU) + hdt*srcQ(i,QU)
+          endif
+
+          ! we may have already done the flattening in the parabola
+          if (ppm_flatten_before_integrals == 0) then
+             xi1 = ONE-flatn(i)
+             xi = flatn(i)
+
+             qxm(i+1,QRHO)   = xi1*rho  + xi*qxm(i+1,QRHO)
+             qxm(i+1,QU)     = xi1*u    + xi*qxm(i+1,QU)
+             qxm(i+1,QREINT) = xi1*rhoe + xi*qxm(i+1,QREINT)
+             qxm(i+1,QPRES)  = xi1*p    + xi*qxm(i+1,QPRES)
+          endif
+
        end if
 
 
@@ -478,6 +523,8 @@ contains
     !-------------------------------------------------------------------------
     ! Now do the passively advected quantities
     !-------------------------------------------------------------------------
+
+    ! We do all passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
@@ -491,8 +538,11 @@ contains
              xi = ONE
           endif
 
-          ! the flattening here is a little confusing.  What we want
-          ! to do is:
+          ! the flattening here is a little confusing.  If
+          ! ppm_flatten_before_integrals = 0, then we are blending
+          ! the cell centered state and the edge state here through
+          ! the flattening procedure.  Otherwise, we've already
+          ! took care of flattening.  What we want to do is:
           !
           ! q_l*  (1-xi)*q_i + xi*q_l
           !
@@ -543,6 +593,9 @@ contains
 
     deallocate(Ip,Im)
     deallocate(Ip_gc,Im_gc)
+    if (ppm_trace_sources == 1) then
+       deallocate(Ip_src,Im_src)
+    endif
 
   end subroutine trace_ppm
 
