@@ -242,6 +242,12 @@ contains
        dpp    = p_ref    - Im(i,3,QPRES)
        drhoep = rhoe_ref - Im(i,3,QREINT)
 
+       ! if we are doing source term tracing, then we add the force to
+       ! the velocity here, otherwise we will deal with this later
+       if (ppm_trace_sources == 1) then
+          dum = dum - hdt*Im_src(i,1,QU)
+          dup = dup - hdt*Im_src(i,3,QU)
+       endif
 
        ! optionally use the reference state in evaluating the
        ! eigenvectors
@@ -384,6 +390,13 @@ contains
        dpp    = p_ref    - Ip(i,3,QPRES)
        drhoep = rhoe_ref - Ip(i,3,QREINT)
 
+       ! if we are doing source term tracing, then we add the force to
+       ! the velocity here, otherwise we will deal with this in the
+       ! trans_X routines
+       if (ppm_trace_sources == 1) then
+          dum = dum - hdt*Ip_src(i,1,QU)
+          dup = dup - hdt*Ip_src(i,3,QU)
+       endif
 
        ! optionally use the reference state in evaluating the
        ! eigenvectors
