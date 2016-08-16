@@ -307,7 +307,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                        domlo, domhi)
 
   use network, only : nspec
-  use meth_params_module, only : NVAR, ppm_type, GDPRES, GDU, GDV, GDERADS, GDLAMS, ngdnv
+  use meth_params_module, only : NVAR, QVAR, ppm_type, GDPRES, &
+       GDU, GDV, GDERADS, GDLAMS, ngdnv
 
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
