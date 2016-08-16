@@ -12,11 +12,13 @@ state_interp_order           int           1
 # 1: preserve linear combinations of state variables
 lin_limit_state_interp       int           0
 
-
 # Number of ghost zones for state data to have. Note that
 # if you are using radiation, choosing this to be zero will
 # be overridden since radiation needs at least one ghost zone.
 state_nghost                 int           0
+
+# do we do the hyperbolic reflux at coarse-fine interfaces?
+do_reflux                    int           1
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -404,3 +406,5 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
+
+

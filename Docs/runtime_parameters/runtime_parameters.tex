@@ -40,9 +40,10 @@
 
 
 \rowcolor{tableShade}
+\verb= do_reflux = &  do we do the hyperbolic reflux at coarse-fine interfaces? & 1 \\
 \verb= lin_limit_state_interp = &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
-\verb= state_interp_order = &  highest order used in interpolation & 1 \\
 \rowcolor{tableShade}
+\verb= state_interp_order = &  highest order used in interpolation & 1 \\
 \verb= state_nghost = &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
 
 
@@ -299,6 +300,46 @@
 \verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \rowcolor{tableShade}
 \verb= use_pslope = &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[ output
+ parameters.]{ output
+ parameters.} \label{table:  output
+ parameters. runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\verb= checkpoint_version = &  & 1 \\
 
 
 \end{longtable}
