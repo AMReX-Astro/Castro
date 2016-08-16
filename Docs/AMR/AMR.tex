@@ -162,58 +162,68 @@ end subroutine set_problem_tags
 \section{Synchronization Algorithm}
 
 Here is the AMR algorithm for the compressible equations with
-self-gravity.  The gravity component of the algorithm 
-is closely related to (but not identical to) that in Miniati and Colella,
-JCP, 2007 (in press).
+self-gravity.  The gravity component of the algorithm is closely
+related to (but not identical to) that in Miniati and Colella, JCP,
+2007 (in press).
 
-Over a coarse grid time step 
-we collect flux register information for the hyperbolic part of the synchronization:
+Over a coarse grid time step we collect flux register information for
+the hyperbolic part of the synchronization:
 \begin{equation}
 \delta\Fb = -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f
 \end{equation}
-Analogously, at the end of a coarse grid time step 
-we store the mismatch in normal gradients of $\phi$ at the coarse-fine interface:
+Analogously, at the end of a coarse grid time step we store the
+mismatch in normal gradients of $\phi$ at the coarse-fine interface:
 \begin{equation}
 \delta F_\phi =  - A^c \frac{\partial \phi^c}{\partial n}
 + \sum A^f \frac{\partial \phi^f}{\partial n}
 \end{equation}
-Because we want the composite $\phi^{c-f}$ to satisfy the multilevel version of  (\ref{eq:Self Gravity}) at each time $t^n$, we do not accumulate $\frac{\partial \phi^f}{\partial n}$ over time, rather we add coarse and fine fluxes only at integer coarse times.
+Because we want the composite $\phi^{c-f}$ to satisfy the multilevel
+version of (\ref{eq:Self Gravity}) at each time $t^n$, we do not
+accumulate $\frac{\partial \phi^f}{\partial n}$ over time, rather we
+add coarse and fine fluxes only at integer coarse times.
 
 At the end of a coarse grid time step we can define
-${\overline{\Ub}}^{c-f}$ and $\overline{\phi}^{c-f}$
-as the composite of the data from coarse and fine grids as a provisional solution at
-time $n+1$. (Assume $\overline{\Ub}$ has been averaged down so that the data on coarse cells
-underlying fine cells is the average of the fine cell data above it.)
+${\overline{\Ub}}^{c-f}$ and $\overline{\phi}^{c-f}$ as the composite
+of the data from coarse and fine grids as a provisional solution at
+time $n+1$. (Assume $\overline{\Ub}$ has been averaged down so that
+the data on coarse cells underlying fine cells is the average of the
+fine cell data above it.)
 
 The synchronization consists of two parts: 
 
 \begin{itemize}
 \item Step 1:  Hyperbolic reflux
 
-In the hyperbolic reflux step, we update the conserved variables with the flux synchronization
-and adjust the gravitational terms to reflect the changes in $\rho$ and $\ub$.
+In the hyperbolic reflux step, we update the conserved variables with
+the flux synchronization and adjust the gravitational terms to reflect
+the changes in $\rho$ and $\ub$.
 \begin{equation}
 {\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},
 \end{equation}
-where $V$ is the volume of the cell and the correction from $\delta\Fb$ is supported only on coarse cells adjacent to fine grids.   
+where $V$ is the volume of the cell and the correction from
+$\delta\Fb$ is supported only on coarse cells adjacent to fine grids.
+
+Note: this can be enabled/disabled via {\tt castro.do\_reflux}.  Generally,
+it should be enabled ({\tt 1}).
 
 \item Step 2:  Gravitational synchronization
 
-In this step we correct for the mismatch in normal derivative in $\phi^{c-f}$ at the coarse-fine
-interface, as well as accounting for the changes in source terms for $(\rho \ub)$
-and $(\rho E)$ due to the change in $\rho.$
+In this step we correct for the mismatch in normal derivative in
+$\phi^{c-f}$ at the coarse-fine interface, as well as accounting for
+the changes in source terms for $(\rho \ub)$ and $(\rho E)$ due to the
+change in $\rho.$
 
 On the coarse grid only, we define
 \begin{equation}
 (\delta \rho)^{c} =  \rho^{c, \star} - {\overline{\rho}}^{c}  .
 \end{equation}
 
-We then form the composite residual, which is composed of two contributions.
-The first is the degree to which the current $ \overline{\phi}^{c-f}$
-does not satisfy the original equation on a composite grid (since we have solved for 
-$\overline{\phi}^{c-f}$ separately on the coarse and fine levels).  The second
-is the response of $\phi$ to the change in $\rho.$
-We define 
+We then form the composite residual, which is composed of two
+contributions.  The first is the degree to which the current $
+\overline{\phi}^{c-f}$ does not satisfy the original equation on a
+composite grid (since we have solved for $\overline{\phi}^{c-f}$
+separately on the coarse and fine levels).  The second is the response
+of $\phi$ to the change in $\rho.$ We define
 \begin{equation} R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f} 
 = - 4 \pi G (\delta \rho)^c - (\nabla \cdot \delta F_\phi ) |_c   .
 \end{equation}
@@ -270,5 +280,10 @@ level $c$ and the next coarser level, $cc.$ In particular, we set
 + \sum A^c \frac{\partial (\delta \phi)^{c-f}}{\partial n}  .
 \end{equation}
 \end{itemize}
+
+The gravity synchronization algorithm can be disabled with {\tt
+  gravity.no\_sync = 1}.  This should be done with care.  Generally,
+it is okay only if he refluxing happens in regions of low density that
+don't affect the gravity substantially.
 
 \end{itemize}
