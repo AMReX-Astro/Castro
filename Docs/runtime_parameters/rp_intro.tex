@@ -1,0 +1,30 @@
+\label{chapter:parameters}
+
+The behavior of the network and EOS are controlled by many runtime
+parameters.  These parameters are defined in plain-text files {\tt
+  \_parameters} located in the different directories that hold the
+microphysics code.  At compile time, a script in the \boxlib\ bulid
+system, {\tt findparams.py}, locates all of the {\tt \_parameters}
+files that are needed for the given choice of network, integrator, and
+EOS, and assembles all of the runtime parameters into a module named
+{\tt extern\_probin\_module} (using the {\tt write\_probin.py}
+script).  
+
+Note: depending on the application code, the filename of the source 
+file that contains the {\tt extern\_probin\_module} may differ
+(in \castro\ it is {\tt extern.f90}, and uses the {\tt \&extern} namelist;
+in \maestro\ it is in the main {\tt probin.f90} and uses the same namelist
+as general \maestro\ runtime parameters).
+
+Parameter definitions take the form of:
+\begin{verbatim}
+# comment describing the parameter
+name              data-type       default-value      priority
+\end{verbatim}
+Here, the {\tt priority} is simply an integer.  When two directories
+define the same parameter, but with different defaults, the version of
+the parameter with the highest priority takes precedence.  This allows
+specific implementations to override the general parameter defaults.
+
+The documentation below is automatically generated, using the comments
+in the {\tt \_parameters} files.
