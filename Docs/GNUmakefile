@@ -14,6 +14,7 @@ section_sources = Introduction/CastroIntroduction.tex \
                   Parallel/Parallel.tex \
 	          FlowChart/FlowChart.tex \
                   runtime_parameters/runtime_parameters.tex \
+                  runtime_parameters/rp_intro.tex \
                   ManagingJobs/managingjobs.tex \
                   FAQ/faq.tex \
                   Equations/Equations.tex \
