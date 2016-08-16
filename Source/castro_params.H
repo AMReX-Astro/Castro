@@ -6,6 +6,7 @@
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
+static int do_reflux;
 static Real difmag;
 static Real small_dens;
 static Real small_temp;
@@ -121,3 +122,4 @@ static Real sum_per;
 static int show_center_of_mass;
 static int hard_cfl_limit;
 static std::string job_name;
+static int checkpoint_version;

@@ -6,6 +6,7 @@
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
+int         Castro::do_reflux = 1;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;
@@ -129,3 +130,4 @@ Real        Castro::sum_per = -1.0e0;
 int         Castro::show_center_of_mass = 0;
 int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";
+int         Castro::checkpoint_version = 1;

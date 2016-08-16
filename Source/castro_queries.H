@@ -6,6 +6,7 @@
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
+pp.query("do_reflux", do_reflux);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);
 pp.query("small_temp", small_temp);
@@ -121,3 +122,4 @@ pp.query("sum_per", sum_per);
 pp.query("show_center_of_mass", show_center_of_mass);
 pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("job_name", job_name);
+pp.query("checkpoint_version", checkpoint_version);

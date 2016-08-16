@@ -675,11 +675,9 @@ protected:
 #include <castro_params.H>
 
     static bool      signalStopJob;
-    static int       checkpoint_version;
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
-    static int       do_reflux;
     static ErrorList err_list;
     static BCRec     phys_bc;
     static int       NUM_GROW;

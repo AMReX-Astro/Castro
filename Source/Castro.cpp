@@ -57,8 +57,6 @@ using std::string;
 
 bool         Castro::signalStopJob = false;
 
-int          Castro::checkpoint_version = 1;
-
 bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
@@ -66,7 +64,6 @@ ErrorList    Castro::err_list;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_STATE     = -1;
-int          Castro::do_reflux     = 1;
 int          Castro::NUM_GROW      = -1;
 
 Real         Castro::frac_change   = 1.e200;
@@ -202,8 +199,6 @@ Castro::read_params ()
 
     pp.query("v",verbose);
     pp.query("sum_interval",sum_interval);
-    pp.query("do_reflux",do_reflux);
-    do_reflux = (do_reflux ? 1 : 0);
 
     pp.query("dump_old",dump_old);
 
