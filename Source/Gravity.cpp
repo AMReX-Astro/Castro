@@ -2549,7 +2549,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
 				   BL_TO_FORTRAN(fab),
 #ifdef _OPENMP
-				   priv_radial_pres.dataPtr(),
+				   priv_radial_pres[tid].dataPtr(),
 #else
 				   radial_pres[lev].dataPtr(),
 #endif
@@ -2672,7 +2672,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     // Now add the contribution from coarser levels
     if (level > 0)
     {
-        ratio = parent->refRatio(level-1)[0];
+        int ratio = parent->refRatio(level-1)[0];
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
