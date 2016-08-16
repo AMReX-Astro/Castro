@@ -24,7 +24,7 @@ contains
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
-         ppm_flatten_before_integrals, ppm_predict_gammae, &
+         ppm_predict_gammae, &
          npassive, qpass_map
     use ppm_module, only : ppm
 
@@ -443,19 +443,6 @@ contains
                 qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_src(i,j,1,2,QV)
              endif
 
-             ! we may have done the flattening already in the parabola
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE-flatn(i,j)
-                xi = flatn(i,j)
-
-                qxp(i,j,QRHO)   = xi1*rho  + xi*qxp(i,j,QRHO)
-                qxp(i,j,QU)     = xi1*u    + xi*qxp(i,j,QU)
-                qxp(i,j,QREINT) = xi1*rhoe + xi*qxp(i,j,QREINT)
-                qxp(i,j,QPRES)  = xi1*p    + xi*qxp(i,j,QPRES)
-                qxp(i,j,QV)     = xi1*v    + xi*qxp(i,j,QV)
-             endif
-
-
           endif
 
 
@@ -659,19 +646,6 @@ contains
                 qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_src(i,j,1,2,QV)
              endif
 
-             ! we may have already done the flattening in the parabola
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE-flatn(i,j)
-                xi = flatn(i,j)
-
-                qxm(i+1,j,QRHO)   = xi1*rho  + xi*qxm(i+1,j,QRHO)
-                qxm(i+1,j,QU)     = xi1*u    + xi*qxm(i+1,j,QU)
-                qxm(i+1,j,QV)     = xi1*v    + xi*qxm(i+1,j,QV)
-                qxm(i+1,j,QREINT) = xi1*rhoe + xi*qxm(i+1,j,QREINT)
-                qxm(i+1,j,QPRES)  = xi1*p    + xi*qxm(i+1,j,QPRES)
-
-             endif
-
           endif
 
           !-------------------------------------------------------------------
@@ -719,40 +693,22 @@ contains
           do i = ilo1, ihi1+1
              u = q(i,j,QU)
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
-             ! the flattening here is a little confusing.  If
-             ! ppm_flatten_before_integrals = 0, then we are blending
-             ! the cell centered state and the edge state here through
-             ! the flattening procedure.  Otherwise, we've already
-             ! took care of flattening.  What we want to do is:
-             !
-             ! q_l*  (1-xi)*q_i + xi*q_l
-             !
-             ! where
+             ! We have
              !
              ! q_l = q_ref - Proj{(q_ref - I)}
              !
              ! and Proj{} represents the characteristic projection.
              ! But for these, there is only 1-wave that matters, the u
              ! wave, so no projection is needed.  Since we are not
-             ! projecting, the reference state doesn't matter, so we
-             ! take it to be q_i, therefore, we reduce to
-             !
-             ! q_l* = (1-xi)*q_i + xi*[q_i - (q_i - I)]
-             !      = q_i + xi*(I - q_i)
+             ! projecting, the reference state doesn't matter.
 
              if (u .gt. ZERO) then
                 qxp(i,j,n) = q(i,j,n)    ! we might want to change this to
                                          ! the limit of the parabola
              else if (u .lt. ZERO) then
-                qxp(i,j,n) = q(i,j,n) + xi*(Im(i,j,1,2,n) - q(i,j,n))
+                qxp(i,j,n) = Im(i,j,1,2,n)
              else
-                qxp(i,j,n) = q(i,j,n) + HALF*xi*(Im(i,j,1,2,n) - q(i,j,n))
+                qxp(i,j,n) = q(i,j,n) + HALF*(Im(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
 
@@ -760,18 +716,12 @@ contains
           do i = ilo1-1, ihi1
              u = q(i,j,QU)
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
              if (u .gt. ZERO) then
-                qxm(i+1,j,n) = q(i,j,n) + xi*(Ip(i,j,1,2,n) - q(i,j,n))
+                qxm(i+1,j,n) = Ip(i,j,1,2,n)
              else if (u .lt. ZERO) then
                 qxm(i+1,j,n) = q(i,j,n)
              else
-                qxm(i+1,j,n) = q(i,j,n) + HALF*xi*(Ip(i,j,1,2,n) - q(i,j,n))
+                qxm(i+1,j,n) = q(i,j,n) + HALF*(Ip(i,j,1,2,n) - q(i,j,n))
              endif
           enddo
 
@@ -1001,18 +951,6 @@ contains
                 qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_src(i,j,2,2,QU)
              endif
 
-             ! we may have already done the flattening in the parabola
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE-flatn(i,j)
-                xi = flatn(i,j)
-
-                qyp(i,j,QRHO)   = xi1*rho  + xi*qyp(i,j,QRHO)
-                qyp(i,j,QV)     = xi1*v    + xi*qyp(i,j,QV)
-                qyp(i,j,QU)     = xi1*u    + xi*qyp(i,j,QU)
-                qyp(i,j,QREINT) = xi1*rhoe + xi*qyp(i,j,QREINT)
-                qyp(i,j,QPRES)  = xi1*p    + xi*qyp(i,j,QPRES)
-             endif
-
           endif
 
           !-------------------------------------------------------------------
@@ -1209,18 +1147,6 @@ contains
                 qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_src(i,j,2,2,QU)
              endif
 
-             ! we may have already applied flattening in the parabola
-             if (ppm_flatten_before_integrals == 0) then
-                xi1 = ONE-flatn(i,j)
-                xi = flatn(i,j)
-
-                qym(i,j+1,QRHO)   = xi1*rho  + xi*qym(i,j+1,QRHO)
-                qym(i,j+1,QV)     = xi1*v    + xi*qym(i,j+1,QV)
-                qym(i,j+1,QU)     = xi1*u    + xi*qym(i,j+1,QU)
-                qym(i,j+1,QREINT) = xi1*rhoe + xi*qym(i,j+1,QREINT)
-                qym(i,j+1,QPRES)  = xi1*p    + xi*qym(i,j+1,QPRES)
-             endif
-
           endif
 
        end do
@@ -1240,18 +1166,12 @@ contains
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
              if (v .gt. ZERO) then
                 qyp(i,j,n) = q(i,j,n)
              else if (v .lt. ZERO) then
-                qyp(i,j,n) = q(i,j,n) + xi*(Im(i,j,2,2,n) - q(i,j,n))
+                qyp(i,j,n) = Im(i,j,2,2,n)
              else
-                qyp(i,j,n) = q(i,j,n) + HALF*xi*(Im(i,j,2,2,n) - q(i,j,n))
+                qyp(i,j,n) = q(i,j,n) + HALF*(Im(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
 
@@ -1259,18 +1179,12 @@ contains
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
 
-             if (ppm_flatten_before_integrals == 0) then
-                xi = flatn(i,j)
-             else
-                xi = ONE
-             endif
-
              if (v .gt. ZERO) then
-                qym(i,j+1,n) = q(i,j,n) + xi*(Ip(i,j,2,2,n) - q(i,j,n))
+                qym(i,j+1,n) = Ip(i,j,2,2,n)
              else if (v .lt. ZERO) then
                 qym(i,j+1,n) = q(i,j,n)
              else
-                qym(i,j+1,n) = q(i,j,n) + HALF*xi*(Ip(i,j,2,2,n) - q(i,j,n))
+                qym(i,j+1,n) = q(i,j,n) + HALF*(Ip(i,j,2,2,n) - q(i,j,n))
              endif
           enddo
 
