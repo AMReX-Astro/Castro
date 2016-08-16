@@ -14,8 +14,8 @@ contains
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
-    use meth_params_module, only : QVAR, QRHO, QU, &
-         QREINT, QPRES, &
+    use bl_constants_module
+    use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
@@ -23,7 +23,6 @@ contains
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
-    use bl_constants_module
 
     implicit none
 
@@ -34,6 +33,7 @@ contains
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
     double precision dx, dt
+
     double precision     q( qd_l1: qd_h1,QVAR)
     double precision  srcQ(src_l1:src_h1,QVAR)
     double precision  gamc(qd_l1:qd_h1)
@@ -45,25 +45,25 @@ contains
     double precision  qxp( qpd_l1: qpd_h1,QVAR)
 
     ! Local variables
-    integer          :: i
-    integer          :: n, ipassive
+    integer :: i
+    integer :: n, ipassive
 
     double precision :: hdt,dtdx
-    double precision :: cc, csq, Clag, rho, u, p, rhoe
-    double precision :: drho, dp, drhoe
-    double precision :: dup, dpp, drhoep
-    double precision :: dum, dpm, drhoem
+    double precision :: cc, csq, Clag, rho, u, p, rhoe_g, enth
+    double precision :: drho, dptot, drhoe_g
+    double precision :: dup, dptotp
+    double precision :: dum, dptotm
 
-    double precision :: rho_ref, u_ref, p_ref, rhoe_ref
+    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref
 
     double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
     double precision :: gam
 
-    double precision :: enth, alpham, alphap, alpha0r, alpha0e
+    double precision :: alpham, alphap, alpha0r, alpha0e
     double precision :: apright, amright, azrright, azeright
     double precision :: apleft, amleft, azrleft, azeleft
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -146,14 +146,16 @@ contains
        call ppm(q(:,n),qd_l1,qd_h1, &
                 q(:,QU),c, &
                 flatn, &
-                Ip(:,:,n),Im(:,:,n),ilo,ihi,dx,dt)
+                Ip(:,:,n),Im(:,:,n), &
+                ilo,ihi,dx,dt)
     end do
 
     ! get an edge-based gam1 here
     call ppm(gamc(:),qd_l1,qd_h1, &
              q(:,QU),c, &
              flatn, &
-             Ip_gc(:,:,1),Im_gc(:,:,1),ilo,ihi,dx,dt)
+             Ip_gc(:,:,1),Im_gc(:,:,1), &
+             ilo,ihi,dx,dt)
 
     if (ppm_trace_sources == 1) then
        do n=1,QVAR
@@ -179,8 +181,8 @@ contains
        u = q(i,QU)
 
        p = q(i,QPRES)
-       rhoe = q(i,QREINT)
-       enth = ( (rhoe+p)/rho )/csq
+       rhoe_g = q(i,QREINT)
+       enth = ( (rhoe_g+p)/rho )/csq
 
        Clag = rho*cc
 
@@ -199,7 +201,7 @@ contains
           u_ref    = u
 
           p_ref    = p
-          rhoe_ref = rhoe
+          rhoe_g_ref = rhoe_g
 
           gam_ref = gamc(i)
 
@@ -211,7 +213,7 @@ contains
           u_ref    = Im(i,1,QU)
 
           p_ref    = Im(i,1,QPRES)
-          rhoe_ref = Im(i,1,QREINT)
+          rhoe_g_ref = Im(i,1,QREINT)
 
           gam_ref = Im_gc(i,1,1)
        endif
@@ -223,22 +225,20 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+       enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
 
        dum    = u_ref    - Im(i,1,QU)
-       dpm    = p_ref    - Im(i,1,QPRES)
-       drhoem = rhoe_ref - Im(i,1,QREINT)
+       dptotm    = p_ref    - Im(i,1,QPRES)
 
        drho  = rho_ref  - Im(i,2,QRHO)
-       dp    = p_ref    - Im(i,2,QPRES)
-       drhoe = rhoe_ref - Im(i,2,QREINT)
+       drhoe_g = rhoe_g_ref - Im(i,2,QREINT)
+       dptot    = p_ref    - Im(i,2,QPRES)
 
        dup    = u_ref    - Im(i,3,QU)
-       dpp    = p_ref    - Im(i,3,QPRES)
-       drhoep = rhoe_ref - Im(i,3,QREINT)
+       dptotp    = p_ref    - Im(i,3,QPRES)
 
        ! if we are doing source term tracing, then we add the force to
        ! the velocity here, otherwise we will deal with this later
@@ -269,10 +269,10 @@ contains
        ! PPM paper (except we work with rho instead of tau).
        ! This is simply (l . dq), where dq = qref - I(q)
 
-       alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-       alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
-       alpha0r = drho - dp/csq_ev
-       alpha0e = drhoe - dp*enth_ev  ! note enth has a 1/c**2 in it
+       alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+       alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+       alpha0r = drho - dptot/csq_ev
+       alpha0e = drhoe_g - dptot*enth_ev  ! note enth has a 1/c**2 in it
 
        if (u-cc .gt. ZERO) then
           amright = ZERO
@@ -306,7 +306,7 @@ contains
        if (i .ge. ilo) then
           qxp(i,QRHO)   = rho_ref  + apright + amright + azrright
           qxp(i,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
-          qxp(i,QREINT) = rhoe_ref + (apright + amright)*enth_ev*csq_ev + azeright
+          qxp(i,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
           qxp(i,QPRES)  = p_ref + (apright + amright)*csq_ev
 
           ! enforce small_*
@@ -340,7 +340,7 @@ contains
           u_ref    = u
 
           p_ref    = p
-          rhoe_ref = rhoe
+          rhoe_g_ref = rhoe_g
 
           gam_ref = gamc(i)
 
@@ -350,7 +350,7 @@ contains
           u_ref    = Ip(i,3,QU)
 
           p_ref    = Ip(i,3,QPRES)
-          rhoe_ref = Ip(i,3,QREINT)
+          rhoe_g_ref = Ip(i,3,QREINT)
 
           gam_ref  = Ip_gc(i,3,1)
        endif
@@ -362,21 +362,19 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       enth_ref = ( (rhoe_ref+p_ref)/rho_ref )/csq_ref
+       enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
        dum    = u_ref    - Ip(i,1,QU)
-       dpm    = p_ref    - Ip(i,1,QPRES)
-       drhoem = rhoe_ref - Ip(i,1,QREINT)
+       dptotm    = p_ref    - Ip(i,1,QPRES)
 
        drho  = rho_ref  - Ip(i,2,QRHO)
-       dp    = p_ref    - Ip(i,2,QPRES)
-       drhoe = rhoe_ref - Ip(i,2,QREINT)
+       drhoe_g = rhoe_g_ref - Ip(i,2,QREINT)
+       dptot    = p_ref    - Ip(i,2,QPRES)
 
        dup    = u_ref    - Ip(i,3,QU)
-       dpp    = p_ref    - Ip(i,3,QPRES)
-       drhoep = rhoe_ref - Ip(i,3,QREINT)
+       dptotp    = p_ref    - Ip(i,3,QPRES)
 
        ! if we are doing source term tracing, then we add the force to
        ! the velocity here, otherwise we will deal with this in the
@@ -407,10 +405,10 @@ contains
        ! these are analogous to the beta's from the original
        ! PPM paper (except we work with rho instead of tau).
        ! This is simply (l . dq), where dq = qref - I(q)
-       alpham = HALF*(dpm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
-       alphap = HALF*(dpp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
-       alpha0r = drho - dp/csq_ev
-       alpha0e = drhoe - dp*enth_ev
+       alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
+       alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
+       alpha0r = drho - dptot/csq_ev
+       alpha0e = drhoe_g - dptot*enth_ev
 
        if (u-cc .gt. ZERO) then
           amleft = -alpham
@@ -444,8 +442,8 @@ contains
        if (i .le. ihi) then
           qxm(i+1,QRHO)   = rho_ref + apleft + amleft + azrleft
           qxm(i+1,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev
+          qxm(i+1,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
           qxm(i+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
-          qxm(i+1,QREINT) = rhoe_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
 
           ! enforce small_*
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
@@ -539,7 +537,6 @@ contains
              qxp(i,n) = q(i,n) + HALF*(Im(i,2,n) - q(i,n))
           endif
        enddo
-       if (fix_mass_flux_hi) qxp(ihi+1,n) = q(ihi+1,n)
 
        ! minus state on face i+1
        do i = ilo-1, ihi
@@ -553,6 +550,8 @@ contains
              qxm(i+1,n) = q(i,n) + HALF*(Ip(i,2,n) - q(i,n))
           endif
        enddo
+
+       if (fix_mass_flux_hi) qxp(ihi+1,n) = q(ihi+1,n)
        if (fix_mass_flux_lo) qxm(ilo,n) = q(ilo-1,n)
 
     enddo
