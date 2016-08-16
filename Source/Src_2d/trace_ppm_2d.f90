@@ -769,7 +769,7 @@ contains
 
              gam_ref = gamc(i,j)
 
-             gam_ref = game
+             game_ref = game
           else
              ! this will be the fastest moving state to the left
              rho_ref  = Im(i,j,2,1,QRHO)
