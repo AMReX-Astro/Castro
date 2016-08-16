@@ -206,6 +206,12 @@ $\delta\Fb$ is supported only on coarse cells adjacent to fine grids.
 Note: this can be enabled/disabled via {\tt castro.do\_reflux}.  Generally,
 it should be enabled ({\tt 1}).
 
+Also note that for axisymmetric or 1D spherical coordinates, the 
+reflux of the pressure gradient is different, since it cannot be
+expressed as a divergence in those geometries.  We use a separate
+flux register in the hydro code to store the pressure term in these
+cases.  
+
 \item Step 2:  Gravitational synchronization
 
 In this step we correct for the mismatch in normal derivative in
