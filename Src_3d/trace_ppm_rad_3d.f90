@@ -2,13 +2,17 @@ module trace_ppm_rad_module
 
   implicit none
 
+  private
+
+  public tracexy_ppm_rad, tracez_ppm_rad
+
 contains
 
   subroutine tracexy_ppm_rad(lam, lam_lo, lam_hi, &
                              q, c, cg, flatn, qd_lo, qd_hi, &
                              Ip, Im, Ip_src, Im_src, &
                              qxm, qxp, qym, qyp, qs_lo, qs_hi, &
-                             ilo1,ilo2,ihi1,ihi2,dx,dy,dt,kc,k3d)
+                             ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -48,31 +52,34 @@ contains
     double precision, intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
     double precision, intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
 
-    double precision, intent(in) :: dx, dy, dt
+
+    double precision, intent(in) :: dt
 
     ! Local variables
     integer i, j, g
     integer n
     integer ipassive
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
     double precision cc, csq, rho, u, v, w, p, ptot, rhoe, enth, cgassq
-    double precision dum, dvm, dptotm
+    double precision rhoe_g, h_g, alpha0e_g, drhoe_g
     double precision drho, du, dv, dw, drhoe, dptot
     double precision dup, dvp, dptotp
+    double precision dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref, tau_ref
-    double precision :: ptot_ref, rhoe_g_ref
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, tau_ref
+    double precision :: ptot_ref, rhoe_ref
+
+    double precision alpham, alphap, alpha0r, alpha0e
+
+
+    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
+    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+
     double precision, dimension(0:ngroups-1) :: er_ref
 
-    double precision alpham, alphap, alpha0, alphae, alphau, alphav, alphaw
-
-    double precision rhoe_g, h_g, alphae_g, drhoe_g
 
     double precision :: er_foo
 
-    double precision xi, xi1
     double precision halfdt
 
     if (ppm_type .eq. 0) then
@@ -221,9 +228,9 @@ contains
 
              alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-             alpha0 = drho - dptot/csq
-             alphae = drhoe - dptot*enth
-             alphae_g = drhoe_g - dptot/csq*h_g
+             alpha0r = drho - dptot/csq
+             alpha0e = drhoe - dptot*enth
+             alpha0e_g = drhoe_g - dptot/csq*h_g
              alphar(:) = der(:) - dptot/csq*hr
 
              if (u-cc .gt. ZERO) then
@@ -243,19 +250,19 @@ contains
              endif
 
              if (u .gt. ZERO) then
-                alpha0 = ZERO
-                alphae = ZERO
-                alphae_g = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
+                alpha0e_g = ZERO
                 alphar(:) = ZERO
              else if (u .lt. ZERO) then
-                alpha0 = -alpha0
-                alphae = -alphae
-                alphae_g = -alphae_g
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
+                alpha0e_g = -alpha0e_g
                 alphar(:) = -alphar(:)
              else
-                alpha0 = -HALF*alpha0
-                alphae = -HALF*alphae
-                alphae_g = -HALF*alphae_g
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
+                alpha0e_g = -HALF*alpha0e_g
                 alphar(:) = -HALF*alphar(:)
              endif
 
@@ -263,9 +270,9 @@ contains
              ! q_s = q_ref - sum(l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
 
-             qxp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+             qxp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxp(i,j,kc,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qxp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qxp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -274,7 +281,9 @@ contains
              qxp(i,j,kc,qptot) = ptot_ref + (alphap + alpham)*csq
              qxp(i,j,kc,qreitot) = qxp(i,j,kc,QREINT) + sum(qrtmp)
 
-             qxp(i,j,kc,QRHO) = max(small_dens, qxp(i,j,kc,QRHO))
+             ! Enforce small_*
+             qxp(i,j,kc,QRHO) = max(qxp(i,j,kc,QRHO), small_dens)
+             qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES),small_pres)
 
              do g = 0, ngroups-1
                 if (qxp(i,j,kc,qrad+g) < ZERO) then
@@ -383,9 +392,9 @@ contains
 
              alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-             alpha0 = drho - dptot/csq
-             alphae = drhoe - dptot*enth
-             alphae_g = drhoe_g - dptot/csq*h_g
+             alpha0r = drho - dptot/csq
+             alpha0e = drhoe - dptot*enth
+             alpha0e_g = drhoe_g - dptot/csq*h_g
              alphar(:) = der(:)- dptot/csq*hr
 
              if (u-cc .gt. ZERO) then
@@ -405,28 +414,28 @@ contains
              endif
 
              if (u .gt. ZERO) then
-                alpha0 = -alpha0
-                alphae = -alphae
-                alphae_g = -alphae_g
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
+                alpha0e_g = -alpha0e_g
                 alphar(:) = -alphar(:)
              else if (u .lt. ZERO) then
-                alpha0 = ZERO
-                alphae = ZERO
-                alphae_g = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
+                alpha0e_g = ZERO
                 alphar(:) = ZERO
              else
-                alpha0 = -HALF*alpha0
-                alphae = -HALF*alphae
-                alphae_g = -HALF*alphae_g
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
+                alpha0e_g = -HALF*alpha0e_g
                 alphar(:) = -HALF*alphar(:)
              endif
 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}left as defined above have the minus already
-             qxm(i+1,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+             qxm(i+1,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,j,kc,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qxm(i+1,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -435,8 +444,9 @@ contains
              qxm(i+1,j,kc,qptot) = ptot_ref + (alphap + alpham)*csq
              qxm(i+1,j,kc,qreitot) = qxm(i+1,j,kc,QREINT) + sum(qrtmp)
 
-             ! enforce small_*
-             qxm(i+1,j,kc,QRHO) = max(qxm(i+1,j,kc,QRHO),small_dens)
+             ! Enforce small_*
+             qxm(i+1,j,kc,QRHO)  = max(qxm(i+1,j,kc,QRHO),small_dens)
+             qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES),small_pres)
 
              do g=0,ngroups-1
                 if (qxm(i+1,j,kc,qrad+g) < ZERO) then
@@ -471,6 +481,7 @@ contains
              endif
 
           end if
+
        end do
     end do
 
@@ -548,7 +559,7 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe_g = q(i,j,k3d,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = (rhoe_g+p) / rho
 
           ptot = q(i,j,k3d,qptot)
           rhoe = q(i,j,k3d,qreitot)
@@ -623,9 +634,9 @@ contains
 
              alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-             alpha0 = drho - dptot/csq
-             alphae = drhoe - dptot*enth
-             alphae_g = drhoe_g - dptot/csq*h_g
+             alpha0r = drho - dptot/csq
+             alpha0e = drhoe - dptot*enth
+             alpha0e_g = drhoe_g - dptot/csq*h_g
              alphar(:) = der(:) - dptot/csq*hr
 
              if (v-cc .gt. ZERO) then
@@ -645,28 +656,28 @@ contains
              endif
 
              if (v .gt. ZERO) then
-                alpha0 = ZERO
-                alphae = ZERO
-                alphae_g = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
+                alpha0e_g = ZERO
                 alphar(:) = ZERO
              else if (v .lt. ZERO) then
-                alpha0 = -alpha0
-                alphae = -alphae
-                alphae_g = -alphae_g
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
+                alpha0e_g = -alpha0e_g
                 alphar(:) = -alphar(:)
              else
-                alpha0 = -HALF*alpha0
-                alphae = -HALF*alphae
-                alphae_g = -HALF*alphae_g
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
+                alpha0e_g = -HALF*alpha0e_g
                 alphar(:) = -HALF*alphar(:)
              endif
 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
-             qyp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+             qyp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qyp(i,j,kc,QV) = v_ref + (alphap - alpham)*cc/rho
-             qyp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qyp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qyp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -675,8 +686,9 @@ contains
              qyp(i,j,kc,qptot) = ptot_ref + (alphap + alpham)*csq
              qyp(i,j,kc,qreitot) = qyp(i,j,kc,QREINT) + sum(qrtmp)
 
-             ! enforce small_*
-             qyp(i,j,kc,QRHO) = max(small_dens, qyp(i,j,kc,QRHO))
+             ! Enforce small_*
+             qyp(i,j,kc,QRHO ) = max(qyp(i,j,kc,QRHO ),small_dens)
+             qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES),small_pres)
 
              do g=0,ngroups-1
                 if (qyp(i,j,kc,qrad+g) < ZERO) then
@@ -780,9 +792,9 @@ contains
 
              alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-             alphae_g = drhoe_g - dptot/csq*h_g
-             alpha0 = drho - dptot/csq
-             alphae = drhoe - dptot*enth
+             alpha0e_g = drhoe_g - dptot/csq*h_g
+             alpha0r = drho - dptot/csq
+             alpha0e = drhoe - dptot*enth
              alphar(:) = der(:)- dptot/csq*hr
 
              if (v-cc .gt. ZERO) then
@@ -802,25 +814,25 @@ contains
              endif
 
              if (v .gt. ZERO) then
-                alpha0 = -alpha0
-                alphae = -alphae
-                alphae_g = -alphae_g
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
+                alpha0e_g = -alpha0e_g
                 alphar(:) = -alphar(:)
              else if (v .lt. ZERO) then
-                alpha0 = ZERO
-                alphae = ZERO
-                alphae_g = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
+                alpha0e_g = ZERO
                 alphar(:) = ZERO
              else
-                alpha0 = -HALF*alpha0
-                alphae = -HALF*alphae
-                alphae_g = -HALF*alphae_g
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
+                alpha0e_g = -HALF*alpha0e_g
                 alphar(:) = -HALF*alphar(:)
              endif
 
-             qym(i,j+1,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+             qym(i,j+1,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qym(i,j+1,kc,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+             qym(i,j+1,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
              qym(i,j+1,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -829,8 +841,9 @@ contains
              qym(i,j+1,kc,qptot) = ptot_ref + (alphap + alpham)*csq
              qym(i,j+1,kc,qreitot) = qym(i,j+1,kc,QREINT) + sum(qrtmp)
 
-             ! enforce small_*
-             qym(i,j+1,kc,QRHO) = max(small_dens, qym(i,j+1,kc,QRHO))
+             ! Enforce small_*
+             qym(i,j+1,kc,QRHO ) = max(qym(i,j+1,kc,QRHO ),small_dens)
+             qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES),small_pres)
 
              do g=0,ngroups-1
                 if (qym(i,j+1,kc,qrad+g) < ZERO) then
@@ -916,7 +929,7 @@ contains
                             q, c, cg, flatn, qd_lo, qd_hi, &
                             Ip, Im, Ip_src, Im_src, &
                             qzm, qzp, qs_lo, qs_hi, &
-                            ilo1,ilo2,ihi1,ihi2,dz,dt,km,kc,k3d)
+                            ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -954,31 +967,35 @@ contains
     double precision, intent(inout) :: qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
     double precision, intent(inout) :: qzp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),QRADVAR)
 
-    double precision :: dz, dt
+
+    double precision, intent(in) :: dt
 
     !     Local variables
     integer i, j, g
     integer n
     integer ipassive
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
-    double precision cc, csq, rho, u, v, w, p, ptot, rhoe, enth, cgassq
-    double precision dwm, dptotm
+    double precision cc, csq, rho, u, v, w, p, ptot, rhoe_g, enth, cgassq
+    double precision rhoe, h_g, alpha0e_g, drhoe_g
+
     double precision drho, du, dv, drhoe, dptot
     double precision dwp, dptotp
+    double precision dwm, dptotm
 
     double precision :: rho_ref, w_ref, p_ref, rhoe_ref, tau_ref
     double precision :: ptot_ref, rhoe_g_ref
+
+
+    double precision alpham, alphap, alpha0r, alpha0e
+
+
+    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
+    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+
     double precision, dimension(0:ngroups-1) :: er_ref
-
-    double precision alpham, alphap, alpha0, alphae, alphau, alphav
-
-    double precision rhoe_g, h_g, alphae_g, drhoe_g
 
     double precision :: er_foo
 
-    double precision xi, xi1
     double precision halfdt
 
     if (ppm_type .eq. 0) then
@@ -1095,9 +1112,9 @@ contains
 
           alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (w-cc .gt. ZERO) then
@@ -1117,25 +1134,25 @@ contains
           endif
 
           if (w .gt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else if (w .lt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
-          qzp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+          qzp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
           qzp(i,j,kc,QW) = w_ref + (alphap - alpham)*cc/rho
-          qzp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+          qzp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
           qzp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -1144,7 +1161,9 @@ contains
           qzp(i,j,kc,qptot) = ptot_ref + (alphap + alpham)*csq
           qzp(i,j,kc,qreitot) = qzp(i,j,kc,QREINT) + sum(qrtmp)
 
-          qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
+          ! Enforce small_*
+          qzp(i,j,kc,QRHO ) = max(qzp(i,j,kc,QRHO ),small_dens)
+          qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES),small_pres)
 
           do g=0,ngroups-1
              if (qzp(i,j,kc,qrad+g) < ZERO) then
@@ -1277,9 +1296,9 @@ contains
 
           alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
-          alpha0 = drho - dptot/csq
-          alphae = drhoe - dptot*enth
-          alphae_g = drhoe_g - dptot/csq*h_g
+          alpha0r = drho - dptot/csq
+          alpha0e = drhoe - dptot*enth
+          alpha0e_g = drhoe_g - dptot/csq*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (w-cc .gt. ZERO) then
@@ -1299,28 +1318,28 @@ contains
           endif
 
           if (w .gt. ZERO) then
-             alpha0 = -alpha0
-             alphae = -alphae
-             alphae_g = -alphae_g
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else if (w .lt. ZERO) then
-             alpha0 = ZERO
-             alphae = ZERO
-             alphae_g = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
+             alpha0e_g = ZERO
              alphar(:) = ZERO
           else
-             alpha0 = -HALF*alpha0
-             alphae = -HALF*alphae
-             alphae_g = -HALF*alphae_g
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
 
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           ! note that the a{mpz}left as defined above have the minus already
-          qzm(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0
+          qzm(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
           qzm(i,j,kc,QW) = w_ref + (alphap - alpham)*cc/rho
-          qzm(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alphae_g
+          qzm(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
           qzm(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -1329,8 +1348,9 @@ contains
           qzm(i,j,kc,qptot) = ptot_ref + (alphap + alpham)*csq
           qzm(i,j,kc,qreitot) = qzm(i,j,kc,QREINT) + sum(qrtmp)
 
-          ! enforce small_*
-          qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))
+          ! Enforce small_*
+          qzm(i,j,kc,QRHO ) = max(qzm(i,j,kc,QRHO ),small_dens)
+          qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
 
           do g=0,ngroups-1
              if (qzm(i,j,kc,qrad+g) < ZERO) then
