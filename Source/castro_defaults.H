@@ -30,7 +30,6 @@ int         Castro::cg_maxiter = 12;
 Real        Castro::cg_tol = 1.0e-5;
 int         Castro::cg_blend = 2;
 int         Castro::use_flattening = 1;
-int         Castro::ppm_flatten_before_integrals = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
 int         Castro::transverse_reset_rhoe = 0;

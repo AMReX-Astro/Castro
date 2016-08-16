@@ -121,11 +121,6 @@ cg_blend                     int           2                  y
 # from becoming too thin
 use_flattening               int           1                  y
 
-# where do we apply the flattening?  after we've done the tracing of 
-# the states (0); or on the parabolic profiles before we've integrated
-# under them (1)
-ppm_flatten_before_integrals int           1                  y
-
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using $e$ and $\rho$).
 transverse_use_eos           int           0                  y
