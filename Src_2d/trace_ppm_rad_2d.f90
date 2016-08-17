@@ -58,29 +58,49 @@ contains
     integer :: i, j, g
     integer :: n, ipassive
 
-    double precision :: dtdx, dtdy
-    double precision :: cc, csq, Clag, rho, u, v, p, ptot, rhoe, enth, cgassq
-    double precision :: drho, drhoe, dptot
+    double precision :: hdt, dtdx, dtdy
+
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
+    ! htot : total specific enthalpy
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
+
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, v, p, rhoe_g, h_g
+    double precision :: ptot, rhoe, htot
+
+    double precision :: drho, dptot, drhoe_g
+    double precision :: drhoe
     double precision :: dup, dvp, dptotp
     double precision :: dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
-    double precision :: ptot_ref, rhoe_g_ref
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    double precision :: ptot_ref, rhoe_ref, htot_ref
+
+    double precision :: cc_ref, csq_ref, Clag_ref
+
+    double precision :: alpham, alphap, alpha0r, alpha0e_g, alpha0e
+    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
     double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
 
     double precision, dimension(0:ngroups-1) :: er_ref
 
-
-    double precision :: alpham, alphap, alpha0r, alpha0e
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
-
-    double precision rhoe_g, h_g, alpha0e_g, drhoe_g
-
-    double precision :: xi, xi1
-    double precision :: halfdt
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
@@ -126,7 +146,7 @@ contains
     !allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     !allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
-    halfdt = HALF * dt
+    hdt = HALF * dt
 
 
     !=========================================================================
@@ -157,8 +177,8 @@ contains
 
 
     ! Compute Ip and Im -- this does the parabolic reconstruction,
-    ! limiting, and returns the integral of each profile under
-    ! each wave to each interface
+    ! limiting, and returns the integral of each profile under each
+    ! wave to each interface
     do n=1,QRADVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:QV), c, qd_l1,qd_l2,qd_h1,qd_h2,&
@@ -211,11 +231,11 @@ contains
           v = q(i,j,QV)
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = ( (p+rhoe_g) / rho)/csq
 
           ptot = q(i,j,qptot)
           rhoe = q(i,j,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:) = q(i,j,qrad:qradhi)
           hr(:) = (lam0+1.d0)*er/rho
@@ -277,8 +297,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,QU)
-             dup = dup - halfdt*Im_src(i,j,1,3,QU)
+             dum = dum - hdt*Im_src(i,j,1,1,QU)
+             dup = dup - hdt*Im_src(i,j,1,3,QU)
           endif
 
           ! these are analogous to the beta's from the original
@@ -288,8 +308,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (u-cc .gt. ZERO) then
@@ -328,7 +348,7 @@ contains
           if (i .ge. ilo1) then
              qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
              qxp(i,j,QU)     = u_ref + (alphap - alpham)*cc/rho
-             qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qxp(i,j,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -373,7 +393,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxp(i,j,QV) = qxp(i,j,QV) + halfdt*Im_src(i,j,1,2,QV)
+                qxp(i,j,QV) = qxp(i,j,QV) + hdt*Im_src(i,j,1,2,QV)
              endif
 
           end if
@@ -433,8 +453,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Ip_src(i,j,1,1,QU)
-             dup = dup - halfdt*Ip_src(i,j,1,3,QU)
+             dum = dum - hdt*Ip_src(i,j,1,1,QU)
+             dup = dup - hdt*Ip_src(i,j,1,3,QU)
           endif
 
           ! these are analogous to the beta's from the original
@@ -443,8 +463,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
           if (u-cc .gt. ZERO) then
@@ -483,7 +503,7 @@ contains
           if (i .le. ihi1) then
              qxm(i+1,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,j,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qxm(i+1,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -523,7 +543,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxm(i+1,j,QV) = qxm(i+1,j,QV) + halfdt*Ip_src(i,j,1,2,QV)
+                qxm(i+1,j,QV) = qxm(i+1,j,QV) + hdt*Ip_src(i,j,1,2,QV)
              endif
 
 
@@ -539,7 +559,7 @@ contains
              dlogatmp = min(eta,ONE)*dloga(i,j)
              sourcr = -HALF*dt*rho*dlogatmp*u
              sourcp = sourcr*cgassq
-             source = sourcr*h_g
+             source = sourcer*h_g*csq
              sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
              if (i .le. ihi1) then
                 qxm(i+1,j,QRHO) = qxm(i+1,j,QRHO) + sourcr
@@ -641,10 +661,10 @@ contains
           v = q(i,j,QV)
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = ( (p+rhoe_g) / rho)/csq
           ptot = q(i,j,qptot)
           rhoe = q(i,j,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:) = q(i,j,qrad:qradhi)
           hr(:) = (lam0+ONE)*er/rho
@@ -704,8 +724,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Im_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Im_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Im_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Im_src(i,j,2,3,QV)
           endif
 
           ! these are analogous to the beta's from the original PPM
@@ -714,8 +734,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (v-cc .gt. ZERO) then
@@ -755,7 +775,7 @@ contains
           if (j .ge. ilo2) then
              qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qyp(i,j,QV) = v_ref + (alphap - alpham)*cc/rho
-             qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qyp(i,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -795,7 +815,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qyp(i,j,QU) = qyp(i,j,QU) + halfdt*Im_src(i,j,2,2,QU)
+                qyp(i,j,QU) = qyp(i,j,QU) + hdt*Im_src(i,j,2,2,QU)
              endif
 
           end if
@@ -855,8 +875,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Ip_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Ip_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Ip_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Ip_src(i,j,2,3,QV)
           endif
 
           ! these are analogous to the beta's from the original PPM
@@ -864,8 +884,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
           if (v-cc .gt. ZERO) then
@@ -904,7 +924,7 @@ contains
           if (j .le. ihi2) then
              qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0r
              qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qym(i,j+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -944,7 +964,7 @@ contains
              endif
              
              if (ppm_trace_sources == 1) then
-                qym(i,j+1,QU) = qym(i,j+1,QU) + halfdt*Ip_src(i,j,2,2,QU)
+                qym(i,j+1,QU) = qym(i,j+1,QU) + hdt*Ip_src(i,j,2,2,QU)
              endif
 
           end if

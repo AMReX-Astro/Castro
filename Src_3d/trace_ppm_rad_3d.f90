@@ -56,20 +56,45 @@ contains
     double precision, intent(in) :: dt
 
     ! Local variables
-    integer i, j, g
-    integer n
-    integer ipassive
+    integer :: i, j, g
+    integer :: n, ipassive
 
-    double precision cc, csq, rho, u, v, w, p, ptot, rhoe, enth, cgassq
-    double precision rhoe_g, h_g, alpha0e_g, drhoe_g
-    double precision drho, du, dv, dw, drhoe, dptot
-    double precision dup, dvp, dptotp
-    double precision dum, dvm, dptotm
+    double precision :: hdt
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, tau_ref
-    double precision :: ptot_ref, rhoe_ref
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
+    ! htot : total specific enthalpy
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision alpham, alphap, alpha0r, alpha0e
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, v, w, p, rhoe_g, h_g
+    double precision :: ptot, rhoe, htot
+
+    double precision :: drho, dptot, drhoe_g
+    double precision :: drhoe
+    double precision :: dup, dvp, dptotp
+    double precision :: dum, dvm, dptotm
+
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref
+    double precision :: tau_ref
+    double precision :: ptot_ref, rhoe_ref, htot_ref
+
+
+    double precision :: alpham, alphap, alpha0r, alpha0e_g, alpha0e
 
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
@@ -80,19 +105,17 @@ contains
 
     double precision :: er_foo
 
-    double precision halfdt
-
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call bl_error("Error:: RadHydro_3d.f90 :: tracexy_ppm_rad")
     end if
 
-    halfdt = HALF * dt
+    hdt = HALF * dt
 
 
-    !==========================================================================
+    !=========================================================================
     ! PPM CODE
-    !==========================================================================
+    !=========================================================================
 
     ! This does the characteristic tracing to build the interface
     ! states using the normal predictor only (no transverse terms).
@@ -146,18 +169,18 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe_g = q(i,j,k3d,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = ( (p+rhoe_g)/rho)/csq
 
           ptot = q(i,j,k3d,qptot)
           rhoe = q(i,j,k3d,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:) = q(i,j,k3d,qrad:qradhi)
-          hr(:) = (lam0+1.d0)*er/rho
+          hr(:) = (lam0+ONE)*er/rho
 
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! plus state on face i
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
 
           if (i .ge. ilo1) then
 
@@ -217,8 +240,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Im_src(i,j,kc,1,1,QU)
-                dup = dup - halfdt*Im_src(i,j,kc,1,3,QU)
+                dum = dum - hdt*Im_src(i,j,kc,1,1,QU)
+                dup = dup - hdt*Im_src(i,j,kc,1,3,QU)
              endif
 
 
@@ -229,8 +252,8 @@ contains
              alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
              alpha0r = drho - dptot/csq
-             alpha0e = drhoe - dptot*enth
-             alpha0e_g = drhoe_g - dptot/csq*h_g
+             alpha0e = drhoe - dptot*htot
+             alpha0e_g = drhoe_g - dptot*h_g
              alphar(:) = der(:) - dptot/csq*hr
 
              if (u-cc .gt. ZERO) then
@@ -272,7 +295,7 @@ contains
 
              qxp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxp(i,j,kc,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qxp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qxp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -319,16 +342,16 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,1,2,QV)
-                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,1,2,QW)
+                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
+                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + hdt*Im_src(i,j,kc,1,2,QW)
              endif
 
           endif
 
 
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! minus state on face i + 1
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           if (i .le. ihi1) then
 
              ! Set the reference state
@@ -382,8 +405,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dum = dum - halfdt*Ip_src(i,j,kc,1,1,QU)
-                dup = dup - halfdt*Ip_src(i,j,kc,1,3,QU)
+                dum = dum - hdt*Ip_src(i,j,kc,1,1,QU)
+                dup = dup - hdt*Ip_src(i,j,kc,1,3,QU)
              endif
 
 
@@ -393,8 +416,8 @@ contains
              alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
              alpha0r = drho - dptot/csq
-             alpha0e = drhoe - dptot*enth
-             alpha0e_g = drhoe_g - dptot/csq*h_g
+             alpha0e = drhoe - dptot*htot
+             alpha0e_g = drhoe_g - dptot*h_g
              alphar(:) = der(:)- dptot/csq*hr
 
              if (u-cc .gt. ZERO) then
@@ -435,7 +458,7 @@ contains
              ! note that the a{mpz}left as defined above have the minus already
              qxm(i+1,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,j,kc,QU) = u_ref + (alphap - alpham)*cc/rho
-             qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qxm(i+1,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -476,8 +499,8 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + halfdt*Ip_src(i,j,kc,1,2,QV)
-                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + halfdt*Ip_src(i,j,kc,1,2,QW)
+                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
+                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + hdt*Ip_src(i,j,kc,1,2,QW)
              endif
 
           end if
@@ -485,9 +508,9 @@ contains
        end do
     end do
 
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! passively advected quantities
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
@@ -532,9 +555,9 @@ contains
     enddo
 
 
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! y-direction
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     ! Trace to bottom and top edges using upwind PPM
 
@@ -559,18 +582,18 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe_g = q(i,j,k3d,QREINT)
-          h_g = (rhoe_g+p) / rho
+          h_g = ( (p + rhoe_g)/rho)/csq
 
           ptot = q(i,j,k3d,qptot)
           rhoe = q(i,j,k3d,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:)= q(i,j,k3d,qrad:qradhi)
-          hr(:) = (lam0+1.d0)*er/rho
+          hr(:) = (lam0+ONE)*er/rho
 
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! plus state on face j
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
 
           if (j .ge. ilo2) then
 
@@ -625,8 +648,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Im_src(i,j,kc,2,1,QV)
-                dvp = dvp - halfdt*Im_src(i,j,kc,2,3,QV)
+                dvm = dvm - hdt*Im_src(i,j,kc,2,1,QV)
+                dvp = dvp - hdt*Im_src(i,j,kc,2,3,QV)
              endif
 
              ! Optionally use the reference state in evaluating the
@@ -635,8 +658,8 @@ contains
              alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
              alpha0r = drho - dptot/csq
-             alpha0e = drhoe - dptot*enth
-             alpha0e_g = drhoe_g - dptot/csq*h_g
+             alpha0e = drhoe - dptot*htot
+             alpha0e_g = drhoe_g - dptot*h_g
              alphar(:) = der(:) - dptot/csq*hr
 
              if (v-cc .gt. ZERO) then
@@ -677,7 +700,7 @@ contains
              ! note that the a{mpz}right as defined above have the minus already
              qyp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qyp(i,j,kc,QV) = v_ref + (alphap - alpham)*cc/rho
-             qyp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qyp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qyp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -718,15 +741,15 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,2,2,QU)
-                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + halfdt*Im_src(i,j,kc,2,2,QW)
+                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + hdt*Im_src(i,j,kc,2,2,QU)
+                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + hdt*Im_src(i,j,kc,2,2,QW)
              endif
 
           end if
 
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! minus state on face j+1
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
 
           if (j .le. ihi2) then
 
@@ -782,8 +805,8 @@ contains
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
              if (ppm_trace_sources .eq. 1) then
-                dvm = dvm - halfdt*Ip_src(i,j,kc,2,1,QV)
-                dvp = dvp - halfdt*Ip_src(i,j,kc,2,3,QV)
+                dvm = dvm - hdt*Ip_src(i,j,kc,2,1,QV)
+                dvp = dvp - hdt*Ip_src(i,j,kc,2,3,QV)
              endif
 
 
@@ -792,9 +815,9 @@ contains
 
              alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
              alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-             alpha0e_g = drhoe_g - dptot/csq*h_g
+             alpha0e_g = drhoe_g - dptot*h_g
              alpha0r = drho - dptot/csq
-             alpha0e = drhoe - dptot*enth
+             alpha0e = drhoe - dptot*htot
              alphar(:) = der(:)- dptot/csq*hr
 
              if (v-cc .gt. ZERO) then
@@ -832,7 +855,7 @@ contains
 
              qym(i,j+1,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
              qym(i,j+1,kc,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+             qym(i,j+1,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
              qym(i,j+1,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
              qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -873,17 +896,17 @@ contains
              endif
 
              if (ppm_trace_sources .eq. 1) then
-                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + halfdt*Ip_src(i,j,kc,2,2,QU)
-                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + halfdt*Ip_src(i,j,kc,2,2,QW)
+                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + hdt*Ip_src(i,j,kc,2,2,QU)
+                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + hdt*Ip_src(i,j,kc,2,2,QW)
              endif
 
           end if
        end do
     end do
 
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! Passively advected quantities
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
@@ -971,22 +994,45 @@ contains
     double precision, intent(in) :: dt
 
     !     Local variables
-    integer i, j, g
-    integer n
-    integer ipassive
+    integer :: i, j, g
+    integer :: n, ipassive
 
-    double precision cc, csq, rho, u, v, w, p, ptot, rhoe_g, enth, cgassq
-    double precision rhoe, h_g, alpha0e_g, drhoe_g
+    double precision :: hdt
 
-    double precision drho, du, dv, drhoe, dptot
-    double precision dwp, dptotp
-    double precision dwm, dptotm
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
+    ! htot : total specific enthalpy
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: rho_ref, w_ref, p_ref, rhoe_ref, tau_ref
-    double precision :: ptot_ref, rhoe_g_ref
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, v, w, p, rhoe_g, h_g
+    double precision :: ptot, rhoe, htot
+
+    double precision :: drho, dptot, drhoe_g
+    double precision :: drhoe
+    double precision :: dwp, dptotp
+    double precision :: dwm, dptotm
+
+    double precision :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref
+    double precision :: tau_ref
+    double precision :: ptot_ref, rhoe_ref, htot_ref
 
 
-    double precision alpham, alphap, alpha0r, alpha0e
+    double precision :: alpham, alphap, alpha0r, alpha0e_g, alpha0e
 
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
@@ -996,19 +1042,17 @@ contains
 
     double precision :: er_foo
 
-    double precision halfdt
-
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
        call bl_error("Error:: RadHydro_3d.f90 :: tracez_ppm_rad")
     end if
 
-    halfdt = HALF * dt
+    hdt = HALF * dt
 
 
-    !==========================================================================
+    !=========================================================================
     ! PPM CODE
-    !==========================================================================
+    !=========================================================================
 
     ! Trace to left and right edges using upwind PPM
     !
@@ -1016,9 +1060,9 @@ contains
     ! is over interfaces, not over cell-centers.
 
 
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! construct qzp  -- plus state on face kc
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
@@ -1040,14 +1084,14 @@ contains
 
           p = q(i,j,k3d,QPRES)
           rhoe_g = q(i,j,k3d,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = ( (p + rhoe_g)/rho)/csq
 
           ptot = q(i,j,k3d,qptot)
           rhoe = q(i,j,k3d,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:) = q(i,j,k3d,qrad:qradhi)
-          hr(:) = (lam0+1.d0)*er/rho
+          hr(:) = (lam0+ONE)*er/rho
 
           ! Set the reference state
           if (ppm_reference == 0 .or. &
@@ -1103,8 +1147,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Im_src(i,j,kc,3,1,QW)
-             dwp = dwp - halfdt*Im_src(i,j,kc,3,3,QW)
+             dwm = dwm - hdt*Im_src(i,j,kc,3,1,QW)
+             dwp = dwp - hdt*Im_src(i,j,kc,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1113,8 +1157,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (w-cc .gt. ZERO) then
@@ -1152,7 +1196,7 @@ contains
 
           qzp(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
           qzp(i,j,kc,QW) = w_ref + (alphap - alpham)*cc/rho
-          qzp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+          qzp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
           qzp(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -1193,14 +1237,14 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + halfdt*Im_src(i,j,kc,3,2,QU)
-             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + halfdt*Im_src(i,j,kc,3,2,QV)
+             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + hdt*Im_src(i,j,kc,3,2,QU)
+             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + hdt*Im_src(i,j,kc,3,2,QV)
           endif
 
 
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           ! This is all for qzm -- minus state on face kc
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
 
           ! Note this is different from how we do 1D, 2D, and the
           ! x and y-faces in 3D, where the analogous thing would have
@@ -1224,14 +1268,14 @@ contains
 
           p = q(i,j,k3d-1,QPRES)
           rhoe_g = q(i,j,k3d-1,QREINT)
-          h_g = (p+rhoe_g) / rho
+          h_g = ( (p + rhoe_g)/rho)/csq
 
           ptot = q(i,j,k3d-1,qptot)
           rhoe = q(i,j,k3d-1,qreitot)
-          enth = ( (rhoe+ptot)/rho )/csq
+          htot = ( (rhoe+ptot)/rho )/csq
 
           er(:) = q(i,j,k3d-1,qrad:qradhi)
-          hr(:) = (lam0+1.d0)*er/rho
+          hr(:) = (lam0+ONE)*er/rho
 
 
           ! Set the reference state
@@ -1287,8 +1331,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources .eq. 1) then
-             dwm = dwm - halfdt*Ip_src(i,j,km,3,1,QW)
-             dwp = dwp - halfdt*Ip_src(i,j,km,3,3,QW)
+             dwm = dwm - hdt*Ip_src(i,j,km,3,1,QW)
+             dwp = dwp - hdt*Ip_src(i,j,km,3,3,QW)
           endif
 
           ! Optionally use the reference state in evaluating the
@@ -1297,8 +1341,8 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dwm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dwp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*enth
-          alpha0e_g = drhoe_g - dptot/csq*h_g
+          alpha0e = drhoe - dptot*htot
+          alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
           if (w-cc .gt. ZERO) then
@@ -1339,7 +1383,7 @@ contains
           ! note that the a{mpz}left as defined above have the minus already
           qzm(i,j,kc,QRHO) = rho_ref + alphap + alpham + alpha0r
           qzm(i,j,kc,QW) = w_ref + (alphap - alpham)*cc/rho
-          qzm(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+          qzm(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
           qzm(i,j,kc,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -1380,16 +1424,16 @@ contains
           endif
 
           if (ppm_trace_sources .eq. 1) then
-             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + halfdt*Ip_src(i,j,km,3,2,QU)
-             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + halfdt*Ip_src(i,j,km,3,2,QV)
+             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + hdt*Ip_src(i,j,km,3,2,QU)
+             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + hdt*Ip_src(i,j,km,3,2,QV)
           endif
 
        end do
     end do
 
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! passively advected quantities
-    !--------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
