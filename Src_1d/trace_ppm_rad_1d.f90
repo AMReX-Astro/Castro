@@ -53,25 +53,48 @@ contains
     integer :: n, ipassive
 
     double precision :: hdt,dtdx
-    double precision :: cc, csq, rho, u, p, rhoe_g
-    double precision :: ptot, rhoe, enth, cgassq
-    double precision :: drho, dptot, drhoe
+
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
+    ! htot : total specific enthalpy
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
+
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, p, rhoe_g, h_g
+    double precision :: ptot, rhoe, htot
+
+    double precision :: drho, dptot, drhoe_g, drhoe
     double precision :: dup, dptotp
     double precision :: dum, dptotm
 
-    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, ptot_ref, rhoe_ref
+    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
+    double precision :: ptot_ref, rhoe_ref
+
+
+    double precision :: alpham, alphap, alpha0r, alpha0e_g, alpha0e
+    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
+
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
     double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
 
     double precision, dimension(0:ngroups-1) :: er_ref
-
-    double precision :: alpham, alphap, alpha0r, alpha0e
-    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
-
-    double precision :: h_g, alpha0e_g, drhoe_g
-
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
+    double precision :: er_foo
 
     double precision, allocatable :: Ip(:,:,:)
     double precision, allocatable :: Im(:,:,:)
@@ -79,7 +102,6 @@ contains
     double precision, allocatable :: Ip_src(:,:,:)
     double precision, allocatable :: Im_src(:,:,:)
 
-    double precision :: er_foo
 
     fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
          .and. (ilo .eq. domlo(1))
@@ -189,11 +211,11 @@ contains
        u = q(i,QU)
        p = q(i,QPRES)
        rhoe_g = q(i,QREINT)
-       h_g = (p+rhoe_g) / rho
+       h_g = ( (p + rhoe_g)/rho )/csq
 
        ptot = q(i,qptot)
        rhoe = q(i,qreitot)
-       enth = ( (rhoe+ptot)/rho )/csq
+       htot = ( (rhoe+ptot)/rho )/csq
 
        er(:) = q(i,qrad:qradhi)
        hr(:) = (lam0+1.d0)*er/rho
@@ -262,8 +284,8 @@ contains
        alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
        alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
        alpha0r = drho - dptot/csq
-       alpha0e = drhoe - dptot*enth
-       alpha0e_g = drhoe_g - dptot/csq*h_g
+       alpha0e = drhoe - dptot*htot
+       alpha0e_g = drhoe_g - dptot*h_g  ! note h_g has a 1/c**2 in it
        alphar(:) = der(:) - dptot/csq*hr
 
        if (u-cc .gt. ZERO) then
@@ -302,7 +324,7 @@ contains
        if (i .ge. ilo) then
           qxp(i,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxp(i,QU)     = u_ref + (alphap - alpham)*cc/rho
-          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
           qxp(i,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -406,8 +428,8 @@ contains
        alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
        alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
        alpha0r = drho - dptot/csq
-       alpha0e = drhoe - dptot*enth
-       alpha0e_g = drhoe_g - dptot/csq*h_g
+       alpha0e = drhoe - dptot*htot
+       alpha0e_g = drhoe_g - dptot*h_g
        alphar(:) = der(:)- dptot/csq*hr
 
        if (u-cc .gt. ZERO) then
@@ -446,7 +468,7 @@ contains
        if (i .le. ihi) then
           qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc/rho
-          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g + alpha0e_g
+          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
           qxm(i+1,QPRES)  = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
 
           qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
@@ -498,8 +520,9 @@ contains
           dlogatmp = min(eta,ONE)*dloga(i)
           sourcr = -HALF*dt*rho*dlogatmp*u
           sourcp = sourcr*cgassq
-          source = sourcr*h_g
+          source = sourcp*h_g
           sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
+
           if (i .le. ihi) then
              qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + sourcr
              qxm(i+1,QRHO  ) = max(small_dens, qxm(i+1,QRHO))
