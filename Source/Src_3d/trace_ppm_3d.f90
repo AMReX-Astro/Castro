@@ -75,8 +75,6 @@ contains
     double precision :: gam, game
 
     double precision alpham, alphap, alpha0r, alpha0e
-    double precision apright, amright, azrright, azeright
-    double precision apleft, amleft, azrleft, azeleft
 
     double precision halfdt
 
@@ -277,52 +275,52 @@ contains
              endif    ! which tracing method
 
              if (u-cc .gt. ZERO) then
-                amright = ZERO
+                alpham = ZERO
              else if (u-cc .lt. ZERO) then
-                amright = -alpham
+                alpham = -alpham
              else
-                amright = -HALF*alpham
+                alpham = -HALF*alpham
              endif
 
              if (u+cc .gt. ZERO) then
-                apright = ZERO
+                alphap = ZERO
              else if (u+cc .lt. ZERO) then
-                apright = -alphap
+                alphap = -alphap
              else
-                apright = -HALF*alphap
+                alphap = -HALF*alphap
              endif
 
              if (u .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
              else if (u .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
              else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
              endif
 
              ! The final interface states are just
              ! q_s = q_ref - sum(l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
-                qxp(i,j,kc,QRHO  ) =  rho_ref +  apright + amright + azrright
-                qxp(i,j,kc,QU    ) =    u_ref + (apright - amright)*cc_ev/rho_ev
-                qxp(i,j,kc,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
-                qxp(i,j,kc,QPRES ) =    p_ref + (apright + amright)*csq_ev
+                qxp(i,j,kc,QRHO  ) =  rho_ref +  alphap + alpham + alpha0r
+                qxp(i,j,kc,QU    ) =    u_ref + (alphap - alpham)*cc_ev/rho_ev
+                qxp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qxp(i,j,kc,QPRES ) =    p_ref + (alphap + alpham)*csq_ev
              else
-                tau_s = tau_ref + apright + amright + azrright
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qxp(i,j,kc,QRHO  ) = ONE/tau_s
-                qxp(i,j,kc,QU    ) = u_ref + (amright - apright)*Clag_ev
+                qxp(i,j,kc,QU    ) = u_ref + (alpham - alphap)*Clag_ev
 
-                qxp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+                qxp(i,j,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                    qxp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qxp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                   qxp(i,j,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                    qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES )/(qxp(i,j,kc,QGAME) - ONE)
                 endif
              endif
@@ -484,30 +482,30 @@ contains
              end if
 
              if (u-cc .gt. ZERO) then
-                amleft = -alpham
+                alpham = -alpham
              else if (u-cc .lt. ZERO) then
-                amleft = ZERO
+                alpham = ZERO
              else
-                amleft = -HALF*alpham
+                alpham = -HALF*alpham
              endif
 
              if (u+cc .gt. ZERO) then
-                apleft = -alphap
+                alphap = -alphap
              else if (u+cc .lt. ZERO) then
-                apleft = ZERO
+                alphap = ZERO
              else
-                apleft = -HALF*alphap
+                alphap = -HALF*alphap
              endif
 
              if (u .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
              else if (u .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
              else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
              endif
 
 
@@ -515,22 +513,22 @@ contains
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}left as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
-                qxm(i+1,j,kc,QRHO  ) =  rho_ref +  apleft + amleft + azrleft
-                qxm(i+1,j,kc,QU    ) =    u_ref + (apleft - amleft)*cc_ev/rho_ev
-                qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-                qxm(i+1,j,kc,QPRES ) =    p_ref + (apleft + amleft)*csq_ev
+                qxm(i+1,j,kc,QRHO  ) =  rho_ref +  alphap + alpham + alpha0r
+                qxm(i+1,j,kc,QU    ) =    u_ref + (alphap - alpham)*cc_ev/rho_ev
+                qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qxm(i+1,j,kc,QPRES ) =    p_ref + (alphap + alpham)*csq_ev
              else
-                tau_s = tau_ref + (apleft + amleft + azrleft)
+                tau_s = tau_ref + (alphap + alpham + alpha0r)
                 qxm(i+1,j,kc,QRHO  ) = ONE/tau_s
-                qxm(i+1,j,kc,QU    ) = u_ref + (amleft - apleft)*Clag_ev
+                qxm(i+1,j,kc,QU    ) = u_ref + (alpham - alphap)*Clag_ev
 
-                qxm(i+1,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+                qxm(i+1,j,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                    qxm(i+1,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qxm(i+1,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                   qxm(i+1,j,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                    qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QPRES )/(qxm(i+1,j,kc,QGAME) - ONE)
                 endif
              endif
@@ -765,52 +763,52 @@ contains
              end if
 
              if (v-cc .gt. ZERO) then
-                amright = ZERO
+                alpham = ZERO
              else if (v-cc .lt. ZERO) then
-                amright = -alpham
+                alpham = -alpham
              else
-                amright = -HALF*alpham
+                alpham = -HALF*alpham
              endif
 
              if (v+cc .gt. ZERO) then
-                apright = ZERO
+                alphap = ZERO
              else if (v+cc .lt. ZERO) then
-                apright = -alphap
+                alphap = -alphap
              else
-                apright = -HALF*alphap
+                alphap = -HALF*alphap
              endif
 
              if (v .gt. ZERO) then
-                azrright = ZERO
-                azeright = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
              else if (v .lt. ZERO) then
-                azrright = -alpha0r
-                azeright = -alpha0e
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
              else
-                azrright = -HALF*alpha0r
-                azeright = -HALF*alpha0e
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
              endif
 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}right as defined above have the minus already
              if (ppm_tau_in_tracing == 0) then
-                qyp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
-                qyp(i,j,kc,QV    ) = v_ref + (apright - amright)*cc_ev/rho_ev
-                qyp(i,j,kc,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
-                qyp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
+                qyp(i,j,kc,QRHO  ) = rho_ref + alphap + alpham + alpha0r
+                qyp(i,j,kc,QV    ) = v_ref + (alphap - alpham)*cc_ev/rho_ev
+                qyp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qyp(i,j,kc,QPRES ) = p_ref + (alphap + alpham)*csq_ev
              else
-                tau_s = tau_ref + apright + amright + azrright
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qyp(i,j,kc,QRHO  ) = ONE/tau_s
-                qyp(i,j,kc,QV    ) = v_ref + (amright - apright)*Clag_ev
+                qyp(i,j,kc,QV    ) = v_ref + (alpham - alphap)*Clag_ev
 
-                qyp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+                qyp(i,j,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                    qyp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qyp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                   qyp(i,j,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                    qyp(i,j,kc,QREINT) = qyp(i,j,kc,QPRES )/(qyp(i,j,kc,QGAME) - ONE)
                 endif
              endif
@@ -965,52 +963,52 @@ contains
              end if
 
              if (v-cc .gt. ZERO) then
-                amleft = -alpham
+                alpham = -alpham
              else if (v-cc .lt. ZERO) then
-                amleft = ZERO
+                alpham = ZERO
              else
-                amleft = -HALF*alpham
+                alpham = -HALF*alpham
              endif
 
              if (v+cc .gt. ZERO) then
-                apleft = -alphap
+                alphap = -alphap
              else if (v+cc .lt. ZERO) then
-                apleft = ZERO
+                alphap = ZERO
              else
-                apleft = -HALF*alphap
+                alphap = -HALF*alphap
              endif
 
              if (v .gt. ZERO) then
-                azrleft = -alpha0r
-                azeleft = -alpha0e
+                alpha0r = -alpha0r
+                alpha0e = -alpha0e
              else if (v .lt. ZERO) then
-                azrleft = ZERO
-                azeleft = ZERO
+                alpha0r = ZERO
+                alpha0e = ZERO
              else
-                azrleft = -HALF*alpha0r
-                azeleft = -HALF*alpha0e
+                alpha0r = -HALF*alpha0r
+                alpha0e = -HALF*alpha0e
              endif
 
              ! The final interface states are just
              ! q_s = q_ref - sum (l . dq) r
              ! note that the a{mpz}left as defined above has the minus already
              if (ppm_tau_in_tracing == 0) then
-                qym(i,j+1,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
-                qym(i,j+1,kc,QV    ) = v_ref + (apleft - amleft)*cc_ev/rho_ev
-                qym(i,j+1,kc,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-                qym(i,j+1,kc,QPRES ) = p_ref + (apleft + amleft)*csq_ev
+                qym(i,j+1,kc,QRHO  ) = rho_ref + alphap + alpham + alpha0r
+                qym(i,j+1,kc,QV    ) = v_ref + (alphap - alpham)*cc_ev/rho_ev
+                qym(i,j+1,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qym(i,j+1,kc,QPRES ) = p_ref + (alphap + alpham)*csq_ev
              else
-                tau_s = tau_ref + apleft + amleft + azrleft
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qym(i,j+1,kc,QRHO  ) = ONE/tau_s
-                qym(i,j+1,kc,QV    ) = v_ref + (amleft - apleft)*Clag_ev
+                qym(i,j+1,kc,QV    ) = v_ref + (alpham - alphap)*Clag_ev
 
-                qym(i,j+1,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+                qym(i,j+1,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                    qym(i,j+1,kc,QREINT) = e_s*(ONE/tau_s)
                 else
-                   qym(i,j+1,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                   qym(i,j+1,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                    qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES )/(qym(i,j+1,kc,QGAME) - ONE)
                 endif
 
@@ -1153,8 +1151,6 @@ contains
     double precision :: gam, game
 
     double precision alpham, alphap, alpha0r, alpha0e
-    double precision apright, amright, azrright, azeright
-    double precision apleft, amleft, azrleft, azeleft
 
     double precision halfdt
 
@@ -1320,50 +1316,50 @@ contains
           endif
 
           if (w-cc .gt. ZERO) then
-             amright = ZERO
+             alpham = ZERO
           else if (w-cc .lt. ZERO) then
-             amright = -alpham
+             alpham = -alpham
           else
-             amright = -HALF*alpham
+             alpham = -HALF*alpham
           endif
           if (w+cc .gt. ZERO) then
-             apright = ZERO
+             alphap = ZERO
           else if (w+cc .lt. ZERO) then
-             apright = -alphap
+             alphap = -alphap
           else
-             apright = -HALF*alphap
+             alphap = -HALF*alphap
           endif
           if (w .gt. ZERO) then
-             azrright = ZERO
-             azeright = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
           else if (w .lt. ZERO) then
-             azrright = -alpha0r
-             azeright = -alpha0e
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
           else
-             azrright = -HALF*alpha0r
-             azeright = -HALF*alpha0e
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
           endif
 
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           ! note that the a{mpz}right as defined above have the minus already
           if (ppm_tau_in_tracing == 0) then
-             qzp(i,j,kc,QRHO  ) = rho_ref + apright + amright + azrright
-             qzp(i,j,kc,QW    ) = w_ref + (apright - amright)*cc_ev/rho_ev
-             qzp(i,j,kc,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
-             qzp(i,j,kc,QPRES ) = p_ref + (apright + amright)*csq_ev
+             qzp(i,j,kc,QRHO  ) = rho_ref + alphap + alpham + alpha0r
+             qzp(i,j,kc,QW    ) = w_ref + (alphap - alpham)*cc_ev/rho_ev
+             qzp(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+             qzp(i,j,kc,QPRES ) = p_ref + (alphap + alpham)*csq_ev
           else
-             tau_s = tau_ref + apright + amright + azrright
+             tau_s = tau_ref + alphap + alpham + alpha0r
              qzp(i,j,kc,QRHO  ) = ONE/tau_s
-             qzp(i,j,kc,QW    ) = w_ref + (amright - apright)*Clag_ev
+             qzp(i,j,kc,QW    ) = w_ref + (alpham - alphap)*Clag_ev
 
-             qzp(i,j,kc,QPRES ) = p_ref + (-apright - amright)*Clag_ev**2
+             qzp(i,j,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                e_s = rhoe_g_ref/rho_ref + (azeright - p_ev*amright - p_ev*apright)
+                e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                 qzp(i,j,kc,QREINT) = e_s*(ONE/tau_s)
              else
-                qzp(i,j,kc,QGAME) = game_ref + gfactor*(amright + apright)/tau_ev + azeright
+                qzp(i,j,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                 qzp(i,j,kc,QREINT) = qzp(i,j,kc,QPRES )/(qzp(i,j,kc,QGAME) - ONE)
              endif
 
@@ -1539,50 +1535,50 @@ contains
           endif
 
           if (w-cc .gt. ZERO) then
-             amleft = -alpham
+             alpham = -alpham
           else if (w-cc .lt. ZERO) then
-             amleft = ZERO
+             alpham = ZERO
           else
-             amleft = -HALF*alpham
+             alpham = -HALF*alpham
           endif
           if (w+cc .gt. ZERO) then
-             apleft = -alphap
+             alphap = -alphap
           else if (w+cc .lt. ZERO) then
-             apleft = ZERO
+             alphap = ZERO
           else
-             apleft = -HALF*alphap
+             alphap = -HALF*alphap
           endif
           if (w .gt. ZERO) then
-             azrleft = -alpha0r
-             azeleft = -alpha0e
+             alpha0r = -alpha0r
+             alpha0e = -alpha0e
           else if (w .lt. ZERO) then
-             azrleft = ZERO
-             azeleft = ZERO
+             alpha0r = ZERO
+             alpha0e = ZERO
           else
-             azrleft = -HALF*alpha0r
-             azeleft = -HALF*alpha0e
+             alpha0r = -HALF*alpha0r
+             alpha0e = -HALF*alpha0e
           endif
 
           ! The final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           ! note that the a{mpz}left as defined above have the minus already
           if (ppm_tau_in_tracing == 0) then
-             qzm(i,j,kc,QRHO  ) = rho_ref + apleft + amleft + azrleft
-             qzm(i,j,kc,QW    ) = w_ref + (apleft - amleft)*cc_ev/rho_ev
-             qzm(i,j,kc,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-             qzm(i,j,kc,QPRES ) = p_ref + (apleft + amleft)*csq_ev
+             qzm(i,j,kc,QRHO  ) = rho_ref + alphap + alpham + alpha0r
+             qzm(i,j,kc,QW    ) = w_ref + (alphap - alpham)*cc_ev/rho_ev
+             qzm(i,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+             qzm(i,j,kc,QPRES ) = p_ref + (alphap + alpham)*csq_ev
           else
-             tau_s = tau_ref + apleft + amleft + azrleft
+             tau_s = tau_ref + alphap + alpham + alpha0r
              qzm(i,j,kc,QRHO  ) = ONE/tau_s
-             qzm(i,j,kc,QW    ) = w_ref + (amleft - apleft)*Clag_ev
+             qzm(i,j,kc,QW    ) = w_ref + (alpham - alphap)*Clag_ev
 
-             qzm(i,j,kc,QPRES ) = p_ref + (-apleft - amleft)*Clag_ev**2
+             qzm(i,j,kc,QPRES ) = p_ref + (-alphap - alpham)*Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                e_s = rhoe_g_ref/rho_ref + (azeleft - p_ev*amleft - p_ev*apleft)
+                e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham - p_ev*alphap)
                 qzm(i,j,kc,QREINT) = e_s*(ONE/tau_s)
              else
-                qzm(i,j,kc,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
+                qzm(i,j,kc,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
                 qzm(i,j,kc,QREINT) = qzm(i,j,kc,QPRES )/(qzm(i,j,kc,QGAME) - ONE)
              endif
 
