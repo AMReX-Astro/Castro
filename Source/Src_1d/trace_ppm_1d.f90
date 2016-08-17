@@ -61,8 +61,6 @@ contains
     double precision :: gam
 
     double precision :: alpham, alphap, alpha0r, alpha0e
-    double precision :: apright, amright, azrright, azeright
-    double precision :: apleft, amleft, azrleft, azeleft
     double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
@@ -275,39 +273,39 @@ contains
        alpha0e = drhoe_g - dptot*enth_ev  ! note enth has a 1/c**2 in it
 
        if (u-cc .gt. ZERO) then
-          amright = ZERO
+          alpham = ZERO
        else if (u-cc .lt. ZERO) then
-          amright = -alpham
+          alpham = -alpham
        else
-          amright = -HALF*alpham
+          alpham = -HALF*alpham
        endif
 
        if (u+cc .gt. ZERO) then
-          apright = ZERO
+          alphap = ZERO
        else if (u+cc .lt. ZERO) then
-          apright = -alphap
+          alphap = -alphap
        else
-          apright = -HALF*alphap
+          alphap = -HALF*alphap
        endif
 
        if (u .gt. ZERO) then
-          azrright = ZERO
-          azeright = ZERO
+          alpha0r = ZERO
+          alpha0e = ZERO
        else if (u .lt. ZERO) then
-          azrright = -alpha0r
-          azeright = -alpha0e
+          alpha0r = -alpha0r
+          alpha0e = -alpha0e
        else
-          azrright = -HALF*alpha0r
-          azeright = -HALF*alpha0e
+          alpha0r = -HALF*alpha0r
+          alpha0e = -HALF*alpha0e
        endif
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
        if (i .ge. ilo) then
-          qxp(i,QRHO)   = rho_ref  + apright + amright + azrright
-          qxp(i,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
-          qxp(i,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
-          qxp(i,QPRES)  = p_ref + (apright + amright)*csq_ev
+          qxp(i,QRHO)   = rho_ref  + alphap + alpham + alpha0r
+          qxp(i,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
+          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+          qxp(i,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
           ! enforce small_*
           qxp(i,QRHO) = max(small_dens,qxp(i,QRHO))
@@ -411,39 +409,39 @@ contains
        alpha0e = drhoe_g - dptot*enth_ev
 
        if (u-cc .gt. ZERO) then
-          amleft = -alpham
+          alpham = -alpham
        else if (u-cc .lt. ZERO) then
-          amleft = ZERO
+          alpham = ZERO
        else
-          amleft = -HALF*alpham
+          alpham = -HALF*alpham
        endif
 
        if (u+cc .gt. ZERO) then
-          apleft = -alphap
+          alphap = -alphap
        else if (u+cc .lt. ZERO) then
-          apleft = ZERO
+          alphap = ZERO
        else
-          apleft = -HALF*alphap
+          alphap = -HALF*alphap
        endif
 
        if (u .gt. ZERO) then
-          azrleft = -alpha0r
-          azeleft = -alpha0e
+          alpha0r = -alpha0r
+          alpha0e = -alpha0e
        else if (u .lt. ZERO) then
-          azrleft = ZERO
-          azeleft = ZERO
+          alpha0r = ZERO
+          alpha0e = ZERO
        else
-          azrleft = -HALF*alpha0r
-          azeleft = -HALF*alpha0e
+          alpha0r = -HALF*alpha0r
+          alpha0e = -HALF*alpha0e
        endif
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l .dq) r
        if (i .le. ihi) then
-          qxm(i+1,QRHO)   = rho_ref + apleft + amleft + azrleft
-          qxm(i+1,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev
-          qxm(i+1,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
-          qxm(i+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
+          qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
+          qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
+          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+          qxm(i+1,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
           ! enforce small_*
           qxm(i+1,QRHO) = max(qxm(i+1,QRHO),small_dens)
