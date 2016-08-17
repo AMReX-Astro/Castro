@@ -1,3 +1,6 @@
+! These routines do the characteristic tracing under the parabolic
+! profiles in each zone to the edge / half-time.
+
 module trace_ppm_module
 
   implicit none
@@ -19,8 +22,8 @@ contains
     use eos_type_module
     use eos_module
     use bl_constants_module
-    use meth_params_module, only : QVAR, QRHO, QU, QV, &
-         QREINT, QPRES, QTEMP, QFS, QGAME, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
+         QTEMP, QFS, QGAME, &
          small_dens, small_pres, &
          ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
          ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
@@ -56,24 +59,46 @@ contains
     integer :: i, j, iwave, idim
     integer :: n, ipassive
 
-    double precision :: dtdx, dtdy
-    double precision :: cc, csq, Clag, rho, u, v, p, rhoe_g, enth
-    double precision :: drho, dptot, drhoe_g, dtau
+    double precision :: hdt, dtdx, dtdy
+
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
+    ! htot : total specific enthalpy
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
+
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, v, p, rhoe_g, h_g
+    double precision :: gam, game
+
+    double precision :: drho, dptot, drhoe_g
+    double precision :: dtau
     double precision :: dup, dvp, dptotp
     double precision :: dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, tau_ref
-    double precision :: tau_s, e_s, de, dge
+    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    double precision :: tau_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, tau_ev
-    double precision :: gam, game
+    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
 
-    double precision :: alpham, alphap, alpha0r, alpha0e
+    double precision :: alpham, alphap, alpha0r, alpha0e_g
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: xi, xi1
-    double precision :: halfdt
+    double precision :: tau_s, e_s, de, dge
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
@@ -87,7 +112,7 @@ contains
 
     type (eos_t) :: eos_state
 
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_2d.f90 :: trace_ppm")
     end if
@@ -107,7 +132,7 @@ contains
     allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
-    halfdt = HALF * dt
+    hdt = HALF * dt
 
 
     !=========================================================================
@@ -138,8 +163,8 @@ contains
 
 
     ! Compute Ip and Im -- this does the parabolic reconstruction,
-    ! limiting, and returns the integral of each profile under
-    ! each wave to each interface
+    ! limiting, and returns the integral of each profile under each
+    ! wave to each interface
     do n=1,QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
@@ -218,13 +243,13 @@ contains
 
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
-          enth = ( (p+rhoe_g)/rho )/csq
+          h_g = ( (p+rhoe_g)/rho )/csq
 
           Clag = rho*cc
 
-          game = q(i,j,QGAME)
-
           gam = gamc(i,j)
+
+          game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
           ! plus state on face i
@@ -271,7 +296,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+          h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
@@ -291,8 +316,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,QU)
-             dup = dup - halfdt*Im_src(i,j,1,3,QU)
+             dum = dum - hdt*Im_src(i,j,1,1,QU)
+             dup = dup - hdt*Im_src(i,j,1,3,QU)
           endif
 
 
@@ -303,7 +328,7 @@ contains
              cc_ev   = cc
              csq_ev  = csq
              Clag_ev = Clag
-             enth_ev = enth
+             h_g_ev = h_g
              p_ev    = p
              tau_ev  = 1.0d0/rho
           else
@@ -311,7 +336,7 @@ contains
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
-             enth_ev = enth_ref
+             h_g_ev = h_g_ref
              p_ev    = p_ref
              tau_ev  = tau_ref
           endif
@@ -326,7 +351,7 @@ contains
              alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
              alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dptot/csq_ev
-             alpha0e = drhoe_g - dptot*enth_ev  ! note enth has a 1/c**2 in it
+             alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
           else
 
@@ -348,10 +373,10 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dptot*p_ev/Clag_ev**2
+                alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
-                alpha0e = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
           endif ! which tracing method
@@ -374,13 +399,13 @@ contains
 
           if (u .gt. ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
+             alpha0e_g = ZERO
           else if (u .lt. ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
           endif
 
           ! the final interface states are just
@@ -390,7 +415,7 @@ contains
              if (ppm_tau_in_tracing == 0) then
                 qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qxp(i,j,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
-                qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qxp(i,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
              else
                 tau_s = tau_ref + alphap + alpham + alpha0r
@@ -401,10 +426,10 @@ contains
                 qxp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham -p_ev*alphap)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
                    qxp(i,j,QREINT) = e_s/tau_s
                 else
-                   qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
+                   qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                    qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - 1.0d0)
                 endif
              end if
@@ -432,7 +457,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxp(i,j,QV)  = qxp(i,j,QV)  + halfdt*Im_src(i,j,1,2,QV)
+                qxp(i,j,QV)  = qxp(i,j,QV)  + hdt*Im_src(i,j,1,2,QV)
              endif
 
           endif
@@ -481,7 +506,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+          h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by u-c
           ! *p are the jumps carried by u+c
@@ -501,8 +526,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Ip_src(i,j,1,1,QU)
-             dup = dup - halfdt*Ip_src(i,j,1,3,QU)
+             dum = dum - hdt*Ip_src(i,j,1,1,QU)
+             dup = dup - hdt*Ip_src(i,j,1,3,QU)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -512,7 +537,7 @@ contains
              cc_ev   = cc
              csq_ev  = csq
              Clag_ev = Clag
-             enth_ev = enth
+             h_g_ev = h_g
              p_ev    = p
              tau_ev  = 1.0d0/rho
           else
@@ -520,7 +545,7 @@ contains
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
-             enth_ev = enth_ref
+             h_g_ev = h_g_ref
              p_ev    = p_ref
              tau_ev  = tau_ref
           endif
@@ -533,7 +558,7 @@ contains
              alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
              alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
              alpha0r = drho - dptot/csq_ev
-             alpha0e = drhoe_g - dptot*enth_ev  ! enth has a 1/c**2 in it
+             alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has a 1/c**2 in it
 
           else
 
@@ -553,10 +578,10 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dptot*p_ev/Clag_ev**2
+                alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
-                alpha0e = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
           endif
@@ -580,13 +605,13 @@ contains
 
           if (u .gt. ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
           else if (u .lt. ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
+             alpha0e_g = ZERO
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
           endif
 
           ! the final interface states are just
@@ -596,7 +621,7 @@ contains
 
                 qxm(i+1,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
-                qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qxm(i+1,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
              else
                 tau_s = tau_ref + (alphap + alpham + alpha0r)
@@ -607,10 +632,10 @@ contains
                 qxm(i+1,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham -p_ev*alphap)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
                    qxm(i+1,j,QREINT) = e_s/tau_s
                 else
-                   qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
+                   qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                    qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - 1.0d0)
                 endif
 
@@ -635,7 +660,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + halfdt*Ip_src(i,j,1,2,QV)
+                qxm(i+1,j,QV)  = qxm(i+1,j,QV)  + hdt*Ip_src(i,j,1,2,QV)
              endif
 
           endif
@@ -650,7 +675,7 @@ contains
              dlogatmp = min(eta,ONE)*dloga(i,j)
              sourcr = -HALF*dt*rho*dlogatmp*u
              sourcp = sourcr*csq
-             source = sourcp*enth
+             source = sourcp*h_g
 
              if (i .le. ihi1) then
                 qxm(i+1,j,QRHO) = qxm(i+1,j,QRHO) + sourcr
@@ -738,7 +763,7 @@ contains
 
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
-          enth = ( (p+rhoe_g)/rho )/csq
+          h_g = ( (p+rhoe_g)/rho )/csq
 
           Clag = rho*cc
 
@@ -788,7 +813,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+          h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
@@ -808,8 +833,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Im_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Im_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Im_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Im_src(i,j,2,3,QV)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -819,14 +844,14 @@ contains
              cc_ev   = cc
              csq_ev  = csq
              Clag_ev = Clag
-             enth_ev = enth
+             h_g_ev = h_g
              p_ev    = p
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
-             enth_ev = enth_ref
+             h_g_ev = h_g_ref
              p_ev    = p_ref
           endif
 
@@ -839,7 +864,7 @@ contains
              alpham = HALF*(dptotm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
              alphap = HALF*(dptotp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
              alpha0r = drho - dptot/csq_ev
-             alpha0e = drhoe_g - dptot*enth_ev  ! enth has 1/c**2 in it
+             alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has 1/c**2 in it
 
           else
 
@@ -859,10 +884,10 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dptot*p_ev/Clag_ev**2
+                alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
-                alpha0e = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
           endif
@@ -885,13 +910,13 @@ contains
 
           if (v .gt. ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
+             alpha0e_g = ZERO
           else if (v .lt. ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
           endif
 
           ! the final interface states are just
@@ -900,7 +925,7 @@ contains
              if (ppm_tau_in_tracing == 0) then
                 qyp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qyp(i,j,QV)     = v_ref + (alphap - alpham)*cc_ev/rho_ev
-                qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qyp(i,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
              else
@@ -912,10 +937,10 @@ contains
                 qyp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham -p_ev*alphap)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
                    qyp(i,j,QREINT) = e_s/tau_s
                 else
-                   qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
+                   qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                    qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - 1.0d0)
                 endif
 
@@ -940,7 +965,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qyp(i,j,QU)  = qyp(i,j,QU)  + halfdt*Im_src(i,j,2,2,QU)
+                qyp(i,j,QU)  = qyp(i,j,QU)  + hdt*Im_src(i,j,2,2,QU)
              endif
 
           endif
@@ -988,7 +1013,7 @@ contains
           cc_ref = sqrt(gam_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
-          enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+          h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
           ! *m are the jumps carried by v-c
           ! *p are the jumps carried by v+c
@@ -1008,8 +1033,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Ip_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Ip_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Ip_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Ip_src(i,j,2,3,QV)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -1019,14 +1044,14 @@ contains
              cc_ev   = cc
              csq_ev  = csq
              Clag_ev = Clag
-             enth_ev = enth
+             h_g_ev = h_g
              p_ev    = p
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
              csq_ev  = csq_ref
              Clag_ev = Clag_ref
-             enth_ev = enth_ref
+             h_g_ev = h_g_ref
              p_ev    = p_ref
           endif
 
@@ -1037,7 +1062,7 @@ contains
              alpham = HALF*(dptotm/(rho_ev*cc_ev) - dvm)*rho_ev/cc_ev
              alphap = HALF*(dptotp/(rho_ev*cc_ev) + dvp)*rho_ev/cc_ev
              alpha0r = drho - dptot/csq_ev
-             alpha0e = drhoe_g - dptot*enth_ev
+             alpha0e_g = drhoe_g - dptot*h_g_ev
 
           else
 
@@ -1057,10 +1082,10 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              if (ppm_predict_gammae == 0) then
-                alpha0e = de - dptot*p_ev/Clag_ev**2
+                alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
                 gfactor = (game - 1.0d0)*(game - gam)
-                alpha0e = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
           endif
@@ -1083,13 +1108,13 @@ contains
 
           if (v .gt. ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
+             alpha0e_g = -alpha0e_g
           else if (v .lt. ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
+             alpha0e_g = ZERO
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
+             alpha0e_g = -HALF*alpha0e_g
           endif
 
           ! the final interface states are just
@@ -1098,7 +1123,7 @@ contains
              if (ppm_tau_in_tracing == 0) then
                 qym(i,j+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qym(i,j+1,QV)     = v_ref + (alphap - alpham)*cc_ev/rho_ev
-                qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*enth_ev*csq_ev + alpha0e
+                qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qym(i,j+1,QPRES)  = p_ref + (alphap + alpham)*csq_ev
              else
                 tau_s = tau_ref + alphap + alpham + alpha0r
@@ -1108,10 +1133,10 @@ contains
                 qym(i,j+1,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
                 if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e - p_ev*alpham -p_ev*alphap)
+                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
                    qym(i,j+1,QREINT) = e_s/tau_s
                 else
-                   qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e
+                   qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                    qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - 1.0d0)
                 endif
 
@@ -1136,7 +1161,7 @@ contains
              endif
 
              if (ppm_trace_sources == 1) then
-                qym(i,j+1,QU)  = qym(i,j+1,QU)  + halfdt*Ip_src(i,j,2,2,QU)
+                qym(i,j+1,QU)  = qym(i,j+1,QU)  + hdt*Ip_src(i,j,2,2,QU)
              endif
 
           endif
