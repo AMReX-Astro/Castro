@@ -1,3 +1,6 @@
+! These routines do the characteristic tracing under the parabolic
+! profiles in each zone to the edge / half-time.  
+
 module trace_ppm_module
 
   implicit none
@@ -49,16 +52,35 @@ contains
     integer :: n, ipassive
 
     double precision :: hdt,dtdx
-    double precision :: cc, csq, Clag, rho, u, p, rhoe_g, enth
+
+    ! To allow for easy integration of radiation, we adopt the
+    ! following conventions:
+    !
+    ! rho : mass density
+    ! u, v, w : velocities
+    ! p : gas (hydro) pressure
+    ! ptot : total pressure (note for pure hydro, this is 
+    !        just the gas pressure)
+    ! rhoe_g : gas specific internal energy
+    ! rhoe : total specific internal energy (including radiation,
+    !        if available)
+    ! cgas : sound speed for just the gas contribution
+    ! cc : total sound speed (gas + radiation)
+    ! h_g : gas specific enthalpy / c_g**2
+    ! htot : total specific enthalpy
+
+    double precision :: cc, csq, cgassq, Clag
+    double precision :: rho, u, p, rhoe_g, h_g
+    double precision :: gam
+
     double precision :: drho, dptot, drhoe_g
     double precision :: dup, dptotp
     double precision :: dum, dptotm
 
-    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref
+    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
+    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev
-    double precision :: gam
+    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev
 
     double precision :: alpham, alphap, alpha0r, alpha0e
     double precision :: apright, amright, azrright, azeright
@@ -182,7 +204,7 @@ contains
 
        p = q(i,QPRES)
        rhoe_g = q(i,QREINT)
-       enth = ( (rhoe_g+p)/rho )/csq
+       h_g = ( (rhoe_g+p)/rho )/csq
 
        Clag = rho*cc
 
@@ -225,7 +247,7 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+       h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
@@ -254,14 +276,14 @@ contains
           cc_ev   = cc
           csq_ev  = csq
           Clag_ev = Clag
-          enth_ev = enth
+          h_g_ev = h_g
           p_ev    = p
        else
           rho_ev  = rho_ref
           cc_ev   = cc_ref
           csq_ev  = csq_ref
           Clag_ev = Clag_ref
-          enth_ev = enth_ref
+          h_g_ev = h_g_ref
           p_ev    = p_ref
        endif
 
@@ -272,7 +294,7 @@ contains
        alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dptot/csq_ev
-       alpha0e = drhoe_g - dptot*enth_ev  ! note enth has a 1/c**2 in it
+       alpha0e = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
        if (u-cc .gt. ZERO) then
           amright = ZERO
@@ -306,7 +328,7 @@ contains
        if (i .ge. ilo) then
           qxp(i,QRHO)   = rho_ref  + apright + amright + azrright
           qxp(i,QU)     = u_ref + (apright - amright)*cc_ev/rho_ev
-          qxp(i,QREINT) = rhoe_g_ref + (apright + amright)*enth_ev*csq_ev + azeright
+          qxp(i,QREINT) = rhoe_g_ref + (apright + amright)*h_g_ev*csq_ev + azeright
           qxp(i,QPRES)  = p_ref + (apright + amright)*csq_ev
 
           ! enforce small_*
@@ -362,7 +384,7 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       enth_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+       h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
@@ -391,14 +413,14 @@ contains
           cc_ev   = cc
           csq_ev  = csq
           Clag_ev = Clag
-          enth_ev = enth
+          h_g_ev = h_g
           p_ev    = p
        else
           rho_ev  = rho_ref
           cc_ev   = cc_ref
           csq_ev  = csq_ref
           Clag_ev = Clag_ref
-          enth_ev = enth_ref
+          h_g_ev = h_g_ref
           p_ev    = p_ref
        endif
 
@@ -408,7 +430,7 @@ contains
        alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dptot/csq_ev
-       alpha0e = drhoe_g - dptot*enth_ev
+       alpha0e = drhoe_g - dptot*h_g_ev
 
        if (u-cc .gt. ZERO) then
           amleft = -alpham
@@ -442,7 +464,7 @@ contains
        if (i .le. ihi) then
           qxm(i+1,QRHO)   = rho_ref + apleft + amleft + azrleft
           qxm(i+1,QU)     = u_ref + (apleft - amleft)*cc_ev/rho_ev
-          qxm(i+1,QREINT) = rhoe_g_ref + (apleft + amleft)*enth_ev*csq_ev + azeleft
+          qxm(i+1,QREINT) = rhoe_g_ref + (apleft + amleft)*h_g_ev*csq_ev + azeleft
           qxm(i+1,QPRES)  = p_ref + (apleft + amleft)*csq_ev
 
           ! enforce small_*
@@ -473,7 +495,7 @@ contains
           dlogatmp = min(eta,ONE)*dloga(i)
           sourcr = -HALF*dt*rho*dlogatmp*u
           sourcp = sourcr*csq
-          source = sourcp*enth
+          source = sourcp*h_g
 
           if (i .le. ihi) then
              qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + sourcr
