@@ -1695,7 +1695,7 @@ Castro::post_timestep (int iteration)
     if (level < finest_level)
         avgDown();
 
-#ifdef do_problem_post_timestep
+#ifdef DO_PROBLEM_POST_TIMESTEP
 
     problem_post_timestep();
 
@@ -1873,7 +1873,7 @@ Castro::post_restart ()
     init_godunov_indices();
 #endif
 
-#ifdef do_problem_post_restart
+#ifdef DO_PROBLEM_POST_RESTART
     problem_post_restart();
 #endif
 
@@ -1995,7 +1995,7 @@ Castro::post_init (Real stop_time)
 
 // Allow the user to define their own post_init functions.
 
-#ifdef do_problem_post_init
+#ifdef DO_PROBLEM_POST_INIT
 
     problem_post_init();
 
