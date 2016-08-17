@@ -85,7 +85,7 @@ contains
     double precision :: gam, game
 
     double precision :: drho, dptot, drhoe_g
-    double precision :: dtau
+    double precision :: de, dge, dtau
     double precision :: dup, dvp, dptotp
     double precision :: dum, dvm, dptotm
 
@@ -98,7 +98,7 @@ contains
     double precision :: alpham, alphap, alpha0r, alpha0e_g
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: tau_s, e_s, de, dge
+    double precision :: tau_s, e_s
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
@@ -330,7 +330,7 @@ contains
              Clag_ev = Clag
              h_g_ev = h_g
              p_ev    = p
-             tau_ev  = 1.0d0/rho
+             tau_ev  = ONE/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -375,7 +375,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
-                gfactor = (game - 1.0d0)*(game - gam)
+                gfactor = (game - ONE)*(game - gam)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -430,7 +430,7 @@ contains
                    qxp(i,j,QREINT) = e_s/tau_s
                 else
                    qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - 1.0d0)
+                   qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - ONE)
                 endif
              end if
 
@@ -539,7 +539,7 @@ contains
              Clag_ev = Clag
              h_g_ev = h_g
              p_ev    = p
-             tau_ev  = 1.0d0/rho
+             tau_ev  = ONE/rho
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -580,7 +580,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
-                gfactor = (game - 1.0d0)*(game - gam)
+                gfactor = (game - ONE)*(game - gam)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -636,7 +636,7 @@ contains
                    qxm(i+1,j,QREINT) = e_s/tau_s
                 else
                    qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - 1.0d0)
+                   qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - ONE)
                 endif
 
              end if
@@ -886,7 +886,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
-                gfactor = (game - 1.0d0)*(game - gam)
+                gfactor = (game - ONE)*(game - gam)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -941,7 +941,7 @@ contains
                    qyp(i,j,QREINT) = e_s/tau_s
                 else
                    qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - 1.0d0)
+                   qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
                 endif
 
              end if
@@ -1084,7 +1084,7 @@ contains
              if (ppm_predict_gammae == 0) then
                 alpha0e_g = de - dptot*p_ev/Clag_ev**2
              else
-                gfactor = (game - 1.0d0)*(game - gam)
+                gfactor = (game - ONE)*(game - gam)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
              endif
 
@@ -1137,7 +1137,7 @@ contains
                    qym(i,j+1,QREINT) = e_s/tau_s
                 else
                    qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - 1.0d0)
+                   qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
                 endif
 
              end if
