@@ -65,10 +65,14 @@ contains
     ! rhoe : total specific internal energy (including radiation,
     !        if available)
     ! cgas : sound speed for just the gas contribution
-    ! cc : total sound speed (gas + radiation)
-    ! h_g : gas specific enthalpy / c_g**2
+    ! cc : total sound speed (including radiation)
+    ! h_g : gas specific enthalpy / cc**2
     ! htot : total specific enthalpy
-
+    !
+    ! for pure hydro, we will only consider:
+    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
+    
+    
     double precision :: cc, csq, cgassq, Clag
     double precision :: rho, u, p, rhoe_g, h_g
     double precision :: gam
@@ -78,11 +82,11 @@ contains
     double precision :: dum, dptotm
 
     double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref
 
+    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev
 
-    double precision :: alpham, alphap, alpha0r, alpha0e
+    double precision :: alpham, alphap, alpha0r, alpha0e_g
     double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
@@ -202,7 +206,7 @@ contains
 
        p = q(i,QPRES)
        rhoe_g = q(i,QREINT)
-       h_g = ( (rhoe_g+p)/rho )/csq
+       h_g = ( (p + rhoe_g)/rho )/csq
 
        Clag = rho*cc
 
@@ -245,7 +249,7 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+       h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
@@ -292,7 +296,7 @@ contains
        alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dptot/csq_ev
-       alpha0e = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
+       alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
        if (u-cc .gt. ZERO) then
           alpham = ZERO
@@ -312,13 +316,13 @@ contains
 
        if (u .gt. ZERO) then
           alpha0r = ZERO
-          alpha0e = ZERO
+          alpha0e_g = ZERO
        else if (u .lt. ZERO) then
           alpha0r = -alpha0r
-          alpha0e = -alpha0e
+          alpha0e_g = -alpha0e_g
        else
           alpha0r = -HALF*alpha0r
-          alpha0e = -HALF*alpha0e
+          alpha0e_g = -HALF*alpha0e_g
        endif
 
        ! the final interface states are just
@@ -326,7 +330,7 @@ contains
        if (i .ge. ilo) then
           qxp(i,QRHO)   = rho_ref  + alphap + alpham + alpha0r
           qxp(i,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
-          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e
+          qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
           qxp(i,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
           ! enforce small_*
@@ -382,7 +386,7 @@ contains
        cc_ref = sqrt(gam_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
-       h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
+       h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
@@ -428,7 +432,7 @@ contains
        alpham = HALF*(dptotm/(rho_ev*cc_ev) - dum)*rho_ev/cc_ev
        alphap = HALF*(dptotp/(rho_ev*cc_ev) + dup)*rho_ev/cc_ev
        alpha0r = drho - dptot/csq_ev
-       alpha0e = drhoe_g - dptot*h_g_ev
+       alpha0e_g = drhoe_g - dptot*h_g_ev
 
        if (u-cc .gt. ZERO) then
           alpham = -alpham
@@ -448,13 +452,13 @@ contains
 
        if (u .gt. ZERO) then
           alpha0r = -alpha0r
-          alpha0e = -alpha0e
+          alpha0e_g = -alpha0e_g
        else if (u .lt. ZERO) then
           alpha0r = ZERO
-          alpha0e = ZERO
+          alpha0e_g = ZERO
        else
           alpha0r = -HALF*alpha0r
-          alpha0e = -HALF*alpha0e
+          alpha0e_g = -HALF*alpha0e_g
        endif
 
        ! the final interface states are just
@@ -462,7 +466,7 @@ contains
        if (i .le. ihi) then
           qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
-          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e
+          qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
           qxm(i+1,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
           ! enforce small_*
