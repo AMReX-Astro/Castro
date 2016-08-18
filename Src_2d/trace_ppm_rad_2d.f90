@@ -559,7 +559,7 @@ contains
              dlogatmp = min(eta,ONE)*dloga(i,j)
              sourcr = -HALF*dt*rho*dlogatmp*u
              sourcp = sourcr*cgassq
-             source = sourcer*h_g*csq
+             source = sourcr*h_g*csq
              sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
              if (i .le. ihi1) then
                 qxm(i+1,j,QRHO) = qxm(i+1,j,QRHO) + sourcr
