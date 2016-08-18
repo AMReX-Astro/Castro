@@ -26,7 +26,7 @@ contains
          QTEMP, QFS, QGAME, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
+         ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
     use ppm_module, only : ppm
@@ -324,7 +324,9 @@ contains
           endif
 
 
-          if (ppm_tau_in_tracing == 0) then
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e)) eigensystem
 
              ! these are analogous to the beta's from the original
              ! PPM paper (except we work with rho instead of tau).
@@ -337,29 +339,19 @@ contains
 
           else
 
-             ! (tau, u, p, e) eigensystem
-             ! or
              ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
-             ! we are dealing with e
-             de = (rhoe_g_ref/rho_ref - Im(i,j,1,2,QREINT)/Im(i,j,1,2,QRHO))
-
-             dge = game_ref - Im(i,j,1,2,QGAME)
-
              alpham = HALF*( dum - dptotm/Clag_ev)/Clag_ev
              alphap = HALF*(-dup - dptotp/Clag_ev)/Clag_ev
              alpha0r = dtau + dptot/Clag_ev**2
 
-             if (ppm_predict_gammae == 0) then
-                alpha0e_g = de - dptot*p_ev/Clag_ev**2
-             else
-                gfactor = (game - ONE)*(game - gam)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
-             endif
+             dge = game_ref - Im(i,j,1,2,QGAME)
+             gfactor = (game - ONE)*(game - gam)
+             alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif ! which tracing method
 
