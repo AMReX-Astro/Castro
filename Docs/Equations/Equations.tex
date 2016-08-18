@@ -580,20 +580,12 @@ For the reconstruction of the interface states, the following apply:
   Values of 1 and 2 are both piecewise parabolic reconstruction, with
   2 using updated limiters that better preserve extrema.
 
-\item {\tt castro.ppm\_reference} uses the integral under the parabola for
-  the region corresponding to the fastest moving wave to the interface
-  for the reference state used by the characteristic projection in
-  ppm (1) or the cell-centered value (0).  (Default: 1)
-
-  The original \castro\ paper~\cite{castro_I} used the cell-centered
-  value ({\tt ppm\_reference = 0}), but the method in the PPM paper~\cite{ppm}
-  does the method of {\tt ppm\_refrence = 1}.
-    
-\item {\tt castro.ppm\_trace\_grav} reconstructs the gravitational
-  acceleration as a parabola and then constructs the integrals under
-  this parabola for the three characteristic waves and then puts the
-  gravitational source term into the characteristic projection when
-  doing the interface states (0 or 1; default: 0)
+\item {\tt castro.ppm\_trace\_sources} reconstructs the gravitational
+  and rotational acceleration as a parabola and then constructs the
+  integrals under this parabola for the three characteristic waves and
+  then puts the gravitational and rotational source term into the
+  characteristic projection when doing the interface states (0 or 1;
+  default: 1)
 
 \item {\tt castro.ppm\_temp\_fix} does various attempts to use the
   temperature in the reconstruction of the interface states.  This
@@ -607,20 +599,9 @@ For the reconstruction of the interface states, the following apply:
   the conversion between the conserved and primitive interface states
   in the transverse flux routines (0 or 1; default 0)
 
-\item {\tt castro.ppm\_reference\_edge\_limit} uses the limit of the
-  parabolic interpolant as the reference state instead of the
-  cell-center value for the case when the wave is not moving toward
-  the interface (0 or 1; default 0)
-
 \item {\tt castro.ppm\_reference\_eigenvectors} uses the reference states in
   the evaluation of the eigenvectors for the characteristic projection
   (0 or 1; default 0)
-  
-
-\item {\tt castro.ppm\_flatten\_before\_integrals} does the flattening
-  procedure on the parabolic coefficients before they are integrated
-  to the interface states instead of the default method of flattening
-  on the integrals themselves.
 \end{itemize}
 
 
