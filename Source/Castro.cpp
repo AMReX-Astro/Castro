@@ -310,12 +310,6 @@ Castro::read_params ()
     if (grown_factor < 1) 
        BoxLib::Error("grown_factor must be integer >= 1");
 
-    if (ppm_reference > 1 || ppm_reference < 0)
-      {
-        std::cerr << "invalid ppm_reference\n";
-        BoxLib::Error();
-      }	
-
     if (cfl <= 0.0 || cfl > 1.0)
       BoxLib::Error("Invalid CFL factor; must be between zero and one.");
 
