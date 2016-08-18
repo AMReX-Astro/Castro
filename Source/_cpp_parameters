@@ -58,11 +58,6 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-# do we take the reference state for the characteristic projection
-# to be the cell centers (0) or the integral under the parabola
-# for the fastest moving wave toward the interface (1)
-ppm_reference                int           1                  y
-
 # to we reconstruct and trace under the parabolas of the source
 # terms to the velocity (gravity and rotation)
 ppm_trace_sources            int           1                  y
@@ -79,11 +74,6 @@ ppm_tau_in_tracing           int           0                  y
 # (this is the Colella \& Glaz technique) or do we use $(\rho e)$
 # (the classic \castro\ behavior).
 ppm_predict_gammae           int           0                  y
-
-# do we take the reference state when no waves are moving toward
-# the interface to be the cell center (0) or the limit of the
-# reconstructed parabola at the interface (1)
-ppm_reference_edge_limit     int           1                  y
 
 # do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
