@@ -18,8 +18,8 @@ contains
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
          small_dens, small_pres, fix_mass_flux, &
-         ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
+         ppm_type, ppm_trace_sources, ppm_temp_fix, &
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -225,35 +225,19 @@ contains
        !----------------------------------------------------------------------
 
        ! set the reference state
-       if (ppm_reference == 0 .or. &
-            (ppm_reference == 1 .and. u - cc >= ZERO .and. &
-            ppm_reference_edge_limit == 0)) then
-          ! original Castro way -- cc value
-          rho_ref = rho
-          u_ref = u
+       ! this will be the fastest moving state to the left --
+       ! this is the method that Miller & Colella and Colella &
+       ! Woodward use
+       rho_ref = Im(i,1,QRHO)
+       u_ref = Im(i,1,QU)
 
-          p_ref = p
-          rhoe_g_ref = rhoe_g
+       p_ref = Im(i,1,QPRES)
+       rhoe_g_ref = Im(i,1,QREINT)
 
-          ptot_ref = ptot
-          rhoe_ref = rhoe
+       ptot_ref = Im(i,1,qptot)
+       rhoe_ref = Im(i,1,qreitot)
 
-          er_ref(:) = er(:)
-       else
-          ! this will be the fastest moving state to the left --
-          ! this is the method that Miller & Colella and Colella &
-          ! Woodward use
-          rho_ref = Im(i,1,QRHO)
-          u_ref = Im(i,1,QU)
-
-          p_ref = Im(i,1,QPRES)
-          rhoe_g_ref = Im(i,1,QREINT)
-
-          ptot_ref = Im(i,1,qptot)
-          rhoe_ref = Im(i,1,qreitot)
-
-          er_ref(:) = Im(i,1,qrad:qradhi)
-       endif
+       er_ref(:) = Im(i,1,qrad:qradhi)
 
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
@@ -371,33 +355,17 @@ contains
        !----------------------------------------------------------------------
 
        ! set the reference state
-       if (ppm_reference == 0 .or. &
-            (ppm_reference == 1 .and. u + cc <= ZERO .and. &
-            ppm_reference_edge_limit == 0) ) then
-          ! original Castro way -- cc values
-          rho_ref  = rho
-          u_ref    = u
+       ! this will be the fastest moving state to the right
+       rho_ref  = Ip(i,3,QRHO)
+       u_ref    = Ip(i,3,QU)
 
-          p_ref      = p
-          rhoe_g_ref = rhoe_g
+       p_ref      = Ip(i,3,QPRES)
+       rhoe_g_ref = Ip(i,3,QREINT)
 
-          ptot_ref = ptot
-          rhoe_ref = rhoe
+       ptot_ref = Ip(i,3,qptot)
+       rhoe_ref = Ip(i,3,qreitot)
 
-          er_ref(:) = er(:)
-       else
-          ! this will be the fastest moving state to the right
-          rho_ref  = Ip(i,3,QRHO)
-          u_ref    = Ip(i,3,QU)
-
-          p_ref      = Ip(i,3,QPRES)
-          rhoe_g_ref = Ip(i,3,QREINT)
-
-          ptot_ref = Ip(i,3,qptot)
-          rhoe_ref = Ip(i,3,qreitot)
-
-          er_ref(:) = Ip(i,3,qrad:qradhi)
-       endif
+       er_ref(:) = Ip(i,3,qrad:qradhi)
 
        !  *m are the jumps carried by u-c
        !  *p are the jumps carried by u+c

@@ -18,8 +18,7 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QPRES, &
          small_dens, small_pres, &
-         ppm_type, ppm_reference, ppm_trace_sources, &
-         ppm_reference_edge_limit, &
+         ppm_type, ppm_trace_sources, &
          npassive, qpass_map
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
@@ -185,35 +184,20 @@ contains
           if (i .ge. ilo1) then
 
              ! Set the reference state
-             if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. u - cc >= ZERO .and. &
-                   ppm_reference_edge_limit == 0) ) then
-                ! original Castro way -- cc value
-                rho_ref  = rho
-                u_ref    = u
+             ! This will be the fastest moving state to the left --
+             ! this is the method that Miller & Colella and Colella &
+             ! Woodward use
+             rho_ref  = Im(i,j,kc,1,1,QRHO)
+             u_ref    = Im(i,j,kc,1,1,QU)
 
-                p_ref    = p
-                rhoe_g_ref = rhoe_g
+             p_ref    = Im(i,j,kc,1,1,QPRES)
+             rhoe_g_ref = Im(i,j,kc,1,1,QREINT)
 
-                ptot_ref = ptot
-                rhoe_ref = rhoe
+             ptot_ref = Im(i,j,kc,1,1,QPTOT)
+             rhoe_ref = Im(i,j,kc,1,1,QREITOT)
 
-                er_ref(:) = er(:)
-             else
-                ! This will be the fastest moving state to the left --
-                ! this is the method that Miller & Colella and Colella &
-                ! Woodward use
-                rho_ref  = Im(i,j,kc,1,1,QRHO)
-                u_ref    = Im(i,j,kc,1,1,QU)
+             er_ref(:) = Im(i,j,kc,1,1,QRAD:QRADHI)
 
-                p_ref    = Im(i,j,kc,1,1,QPRES)
-                rhoe_g_ref = Im(i,j,kc,1,1,QREINT)
-
-                ptot_ref = Im(i,j,kc,1,1,QPTOT)
-                rhoe_ref = Im(i,j,kc,1,1,QREITOT)
-
-                er_ref(:) = Im(i,j,kc,1,1,QRAD:QRADHI)
-             endif
 
              rho_ref = max(rho_ref,small_dens)
              p_ref = max(p_ref,small_pres)
@@ -328,18 +312,8 @@ contains
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
              ! interface
-             if (u > ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qxp(i,j,kc,QV    ) = Im(i,j,kc,1,2,QV)
-                   qxp(i,j,kc,QW    ) = Im(i,j,kc,1,2,QW)
-                else
-                   qxp(i,j,kc,QV    ) = v
-                   qxp(i,j,kc,QW    ) = w
-                endif
-             else ! wave moving toward the interface
-                qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
-                qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
-             endif
+             qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
+             qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
 
              if (ppm_trace_sources .eq. 1) then
                 qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
@@ -355,33 +329,18 @@ contains
           if (i .le. ihi1) then
 
              ! Set the reference state
-             if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. u + cc <= ZERO .and. &
-                   ppm_reference_edge_limit == 0) ) then
-                ! original Castro way -- cc values
-                rho_ref  = rho
-                u_ref    = u
+             ! This will be the fastest moving state to the right
+             rho_ref  = Ip(i,j,kc,1,3,QRHO)
+             u_ref    = Ip(i,j,kc,1,3,QU)
 
-                p_ref    = p
-                rhoe_g_ref = rhoe_g
+             p_ref    = Ip(i,j,kc,1,3,QPRES)
+             rhoe_g_ref = Ip(i,j,kc,1,3,QREINT)
 
-                ptot_ref = ptot
-                rhoe_ref = rhoe
+             ptot_ref = Ip(i,j,kc,1,3,QPTOT)
+             rhoe_ref = Ip(i,j,kc,1,3,QREITOT)
 
-                er_ref(:) = er(:)
-             else
-                ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,kc,1,3,QRHO)
-                u_ref    = Ip(i,j,kc,1,3,QU)
+             er_ref(:) = Ip(i,j,kc,1,3,QRAD:QRADHI)
 
-                p_ref    = Ip(i,j,kc,1,3,QPRES)
-                rhoe_g_ref = Ip(i,j,kc,1,3,QREINT)
-
-                ptot_ref = Ip(i,j,kc,1,3,QPTOT)
-                rhoe_ref = Ip(i,j,kc,1,3,QREITOT)
-
-                er_ref(:) = Ip(i,j,kc,1,3,QRAD:QRADHI)
-             endif
 
              rho_ref = max(rho_ref,small_dens)
              p_ref = max(p_ref,small_pres)
@@ -485,18 +444,8 @@ contains
              end if
 
              ! transverse velocities
-             if (u < ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
-                   qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
-                else
-                   qxm(i+1,j,kc,QV    ) = v
-                   qxm(i+1,j,kc,QW    ) = w
-                endif
-             else ! wave moving toward interface
-                qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
-                qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
-             endif
+             qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
+             qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
 
              if (ppm_trace_sources .eq. 1) then
                 qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
@@ -598,33 +547,18 @@ contains
           if (j .ge. ilo2) then
 
              ! Set the reference state
-             if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. v - cc >= ZERO .and. &
-                   ppm_reference_edge_limit == 0) ) then
-                ! original Castro way -- cc value
-                rho_ref  = rho
-                v_ref    = v
+             ! This will be the fastest moving state to the left
+             rho_ref  = Im(i,j,kc,2,1,QRHO)
+             v_ref    = Im(i,j,kc,2,1,QV)
 
-                p_ref    = p
-                rhoe_g_ref = rhoe_g
+             p_ref    = Im(i,j,kc,2,1,QPRES)
+             rhoe_g_ref = Im(i,j,kc,2,1,QREINT)
 
-                ptot_ref    = ptot
-                rhoe_ref = rhoe
+             ptot_ref    = Im(i,j,kc,2,1,QPTOT)
+             rhoe_ref = Im(i,j,kc,2,1,QREITOT)
 
-                er_ref(:) = er(:)
-             else
-                ! This will be the fastest moving state to the left
-                rho_ref  = Im(i,j,kc,2,1,QRHO)
-                v_ref    = Im(i,j,kc,2,1,QV)
+             er_ref(:) = Im(i,j,kc,2,1,QRAD:QRADHI)
 
-                p_ref    = Im(i,j,kc,2,1,QPRES)
-                rhoe_g_ref = Im(i,j,kc,2,1,QREINT)
-
-                ptot_ref    = Im(i,j,kc,2,1,QPTOT)
-                rhoe_ref = Im(i,j,kc,2,1,QREITOT)
-
-                er_ref(:) = Im(i,j,kc,2,1,QRAD:QRADHI)
-             endif
 
              rho_ref = max(rho_ref,small_dens)
              p_ref = max(p_ref,small_pres)
@@ -727,18 +661,8 @@ contains
              end if
 
              ! transverse velocities
-             if (v > ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
-                   qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
-                else
-                   qyp(i,j,kc,QU    ) = u
-                   qyp(i,j,kc,QW    ) = w
-                endif
-             else ! wave moving toward the interface
-                qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
-                qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
-             endif
+             qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
+             qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
 
              if (ppm_trace_sources .eq. 1) then
                 qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + hdt*Im_src(i,j,kc,2,2,QU)
@@ -754,34 +678,18 @@ contains
           if (j .le. ihi2) then
 
              ! Set the reference state
-             if (ppm_reference == 0 .or. &
-                  (ppm_reference == 1 .and. v + cc <= ZERO .and. &
-                   ppm_reference_edge_limit == 0) ) then
-                ! original Castro way -- cc value
+             ! This will be the fastest moving state to the right
+             rho_ref  = Ip(i,j,kc,2,3,QRHO)
+             v_ref    = Ip(i,j,kc,2,3,QV)
 
-                rho_ref  = rho
-                v_ref    = v
+             p_ref    = Ip(i,j,kc,2,3,QPRES)
+             rhoe_g_ref = Ip(i,j,kc,2,3,QREINT)
 
-                p_ref    = p
-                rhoe_g_ref = rhoe_g
+             ptot_ref    = Ip(i,j,kc,2,3,QPTOT)
+             rhoe_ref = Ip(i,j,kc,2,3,QREITOT)
 
-                ptot_ref = ptot
-                rhoe_ref = rhoe
+             er_ref(:) = Ip(i,j,kc,2,3,QRAD:QRADHI)
 
-                er_ref(:) = er(:)
-             else
-                ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,kc,2,3,QRHO)
-                v_ref    = Ip(i,j,kc,2,3,QV)
-
-                p_ref    = Ip(i,j,kc,2,3,QPRES)
-                rhoe_g_ref = Ip(i,j,kc,2,3,QREINT)
-
-                ptot_ref    = Ip(i,j,kc,2,3,QPTOT)
-                rhoe_ref = Ip(i,j,kc,2,3,QREITOT)
-
-                er_ref(:) = Ip(i,j,kc,2,3,QRAD:QRADHI)
-             endif
 
              rho_ref = max(rho_ref,small_dens)
              p_ref = max(p_ref,small_pres)
@@ -882,18 +790,8 @@ contains
              end if
 
              ! transverse velocities
-             if (v < ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
-                   qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
-                else
-                   qym(i,j+1,kc,QU    ) = u
-                   qym(i,j+1,kc,QW    ) = w
-                endif
-             else ! wave is moving toward the interface
-                qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
-                qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
-             endif
+             qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
+             qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
 
              if (ppm_trace_sources .eq. 1) then
                 qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + hdt*Ip_src(i,j,kc,2,2,QU)
@@ -958,8 +856,7 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_reference, ppm_trace_sources, &
-                                   ppm_reference_edge_limit, &
+                                   ppm_type, ppm_trace_sources, &
                                    npassive, qpass_map
     use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
@@ -1094,33 +991,18 @@ contains
           hr(:) = (lam0+ONE)*er/rho
 
           ! Set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. w - cc >= ZERO .and. &
-                ppm_reference_edge_limit == 0) ) then
-             ! original Castro way -- cc value
-             rho_ref  = rho
-             w_ref    = w
+          ! This will be the fastest moving state to the left
+          rho_ref  = Im(i,j,kc,3,1,QRHO)
+          w_ref    = Im(i,j,kc,3,1,QW)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
+          p_ref    = Im(i,j,kc,3,1,QPRES)
+          rhoe_g_ref = Im(i,j,kc,3,1,QREINT)
 
-             ptot_ref = ptot
-             rhoe_ref = rhoe
+          ptot_ref = Im(i,j,kc,3,1,QPTOT)
+          rhoe_ref = Im(i,j,kc,3,1,QREITOT)
 
-             er_ref(:) = er(:)
-          else
-             ! This will be the fastest moving state to the left
-             rho_ref  = Im(i,j,kc,3,1,QRHO)
-             w_ref    = Im(i,j,kc,3,1,QW)
+          er_ref(:) = Im(i,j,kc,3,1,QRAD:QRADHI)
 
-             p_ref    = Im(i,j,kc,3,1,QPRES)
-             rhoe_g_ref = Im(i,j,kc,3,1,QREINT)
-
-             ptot_ref = Im(i,j,kc,3,1,QPTOT)
-             rhoe_ref = Im(i,j,kc,3,1,QREITOT)
-
-             er_ref(:) = Im(i,j,kc,3,1,QRAD:QRADHI)
-          endif
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -1223,18 +1105,8 @@ contains
           end if
 
           ! transverse velocities
-          if (w > ZERO) then
-             if (ppm_reference_edge_limit == 1) then
-                qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
-                qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
-             else
-                qzp(i,j,kc,QU    ) = u
-                qzp(i,j,kc,QV    ) = v
-             endif
-          else ! wave moving toward the interface
-             qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
-             qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
-          endif
+          qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
+          qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
 
           if (ppm_trace_sources .eq. 1) then
              qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + hdt*Im_src(i,j,kc,3,2,QU)
@@ -1279,32 +1151,18 @@ contains
 
 
           ! Set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. w + cc <= ZERO .and. &
-                ppm_reference_edge_limit == 0) ) then
-             rho_ref  = rho
-             w_ref    = w
+          ! This will be the fastest moving state to the right
+          rho_ref  = Ip(i,j,km,3,3,QRHO)
+          w_ref    = Ip(i,j,km,3,3,QW)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
+          p_ref    = Ip(i,j,km,3,3,QPRES)
+          rhoe_g_ref = Ip(i,j,km,3,3,QREINT)
 
-             ptot_ref    = ptot
-             rhoe_ref = rhoe
+          ptot_ref    = Ip(i,j,km,3,3,QPTOT)
+          rhoe_ref = Ip(i,j,km,3,3,QREITOT)
 
-             er_ref(:) = er(:)
-          else
-             ! This will be the fastest moving state to the right
-             rho_ref  = Ip(i,j,km,3,3,QRHO)
-             w_ref    = Ip(i,j,km,3,3,QW)
+          er_ref(:) = Ip(i,j,km,3,3,QRAD:QRADHI)
 
-             p_ref    = Ip(i,j,km,3,3,QPRES)
-             rhoe_g_ref = Ip(i,j,km,3,3,QREINT)
-
-             ptot_ref    = Ip(i,j,km,3,3,QPTOT)
-             rhoe_ref = Ip(i,j,km,3,3,QREITOT)
-
-             er_ref(:) = Ip(i,j,km,3,3,QRAD:QRADHI)
-          endif
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -1410,18 +1268,8 @@ contains
           end if
 
           ! Transverse velocity
-          if (w < ZERO) then
-             if (ppm_reference_edge_limit == 1) then
-                qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
-                qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
-             else
-                qzm(i,j,kc,QU    ) = u
-                qzm(i,j,kc,QV    ) = v
-             endif
-          else ! wave moving toward the interface
-             qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
-             qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
-          endif
+          qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
+          qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
 
           if (ppm_trace_sources .eq. 1) then
              qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + hdt*Ip_src(i,j,km,3,2,QU)
