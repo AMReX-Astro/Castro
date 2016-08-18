@@ -171,7 +171,7 @@ contains
           ! plus state on face i
           !-------------------------------------------------------------------
 
-          if (i .ge. ilo1) then
+          if (i >= ilo1) then
 
              ! Set the reference state
              ! This will be the fastest moving state to the left --
@@ -278,26 +278,26 @@ contains
 
              endif    ! which tracing method
 
-             if (u-cc .gt. ZERO) then
+             if (u-cc > ZERO) then
                 alpham = ZERO
-             else if (u-cc .lt. ZERO) then
+             else if (u-cc < ZERO) then
                 alpham = -alpham
              else
                 alpham = -HALF*alpham
              endif
 
-             if (u+cc .gt. ZERO) then
+             if (u+cc > ZERO) then
                 alphap = ZERO
-             else if (u+cc .lt. ZERO) then
+             else if (u+cc < ZERO) then
                 alphap = -alphap
              else
                 alphap = -HALF*alphap
              endif
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 alpha0r = ZERO
                 alpha0e_g = ZERO
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 alpha0r = -alpha0r
                 alpha0e_g = -alpha0e_g
              else
@@ -343,7 +343,7 @@ contains
              qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
              qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
 
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
                 qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + hdt*Im_src(i,j,kc,1,2,QW)
              endif
@@ -354,7 +354,7 @@ contains
           !-------------------------------------------------------------------
           ! minus state on face i + 1
           !-------------------------------------------------------------------
-          if (i .le. ihi1) then
+          if (i <= ihi1) then
 
              ! Set the reference state
              ! This will be the fastest moving state to the right
@@ -396,7 +396,7 @@ contains
              ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 dum = dum - hdt*Ip_src(i,j,kc,1,1,QU)
                 dup = dup - hdt*Ip_src(i,j,kc,1,3,QU)
              endif
@@ -457,26 +457,26 @@ contains
 
              end if
 
-             if (u-cc .gt. ZERO) then
+             if (u-cc > ZERO) then
                 alpham = -alpham
-             else if (u-cc .lt. ZERO) then
+             else if (u-cc < ZERO) then
                 alpham = ZERO
              else
                 alpham = -HALF*alpham
              endif
 
-             if (u+cc .gt. ZERO) then
+             if (u+cc > ZERO) then
                 alphap = -alphap
-             else if (u+cc .lt. ZERO) then
+             else if (u+cc < ZERO) then
                 alphap = ZERO
              else
                 alphap = -HALF*alphap
              endif
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 alpha0r = -alpha0r
                 alpha0e_g = -alpha0e_g
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 alpha0r = ZERO
                 alpha0e_g = ZERO
              else
@@ -517,7 +517,7 @@ contains
              qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
              qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
 
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
                 qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + hdt*Ip_src(i,j,kc,1,2,QW)
              endif
@@ -550,9 +550,9 @@ contains
              ! wave, so no projection is needed.  Since we are not
              ! projecting, the reference state doesn't matter
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 qxp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 qxp(i,j,kc,n) = Im(i,j,kc,1,2,n)
              else
                 qxp(i,j,kc,n) = q(i,j,k3d,n) + HALF*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
@@ -563,9 +563,9 @@ contains
           do i = ilo1-1, ihi1
              u = q(i,j,k3d,QU)
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 qxm(i+1,j,kc,n) = Ip(i,j,kc,1,2,n)
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 qxm(i+1,j,kc,n) = q(i,j,k3d,n)
              else
                 qxm(i+1,j,kc,n) = q(i,j,k3d,n) + HALF*(Ip(i,j,kc,1,2,n) - q(i,j,k3d,n))
@@ -608,7 +608,7 @@ contains
           ! plus state on face j
           !-------------------------------------------------------------------
 
-          if (j .ge. ilo2) then
+          if (j >= ilo2) then
 
              ! Set the reference state
              ! This will be the fastest moving state to the left
@@ -649,7 +649,7 @@ contains
              ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 dvm = dvm - hdt*Im_src(i,j,kc,2,1,QV)
                 dvp = dvp - hdt*Im_src(i,j,kc,2,3,QV)
              endif
@@ -710,26 +710,26 @@ contains
 
              end if
 
-             if (v-cc .gt. ZERO) then
+             if (v-cc > ZERO) then
                 alpham = ZERO
-             else if (v-cc .lt. ZERO) then
+             else if (v-cc < ZERO) then
                 alpham = -alpham
              else
                 alpham = -HALF*alpham
              endif
 
-             if (v+cc .gt. ZERO) then
+             if (v+cc > ZERO) then
                 alphap = ZERO
-             else if (v+cc .lt. ZERO) then
+             else if (v+cc < ZERO) then
                 alphap = -alphap
              else
                 alphap = -HALF*alphap
              endif
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 alpha0r = ZERO
                 alpha0e_g = ZERO
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 alpha0r = -alpha0r
                 alpha0e_g = -alpha0e_g
              else
@@ -769,7 +769,7 @@ contains
              qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
              qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
 
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + hdt*Im_src(i,j,kc,2,2,QU)
                 qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + hdt*Im_src(i,j,kc,2,2,QW)
              endif
@@ -780,7 +780,7 @@ contains
           ! minus state on face j+1
           !-------------------------------------------------------------------
 
-          if (j .le. ihi2) then
+          if (j <= ihi2) then
 
              ! Set the reference state
              ! This will be the fastest moving state to the right
@@ -822,7 +822,7 @@ contains
              ! If we are doing source term tracing, then we add the force
              ! to the velocity here, otherwise we will deal with this
              ! in the trans_X routines
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 dvm = dvm - hdt*Ip_src(i,j,kc,2,1,QV)
                 dvp = dvp - hdt*Ip_src(i,j,kc,2,3,QV)
              endif
@@ -882,26 +882,26 @@ contains
 
              end if
 
-             if (v-cc .gt. ZERO) then
+             if (v-cc > ZERO) then
                 alpham = -alpham
-             else if (v-cc .lt. ZERO) then
+             else if (v-cc < ZERO) then
                 alpham = ZERO
              else
                 alpham = -HALF*alpham
              endif
 
-             if (v+cc .gt. ZERO) then
+             if (v+cc > ZERO) then
                 alphap = -alphap
-             else if (v+cc .lt. ZERO) then
+             else if (v+cc < ZERO) then
                 alphap = ZERO
              else
                 alphap = -HALF*alphap
              endif
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 alpha0r = -alpha0r
                 alpha0e_g = -alpha0e_g
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 alpha0r = ZERO
                 alpha0e_g = ZERO
              else
@@ -942,7 +942,7 @@ contains
              qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
              qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
 
-             if (ppm_trace_sources .eq. 1) then
+             if (ppm_trace_sources == 1) then
                 qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + hdt*Ip_src(i,j,kc,2,2,QU)
                 qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + hdt*Ip_src(i,j,kc,2,2,QW)
              endif
@@ -965,9 +965,9 @@ contains
           do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 qyp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 qyp(i,j,kc,n) = Im(i,j,kc,2,2,n)
              else
                 qyp(i,j,kc,n) = q(i,j,k3d,n) + HALF*(Im(i,j,kc,2,2,n) - q(i,j,k3d,n))
@@ -980,9 +980,9 @@ contains
           do i = ilo1-1, ihi1+1
              v = q(i,j,k3d,QV)
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 qym(i,j+1,kc,n) = Ip(i,j,kc,2,2,n)
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 qym(i,j+1,kc,n) = q(i,j,k3d,n)
              else
                 qym(i,j+1,kc,n) = q(i,j,k3d,n) + HALF*(Ip(i,j,kc,2,2,n) - q(i,j,k3d,n))
@@ -1170,7 +1170,7 @@ contains
           ! If we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_sources .eq. 1) then
+          if (ppm_trace_sources == 1) then
              dwm = dwm - hdt*Im_src(i,j,kc,3,1,QW)
              dwp = dwp - hdt*Im_src(i,j,kc,3,3,QW)
           endif
@@ -1228,24 +1228,24 @@ contains
 
           endif
 
-          if (w-cc .gt. ZERO) then
+          if (w-cc > ZERO) then
              alpham = ZERO
-          else if (w-cc .lt. ZERO) then
+          else if (w-cc < ZERO) then
              alpham = -alpham
           else
              alpham = -HALF*alpham
           endif
-          if (w+cc .gt. ZERO) then
+          if (w+cc > ZERO) then
              alphap = ZERO
-          else if (w+cc .lt. ZERO) then
+          else if (w+cc < ZERO) then
              alphap = -alphap
           else
              alphap = -HALF*alphap
           endif
-          if (w .gt. ZERO) then
+          if (w > ZERO) then
              alpha0r = ZERO
              alpha0e_g = ZERO
-          else if (w .lt. ZERO) then
+          else if (w < ZERO) then
              alpha0r = -alpha0r
              alpha0e_g = -alpha0e_g
           else
@@ -1286,7 +1286,7 @@ contains
           qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
           qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
 
-          if (ppm_trace_sources .eq. 1) then
+          if (ppm_trace_sources == 1) then
              qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + hdt*Im_src(i,j,kc,3,2,QU)
              qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + hdt*Im_src(i,j,kc,3,2,QV)
           endif
@@ -1360,7 +1360,7 @@ contains
           ! If we are doing source term tracing, then we add the force to
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
-          if (ppm_trace_sources .eq. 1) then
+          if (ppm_trace_sources == 1) then
              dwm = dwm - hdt*Ip_src(i,j,km,3,1,QW)
              dwp = dwp - hdt*Ip_src(i,j,km,3,3,QW)
           endif
@@ -1419,24 +1419,24 @@ contains
 
           endif
 
-          if (w-cc .gt. ZERO) then
+          if (w-cc > ZERO) then
              alpham = -alpham
-          else if (w-cc .lt. ZERO) then
+          else if (w-cc < ZERO) then
              alpham = ZERO
           else
              alpham = -HALF*alpham
           endif
-          if (w+cc .gt. ZERO) then
+          if (w+cc > ZERO) then
              alphap = -alphap
-          else if (w+cc .lt. ZERO) then
+          else if (w+cc < ZERO) then
              alphap = ZERO
           else
              alphap = -HALF*alphap
           endif
-          if (w .gt. ZERO) then
+          if (w > ZERO) then
              alpha0r = -alpha0r
              alpha0e_g = -alpha0e_g
-          else if (w .lt. ZERO) then
+          else if (w < ZERO) then
              alpha0r = ZERO
              alpha0e_g = ZERO
           else
@@ -1477,7 +1477,7 @@ contains
           qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
           qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
 
-          if (ppm_trace_sources .eq. 1) then
+          if (ppm_trace_sources == 1) then
              qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + hdt*Ip_src(i,j,km,3,2,QU)
              qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + hdt*Ip_src(i,j,km,3,2,QV)
           endif
@@ -1498,9 +1498,9 @@ contains
              ! Plus state on face kc
              w = q(i,j,k3d,QW)
 
-             if (w .gt. ZERO) then
+             if (w > ZERO) then
                 qzp(i,j,kc,n) = q(i,j,k3d,n)
-             else if (w .lt. ZERO) then
+             else if (w < ZERO) then
                 qzp(i,j,kc,n) = Im(i,j,kc,3,2,n)
              else
                 qzp(i,j,kc,n) = q(i,j,k3d,n) + HALF*(Im(i,j,kc,3,2,n) - q(i,j,k3d,n))
@@ -1509,9 +1509,9 @@ contains
              ! Minus state on face k
              w = q(i,j,k3d-1,QW)
 
-             if (w .gt. ZERO) then
+             if (w > ZERO) then
                 qzm(i,j,kc,n) = Ip(i,j,km,3,2,n)
-             else if (w .lt. ZERO) then
+             else if (w < ZERO) then
                 qzm(i,j,kc,n) = q(i,j,k3d-1,n)
              else
                 qzm(i,j,kc,n) = q(i,j,k3d-1,n) + HALF*(Ip(i,j,km,3,2,n) - q(i,j,k3d-1,n))
