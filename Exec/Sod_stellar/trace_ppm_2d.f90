@@ -22,8 +22,8 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QV, &
          QREINT, QPRES, QTEMP, QFS, QGAME, &
          small_dens, small_pres, small_temp,  &
-         ppm_type, ppm_reference, ppm_trace_sources, ppm_temp_fix, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors, ppm_reference_edge_limit, &
+         ppm_type, ppm_trace_sources, ppm_temp_fix, &
+         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
     use ppm_module, only : ppm
@@ -275,46 +275,28 @@ contains
           !-------------------------------------------------------------------
 
           ! set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u - cc >= ZERO .and. &
-                ppm_reference_edge_limit == 0)) then
-             ! original Castro way -- cc value
-             rho_ref  = rho
-             u_ref    = u
+          ! this will be the fastest moving state to the left --
+          ! this is the method that Miller & Colella and Colella &
+          ! Woodward use
+          rho_ref  = Im(i,j,1,1,QRHO)
+          u_ref    = Im(i,j,1,1,QU)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
-             temp_ref = temp
+          p_ref    = Im(i,j,1,1,QPRES)
+          rhoe_g_ref = Im(i,j,1,1,QREINT)
+          temp_ref = Im(i,j,1,1,QTEMP)
 
-             tau_ref  = tau(i,j)
-
-             gam_ref  = gamc(i,j)
-             
-             game_ref = game
-
+          if (ppm_temp_fix == 3) then
+             ! use the parabolic reconstruction of tau
+             tau_ref = Im_tau(i,j,1,1,1)
           else
-             ! this will be the fastest moving state to the left --
-             ! this is the method that Miller & Colella and Colella &
-             ! Woodward use
-             rho_ref  = Im(i,j,1,1,QRHO)
-             u_ref    = Im(i,j,1,1,QU)
-
-             p_ref    = Im(i,j,1,1,QPRES)
-             rhoe_g_ref = Im(i,j,1,1,QREINT)
-             temp_ref = Im(i,j,1,1,QTEMP)
-
-             if (ppm_temp_fix == 3) then
-                ! use the parabolic reconstruction of tau
-                tau_ref = Im_tau(i,j,1,1,1)
-             else
-                ! use the parabolic reconstruction of rho
-                tau_ref = 1.0d0/Im(i,j,1,1,QRHO)
-             endif
-
-             gam_ref = Im_gc(i,j,1,1,1)
-
-             game_ref = Im(i,j,1,1,QGAME)
+             ! use the parabolic reconstruction of rho
+             tau_ref = 1.0d0/Im(i,j,1,1,QRHO)
           endif
+
+          gam_ref = Im_gc(i,j,1,1,1)
+          
+          game_ref = Im(i,j,1,1,QGAME)
+
 
           rho_ref = max(rho_ref, small_dens)
           p_ref = max(p_ref, small_pres)
@@ -590,15 +572,7 @@ contains
           ! Recall that I already takes the limit of the parabola
           ! in the event that the wave is not moving toward the
           ! interface
-          if (u > ZERO) then
-             if (ppm_reference_edge_limit == 1) then
-                qxp(i,j,QV)     = Im(i,j,1,2,QV)
-             else
-                qxp(i,j,QV) = v
-             endif
-          else ! wave moving toward the interface
-             qxp(i,j,QV) = Im(i,j,1,2,QV)
-          endif
+          qxp(i,j,QV) = Im(i,j,1,2,QV)
 
           if (ppm_trace_sources == 1) then
              qxp(i,j,QV) = qxp(i,j,QV) + halfdt*Im_src(i,j,1,2,QV)
@@ -611,47 +585,28 @@ contains
           !-------------------------------------------------------------------
 
           ! set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. u + cc <= ZERO .and. &
-                ppm_reference_edge_limit == 0) ) then
-             ! original Castro way -- cc values
-             rho_ref  = rho
-             u_ref    = u
-             v_ref    = v
+          ! this will be the fastest moving state to the right
+          rho_ref  = Ip(i,j,1,3,QRHO)
+          u_ref    = Ip(i,j,1,3,QU)
+          v_ref    = Ip(i,j,1,3,QV)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
+          p_ref    = Ip(i,j,1,3,QPRES)
+          rhoe_g_ref = Ip(i,j,1,3,QREINT)
 
-             temp_ref = temp
+          temp_ref = Ip(i,j,1,3,QTEMP)
 
-             tau_ref  = tau(i,j)
-
-             gam_ref  = gamc(i,j)
-
-             game_ref = game
+          if (ppm_temp_fix == 3) then
+             ! use the parabolic reconstruction of tau
+             tau_ref  = Ip_tau(i,j,1,3,1)
           else
-             ! this will be the fastest moving state to the right
-             rho_ref  = Ip(i,j,1,3,QRHO)
-             u_ref    = Ip(i,j,1,3,QU)
-             v_ref    = Ip(i,j,1,3,QV)
-
-             p_ref    = Ip(i,j,1,3,QPRES)
-             rhoe_g_ref = Ip(i,j,1,3,QREINT)
-
-             temp_ref = Ip(i,j,1,3,QTEMP)
-
-             if (ppm_temp_fix == 3) then
-                ! use the parabolic reconstruction of tau
-                tau_ref  = Ip_tau(i,j,1,3,1)
-             else
-                ! use the parabolic reconstruction of rho
-                tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
-             endif
-
-             gam_ref = Ip_gc(i,j,1,3,1)
-
-             game_ref = Ip(i,j,1,3,QGAME)
+             ! use the parabolic reconstruction of rho
+             tau_ref  = 1.0d0/Ip(i,j,1,3,QRHO)
           endif
+          
+          gam_ref = Ip_gc(i,j,1,3,1)
+          
+          game_ref = Ip(i,j,1,3,QGAME)
+
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -919,16 +874,7 @@ contains
           ! we don't need a reference state.  We only care about
           ! the state traced under the middle wave
           if (i .le. ihi1) then
-             if (u < ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
-                else
-                   qxm(i+1,j,QV) = v
-                endif
-             else ! wave moving toward interface
-                qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
-             endif
-
+             qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
 
              if (ppm_trace_sources == 1) then
                 qxm(i+1,j,QV) = qxm(i+1,j,QV) + halfdt*Ip_src(i,j,1,2,QV)
@@ -1086,37 +1032,20 @@ contains
           !-------------------------------------------------------------------
 
           ! set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v - cc >= ZERO .and. &
-                ppm_reference_edge_limit == 0)) then
-             ! original Castro way -- cc value
-             rho_ref  = rho
-             v_ref    = v
-             u_ref    = u
+          ! this will be the fastest moving state to the left
+          rho_ref  = Im(i,j,2,1,QRHO)
+          v_ref    = Im(i,j,2,1,QV)
+          u_ref    = Im(i,j,2,1,QU)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
+          p_ref    = Im(i,j,2,1,QPRES)
+          rhoe_g_ref = Im(i,j,2,1,QREINT)
 
-             tau_ref  = ONE/rho
+          tau_ref  = ONE/Im(i,j,2,1,QRHO)
 
-             gam_ref = gamc(i,j)
+          gam_ref  = Im_gc(i,j,2,1,1)
 
-             game_ref = game
-          else
-             ! this will be the fastest moving state to the left
-             rho_ref  = Im(i,j,2,1,QRHO)
-             v_ref    = Im(i,j,2,1,QV)
-             u_ref    = Im(i,j,2,1,QU)
+          game_ref  = Im(i,j,2,1,QGAME)
 
-             p_ref    = Im(i,j,2,1,QPRES)
-             rhoe_g_ref = Im(i,j,2,1,QREINT)
-
-             tau_ref  = ONE/Im(i,j,2,1,QRHO)
-
-             gam_ref  = Im_gc(i,j,2,1,1)
-
-             game_ref  = Im(i,j,2,1,QGAME)
-          endif
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -1269,15 +1198,7 @@ contains
              ! transverse velocity -- there is no projection here, so
              ! we don't need a reference state.  We only care about
              ! the state traced under the middle wave
-             if (v > ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qyp(i,j,QU)    = Im(i,j,2,2,QU)
-                else
-                   qyp(i,j,QU)    = u
-                endif
-             else ! wave moving toward the interface
-                qyp(i,j,QU)     = Im(i,j,2,2,QU)
-             endif
+             qyp(i,j,QU)     = Im(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
                 qyp(i,j,QU) = qyp(i,j,QU) + halfdt*Im_src(i,j,2,2,QU)
@@ -1290,38 +1211,20 @@ contains
           !-------------------------------------------------------------------
 
           ! set the reference state
-          if (ppm_reference == 0 .or. &
-               (ppm_reference == 1 .and. v + cc <= ZERO .and. &
-                ppm_reference_edge_limit == 0) ) then
-             ! original Castro way -- cc value
-             rho_ref  = rho
-             v_ref    = v
-             u_ref    = u
+          ! this will be the fastest moving state to the right
+          rho_ref  = Ip(i,j,2,3,QRHO)
+          v_ref    = Ip(i,j,2,3,QV)
+          u_ref    = Ip(i,j,2,3,QU)
 
-             p_ref    = p
-             rhoe_g_ref = rhoe_g
+          p_ref    = Ip(i,j,2,3,QPRES)
+          rhoe_g_ref = Ip(i,j,2,3,QREINT)
 
-             tau_ref  = ONE/rho
+          tau_ref  = ONE/Ip(i,j,2,3,QRHO)
 
-             gam_ref = gamc(i,j)
+          gam_ref  = Ip_gc(i,j,2,3,1)
 
-             game_ref = game
+          game_ref = Ip(i,j,2,3,QGAME)
 
-          else
-             ! this will be the fastest moving state to the right
-             rho_ref  = Ip(i,j,2,3,QRHO)
-             v_ref    = Ip(i,j,2,3,QV)
-             u_ref    = Ip(i,j,2,3,QU)
-
-             p_ref    = Ip(i,j,2,3,QPRES)
-             rhoe_g_ref = Ip(i,j,2,3,QREINT)
-
-             tau_ref  = ONE/Ip(i,j,2,3,QRHO)
-
-             gam_ref  = Ip_gc(i,j,2,3,1)
-
-             game_ref = Ip(i,j,2,3,QGAME)
-          endif
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -1471,15 +1374,7 @@ contains
              ! transverse velocity -- there is no projection here, so
              ! we don't need a reference state.  We only care about
              ! the state traced under the middle wave
-             if (v < ZERO) then
-                if (ppm_reference_edge_limit == 1) then
-                   qym(i,j+1,QU) = Ip(i,j,2,2,QU)
-                else
-                   qym(i,j+1,QU) = u
-                endif
-             else
-                qym(i,j+1,QU)   = Ip(i,j,2,2,QU)
-             endif
+             qym(i,j+1,QU)   = Ip(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
                 qym(i,j+1,QU) = qym(i,j+1,QU) + halfdt*Ip_src(i,j,2,2,QU)
