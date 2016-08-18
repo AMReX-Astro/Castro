@@ -2,6 +2,15 @@
 
 \section{Introduction to Runtime Parameters}
 
+Castro has 2 sets of runtime parameters---those controlled by
+\cpp\ and those controlled by Fortran.  The \cpp\ parameters are set
+in the {\tt inputs} file and managed by the \boxlib\ {\tt ParmParse}
+class.  For \castro-specific parameters, we list the runtime
+parameters in a file {\tt \_cpp\_parameters} and generate the
+\cpp\ code and headers using the {\tt mk\_params.sh} script---note
+this script needs to be run every time the {\tt \_cpp\_parameters}
+file is updated.
+
 The behavior of the network and EOS are controlled by many runtime
 parameters.  These parameters are defined in plain-text files {\tt
   \_parameters} located in the different directories that hold the
@@ -10,13 +19,8 @@ system, {\tt findparams.py}, locates all of the {\tt \_parameters}
 files that are needed for the given choice of network, integrator, and
 EOS, and assembles all of the runtime parameters into a module named
 {\tt extern\_probin\_module} (using the {\tt write\_probin.py}
-script).  
-
-Note: depending on the application code, the filename of the source 
-file that contains the {\tt extern\_probin\_module} may differ
-(in \castro\ it is {\tt extern.f90}, and uses the {\tt \&extern} namelist;
-in \maestro\ it is in the main {\tt probin.f90} and uses the same namelist
-as general \maestro\ runtime parameters).
+script).  The parameters are set in your {\tt probin} file in the {\tt
+  \&extern} namelist.
 
 Parameter definitions take the form of:
 \begin{verbatim}
@@ -28,8 +32,9 @@ define the same parameter, but with different defaults, the version of
 the parameter with the highest priority takes precedence.  This allows
 specific implementations to override the general parameter defaults.
 
-The documentation below is automatically generated, using the comments
-in the {\tt \_parameters} files.
+The documentation below for the \castro\ \cpp\ parameters is
+automatically generated, using the comments in the {\tt \_cpp\_parameters}
+file.
 
 
 
@@ -43,6 +48,8 @@ The following runtime parameters have been removed for \castro.
   The default was switched to flattening before the integration,
   which is more consistent with the original PPM methodology.  This
   parameter was removed since the variation enabled by this parameter
-  was not that great.
+  was not that great. 
+
+  (removed in commit: {\tt 9cab697268997714919de16db1ca7e77a95c4f98})
 \end{itemize}
 
