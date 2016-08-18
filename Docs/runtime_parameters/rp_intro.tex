@@ -51,5 +51,17 @@ The following runtime parameters have been removed for \castro.
   was not that great. 
 
   (removed in commit: {\tt 9cab697268997714919de16db1ca7e77a95c4f98})
+
+
+\item {\tt castro.ppm\_reference} and {\tt
+  castro.ppm\_reference\_edge\_limit} : these parameters controlled
+  whether we use the integral under the parabola for the fastest wave
+  moving toward the interface for the reference state and whether in
+  the case that the wave is moving away from the interface we use the
+  cell-center value or the limit of the parabola on the interface.
+  These were removed because there is little reason to not use the
+  reference state.
+
+  (removed in commit: {\tt 213f4ffc53463141084551c7be4b37a2720229aa})
 \end{itemize}
 
