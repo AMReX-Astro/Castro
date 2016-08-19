@@ -238,6 +238,11 @@ contains
        ! *m are the jumps carried by u-c
        ! *p are the jumps carried by u+c
 
+       ! note, for radiation, we use ptot here.  This is
+       !    ptot = pgas + lambda Er
+       ! (where lambda is the flux limiter)
+       ! do we can switch back and forth between dptot and dp as needed
+
        dum    = u_ref    - Im(i,1,QU)
        dptotm = ptot_ref - Im(i,1,qptot)
 
