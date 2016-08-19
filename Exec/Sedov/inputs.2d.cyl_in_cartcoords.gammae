@@ -54,4 +54,4 @@ amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords
+amr.probin_file = probin.2d.cyl_in_cartcoords.gammae
