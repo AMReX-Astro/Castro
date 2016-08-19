@@ -386,7 +386,7 @@ contains
           ! q_s = q_ref - sum (l . dq) r
           if (i >= ilo1) then
 
-             if (ppm_tau_in_tracing == 0) then
+             if (ppm_predict_gammae == 0) then
                 qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qxp(i,j,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
                 qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
@@ -396,16 +396,10 @@ contains
                 qxp(i,j,QRHO)   = ONE/tau_s
 
                 qxp(i,j,QU)     = u_ref + (alpham - alphap)*Clag_ev
-
                 qxp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
-                if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
-                   qxp(i,j,QREINT) = e_s/tau_s
-                else
-                   qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - ONE)
-                endif
+                qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - ONE)
              end if
 
 
@@ -498,7 +492,9 @@ contains
              tau_ev  = tau_ref
           endif
 
-          if (ppm_tau_in_tracing == 0) then
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e) eigensystem
 
              ! these are analogous to the beta's from the original
              ! PPM paper (except we work with rho instead of tau).
@@ -510,27 +506,19 @@ contains
 
           else
 
-             ! (tau, u, p, e) eigensystem
-             ! or
              ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
-             de = (rhoe_g_ref/rho_ref - Ip(i,j,1,2,QREINT)/Ip(i,j,1,2,QRHO))
-             dge = game_ref - Ip(i,j,1,2,QGAME)
-
              alpham = HALF*( dum - dptotm/Clag_ev)/Clag_ev
              alphap = HALF*(-dup - dptotp/Clag_ev)/Clag_ev
              alpha0r = dtau + dptot/Clag_ev**2
 
-             if (ppm_predict_gammae == 0) then
-                alpha0e_g = de - dptot*p_ev/Clag_ev**2
-             else
-                gfactor = (game - ONE)*(game - gam)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
-             endif
+             dge = game_ref - Ip(i,j,1,2,QGAME)
+             gfactor = (game - ONE)*(game - gam)
+             alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
 
@@ -565,7 +553,7 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (i <= ihi1) then
-             if (ppm_tau_in_tracing == 0) then
+             if (ppm_predict_gammae == 0) then
 
                 qxm(i+1,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
@@ -576,16 +564,10 @@ contains
                 qxm(i+1,j,QRHO)   = ONE/tau_s
 
                 qxm(i+1,j,QU)     = u_ref + (alpham - alphap)*Clag_ev
-
                 qxm(i+1,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
-                if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
-                   qxm(i+1,j,QREINT) = e_s/tau_s
-                else
-                   qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - ONE)
-                endif
+                qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - ONE)
 
              end if
 
@@ -779,7 +761,9 @@ contains
           endif
 
 
-          if (ppm_tau_in_tracing == 0) then
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e)) eigensystem
 
              ! these are analogous to the beta's from the original PPM
              ! paper (except we work with rho instead of tau).  This
@@ -791,27 +775,19 @@ contains
 
           else
 
-             ! (tau, u, p, e) eigensystem
-             ! or
              ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
-             de = (rhoe_g_ref/rho_ref - Im(i,j,2,2,QREINT)/Im(i,j,2,2,QRHO))
-             dge = game_ref - Im(i,j,2,2,QGAME)
-
              alpham = HALF*( dvm - dptotm/Clag_ev)/Clag_ev
              alphap = HALF*(-dvp - dptotp/Clag_ev)/Clag_ev
              alpha0r = dtau + dptot/Clag_ev**2
 
-             if (ppm_predict_gammae == 0) then
-                alpha0e_g = de - dptot*p_ev/Clag_ev**2
-             else
-                gfactor = (game - ONE)*(game - gam)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
-             endif
+             dge = game_ref - Im(i,j,2,2,QGAME)
+             gfactor = (game - ONE)*(game - gam)
+             alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
 
@@ -845,7 +821,7 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j >= ilo2) then
-             if (ppm_tau_in_tracing == 0) then
+             if (ppm_predict_gammae == 0) then
                 qyp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qyp(i,j,QV)     = v_ref + (alphap - alpham)*cc_ev/rho_ev
                 qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
@@ -856,16 +832,10 @@ contains
                 qyp(i,j,QRHO)   = ONE/tau_s
 
                 qyp(i,j,QV)     = v_ref + (alpham - alphap)*Clag_ev
-
                 qyp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
-                if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
-                   qyp(i,j,QREINT) = e_s/tau_s
-                else
-                   qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
-                endif
+                qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
 
              end if
 
@@ -952,7 +922,9 @@ contains
              p_ev    = p_ref
           endif
 
-          if (ppm_tau_in_tracing == 0) then
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e) eigensystem
 
              ! these are analogous to the beta's from the original PPM
              ! paper.  This is simply (l . dq), where dq = qref - I(q)
@@ -963,27 +935,19 @@ contains
 
           else
 
-             ! (tau, u, p, e) eigensystem
-             ! or
              ! (tau, u, p, game) eigensystem
 
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
 
-             de = (rhoe_g_ref/rho_ref - Ip(i,j,2,2,QREINT)/Ip(i,j,2,2,QRHO))
-             dge = game_ref - Ip(i,j,2,2,QGAME)
-
              alpham = HALF*( dvm - dptotm/Clag_ev)/Clag_ev
              alphap = HALF*(-dvp - dptotp/Clag_ev)/Clag_ev
              alpha0r = dtau + dptot/Clag_ev**2
 
-             if (ppm_predict_gammae == 0) then
-                alpha0e_g = de - dptot*p_ev/Clag_ev**2
-             else
-                gfactor = (game - ONE)*(game - gam)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
-             endif
+             dge = game_ref - Ip(i,j,2,2,QGAME)
+             gfactor = (game - ONE)*(game - gam)
+             alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
 
@@ -1017,7 +981,7 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j <= ihi2) then
-             if (ppm_tau_in_tracing == 0) then
+             if (ppm_predict_gammae == 0) then
                 qym(i,j+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qym(i,j+1,QV)     = v_ref + (alphap - alpham)*cc_ev/rho_ev
                 qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
@@ -1025,17 +989,12 @@ contains
              else
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qym(i,j+1,QRHO)   = ONE/tau_s
-                qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
 
+                qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
                 qym(i,j+1,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
 
-                if (ppm_predict_gammae == 0) then
-                   e_s = rhoe_g_ref/rho_ref + (alpha0e_g - p_ev*alpham -p_ev*alphap)
-                   qym(i,j+1,QREINT) = e_s/tau_s
-                else
-                   qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
-                endif
+                qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
 
              end if
 
