@@ -1277,17 +1277,19 @@ contains
           game = q(i,j,k3d-1,QGAME)
 
           ! Set the reference state
-          rho_ref  = rho
-          w_ref    = w
+          ! This will be the fastest moving state to the right
+          rho_ref  = Ip(i,j,km,3,3,QRHO)
+          w_ref    = Ip(i,j,km,3,3,QW)
 
-          p_ref    = p
-          rhoe_g_ref = rhoe_g
+          p_ref    = Ip(i,j,km,3,3,QPRES)
+          rhoe_g_ref = Ip(i,j,km,3,3,QREINT)
 
-          tau_ref  = ONE/rho
+          tau_ref  = ONE/Ip(i,j,km,3,3,QRHO)
 
-          gam_ref  = gam
+          gam_ref  = Ip_gc(i,j,km,3,3,1)
 
-          game_ref = game
+          game_ref = Ip(i,j,km,3,3,QGAME)
+
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
