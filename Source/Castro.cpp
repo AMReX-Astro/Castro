@@ -330,18 +330,6 @@ Castro::read_params ()
         BoxLib::Error();
       }
 
-    if (ppm_tau_in_tracing == 1 && BL_SPACEDIM == 1)
-      {
-        std::cerr << "ppm_tau_in_tracing == 1 not implemented in 1-d \n";
-        BoxLib::Error();
-      }
-
-    if (ppm_predict_gammae == 1 && ppm_tau_in_tracing != 1)
-      {
-	std::cerr << "ppm_predict_gammae == 1 needs ppm_tau_in_tracing == 1\n";
-	BoxLib::Error();
-      }
-
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";

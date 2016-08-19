@@ -1345,7 +1345,7 @@ contains
              tau_ev  = tau_ref
           endif
 
-          if (ppm_tau_in_tracing == 0) then
+          if (ppm_predict_gammae == 0) then
 
              ! (rho, u, p, (rho e) eigensystem
 
