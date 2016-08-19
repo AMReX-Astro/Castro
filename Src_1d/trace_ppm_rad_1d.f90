@@ -103,12 +103,12 @@ contains
     double precision, allocatable :: Im_src(:,:,:)
 
 
-    fix_mass_flux_lo = (fix_mass_flux .eq. 1) .and. (physbc_lo(1) .eq. Outflow) &
-         .and. (ilo .eq. domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux .eq. 1) .and. (physbc_hi(1) .eq. Outflow) &
-         .and. (ihi .eq. domhi(1))
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
+         .and. (ilo == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
+         .and. (ihi == domhi(1))
 
-    if (ppm_type .eq. 0) then
+    if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: RadHydro_1d.f90 :: trace_ppm_rad")
     end if
@@ -268,26 +268,26 @@ contains
        alpha0e_g = drhoe_g - dptot*h_g  ! note h_g has a 1/c**2 in it
        alphar(:) = der(:) - dptot/csq*hr
 
-       if (u-cc .gt. ZERO) then
+       if (u-cc > ZERO) then
           alpham = ZERO
-       else if (u-cc .lt. ZERO) then
+       else if (u-cc < ZERO) then
           alpham = -alpham
        else
           alpham = -HALF*alpham
        endif
-       if (u+cc .gt. ZERO) then
+       if (u+cc > ZERO) then
           alphap = ZERO
-       else if (u+cc .lt. ZERO) then
+       else if (u+cc < ZERO) then
           alphap = -alphap
        else
           alphap = -HALF*alphap
        endif
-       if (u .gt. ZERO) then
+       if (u > ZERO) then
           alpha0r = ZERO
           alpha0e = ZERO
           alpha0e_g = ZERO
           alphar(:) = ZERO
-       else if (u .lt. ZERO) then
+       else if (u < ZERO) then
           alpha0r = -alpha0r
           alpha0e = -alpha0e
           alpha0e_g = -alpha0e_g
@@ -301,7 +301,7 @@ contains
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
-       if (i .ge. ilo) then
+       if (i >= ilo) then
           qxp(i,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxp(i,QU)     = u_ref + (alphap - alpham)*cc/rho
           qxp(i,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -396,26 +396,26 @@ contains
        alpha0e_g = drhoe_g - dptot*h_g
        alphar(:) = der(:)- dptot/csq*hr
 
-       if (u-cc .gt. ZERO) then
+       if (u-cc > ZERO) then
           alpham = -alpham
-       else if (u-cc .lt. ZERO) then
+       else if (u-cc < ZERO) then
           alpham = ZERO
        else
           alpham = -HALF*alpham
        endif
-       if (u+cc .gt. ZERO) then
+       if (u+cc > ZERO) then
           alphap = -alphap
-       else if (u+cc .lt. ZERO) then
+       else if (u+cc < ZERO) then
           alphap = ZERO
        else
           alphap = -HALF*alphap
        endif
-       if (u .gt. ZERO) then
+       if (u > ZERO) then
           alpha0r = -alpha0r
           alpha0e = -alpha0e
           alpha0e_g = -alpha0e_g
           alphar(:) = -alphar(:)
-       else if (u .lt. ZERO) then
+       else if (u < ZERO) then
           alpha0r = ZERO
           alpha0e = ZERO
           alpha0e_g = ZERO
@@ -429,7 +429,7 @@ contains
 
        ! the final interface states are just
        ! q_s = q_ref - sum (l . dq) r
-       if (i .le. ihi) then
+       if (i <= ihi) then
           qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
           qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc/rho
           qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -478,7 +478,7 @@ contains
        ! geometry source terms
        !----------------------------------------------------------------------
 
-       if(dloga(i).ne.0)then
+       if (dloga(i) /= 0) then
           courn = dtdx*(cc+abs(u))
           eta = (ONE-courn)/(cc*dt*abs(dloga(i)))
           dlogatmp = min(eta,ONE)*dloga(i)
@@ -487,7 +487,7 @@ contains
           source = sourcp*h_g
           sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
 
-          if (i .le. ihi) then
+          if (i <= ihi) then
              qxm(i+1,QRHO  ) = qxm(i+1,QRHO  ) + sourcr
              qxm(i+1,QRHO  ) = max(small_dens, qxm(i+1,QRHO))
              qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + sourcp
@@ -497,7 +497,7 @@ contains
              qxm(i+1,qptot) = qxm(i+1,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
              qxm(i+1,qreitot) = sum(qxm(i+1,qrad:qradhi))  + qxm(i+1,QREINT)
           end if
-          if (i .ge. ilo) then
+          if (i >= ilo) then
              qxp(i  ,QRHO  ) = qxp(i  ,QRHO  ) + sourcr
              qxp(i  ,QRHO  ) = max(small_dens,qxp(i,QRHO))
              qxp(i  ,QPRES ) = qxp(i  ,QPRES ) + sourcp
@@ -555,10 +555,10 @@ contains
           ! wave, so no projection is needed.  Since we are not
           ! projecting, the reference state doesn't matter
 
-          if (u .gt. ZERO) then
+          if (u > ZERO) then
              qxp(i,n) = q(i,n)    ! we might want to change this to
                                   ! the limit of the parabola
-          else if (u .lt. ZERO) then
+          else if (u < ZERO) then
              qxp(i,n) = Im(i,2,n)
           else
              qxp(i,n) = q(i,n) + HALF*(Im(i,2,n) - q(i,n))
@@ -569,9 +569,9 @@ contains
        do i = ilo-1, ihi
           u = q(i,QU)
 
-          if (u .gt. ZERO) then
+          if (u > ZERO) then
              qxm(i+1,n) = Ip(i,2,n)
-          else if (u .lt. ZERO) then
+          else if (u < ZERO) then
              qxm(i+1,n) = q(i,n)
           else
              qxm(i+1,n) = q(i,n) + HALF*(Ip(i,2,n) - q(i,n))

@@ -293,26 +293,26 @@ contains
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
-          if (u-cc .gt. ZERO) then
+          if (u-cc > ZERO) then
              alpham = ZERO
-          else if (u-cc .lt. ZERO) then
+          else if (u-cc < ZERO) then
              alpham = -alpham
           else
              alpham = -HALF*alpham
           endif
-          if (u+cc .gt. ZERO) then
+          if (u+cc > ZERO) then
              alphap = ZERO
-          else if (u+cc .lt. ZERO) then
+          else if (u+cc < ZERO) then
              alphap = -alphap
           else
              alphap = -HALF*alphap
           endif
-          if (u .gt. ZERO) then
+          if (u > ZERO) then
              alpha0r = ZERO
              alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
-          else if (u .lt. ZERO) then
+          else if (u < ZERO) then
              alpha0r = -alpha0r
              alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
@@ -326,7 +326,7 @@ contains
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
-          if (i .ge. ilo1) then
+          if (i >= ilo1) then
              qxp(i,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
              qxp(i,j,QU)     = u_ref + (alphap - alpham)*cc/rho
              qxp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -425,26 +425,26 @@ contains
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
-          if (u-cc .gt. ZERO) then
+          if (u-cc > ZERO) then
              alpham = -alpham
-          else if (u-cc .lt. ZERO) then
+          else if (u-cc < ZERO) then
              alpham = ZERO
           else
              alpham = -HALF*alpham
           endif
-          if (u+cc .gt. ZERO) then
+          if (u+cc > ZERO) then
              alphap = -alphap
-          else if (u+cc .lt. ZERO) then
+          else if (u+cc < ZERO) then
              alphap = ZERO
           else
              alphap = -HALF*alphap
           endif
-          if (u .gt. ZERO) then
+          if (u > ZERO) then
              alpha0r = -alpha0r
              alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
-          else if (u .lt. ZERO) then
+          else if (u < ZERO) then
              alpha0r = ZERO
              alpha0e = ZERO
              alpha0e_g = ZERO
@@ -458,7 +458,7 @@ contains
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
-          if (i .le. ihi1) then
+          if (i <= ihi1) then
              qxm(i+1,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,j,QU) = u_ref + (alphap - alpham)*cc/rho
              qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -503,7 +503,7 @@ contains
           ! geometry source terms
           !-------------------------------------------------------------------
 
-          if(dloga(i,j).ne.0)then
+          if (dloga(i,j) /= 0) then
              courn = dtdx*(cc+abs(u))
              eta = (ONE-courn)/(cc*dt*abs(dloga(i,j)))
              dlogatmp = min(eta,ONE)*dloga(i,j)
@@ -511,7 +511,7 @@ contains
              sourcp = sourcr*cgassq
              source = sourcr*h_g*csq
              sourcer(:) = -HALF*dt*dlogatmp*u*(lam0(:)+ONE)*er(:)
-             if (i .le. ihi1) then
+             if (i <= ihi1) then
                 qxm(i+1,j,QRHO) = qxm(i+1,j,QRHO) + sourcr
                 qxm(i+1,j,QRHO) = max(qxm(i+1,j,QRHO),small_dens)
                 qxm(i+1,j,QPRES) = qxm(i+1,j,QPRES) + sourcp
@@ -521,7 +521,7 @@ contains
                 qxm(i+1,j,qptot) = qxm(i+1,j,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
                 qxm(i+1,j,qreitot) = sum(qxm(i+1,j,qrad:qradhi))  + qxm(i+1,j,QREINT)
              end if
-             if (i .ge. ilo1) then
+             if (i >= ilo1) then
                 qxp(i,j,QRHO) = qxp(i,j,QRHO) + sourcr
                 qxp(i,j,QRHO) = max(qxp(i,j,QRHO),small_dens)
                 qxp(i,j,QPRES) = qxp(i,j,QPRES) + sourcp
@@ -559,10 +559,10 @@ contains
              ! wave, so no projection is needed.  Since we are not
              ! projecting, the reference state doesn't matter.
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 qxp(i,j,n) = q(i,j,n)    ! we might want to change this to
                                          ! the limit of the parabola
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 qxp(i,j,n) = Im(i,j,1,2,n)
              else
                 qxp(i,j,n) = q(i,j,n) + HALF*(Im(i,j,1,2,n) - q(i,j,n))
@@ -573,9 +573,9 @@ contains
           do i = ilo1-1, ihi1
              u = q(i,j,QU)
 
-             if (u .gt. ZERO) then
+             if (u > ZERO) then
                 qxm(i+1,j,n) = Ip(i,j,1,2,n)
-             else if (u .lt. ZERO) then
+             else if (u < ZERO) then
                 qxm(i+1,j,n) = q(i,j,n)
              else
                 qxm(i+1,j,n) = q(i,j,n) + HALF*(Ip(i,j,1,2,n) - q(i,j,n))
@@ -673,27 +673,27 @@ contains
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
-          if (v-cc .gt. ZERO) then
+          if (v-cc > ZERO) then
              alpham = ZERO
-          else if (v-cc .lt. ZERO) then
+          else if (v-cc < ZERO) then
              alpham = -alpham
           else
              alpham = -HALF*alpham
           endif
-          if (v+cc .gt. ZERO) then
+          if (v+cc > ZERO) then
              alphap = ZERO
-          else if (v+cc .lt. ZERO) then
+          else if (v+cc < ZERO) then
              alphap = -alphap
           else
              alphap = -HALF*alphap
           endif
 
-          if (v .gt. ZERO) then
+          if (v > ZERO) then
              alpha0r = ZERO
              alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
-          else if (v .lt. ZERO) then
+          else if (v < ZERO) then
              alpha0r = -alpha0r
              alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
@@ -707,7 +707,7 @@ contains
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
-          if (j .ge. ilo2) then
+          if (j >= ilo2) then
              qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0r
              qyp(i,j,QV) = v_ref + (alphap - alpham)*cc/rho
              qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -800,26 +800,26 @@ contains
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
-          if (v-cc .gt. ZERO) then
+          if (v-cc > ZERO) then
              alpham = -alpham
-          else if (v-cc .lt. ZERO) then
+          else if (v-cc < ZERO) then
              alpham = ZERO
           else
              alpham = -HALF*alpham
           endif
-          if (v+cc .gt. ZERO) then
+          if (v+cc > ZERO) then
              alphap = -alphap
-          else if (v+cc .lt. ZERO) then
+          else if (v+cc < ZERO) then
              alphap = ZERO
           else
              alphap = -HALF*alphap
           endif
-          if (v .gt. ZERO) then
+          if (v > ZERO) then
              alpha0r = -alpha0r
              alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
-          else if (v .lt. ZERO) then
+          else if (v < ZERO) then
              alpha0r = ZERO
              alpha0e = ZERO
              alpha0e_g = ZERO
@@ -833,7 +833,7 @@ contains
 
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
-          if (j .le. ihi2) then
+          if (j <= ihi2) then
              qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0r
              qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
              qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
@@ -890,9 +890,9 @@ contains
           do j = ilo2, ihi2+1
              v = q(i,j,QV)
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 qyp(i,j,n) = q(i,j,n)
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 qyp(i,j,n) = Im(i,j,2,2,n)
              else
                 qyp(i,j,n) = q(i,j,n) + HALF*(Im(i,j,2,2,n) - q(i,j,n))
@@ -903,9 +903,9 @@ contains
           do j = ilo2-1, ihi2
              v = q(i,j,QV)
 
-             if (v .gt. ZERO) then
+             if (v > ZERO) then
                 qym(i,j+1,n) = Ip(i,j,2,2,n)
-             else if (v .lt. ZERO) then
+             else if (v < ZERO) then
                 qym(i,j+1,n) = q(i,j,n)
              else
                 qym(i,j+1,n) = q(i,j,n) + HALF*(Ip(i,j,2,2,n) - q(i,j,n))
