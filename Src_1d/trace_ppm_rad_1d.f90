@@ -19,7 +19,7 @@ contains
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
-         ppm_tau_in_tracing, ppm_reference_eigenvectors, &
+         ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -112,10 +112,6 @@ contains
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: RadHydro_1d.f90 :: trace_ppm_rad")
     end if
-
-    if (ppm_tau_in_tracing == 1) then
-       call bl_error("ERROR: ppm_tau_in_tracing not implemented with radiation")
-    endif
 
     if (ppm_predict_gammae == 1) then
        call bl_error("ERROR: ppm_predict_gammae not implemented with radiation")
