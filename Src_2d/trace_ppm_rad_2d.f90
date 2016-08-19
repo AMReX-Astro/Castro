@@ -84,7 +84,6 @@ contains
     double precision :: ptot, rhoe, htot
 
     double precision :: drho, dptot, drhoe_g
-    double precision :: drhoe
     double precision :: dup, dvp, dptotp
     double precision :: dum, dvm, dptotm
 
@@ -93,7 +92,7 @@ contains
 
     double precision :: cc_ref, csq_ref, Clag_ref
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g, alpha0e
+    double precision :: alpham, alphap, alpha0r, alpha0e_g
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
     double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
@@ -267,7 +266,6 @@ contains
 
           drho    = rho_ref    - Im(i,j,1,2,QRHO)
           dptot   = ptot_ref   - Im(i,j,1,2,qptot)
-          drhoe   = rhoe_ref   - Im(i,j,1,2,qreitot)
           drhoe_g = rhoe_g_ref - Im(i,j,1,2,QREINT)
           der(:)  = er_ref(:)  - Im(i,j,1,2,qrad:qradhi)
 
@@ -289,7 +287,6 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*htot
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
@@ -309,17 +306,14 @@ contains
           endif
           if (u > ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
           else if (u < ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
              alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
@@ -400,7 +394,6 @@ contains
 
           drho    = rho_ref    - Ip(i,j,1,2,QRHO)
           dptot   = ptot_ref   - Ip(i,j,1,2,qptot)
-          drhoe   = rhoe_ref   - Ip(i,j,1,2,qreitot)
           drhoe_g = rhoe_g_ref - Ip(i,j,1,2,QREINT)
           der(:)  = er_ref(:)  - Ip(i,j,1,2,qrad:qradhi)
 
@@ -421,7 +414,6 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*htot
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
@@ -441,17 +433,14 @@ contains
           endif
           if (u > ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else if (u < ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
              alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
@@ -648,7 +637,6 @@ contains
 
           drho    = rho_ref    - Im(i,j,2,2,QRHO)
           dptot   = ptot_ref   - Im(i,j,2,2,qptot)
-          drhoe   = rhoe_ref   - Im(i,j,2,2,qreitot)
           drhoe_g = rhoe_g_ref - Im(i,j,2,2,QREINT)
           der(:)  = er_ref(:)  - Im(i,j,2,2,qrad:qradhi)
 
@@ -669,7 +657,6 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*htot
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:) - dptot/csq*hr
 
@@ -690,17 +677,14 @@ contains
 
           if (v > ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
           else if (v < ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
              alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
@@ -776,7 +760,6 @@ contains
 
           drho    = rho_ref    - Ip(i,j,2,2,QRHO)
           dptot   = ptot_ref   - Ip(i,j,2,2,qptot)
-          drhoe   = rhoe_ref   - Ip(i,j,2,2,qreitot)
           drhoe_g = rhoe_g_ref - Ip(i,j,2,2,QREINT)
           der(:)  = er_ref(:)  - Ip(i,j,2,2,qrad:qradhi)
 
@@ -796,7 +779,6 @@ contains
           alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
           alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
           alpha0r = drho - dptot/csq
-          alpha0e = drhoe - dptot*htot
           alpha0e_g = drhoe_g - dptot*h_g
           alphar(:) = der(:)- dptot/csq*hr
 
@@ -816,17 +798,14 @@ contains
           endif
           if (v > ZERO) then
              alpha0r = -alpha0r
-             alpha0e = -alpha0e
              alpha0e_g = -alpha0e_g
              alphar(:) = -alphar(:)
           else if (v < ZERO) then
              alpha0r = ZERO
-             alpha0e = ZERO
              alpha0e_g = ZERO
              alphar(:) = ZERO
           else
              alpha0r = -HALF*alpha0r
-             alpha0e = -HALF*alpha0e
              alpha0e_g = -HALF*alpha0e_g
              alphar(:) = -HALF*alphar(:)
           endif
