@@ -85,7 +85,7 @@ contains
     double precision :: gam, game
 
     double precision :: drho, dptot, drhoe_g
-    double precision :: de, dge, dtau
+    double precision :: dge, dtau
     double precision :: dup, dvp, dptotp
     double precision :: dum, dvm, dptotm
 
@@ -98,7 +98,7 @@ contains
     double precision :: alpham, alphap, alpha0r, alpha0e_g
     double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: tau_s, e_s
+    double precision :: tau_s
 
     double precision, allocatable :: Ip(:,:,:,:,:)
     double precision, allocatable :: Im(:,:,:,:,:)
@@ -248,7 +248,6 @@ contains
           Clag = rho*cc
 
           gam = gamc(i,j)
-
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
@@ -268,7 +267,6 @@ contains
           tau_ref  = ONE/Im(i,j,1,1,QRHO)
 
           gam_ref  = Im_gc(i,j,1,1,1)
-
           game_ref  = Im(i,j,1,1,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
@@ -438,7 +436,6 @@ contains
           tau_ref  = ONE/Ip(i,j,1,3,QRHO)
 
           gam_ref    = Ip_gc(i,j,1,3,1)
-
           game_ref    = Ip(i,j,1,3,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
@@ -494,7 +491,7 @@ contains
 
           if (ppm_predict_gammae == 0) then
 
-             ! (rho, u, p, (rho e) eigensystem
+             ! (rho, u, p, (rho e)) eigensystem
 
              ! these are analogous to the beta's from the original
              ! PPM paper (except we work with rho instead of tau).
@@ -553,12 +550,14 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (i <= ihi1) then
+
              if (ppm_predict_gammae == 0) then
 
                 qxm(i+1,j,QRHO)   = rho_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
                 qxm(i+1,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qxm(i+1,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
+
              else
                 tau_s = tau_ref + (alphap + alpham + alpha0r)
                 qxm(i+1,j,QRHO)   = ONE/tau_s
