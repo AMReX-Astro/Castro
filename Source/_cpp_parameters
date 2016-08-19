@@ -30,7 +30,7 @@ difmag                       Real          0.1                y
 # the small density cutoff.  Densities below this value will be reset
 small_dens                   Real         -1.e200             y
 
-# the small temperature cutoff.  Temperatures below this value will 
+# the small temperature cutoff.  Temperatures below this value will
 # be reset
 small_temp                   Real         -1.e200             y
 
@@ -44,7 +44,7 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# if true, define an additional source term   
+# if true, define an additional source term
 add_ext_src                  int           0
 
 # whether to use the hybrid advection scheme that updates
@@ -52,8 +52,8 @@ add_ext_src                  int           0
 # momentum (3D only)
 hybrid_hydro                 int           0                  y
 
-# reconstruction type: 
-# 0: piecewise linear; 
+# reconstruction type:
+# 0: piecewise linear;
 # 1: classic Colella \& Woodward ppm;
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
@@ -62,17 +62,15 @@ ppm_type                     int           1                  y
 # terms to the velocity (gravity and rotation)
 ppm_trace_sources            int           1                  y
 
-# various methods of giving temperature a larger role in the 
+# various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
-
-# to we use $\tau = 1/rho$ or $\rho$ in the eigensystem?
-ppm_tau_in_tracing           int           0                  y
 
 # do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
 # to the interfaces for additional thermodynamic information
 # (this is the Colella \& Glaz technique) or do we use $(\rho e)$
-# (the classic \castro\ behavior).
+# (the classic \castro\ behavior).  Note this also uses
+# $\tau = 1/\rho$ instead of $\rho$.
 ppm_predict_gammae           int           0                  y
 
 # do we use the reference state in evaluating the eigenvectors?
@@ -98,7 +96,7 @@ riemann_solver               int           0                  y
 # of iterations to take when solving for the star state
 cg_maxiter                   int          12                  y
 
-# for the Colella \& Glaz Riemann solver, the tolerance to 
+# for the Colella \& Glaz Riemann solver, the tolerance to
 # demand in finding the star state
 cg_tol                       Real          1.0e-5             y
 
@@ -168,7 +166,7 @@ allow_negative_energy        int           0                  y
 # internal energy corresponding to small\_temp
 allow_small_energy           int           1                  y
 
-# permits sponge to be turned on and off 
+# permits sponge to be turned on and off
 do_sponge                    int           0                  y
 
 # if we are using the sponge, whether to use the implicit solve for it
@@ -252,14 +250,14 @@ dtnuc_X                      Real          1.e200             y
 # 4 == use the change in the full state over the last timestep
 dtnuc_mode                   int           1                  y
 
-# limit the zone size based on how much the burning can change the internal 
+# limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
 
-# permits reactions to be turned on and off -- mostly for efficiency's sake 
+# permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 
 # minimum temperature for allowing reactions to occur in a zone
@@ -281,7 +279,7 @@ disable_shock_burning        int           0                  y
 # category: gravity and rotation
 #-----------------------------------------------------------------------------
 
-# permits gravity calculation to be turned on and off   
+# permits gravity calculation to be turned on and off
 do_grav                      int          -1                  y
 
 # to we recompute the center used for the multipole gravity solve each step?
@@ -291,7 +289,7 @@ moving_center                int           0
 # energy state variables.
 grav_source_type             int           4                  y
 
-# permits rotation calculation to be turned on and off 
+# permits rotation calculation to be turned on and off
 do_rotation                  int          -1                  y
 
 # the rotation period for the corotating frame
@@ -365,7 +363,7 @@ star_at_center               int          -1
 
 do_special_tagging           int           0
 
-spherical_star               int           0  
+spherical_star               int           0
 
 
 #-----------------------------------------------------------------------------
@@ -375,7 +373,7 @@ spherical_star               int           0
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
-# display breakdown of energy sources 
+# display breakdown of energy sources
 print_energy_diagnostics     int           (0, 1)
 
 # calculate losses of material through physical grid boundaries
@@ -396,5 +394,3 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
-
-

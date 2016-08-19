@@ -18,7 +18,6 @@ pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
 pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
-pp.query("ppm_tau_in_tracing", ppm_tau_in_tracing);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
 pp.query("plm_iorder", plm_iorder);

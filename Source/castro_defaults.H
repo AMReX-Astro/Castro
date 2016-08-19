@@ -18,7 +18,6 @@ int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_trace_sources = 1;
 int         Castro::ppm_temp_fix = 0;
-int         Castro::ppm_tau_in_tracing = 0;
 int         Castro::ppm_predict_gammae = 0;
 int         Castro::ppm_reference_eigenvectors = 0;
 int         Castro::plm_iorder = 2;
