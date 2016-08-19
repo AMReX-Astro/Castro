@@ -8,6 +8,15 @@
      The 1-d PPM routine was also updated to support tracing
      and an inconsistency in the flattening was fixed.
 
+  -- the parameters ppm_reference and ppm_reference_edge_limit
+     have been removed -- there was no reason to use anything other
+     than the defaults
+
+  -- the parameter ppm_tau_in_tracing has been removed.  The useful
+     part of this is preserved in the ppm_predict_gammae = 1
+     functionality, which uses a different set of primitive variables
+     (tau, u, p, gamma_e) in the prediction of the interface states.
+
   -- the flux correction for axisymmetric and 1-d spherical coords
      has been fixed.  In particular, there is now a separate flux
      register for the pressure term that enters as a gradient in the
