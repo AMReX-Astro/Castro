@@ -35,11 +35,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   double precision, parameter:: small = 1.d-8
 
-!     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
-!     if iflaten=1.  Declared dimensions of q,c,gamc,csml,flatn are given
-!     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
-!     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-!     routine that computes flatn).  
+  ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
+  ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
+  ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region is
+  ! assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call assumes
+  ! ngp>=ngf+3 (ie, primitve data is used by the routine that computes
+  ! flatn).
 
   integer          :: lo(1), hi(1)
   integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1 
@@ -79,14 +80,15 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   allocate(dpde  (q_l1:q_h1))
   allocate(flatg (q_l1:q_h1))
 
-!     Make q (all but p), except put e in slot for rho.e, fix after eos call
-!     The temperature is used as an initial guess for the eos call and will be overwritten
-  do i = loq(1),hiq(1)
+  ! Make q (all but p), except put e in slot for rho.e, fix after eos
+  ! call.  The temperature is used as an initial guess for the eos
+  ! call and will be overwritten
+  do i = loq(1), hiq(1)
 
      if (uin(i,URHO) .le. 0.d0) then
         print *,'   '
         print *,'>>> Error: Castro_1d::ctoprim ',i
-        print *,'>>> ... negative density ',uin(i,URHO)
+        print *,'>>> ... negative density ', uin(i,URHO)
         print *,'    '
         call bl_error("Error:: Castro_1d.f90 :: ctoprim")
      end if
@@ -98,14 +100,15 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      q(i,qrad:qradhi) = Erin(i,0:ngroups-1)
   enddo
 
-  ! Load passive quantities, c, into q, assuming they arrived in uin as rho.c
+  ! Load passive quantities, c, into q, assuming they arrived in uin
+  ! as rho.c
   do ipassive = 1, npassive
      n  = upass_map(ipassive)
      nq = qpass_map(ipassive)
      q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
   enddo
 
-!     Get gamc, p, T, c, csml using q state
+  ! Get gamc, p, T, c, csml using q state
   do i = loq(1), hiq(1)
 
      eos_state % rho = q(i,QRHO)
@@ -124,7 +127,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
         if (q(i,QREINT) .lt. 0.d0) then
            print *,'   '
            print *,'>>> Error: ctoprim ',i
-           print *,'>>> ... new e from eos call is negative ',q(i,QREINT)
+           print *,'>>> ... new e from eos call is negative ', q(i,QREINT)
            print *,'    '
            call bl_error("Error:: ctoprim")
         end if
@@ -148,19 +151,22 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      csml(i) = max(small, small * c(i))
   end do
 
-!     Make this "rho e" instead of "e"
+  ! Make this "rho e" instead of "e"
   do i = loq(1),hiq(1)
      q(i,QREINT ) = q(i,QREINT )*q(i,QRHO) 
      q(i,qreitot) = q(i,QREINT) + sum(q(i,qrad:qradhi))
+     q(i,QGAME) = q(i,QPRES) / q(i,QREINT) + ONE
   enddo
 
   ! compute srcQ terms
   do i = loq(1), hiq(1)
      srcQ(i,QRHO   ) = src(i,URHO)
      srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
-     srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + 0.5d0 * q(i,QU)**2 * srcQ(i,QRHO)
-     srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
-              dpdrho(i) * srcQ(i,QRHO)! - &
+     srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + &
+          HALF * q(i,QU)**2 * srcQ(i,QRHO)
+     srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - &
+          q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
+          dpdrho(i) * srcQ(i,QRHO)! - &
 !              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
 
 
@@ -172,14 +178,14 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   end do
 
-  !     Compute running max of Courant number over grids
+  ! Compute running max of Courant number over grids
   courmx = courno
   do i = lo(1),hi(1)
 
      courx  = ( c(i)+abs(q(i,QU)) ) * dt/dx
      courmx = max( courmx, courx )
 
-     if (courx .gt. 1.d0) then
+     if (courx .gt. ONE) then
         print *,'   '
         call bl_warning("Warning:: RadHydro_1d.f90 :: CFL violation in ctoprim")
         print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -192,7 +198,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
-     flatn = 0.d0
+     flatn = ZERO
 
   else if (iflaten.eq.1) then
      loq(1)=lo(1)-ngf
@@ -210,17 +216,15 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
         flatn(i) = flatn(i) * flatg(i)
      enddo
 
-     if (flatten_pp_threshold > 0.d0) then
+     if (flatten_pp_threshold > ZERO) then
         call ppflaten(loq, hiq, flatn, q, q_l1, q_h1)
      end if
 
   else
-     flatn = 1.d0
+     flatn = ONE
   endif
 
   deallocate(dpdrho,dpde,flatg)
-
-  q(:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
   
 end subroutine ctoprim_rad
 
@@ -421,10 +425,10 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   do n = 1, NVAR
      if ( n == UTEMP ) then
-        flux(:,n) = 0.d0
+        flux(:,n) = ZERO
      else
         do i = lo(1),hi(1)+1
-           div1 = difmag*min(0.d0,div(i))
+           div1 = difmag*min(ZERO,div(i))
            flux(i,n) = flux(i,n) &
                 + dx*div1*(uin(i,n) - uin(i-1,n))
            flux(i,n) = area(i) * flux(i,n) * dt
@@ -434,7 +438,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   do g=0, ngroups-1
      do i = lo(1),hi(1)+1
-        div1 = difmag*min(0.d0,div(i))
+        div1 = difmag*min(ZERO,div(i))
         rflux(i,g) = rflux(i,g) &
              + dx*div1*(Erin(i,g) - Erin(i-1,g))
         rflux(i,g) = area(i) * rflux(i,g) * dt
@@ -462,9 +466,9 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   do i = lo(1),hi(1)
      dpdx  = (  pgdnv(i+1)- pgdnv(i) ) / dx
 
-     dprdx = 0.d0
+     dprdx = ZERO
      do g=0,ngroups-1
-        lamc = 0.5d0*(lamgdnv(i,g)+lamgdnv(i+1,g))
+        lamc = HALF*(lamgdnv(i,g)+lamgdnv(i+1,g))
         dprdx = dprdx + lamc*(ergdnv(i+1,g)-ergdnv(i,g))/dx
      end do
 
@@ -486,7 +490,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   if (comoving) then 
      do i = lo(1),hi(1)
 
-        ux = 0.5d0*(ugdnv(i) + ugdnv(i+1))
+        ux = HALF*(ugdnv(i) + ugdnv(i+1))
 
         divu = (ugdnv(i+1)*area(i+1)-ugdnv(i)*area(i))/vol(i)
         dudx = (ugdnv(i+1)-ugdnv(i))/dx
@@ -494,19 +498,19 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
         ! Note that for single group, fspace_type is always 1
         do g=0, ngroups-1
 
-           lamc = 0.5d0*(lamgdnv(i,g)+lamgdnv(i+1,g))
+           lamc = HALF*(lamgdnv(i,g)+lamgdnv(i+1,g))
            Eddf = Edd_factor(lamc)
-           f1 = (1.d0-Eddf)*0.5d0
-           f2 = (3.d0*Eddf-1.d0)*0.5d0
+           f1 = (ONE-Eddf)*HALF
+           f2 = (3.d0*Eddf-ONE)*HALF
            af(g) = -(f1*divu + f2*dudx)
            
            if (fspace_type .eq. 1) then
               Eddflft = Edd_factor(lamgdnv(i,g))
-              f1lft = 0.5d0*(1.d0-Eddflft)
+              f1lft = HALF*(ONE-Eddflft)
               Eddfrgt = Edd_factor(lamgdnv(i+1,g))
-              f1rgt = 0.5d0*(1.d0-Eddfrgt)
+              f1rgt = HALF*(ONE-Eddfrgt)
            
-              Egdc = 0.5d0*(ergdnv(i,g)+ergdnv(i+1,g))
+              Egdc = HALF*(ergdnv(i,g)+ergdnv(i+1,g))
               Erout(i,g) = Erout(i,g) + dt*ux*(f1rgt*ergdnv(i+1,g)-f1lft*ergdnv(i,g))/dx &
                    - dt*f2*Egdc*dudx
            end if
@@ -544,7 +548,7 @@ subroutine ppflaten(lof, hif, &
   do i=lof(1),hif(1)
      if (q(i-1,QU) > q(i+1,QU)) then
         if (q(i,QPRES) < flatten_pp_threshold* q(i,qptot)) then
-           flatn(i) = 0.d0
+           flatn(i) = ZERO
         end if
      end if
   end do

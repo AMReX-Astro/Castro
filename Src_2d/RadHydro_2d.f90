@@ -89,15 +89,16 @@ subroutine ctoprim_rad(lo,hi, &
      hiq(i) = hi(i)+ngp
   enddo
 
-!     Make q (all but p), except put e in slot for rho.e, fix after eos call
-!     The temperature is used as an initial guess for the eos call and will be overwritten
+  ! Make q (all but p), except put e in slot for rho.e, fix after eos
+  ! call.  The temperature is used as an initial guess for the eos
+  ! call and will be overwritten
   do j = loq(2),hiq(2)
      do i = loq(1),hiq(1)
 
-        if (uin(i,j,URHO) .le. 0.d0) then
+        if (uin(i,j,URHO) .le. ZERO) then
            print *,'   '
            print *,'>>> Error: Castro_2d::ctoprim ',i,j
-           print *,'>>> ... negative density ',uin(i,j,URHO)
+           print *,'>>> ... negative density ', uin(i,j,URHO)
            print *,'    '
            call bl_error("Error:: Castro_2d.f90 :: ctoprim")
         end if
@@ -141,7 +142,7 @@ subroutine ctoprim_rad(lo,hi, &
            call eos(eos_input_rt, eos_state)
            q(i,j,QPRES ) = eos_state % p
            q(i,j,QREINT) = eos_state % e
-           if (q(i,j,QREINT) .lt. 0.d0) then
+           if (q(i,j,QREINT) .lt. ZERO) then
               print *,'   '
               print *,'>>> Error: ctoprim ',i,j
               print *,'>>> ... new e from eos call is negative ',q(i,j,QREINT)
@@ -171,10 +172,11 @@ subroutine ctoprim_rad(lo,hi, &
         ! Make this "rho e" instead of "e"
         q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
         q(i,j,qreitot) = q(i,j,QREINT) + sum(q(i,j,qrad:qradhi))
+        q(i,j,QGAME) = q(i,j,QPRES) / q(i,j,QREINT) + ONE
      enddo
   enddo
 
-!     Compute sources in terms of Q
+  ! Compute sources in terms of Q
   do j = loq(2), hiq(2)
      do i = loq(1), hiq(1)
 
@@ -183,7 +185,7 @@ subroutine ctoprim_rad(lo,hi, &
         srcQ(i,j,QV    ) = (src(i,j,UMY) - q(i,j,QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
         srcQ(i,j,QREINT) = src(i,j,UEDEN) - q(i,j,QU) *src(i,j,UMX)   &
                                           - q(i,j,QV) *src(i,j,UMY) + &
-                      0.5d0 * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
+                      HALF * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
         srcQ(i,j,QPRES ) =   dpde(i,j) * &
                 (srcQ(i,j,QREINT) - q(i,j,QREINT)*srcQ(i,j,QRHO)/q(i,j,QRHO))/q(i,j,QRHO) + &
                 dpdrho(i,j) * srcQ(i,j,QRHO)! + &
@@ -199,7 +201,7 @@ subroutine ctoprim_rad(lo,hi, &
      end do
   end do
 
-!     Compute running max of Courant number over grids
+  ! Compute running max of Courant number over grids
   courmx = courno
   courmy = courno
   do j = lo(2),hi(2)
@@ -209,7 +211,7 @@ subroutine ctoprim_rad(lo,hi, &
         courmx = max( courmx, courx )
         courmy = max( courmy, coury )
 
-        if (courx .gt. 1.d0) then
+        if (courx .gt. ONE) then
            print *,'   '
            call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
            print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -218,7 +220,7 @@ subroutine ctoprim_rad(lo,hi, &
            print *,'>>> ... density             ',q(i,j,QRHO)
         end if
 
-        if (coury .gt. 1.d0) then
+        if (coury .gt. ONE) then
            print *,'   '
            call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
            print *,'>>> ... (v+c) * dt / dx > 1 ', coury
@@ -233,7 +235,7 @@ subroutine ctoprim_rad(lo,hi, &
 
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
-     flatn = 0.d0
+     flatn = ZERO
 
   elseif (use_flattening == 1) then
      do n=1,2
@@ -256,16 +258,14 @@ subroutine ctoprim_rad(lo,hi, &
         enddo
      enddo
 
-     if (flatten_pp_threshold > 0.d0) then
+     if (flatten_pp_threshold > ZERO) then
         call ppflaten(loq, hiq, flatn, q, q_l1, q_l2, q_h1, q_h2)
      end if
   else
-     flatn = 1.d0
+     flatn = ONE
   endif
 
   deallocate(dpdrho,dpde, flatg)
-
-  q(:,:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
 
 end subroutine ctoprim_rad
 
@@ -395,9 +395,9 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   ! Local constants
   dtdx = dt/dx
-  hdtdx = 0.5d0*dtdx
-  hdtdy = 0.5d0*dt/dy
-  hdt = 0.5d0*dt
+  hdtdx = HALF*dtdx
+  hdtdy = HALF*dt/dy
+  hdt = HALF*dt
 
   ! multidimensional shock detection -- this will be used to do the
   ! hybrid Riemann solver
@@ -700,8 +700,8 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
         dpdy = ZERO
 
         ! radiation pressure contribution
-        dprdx = 0.d0
-        dprdy = 0.d0
+        dprdx = ZERO
+        dprdy = ZERO
         do g= 0, ngroups-1
            lamc = 0.25d0*(q1(i,j,GDLAMS+g) + q1(i+1,j,GDLAMS+g) + &
                           q2(i,j,GDLAMS+g) + q2(i,j+1,GDLAMS+g))
@@ -730,8 +730,8 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           ux = 0.5d0*(q1(i,j,GDU) + q1(i+1,j,GDU))
-           uy = 0.5d0*(q2(i,j,GDV) + q2(i,j+1,GDV))
+           ux = HALF*(q1(i,j,GDU) + q1(i+1,j,GDU))
+           uy = HALF*(q2(i,j,GDV) + q2(i,j+1,GDV))
 
            divu = (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j) + &
                    q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) / vol(i,j)
@@ -756,8 +756,8 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
               lamc = 0.25d0*(q1(i,j,GDLAMS+g) + q1(i+1,j,GDLAMS+g) + &
                              q2(i,j,GDLAMS+g) + q2(i,j+1,GDLAMS+g))
               Eddf = Edd_factor(lamc)
-              f1 = (1.d0-Eddf)*0.5d0
-              f2 = (3.d0*Eddf-1.d0)*0.5d0
+              f1 = (ONE-Eddf)*HALF
+              f2 = (3.d0*Eddf-ONE)*HALF
               af(g) = -(f1*divu + f2*nnColonDotGu)
 
               if (fspace_type .eq. 1) then
@@ -766,10 +766,10 @@ subroutine consup_rad(uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                  Eddfyp = Edd_factor(q2(i  ,j+1,GDLAMS+g))
                  Eddfym = Edd_factor(q2(i  ,j  ,GDLAMS+g))
 
-                 f1xp = 0.5d0*(1.d0-Eddfxp)
-                 f1xm = 0.5d0*(1.d0-Eddfxm)
-                 f1yp = 0.5d0*(1.d0-Eddfyp)
-                 f1ym = 0.5d0*(1.d0-Eddfym)
+                 f1xp = HALF*(ONE-Eddfxp)
+                 f1xm = HALF*(ONE-Eddfxm)
+                 f1yp = HALF*(ONE-Eddfyp)
+                 f1ym = HALF*(ONE-Eddfym)
 
                  Gf1E(1) = (f1xp*q1(i+1,j,GDERADS+g) - f1xm*q1(i,j,GDERADS+g)) / dx
                  Gf1E(2) = (f1yp*q2(i,j+1,GDERADS+g) - f1ym*q2(i,j,GDERADS+g)) / dy
@@ -846,7 +846,7 @@ subroutine ppflaten(lof, hif, &
      do i=lof(1),hif(1)
         if (q(i-1,j,QU)+q(i,j-1,QV) > q(i+1,j,QU)+q(i,j+1,QV)) then
            if (q(i,j,QPRES) < flatten_pp_threshold* q(i,j,qptot)) then
-              flatn(i,j) = 0.d0
+              flatn(i,j) = ZERO
            end if
         end if
      end do

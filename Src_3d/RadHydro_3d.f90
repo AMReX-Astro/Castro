@@ -762,14 +762,15 @@ contains
        hiq(i) = hi(i)+ngp
     enddo
 
-    ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
-    ! The temperature is used as an initial guess for the eos call and will be overwritten.
-    !
+    ! Make q (all but p), except put e in slot for rho.e, fix after
+    ! eos call.  The temperature is used as an initial guess for the
+    ! eos call and will be overwritten.
+
     do k = loq(3),hiq(3)
        do j = loq(2),hiq(2)
           do i = loq(1),hiq(1)
 
-             if (uin(i,j,k,URHO) .le. 0.d0) then
+             if (uin(i,j,k,URHO) .le. ZERO) then
                 print *,'   '
                 print *,'>>> Error: Castro_3d::ctoprim ',i,j,k
                 print *,'>>> ... negative density ',uin(i,j,k,URHO)
@@ -819,7 +820,7 @@ contains
                 call eos(eos_input_rt, eos_state)
                 q(i,j,k,QPRES ) = eos_state % p
                 q(i,j,k,QREINT) = eos_state % e
-                if (q(i,j,k,QREINT) .lt. 0.d0) then
+                if (q(i,j,k,QREINT) .lt. ZERO) then
                    print *,'   '
                    print *,'>>> Error: ctoprim ',i,j,k
                    print *,'>>> ... new e from eos call is negative ' &
@@ -850,7 +851,7 @@ contains
              ! convert "e" back to "rho e"
              q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
-
+             q(i,j,k,QGAME) = q(i,j,k,QPRES) / q(i,i,j,k,QREINT) + ONE
           end do
        end do
     end do
@@ -867,7 +868,7 @@ contains
              srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) &
                   - q(i,j,k,QV)*src(i,j,k,UMY) &
                   - q(i,j,k,QW)*src(i,j,k,UMZ) &
-                  + 0.5d0 * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
+                  + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
 
              srcQ(i,j,k,QPRES ) = dpde(i,j,k)*(srcQ(i,j,k,QREINT) - &
                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)/q(i,j,k,QRHO)) /q(i,j,k,QRHO) + &
@@ -903,7 +904,7 @@ contains
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
 
-             if (courx .gt. 1.d0) then
+             if (courx .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
@@ -912,7 +913,7 @@ contains
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
 
-             if (coury .gt. 1.d0) then
+             if (coury .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
@@ -921,7 +922,7 @@ contains
                 print *,'>>> ... density             ',q(i,j,k,QRHO)
              end if
 
-             if (courz .gt. 1.d0) then
+             if (courz .gt. ONE) then
                 print *,'   '
                 call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
@@ -938,7 +939,7 @@ contains
 
     ! Compute flattening coef for slope calculations
     if (first_order_hydro) then
-       flatn = 0.d0
+       flatn = ZERO
     elseif (use_flattening == 1) then
        do n=1,3
           loq(n)=lo(n)-ngf
@@ -962,18 +963,18 @@ contains
           enddo
        enddo
 
-       if (flatten_pp_threshold > 0.d0) then
+       if (flatten_pp_threshold > ZERO) then
           call ppflaten(loq, hiq, flatn, q, q_lo, q_hi)
        end if
     else
-       flatn = 1.d0
+       flatn = ONE
     endif
 
     call bl_deallocate(dpdrho)
     call bl_deallocate(dpde)
     call bl_deallocate(flatg)
 
-    q(:,:,:,QGAME) = 0.d0 ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
+    q(:,:,:,QGAME) = ZERO ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
 
   end subroutine ctoprim_rad
 
@@ -1087,9 +1088,9 @@ contains
 
        if ( n == UTEMP ) then
 
-          flux1(:,:,:,n) = 0.d0
-          flux2(:,:,:,n) = 0.d0
-          flux3(:,:,:,n) = 0.d0
+          flux1(:,:,:,n) = ZERO
+          flux2(:,:,:,n) = ZERO
+          flux3(:,:,:,n) = ZERO
 
        else
 
@@ -1097,7 +1098,7 @@ contains
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
                    div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = difmag*min(ZERO,div1)
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
                    flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
@@ -1108,7 +1109,7 @@ contains
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
                    div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = difmag*min(ZERO,div1)
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
                    flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
@@ -1119,7 +1120,7 @@ contains
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
                    div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
-                   div1 = difmag*min(0.d0,div1)
+                   div1 = difmag*min(ZERO,div1)
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dz*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
                    flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
@@ -1135,7 +1136,7 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)+1
                 div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
-                div1 = difmag*min(0.d0,div1)
+                div1 = difmag*min(ZERO,div1)
                 radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
                 radflux1(i,j,k,g) = radflux1(i,j,k,g) * area1(i,j,k) * dt
              enddo
@@ -1148,7 +1149,7 @@ contains
           do j = lo(2),hi(2)+1
              do i = lo(1),hi(1)
                 div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
-                div1 = difmag*min(0.d0,div1)
+                div1 = difmag*min(ZERO,div1)
                 radflux2(i,j,k,g) = radflux2(i,j,k,g) + dy*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
                 radflux2(i,j,k,g) = radflux2(i,j,k,g) * area2(i,j,k) * dt
              enddo
@@ -1161,7 +1162,7 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
                 div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
-                div1 = difmag*min(0.d0,div1)
+                div1 = difmag*min(ZERO,div1)
                 radflux3(i,j,k,g) = radflux3(i,j,k,g) + dz*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
                 radflux3(i,j,k,g) = radflux3(i,j,k,g) * area3(i,j,k) * dt
              enddo
@@ -1211,9 +1212,9 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             dprdx = 0.d0
-             dprdy = 0.d0
-             dprdz = 0.d0
+             dprdx = ZERO
+             dprdy = ZERO
+             dprdz = ZERO
              do g=0,ngroups-1
                 lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
                         q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
@@ -1248,9 +1249,9 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
 
-                ux = 0.5d0*(q1(i,j,k,GDU) + q1(i+1,j,k,GDU))
-                uy = 0.5d0*(q2(i,j,k,GDV) + q2(i,j+1,k,GDV))
-                uz = 0.5d0*(q3(i,j,k,GDW) + q3(i,j,k+1,GDW))
+                ux = HALF*(q1(i,j,k,GDU) + q1(i+1,j,k,GDU))
+                uy = HALF*(q2(i,j,k,GDV) + q2(i,j+1,k,GDV))
+                uz = HALF*(q3(i,j,k,GDW) + q3(i,j,k+1,GDW))
 
                 dudx(1) = (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx
                 dudx(2) = (q1(i+1,j,k,GDV) - q1(i,j,k,GDV))/dx
@@ -1283,8 +1284,8 @@ contains
                            q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
                            q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
                    Eddf = Edd_factor(lamc)
-                   f1 = (1.d0-Eddf)*0.5d0
-                   f2 = (3.d0*Eddf-1.d0)*0.5d0
+                   f1 = (ONE-Eddf)*HALF
+                   f2 = (3.d0*Eddf-ONE)*HALF
                    af(g) = -(f1*divu + f2*nnColonDotGu)
 
                    if (fspace_type .eq. 1) then
@@ -1295,12 +1296,12 @@ contains
                       Eddfzp = Edd_factor(q3(i  ,j  ,k+1,GDLAMS+g))
                       Eddfzm = Edd_factor(q3(i  ,j  ,k  ,GDLAMS+g))
 
-                      f1xp = 0.5d0*(1.d0-Eddfxp)
-                      f1xm = 0.5d0*(1.d0-Eddfxm)
-                      f1yp = 0.5d0*(1.d0-Eddfyp)
-                      f1ym = 0.5d0*(1.d0-Eddfym)
-                      f1zp = 0.5d0*(1.d0-Eddfzp)
-                      f1zm = 0.5d0*(1.d0-Eddfzm)
+                      f1xp = HALF*(ONE-Eddfxp)
+                      f1xm = HALF*(ONE-Eddfxm)
+                      f1yp = HALF*(ONE-Eddfyp)
+                      f1ym = HALF*(ONE-Eddfym)
+                      f1zp = HALF*(ONE-Eddfzp)
+                      f1zm = HALF*(ONE-Eddfzm)
 
                       Gf1E(1) = (f1xp*q1(i+1,j,k,GDERADS+g) - f1xm*q1(i,j,k,GDERADS+g)) / dx
                       Gf1E(2) = (f1yp*q2(i,j+1,k,GDERADS+g) - f1ym*q2(i,j,k,GDERADS+g)) / dy
@@ -1345,7 +1346,7 @@ contains
              if ( q(i-1,j,k,QU)+q(i,j-1,k,QV)+q(i,j,k-1,QW) > &
                   q(i+1,j,k,QU)+q(i,j+1,k,QV)+q(i,j,k+1,QW) ) then
                 if (q(i,j,k,QPRES) < flatten_pp_threshold* q(i,j,k,qptot)) then
-                   flatn(i,j,k) = 0.d0
+                   flatn(i,j,k) = ZERO
                 end if
              end if
           end do
