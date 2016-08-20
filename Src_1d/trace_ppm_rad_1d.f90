@@ -82,7 +82,7 @@ contains
     double precision :: dum, dptotm
 
     double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: ptot_ref, rhoe_ref
+    double precision :: ptot_ref
 
 
     double precision :: alpham, alphap, alpha0r, alpha0e_g
@@ -231,7 +231,6 @@ contains
        rhoe_g_ref = Im(i,1,QREINT)
 
        ptot_ref = Im(i,1,qptot)
-       rhoe_ref = Im(i,1,qreitot)
 
        er_ref(:) = Im(i,1,qrad:qradhi)
 
@@ -359,7 +358,6 @@ contains
        rhoe_g_ref = Ip(i,3,QREINT)
 
        ptot_ref = Ip(i,3,qptot)
-       rhoe_ref = Ip(i,3,qreitot)
 
        er_ref(:) = Ip(i,3,qrad:qradhi)
 

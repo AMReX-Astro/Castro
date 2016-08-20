@@ -1,5 +1,7 @@
 module rad_advection_module
 
+  use bl_constants_module, only : ZERO, HALF, ONE
+
   implicit none
 
   private

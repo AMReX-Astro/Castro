@@ -88,7 +88,7 @@ contains
     double precision :: dum, dvm, dptotm
 
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: ptot_ref, rhoe_ref, htot_ref
+    double precision :: ptot_ref
 
     double precision :: cc_ref, csq_ref, Clag_ref
 
@@ -250,7 +250,6 @@ contains
           rhoe_g_ref = Im(i,j,1,1,QREINT)
 
           ptot_ref = Im(i,j,1,1,qptot)
-          rhoe_ref = Im(i,j,1,1,qreitot)
 
           er_ref(:) = Im(i,j,1,1,qrad:qradhi)
 
@@ -378,7 +377,6 @@ contains
           rhoe_g_ref = Ip(i,j,1,3,QREINT)
              
           ptot_ref = Ip(i,j,1,3,qptot)
-          rhoe_ref = Ip(i,j,1,3,qreitot)
 
           er_ref(:) = Ip(i,j,1,3,qrad:qradhi)
 
@@ -621,7 +619,6 @@ contains
           rhoe_g_ref = Im(i,j,2,1,QREINT)
 
           ptot_ref = Im(i,j,2,1,qptot)
-          rhoe_ref = Im(i,j,2,1,qreitot)
 
           er_ref(:) = Im(i,j,2,1,qrad:qradhi)
 
@@ -744,7 +741,6 @@ contains
           p_ref      = Ip(i,j,2,3,QPRES)             
 
           ptot_ref = Ip(i,j,2,3,qptot)
-          rhoe_ref = Ip(i,j,2,3,qreitot)
 
           er_ref(:) = Ip(i,j,2,3,qrad:qradhi)
 

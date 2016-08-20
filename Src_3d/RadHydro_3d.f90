@@ -851,7 +851,7 @@ contains
              ! convert "e" back to "rho e"
              q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
-             q(i,j,k,QGAME) = q(i,j,k,QPRES) / q(i,i,j,k,QREINT) + ONE
+             q(i,j,k,QGAME) = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
           end do
        end do
     end do
