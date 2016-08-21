@@ -196,7 +196,7 @@ contains
   subroutine reset_to_small_state(old_state, new_state, idx, verbose)
 
     use bl_constants_module, only: ZERO
-    use network, only: nspec
+    use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
@@ -243,6 +243,7 @@ contains
     eos_state % rho = small_dens
     eos_state % T   = small_temp
     eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
+    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
 
     call eos(eos_input_rt, eos_state)
 
