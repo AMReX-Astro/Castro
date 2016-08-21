@@ -449,10 +449,12 @@ contains
 
              q(i,j,k,QU:QW) = vel
 
-             ! Get the internal energy, which we'll use for determining the pressure.
-             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small,
-             ! then we risk serious numerical truncation error in the internal energy.
-             ! Therefore we'll use the result of the separately updated internal energy equation.
+             ! Get the internal energy, which we'll use for
+             ! determining the pressure.  We use a dual energy
+             ! formalism. If (E - K) < eta1 and eta1 is suitably
+             ! small, then we risk serious numerical truncation error
+             ! in the internal energy.  Therefore we'll use the result
+             ! of the separately updated internal energy equation.
              ! Otherwise, we'll set e = E - K.
 
              kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
