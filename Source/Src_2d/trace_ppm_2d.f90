@@ -23,7 +23,7 @@ contains
     use eos_module
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
-         QTEMP, QFS, QGAME, &
+         QTEMP, QFS, QFX, QGAME, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_reference_eigenvectors, &
@@ -183,6 +183,7 @@ contains
                    eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
                    eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state%aux   = Ip(i,j,idim,iwave,QFX:QFX-1+naux)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -193,6 +194,7 @@ contains
                    eos_state%rho   = Im(i,j,idim,iwave,QRHO)
                    eos_state%T     = Im(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state%aux   = Im(i,j,idim,iwave,QFX:QFX-1+naux)
 
                    call eos(eos_input_rt, eos_state)
 

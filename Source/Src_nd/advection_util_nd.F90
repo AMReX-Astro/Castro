@@ -106,13 +106,13 @@ contains
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
 
                    else
 
                       unew = uout(i_set,j_set,k_set,:)
 
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
 
                    endif
 
@@ -141,13 +141,13 @@ contains
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
 
                    else
 
                       unew(:) = unew(:) / num_positive_zones
 
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
 
                    endif
 
@@ -157,13 +157,13 @@ contains
 
                    if (uin(i,j,k,URHO) < small_dens) then
 
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], verbose)
+                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
 
                    else
 
                       unew(:) = uin(i,j,k,:)
 
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], verbose)
+                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
 
                    endif
 
@@ -193,10 +193,10 @@ contains
 
 
 
-  subroutine reset_to_small_state(old_state, new_state, idx, verbose)
+  subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
 
     use bl_constants_module, only: ZERO
-    use network, only: nspec
+    use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
@@ -209,7 +209,7 @@ contains
     implicit none
 
     double precision :: old_state(NVAR), new_state(NVAR)
-    integer          :: idx(3), verbose
+    integer          :: idx(3), lo(3), hi(3), verbose
 
     integer          :: n, ipassive
     type (eos_t)     :: eos_state
@@ -231,6 +231,7 @@ contains
           print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
        endif
        print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
+       print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
        print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
        print *,'   '
     end if
@@ -243,6 +244,7 @@ contains
     eos_state % rho = small_dens
     eos_state % T   = small_temp
     eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
+    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
 
     call eos(eos_input_rt, eos_state)
 
@@ -265,7 +267,7 @@ contains
 
 
  
-  subroutine reset_to_zone_state(old_state, new_state, input_state, idx, verbose)
+  subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
@@ -273,19 +275,21 @@ contains
     implicit none
 
     double precision :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
-    integer          :: idx(3), verbose
+    integer          :: idx(3), lo(3), hi(3), verbose
 
     if (verbose .gt. 0) then
        if (new_state(URHO) < ZERO) then
           print *,'   '
           print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
           print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
+          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
           print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
           print *,'   '
        else
           print *,'   '
           print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
           print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
+          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
           print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
           print *,'   '
        end if

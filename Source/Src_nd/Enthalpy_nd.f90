@@ -50,7 +50,7 @@ contains
 !            eos_state%T      = state(i,j,k,UTEMP)
              eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
              eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
-             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
+             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then

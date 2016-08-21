@@ -4,7 +4,7 @@ module transverse_module
 
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, &
+                                 QPRES, QREINT, QGAME, QFS, QFX, &
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, GDERADS, GDLAMS, &
                                  small_pres, small_temp, &
@@ -46,6 +46,7 @@ contains
           eos_state % rho = qedge(ii,jj,kk,QRHO)
           eos_state % T = small_temp
           eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
+          eos_state % aux(:) = qedge(ii,jj,kk,QFX:QFX-1+naux)
 
           call eos(eos_input_rt, eos_state)
 
@@ -62,6 +63,7 @@ contains
           eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
           eos_state % T   = small_temp
           eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
+          eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
 
           call eos(eos_input_re, eos_state)
 

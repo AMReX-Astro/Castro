@@ -87,12 +87,8 @@ public:
 
   void reflux_phi(int level, MultiFab& dphi);
 
-#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
-  void make_one_d_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi);
-#else
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector);
-#endif
 
   void make_prescribed_grav(int level, Real time, MultiFab& grav, MultiFab& phi);
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
