@@ -1005,18 +1005,9 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav") {
 
-#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
-
-       MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
-       make_one_d_grav(level,time,grav,phi);
-
-#else
-
        const Real prev_time = LevelData[level].get_state_data(State_Type).prevTime();
        make_radial_gravity(level,prev_time,radial_grav_old[level]);
        interpolate_monopole_grav(level,radial_grav_old[level],grav);
-
-#endif
 
     } else if (gravity_type == "PrescribedGrav") {
 
@@ -1091,15 +1082,10 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav") {
 
-#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
-        MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
-        make_one_d_grav(level,time,grav,phi);
-#else
 	// We always fill radial_grav_new (at every level)
 	const Real cur_time = LevelData[level].get_state_data(State_Type).curTime();
 	make_radial_gravity(level,cur_time,radial_grav_new[level]);
 	interpolate_monopole_grav(level,radial_grav_new[level],grav);
-#endif
 
     } else if (gravity_type == "PrescribedGrav") {
 
@@ -1474,79 +1460,6 @@ Gravity::reflux_phi (int level, MultiFab& dphi)
     dphi.setVal(0.);
     phi_flux_reg[level+1].Reflux(dphi,volume[level],1.0,0,0,1,geom);
 }
-
-#if (BL_SPACEDIM == 1 && defined(GR_GRAV))
-void
-Gravity::make_one_d_grav(int level,Real time, MultiFab& grav_vector, MultiFab& phi)
-{
-    BL_PROFILE("Gravity::make_one_d_grav()");
-
-   int ng = grav_vector.nGrow();
-
-   AmrLevel* amrlev = &parent->getLevel(level);
-   const Real* dx   = parent->Geom(level).CellSize();
-   Box domain(parent->Geom(level).Domain());
-
-   Box bx(grids[level].minimalBox());
-   int lo = bx.loVect()[0];
-   int hi = bx.hiVect()[0];
-   bx.setSmall(0,lo-ng);
-   bx.setBig(0,hi+ng);
-   BoxArray ba(bx);
-
-   FArrayBox grav_fab(bx,1);
-
-   FArrayBox phi_fab(bx,1);
-
-   grav_fab.setVal(0.0);
-   phi_fab.setVal(0.0);
-
-   // We only use mf for its BoxArray in the FillPatchIterator --
-   //    it doesn't need to have enough components
-   MultiFab mf(ba,1,0,Fab_allocate);
-
-   const Real* problo = parent->Geom(level).ProbLo();
-
-#ifdef GR_GRAV
-   // Fill the state, interpolated from coarser levels where needed,
-   //   and compute gravity by integrating outward from the center.
-   //   Include post-Newtonian corrections.
-
-   // We only use S_new to get the number of components for the GR routine
-   MultiFab& S_new = LevelData[level].get_new_data(State_Type);
-   int nvar = S_new.nComp();
-
-   for (FillPatchIterator fpi(*amrlev,mf,0,time,State_Type,Density,nvar);
-        fpi.isValid(); ++fpi)
-   {
-      ca_compute_1d_gr_grav(BL_TO_FORTRAN(fpi()),grav_fab.dataPtr(),dx,problo);
-   }
-#endif
-
-   // Only whichProc is used to fill grav_fab.
-   int whichProc(mf.DistributionMap()[0]);
-
-   ParallelDescriptor::Bcast(grav_fab.dataPtr(),grav_fab.box().numPts(),whichProc);
-   ParallelDescriptor::Bcast(phi_fab.dataPtr(),phi_fab.box().numPts(),whichProc);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-   for (MFIter mfi(grav_vector); mfi.isValid(); ++mfi)
-   {
-        grav_vector[mfi].copy(grav_fab);
-   }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-   for (MFIter mfi(phi); mfi.isValid(); ++mfi)
-   {
-       phi[mfi].copy(phi_fab);
-   }
-
-}
-#endif
 
 void
 Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
@@ -2456,7 +2369,15 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         // Create MultiFab with one component and no grow cells
         MultiFab S(grids[lev],1,0);
 
-        if ( std::abs(time-t_old) < eps)
+	if ( eps == 0.0 )
+	{
+            // Old and new time are identical; this should only happen if
+            // dt is smaller than roundoff compared to the current time,
+            // in which case we're probably in trouble anyway,
+            // but we will still handle it gracefully here.
+            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+	}
+        else if ( std::abs(time-t_old) < eps)
         {
             S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
         }
