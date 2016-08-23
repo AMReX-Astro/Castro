@@ -2301,6 +2301,8 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 #endif
     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
+	const Box& bx = mfi.growntilebox();
+
 	FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
 	FArrayBox& vol      = volume[mfi];
@@ -2308,7 +2310,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				&mass_added, &eint_added, &eden_added, &dens_change,
 				&verbose);
 
