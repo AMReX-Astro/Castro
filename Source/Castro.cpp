@@ -1743,6 +1743,14 @@ Castro::post_timestep (int iteration)
 
 	    getLevel(lev).old_sources.clear();
 	    getLevel(lev).new_sources.clear();
+
+	    getLevel(lev).fluxes.clear();
+
+	    getLevel(lev).P_radial.clear();
+
+#ifdef RADIATION
+	    getLevel(lev).rad_fluxes.clear();
+#endif
 	}
     }
 

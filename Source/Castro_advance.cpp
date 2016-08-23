@@ -588,15 +588,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	old_sources.clear();
 	new_sources.clear();
-    }
 
-    fluxes.clear();
+	fluxes.clear();
 
-    P_radial.clear();
+	P_radial.clear();
 
 #ifdef RADIATION
-    rad_fluxes.clear();
+	rad_fluxes.clear();
 #endif
+    }
 
 #ifndef LEVELSET
     u_gdnv.clear();
