@@ -167,10 +167,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm)
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
      MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
 
-   if (Geometry::isAnyPeriodic())
-     for (int d = 0; d < BL_SPACEDIM; d++)
-       geom.FillPeriodicBoundary(coeffs[d]);
-
    MultiFab CrseTemp;
    if (level > 0) {
        // Fill temperature at next coarser level, if it exists.
@@ -239,10 +235,6 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm)
 
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
      MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
-
-   if (Geometry::isAnyPeriodic())
-     for (int d = 0; d < BL_SPACEDIM; d++)
-       geom.FillPeriodicBoundary(coeffs[d]);
 
    MultiFab CrseEnth, CrseState;
    if (level > 0) {
@@ -314,10 +306,6 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    // correctly dimensioned coeffs array.
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
      MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
-
-   if (Geometry::isAnyPeriodic())
-     for (int d = 0; d < BL_SPACEDIM; d++)
-       geom.FillPeriodicBoundary(coeffs[d]);
 
    // Create MultiFabs that only hold the data for one species at a time.
    MultiFab Species(grids,1,1,Fab_allocate);
@@ -426,10 +414,6 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
      MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
 
-   if (Geometry::isAnyPeriodic())
-     for (int d = 0; d < BL_SPACEDIM; d++)
-       geom.FillPeriodicBoundary(coeffs[d]);
-
    MultiFab CrseVel, CrseDen;
    if (level > 0) {
        // Fill temperature at next coarser level, if it exists.
@@ -495,10 +479,6 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
    // correctly dimensioned coeffs array.
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
      MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
-
-   if (Geometry::isAnyPeriodic())
-     for (int d = 0; d < BL_SPACEDIM; d++)
-       geom.FillPeriodicBoundary(coeffs[d]);
 
    MultiFab CrseVel, CrseDen;
    if (level > 0) {
