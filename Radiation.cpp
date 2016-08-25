@@ -1640,16 +1640,14 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
       sold_tmp.define(grids, 1, n_grow, Fab_allocate);
       sold_tmp.setVal(0.0); // need legal numbers for linComb below
       sold_tmp.copy(S_old, Rad, 0, 1);
-      sold_tmp.FillBoundary();
-      geom.FillPeriodicBoundary(sold_tmp, false);
+      sold_tmp.FillBoundary(geom.periodicity());
     }
 
     if (need_new_data) {
       snew_tmp.define(grids, 1, n_grow, Fab_allocate);
       snew_tmp.setVal(0.0); // need legal numbers for linComb below
       snew_tmp.copy(S_new, Rad, 0, 1);
-      snew_tmp.FillBoundary();
-      geom.FillPeriodicBoundary(snew_tmp, false);
+      snew_tmp.FillBoundary(geom.periodicity());
     }
 
     int n_ghost = 1;
@@ -1969,10 +1967,7 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
       get_rosseland_from_temp(kappa_r[si], temp[si], state[si], si.tilebox(), igroup);
   }
 
-  kappa_r.FillBoundary();
-  if (geom.isAnyPeriodic()) {
-    geom.FillPeriodicBoundary(kappa_r, false);
-  }
+  kappa_r.FillBoundary(geom.periodicity());
 }
 
 void Radiation::deferred_sync_setup(int crse_level)
@@ -2367,11 +2362,7 @@ void Radiation::scaledGradient(int level,
       // of the grid layout, we now go back and overwrite values in
       // those cells bordering grids at the same level:
       
-      Erbtmp.FillBoundary();
-      
-      if (parent->Geom(level).isAnyPeriodic()) {
-	parent->Geom(level).FillPeriodicBoundary(Erbtmp, true);
-      }
+      Erbtmp.FillBoundary(parent->Geom(level).periodicity());
     }
     Ercomp = 0;
   }
@@ -2597,10 +2588,7 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 	     BL_TO_FORTRAN(kr[mfi]));
     }
     
-    dcf.FillBoundary();
-    if (geom.isAnyPeriodic()) {
-	geom.FillPeriodicBoundary(dcf, false);
-    }
+    dcf.FillBoundary(geom.periodicity());
 }
 
 void Radiation::EstTimeStep(Real & estdt, int level)
@@ -2749,10 +2737,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
   MultiFab mask(grids,1,ngrow);
   mask.setVal(-1.0,ngrow);
   mask.setVal( 0.0,0);
-  mask.FillBoundary();
-  if (geom.isAnyPeriodic()) {
-    geom.FillPeriodicBoundary(mask, true);
-  }
+  mask.FillBoundary(geom.periodicity());
 
   if (level < parent->finestLevel()) 
   {

@@ -52,10 +52,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     if (inner_update_limiter == -1) {
       MultiFab& Er_lag = castro->get_old_data(Rad_Type);
       Er_lag.setBndry(-1.0);
-      Er_lag.FillBoundary();
-      if (parent->Geom(level).isAnyPeriodic()) {
-	parent->Geom(level).FillPeriodicBoundary(Er_lag, true);
-      }
+      Er_lag.FillBoundary(parent->Geom(level).periodicity());
 
       MultiFab& S_lag = castro->get_old_data(State_Type);
       for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
@@ -296,10 +293,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     MultiFab::Copy(Er_star, Er_new, 0, 0, nGroups, 0);
 
     if (limiter>0 && inner_update_limiter==0) {
-      Er_star.FillBoundary();
-      if (parent->Geom(level).isAnyPeriodic()) {
-	parent->Geom(level).FillPeriodicBoundary(Er_star, true);
-      }
+      Er_star.FillBoundary(parent->Geom(level).periodicity());
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
 	scaledGradient(level, lambda, kappa_r, igroup, Er_star, igroup, limiter, 1, igroup);
@@ -331,10 +325,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       if (limiter>0 && inner_update_limiter>0) { 
 	if (innerIteration <= inner_update_limiter) {
-	  Er_pi.FillBoundary();
-	  if (parent->Geom(level).isAnyPeriodic()) {
-	    parent->Geom(level).FillPeriodicBoundary(Er_pi, true);
-	  }
+          Er_pi.FillBoundary(parent->Geom(level).periodicity());
 	  
 	  for (int igroup=0; igroup<nGroups; ++igroup) {
 	    scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, limiter, 1, igroup);

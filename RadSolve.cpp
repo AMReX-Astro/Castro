@@ -544,10 +544,7 @@ void RadSolve::levelFlux(int level,
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
-  Erborder.FillBoundary(); // zeroes left in off-level boundaries
-  if (parent->Geom(level).isAnyPeriodic()) {
-      parent->Geom(level).FillPeriodicBoundary(Erborder, true);
-  }
+  Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
   const Real* dx = parent->Geom(level).CellSize();
 
@@ -650,10 +647,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
-  Erborder.FillBoundary(); // zeroes left in off-level boundaries
-  if (parent->Geom(level).isAnyPeriodic()) {
-    parent->Geom(level).FillPeriodicBoundary(Erborder, true);
-  }
+  Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
 

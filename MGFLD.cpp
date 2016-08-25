@@ -447,10 +447,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   }    
 
   if (ngrow == 0 && !lag_opac) {
-    kappa_r.FillBoundary();
-    if (geom.isAnyPeriodic()) {
-      geom.FillPeriodicBoundary(kappa_r, false);
-    }
+      kappa_r.FillBoundary(geom.periodicity());
   }
 }
 
@@ -517,10 +514,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
   // Overwrite all extrapolated components with values from
   // neighboring fine grids where they exist:
-  spec.FillBoundary();
-  if (parent->Geom(level).isAnyPeriodic()) {
-    parent->Geom(level).FillPeriodicBoundary(spec, false);
-  }
+  spec.FillBoundary(parent->Geom(level).periodicity());
 
   // set boundary condition
   solver.levelBndry(mgbd,0);
@@ -978,11 +972,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     Er_wide.setVal(-1.0);
     MultiFab::Copy(Er_wide, Erborder, 0, 0, nGroups, 0);
     
-    Er_wide.FillBoundary();
-    
-    if (parent->Geom(level).isAnyPeriodic()) {
-      parent->Geom(level).FillPeriodicBoundary(Er_wide, true);
-    }
+    Er_wide.FillBoundary(parent->Geom(level).periodicity());
     
     const Real* dx = parent->Geom(level).CellSize();
 
@@ -998,11 +988,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     }
 
     if (filter_lambda_T) {
-      lamborder.FillBoundary();
-
-      if (parent->Geom(level).isAnyPeriodic()) {
-	parent->Geom(level).FillPeriodicBoundary(lamborder, true);
-      }
+	lamborder.FillBoundary(parent->Geom(level).periodicity());
     }
   }
 }
