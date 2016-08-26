@@ -2973,47 +2973,11 @@ Castro::build_interior_boundary_mask (int ng)
 
     iMultiFab& imf = *(ib_mask.push_back(new iMultiFab(grids, 1, ng)));
 
-    const Box& the_domain = geom.Domain();
+    int ghost_covered_by_valid = 0;
+    int other_cells = 1; // uncovered ghost, valid, and outside domain cells are set to 1
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(imf); mfi.isValid(); ++mfi)
-    {
-        IArrayBox& fab = imf[mfi];
-	fab.setVal(1);
-
-	if (ng > 0)
-	{
-	    const Box& bx = fab.box();	
-	    const std::vector< std::pair<int,Box> >& isects = grids.intersections(bx);
-	    for (int ii = 0; ii < isects.size(); ii++)
-	    {
-		fab.setVal(0,isects[ii].second,0);
-	    }
-
-	    if (Geometry::isAnyPeriodic() && !the_domain.contains(bx))
-	    {
-		Array<IntVect> pshifts(26);
-		geom.periodicShift(the_domain, bx, pshifts);
-		for (Array<IntVect>::const_iterator pit = pshifts.begin();
-		     pit != pshifts.end(); ++pit)
-	        {
-		    const IntVect& iv   = *pit;
-		    const Box&     shft = bx + iv;
-
-		    const std::vector< std::pair<int,Box> >& isects = grids.intersections(shft);
-		    for (int ii = 0; ii < isects.size(); ii++)
-		    {
-			const Box& dst = isects[ii].second - iv;
-			fab.setVal(0,dst,0);
-		    }		
-		}
-	    }
-
-	    fab.setVal(1,mfi.validbox(),0);
-	}
-    }
+    imf.BuildMask(geom.Domain(), geom.periodicity(), 
+		  ghost_covered_by_valid, other_cells, other_cells, other_cells);
 
     return imf;
 }
