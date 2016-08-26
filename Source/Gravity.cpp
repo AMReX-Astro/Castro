@@ -796,7 +796,7 @@ Gravity::GetCrsePhi(int level,
     }
 
     const Geometry& geom = parent->Geom(level-1);
-    BoxLib::fill_boundary(phi_crse, geom);
+    phi_crse.FillBoundary(geom.periodicity());
 }
 
 void

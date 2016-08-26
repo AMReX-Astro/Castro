@@ -38,7 +38,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     reset_internal_energy(state);
 
-    BoxLib::fill_boundary(state, geom);
+    state.FillBoundary(geom.periodicity());
 
 }
 
@@ -66,7 +66,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     reset_internal_energy(state);
 
-    BoxLib::fill_boundary(state, geom);
+    state.FillBoundary(geom.periodicity());
 
 }
 
@@ -189,7 +189,7 @@ Castro::react_state(Real time, Real dt)
     }
 
     if (ng > 0)
-        BoxLib::fill_boundary(S_new, geom);
+        S_new.FillBoundary(geom.periodicity());
 
     if (verbose) {
 

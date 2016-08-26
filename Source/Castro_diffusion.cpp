@@ -21,7 +21,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
     add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
 #endif
 
-    BoxLib::fill_boundary(old_sources[diff_src], geom);
+    old_sources[diff_src].FillBoundary(geom.periodicity());
 }
 
 void

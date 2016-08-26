@@ -12,8 +12,7 @@ Castro::construct_old_ext_source(Real time, Real dt)
 
     fill_ext_source(time, dt, Sborder, Sborder, old_sources[ext_src], ng);
 
-    BoxLib::fill_boundary(old_sources[ext_src], geom);
-
+    old_sources[ext_src].FillBoundary(geom.periodicity());
 }
 
 

@@ -19,7 +19,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     for (int n = 0; n < num_src; ++n)
 	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
-    BoxLib::fill_boundary(sources_for_hydro, geom);
+    sources_for_hydro.FillBoundary(geom.periodicity());
 
 #ifndef SDC
     // Optionally we can predict the source terms to t + dt/2,
@@ -31,7 +31,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       MultiFab& dSdt_new = get_new_data(Source_Type);
 
-      BoxLib::fill_boundary(dSdt_new, geom);
+      dSdt_new.FillBoundary(geom.periodicity());
 
       MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
 
@@ -44,12 +44,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     MultiFab::Add(sources_for_hydro, SDC_source, 0, 0, NUM_STATE, 0);
 
-    BoxLib::fill_boundary(sources_for_hydro, geom);
+    sources_for_hydro.FillBoundary(geom.periodicity());
 #ifdef REACTIONS
     // Make sure that we have valid data on the ghost zones of the reactions source.
 
     MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
-    BoxLib::fill_boundary(SDC_react_source, geom);
+    SDC_react_source.FillBoundary(geom.periodicity());
 #endif
 #endif
 
