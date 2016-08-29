@@ -2,6 +2,8 @@
 #define _Castro_F_H_
 #include <BLFort.H>
 
+#include <BoxLib.H>
+
 extern "C"
 {
 
@@ -267,6 +269,13 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
+  inline void ca_nullfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc)
+  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
+
 #else
 
   void ca_hypfill
@@ -386,6 +395,13 @@ extern "C"
      const Real dx[], const Real glo[],
      const Real* time, const int bc[]);
 #endif
+
+  inline void ca_nullfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[],
+     const Real* time, const int bc[])
+  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
 
 #endif
 

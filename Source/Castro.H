@@ -757,6 +757,8 @@ protected:
 
     static IntVect hydro_tile_size;
 
+    static bool use_custom_knapsack_weights;
+    static int Knapsack_Weight_Type;
     static int num_state_type;
 
 /* problem-specific includes */

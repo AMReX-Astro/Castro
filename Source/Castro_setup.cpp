@@ -622,6 +622,14 @@ Castro::variableSetUp ()
   }
 #endif
 
+  if (use_custom_knapsack_weights) {
+      Knapsack_Weight_Type = desc_lst.size();
+      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(), StateDescriptor::Point,
+			     0, 1, &pc_interp);
+      // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
+      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight", 
+			    bc, BndryFunc(ca_nullfill));
+  }
 
   num_state_type = desc_lst.size();
 
