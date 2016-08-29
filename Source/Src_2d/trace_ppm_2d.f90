@@ -561,7 +561,7 @@ contains
                 qxm(i+1,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
              else
-                tau_s = tau_ref + (alphap + alpham + alpha0r)
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,QRHO)   = ONE/tau_s
 
                 qxm(i+1,j,QU)     = u_ref + (alpham - alphap)*Clag_ev
