@@ -50,10 +50,10 @@ enum StateType { State_Type = 0,
 #ifdef SDC
 		 SDC_Source_Type,
 #ifdef REACTIONS
-		 SDC_React_Type,
+		 SDC_React_Type
 #endif
 #endif
-                 NUM_STATE_TYPE };
+};
 
 // Create storage for all source terms.
 
@@ -756,6 +756,8 @@ protected:
     static std::string probin_file;
 
     static IntVect hydro_tile_size;
+
+    static int num_state_type;
 
 /* problem-specific includes */
 #include <Problem.H>

@@ -622,6 +622,9 @@ Castro::variableSetUp ()
   }
 #endif
 
+
+  num_state_type = desc_lst.size();
+
   //
   // DEFINE DERIVED QUANTITIES
   //

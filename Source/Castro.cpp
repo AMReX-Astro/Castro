@@ -138,6 +138,8 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
+int          Castro::num_state_type = 0;
+
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 
 void
@@ -413,7 +415,7 @@ Castro::Castro ()
     u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(NUM_STATE_TYPE, PArrayManage)
+    prev_state(num_state_type, PArrayManage)
 {
 }
 
@@ -432,7 +434,7 @@ Castro::Castro (Amr&            papa,
     u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(NUM_STATE_TYPE, PArrayManage)
+    prev_state(num_state_type, PArrayManage)
 {
     buildMetrics();
 
@@ -2383,7 +2385,7 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
-    for (int k = 0; k < NUM_STATE_TYPE; k++)
+    for (int k = 0; k < num_state_type; k++)
         state[k].allocOldData();
 }
 

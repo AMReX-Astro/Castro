@@ -421,10 +421,10 @@ Castro::restart (Amr&     papa,
 void
 Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
 {
-  for (int i=0; i<NUM_STATE_TYPE; ++i)
+  for (int i=0; i<num_state_type; ++i)
     state_in_checkpoint[i] = 1;
 
-  for (int i=0; i<NUM_STATE_TYPE; ++i) {
+  for (int i=0; i<num_state_type; ++i) {
 #ifdef GRAVITY
     if (input_version == 0 && i == PhiGrav_Type) {
       // We are reading an old checkpoint with no PhiGrav_Type
