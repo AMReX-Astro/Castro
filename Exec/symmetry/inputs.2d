@@ -35,20 +35,20 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 3       # maximum level number allowed
+amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
-amr.check_file      = sedov_2d_cyl_in_cart_chk   # root name of checkpoint file
+amr.check_file      = symmetry_2d_  # root name of checkpoint file
 amr.check_int       = 20       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = sedov_2d_cyl_in_cart_plt
+amr.plot_file       = symmetry_2d_
 amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords
+amr.probin_file = probin
