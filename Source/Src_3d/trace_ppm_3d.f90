@@ -479,7 +479,7 @@ contains
                 qxm(i+1,j,kc,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
                 qxm(i+1,j,kc,QPRES ) =    p_ref + (alphap + alpham)*csq_ev
              else
-                tau_s = tau_ref + (alphap + alpham + alpha0r)
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,kc,QRHO  ) = ONE/tau_s
 
                 qxm(i+1,j,kc,QU    ) = u_ref + (alpham - alphap)*Clag_ev
