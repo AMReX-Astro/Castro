@@ -1,0 +1,103 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{url}
+
+\usepackage{mathpazo}
+
+\newcommand{\nup}{{(\nu)}}
+\newcommand{\evm}{{(-)}}
+\newcommand{\evz}{{(0)}}
+\newcommand{\evp}{{(+)}}
+
+\begin{document}
+
+\begin{center}
+{\Large Treatment of gas pressure interface state in Castro + radiation}
+\end{center}
+
+The interface states for radiation work in the primitive variable
+system, $q = (\rho, u, p, (\rho e)_g, E_r)^\intercal$, where $p$ is
+the gas pressure only, and $(\rho e)_g$ is the gas energy density.
+
+Written in the form:
+\begin{equation}
+q_t + A(q) q_x = 0
+\end{equation}
+The matrix $A$ takes the form:
+\begin{equation}
+A = \left (
+\begin{matrix}
+u & \rho & 0 & 0 & 0\\
+0 & u & {1}/{\rho} & 0 & \lambda_f/{\rho}\\
+0 & c_{g}^{2} \rho & u & 0 & 0\\
+0 & h_{g} \rho & 0 & u & 0\\
+0 & E_{r} \left(\lambda_f + 1\right) & 0 & 0 & u
+\end{matrix}\right )
+\end{equation}
+In constructing the interface states, start with a reference state,
+$q_\mathrm{ref}$ and define the jumps carried by each wave as the
+integral under the parabolic profile with respect to this reference
+state:
+\begin{equation}
+\Delta q^\nup \equiv q_\mathrm{ref} - \mathcal{I}^\nup(q)
+\end{equation}
+and then the interface states are:
+\begin{equation}
+q_\mathrm{int} = q_\mathrm{ref} - \sum_\nu (l^\nup \cdot \Delta q^\nup) r^\nup
+\end{equation}
+Defining:
+\begin{equation}
+\beta^\evm = \frac{1}{2 c^{2}} \left(
+    \Delta E_r^\evm \lambda_f + \Delta p^\evm - \Delta u^\evm c \rho\right)
+\end{equation}
+in Castro, we write this as:
+\begin{equation}
+\beta^\evm = \frac{1}{2 c^{2}} \left(
+    \Delta p_\mathrm{tot}^\evm - \Delta u^\evm c \rho\right)
+\end{equation}
+recognizing that $p_\mathrm{tot} = p + \lambda_f E_r$.
+Similarly, we have:
+\begin{equation}
+\beta^\evp = \frac{1}{2 c^{2}} \left(
+    \Delta E_r^\evp \lambda_f + \Delta p^\evp + \Delta u^\evp c \rho\right)
+\end{equation}
+and for the 0-wave, we have:
+\begin{align}
+\beta^\evz_\rho &= 
+    \Delta\rho^\evz  - \frac{\Delta p^\evz_\mathrm{tot}}{c^2} \\
+%
+\beta^\evz_{{\rho e}_g} &= \Delta(\rho e)^\evz_g - \frac{\Delta p_\mathrm{tot}^\evz}{c^2} h_g \\
+%
+\beta^\evz_{E_r} &= \Delta E_r^\evz - \frac{\Delta p_\mathrm{tot}^\evz}{c^2} h_r
+\end{align}
+where $h_r = (\lambda_f + 1)E_r/\rho$.  Note, these match the derivation
+done in the Jupyter/SymPy notebook:\newline
+{\footnotesize \url{https://github.com/zingale/hydro_examples/blob/master/compressible/euler-generaleos.ipynb}}
+
+The gas pressure update in these terms is:
+\begin{equation}
+p_\mathrm{int} = p_\mathrm{ref} - (\beta^\evp + \beta^\evm) c_g^2 + \lambda_f \beta^\evz_{E_r}
+\end{equation}
+This matches the expression in Castro.  But the question is---what do
+we do about the reference state?  The quantity $\Delta
+p^\evz_\mathrm{tot}$ is defined as:
+\begin{equation}
+\Delta p^\evz_\mathrm{tot} = 
+  p_\mathrm{tot,ref} - \mathcal{I}^\evz(p_\mathrm{tot})
+\end{equation}
+
+Note the potential inconsistency here.  We want the expression for
+$p_\mathrm{int}$ to start with $p_\mathrm{ref}$, since, if no waves
+are moving toward the interfaces, the $\beta$'s are $0$ and we have
+$p_\mathrm{int} = p_\mathrm{ref}$.
+
+But in the case that all the waves are moving toward the interface, then
+we are projecting against $p_\mathrm{tot,ref}$.  This is inconsisent, since
+if we were linear, then the reference state should simply cancel out.
+
+\end{document}
