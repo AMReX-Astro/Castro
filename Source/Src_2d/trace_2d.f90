@@ -15,7 +15,7 @@ contains
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QV, &
-                                   QREINT, QPRES, QFS, QFX, &
+                                   QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
