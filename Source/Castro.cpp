@@ -318,7 +318,8 @@ Castro::read_params ()
     // add it in trans_3d
     if (ppm_type == 0 && ppm_trace_sources == 1)
       {
-        std::cout << "WARNING: ppm_trace_sources = 1 not implemented for ppm_type = 0" << std::endl;
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "WARNING: ppm_trace_sources = 1 not implemented for ppm_type = 0" << std::endl;
 	ppm_trace_sources = 0;
 	pp.add("ppm_trace_sources",ppm_trace_sources);
       }
