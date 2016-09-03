@@ -113,11 +113,11 @@ ${p_\mathrm{tot}}_\mathrm{int} = p_\mathrm{int} + \lambda_f
 \end{equation}
 This looks, as it should, analogous to the pure hydrodynamics case.
 
-\subsection*{The Issue}
+\subsection*{The Interface States}
 
-But the question is---what do we do
-about the reference state?  The choice of reference state should not
-matter if we counted the contributions of all waves, then:
+What is the interface state? for this we need to choose a reference
+state.  The choice of reference state should not matter if we counted
+the contributions of all waves, then:
 \begin{equation}
 q_\mathrm{int} = q_\mathrm{ref} - \sum_\nu [ l^\nup \cdot (q_\mathrm{ref} - \mathcal{I}^\nup(q)) ] r^\nup
 \end{equation}
@@ -158,24 +158,24 @@ p_\mathrm{int} = p_\mathrm{ref} - \frac{1}{2} \frac{c_g^2}{c^2} \left \{
 \end{equation}
 Substituting in our choice of reference state, we have:
 \begin{align}
-p_\mathrm{int} = \mathcal{I}^\evp(p_\mathrm{tot}) &- \underbrace{\frac{1}{2} \frac{c_g^2}{c^2} \left \{
+p_\mathrm{int} = \mathcal{I}^\evp(p) &- \underbrace{\frac{1}{2} \frac{c_g^2}{c^2} \left \{
  \left [ \mathcal{I}^\evp(p_\mathrm{tot}) - \mathcal{I}^\evm(p_\mathrm{tot}) \right ] 
    - \rho c \left [ \mathcal{I}^\evp(u) - \mathcal{I}^\evm(u) \right ] \right \}}_{\mbox{\footnotesize carried by the $\evm$ wave}} \\
  &+ \underbrace{\lambda_f \left \{ \left [ \mathcal{I}^\evp(E_r) - \mathcal{I}^\evz(E_r) \right ]
    - \frac{h_r}{c^2} \left [ \mathcal{I}^\evp(p_\mathrm{tot}) - \mathcal{I}^\evz(p_\mathrm{tot}) \right ] \right \}}_{\mbox{\footnotesize carried by the $\evz$ wave}}
 \end{align}
-Note the potential inconsistency here.  We want the expression for
-$p_\mathrm{int}$ to start with the gas pressure.  But as written, in the 
+We see that the expression for
+$p_\mathrm{int}$ starts with the gas pressure.  In the 
 event that no other waves are moving toward the interface, then we find:
 \begin{equation}
-p_\mathrm{int} \rightarrow \mathcal{I}^\evp(p_\mathrm{tot})
+p_\mathrm{int} \rightarrow \mathcal{I}^\evp(p)
 \end{equation}
 (since in our algorithms, we set the $\beta$'s to $0$ if those waves
 are not moving toward the interface.
 
-\subsection*{The Fix}
+\subsection*{Alternative?}
 
-A more consistent way to handle this is to predict $p_\mathrm{tot}$
+A, perhaps more consistent, way to handle this is to predict $p_\mathrm{tot}$
 and $E_r$ to the interfaces.  This is consistent with our choice of
 reference state, and using $p_\mathrm{tot}$ is more analogous to the
 pure hydrodynamics case.  We then algebraically construct the
