@@ -1,5 +1,5 @@
 ! These routines do the characteristic tracing under the parabolic
-! profiles in each zone to the edge / half-time.  
+! profiles in each zone to the edge / half-time.
 
 module trace_ppm_module
 
@@ -22,8 +22,7 @@ contains
          QGAME, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
-         ppm_reference_eigenvectors, &
-         ppm_predict_gammae, &
+         ppm_predict_gammae, ppm_reference_eigenvectors, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm
@@ -60,22 +59,21 @@ contains
     ! rho : mass density
     ! u, v, w : velocities
     ! p : gas (hydro) pressure
-    ! ptot : total pressure (note for pure hydro, this is 
+    ! ptot : total pressure (note for pure hydro, this is
     !        just the gas pressure)
     ! rhoe_g : gas specific internal energy
-    ! rhoe : total specific internal energy (including radiation,
-    !        if available)
     ! cgas : sound speed for just the gas contribution
     ! cc : total sound speed (including radiation)
     ! h_g : gas specific enthalpy / cc**2
-    ! htot : total specific enthalpy
+    ! gam_g : the gas Gamma_1
+    ! game : gas gamma_e
     !
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
-    
+
     double precision :: cc, csq, cgassq, Clag
     double precision :: rho, u, p, rhoe_g, h_g
-    double precision :: gam, game
+    double precision :: gam_g, game
 
     double precision :: drho, dptot, drhoe_g
     double precision :: dge, dtau
@@ -85,7 +83,7 @@ contains
     double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
     double precision :: tau_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
 
     double precision :: alpham, alphap, alpha0r, alpha0e_g
@@ -168,7 +166,9 @@ contains
                 flatn, &
                 Ip(:,:,n),Im(:,:,n), &
                 ilo,ihi,dx,dt)
-    end do
+    enddo
+
+
 
     ! get an edge-based gam1 here
     call ppm(gamc(:),qd_l1,qd_h1, &
@@ -206,7 +206,7 @@ contains
 
        Clag = rho*cc
 
-       gam = gamc(i)
+       gam_g = gamc(i)
        game = q(i,QGAME)
 
        !----------------------------------------------------------------------
@@ -219,20 +219,20 @@ contains
        ! Woodward use
        rho_ref  = Im(i,1,QRHO)
        u_ref    = Im(i,1,QU)
-       
+
        p_ref    = Im(i,1,QPRES)
        rhoe_g_ref = Im(i,1,QREINT)
 
        tau_ref = ONE/Im(i,1,QRHO)
 
-       gam_ref = Im_gc(i,1,1)
+       gam_g_ref = Im_gc(i,1,1)
        game_ref = Im(i,1,QGAME)
 
        rho_ref = max(rho_ref,small_dens)
        p_ref = max(p_ref,small_pres)
 
        ! for tracing (optionally)
-       cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+       cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
        h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
@@ -293,7 +293,7 @@ contains
           alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
        else
-          
+
           ! (tau, u, p, game) eigensystem
 
           ! this is the way things were done in the original PPM
@@ -305,7 +305,7 @@ contains
           alpha0r = dtau + dptot/Clag_ev**2
 
           dge = game_ref - Im(i,2,QGAME)
-          gfactor = (game - ONE)*(game - gam)
+          gfactor = (game - ONE)*(game - gam_g)  ! why not ref?
           alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
        endif ! which tracing method
@@ -351,7 +351,7 @@ contains
              qxp(i,QRHO)   = ONE/tau_s
 
              qxp(i,QU)     = u_ref + (alpham - alphap)*Clag_ev
-             qxp(i,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+             qxp(i,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
              qxp(i,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
              qxp(i,QREINT) = qxp(i,QPRES )/(qxp(i,QGAME) - ONE)
@@ -390,14 +390,14 @@ contains
 
        tau_ref = ONE/Ip(i,3,QRHO)
 
-       gam_ref  = Ip_gc(i,3,1)
+       gam_g_ref  = Ip_gc(i,3,1)
        game_ref = Ip(i,3,QGAME)
 
        rho_ref = max(rho_ref,small_dens)
        p_ref = max(p_ref,small_pres)
 
        ! for tracing (optionally)
-       cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+       cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
        csq_ref = cc_ref**2
        Clag_ref = rho_ref*cc_ref
        h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
@@ -469,7 +469,7 @@ contains
           alpha0r = dtau + dptot/Clag_ev**2
 
           dge = game_ref - Ip(i,2,QGAME)
-          gfactor = (game - ONE)*(game - gam)
+          gfactor = (game - ONE)*(game - gam_g)
           alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
        endif
@@ -506,7 +506,7 @@ contains
        ! q_s = q_ref - sum (l .dq) r
        if (i <= ihi) then
 
-          if (ppm_predict_gammae == 0) then          
+          if (ppm_predict_gammae == 0) then
              qxm(i+1,QRHO)   = rho_ref + alphap + alpham + alpha0r
              qxm(i+1,QU)     = u_ref + (alphap - alpham)*cc_ev/rho_ev
              qxm(i+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
@@ -517,7 +517,7 @@ contains
              qxm(i+1,QRHO)   = ONE/tau_s
 
              qxm(i+1,QU)     = u_ref + (alpham - alphap)*Clag_ev
-             qxm(i+1,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+             qxm(i+1,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
              qxm(i+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
              qxm(i+1,QREINT) = qxm(i+1,QPRES )/(qxm(i+1,QGAME) - ONE)
