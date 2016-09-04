@@ -546,6 +546,9 @@ contains
              qxm(i+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
              qxm(i+1,QREINT) = qxm(i+1,QPRES )/(qxm(i+1,QGAME) - ONE)
 
+             qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+             qxm(i+1,qrad:qradhi) = qrtmp
+
              qxm(i+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
              qxm(i+1,qreitot) = qxm(i+1,QREINT) + sum(qrtmp)
 
