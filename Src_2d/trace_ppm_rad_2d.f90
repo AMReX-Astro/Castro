@@ -237,7 +237,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamc(i,j)
+          gam_g = gamcg(i,j)
           game = q(i,j,QGAME)
 
           ptot = q(i,j,qptot)
@@ -726,7 +726,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamc(i,j)
+          gam_g = gamcg(i,j)
           game = q(i,j,QGAME)
 
           ptot = q(i,j,qptot)
