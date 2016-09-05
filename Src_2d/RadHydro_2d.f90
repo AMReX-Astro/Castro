@@ -420,6 +420,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
                         dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                         qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                         srcQ,src_l1,src_l2,src_h1,src_h2, &
+                        gamc,gamcg,qd_l1,qd_l2,qd_h1,qd_h2, &
                         ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
   end if
 
