@@ -1035,7 +1035,7 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qym(i,j+1,QRHO)   = ONE/tau_s
 
-                qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
+                qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag
                 qym(i,j+1,QPRES)  = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:))
 
                 qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
