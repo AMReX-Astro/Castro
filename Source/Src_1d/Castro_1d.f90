@@ -138,6 +138,7 @@ subroutine ca_umdrv(is_finest_level,time,&
        uout,uout_l1,uout_h1, &
        update,updt_l1,updt_h1, &
        pgdnv,lo(1),hi(1)+1, &
+       q,q_l1,q_h1, &
        flux,flux_l1,flux_h1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
