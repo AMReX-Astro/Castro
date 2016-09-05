@@ -261,7 +261,7 @@ contains
 
           tau_ref = ONE/Im(i,j,1,1,QRHO)
 
-          gam_g_ref  = Im_gc(i,j,1,1,1)
+          !gam_g_ref  = Im_gc(i,j,1,1,1)
           game_ref  = Im(i,j,1,1,QGAME)
 
           ptot_ref = Im(i,j,1,1,qptot)
@@ -444,7 +444,7 @@ contains
 
           tau_ref = ONE/Ip(i,j,1,3,QRHO)
 
-          gam_g_ref    = Ip_gc(i,j,1,3,1)
+          !gam_g_ref    = Ip_gc(i,j,1,3,1)
           game_ref    = Ip(i,j,1,3,QGAME)
 
           ptot_ref = Ip(i,j,1,3,qptot)
@@ -716,11 +716,19 @@ contains
           csq = cc**2
 
           rho = q(i,j,QRHO)
+          tau = ONE/rho
           u = q(i,j,QU)
           v = q(i,j,QV)
+
           p = q(i,j,QPRES)
           rhoe_g = q(i,j,QREINT)
           h_g = ( (p+rhoe_g) / rho)/csq
+
+          Clag = rho*cc
+
+          gam_g = gamc(i,j)
+          game = q(i,j,QGAME)
+
           ptot = q(i,j,qptot)
 
           er(:) = q(i,j,qrad:qradhi)
@@ -738,10 +746,13 @@ contains
           p_ref = Im(i,j,2,1,QPRES)
           rhoe_g_ref = Im(i,j,2,1,QREINT)
 
+          tau_ref = ONE/Im(i,j,2,1,QRHO)
+
+          game_ref = Im(i,j,2,1,QGAME)
+
           ptot_ref = Im(i,j,2,1,qptot)
 
           er_ref(:) = Im(i,j,2,1,qrad:qradhi)
-
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -755,6 +766,7 @@ contains
           drho    = rho_ref    - Im(i,j,2,2,QRHO)
           dptot   = ptot_ref   - Im(i,j,2,2,qptot)
           drhoe_g = rhoe_g_ref - Im(i,j,2,2,QREINT)
+          dtau  = tau_ref  - ONE/Im(i,j,2,2,QRHO)
           der(:)  = er_ref(:)  - Im(i,j,2,2,qrad:qradhi)
 
           dvp    = v_ref    - Im(i,j,2,3,QV)
@@ -768,13 +780,38 @@ contains
              dvp = dvp - hdt*Im_src(i,j,2,3,QV)
           endif
 
-          ! these are analogous to the beta's from the original PPM
-          ! paper (except we work with rho instead of tau).  This
-          ! is simply (l . dq), where dq = qref - I(q)
-          alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
-          alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-          alpha0r = drho - dptot/csq
-          alpha0e_g = drhoe_g - dptot*h_g
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e)) eigensystem
+
+             ! these are analogous to the beta's from the original PPM
+             ! paper (except we work with rho instead of tau).  This
+             ! is simply (l . dq), where dq = qref - I(q)
+             alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
+             alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
+             alpha0r = drho - dptot/csq
+             alpha0e_g = drhoe_g - dptot*h_g
+
+          else
+             ! (tau, u, p, game) eigensystem
+
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
+
+             alpham = HALF*( dvm - dptotm/Clag)/Clag
+             alphap = HALF*(-dvp - dptotp/Clag)/Clag
+             alpha0r = dtau + dptot/Clag**2
+
+             dge = game_ref - Im(i,j,2,2,QGAME)
+             gfactor = (game - ONE)*(game - gam_g)
+             alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
+
+          endif
+
           alphar(:) = der(:) - dptot/csq*hr
 
           if (v-cc > ZERO) then
@@ -784,6 +821,7 @@ contains
           else
              alpham = -HALF*alpham
           endif
+
           if (v+cc > ZERO) then
              alphap = ZERO
           else if (v+cc < ZERO) then
@@ -809,16 +847,35 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j >= ilo2) then
-             qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0r
-             qyp(i,j,QV) = v_ref + (alphap - alpham)*cc/rho
-             qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-             qyp(i,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
+             if (ppm_predict_gammae == 0) then
+                qyp(i,j,QRHO) = rho_ref + alphap + alpham + alpha0r
+                qyp(i,j,QV) = v_ref + (alphap - alpham)*cc/rho
+                qyp(i,j,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                qyp(i,j,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
-             qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-             qyp(i,j,qrad:qradhi) = qrtmp
+                qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
+                qyp(i,j,qrad:qradhi) = qrtmp
 
-             qyp(i,j,qptot) = ptot_ref + (alphap + alpham)*csq
-             qyp(i,j,qreitot) = qyp(i,j,QREINT) + sum(qrtmp)
+                qyp(i,j,qptot) = ptot_ref + (alphap + alpham)*csq
+                qyp(i,j,qreitot) = qyp(i,j,QREINT) + sum(qrtmp)
+
+             else
+                tau_s = tau_ref + alphap + alpham + alpha0r
+                qyp(i,j,QRHO)   = ONE/tau_s
+
+                qyp(i,j,QV)     = v_ref + (alpham - alphap)*Clag
+                qyp(i,j,QPRES)  = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
+
+                qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
+
+                qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+                qyp(i,j,qrad:qradhi) = qrtmp
+
+                qyp(i,j,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                qyp(i,j,qreitot) = qyp(i,j,QREINT) + sum(qrtmp)
+
+             endif
 
              ! enforce small_*
              qyp(i,j,QRHO) = max(small_dens, qyp(i,j,QRHO))
@@ -857,13 +914,17 @@ contains
           rho_ref = Ip(i,j,2,3,QRHO)
           v_ref   = Ip(i,j,2,3,QV)
 
-          rhoe_g_ref = Ip(i,j,2,3,QREINT)
           p_ref      = Ip(i,j,2,3,QPRES)             
+          rhoe_g_ref = Ip(i,j,2,3,QREINT)
+
+          tau_ref = ONE/Ip(i,j,2,3,QRHO)
+
+          !gam_g_ref    = Ip_gc(i,j,2,3,1)
+          game_ref    = Ip(i,j,2,3,QGAME)
 
           ptot_ref = Ip(i,j,2,3,qptot)
 
           er_ref(:) = Ip(i,j,2,3,qrad:qradhi)
-
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
@@ -877,6 +938,7 @@ contains
           drho    = rho_ref    - Ip(i,j,2,2,QRHO)
           dptot   = ptot_ref   - Ip(i,j,2,2,qptot)
           drhoe_g = rhoe_g_ref - Ip(i,j,2,2,QREINT)
+          dtau  = tau_ref  - ONE/Ip(i,j,2,2,QRHO)
           der(:)  = er_ref(:)  - Ip(i,j,2,2,qrad:qradhi)
 
           dvp    = v_ref    - Ip(i,j,2,3,QV)
@@ -890,12 +952,38 @@ contains
              dvp = dvp - hdt*Ip_src(i,j,2,3,QV)
           endif
 
-          ! these are analogous to the beta's from the original PPM
-          ! paper.  This is simply (l . dq), where dq = qref - I(q)
-          alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
-          alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
-          alpha0r = drho - dptot/csq
-          alpha0e_g = drhoe_g - dptot*h_g
+          ! optionally use the reference state in evaluating the
+          ! eigenvectors
+
+          if (ppm_predict_gammae == 0) then
+
+             ! (rho, u, p, (rho e) eigensystem
+
+             ! these are analogous to the beta's from the original PPM
+             ! paper.  This is simply (l . dq), where dq = qref - I(q)
+             alpham = HALF*(dptotm/(rho*cc) - dvm)*rho/cc
+             alphap = HALF*(dptotp/(rho*cc) + dvp)*rho/cc
+             alpha0r = drho - dptot/csq
+             alpha0e_g = drhoe_g - dptot*h_g
+
+          else
+
+             ! (tau, u, p, game) eigensystem
+
+             ! this is the way things were done in the original PPM
+             ! paper -- here we work with tau in the characteristic
+             ! system.
+
+             alpham = HALF*( dvm - dptotm/Clag)/Clag
+             alphap = HALF*(-dvp - dptotp/Clag)/Clag
+             alpha0r = dtau + dptot/Clag**2
+
+             dge = game_ref - Ip(i,j,2,2,QGAME)
+             gfactor = (game - ONE)*(game - gam_g)
+             alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
+
+          endif
+
           alphar(:) = der(:)- dptot/csq*hr
 
           if (v-cc > ZERO) then
@@ -905,6 +993,7 @@ contains
           else
              alpham = -HALF*alpham
           endif
+
           if (v+cc > ZERO) then
              alphap = -alphap
           else if (v+cc < ZERO) then
@@ -912,6 +1001,7 @@ contains
           else
              alphap = -HALF*alphap
           endif
+
           if (v > ZERO) then
              alpha0r = -alpha0r
              alpha0e_g = -alpha0e_g
@@ -929,16 +1019,35 @@ contains
           ! the final interface states are just
           ! q_s = q_ref - sum (l . dq) r
           if (j <= ihi2) then
-             qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0r
-             qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
-             qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-             qym(i,j+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
+             if (ppm_predict_gammae == 0) then
+                qym(i,j+1,QRHO) = rho_ref + alphap + alpham + alpha0r
+                qym(i,j+1,QV) = v_ref + (alphap - alpham)*cc/rho
+                qym(i,j+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                qym(i,j+1,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:))
+                
+                qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
+                qym(i,j+1,qrad:qradhi) = qrtmp
 
-             qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-             qym(i,j+1,qrad:qradhi) = qrtmp
+                qym(i,j+1,qptot) = ptot_ref + (alphap + alpham)*csq
+                qym(i,j+1,qreitot) = qym(i,j+1,QREINT) + sum(qrtmp)
 
-             qym(i,j+1,qptot) = ptot_ref + (alphap + alpham)*csq
-             qym(i,j+1,qreitot) = qym(i,j+1,QREINT) + sum(qrtmp)
+             else
+                tau_s = tau_ref + alphap + alpham + alpha0r
+                qym(i,j+1,QRHO)   = ONE/tau_s
+
+                qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
+                qym(i,j+1,QPRES)  = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:))
+
+                qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
+
+                qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
+                qym(i,j+1,qrad:qradhi) = qrtmp
+
+                qym(i,j+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                qym(i,j+1,qreitot) = qym(i,j+1,QREINT) + sum(qrtmp)
+
+             endif
 
              ! enforce small_*
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
