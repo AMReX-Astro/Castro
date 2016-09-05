@@ -243,7 +243,7 @@ contains
           ptot = q(i,j,qptot)
 
           er(:) = q(i,j,qrad:qradhi)
-          hr(:) = (lam0+1.d0)*er/rho
+          hr(:) = (lam0+ONE)*er/rho
 
           !-------------------------------------------------------------------
           ! plus state on face i
