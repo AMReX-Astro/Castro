@@ -187,5 +187,55 @@ p_\mathrm{int} = {p_\mathrm{tot}}_\mathrm{int} - \lambda_f {E_r}_\mathrm{int}
 Note that this extends naturally to multigroup radiation as well, simply by
 summing up the independent $E_r$.
 
-\end{document}
+\subsection*{$\gamma_e$ system}
 
+The alternate approach that Castro takes to incorporate auxillary
+thermodynamic information into the system is to evolve an equation for
+$\gamma_e$.  We use the primitive variable system, $q = (\tau, u, p,
+\gamma_e, E_r)^\intercal$, where $\tau = 1/\rho$.  The matrix $A$ now
+takes the form:
+\begin{equation}
+A = \left (
+   \begin{matrix}
+   u & - \tau & 0 & 0 & 0\\
+   0 & u & \tau & 0 & \lambda_f \tau\\
+   0 & \frac{c_{g}^{2}}{\tau} & u & 0 & 0\\
+   0 & - \alpha & 0 & u & 0\\
+   0 & E_{r} \left(\lambda_f + 1\right) & 0 & 0 & u
+\end{matrix}\right)
+\end{equation}
+The eigenvalues are unchanged and the eigenvectors are derived in the
+same Jupyter notebook as with the previous system.  
+Here, $\alpha = (\gamma_e - 1)(\gamma_e - \Gamma_1)$.
+Now we have
+\begin{align}
+\beta^\evp = ( l^\evp \cdot \Delta q^\evp ) &= -\frac{1}{2C}
+   \left ( \Delta u^\evp + \frac{\Delta p_\mathrm{tot}^\evp}{C} \right ) \\
+\beta^\evz_\tau = ( l^\evz_\tau \cdot \Delta q^\evz ) &= 
+   \Delta \tau^\evz + \frac{\Delta p_\mathrm{tot}^\evz}{C^2} \\
+\beta^\evz_{\gamma_e} = ( l^\evz_{\gamma_e} \cdot \Delta q^\evz ) &= 
+   \Delta \gamma_E^\evz + \alpha \frac{\Delta p_\mathrm{tot}^\evz}{\tau C^2} \\
+\beta^\evz_{E_r} = ( l^\evz_{E_r} \cdot \Delta q^\evz ) &= 
+   \Delta E_r^\evz - \frac{h_r}{c^2} \Delta p_\mathrm{tot}^\evz \\
+\beta^\evm = ( l^\evm \cdot \Delta q^\evm ) &= \frac{1}{2C} 
+   \left ( \Delta u^\evm - \frac{\Delta p_\mathrm{tot}^\evp}{C} \right ) 
+\end{align}
+Here we use the Lagrangian sound speed, $C = \rho c = c/\tau$.
+
+The interface states are then:
+\begin{align}
+\tau_\mathrm{int} &= \tau_\mathrm{ref} - \beta^\evp - \beta^\evm - \beta_\tau^\evz \\
+u_\mathrm{int} &= u_\mathrm{ref} + C (\beta^\evp - \beta^\evm) \\
+p_\mathrm{int} &= p_\mathrm{ref} + \frac{c_g^2}{\tau^2} ( \beta^\evp + \beta^\evm) + \beta_{E_r} \lambda_f \\
+{\gamma_e}_\mathrm{int} &= {\gamma_e}_\mathrm{ref} - \beta_{\gamma_e}^\evz 
+   - \frac{\alpha}{\tau} (\beta^\evp + \beta^\evm) \\
+{E_r}_\mathrm{int} &= {E_r}_\mathrm{ref} + \frac{h_r}{\tau^2} (\beta^\evp + \beta^\evm) - \beta^\evz_{E_r}
+\end{align}
+Again, we can also construct the total pressure on the interface:
+\begin{align}
+{p_\mathrm{tot}}_\mathrm{int} &= p_\mathrm{int} + \lambda_f {E_r}_\mathrm{int}\\
+    &= p_\mathrm{ref} + \lambda {E_r}_\mathrm{ref} + \frac{h_r \lambda_f + c_g^2}{\tau^2} (\beta^\evp + \beta^\evm) \\
+    &= {p_\mathrm{tot}}_\mathrm{ref} + C^2 (\beta^\evp + \beta^\evm)
+\end{align}
+
+\end{document}
