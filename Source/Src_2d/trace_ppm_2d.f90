@@ -690,7 +690,6 @@ contains
           Clag = rho*cc
 
           gam_g = gamc(i,j)
-
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
@@ -701,14 +700,13 @@ contains
           ! this will be the fastest moving state to the left
           rho_ref  = Im(i,j,2,1,QRHO)
           v_ref    = Im(i,j,2,1,QV)
-          
+
           p_ref    = Im(i,j,2,1,QPRES)
           rhoe_g_ref = Im(i,j,2,1,QREINT)
 
           tau_ref  = ONE/Im(i,j,2,1,QRHO)
 
           gam_g_ref  = Im_gc(i,j,2,1,1)
-          
           game_ref = Im(i,j,2,1,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
@@ -832,7 +830,7 @@ contains
                 qyp(i,j,QRHO)   = ONE/tau_s
 
                 qyp(i,j,QV)     = v_ref + (alpham - alphap)*Clag_ev
-                qyp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qyp(i,j,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
@@ -870,7 +868,6 @@ contains
           tau_ref  = ONE/Ip(i,j,2,3,QRHO)
 
           gam_g_ref    = Ip_gc(i,j,2,3,1)
-
           game_ref    = Ip(i,j,2,3,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
@@ -991,7 +988,7 @@ contains
                 qym(i,j+1,QRHO)   = ONE/tau_s
 
                 qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
-                qym(i,j+1,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qym(i,j+1,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
