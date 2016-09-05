@@ -4,7 +4,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim
+  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux
 
 contains
 
@@ -594,5 +594,69 @@ contains
     enddo
 
   end subroutine srctoprim
+
+
+
+  ! Given a conservative state and its corresponding primitive state, calculate the
+  ! corresponding flux in a given direction.
+
+  function dflux(u, q, dir, idx, include_pressure) result(flux)
+
+    use bl_constants_module, only: ZERO
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
+                                  QVAR, QU, QPRES, &
+                                  npassive, upass_map, qpass_map
+
+    implicit none
+
+    integer :: dir, idx(3)
+    double precision :: u(NVAR), q(QVAR), flux(NVAR)
+    logical, optional :: include_pressure
+
+    double precision :: v_adv
+    integer :: ipassive, n
+
+    ! Set everything to zero; this default matters because some
+    ! quantities like temperature are not updated through fluxes.
+
+    flux = ZERO
+
+    ! Determine the advection speed based on the flux direction.
+
+    v_adv = q(QU + dir - 1)
+
+    ! Core quantities (density, momentum, energy).
+
+    flux(URHO) = u(URHO) * v_adv
+    flux(UMX:UMZ) = u(UMX:UMZ) * v_adv
+    flux(UEDEN) = (u(UEDEN) + q(QPRES)) * v_adv
+    flux(UEINT) = u(UEINT) * v_adv
+
+    ! Optionally include the pressure term in the momentum flux.
+    ! It is optional because for some geometries we cannot write
+    ! the pressure term in a conservative form.
+
+    if (present(include_pressure)) then
+       if (include_pressure) then
+          flux(UMX + dir - 1) = flux(UMX + dir - 1) + q(QPRES)
+       endif
+    endif
+
+    ! Hybrid flux.
+
+#ifdef HYBRID_MOMENTUM
+    call compute_hybrid_flux(q, flux, idir, idx)
+#endif
+
+    ! Passively advected quantities.
+
+    do ipassive = 1, npassive
+
+       n = upass_map(ipassive)
+       flux(n) = u(n) * v_adv
+
+    enddo
+
+  end function dflux
 
 end module advection_util_module
