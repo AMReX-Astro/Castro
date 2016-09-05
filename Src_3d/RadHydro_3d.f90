@@ -331,6 +331,7 @@ contains
                                q, c, cg, flatn, qd_lo, qd_hi, &
                                Ip, Im, Ip_src, Im_src, &
                                qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                               gamc, gamcg, qd_lo, qd_hi, &
                                lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 
        end if
@@ -402,6 +403,7 @@ contains
                               q, c, cg, flatn, qd_lo, qd_hi, &
                               Ip, Im, Ip_src, Im_src, &
                               qzm, qzp, qt_lo, qt_hi, &
+                              gamc, gamcg, qd_lo, qd_hi, &
                               lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
 
           ! Compute \tilde{F}^z at kc (k3d)
