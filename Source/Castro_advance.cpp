@@ -140,6 +140,12 @@ Castro::do_advance (Real time,
                     int  sub_iteration,
                     int  sub_ncycle)
 {
+
+  // this routine will advance the old state data (called S_old here)
+  // to the new time, for a single level.  The new data is called
+  // S_new here.  The update includes reactions (if we are not doing
+  // SDC), hydro, and the source terms.
+
     BL_PROFILE("Castro::do_advance()");
 
     const Real prev_time = state[State_Type].prevTime();
