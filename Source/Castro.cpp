@@ -3252,3 +3252,24 @@ Castro::clean_state(MultiFab& state) {
     return frac_change;
 
 }
+
+
+
+Real
+Castro::clean_state(MultiFab& state, MultiFab& state_old) {
+
+    // Enforce a minimum density.
+
+    Real frac_change = enforce_min_density(state_old, state);
+
+    // Ensure all species are normalized.
+
+    normalize_species(state);
+
+    // Reset the internal energy and temperature to be consistent with the total energy.
+
+    reset_internal_energy(state);
+
+    return frac_change;
+
+}

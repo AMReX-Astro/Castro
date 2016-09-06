@@ -184,7 +184,7 @@ Castro::do_advance (Real time,
     {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
-	frac_change = clean_state(S_new);
+	frac_change = clean_state(S_new, Sborder);
     }
 
     // Check for NaN's.
