@@ -963,8 +963,20 @@ void Radiation::restart(int level,
     //
     // Input conservation flux register.
     //
-    flux_cons_old.set(level, new FluxRegister());
-    flux_cons_old[level].read(FullPathName, is);
+    FluxRegister flux_in;
+    flux_in.read(FullPathName, is);
+
+    const BoxArray& grids = parent->boxArray(level);
+    const IntVect& crse_ratio = parent->refRatio(level-1);
+    flux_cons_old.set(level, new FluxRegister(grids, crse_ratio, level, nGroups));
+    
+    BL_ASSERT(flux_cons_old[level].refRatio()  == flux_in.refRatio());
+    BL_ASSERT(flux_cons_old[level].fineLevel() == flux_in.fineLevel());
+    BL_ASSERT(flux_cons_old[level].crseLevel() == flux_in.crseLevel());
+    BL_ASSERT(flux_cons_old[level].nComp()     == flux_in.nComp());
+    BL_ASSERT(BoxLib::match(flux_cons_old[level].boxes(), flux_in.boxes()));
+
+    FluxRegister::Copy(flux_cons_old[level], flux_in);
   }
 }
 
