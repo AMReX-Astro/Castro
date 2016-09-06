@@ -604,7 +604,8 @@ contains
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
-                                  QVAR, QU, QPRES, &
+                                  QVAR, QRHO, QU, QW, QPRES, &
+                                  NGDNV, GDRHO, GDU, GDW, GDPRES, &
                                   npassive, upass_map, qpass_map
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only: compute_hybrid_flux
@@ -618,6 +619,10 @@ contains
 
     double precision :: v_adv
     integer :: ipassive, n
+#ifdef HYBRID_MOMENTUM
+    double precision :: qgdnv(NGDNV)
+    logical :: cell_centered
+#endif
 
     ! Set everything to zero; this default matters because some
     ! quantities like temperature are not updated through fluxes.
@@ -648,7 +653,13 @@ contains
     ! Hybrid flux.
 
 #ifdef HYBRID_MOMENTUM
-    call compute_hybrid_flux(q, flux, dir, idx)
+    ! Create a temporary edge-based q for this routine.
+    qgdnv(:) = ZERO
+    qgdnv(GDRHO) = q(QRHO)
+    qgdnv(GDU:GDW) = q(QU:QW)
+    qgdnv(GDPRES) = q(QPRES)
+    cell_centered = .true.
+    call compute_hybrid_flux(qgdnv, flux, dir, idx, cell_centered)
 #endif
 
     ! Passively advected quantities.
