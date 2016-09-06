@@ -30,8 +30,6 @@ contains
     double precision :: delta(3), xlo(3), time
     double precision :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
-    EXTERNAL density_analytical
-
     integer          :: i, j, k, n
     double precision :: loc(3), vel(3), r
     type (eos_t)     :: zone_state
@@ -49,7 +47,7 @@ contains
        do j = adv_lo(2), adv_hi(2)
           do i = adv_lo(1), adv_hi(1)
 
-             if (.not. (i .gt. domlo(1) .or. j .gt. domlo(2) .or. k .gt. domlo(3) )) cycle
+             if (.not. (i .gt. domhi(1) .or. j .gt. domhi(2) .or. k .gt. domhi(3) )) cycle
 
              loc = position(i, j, k)
 
@@ -63,7 +61,7 @@ contains
 
              ! Radial inflow with |v| = 1.
 
-             vel(:) = -1.0d0 / sqrt(dble(dim))
+             vel(:) = -loc(:) / r
 
              adv(i,j,k,URHO)  = zone_state % rho
              adv(i,j,k,UTEMP) = zone_state % T
