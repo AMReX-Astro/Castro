@@ -3,8 +3,8 @@
 \castro\ is built on the \cpp\ \boxlib\ framework, and relies on the
 {\tt Amr} class defined there to drive the simulation.
 
-The following other classes also play a role laying out \castro's
-algorithm:
+The following other classes / concepts also play a major role laying
+out \castro's algorithm:
 \begin{itemize}
 \item \code{AmrLevel} : this is a class that has the whole fluid state \MarginPar{more}
 
@@ -15,6 +15,8 @@ algorithm:
 \item \code{MultiFab} : this is the collection of boxes (w/ data) at the 
   same level of refinement.  A \tt {\tt MultiFab} can have multiple
   components, ghost cells, etc.  \MarginPar{what else? does it know about boundaries?}
+
+\item \code{\statedata}
 
 \end{itemize}
 
@@ -48,7 +50,13 @@ the following advancement:
 
 \item {\em Radial data and point mass} \\
 
-\item {\em Radiation} \\
+\item {\em Radiation implicit update} \\
+
+  The {\tt do\_advance()} routine only handled the hyperbolic
+  portion of the radiation update.  This step does the implicit solve
+  (either gray or multigroup) to advance the radiation energies to the 
+  new time level.  Note that at the moment, this is backward-difference
+  implicit (first-order in time) for stability.
 
 \item {\em Particles} \\
 

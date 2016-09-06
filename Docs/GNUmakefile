@@ -27,7 +27,8 @@ section_sources = Introduction/CastroIntroduction.tex \
                   ConvertCheckpoint/ConvertCheckpoint.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
                   Visualization/CastroVisualization.tex \
-                  CastroVerification/Verification.tex 
+                  CastroVerification/Verification.tex \
+                  castrosymbols.tex
 
 
 
