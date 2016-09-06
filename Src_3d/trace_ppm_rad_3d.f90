@@ -232,6 +232,7 @@ contains
              drho    = rho_ref    - Im(i,j,kc,1,2,QRHO)
              dptot   = ptot_ref   - Im(i,j,kc,1,2,qptot)
              drhoe_g = rhoe_g_ref - Im(i,j,kc,1,2,QREINT)
+             dtau  = tau_ref  - ONE/Im(i,j,kc,1,2,QRHO)
              der(:)  = er_ref(:)  - Im(i,j,kc,1,2,qrad:qradhi)
 
              dup    = u_ref    - Im(i,j,kc,1,3,QU)
