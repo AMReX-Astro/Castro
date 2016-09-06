@@ -606,6 +606,9 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
                                   QVAR, QU, QPRES, &
                                   npassive, upass_map, qpass_map
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only: compute_hybrid_flux
+#endif
 
     implicit none
 
@@ -645,7 +648,7 @@ contains
     ! Hybrid flux.
 
 #ifdef HYBRID_MOMENTUM
-    call compute_hybrid_flux(q, flux, idir, idx)
+    call compute_hybrid_flux(q, flux, dir, idx)
 #endif
 
     ! Passively advected quantities.
