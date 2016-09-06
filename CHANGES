@@ -1,5 +1,9 @@
 * changes since the last release:
 
+  -- the radiation hydro ppm now implements the ppm_predict_gammae
+     option
+
+
 previous changes:
 
 * 16.09:
