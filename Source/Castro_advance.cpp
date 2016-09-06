@@ -170,7 +170,8 @@ Castro::do_advance (Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+    initialize_do_advance(time, dt, amr_iteration, amr_ncycle, 
+			  sub_iteration, sub_ncycle);
 
     // Check for NaN's.
 
@@ -180,25 +181,31 @@ Castro::do_advance (Real time,
 
 #ifdef REACTIONS
 #ifndef SDC
+    // this operates on Sborder (which is initially S_old).  The result
+    // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 #endif
 #endif
 
-    // Initialize the new-time data. This copy needs to come after the reactions.
+    // Initialize the new-time data. This copy needs to come after the
+    // reactions.
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Construct the old-time sources.
+    // Construct the old-time sources. 
 
     for (int n = 0; n < num_src; ++n)
-       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
+			    sub_iteration, sub_ncycle);
 
-    // Apply the old-time sources.
+    // Apply the old-time sources directly to the new-time state,
+    // S_new
 
     for (int n = 0; n < num_src; ++n)
         apply_source_to_state(S_new, old_sources[n], dt);
 
-    // Do the hydro update.
+    // Do the hydro update.  We build directly off of Sborder, which
+    // is the state that has already seen the burn 
 
     if (do_hydro)
     {
@@ -211,7 +218,8 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_new);
 
-    // Must define new value of "center" before we call new gravity solve or external source routine
+    // Must define new value of "center" before we call new gravity
+    // solve or external source routine
 
 #ifdef GRAVITY
     if (moving_center == 1)
