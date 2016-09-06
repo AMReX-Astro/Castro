@@ -1,6 +1,63 @@
-\section{Overview of a single step}
+\section{Primary Data-structures}
 
-Our equations look like:
+\castro\ is built on the \cpp\ \boxlib\ framework, and relies on the
+{\tt Amr} class defined there to drive the simulation.
+
+The following other classes also play a role laying out \castro's
+algorithm:
+\begin{itemize}
+\item \code{AmrLevel} : this is a class that has the whole fluid state \MarginPar{more}
+
+\item \code{Castro} : this is an {\tt AmrLevel}-derived class for a
+  single level---it contains all the data needed to advance the state
+  for a single level
+
+\item \code{MultiFab} : this is the collection of boxes (w/ data) at the 
+  same level of refinement.  A \tt {\tt MultiFab} can have multiple
+  components, ghost cells, etc.  \MarginPar{what else? does it know about boundaries?}
+
+\end{itemize}
+
+
+\section{Overview of a single step (no SDC)}
+
+The main evolution for a single step is contained in
+\code{Castro\_advance.cpp}, as \code{Castro::advance()}.  This does
+the following advancement:
+\begin{enumerate}
+\item {\em Initialization} 
+
+  This sets up the current level for advancement.  If we are at the
+  start of a coarse level timestep, or we are in the middle of
+  subcycling on a finer level (\code{amr\_iteration} {\tt > 1}), then
+  we swap the \statedata\ from the new to old (e.g., this ensures that
+  the next evolution starts with the result from the previous step).
+
+  This also syncs up the level information to the Fortran-side of
+  \castro, does any radiation initialization, and initializes all of
+  the intermediate storage arrays (like those that hold source terms,
+  etc.).
+
+\item {\em Advancement} \\
+
+\item {\em Retries} \\
+
+\item {\em Auxillary quantitiy evolution} \\
+
+\item {\em Levelsets} \\
+
+\item {\em Radial data and point mass} \\
+
+\item {\em Radiation} \\
+
+\item {\em Particles} \\
+
+\item {\em Finalize}
+
+\end{enumerate}
+
+
+Consider our system of  Our equations look like:
 \begin{equation}
 \frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
 \end{equation}
