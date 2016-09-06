@@ -1187,10 +1187,7 @@ void Radiation::init_flux(int level, int ncycle)
   dflux[level].setVal(0.0);
 
   if (level < fine_level) {
-      for (OrientationIter face; face; ++face) {
-	  Orientation ori = face();
-	  flux_cons[level+1][ori].setVal(0.0);
-      }
+      flux_cons[level+1].setVal(0.0);
   }
 
   if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
