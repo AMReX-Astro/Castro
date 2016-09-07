@@ -528,7 +528,7 @@ contains
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QDPDR, QDPDE, &
                                    npassive, upass_map, qpass_map
@@ -545,8 +545,6 @@ contains
     double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
     double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
-
-    double precision, parameter :: small = 1.d-8
 
     integer          :: i, j, k
     integer          :: n, nq, ipassive
@@ -565,11 +563,7 @@ contains
              srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) &
-                                                   - q(i,j,k,QV)*src(i,j,k,UMY) &
-                                                   - q(i,j,k,QW)*src(i,j,k,UMZ) &
-                                    + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
-
+             srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
              srcQ(i,j,k,QPRES ) = q(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
                                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
                                   q(i,j,k,QDPDR)*srcQ(i,j,k,QRHO)
