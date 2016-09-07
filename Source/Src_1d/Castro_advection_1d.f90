@@ -194,6 +194,24 @@ contains
 
     call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
+    ! Fill the update array.
+
+    do n = 1, NVAR
+       do i = lo(1), hi(1)
+
+          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
+
+          ! Add p div(u) source term to (rho e).
+
+          if (n == UEINT) then
+
+             update(i,n) = update(i,n) - pdivu(i)
+
+          endif
+
+       enddo
+    enddo
+
     ! Add gradp term to momentum equation.
 
     do i = lo(1),hi(1)
