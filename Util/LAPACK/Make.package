@@ -1,0 +1,2 @@
+fEXE_sources += dgtsv.f xerbla.f
+
