@@ -220,17 +220,33 @@ contains
 
     enddo
 
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do i = lo(1), hi(1)+1
+
+          flux(i,n) = dt * area(i) * flux(i,n)
+
+          ! Correct the momentum flux with the grad p part.
+
+          if (coord_type .eq. 0 .and. n == UMX) then
+             flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
+          endif
+
+       enddo
+    enddo
+
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
 
        do i = lo(1), hi(1)
 
-          mass_added_flux = mass_added_flux + dt * ( flux(i,URHO ) - flux(i+1,URHO ) )
-          xmom_added_flux = xmom_added_flux + dt * ( flux(i,UMX  ) - flux(i+1,UMX  ) )
-          ymom_added_flux = ymom_added_flux + dt * ( flux(i,UMY  ) - flux(i+1,UMY  ) )
-          zmom_added_flux = zmom_added_flux + dt * ( flux(i,UMZ  ) - flux(i+1,UMZ  ) )
-          E_added_flux    = E_added_flux    + dt * ( flux(i,UEDEN) - flux(i+1,UEDEN) )
+          mass_added_flux = mass_added_flux + ( flux(i,URHO ) - flux(i+1,URHO ) )
+          xmom_added_flux = xmom_added_flux + ( flux(i,UMX  ) - flux(i+1,UMX  ) )
+          ymom_added_flux = ymom_added_flux + ( flux(i,UMY  ) - flux(i+1,UMY  ) )
+          zmom_added_flux = zmom_added_flux + ( flux(i,UMZ  ) - flux(i+1,UMZ  ) )
+          E_added_flux    = E_added_flux    + ( flux(i,UEDEN) - flux(i+1,UEDEN) )
 
        enddo
 
@@ -250,13 +266,13 @@ contains
 
           loc = position(i,j,k,ccx=.false.)
 
-          mass_lost = mass_lost - dt * flux(i,URHO)
-          xmom_lost = xmom_lost - dt * flux(i,UMX)
-          ymom_lost = ymom_lost - dt * flux(i,UMY)
-          zmom_lost = zmom_lost - dt * flux(i,UMZ)
-          eden_lost = eden_lost - dt * flux(i,UEDEN)
+          mass_lost = mass_lost - flux(i,URHO)
+          xmom_lost = xmom_lost - flux(i,UMX)
+          ymom_lost = ymom_lost - flux(i,UMY)
+          zmom_lost = zmom_lost - flux(i,UMZ)
+          eden_lost = eden_lost - flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc - center, dt * flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost - ang_mom(1)
           yang_lost = yang_lost - ang_mom(2)
           zang_lost = zang_lost - ang_mom(3)
@@ -269,13 +285,13 @@ contains
 
           loc = position(i,j,k,ccx=.false.)
 
-          mass_lost = mass_lost + dt * flux(i,URHO)
-          xmom_lost = xmom_lost + dt * flux(i,UMX)
-          ymom_lost = ymom_lost + dt * flux(i,UMY)
-          zmom_lost = zmom_lost + dt * flux(i,UMZ)
-          eden_lost = eden_lost + dt * flux(i,UEDEN)
+          mass_lost = mass_lost + flux(i,URHO)
+          xmom_lost = xmom_lost + flux(i,UMX)
+          ymom_lost = ymom_lost + flux(i,UMY)
+          zmom_lost = zmom_lost + flux(i,UMZ)
+          eden_lost = eden_lost + flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc - center, dt * flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost + ang_mom(1)
           yang_lost = yang_lost + ang_mom(2)
           zang_lost = zang_lost + ang_mom(3)
@@ -283,22 +299,6 @@ contains
        endif
 
     endif
-
-    ! Scale the fluxes for the form we expect later in refluxing.
-
-    do n = 1, NVAR
-       do i = lo(1), hi(1)+1
-
-          flux(i,n) = dt * area(i) * flux(i,n)
-
-          ! Correct the momentum flux with the grad p part.
-
-          if (coord_type .eq. 0 .and. n == UMX) then
-             flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
-          endif
-
-       enddo
-    enddo
 
   end subroutine consup
 
