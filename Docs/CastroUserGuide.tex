@@ -17,6 +17,11 @@
 \ChNameVar{\LARGE}
 \ChTitleVar{\LARGE\sl}
 
+% index
+\usepackage{makeidx}
+\makeindex
+
+
 % part page style see
 % http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec
 \usepackage{titlesec}
@@ -207,15 +212,7 @@
 \newcommand{\nablab}{\boldsymbol{\nabla}}
 
 % codes
-\newcommand{\castro}{{\sf Castro}}
-\newcommand{\maestro}{{\sf Maestro}}
-\newcommand{\boxlib}{{\sf BoxLib}}
-\newcommand{\microphysics}{{\sf Microphysics}}
-\newcommand{\yt}{{\sf yt}}
-\newcommand{\amrvis}{{\sf Amrvis}}
-\newcommand{\visit}{{\sf VisIt}}
-
-\newcommand{\cpp}{C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\tiny\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\tiny\bf +}}
+\input castrosymbols
 
 \usepackage{listings}
 
@@ -230,6 +227,19 @@
   rulesepcolor=\color{gray},%
   backgroundcolor=\color{white}%
 }
+
+
+% Macros for indexing
+\newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
+\newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
+
+\newcommand{\code}[1]{\index{Code reference!{\tt #1}}{\tt #1}}
+\newcommand{\codeidx}[1]{\index{Code reference!{\tt #1}}}
+
+\newcommand{\ifdef}[1]{\index{Preprocessor!{\tt #1}}{\tt #1}}
+
+\newcommand{\otherindex}[2]{\index{#1!#2}}
+
 
 
 %------------------------------------------------------------------------------
@@ -357,5 +367,10 @@
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{plain}
 \bibliography{refs,CastroVerification/verification,Gravity/gr,LevelSet/levelset}
+
+cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Index}
+\printindex
 
 \end{document}

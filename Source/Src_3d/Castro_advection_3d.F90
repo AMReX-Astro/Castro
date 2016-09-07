@@ -262,7 +262,7 @@ contains
     pdivu(:,:,:) = ZERO
 
 #ifdef SHOCK_VAR
-    uout(:,:,:,USHK) = ZERO
+    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
     call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
 
@@ -804,16 +804,16 @@ contains
 
        if ( n == UTEMP ) then
 
-          flux1(:,:,:,n) = ZERO
-          flux2(:,:,:,n) = ZERO
-          flux3(:,:,:,n) = ZERO
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 
 #ifdef SHOCK_VAR
        else if ( n == USHK ) then
 
-          flux1(:,:,:,n) = ZERO
-          flux2(:,:,:,n) = ZERO
-          flux3(:,:,:,n) = ZERO
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 
        else

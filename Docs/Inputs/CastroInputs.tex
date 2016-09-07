@@ -8,11 +8,12 @@ amr.{\em optionname}} or {\tt castro.{\em optionname}}).  Parameters
 set here are read using the \boxlib\ {\tt ParmParse} class
 infrastructure.
 
-The second inputs file, typically named {\tt probin} is used by the
-Fortran code that initializes the problem setup.  It is read at
+The second inputs file, typically named \runparam{probin} is used by
+the Fortran code that initializes the problem setup.  It is read at
 problem initialization (via a Fortran {\tt namelist}) and the
-problem-specific quantities are stored in a Fortran module {\tt
-probdata\_module} defined in the problem's {\tt probdata.f90} file.
+problem-specific quantities are stored in a Fortran module
+\code{probdata\_module} defined in the problem's {\tt probdata.f90}
+file.
 
 Only the {\tt inputs} file is specified on the commandline.  The
 associated {\tt probin} file is specified in the {\tt inputs} file
@@ -32,7 +33,7 @@ subroutine in the {\tt Prob\_?d.f90} file.
 
 \item {\tt \&extern} is used to set different microphysics options
 
-\item {\tt \&tagging} is used to get the parameters (defined in {\tt tagging\_module})
+\item {\tt \&tagging} is used to get the parameters (defined in \code{tagging\_module})
 that affect how we tag for refinement.
 \end{itemize}
 

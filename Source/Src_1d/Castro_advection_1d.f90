@@ -165,11 +165,11 @@ contains
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else if ( n == UMY ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else if ( n == UMZ ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else
           do i = lo(1),hi(1)+1
              div1 = difmag*min(ZERO,div(i))

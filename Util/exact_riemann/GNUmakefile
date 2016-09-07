@@ -1,6 +1,6 @@
 DEBUG := t
 
-MKVERBOSE :=t 
+MKVERBOSE :=t
 
 COMP := gfortran
 
@@ -14,18 +14,14 @@ include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
 BOXLIB_CORE := Src/F_BaseLib
 
 # other packages needed for data_processing
-Fmdirs := 
-
-
-# directories containing files that are 'include'-d via Fortran
-Fmincludes :=
+Fmdirs :=
 
 ifndef MICROPHYSICS_HOME
 $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
 endif
 
 USE_REACT := FALSE
-EOS_TOP_DIR := $(MICROPHYSICS_HOME)/eos
+EOS_TOP_DIR := $(MICROPHYSICS_HOME)/EOS
 NETWORK_TOP_DIR := $(MICROPHYSICS_HOME)/networks
 
 #EOS_DIR := gamma_law_general
@@ -34,14 +30,10 @@ EOS_DIR := helmholtz
 
 NETWORK_DIR := ignition_simple
 
-MICROPHYS_CORE := eos networks
-MICROPHYS_CORE += eos/$(EOS_DIR) networks/$(NETWORK_DIR)
+MICROPHYS_CORE := EOS networks
+MICROPHYS_CORE += EOS/$(EOS_DIR) networks/$(NETWORK_DIR)
 
 f90sources += probin.f90
-
-Fmdirs += Util/VODE
-Fmdirs += Util/BLAS
-
 
 programs += exact_riemann
 
@@ -68,7 +60,7 @@ ifeq ($(findstring stellarcollapse, $(EOS_DIR)), stellarcollapse)
 endif
 
 
-# any Util stuff (BLAS and VODE -- for now these seem to have a GPackage.mak)
+# any Util stuff 
 Fmpack := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir)/GPackage.mak)
 Fmlocs := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir))
 
@@ -82,7 +74,7 @@ Fmlocs += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
 
 # CASTRO-specific stuff that the Microphysics directories rely on
 Fmlocs += $(MICROPHYSICS_HOME)/unit_test/ $(MICROPHYSICS_HOME)/interfaces/
-f90sources += eos.f90
+F90sources += eos.F90
 f90sources += eos_type.f90
 f90sources += network.f90
 
@@ -90,13 +82,7 @@ Fmlocs += $(CASTRO_HOME)/constants
 f90sources += constants_cgs.f90
 
 Fmlocs += $(CASTRO_HOME)/Source/Src_nd/
-# F90sources += meth_params.F90 
-# f90sources += parmparse_mod.f90
-# f90sources += string_mod.f90
-# cxxsources   += parmparse_fi.cpp                                              
 
-# any include files
-Fmincs := $(foreach dir, $(Fmincludes), $(CASTRO_HOME)/$(dir))
 
 # current directory
 Fmpack += ./GPackage.mak
@@ -134,7 +120,7 @@ include $(BOXLIB_HOME)/Tools/F_mk/GMakerules.mak
 %.$(suf).exe:%.f90 $(objects)
 ifdef MKVERBOSE
 	$(LINK.f90) -o $@ $< $(objects) $(libraries)
-else	
+else
 	@echo "Linking $@ ... "
 	@$(LINK.f90) -o $@ $< $(objects) $(libraries)
 endif
