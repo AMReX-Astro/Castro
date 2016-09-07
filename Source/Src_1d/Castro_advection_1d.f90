@@ -121,7 +121,7 @@ contains
                                    small_dens, limit_fluxes_on_small_dens, cfl, QVAR
     use bl_constants_module
     use advection_util_1d_module, only: normalize_species_fluxes
-    use advection_util_module, only : dflux
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -178,150 +178,21 @@ contains
        endif
     enddo
 
-    ! Normalize the species fluxes.
-
-    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
     ! Limit the fluxes to avoid negative/small densities.
 
     if (limit_fluxes_on_small_dens .eq. 1) then
-
-       thetap(:) = ONE
-       thetam(:) = ONE
-
-       dir = 1
-
-       dtdx = dt / dx
-
-       include_pressure = .false.
-
-       ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
-       ! "Positivity-preserving method for high-order conservative schemes solving
-       ! compressible Euler equations." It has been modified to enforce not only positivity
-       ! but also the stronger requirement that rho > small_dens.
-
-       do i = lo(1) - 1, hi(1) + 1
-
-          ! Note that this loop includes one ghost zone on either side of the current
-          ! bounds, but we only need a one-sided limiter for lo(1)-1 and hi(1)+1.
-
-          ! First we'll do the plus state, which is on the left edge of the zone.
-
-          if (i .ge. lo(1)) then
-
-             ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
-             ! Note that the sign convention for the notation is opposite to our convention
-             ! for the edge states for the flux limiter, that is, the "plus" limiter is on
-             ! the left edge of the zone and so is the "minus" rho. The flux limiter convention
-             ! is analogous to the convention for the hydro reconstruction edge states.
-
-             rho = uin(i,URHO) + TWO * dt * (area(i) / vol(i)) * flux(i,URHO)
-
-             if (rho < small_dens) then
-
-                ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
-                ! Note that we are using the information from Equation 9 to obtain the
-                ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where lambda = dt/dx.
-
-                fluxL = dflux(uin(i-1,:), q(i-1,:), dir, [i-1, 0, 0], include_pressure)
-                fluxR = dflux(uin(i  ,:), q(i  ,:), dir, [i  , 0, 0], include_pressure)
-                fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx) * (uin(i-1,:) - uin(i,:)))
-
-                ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < small_dens.
-                ! To do this, first, construct the density change corresponding to the LF density flux.
-                ! Then, if this update would create a density that is less than small_dens, scale all
-                ! fluxes linearly such that the density flux gives small_dens when applied.
-
-                drhoLF = TWO * dt * (area(i) / vol(i)) * fluxLF(URHO)
-
-                if (uin(i,URHO) + drhoLF < small_dens) then
-                   fluxLF = fluxLF * abs((small_dens - uin(i,URHO)) / drhoLF)
-                endif
-
-                ! Obtain the final density corresponding to the LF flux.
-
-                rhoLF = uin(i,URHO) + TWO * dt * (area(i) / vol(i)) * fluxLF(URHO)
-
-                ! Solve for theta from (1 - theta) * rhoLF + theta * rho = small_dens.
-
-                thetap(i) = (small_dens - rhoLF) / (rho - rhoLF)
-
-             endif
-
-          endif
-
-          ! Now do the minus state, which is on the right edge of the zone.
-          ! This uses the same logic as the above.
-
-          if (i .le. hi(1)) then
-
-             rho = uin(i,URHO) - TWO * dt * (area(i+1) / vol(i)) * flux(i+1,URHO)
-
-             if (rho < small_dens) then
-
-                fluxL = dflux(uin(i  ,:), q(i  ,:), dir, [i  , 0, 0], include_pressure)
-                fluxR = dflux(uin(i+1,:), q(i+1,:), dir, [i+1, 0, 0], include_pressure)
-                fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx) * (uin(i,:) - uin(i+1,:)))
-
-                drhoLF = -TWO * dt * (area(i+1) / vol(i)) * fluxLF(URHO)
-
-                if (uin(i,URHO) + drhoLF < small_dens) then
-                   fluxLF = fluxLF * abs((small_dens - uin(i,URHO)) / drhoLF)
-                endif
-
-                rhoLF = uin(i,URHO) - TWO * dt * (area(i+1) / vol(i)) * fluxLF(URHO)
-
-                thetam(i) = (small_dens - rhoLF) / (rho - rhoLF)
-
-             endif
-
-          endif
-
-       enddo
-
-       ! Now figure out the limiting values of theta. Each zone center has a thetap and thetam,
-       ! but we want a nodal value of theta that is the strongest of the two limiters in each case.
-       ! Then, limit the flux accordingly.
-
-       do i = lo(1), hi(1) + 1
-
-          theta = min(thetam(i-1), thetap(i))
-
-          fluxL = dflux(uin(i-1,:), q(i-1,:), dir, [i-1, 0, 0], include_pressure)
-          fluxR = dflux(uin(i  ,:), q(i  ,:), dir, [i  , 0, 0], include_pressure)
-          fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx) * (uin(i-1,:) - uin(i,:)))
-
-          drhoLF = TWO * dt * (area(i) / vol(i)) * fluxLF(URHO)
-
-          if (uin(i,URHO) + drhoLF < small_dens) then
-             fluxLF = fluxLF * abs((small_dens - uin(i,URHO)) / drhoLF)
-          else if (uin(i-1,URHO) - drhoLF < small_dens) then
-             fluxLF = fluxLF * abs((small_dens - uin(i-1,URHO)) / drhoLF)
-          endif
-
-          flux(i,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,:)
-
-       enddo
-
+       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, 0, 0], [uin_h1, 0, 0], &
+                                             q, [q_l1, 0, 0], [q_h1, 0, 0], &
+                                             vol, [vol_l1, 0, 0], [vol_h1, 0, 0], &
+                                             flux, [flux_l1, 0, 0], [flux_h1, 0, 0], &
+                                             area, [area_l1, 0, 0], [area_h1, 0, 0], &
+                                             [lo(1), 0, 0], [hi(1), 0, 0], dt, [dx, ZERO, ZERO])
     endif
 
-    ! Fill the update array.
+    ! Normalize the species fluxes.
 
-    do n = 1, NVAR
-       do i = lo(1), hi(1)
-
-          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
-
-          ! Add p div(u) source term to (rho e).
-
-          if (n == UEINT) then
-
-             update(i,n) = update(i,n) - pdivu(i)
-
-          endif
-
-       enddo
-    enddo
+    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
     ! Add gradp term to momentum equation.
 
