@@ -3,6 +3,8 @@
   -- the radiation hydro ppm now implements the ppm_predict_gammae
      option
 
+  -- we no longer ship VODE, LAPACK, or BLAS with Castro -- these
+     are provided by the separate Microphysics git repo
 
 previous changes:
 
