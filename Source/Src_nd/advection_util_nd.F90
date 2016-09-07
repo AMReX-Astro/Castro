@@ -550,7 +550,7 @@ contains
     integer          :: n, nq, ipassive
     double precision :: rhoinv
 
-    srcQ = ZERO
+    srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
     ! compute srcQ terms
     do k = lo(3), hi(3)
