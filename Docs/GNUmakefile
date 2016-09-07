@@ -33,31 +33,25 @@ section_sources = Introduction/CastroIntroduction.tex \
 
 
 
-CastroUserGuide.dvi: CastroUserGuide.tex $(eps_source) $(section_sources) $(eps_source)
-	latex CastroUserGuide.tex < /dev/null
-	bibtex CastroUserGuide
-	latex CastroUserGuide.tex < /dev/null
-	latex CastroUserGuide.tex < /dev/null
-
 CastroUserGuide.pdf: CastroUserGuide.tex $(pdf_source) $(section_sources) $(pdf_source)
 	pdflatex CastroUserGuide.tex < /dev/null
 	bibtex CastroUserGuide
+	pdflatex CastroUserGuide.tex < /dev/null
+	makeindex CastroUserGuide < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 	pdflatex CastroUserGuide.tex < /dev/null
 
 pdf:	CastroUserGuide.pdf 
 
-%.ps: %.dvi
-	dvips -t letter -o $@ $<
-
 %.pdf: %.eps
 	$(EPStoPDF) $<
 
 clean:
-	$(RM) $(pdf_source) CastroUserGuide.dvi
+	$(RM) $(pdf_source)
 	$(RM) CastroUserGuide.blg CastroUserGuide.log CastroUserGuide.toc
 	$(RM) CastroUserGuide.aux CastroUserGuide.ps CastroUserGuide.bbl CastroUserGuide.pdf
-	$(RM) CastroUserGuide.lot CastroUserGuide.lof CastroUsetGuide.out
+	$(RM) CastroUserGuide.lot CastroUserGuide.lof CastroUserGuide.out
+	$(RM) CastroUserGuide.idx CastroUserGuide.ind CastroUserGuide.ilg
 	$(RM) *~
 
 .PHONY: clean
