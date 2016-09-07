@@ -281,6 +281,14 @@ contains
              fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
+             drhoLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+             if (u(i,j,k,URHO) + drhoLF < small_dens) then
+                fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k,URHO)) / drhoLF)
+             else if (u(i-1,j,k,URHO) - drhoLF < small_dens) then
+                fluxLF(:) = fluxLF(:) * abs((small_dens - u(i-1,j,k,URHO)) / drhoLF)
+             endif
+
              flux1(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux1(i,j,k,:)
 
              drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
@@ -372,6 +380,14 @@ contains
                 fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k], include_pressure)
                 fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
                 fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
+
+                drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                if (u(i,j,k,URHO) + drhoLF < small_dens) then
+                   fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k,URHO)) / drhoLF)
+                else if (u(i,j-1,k,URHO) - drhoLF < small_dens) then
+                   fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j-1,k,URHO)) / drhoLF)
+                endif
 
                 flux2(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux2(i,j,k,:)
 
@@ -468,6 +484,12 @@ contains
                 fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
+
+                if (u(i,j,k,URHO) + drhoLF < small_dens) then
+                   fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k,URHO)) / drhoLF)
+                else if (u(i,j,k-1,URHO) - drhoLF < small_dens) then
+                   fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k-1,URHO)) / drhoLF)
+                endif
 
                 flux3(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux3(i,j,k,:)
 
