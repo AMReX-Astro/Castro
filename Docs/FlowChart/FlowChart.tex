@@ -144,26 +144,29 @@ The treatment of source terms complicates this a little.  The actual
 update, in sequence, looks like:
 \begin{align}
 \Ub^\star &= \Ub^n + \frac{\dt}{2}\Sb_{\rm react}(\Ub^n) \\
-\Ub^{n+1,(a)} &= \Ub^\star + \Delta t \Sb(\Ub^n) \\
-\Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \Delta t \nabla \cdot\Fb^\nph(\Ub^\star) \\
-\Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2} [S(\Ub^{n+1,(b)}) - S(\Ub^n)] \label{eq:source_correct}\\
+\Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
+\Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
+\Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
 \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
-\end{align}\MarginPar{does the first addition of the source terms work off of $\Ub$ or $\Ub^\star$?}
+\end{align}
 
-The construction of $F$ is purely explicit, and based on an unsplit
-second-order Godunov method.  We predict the standard primitive
-variables, as well as $\rho e$, at time-centered edges and use an
-approximate Riemann solver construct fluxes.  
+The construction of the advective terms, ${\bf A(\Ub)}$ is purely
+explicit, and based on an unsplit second-order Godunov method.  We
+predict the standard primitive variables, as well as $\rho e$, at
+time-centered edges and use an approximate Riemann solver construct
+fluxes.
 
 At the beginning of the time step, we assume that $\Ub$ and $\phi$ are
 defined consistently, i.e., $\rho^n$ and $\phi^n$ satisfy equation
-(\ref{eq:Self Gravity}).  Also note that in Eq.~\ref{eq:source_correct}, 
-we actually can do the new time-level source updates in sequence, and some
-(like rotation) implicitly, making that update more akin to:
+(\ref{eq:Self Gravity}).  Also note that in
+Eq.~\ref{eq:source_correct}, we actually can do the new time-level
+source updates in sequence (this is the default, and is controlled by
+\runparam{castro.update\_state\_between\_sources}.  Additionally, some
+terms, like rotation, can be treated implicitly.  Together, this can
+make the update more akin to:
 \begin{equation}
 \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [S(\Ub^{n+1,(c)}) - S(\Ub^n)]
 \end{equation}
-
 
 \castro\ also supports radiation.  This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
@@ -186,31 +189,65 @@ Update the solution due to the effect of reactions over half a time
 step.  The integration method and system of equations used here is
 determined by a host of runtime parameters that are part of the
 \microphysics\ package.  But the basic idea is to evolve the energy
-release from the reactions, the species mass fractions, and temperature
-through $\Delta t/2$.
+release from the reactions, the species mass fractions, and
+temperature through $\Delta t/2$.  
 
-\begin{eqnarray}
-(\rho E)^n &=& (\rho E)^n - \frac{\dt}{2}\sum_k(\rho q_k\omegadot_k)^n,\\
-(\rho X_k)^n &=& (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k)^n.
-\end{eqnarray} \MarginPar{up this}
+Using the notation above, we begin with the time-level $n$ state,
+$\Ub^n$, and produce a state that has evolved only due to reactions,
+$\Ub^\star$.
 
-At the end of the reactions, we copy the updated data into {\tt S\_new} \MarginPar{why?}
+\begin{align}
+(\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+(\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+(\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+\end{align}
+Here, $H_\mathrm{nuc}$ is the energy release (erg/g/s) over the burn,
+and $\omegadot_k$ is the creation rate for species $k$.
+
+After exiting the burner, we call the EOS with $\rho^\star$,
+$e^\star$, and $X_k^\star$ to get the new temperature, $T^\star$.
+
+Note that the density, $\rho$, does not change via reactions in the
+Strang-split formulation.
 
 
 \item {\em Construct time-level $n$ sources and apply}
 
-The time level $n$ sources are applied to the new state, {\tt S\_new},
-with a full $\Delta t$ weighting (this will be corrected later)
+The time level $n$ sources are applied to the state after the burn, $\Ub^\star$, 
+with a full $\Delta t$ weighting (this will be corrected later).  This produces
+the intermediate state, $\Ub^{n+1,(a)}$.
 
 The sources that we deal with here are:
 \begin{enumerate}
-  \item sponge
+  \item sponge : the sponge\index{sponge} is a damping term added to the 
+     momentum equation that is designed to drive the velocities to zero
+     over some timescale.  Our implementation of the sponge follows that
+     of \maestro~\cite{maestro:III}
 
-  \item external sources
+  \item external sources : users can define problem-specific sources
+    in the \code{ext\_src\_?d.f90} file.  Sources for the different
+    equations in the conservative state vector, $\Ub$, are indexed
+    using the integer keys defined in {\tt meth\_params\_module}
+    (e.g., {\tt URHO}).
 
-  \item {[\ifdef{DIFFUSION}]} diffusion
+    This is most commonly used for external heat sources (see the
+    \problem{toy\_convect} problem setup) for an example.  But most
+    problems will not use this.
+
+  \item {[\ifdef{DIFFUSION}]} diffusion : thermal diffusion can be
+    added in an explicit formulation.  Second-order accuracy is
+    achieved by averaging the time-level $n$ and $n+1$ terms, using
+    the same predictor-corrector strategy described here.
+
+    Note: thermal diffusion is distinct from radiation hydrodynamics.
+
+    Also note that incorporating diffusion brings in an additional
+    timestep constraint, since the treatment is explicit.  See
+    Chapter~\ref{ch:diffusion} for more details.
 
   \item {[\ifdef{HYBRID\_MOMENTUM}]} angular momentum 
+
+    \MarginPar{need to write this up}
 
   \item {[\ifdef{GRAVITY}]} gravity:
 
@@ -231,13 +268,21 @@ The sources that we deal with here are:
 
   \item {[\ifdef{ROTATION}]} rotation
 
-    We compute the rotational potential (for use in the energy update) 
-    and the rotational acceleration (for use in the momentum equation).
-    The form of the rotational source that is constructed then depends
-    on the parameter \runparam{castro.rot\_source\_type}
+    We compute the rotational potential (for use in the energy update)
+    and the rotational acceleration (for use in the momentum
+    equation).  This includes the Coriolis and centrifugal terms in a
+    constant-angular-velocity co-rotating frame.  The form of the
+    rotational source that is constructed then depends on the
+    parameter \runparam{castro.rot\_source\_type}.  More details are
+    given in Chapter~\ref{ch:rotation}.
     
 \end{enumerate}
 
+The source terms here are evaluated using the post-burn state,
+$\Ub^\star$, and later corrected by using the new state just before
+the burn, $\Ub^{n+1,(b)}$.  This is compatible with Strang-splitting,
+since the hydro and sources takes place completely inside of the
+surrounding burn operations.
 
 \item {\em Construct the hydro update}
 
