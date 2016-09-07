@@ -139,23 +139,31 @@ includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
 summary, for each time step, we update the conservative variables,
 $\Ub$, by reacting for half a time step, advecting for a full time
-step (ignoring the reaction terms), and reacting for half a time step:
-\begin{equation}
-\Ub^n = \Ub^n + \frac{\dt}{2}\Sb_{\rm react}^n,
-\end{equation}
-\begin{equation}
-\Ub^{n+1} = \Ub^n - \Delta t \nabla \cdot\Fb^\nph + \dt\frac{\Sb^n + \Sb^{n+1}}{2},
-\end{equation}
-\begin{equation}
-\Ub^{n+1} = \Ub^{n+1} + \frac{\dt}{2}\Sb_{\rm react}^{n+1},
-\end{equation}
+step (ignoring the reaction terms), and reacting for half a time step.
+The treatment of source terms complicates this a little.  The actual
+update, in sequence, looks like:
+\begin{align}
+\Ub^\star &= \Ub^n + \frac{\dt}{2}\Sb_{\rm react}(\Ub^n) \\
+\Ub^{n+1,(a)} &= \Ub^\star + \Delta t \Sb(\Ub^n) \\
+\Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \Delta t \nabla \cdot\Fb^\nph(\Ub^\star) \\
+\Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2} [S(\Ub^{n+1,(b)}) - S(\Ub^n)] \label{eq:source_correct}\\
+\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
+\end{align}\MarginPar{does the first addition of the source terms work off of $\Ub$ or $\Ub^\star$?}
+
 The construction of $F$ is purely explicit, and based on an unsplit
 second-order Godunov method.  We predict the standard primitive
 variables, as well as $\rho e$, at time-centered edges and use an
-approximate Riemann solver construct fluxes.  At the beginning of the
-time step, we assume that $\Ub$ and $\phi$ are defined consistently,
-i.e., $\rho^n$ and $\phi^n$ satisfy equation (\ref{eq:Self
-  Gravity}).
+approximate Riemann solver construct fluxes.  
+
+At the beginning of the time step, we assume that $\Ub$ and $\phi$ are
+defined consistently, i.e., $\rho^n$ and $\phi^n$ satisfy equation
+(\ref{eq:Self Gravity}).  Also note that in Eq.~\ref{eq:source_correct}, 
+we actually can do the new time-level source updates in sequence, and some
+(like rotation) implicitly, making that update more akin to:
+\begin{equation}
+\Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [S(\Ub^{n+1,(c)}) - S(\Ub^n)]
+\end{equation}
+
 
 \castro\ also supports radiation.  This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
