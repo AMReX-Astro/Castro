@@ -113,8 +113,11 @@ of each step.
 
 \end{enumerate}
 
+\subsection{Main Hydro, Reaction, and Gravity Advancement (Strang-splitting)}
 
-Consider our system of  Our equations look like:
+The explicit portion of the system advancement (reactions,
+hydrodynamics, and gravity) is done by \code{do\_advance()}.  
+Consider our system of equations as:
 \begin{equation}
 \frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
 \end{equation}
@@ -124,8 +127,7 @@ includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
 summary, for each time step, we update the conservative variables,
 $\Ub$, by reacting for half a time step, advecting for a full time
-step (ignoring the reaction terms), and reacting for half a time step.
-In summary,
+step (ignoring the reaction terms), and reacting for half a time step:
 \begin{equation}
 \Ub^n = \Ub^n + \frac{\dt}{2}\Sb_{\rm react}^n,
 \end{equation}
@@ -141,27 +143,55 @@ variables, as well as $\rho e$, at time-centered edges and use an
 approximate Riemann solver construct fluxes.  At the beginning of the
 time step, we assume that $\Ub$ and $\phi$ are defined consistently,
 i.e., $\rho^n$ and $\phi^n$ satisfy equation (\ref{eq:Self
-  Gravity}).\\
+  Gravity}).
 
-\castro\ also supports radiation (Chapter \ref{Chap:Radiation}) and
-level sets (Chapter \ref{Chap:Level Sets}).  We omit the details in
-this section.  Here is the single-level algorithm:
-\begin{description}
-\item[Step 1:] {\em React $\Delta t/2$.}
+\castro\ also supports radiation.  This part of the update algorithm
+only deals with the advective / hyperbolic terms in the radiation update.
 
-Update the solution due to the effect of reactions over half a time step.
+Here is the single-level algorithm.  In the code, the objective is to
+evolve the state from the old time, {\tt S\_old}, to the new time,
+{\tt S\_new}.  \MarginPar{Sborder?}
+
+\begin{enumerate}
+\item {\em Initialize}
+
+This resets the flux registers and initializes a lot of intermediate
+storage arrays (like source term) to zero.
+
+We also check for NaNs in the initial state, {\tt S\_old}.
+
+\item {\em React $\Delta t/2$.}
+
+Update the solution due to the effect of reactions over half a time
+step.  The integration method and system of equations used here is
+determined by a host of runtime parameters that are part of the
+\microphysics\ package.  But the basic idea is to evolve the energy
+release from the reactions, the species mass fractions, and temperature
+through $\Delta t/2$.
+
 \begin{eqnarray}
 (\rho E)^n &=& (\rho E)^n - \frac{\dt}{2}\sum_k(\rho q_k\omegadot_k)^n,\\
 (\rho X_k)^n &=& (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k)^n.
-\end{eqnarray}
-\item[Step 2:] {\em Solve for gravity.}
+\end{eqnarray} \MarginPar{up this}
 
-Solve for gravity using:
+At the end of the reactions, we copy the updated data into {\tt S\_new} \MarginPar{why?}
+
+
+\item {\em Construct time-level $n$ sources and apply}
+
+This includes the gravity source.  For full Poisson gravity, we solve
+for for gravity using:
 \begin{equation}
 \gb^n = \nabla\phi^n, \qquad 
 \Delta\phi^n = 4\pi G\rho^n,
 \end{equation}
-or use one of the simpler gravity types.
+
+The time level $n$ sources are applied to the new state, {\tt S\_new},
+with a full $\Delta t$ weighting (this will be corrected later)
+
+
+
+
 
 \item[Step 3:] {\em Compute explicit source terms.}
 
@@ -284,7 +314,7 @@ subcycled timesteps that should be small enough to satisfy the criteria.
 Note that this will effectively double the memory footprint on each level
 if you choose to use it.
 
-\end{description}
+\end{enumerate}
 Thus concludes the single-level algorithm description.
 
 
