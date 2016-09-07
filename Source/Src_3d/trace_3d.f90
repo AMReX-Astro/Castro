@@ -63,7 +63,7 @@ contains
 
       if (ppm_type .ne. 0) then
         print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
-        call bl_error("Error:: Castro_advection_3d.f90 :: tracexy")
+        call bl_error("Error:: trace_3d.f90 :: tracexy")
       end if
 
       !!!!!!!!!!!!!!!
@@ -471,7 +471,7 @@ contains
 
       if (ppm_type .ne. 0) then
         print *,'Oops -- shouldnt be in tracez with ppm_type != 0'
-        call bl_error("Error:: Castro_advection_3d.f90 :: tracez")
+        call bl_error("Error:: trace_3d.f90 :: tracez")
       end if
 
       dtdz = dt/dx(3)
