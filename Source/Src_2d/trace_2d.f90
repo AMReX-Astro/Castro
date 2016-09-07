@@ -51,13 +51,12 @@ contains
     
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
-    double precision spminus, spplus, spzero
+    double precision spzero
     double precision apright, amright, azrright, azeright
     double precision azu1rght, azv1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left
     double precision acmprght, acmpleft, acmpbot, acmptop
-    double precision ascmprght, ascmpleft, ascmpbot, ascmptop
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
     
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
@@ -65,7 +64,7 @@ contains
 
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in trace with ppm_type != 0'
-       call bl_error("Error:: Castro_2d.f90 :: trace")
+       call bl_error("Error:: trace_2d.f90")
     end if
     
     dtdx = dt/dx

@@ -347,8 +347,6 @@ contains
 
                 flux1(i,j,n) = flux1(i,j,n) + &
                      dx*div1*(uin(i,j,n) - uin(i-1,j,n))
-
-                flux1(i,j,n) = area1(i,j)*flux1(i,j,n)
              enddo
           enddo
 
@@ -359,8 +357,6 @@ contains
 
                 flux2(i,j,n) = flux2(i,j,n) + &
                      dy*div1*(uin(i,j,n) - uin(i,j-1,n))
-
-                flux2(i,j,n) = area2(i,j)*flux2(i,j,n)
              enddo
           enddo
 
@@ -390,8 +386,8 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             update(i,j,n) = update(i,j,n) + ( flux1(i,j,n) - flux1(i+1,j,n) + &
-                                               flux2(i,j,n) - flux2(i,j+1,n) ) / vol(i,j)
+             update(i,j,n) = update(i,j,n) + ( flux1(i,j,n) * area1(i,j) - flux1(i+1,j,n) * area1(i+1,j) + &
+                                               flux2(i,j,n) * area2(i,j) - flux2(i,j+1,n) * area2(i,j+1) ) / vol(i,j)
 
              if (n == UEINT) then
 
@@ -417,6 +413,28 @@ contains
        enddo
     endif
 
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)+1
+
+             flux1(i,j,n) = dt * flux1(i,j,n) * area1(i,j)
+
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do j = lo(2), hi(2)+1
+          do i = lo(1), hi(1)
+
+             flux2(i,j,n) = dt * flux2(i,j,n) * area2(i,j)
+
+          enddo
+       enddo
+    enddo
+
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
@@ -424,20 +442,20 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             mass_added_flux = mass_added_flux + dt * ( flux1(i,j,URHO) - flux1(i+1,j,URHO) + &
-                                                        flux2(i,j,URHO) - flux2(i,j+1,URHO) )
+             mass_added_flux = mass_added_flux + ( flux1(i,j,URHO) - flux1(i+1,j,URHO) + &
+                                                   flux2(i,j,URHO) - flux2(i,j+1,URHO) )
 
-             xmom_added_flux = xmom_added_flux + dt * ( flux1(i,j,UMX) - flux1(i+1,j,UMX) + &
-                                                        flux2(i,j,UMX) - flux2(i,j+1,UMX) )
+             xmom_added_flux = xmom_added_flux + ( flux1(i,j,UMX) - flux1(i+1,j,UMX) + &
+                                                   flux2(i,j,UMX) - flux2(i,j+1,UMX) )
 
-             ymom_added_flux = ymom_added_flux + dt * ( flux1(i,j,UMY) - flux1(i+1,j,UMY) + &
-                                                        flux2(i,j,UMY) - flux2(i,j+1,UMY) )
+             ymom_added_flux = ymom_added_flux + ( flux1(i,j,UMY) - flux1(i+1,j,UMY) + &
+                                                   flux2(i,j,UMY) - flux2(i,j+1,UMY) )
 
-             zmom_added_flux = zmom_added_flux + dt * ( flux1(i,j,UMZ) - flux1(i+1,j,UMZ) + &
-                                                        flux2(i,j,UMZ) - flux2(i,j+1,UMZ) )
+             zmom_added_flux = zmom_added_flux + ( flux1(i,j,UMZ) - flux1(i+1,j,UMZ) + &
+                                                   flux2(i,j,UMZ) - flux2(i,j+1,UMZ) )
 
-             E_added_flux    = E_added_flux    + dt * ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
-                                                        flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
+             E_added_flux    = E_added_flux    + ( flux1(i,j,UEDEN) - flux1(i+1,j,UEDEN) + &
+                                                   flux2(i,j,UEDEN) - flux2(i,j+1,UEDEN) )
 
           enddo
        enddo
@@ -458,13 +476,13 @@ contains
 
              loc = position(i,j,k,ccy=.false.)
 
-             mass_lost = mass_lost - dt * flux2(i,j,URHO)
-             xmom_lost = xmom_lost - dt * flux2(i,j,UMX)
-             ymom_lost = ymom_lost - dt * flux2(i,j,UMY)
-             zmom_lost = zmom_lost - dt * flux2(i,j,UMZ)
-             eden_lost = eden_lost - dt * flux2(i,j,UEDEN)
+             mass_lost = mass_lost - flux2(i,j,URHO)
+             xmom_lost = xmom_lost - flux2(i,j,UMX)
+             ymom_lost = ymom_lost - flux2(i,j,UMY)
+             zmom_lost = zmom_lost - flux2(i,j,UMZ)
+             eden_lost = eden_lost - flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
              zang_lost = zang_lost - ang_mom(3)
@@ -480,13 +498,13 @@ contains
 
              loc = position(i,j,k,ccy=.false.)
 
-             mass_lost = mass_lost + dt * flux2(i,j,URHO)
-             xmom_lost = xmom_lost + dt * flux2(i,j,UMX)
-             ymom_lost = ymom_lost + dt * flux2(i,j,UMY)
-             zmom_lost = zmom_lost + dt * flux2(i,j,UMZ)
-             eden_lost = eden_lost + dt * flux2(i,j,UEDEN)
+             mass_lost = mass_lost + flux2(i,j,URHO)
+             xmom_lost = xmom_lost + flux2(i,j,UMX)
+             ymom_lost = ymom_lost + flux2(i,j,UMY)
+             zmom_lost = zmom_lost + flux2(i,j,UMZ)
+             eden_lost = eden_lost + flux2(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux2(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
@@ -502,13 +520,13 @@ contains
 
              loc = position(i,j,k,ccx=.false.)
 
-             mass_lost = mass_lost - dt * flux1(i,j,URHO)
-             xmom_lost = xmom_lost - dt * flux1(i,j,UMX)
-             ymom_lost = ymom_lost - dt * flux1(i,j,UMY)
-             zmom_lost = zmom_lost - dt * flux1(i,j,UMZ)
-             eden_lost = eden_lost - dt * flux1(i,j,UEDEN)
+             mass_lost = mass_lost - flux1(i,j,URHO)
+             xmom_lost = xmom_lost - flux1(i,j,UMX)
+             ymom_lost = ymom_lost - flux1(i,j,UMY)
+             zmom_lost = zmom_lost - flux1(i,j,UMZ)
+             eden_lost = eden_lost - flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost - ang_mom(1)
              yang_lost = yang_lost - ang_mom(2)
              zang_lost = zang_lost - ang_mom(3)
@@ -524,13 +542,13 @@ contains
 
              loc = position(i,j,k,ccx=.false.)
 
-             mass_lost = mass_lost + dt * flux1(i,j,URHO)
-             xmom_lost = xmom_lost + dt * flux1(i,j,UMX)
-             ymom_lost = ymom_lost + dt * flux1(i,j,UMY)
-             zmom_lost = zmom_lost + dt * flux1(i,j,UMZ)
-             eden_lost = eden_lost + dt * flux1(i,j,UEDEN)
+             mass_lost = mass_lost + flux1(i,j,URHO)
+             xmom_lost = xmom_lost + flux1(i,j,UMX)
+             ymom_lost = ymom_lost + flux1(i,j,UMY)
+             zmom_lost = zmom_lost + flux1(i,j,UMZ)
+             eden_lost = eden_lost + flux1(i,j,UEDEN)
 
-             ang_mom   = linear_to_angular_momentum(loc - center, dt * flux1(i,j,UMX:UMZ))
+             ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,UMX:UMZ))
              xang_lost = xang_lost + ang_mom(1)
              yang_lost = yang_lost + ang_mom(2)
              zang_lost = zang_lost + ang_mom(3)
@@ -540,28 +558,6 @@ contains
        endif
 
     endif
-
-    ! Scale the fluxes for the form we expect later in refluxing.
-
-    do n = 1, NVAR
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)+1
-
-             flux1(i,j,n) = dt * flux1(i,j,n)
-
-          enddo
-       enddo
-    enddo
-
-    do n = 1, NVAR
-       do j = lo(2), hi(2)+1
-          do i = lo(1), hi(1)
-
-             flux2(i,j,n) = dt * flux2(i,j,n)
-
-          enddo
-       enddo
-    enddo
 
   end subroutine consup
 
