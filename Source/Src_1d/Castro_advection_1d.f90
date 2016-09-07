@@ -159,7 +159,6 @@ contains
 
     double precision :: rho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx
     integer          :: dir
-    logical          :: include_pressure
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
