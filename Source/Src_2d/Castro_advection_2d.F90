@@ -259,6 +259,7 @@ contains
 ! :::
 
   subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
+                     q, q_l1, q_l2, q_h1, q_h2, &
                      uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                      update,updt_l1,updt_l2,updt_h1,updt_h2, &
                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
@@ -275,10 +276,12 @@ contains
                      verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses
+                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses, &
+                                   limit_fluxes_on_small_dens, QVAR
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
     use advection_util_2d_module, only : normalize_species_fluxes
+    use advection_util_module, only: limit_hydro_fluxes_on_small_dens
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 #ifdef SHOCK_VAR
@@ -287,6 +290,7 @@ contains
 
     integer lo(2), hi(2)
     integer uin_l1,uin_l2,uin_h1,uin_h2
+    integer q_l1,q_l2,q_h1,q_h2
     integer uout_l1,uout_l2,uout_h1,uout_h2
     integer updt_l1,updt_l2,updt_h1,updt_h2
     integer q1_l1, q1_l2, q1_h1, q1_h2
@@ -300,6 +304,7 @@ contains
     integer verbose
 
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
+    double precision q(q_l1:q_h1,q_l2:q_h2,QVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
@@ -361,6 +366,17 @@ contains
 
        endif
     enddo
+
+    if (limit_fluxes_on_small_dens == 1) then
+       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, uin_l2, 0], [uin_h1, uin_h2, 0], &
+                                             q, [q_l1, q_l2, 0], [q_h1, q_h2, 0], &
+                                             vol, [vol_l1, vol_l2, 0], [vol_h1, vol_h2, 0], &
+                                             flux1, [flux1_l1, flux1_l2, 0], [flux1_h1, flux1_h2, 0], &
+                                             area1, [area1_l1, area1_l2, 0], [area1_h1, area1_h2, 0], &
+                                             flux2, [flux2_l1, flux2_l2, 0], [flux2_h1, flux2_h2, 0], &
+                                             area2, [area2_l1, area2_l2, 0], [area2_h1, area2_h2, 0], &
+                                             [lo(1), lo(2), 0], [hi(1), hi(2), 0], dt, [dx, dy, ZERO])
+    endif
 
     ! Normalize the species fluxes.
 
