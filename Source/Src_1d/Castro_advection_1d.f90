@@ -146,8 +146,6 @@ contains
     double precision    vol(vol_l1:vol_h1)
     double precision    div(lo(1):hi(1)+1)
     double precision  pdivu(lo(1):hi(1)  )
-    double precision thetap(lo(1):hi(1)+1)
-    double precision thetam(lo(1)-1:hi(1))
     double precision dx, dt
     double precision E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
@@ -159,9 +157,8 @@ contains
     integer          :: domlo(3), domhi(3)
     double precision :: loc(3), ang_mom(3)
 
-    double precision :: rho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
+    double precision :: rho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx
     integer          :: dir
-    logical          :: include_pressure
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
