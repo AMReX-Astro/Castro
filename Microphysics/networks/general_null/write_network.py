@@ -98,7 +98,7 @@ def parse_net_file(species, aux_vars, net_file):
         if net_obj is None: return err
 
         objs = species
-        if type(net_obj).__name__ is "auxvar": objs = aux_vars
+        if type(net_obj).__name__ is "AuxVar": objs = aux_vars
 
         # check to see if this species/auxvar is defined in the current list
         index = get_object_index(objs, net_obj.name)

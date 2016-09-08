@@ -192,5 +192,13 @@ private:
 
     void sanity_check (int level);
 };
+
+class GradPhiPhysBCFunct
+    : public PhysBCFunct
+{
+public:
+    GradPhiPhysBCFunct ();
+    virtual void doit (MultiFab& mf, int dcomp, int ncomp, Real time);
+};
 #endif
 

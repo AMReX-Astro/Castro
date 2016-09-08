@@ -633,6 +633,8 @@ protected:
 
     Real clean_state (MultiFab& state);
 
+    Real clean_state (MultiFab& state, MultiFab& state_old);
+
     void avgDown ();
 
     void avgDown (int state_indx);

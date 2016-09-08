@@ -18,7 +18,7 @@ The code structure in the {\tt Castro/} directory is as follows:
   \begin{itemize}
   \item {\tt conductivity/}: the thermal conductivity
   \item {\tt EOS/}: the equation of state
-  \item {\tt Networks/}: the nuclear reaction networks
+  \item {\tt networks/}: the nuclear reaction networks
   \end{itemize}
 
 \item {\tt Source/}: source code
@@ -213,12 +213,12 @@ problem.  Here we describe how to customize your problem.
 
 The purpose of these files is:
 \begin{itemize}
-\item {\tt probdata.f90}: this holds the {\tt probdata\_module} Fortran module
+\item \code{probdata.f90}: this holds the {\tt probdata\_module} Fortran module
   that allocates storage for all the problem-specific runtime parameters that
   are used by the problem (including those that are read from the {\tt probin}
   file.
 
-\item {\tt Prob\_?d.f90}: this holds the main routines to
+\item \code{Prob\_?d.f90}: this holds the main routines to
   initialize the problem and grid and perform problem-specific boundary
   conditions:
 
@@ -232,7 +232,7 @@ The purpose of these files is:
     setup for an example).  The parameters that are initialized
     here are those stored in the {\tt probdata\_module}.
 
-  \item {\tt ca\_initdata()}:
+  \item \code{ca\_initdata()}:
 
     This routine will initialize the state data for a single grid.
     The inputs to this routine are:
@@ -291,7 +291,7 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
     \end{itemize}
   \end{itemize}    
 
-\item {\tt bc\_fill\_?d.f90}:
+\item \code{bc\_fill\_?d.f90}:
 
   These routines handle how \castro\ fills ghostcells {\em
   at physical boundaries} for specific data.  Most problem
@@ -550,7 +550,7 @@ shared across thousands of CPUs.  Each CPU writes the part of the
 MultiFab that it owns to disk, but they don't each write to their own
 distinct file.  Instead each MultiFab is written to a runtime
 configurable number of files N (N can be set in the inputs file as the
-parameter {\tt amr.checkpoint\_nfiles} and {\tt amr.plot\_nfiles}; the
+parameter \runparam{amr.checkpoint\_nfiles} and \runparam{amr.plot\_nfiles}; the
 default is 64).  That is to say, each MultiFab is written to disk
 across at most N files, plus a small amount of data that gets written
 to a header file describing how the file is laid out in those N files.

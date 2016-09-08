@@ -138,7 +138,7 @@ contains
 
 
 
-  subroutine compute_hybrid_flux(state, flux, idir, idx)
+  subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
     use bl_error_module, only: bl_error
@@ -155,24 +155,34 @@ contains
     double precision :: state(NGDNV)
     double precision :: flux(NVAR)
     integer          :: idir, idx(3)
+    logical, optional :: cell_centered
 
     double precision :: linear_mom(3), hybrid_mom(3)
     double precision :: loc(3), R
 
     double precision :: u_adv
+    logical :: cc
 
 #ifdef ROTATION
     double precision :: vel(3)
 #endif
 
+    cc = .false.
+
+    if (present(cell_centered)) then
+       if (cell_centered) then
+          cc = .true.
+       endif
+    endif
+
     if (idir .eq. 1) then
-       loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
+       loc = position(idx(1),idx(2),idx(3),ccx=cc) - center
        u_adv = state(GDU)
     else if (idir .eq. 2) then
-       loc = position(idx(1),idx(2),idx(3),ccy=.false.) - center
+       loc = position(idx(1),idx(2),idx(3),ccy=cc) - center
        u_adv = state(GDV)
     else if (idir .eq. 3) then
-       loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
+       loc = position(idx(1),idx(2),idx(3),ccz=cc) - center
        u_adv = state(GDW)
     else
        call bl_error("Error: unknown direction in compute_hybrid_flux.")

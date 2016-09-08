@@ -7,6 +7,9 @@
 *.blg
 *.lof
 *.lot
+*.idx
+*.ilg
+*.ind
 Docs/*.out
 Docs/*.ps
 Docs/*.pdf

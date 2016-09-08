@@ -32,6 +32,20 @@ Castro::advance (Real time,
                  Real dt,
                  int  amr_iteration,
                  int  amr_ncycle)
+
+  // the main driver for a single level.  This will do either the SDC
+  // algorithm or the Strang-split reactions algorithm.
+  //
+  // arguments:
+  //    time          : the current simulation time
+  //    dt            : the timestep to advance (e.g., go from time to 
+  //                    time + dt)
+  //    amr_iteration : where we are in the current AMR subcycle.  Each
+  //                    level will take a number of steps to reach the
+  //                    final time of the coarser level below it.  This
+  //                    counter starts at 1
+  //    amr_ncycle    : the number of subcycles at this level
+
 {
     BL_PROFILE("Castro::advance()");
 
@@ -140,6 +154,12 @@ Castro::do_advance (Real time,
                     int  sub_iteration,
                     int  sub_ncycle)
 {
+
+  // this routine will advance the old state data (called S_old here)
+  // to the new time, for a single level.  The new data is called
+  // S_new here.  The update includes reactions (if we are not doing
+  // SDC), hydro, and the source terms.
+
     BL_PROFILE("Castro::do_advance()");
 
     const Real prev_time = state[State_Type].prevTime();
@@ -150,7 +170,8 @@ Castro::do_advance (Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+    initialize_do_advance(time, dt, amr_iteration, amr_ncycle, 
+			  sub_iteration, sub_ncycle);
 
     // Check for NaN's.
 
@@ -160,38 +181,45 @@ Castro::do_advance (Real time,
 
 #ifdef REACTIONS
 #ifndef SDC
+    // this operates on Sborder (which is initially S_old).  The result
+    // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 #endif
 #endif
 
-    // Initialize the new-time data. This copy needs to come after the reactions.
+    // Initialize the new-time data. This copy needs to come after the
+    // reactions.
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Construct the old-time sources.
+    // Construct the old-time sources. 
 
     for (int n = 0; n < num_src; ++n)
-       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
+			    sub_iteration, sub_ncycle);
 
-    // Apply the old-time sources.
+    // Apply the old-time sources directly to the new-time state,
+    // S_new
 
     for (int n = 0; n < num_src; ++n)
         apply_source_to_state(S_new, old_sources[n], dt);
 
-    // Do the hydro update.
+    // Do the hydro update.  We build directly off of Sborder, which
+    // is the state that has already seen the burn 
 
     if (do_hydro)
     {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
-	frac_change = clean_state(S_new);
+	frac_change = clean_state(S_new, Sborder);
     }
 
     // Check for NaN's.
 
     check_for_nan(S_new);
 
-    // Must define new value of "center" before we call new gravity solve or external source routine
+    // Must define new value of "center" before we call new gravity
+    // solve or external source routine
 
 #ifdef GRAVITY
     if (moving_center == 1)
@@ -360,8 +388,11 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 {
 
 #ifndef SDC
-    // Update the dSdt MultiFab. Take the difference of the old and new
-    // sources and then divide by dt.
+    // Update the dSdt MultiFab. Since we want (S^{n+1} - S^{n}) / dt, we
+    // only need to take twice the new-time source term, since in the predictor-corrector
+    // approach, the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue
+    // in general for the non-momentum sources, but those don't appear in the hydro anyway,
+    // and for safety we'll only do this on the momentum terms.
 
     if (source_term_predictor == 1) {
 
@@ -370,11 +401,10 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	dSdt_new.setVal(0.0, NUM_GROW);
 
 	for (int n = 0; n < num_src; ++n) {
-	    MultiFab::Add(dSdt_new, new_sources[n], 0, 0, NUM_STATE, 0);
-	    MultiFab::Subtract(dSdt_new, old_sources[n], 0, 0, NUM_STATE, 0);
+	    MultiFab::Add(dSdt_new, new_sources[n], Xmom, Xmom, 3, 0);
 	}
 
-	dSdt_new.mult(1.0 / dt);
+	dSdt_new.mult(2.0 / dt);
 
     }
 #else
@@ -439,10 +469,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         radiation->pre_timestep(level);
 #endif
 
-    // Swap the new data from the last timestep into the old state data.
-    // If we're on level 0, do it for all levels below this one as well.
-    // Or, if we're on a later iteration at a finer timestep, swap for all
-    // lower time levels as well.
+    // Swap the new data from the last timestep into the old state
+    // data.  If we're on level 0, do it for all levels above this one
+    // as well.  Or, if we're on a later iteration at a finer
+    // timestep, swap for all lower time levels as well.
 
     if (level == 0 || amr_iteration > 1) {
 
@@ -451,13 +481,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	    Real dt_lev = parent->dtLevel(lev);
             for (int k = 0; k < num_state_type; k++) {
 
-	        // The following is a hack to make sure that
-	        // we only ever have new data for a few state
-		// types that only ever need new time data;
-	        // by doing a swap now, we'll guarantee that
-	        // allocOldData() does nothing. We do this because
-	        // we never need the old data, so we don't want to
-	        // allocate memory for it.
+	        // The following is a hack to make sure that we only
+	        // ever have new data for a few state types that only
+	        // ever need new time data; by doing a swap now, we'll
+	        // guarantee that allocOldData() does nothing. We do
+	        // this because we never need the old data, so we
+	        // don't want to allocate memory for it.
 
 	        if (k == Source_Type)
 		    getLevel(lev).state[k].swapTimeLevels(0.0);

@@ -6,7 +6,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  double precision :: problo(1), probhi(1)
   
   integer :: untin,i
 

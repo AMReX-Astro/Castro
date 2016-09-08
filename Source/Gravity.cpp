@@ -11,6 +11,8 @@
 #include <Gravity_F.H>
 #include <Castro_F.H>
 
+#include <FillPatchUtil.H>
+
 #include <FMultiGrid.H>
 
 #define MAX_LEV 15
@@ -191,16 +193,15 @@ Gravity::read_params ()
 
 	int got_sl_tol = pp.query("sl_tol", tol);
 
-	if (parent->maxLevel() == 0) {
+	if (parent->maxLevel() == 0 && got_sl_tol == 1) {
 	  ml_tol[0] = tol;
 	}
+	else {
 
-	int cnt = pp.countval("ml_tol");
+	  // Only read in ml_tol if we're doing a multi-level
+	  // calculation and the user hasn't set sl_tol.
 
-	// Only read in ml_tol if we're doing a multi-level
-	// calculation and the user hasn't set sl_tol.
-
-	if (!(nlevs == 1 && got_sl_tol == 1)) {
+	  int cnt = pp.countval("ml_tol");
 
 	  // If we've only got one value, set every level's
 	  // tolerance to that value. Otherwise, read in an
@@ -225,7 +226,7 @@ Gravity::read_params ()
 
 	}
 
-	cnt = pp.countval("delta_tol");
+	int cnt = pp.countval("delta_tol");
 
 	// Same approach as for ml_tol.
 
@@ -954,6 +955,8 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
     for (int amr_lev = max_solve_level+1; amr_lev <= finest_level; amr_lev++) {
 
+      // Interpolate the potential.
+
       if (is_new == 1) {
 
 	MultiFab& phi = LevelData[amr_lev].get_new_data(PhiGrav_Type);
@@ -967,6 +970,30 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
 	LevelData[amr_lev].FillCoarsePatch(phi,0,time,PhiGrav_Type,0,1,1);
 
+      }
+
+      // Interpolate the grad_phi.
+
+      // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
+      // since the fine levels for Poisson gravity do not touch the physical boundary.
+
+      GradPhiPhysBCFunct gp_phys_bc;
+
+      // We need to use a nodal interpolater.
+
+      Interpolater* gp_interp = &node_bilinear_interp;
+
+      // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
+      // not do anything because we do not fill on physical boundaries.
+
+      const Array<BCRec>& gp_bcs = LevelData[amr_lev].get_desc_lst()[Gravity_Type].getBCs();
+
+      for (int n = 0; n < BL_SPACEDIM; ++n) {
+	  BoxLib::InterpFromCoarseLevel(grad_phi[amr_lev][n], time, grad_phi[amr_lev-1][n],
+					0, 0, 1,
+					parent->Geom(amr_lev-1), parent->Geom(amr_lev),
+					gp_phys_bc, gp_phys_bc, parent->refRatio(amr_lev-1),
+					gp_interp, gp_bcs);
       }
 
     }
@@ -2817,4 +2844,19 @@ Gravity::sanity_check (int level)
 	if (!shrunk_domain_ba.contains(grids[level]))
 	    BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
+}
+
+// Instantiate the necessary functions to call InterpFromCoarseLevel on grad_phi.
+
+GradPhiPhysBCFunct::GradPhiPhysBCFunct () { }
+
+void
+GradPhiPhysBCFunct::doit (MultiFab& mf, int dcomp, int scomp, Real time)
+{
+    BL_PROFILE("GradPhiPhysBCFunct::doit");
+
+    // We should never need to actually fill physical ghost zones for grad_phi.
+    // So we do not need to do anything here.
+
+    return;
 }

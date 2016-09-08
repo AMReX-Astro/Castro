@@ -44,11 +44,16 @@ main (int   argc,
     //
     BoxLib::Initialize(argc,argv);
 
-    // save the inputs file name for later
-    if (argc > 1) {
-      if (!strchr(argv[1], '=')) {
+    // Refuse to continue if we did not provide an inputs file.
+
+    if (argc <= 1) {
+	BoxLib::Abort("Error: no inputs file provided on command line.");
+    }
+
+    // Save the inputs file name for later.
+
+    if (!strchr(argv[1], '=')) {
 	inputs_name = argv[1];
-      }
     }
 
     BL_PROFILE_VAR("main()", pmain);
