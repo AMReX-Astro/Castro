@@ -121,7 +121,7 @@ contains
     hdt = HALF*dt
 
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1),lo(2):hi(2),USHK) = ZERO
+    uout(ilo1:ihi1,ilo2:ihi2,USHK) = ZERO
 
     call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
                shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
