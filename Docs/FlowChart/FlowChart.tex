@@ -243,7 +243,7 @@ The sources that we deal with here are:
 
     Also note that incorporating diffusion brings in an additional
     timestep constraint, since the treatment is explicit.  See
-    Chapter~\ref{ch:diffusion} for more details.
+    Chapter~\ref{ch:diffusion} for more details.  \MarginPar{this may not be time-centered correctly---see issue \# 22}
 
   \item {[\ifdef{HYBRID\_MOMENTUM}]} angular momentum 
 
@@ -286,22 +286,21 @@ surrounding burn operations.
 
 \item {\em Construct the hydro update}
 
-The goal is to advance
-\begin{equation}
-\Ub^{n+1,\star} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
-\end{equation}
-neglecting reaction terms.  Note that since the source term is not
-time centered (this is what we did in the previous step), this is not
-a second-order method.  After the advective update, we correct the
-solution, effectively time-centering the source term.
+The goal is to advance our system considering only the advective terms
+(which in Cartesian coordinates can be written as the divergence of a
+flux).  
 
 We do the hydro update in two parts---first we construct the advective
 update and store it, then we do the conservative update in a separate
 step.  This separation allows us to use the advective update
 separately in more complex time-integration schemes.
 
-The advection step is complicated, and more detail is given in
-Section \ref{Sec:Advection Step}.  Here is the summarized version:
+In the Strang-split formulation, we start the reconstruction using the
+state after burning, $\Ub^\star$, and predict to the half-time
+($n+1/2$) to get a second-order accurate method.  The advection step
+is complicated, and more detail is given in Section \ref{Sec:Advection
+  Step}.
+Here is the summarized version:
 \begin{enumerate}
 \item Compute primitive variables.
 \item Predict primitive variables to time-centered edges.
@@ -309,13 +308,13 @@ Section \ref{Sec:Advection Step}.  Here is the summarized version:
 \item Compute fluxes and update.
 \end{enumerate}
 
-
 To start the hydrodynamics, we need to know the hydrodynamics source
-terms at time-level $n$.  This is essentially the same vector that was
+terms at time-level $n$, since this enters into the prediction to the
+interface states.  This is essentially the same vector that was
 computed in the previous step, with a few modifications.  The most
 important is that if we set \runparam{castro.source\_term\_predictor},
 then we extrapolate the source terms from $n$ to $n+1/2$, using the
-change from the previous step. \MarginPar{does this work?}
+change from the previous step. 
 
 Note: we neglect the reaction source terms, since those are already
 accounted for in the state directly, due to the Strang-splitting 
