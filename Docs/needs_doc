@@ -2,10 +2,6 @@ These are things that need to be better documented:
 
 -- The gravity solver options that Max put in, same with rotation options
 
--- the _cpp_parameters runtime parameter stuff + priorities
-
--- Source term predictor for the hydrodynamics
-
 -- Retries
 
 -- Burning timestep limiters
@@ -13,8 +9,6 @@ These are things that need to be better documented:
 -- Checkpoint versioning
 
 -- problem tagging, problem specific files / includes
-
--- the network design
 
 -- problem_post_init
 
