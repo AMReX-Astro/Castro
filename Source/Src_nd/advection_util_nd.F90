@@ -687,7 +687,8 @@ contains
 
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, QVAR, URHO, UEINT, UFS, UFX, &
-                                  small_dens, small_temp, cfl
+                                  small_dens, small_temp, cfl, &
+                                  allow_small_energy, allow_negative_energy
     use prob_params_module, only: dim, coord_type, dg
     use mempool_module, only: bl_allocate, bl_deallocate
     use network, only: nspec, naux
@@ -747,13 +748,14 @@ contains
     ! but also the stronger requirement that rho > small_dens. In addition, instead of
     ! limiting on pressure, we limit on (rho e).
 
-    ! Calculate the floor (rho e) for each zone. The 'small' (rho e) for a given zone
-    ! should be constructed from an EOS call given (small_dens, small_temp, X). (Another
-    ! option would be to try and figure out what the current density is, but this is
-    ! complicated by the fact that the limiter will change the final density. A related
-    ! issue is that X will be different before and after the hydro update; for simplicity,
-    ! we'll use the input X.) This only gives an approximate prescription for the true
-    ! floor, but it is good enough.
+    ! Calculate the floor (rho e) for each zone. If disallowing small energies, then the
+    ! 'small' (rho e) for a given zone should be constructed from an EOS call given
+    ! (small_dens, small_temp, X). (Another option would be to try and figure out what
+    ! the current density is, but this is complicated by the fact that the limiter will
+    ! change the final density. A related issue is that X will be different before and
+    ! after the hydro update; for simplicity, we'll use the input X.) This only gives
+    ! an approximate prescription for the true floor, but it is good enough.
+    ! If we're just disallowing negative energies, then set the 'small' value to zero.
 
     call bl_allocate(small_rhoe,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
@@ -761,14 +763,29 @@ contains
        do j = lo(2) - 1 * dg(2), hi(2) + 1 * dg(2)
           do i = lo(1) - 1 * dg(1), hi(1) + 1 * dg(1)
 
-             eos_state % rho = small_dens
-             eos_state % T   = small_temp
-             eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
-             eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
+             if (allow_small_energy == 0) then
 
-             call eos(eos_input_rt, eos_state)
+                eos_state % rho = small_dens
+                eos_state % T   = small_temp
+                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
+                eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
 
-             small_rhoe(i,j,k) = small_dens * eos_state % e
+                call eos(eos_input_rt, eos_state)
+
+                small_rhoe(i,j,k) = small_dens * eos_state % e
+
+             else if (allow_negative_energy == 0) then
+
+                small_rhoe(i,j,k) = ZERO
+
+             else
+
+                ! No limiting in this case. Set to a value large enough that it should
+                ! never be obtained under normal circumstances.
+
+                small_rhoe(i,j,k) = -1.d200
+
+             endif
 
           enddo
        enddo
