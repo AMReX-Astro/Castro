@@ -7,6 +7,7 @@ static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
 static int do_reflux;
+static int use_custom_knapsack_weights;
 static Real difmag;
 static Real small_dens;
 static Real small_temp;

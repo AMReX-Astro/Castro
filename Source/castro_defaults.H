@@ -7,6 +7,7 @@ int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
 int         Castro::do_reflux = 1;
+int         Castro::use_custom_knapsack_weights = 0;
 Real        Castro::difmag = 0.1;
 Real        Castro::small_dens = -1.e200;
 Real        Castro::small_temp = -1.e200;

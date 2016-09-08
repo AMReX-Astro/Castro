@@ -138,7 +138,6 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
-bool         Castro::use_custom_knapsack_weights = 0;
 int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
@@ -407,7 +406,6 @@ Castro::read_params ()
 	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
     }
 
-    pp.query("use_custom_knapsack_weights", use_custom_knapsack_weights);
 }
 
 Castro::Castro ()

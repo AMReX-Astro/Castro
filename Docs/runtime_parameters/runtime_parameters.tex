@@ -45,6 +45,8 @@
 \rowcolor{tableShade}
 \verb= state_interp_order = &  highest order used in interpolation & 1 \\
 \verb= state_nghost = &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
+\rowcolor{tableShade}
+\verb= use_custom_knapsack_weights = &  should we have state data for custom load-balancing weighting? & 0 \\
 
 
 \end{longtable}
@@ -266,80 +268,35 @@
 \verb= limit_fluxes_on_small_dens = &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
 \verb= plm_iorder = &  for piecewise linear, reconstruction order to use & 2 \\
 \rowcolor{tableShade}
-\verb= ppm_predict_gammae = &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior). & 0 \\
-\verb= ppm_reference = &  do we take the reference state for the characteristic projection to be the cell centers (0) or the integral under the parabola for the fastest moving wave toward the interface (1) & 1 \\
-\rowcolor{tableShade}
-\verb= ppm_reference_edge_limit = &  do we take the reference state when no waves are moving toward the interface to be the cell center (0) or the limit of the reconstructed parabola at the interface (1) & 1 \\
+\verb= ppm_predict_gammae = &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
 \verb= ppm_reference_eigenvectors = &  do we use the reference state in evaluating the eigenvectors? & 0 \\
 \rowcolor{tableShade}
-\verb= ppm_tau_in_tracing = &  to we use $\tau = 1/rho$ or $\rho$ in the eigensystem? & 0 \\
 \verb= ppm_temp_fix = &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
-\rowcolor{tableShade}
 \verb= ppm_trace_sources = &  to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation) & 1 \\
+\rowcolor{tableShade}
 \verb= ppm_type = &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
-\rowcolor{tableShade}
 \verb= riemann_solver = &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
+\rowcolor{tableShade}
 \verb= small_dens = &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \verb= small_ener = &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \verb= small_pres = &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \verb= small_temp = &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \verb= source_term_predictor = &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
-\rowcolor{tableShade}
 \verb= sponge_implicit = &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
+\rowcolor{tableShade}
 \verb= time_center_sponge = &  should we time center the sponge? & 0 \\
-\rowcolor{tableShade}
 \verb= transverse_reset_density = &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
+\rowcolor{tableShade}
 \verb= transverse_reset_rhoe = &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
-\rowcolor{tableShade}
 \verb= transverse_use_eos = &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
+\rowcolor{tableShade}
 \verb= update_state_between_sources = &  should we update the state in between evaluations of the new-time source terms & 1 \\
-\rowcolor{tableShade}
 \verb= use_colglaz = &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
+\rowcolor{tableShade}
 \verb= use_flattening = &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
-\rowcolor{tableShade}
 \verb= use_pslope = &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
-
-
-\end{longtable}
-\end{center}
-
-} % ends \small
-
-
-{\small
-
-\renewcommand{\arraystretch}{1.5}
-%
-\begin{center}
-\begin{longtable}{|l|p{5.25in}|l|}
-\caption[ output
- parameters.]{ output
- parameters.} \label{table:  output
- parameters. runtime} \\
-%
-\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
-       \multicolumn{1}{ c|}{\textbf{description}} & 
-       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
-\endfirsthead
-
-\multicolumn{3}{c}%
-{{\tablename\ \thetable{}---continued}} \\
-\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
-       \multicolumn{1}{ c|}{\textbf{description}} & 
-       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
-\endhead
-
-\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
-\endfoot
-
-\hline 
-\endlastfoot
-
-
-\rowcolor{tableShade}
-\verb= checkpoint_version = &  & 1 \\
 
 
 \end{longtable}
