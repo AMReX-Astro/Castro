@@ -1,8 +1,22 @@
 * changes since the last release:
 
+  -- a flux limiter has been added that limits the size of the hydro
+     fluxes if they would cause rho or (rho e) to go negative. This
+     can be used with castro.limit_hydro_fluxes_on_small_dens = 1.
+
+  -- a bug for single-level problems with Poisson gravity has been
+     fixed where the multi-grid tolerance was being set to an
+     uninitialized value
+
+  -- a flaw in the source terms for the primitive variables in the
+     hydro update has been fixed, so that source terms like gravity
+     should no longer affect the pressure and (rho e) interface states
+
   -- the radiation hydro ppm now implements the ppm_predict_gammae
      option
 
+  -- we no longer ship VODE, LAPACK, or BLAS with Castro -- these
+     are provided by the separate Microphysics git repo
 
 previous changes:
 

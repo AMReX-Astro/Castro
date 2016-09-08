@@ -17,6 +17,11 @@
 \ChNameVar{\LARGE}
 \ChTitleVar{\LARGE\sl}
 
+% index
+\usepackage{makeidx}
+\makeindex
+
+
 % part page style see
 % http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec
 \usepackage{titlesec}
@@ -232,6 +237,7 @@
 \newcommand{\codeidx}[1]{\index{Code reference!{\tt #1}}}
 
 \newcommand{\ifdef}[1]{\index{Preprocessor!{\tt #1}}{\tt #1}}
+\newcommand{\problem}[1]{\index{Problem setups!{\tt #1}}{\tt #1}}
 
 \newcommand{\otherindex}[2]{\index{#1!#2}}
 
@@ -362,5 +368,10 @@
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{plain}
 \bibliography{refs,CastroVerification/verification,Gravity/gr,LevelSet/levelset}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Index}
+\printindex
 
 \end{document}

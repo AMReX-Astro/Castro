@@ -193,16 +193,15 @@ Gravity::read_params ()
 
 	int got_sl_tol = pp.query("sl_tol", tol);
 
-	if (parent->maxLevel() == 0) {
+	if (parent->maxLevel() == 0 && got_sl_tol == 1) {
 	  ml_tol[0] = tol;
 	}
+	else {
 
-	int cnt = pp.countval("ml_tol");
+	  // Only read in ml_tol if we're doing a multi-level
+	  // calculation and the user hasn't set sl_tol.
 
-	// Only read in ml_tol if we're doing a multi-level
-	// calculation and the user hasn't set sl_tol.
-
-	if (!(nlevs == 1 && got_sl_tol == 1)) {
+	  int cnt = pp.countval("ml_tol");
 
 	  // If we've only got one value, set every level's
 	  // tolerance to that value. Otherwise, read in an
@@ -227,7 +226,7 @@ Gravity::read_params ()
 
 	}
 
-	cnt = pp.countval("delta_tol");
+	int cnt = pp.countval("delta_tol");
 
 	// Same approach as for ml_tol.
 

@@ -51,14 +51,24 @@ of each step.
   radiation-hydrodynamics, this step does the advective (hyperbolic)
   portion of the radiation update only.
 
-  \MarginPar{Diffusion?}
-
-  \MarginPar{where is gravity hooked in?}
-
+  Source terms, including gravity, rotation, and diffusion are
+  included in this step, and are time-centered to achieve second-order
+  accuracy.
 
   If \runparam{castro.use\_retry} is set, then we subcycle the current
   step if we violated any stability criteria to reach the desired
-  $\Delta t$. \MarginPar{more?}
+  $\Delta t$.  The idea is the following: if the timestep that you
+  took had a timestep that was not sufficient to enforce the stability
+  criteria that you would like to achieve, such as the CFL criterion
+  for hydrodynamics or the burning stability criterion for reactions,
+  you can retry the timestep by setting {\tt castro.use\_retry = 1} in
+  your inputs file. This will save the current state data at the
+  beginning of the level advance, and then if the criteria are not
+  satisfied, will reject that advance and start over from the old
+  data, with a series of subcycled timesteps that should be small
+  enough to satisfy the criteria.  Note that this will effectively
+  double the memory footprint on each level if you choose to use it.
+
 
 \item {[\ifdef{AUX\_UPDATE}]} {\em Auxillary quantitiy evolution} 
 
@@ -116,8 +126,8 @@ of each step.
 \subsection{Main Hydro, Reaction, and Gravity Advancement (Strang-splitting)}
 
 The explicit portion of the system advancement (reactions,
-hydrodynamics, and gravity) is done by \code{do\_advance()}.  
-Consider our system of equations as:
+hydrodynamics, and gravity) is done by \code{do\_advance()}.  Consider
+our system of equations as:
 \begin{equation}
 \frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
 \end{equation}
@@ -127,23 +137,34 @@ includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
 summary, for each time step, we update the conservative variables,
 $\Ub$, by reacting for half a time step, advecting for a full time
-step (ignoring the reaction terms), and reacting for half a time step:
+step (ignoring the reaction terms), and reacting for half a time step.
+The treatment of source terms complicates this a little.  The actual
+update, in sequence, looks like:
+\begin{align}
+\Ub^\star &= \Ub^n + \frac{\dt}{2}\Sb_{\rm react}(\Ub^n) \\
+\Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
+\Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
+\Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
+\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
+\end{align}
+
+The construction of the advective terms, ${\bf A(\Ub)}$ is purely
+explicit, and based on an unsplit second-order Godunov method.  We
+predict the standard primitive variables, as well as $\rho e$, at
+time-centered edges and use an approximate Riemann solver construct
+fluxes.
+
+At the beginning of the time step, we assume that $\Ub$ and $\phi$ are
+defined consistently, i.e., $\rho^n$ and $\phi^n$ satisfy equation
+(\ref{eq:Self Gravity}).  Also note that in
+Eq.~\ref{eq:source_correct}, we actually can do the new time-level
+source updates in sequence (this is the default, and is controlled by
+\runparam{castro.update\_state\_between\_sources}.  Additionally, some
+terms, like rotation, can be treated implicitly.  Together, this can
+make the update more akin to:
 \begin{equation}
-\Ub^n = \Ub^n + \frac{\dt}{2}\Sb_{\rm react}^n,
+\Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 \end{equation}
-\begin{equation}
-\Ub^{n+1} = \Ub^n - \Delta t \nabla \cdot\Fb^\nph + \dt\frac{\Sb^n + \Sb^{n+1}}{2},
-\end{equation}
-\begin{equation}
-\Ub^{n+1} = \Ub^{n+1} + \frac{\dt}{2}\Sb_{\rm react}^{n+1},
-\end{equation}
-The construction of $F$ is purely explicit, and based on an unsplit
-second-order Godunov method.  We predict the standard primitive
-variables, as well as $\rho e$, at time-centered edges and use an
-approximate Riemann solver construct fluxes.  At the beginning of the
-time step, we assume that $\Ub$ and $\phi$ are defined consistently,
-i.e., $\rho^n$ and $\phi^n$ satisfy equation (\ref{eq:Self
-  Gravity}).
 
 \castro\ also supports radiation.  This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
@@ -155,249 +176,231 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 \begin{enumerate}
 \item {\em Initialize}
 
-This resets the flux registers and initializes a lot of intermediate
-storage arrays (like source term) to zero.
+  This resets the flux registers and initializes a lot of intermediate
+  storage arrays (like source term) to zero.
 
-We also check for NaNs in the initial state, {\tt S\_old}.
+  We also check for NaNs in the initial state, {\tt S\_old}.
 
 \item {\em React $\Delta t/2$.}
 
-Update the solution due to the effect of reactions over half a time
-step.  The integration method and system of equations used here is
-determined by a host of runtime parameters that are part of the
-\microphysics\ package.  But the basic idea is to evolve the energy
-release from the reactions, the species mass fractions, and temperature
-through $\Delta t/2$.
+  Update the solution due to the effect of reactions over half a time
+  step.  The integration method and system of equations used here is
+  determined by a host of runtime parameters that are part of the
+  \microphysics\ package.  But the basic idea is to evolve the energy
+  release from the reactions, the species mass fractions, and
+  temperature through $\Delta t/2$.
 
-\begin{eqnarray}
-(\rho E)^n &=& (\rho E)^n - \frac{\dt}{2}\sum_k(\rho q_k\omegadot_k)^n,\\
-(\rho X_k)^n &=& (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k)^n.
-\end{eqnarray} \MarginPar{up this}
+  Using the notation above, we begin with the time-level $n$ state,
+  $\Ub^n$, and produce a state that has evolved only due to reactions,
+  $\Ub^\star$.
 
-At the end of the reactions, we copy the updated data into {\tt S\_new} \MarginPar{why?}
+  \begin{align}
+    (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+  \end{align}
+  Here, $H_\mathrm{nuc}$ is the energy release (erg/g/s) over the
+  burn, and $\omegadot_k$ is the creation rate for species $k$.
+
+  After exiting the burner, we call the EOS with $\rho^\star$,
+  $e^\star$, and $X_k^\star$ to get the new temperature, $T^\star$.
+
+  Note that the density, $\rho$, does not change via reactions in the
+  Strang-split formulation.
 
 
 \item {\em Construct time-level $n$ sources and apply}
 
-This includes the gravity source.  For full Poisson gravity, we solve
-for for gravity using:
-\begin{equation}
-\gb^n = \nabla\phi^n, \qquad 
-\Delta\phi^n = 4\pi G\rho^n,
-\end{equation}
+  The time level $n$ sources are applied to the state after the burn,
+  $\Ub^\star$, with a full $\Delta t$ weighting (this will be
+  corrected later).  This produces the intermediate state,
+  $\Ub^{n+1,(a)}$.
 
-The time level $n$ sources are applied to the new state, {\tt S\_new},
-with a full $\Delta t$ weighting (this will be corrected later)
+  The sources that we deal with here are:
+  \begin{enumerate}
+  \item sponge : the sponge\index{sponge} is a damping term added to
+    the momentum equation that is designed to drive the velocities to
+    zero over some timescale.  Our implementation of the sponge
+    follows that of \maestro~\cite{maestro:III}
+
+  \item external sources : users can define problem-specific sources
+    in the \code{ext\_src\_?d.f90} file.  Sources for the different
+    equations in the conservative state vector, $\Ub$, are indexed
+    using the integer keys defined in {\tt meth\_params\_module}
+    (e.g., {\tt URHO}).
+
+    This is most commonly used for external heat sources (see the
+    \problem{toy\_convect} problem setup) for an example.  But most
+    problems will not use this.
+
+  \item {[\ifdef{DIFFUSION}]} diffusion : thermal diffusion can be
+    added in an explicit formulation.  Second-order accuracy is
+    achieved by averaging the time-level $n$ and $n+1$ terms, using
+    the same predictor-corrector strategy described here.
+
+    Note: thermal diffusion is distinct from radiation hydrodynamics.
+
+    Also note that incorporating diffusion brings in an additional
+    timestep constraint, since the treatment is explicit.  See
+    Chapter~\ref{ch:diffusion} for more details.  \MarginPar{this may
+      not be time-centered correctly---see issue \# 22}
+
+  \item {[\ifdef{HYBRID\_MOMENTUM}]} angular momentum 
+
+    \MarginPar{need to write this up}
+
+  \item {[\ifdef{GRAVITY}]} gravity:
+
+    For full Poisson gravity, we solve for for gravity using:
+    \begin{equation}
+      \gb^n = -\nabla\phi^n, \qquad
+      \Delta\phi^n = 4\pi G\rho^n,
+    \end{equation}
+
+    The construction of the form of the gravity source for the
+    momentum and energy equation is dependent on the parameter
+    \runparam{castro.grav\_source\_type}.  Full details of the gravity
+    solver are given in Chapter~\ref{ch:gravity}.
+
+    \MarginPar{we should add a description of whether we do a level solve or a composite solve}
+
+    \MarginPar{what do we store? phi and g? source?}
+
+  \item {[\ifdef{ROTATION}]} rotation
+
+    We compute the rotational potential (for use in the energy update)
+    and the rotational acceleration (for use in the momentum
+    equation).  This includes the Coriolis and centrifugal terms in a
+    constant-angular-velocity co-rotating frame.  The form of the
+    rotational source that is constructed then depends on the
+    parameter \runparam{castro.rot\_source\_type}.  More details are
+    given in Chapter~\ref{ch:rotation}.
+    
+  \end{enumerate}
+
+  The source terms here are evaluated using the post-burn state,
+  $\Ub^\star$, and later corrected by using the new state just before
+  the burn, $\Ub^{n+1,(b)}$.  This is compatible with
+  Strang-splitting, since the hydro and sources takes place completely
+  inside of the surrounding burn operations.
+
+\item {\em Construct the hydro update}
+
+  The goal is to advance our system considering only the advective
+  terms (which in Cartesian coordinates can be written as the
+  divergence of a flux).
+
+  We do the hydro update in two parts---first we construct the
+  advective update and store it, then we do the conservative update in
+  a separate step.  This separation allows us to use the advective
+  update separately in more complex time-integration schemes.
+
+  In the Strang-split formulation, we start the reconstruction using
+  the state after burning, $\Ub^\star$, and predict to the half-time
+  ($n+1/2$) to get a second-order accurate method.  The advection step
+  is complicated, and more detail is given in Section
+  \ref{Sec:Advection Step}.  Here is the summarized version:
+  \begin{enumerate}
+  \item Compute primitive variables.
+  \item Predict primitive variables to time-centered edges.
+  \item Solve the Riemann problem.
+  \item Compute fluxes and update.
+  \end{enumerate}
+
+  To start the hydrodynamics, we need to know the hydrodynamics source
+  terms at time-level $n$, since this enters into the prediction to
+  the interface states.  This is essentially the same vector that was
+  computed in the previous step, with a few modifications.  The most
+  important is that if we set
+  \runparam{castro.source\_term\_predictor}, then we extrapolate the
+  source terms from $n$ to $n+1/2$, using the change from the previous
+  step.
+
+  Note: we neglect the reaction source terms, since those are already
+  accounted for in the state directly, due to the Strang-splitting
+  nature of this method.
 
 
+\item {\em Update radial data and center of mass for monopole gravity}
+ \MarginPar{is that right?}
 
 
+\item {\em Clean State}
 
-\item[Step 3:] {\em Compute explicit source terms.}
+  There are many ways that the hydrodynamics state may become
+  unphysical in the evolution.  The \code{clean\_state()} routine
+  enforces some checks on the state.  In particular, it
+  \begin{enumerate}
+  \item enforces that the density is above \runparam{small\_dens}
+  \item normalizes the species so that the mass fractions sum to 1
+  \item resets the internal energy and temperature to 
+    make them consistent with the total energy
+  \end{enumerate}
 
-We now compute explicit source terms for each variable in $\Qb$ and
-$\Ub$.  The primitive variable source terms will be used to construct
-time-centered fluxes.  The conserved variable source will be used to
-advance the solution.  We neglect reaction source terms since they are
-accounted for in {\bf Steps 1} and {\bf 6}.  The source terms are:
-\begin{equation}
-\Sb_{\Qb}^n =
-\left(\begin{array}{c}
-S_\rho \\
-\Sb_{\ub} \\
-S_p \\
-S_{\rho e} \\
-S_{A_k} \\
-S_{X_k} \\
-S_{Y_k}
-\end{array}\right)^n
-=
-\left(\begin{array}{c}
-S_{{\rm ext},\rho} \\
-\gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
-\frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
-\nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \\
-\frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
-\frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
-\frac{1}{\rho}S_{{\rm ext},\rho Y_k}
-\end{array}\right)^n,
-\end{equation}
-\begin{equation}
-\Sb_{\Ub}^n =
-\left(\begin{array}{c}
-\Sb_{\rho\ub} \\
-S_{\rho E} \\
-S_{\rho A_k} \\
-S_{\rho X_k} \\
-S_{\rho Y_k}
-\end{array}\right)^n
-=
-\left(\begin{array}{c}
-\rho \gb + \Sb_{{\rm ext},\rho\ub} \\
-\rho \ub \cdot \gb + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \\
-S_{{\rm ext},\rho A_k} \\
-S_{{\rm ext},\rho X_k} \\
-S_{{\rm ext},\rho Y_k}
-\end{array}\right)^n.
-\end{equation}
+  After these checks, we check the state for NaNs.
 
-\item[Step 4:] {\em Advect $\Delta t$.}
 
-The goal is to advance
-\begin{equation}
-\Ub^{n+1} = \Ub^n - \dt\nabla\cdot\Fb^\nph + \dt\Sb^n.
-\end{equation}
-neglecting reaction terms.  Note that since the source term is not
-time centered, this is not a second-order method.  After the advective
-update, we correct the solution, effectively time-centering the source
-term. The advection step is complicated, and more detail is given in
-Section \ref{Sec:Advection Step}.  Here is the summarized version:
-\begin{enumerate}
-\item Compute primitive variables.
-\item Predict primitive variables to time-centered edges.
-\item Solve the Riemann problem.
-\item Compute fluxes and update.
+\item {\em Correct the source terms with the $n+1$ contribution}
+
+  Previously we added $\Delta t\, \Sb(\Ub^\star)$ to the state, when
+  we really want a time-centered approach, $(\Delta t/2)[\Sb(\Ub^\star
+    + \Sb(\Ub^{n+1,(b)})]$.  We fix that here.
+
+  We start by computing the source term vector $\Sb(\Ub^{n+1,(b)})$
+  using the updated state, $\Ub^{n+1,(b)}$.  We then compute the
+  correction, $(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]$ to
+  add to $\Ub^{n+1,(b)}$ to give us the properly time-centered source,
+  and the fully updated state, $\Ub^{n+1,(c)}$.
+
+  We have a choice of how to do this correction.  We can first compute
+  all the corrections using the same initial state, $U^{n+1,(b)}$,
+  and then apply them all.  Or we can compute them one-by-one applying
+  them as we go.  This behavior is controlled by the parameter
+  \runparam{castro.update\_state\_between\_sources}.
+
+  In the process of updating the sources, we update the temperature to
+  make it consistent with the new state.
+
+%% We need to correct the solution by effectively time-centering the
+%% source terms.  These corrections are to be performed sequentially
+%% since new source term evaluations may depend on previous corrections.
+
+%% First, we correct the solution with the updated gravity:
+%% \begin{eqnarray}
+%% (\rho\ub)^{n+1} &=& (\rho\ub)^{n+1} + \frac{\dt}{2}\left[(\rho\gb)^{n+1} - (\rho\gb)^n\right], \\
+%% (\rho E)^{n+1} &=& (\rho E)^{n+1} + \frac{\dt}{2}\left[\left(\rho\ub\cdot\gb\right)^{n+1} - \left(\rho\ub\cdot\gb\right)^n\right].
+%% \end{eqnarray}
+
+%% Next, we correct $\Ub$ with updated external sources.  For example,
+%% for the momentum, we correct using
+%% \begin{equation}
+%% (\rho\ub)^{n+1} = (\rho\ub)^{n+1} + \frac{\dt}{2}\left(\Sb_{{\rm ext},\rho\ub}^{n+1} - \Sb_{{\rm ext},\rho\ub}^n\right).
+%% \end{equation}
+%% We correct $\rho E, \rho A_k, \rho X_k$, and $\rho Y_k$ in an
+%% analogous manner.
+
+%% Finally, we correct the solution with updated thermal diffusion using
+%% \begin{equation}
+%% (\rho E)^{n+1} = (\rho E)^{n+1} + \frac{\dt}{2}\left(\nabla\cdot\kappa\nabla T^{n+1} - \nabla\cdot\kappa\nabla T^n\right).
+%% \end{equation}
+
+
+\item {\em React $\Delta t/2$.}
+
+  We do the final $\dt/2$ reacting on the state, begining with $\Ub^{n+1,(c)}$ to
+  give us the final state on this level, $\Ub^{n+1}$.
+
+\item {\em Finalize}
+
+  Finalize does the following:
+  \begin{enumerate}
+  \item for the momentum sources, we compute $d\Sb/dt$, to use in the
+    source term prediction/extrapolation for the hydrodynamic
+    interface states during the next step.
+
+  \item If we are doing the hybrid momentum algorithm, then we sync up
+    the hybrid and linear momenta
+  \end{enumerate}
+
 \end{enumerate}
-\item[Step 4:] {\em Solve for updated gravity.}
-
-Solve for gravity using:
-\begin{equation}
-\gb^{n+1} = \nabla\phi^{n+1}; \qquad \Delta\phi^{n+1} = 4\pi G\rho^{n+1},
-\end{equation}
-or use one of the simpler gravity types.
-\item[Step 6:] {\em Correct solution with time-centered source terms.}
-
-We need to correct the solution by effectively time-centering the
-source terms.  These corrections are to be performed sequentially
-since new source term evaluations may depend on previous corrections.
-
-First, we correct the solution with the updated gravity:
-\begin{eqnarray}
-(\rho\ub)^{n+1} &=& (\rho\ub)^{n+1} + \frac{\dt}{2}\left[(\rho\gb)^{n+1} - (\rho\gb)^n\right], \\
-(\rho E)^{n+1} &=& (\rho E)^{n+1} + \frac{\dt}{2}\left[\left(\rho\ub\cdot\gb\right)^{n+1} - \left(\rho\ub\cdot\gb\right)^n\right].
-\end{eqnarray}
-
-Next, we correct $\Ub$ with updated external sources.  For example,
-for the momentum, we correct using
-\begin{equation}
-(\rho\ub)^{n+1} = (\rho\ub)^{n+1} + \frac{\dt}{2}\left(\Sb_{{\rm ext},\rho\ub}^{n+1} - \Sb_{{\rm ext},\rho\ub}^n\right).
-\end{equation}
-We correct $\rho E, \rho A_k, \rho X_k$, and $\rho Y_k$ in an
-analogous manner.
-
-Finally, we correct the solution with updated thermal diffusion using
-\begin{equation}
-(\rho E)^{n+1} = (\rho E)^{n+1} + \frac{\dt}{2}\left(\nabla\cdot\kappa\nabla T^{n+1} - \nabla\cdot\kappa\nabla T^n\right).
-\end{equation}
-\item[Step 7:] {\em React $\Delta t/2$.}
-
-Update the solution due to the effect of reactions over half a time step.
-\begin{eqnarray}
-(\rho E)^{n+1} &=& (\rho E)^{n+1} - \frac{\dt}{2}\sum_k(\rho q_k\omegadot_k)^{n+1},\\
-(\rho X_k)^{n+1} &=& (\rho X_k)^{n+1} + \frac{\dt}{2}(\rho\omegadot_k)^{n+1}.
-\end{eqnarray}
-\item[Step 8:] {\em Modify auxiliary variables.}
-
-This is problem-dependent.  By default we treat the auxiliary
-variables as advected quantities, so no additional steps are required.
-
-\item[Step 9:] {\em Optionally, retry the timestep from Step 1.}
-
-If the timestep that you took had a timestep that was not sufficient to
-enforce the stability criteria that you would like to achieve, such as
-the CFL criterion for hydrodynamics or the burning stability criterion
-for reactions, you can retry the timestep by setting {\tt castro.use\_retry = 1}
-in your inputs file. This will save the current state data at the beginning
-of the level advance, and then if the criteria are not satisfied, will
-reject that advance and start over from the old data, with a series of
-subcycled timesteps that should be small enough to satisfy the criteria.
-Note that this will effectively double the memory footprint on each level
-if you choose to use it.
-
-\end{enumerate}
-Thus concludes the single-level algorithm description.
-
-
-There are a number of parameters that affect which physics is turned on:
-\begin{itemize}
-\item {\tt castro.do\_hydro}
-\item {\tt castro.do\_react}
-\end{itemize}
-
-
-\section{Outline of {\tt Castro::advance()}}
-
-\MarginPar{this seems out of date}
-
-\noindent
-
-if (doReact)
-
-\hspace{.1in}  strangChem()
-
-end if
-
-if (doGrav)
-
-\hspace{.1in}  define oldGravityVector
-
-end if
-
-if (Diffusion)
-
-\hspace{.1in}  getOldDiffusionTerm()
-
-end if
-
-if (addExtSource)
-
-\hspace{.1in}  getSource() at old time
-
-end if
-
-AdvanceSolution()
-
-if (doGrav)
-
-\hspace{.1in}  define newGravityVector
-
-\hspace{.1in}  correct solution due to new gravity
-
-end if
-
-if (addExtSource)
-
-\hspace{.1in}  getSource() at new time
-
-\hspace{.1in}  correct solution due to new source
-
-end if
-
-if (Diffusion)
-
-\hspace{.1in}  getNewDiffusionTerm()
-
-\hspace{.1in}  correct solution due to new diffusion term
-
-\hspace{.1in}  computeTemp()
-
-end if
-
-if (doReact)
-
-\hspace{.1in}  strangChem()
-
-end if
-
-if (advanceAux)
-
-\hspace{.1in}  advanceAux()
-
-end if
-
-if (LevelSet)
-
-\hspace{.1in}  advanceLevelSet()
-
-end if
 

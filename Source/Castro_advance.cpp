@@ -213,7 +213,7 @@ Castro::do_advance (Real time,
     {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
-	frac_change = clean_state(S_new);
+	frac_change = clean_state(S_new, Sborder);
     }
 
     // Check for NaN's.
@@ -390,8 +390,11 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 {
 
 #ifndef SDC
-    // Update the dSdt MultiFab. Take the difference of the old and new
-    // sources and then divide by dt.
+    // Update the dSdt MultiFab. Since we want (S^{n+1} - S^{n}) / dt, we
+    // only need to take twice the new-time source term, since in the predictor-corrector
+    // approach, the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue
+    // in general for the non-momentum sources, but those don't appear in the hydro anyway,
+    // and for safety we'll only do this on the momentum terms.
 
     if (source_term_predictor == 1) {
 
@@ -400,11 +403,10 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	dSdt_new.setVal(0.0, NUM_GROW);
 
 	for (int n = 0; n < num_src; ++n) {
-	    MultiFab::Add(dSdt_new, new_sources[n], 0, 0, NUM_STATE, 0);
-	    MultiFab::Subtract(dSdt_new, old_sources[n], 0, 0, NUM_STATE, 0);
+	    MultiFab::Add(dSdt_new, new_sources[n], Xmom, Xmom, 3, 0);
 	}
 
-	dSdt_new.mult(1.0 / dt);
+	dSdt_new.mult(2.0 / dt);
 
     }
 #else
