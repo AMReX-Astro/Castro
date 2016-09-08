@@ -15,7 +15,7 @@ contains
                                      lo,hi,mass_added,eint_added, &
                                      eden_added,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
-    
+
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use bl_constants_module, only : ZERO
@@ -31,14 +31,14 @@ contains
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     double precision, intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
     double precision, intent(inout) :: mass_added, eint_added, eden_added, frac_change
-    
+
     ! Local variables
     integer          :: i,ii,j,jj,k,kk
     integer          :: i_set, j_set, k_set
     double precision :: max_dens
     double precision :: unew(NVAR)
     integer          :: num_positive_zones
-    
+
     double precision :: initial_mass, final_mass
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
@@ -82,7 +82,7 @@ contains
                 if (density_reset_method == 1) then
 
                    ! Reset to the characteristics of the adjacent state with the highest density.
-                   
+
                    max_dens = uout(i,j,k,URHO)
                    i_set = i
                    j_set = j
@@ -219,11 +219,11 @@ contains
     double precision :: loc(3)
 #endif
 
-    ! If no neighboring zones are above small_dens, our only recourse 
-    ! is to set the density equal to small_dens, and the temperature 
-    ! equal to small_temp. We set the velocities to zero, 
+    ! If no neighboring zones are above small_dens, our only recourse
+    ! is to set the density equal to small_dens, and the temperature
+    ! equal to small_temp. We set the velocities to zero,
     ! though any choice here would be arbitrary.
-    
+
     if (verbose .gt. 0) then
        print *,'   '
        if (new_state(URHO) < ZERO) then
@@ -267,7 +267,7 @@ contains
   end subroutine reset_to_small_state
 
 
- 
+
   subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
 
     use bl_constants_module, only: ZERO
@@ -820,6 +820,10 @@ contains
                 ! the left edge of the zone and so is the "minus" rho. The flux limiter convention
                 ! is analogous to the convention for the hydro reconstruction edge states.
 
+                ! Don't do this if the density or energy is already under the floor.
+
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
 
                 if (rho < small_dens) then
@@ -884,6 +888,8 @@ contains
 
              if (i .le. hi(1)) then
 
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * flux1(i+1,j,k,URHO)
 
                 if (rho < small_dens) then
@@ -938,6 +944,17 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1) + 1
 
+             ! If an adjacent zone has a floor-violating density or energy, set the flux to zero
+             ! and move on. At that point, the only thing to do is wait for a reset at a later point.
+
+             if (u(i,j,k,URHO) < small_dens .or. u(i-1,j,k,URHO) < small_dens .or. &
+                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i-1,j,k,UEINT) < small_rhoe(i-1,j,k)) then
+
+                flux1(i,j,k,:) = ZERO
+                cycle
+
+             endif
+
              ! See the discussion after Equation 16 in Hu et al.; the limiting theta for both density and
              ! internal energy is a multiplicative combination of the two.
 
@@ -973,17 +990,17 @@ contains
              drho = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
 
              if (u(i,j,k,URHO) + drho < small_dens) then
-                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_dens - u(i,j,k,URHO)) / drho)
+                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_dens - u(i,j,k,URHO)) / drho)
              else if (u(i-1,j,k,URHO) - drho < small_dens) then
-                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_dens - u(i-1,j,k,URHO)) / drho)
-              endif
+                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_dens - u(i-1,j,k,URHO)) / drho)
+             endif
 
              drhoe = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,UEINT)
 
              if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
-                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
+                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
              else if (u(i-1,j,k,UEINT) - drhoe < small_rhoe(i,j,k)) then
-                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i-1,j,k,UEINT)) / drhoe)
+                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i-1,j,k,UEINT)) / drhoe)
              endif
 
           enddo
@@ -1008,6 +1025,8 @@ contains
           do i = lo(1), hi(1)
 
              if (j .ge. lo(2)) then
+
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
 
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
 
@@ -1052,6 +1071,8 @@ contains
              endif
 
              if (j .le. hi(2)) then
+
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
 
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * flux2(i,j+1,k,URHO)
 
@@ -1102,6 +1123,14 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2) + 1
           do i = lo(1), hi(1)
+
+             if (u(i,j,k,URHO) < small_dens .or. u(i,j-1,k,URHO) < small_dens .or. &
+                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i,j-1,k,UEINT) < small_rhoe(i,j-1,k)) then
+
+                flux2(i,j,k,:) = ZERO
+                cycle
+
+             endif
 
              theta = min(thetam_dens(i,j-1,k), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j-1,k), thetap_rhoe(i,j,k))
 
@@ -1168,6 +1197,8 @@ contains
 
              if (k .ge. lo(3)) then
 
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
 
                 if (rho < small_dens) then
@@ -1211,6 +1242,8 @@ contains
              endif
 
              if (k .le. hi(3)) then
+
+                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
 
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * flux3(i,j,k+1,URHO)
 
@@ -1261,6 +1294,14 @@ contains
     do k = lo(3), hi(3) + 1
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             if (u(i,j,k,URHO) < small_dens .or. u(i,j,k-1,URHO) < small_dens .or. &
+                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i,j,k-1,UEINT) < small_rhoe(i,j,k-1)) then
+
+                flux3(i,j,k,:) = ZERO
+                cycle
+
+             endif
 
              theta = min(thetam_dens(i,j,k-1), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j,k-1), thetap_rhoe(i,j,k))
 
