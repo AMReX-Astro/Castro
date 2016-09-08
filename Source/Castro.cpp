@@ -2612,7 +2612,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
     int ng = S_new.nGrow();
 
-    // Synchronize (rho e) and (rho E) so they are consistent with each other
+    // Ensure (rho e) isn't too small or negative
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
