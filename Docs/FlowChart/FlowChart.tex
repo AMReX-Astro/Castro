@@ -165,7 +165,7 @@ source updates in sequence (this is the default, and is controlled by
 terms, like rotation, can be treated implicitly.  Together, this can
 make the update more akin to:
 \begin{equation}
-\Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [S(\Ub^{n+1,(c)}) - S(\Ub^n)]
+\Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 \end{equation}
 
 \castro\ also supports radiation.  This part of the update algorithm
