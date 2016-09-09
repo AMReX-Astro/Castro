@@ -187,6 +187,15 @@ contains
 
              endif
 
+             ! Insert weights for these burns.
+
+             if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
+                  j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
+                  k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+
+                weights(i,j,k) = 1.0
+
+             endif
 
           enddo
        enddo
