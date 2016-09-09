@@ -181,10 +181,10 @@ contains
     mass_encl = mass_encl + mass(numpts_1d-1)
     phiBC = -Gconst * mass_encl / (numpts_1d*dr)
     gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
-    phi(numpts_1d-1) = phiBC - gravBC * dr
+    phi(numpts_1d-1) = phiBC + gravBC * dr
 
     do i = numpts_1d-2,0,-1
-       phi(i) = phi(i+1) - grav(i+1) * dr
+       phi(i) = phi(i+1) + grav(i+1) * dr
     enddo
 
   end subroutine ca_integrate_phi
