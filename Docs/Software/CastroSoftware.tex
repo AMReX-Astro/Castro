@@ -40,6 +40,12 @@ The following data structures are the most commonly encountered when
 working in the \cpp\ portions of \castro.  This are all
 \boxlib\ data-structures / classes.
 
+\subsection{{\tt Amr}}
+
+This is the main class that drives the whole simulation.  This is 
+the highest level in \castro.
+
+
 \subsection{{\tt AmrLevel} and {\tt Castro} classes}
 
 An {\tt AmrLevel} is a virtual base class provided by \boxlib\ that
@@ -64,7 +70,7 @@ objects.  This means that those objects cover all levels and are the
 same object in each instantiation of the {\tt Castro} class.
 
 
-\subsection{MultiFabs}
+\subsection{\multifab}
 
 A \multifab\ is a collection of the data in boxes (usually called {\tt
   FArrayBoxes} or {\em FAB}s\footnote{where FAB stands for Fortran
@@ -74,7 +80,12 @@ A \multifab\ is a collection of the data in boxes (usually called {\tt
   space + 1 component)}) that together make up a single level of data
 in the AMR hierarchy.  A \multifab\ can have multiple components (like
 density, temperature, ...) as well as a perimeter of ghost cells to
-exchange data with neighbors or implement boundary conditions.
+exchange data with neighbors or implement boundary conditions.  
+
+Parallelization in \boxlib\ is done by distributing the FABs across
+processors.  Each processor knows which FABs are local to it.  To loop
+over all the boxes local to a processor, an {\tt MFIter} is used (more
+on this below).
 
 High-level operations exist on \multifab s to add, subtract, multiply,
 etc., them together or with scalars, so you don't need to write out
@@ -101,15 +112,76 @@ the same level of refinement.
 
 
 
-\subsection{State Data}
+\subsection{\statedata}
+
+\statedata\ is a class that essentially holds a pair of multifabs, one
+at the old time and one at the new time.  \boxlib\ knows how to
+interpolate in time between these states to get data at any
+intermediate point in time.  The main data that we care about in
+\castro\ (the fluid state, gravitational potential, etc.) will be
+stored as \statedata.  Essentially, data is made \statedata\ in
+\castro\ if we need it to be stored in checkpoints / plotfiles, and/or
+we want it to be automatically interpolated when we refine.
+
+An {\tt AmrLevel} stores an array of \statedata.  We index this array
+using integer keys (defined via an {\tt enum} in {\tt Castro.H}).  
+The state data is registered with \boxlib\ in \code{Castro\_setup.cpp}.
+The current \statedata\ that \castro\ carries is:
+\begin{itemize}
+\item {\tt State\_Type} :
+\item {\tt Rad\_Type} :
+\item {\tt PhiGrav\_Type} :
+\item {\tt Gravity\_Type} :
+\item {\tt PhiRot\_Type} :
+\item {\tt Rotation\_Type} :
+\item {\tt Source\_Type} :
+\item {\tt LS\_State\_Type} :
+\item {\tt Reactions\_Type} :
+\item {\tt SDC\_Source\_Type} :
+\item {\tt SDC\_React\_Type} :
+\end{itemize}
+
+We access the multifabs that carry the data of interest by interacting
+with the \statedata\ using one of these keys.  For instance:
+\begin{lstlisting}
+MultiFab& S_new = get_new_data(State_Type);
+\end{lstlisting}
+gets a pointer to the multifab containing the hydrodynamics state data
+at the new time.
 
 
-Data is made \statedata\ in \castro\ if we need it to be stored in
-checkpoints / plotfiles, and/or we want it to be automatically
-interpolated when we refine.
 
 
 \subsection{MFIter}
+
+We iterate over the multifabs using an iterator {\tt MFIter}.  This
+iterator knows about the locality of the data---only the boxes on the
+processor will be looped over.  An example loop (for the
+initialization, from {\tt Castro\_setup.cpp} would be):
+\begin{lstlisting}
+for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+  {
+     const Box& bx      = mfi.validbox();
+     const int* lo      = bx.loVect();
+     const int* hi      = bx.hiVect();
+
+     if (! orig_domain.contains(bx)) {
+        BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
+          (level, cur_time, lo, hi, ns,
+           BL_TO_FORTRAN(S_new[mfi]), dx,
+           gridloc.lo(), gridloc.hi());
+     }
+  }
+\end{lstlisting}
+Here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
+C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
+is a BoxLib macro that is used to interface with Fortran routines.
+{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab,
+and {\tt mfi.isValid()} returns {\tt false} after we've reached
+the last box contained in the MultiFab, terminating the loop.
+
+The corresponding Fortran function will look like:
+{\color{red} Need to write the Fortran version here}
 
 
 
@@ -256,47 +328,7 @@ The main descriptors are:
   with burning module.
 \end{itemize}
 
-The state data is registered with \boxlib\ in {\tt Castro\_setup.cpp}.
-We access the multifabs that carry the data of interest by interacting
-with this \boxlib\ data-structure.  Each state quantity always has both
-an old and new timestate and the BoxLib class knows how to interpolate
-in both space and time.  We interact with the data by getting pointers
-to multifabs.  For instance:
-\begin{lstlisting}
-MultiFab& S_new = get_new_data(State_Type);
-\end{lstlisting}
-gets a pointer to the multifab containing the hydrodynamics state data
-at the new time (here {\tt State\_Type} is the {\tt enum} defined in
-{\tt Castro.H}).
 
-We iterate over the multifabs using an iterator {\tt MFIter}.  This
-iterator knows about the locality of the data---only the boxes on the
-processor will be looped over.  An example loop (for the
-initialization, from {\tt Castro\_setup.cpp} would be):
-\begin{lstlisting}
-for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-  {
-     const Box& bx      = mfi.validbox();
-     const int* lo      = bx.loVect();
-     const int* hi      = bx.hiVect();
-
-     if (! orig_domain.contains(bx)) {
-        BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-          (level, cur_time, lo, hi, ns,
-           BL_TO_FORTRAN(S_new[mfi]), dx,
-           gridloc.lo(), gridloc.hi());
-     }
-  }
-\end{lstlisting}
-Here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
-C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
-is a BoxLib macro that is used to interface with Fortran routines.
-{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab,
-and {\tt mfi.isValid()} returns {\tt false} after we've reached
-the last box contained in the MultiFab, terminating the loop.
-
-The corresponding Fortran function will look like:
-{\color{red} Need to write the Fortran version here}
 
 
 \subsection{Derived Variables}
