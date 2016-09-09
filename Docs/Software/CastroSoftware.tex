@@ -293,7 +293,7 @@ at the new time.
 
 \subsection{\parray}
 
-The {\tt PArray<T>} class is similar to the \cpp {\tt Array<T>} class,
+The {\tt PArray<T>} class is similar to the \cpp\ {\tt Array<T>} class,
 but it manages an array of pointers to objects of type {\tt T}, rather
 than the objects themself.  There are additional options that control
 whether the objects are deleted or the pointers simply destructed.
@@ -301,33 +301,76 @@ whether the objects are deleted or the pointers simply destructed.
 In \castro\, this will commonly be used with \multifab s.
 
 
-\section{Interacting with Fortran and \mfiter}
+\section{\mfiter and interacting with Fortran}
 
-We iterate over the multifabs using an iterator \code{\mfiter}.  This
-iterator knows about the locality of the data---only the boxes on the
-processor will be looped over.  An example loop (for the
-initialization, from {\tt Castro\_setup.cpp} would be):
+The process of looping over boxes at a given level of refinement and
+operating on their data in Fortran is linked to how \castro\ achieves
+thread-level parallelism.  The OpenMP approach in \castro\ has evolved
+considerably since the original paper was written, with the modern
+approach, called {\em tiling}, gearing up to meet the demands of
+many-core processors in the next-generation of supercomputers.  We
+discuss the original and new approach together here.
+
+In both cases, the key construct is the \mfiter---this is a
+\cpp\ iterator that knows how to loop over the \farraybox es in the
+\multifab\ that are local to the processor (in this way, a lot of the
+parallelism is hidden from view).
+
+\subsubsection{Non-Tiling \mfiter}
+
+The non-tiling way to iterate over the \farraybox s is:
 \begin{lstlisting}
-for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+  for (MFIter mfi(mf); mfi.isValid(); ++mfi) // Loop over boxes
   {
-     const Box& bx      = mfi.validbox();
-     const int* lo      = bx.loVect();
-     const int* hi      = bx.hiVect();
+    // Get the index space of this iteration
+    const Box& box = mfi.validbox(); 
 
-     if (! orig_domain.contains(bx)) {
-        BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-          (level, cur_time, lo, hi, ns,
-           BL_TO_FORTRAN(S_new[mfi]), dx,
-           gridloc.lo(), gridloc.hi());
-     }
+    // Get a reference to the FAB, which contains data and box  
+    FArrayBox& fab = mf[mfi];  
+
+    // Get double* of the FAB 
+    double* a = fab.dataPtr();
+
+    // Get the index space for the data pointed by the double* 
+    // Note "abox" may have ghost cells, and is thus larger than 
+    // or equal to "box" obtained using mfi.validbox().
+    const Box& abox = fab.box();
+
+    // We can now pass the information to a Fortran routine,
+    // which reshapes double* a into a multi-dimensional array 
+    // with dimensions specified by the information in "abox".
+    // We will also pass "box", which specifies our "work" region.
   }
 \end{lstlisting}
-Here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
-C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
-is a BoxLib macro that is used to interface with Fortran routines.
-{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab,
-and {\tt mfi.isValid()} returns {\tt false} after we've reached
-the last box contained in the MultiFab, terminating the loop.
+A few comments about this code
+\begin{itemize}
+\item Here the iterator, {\tt mfi}, will perform the loop only over the
+   boxes that are local to the MPI task.  If there are 3 boxes on the
+   processor, then this loop has 3 iterations.
+      
+\item {\tt box} as returned from {\tt mfi.validbox()} does not include
+   ghost cells.  We can get the indices of the valid zones as {\tt
+   box.loVect} and {\tt box.hiVect}.
+
+\item Instead of getting the data pointer explicitly (via {\tt fab.dataPtr()}),
+   \castro\ often uses the preprocessor macro {\tt BL\_TO\_FORTRAN(x)} (defined
+   in {\tt ArrayLim.H}) to substitute in the data pointer and the {\tt lo}
+   and {\tt hi} indices of the multidimensional Fortran array (including ghost cells).
+\end{itemize}
+
+
+Note: some older code will use a special \boxlib\ preprocessor macro,
+\code{BL\_TO\_FORTRAN}, defined in \code{ArrayLim.H}, that converts
+the C++ multifab into a Fortran array and its {\tt lo} and {\tt hi} indices.
+Additionally, some older code will wrap the Fortran subroutine name
+in an additional preprocessor macro, \code{BL\_FORT\_PROC\_CALL}
+to handle the name mangling between Fortran and C.  This later
+macro is generally not needed any more because of Fortran 2008
+interoperability with C (through the Fortran {\tt bind} keyword).
+
+{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab, and
+{\tt mfi.isValid()} returns {\tt false} after we've reached the last
+box contained in the MultiFab, terminating the loop.
 
 The corresponding Fortran function will look like:
 {\color{red} Need to write the Fortran version here}
