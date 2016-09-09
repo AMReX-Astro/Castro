@@ -153,12 +153,13 @@ contains
 
 
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       rho,r_l1,r_l2,r_h1,r_h2, &
+       state,r_l1,r_l2,r_h1,r_h2, &
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
     
     use bl_constants_module
     use prob_params_module, only: center
+    use meth_params_module, only: NVAR, URHO
 
     implicit none
 
@@ -171,7 +172,7 @@ contains
     double precision :: radial_vol (0:n1d-1)
 
     integer          :: r_l1,r_l2,r_h1,r_h2
-    double precision :: rho(r_l1:r_h1,r_l2:r_h2)
+    double precision :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
 
     integer          :: i,j,index
     integer          :: ii,jj
@@ -227,7 +228,7 @@ contains
                    r = sqrt(xx**2  + yy**2)
                    index = int(r/dr)
                    if (index .le. n1d-1) then
-                      radial_mass(index) = radial_mass(index) + vol_frac*rho(i,j)
+                      radial_mass(index) = radial_mass(index) + vol_frac*state(i,j,URHO)
                       radial_vol (index) = radial_vol (index) + vol_frac
                    end if
                 end do
