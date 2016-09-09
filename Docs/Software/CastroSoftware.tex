@@ -23,7 +23,7 @@ The code structure in the {\tt Castro/} directory is as follows:
 
 \item {\tt Source/}: source code
 
-\item {\tt Util/}: a catch-all for additional things you may need 
+\item {\tt Util/}: a catch-all for additional things you may need
   \begin{itemize}
   \item {\tt ConvertCheckpoint/}: a tool to convert a checkpoint file to
      a larger domain
@@ -32,6 +32,163 @@ The code structure in the {\tt Castro/} directory is as follows:
 
 
 \end{itemize}
+
+
+\section{Major data structures}
+
+The following data structures are the most commonly encountered when
+working in the \cpp\ portions of \castro.  This are all
+\boxlib\ data-structures / classes.
+
+\subsection{{\tt AmrLevel} and {\tt Castro} classes}
+
+An {\tt AmrLevel} is a virtual base class provided by \boxlib\ that
+stores all the state data on a single level in the AMR hierarchy and
+understands how to advance that data in time.
+
+The most important data managed by the {\tt AmrLevel} is an array of
+{\tt StateData}, which holds the fluid quantities, etc., in the boxes
+that together make up the level.
+
+The {\tt Castro} class is derived from the {\tt AmrLevel}.  It provides
+the \castro-specific routines to evolve our system of equations.  Like
+the {\tt AmrLevel}, there is one {\tt Castro} object for each level in the
+AMR hierarchry.
+
+A lot of the member data in the {\tt Castro} class are static member
+variables---this means that they are shared across all instances of
+the class.  So, in this case, every level will have the same data.
+This is done, in particular, for the values of the runtime parameters,
+but also for the {\tt Gravity}, {\tt Diffusion}, and {\tt Radiation}
+objects.  This means that those objects cover all levels and are the
+same object in each instantiation of the {\tt Castro} class.
+
+
+\subsection{MultiFabs}
+
+A \multifab\ is a collection of the data in boxes (usually called {\tt
+  FArrayBoxes} or {\em FAB}s\footnote{where FAB stands for Fortran
+  Array Box---this is at the heart of \boxlib.  The data management is
+  done in \cpp, but the data in a box in a \multifab\ can easily be
+  passed to Fortran where it appears as a 3+1 dimensional array (3
+  space + 1 component)}) that together make up a single level of data
+in the AMR hierarchy.  A \multifab\ can have multiple components (like
+density, temperature, ...) as well as a perimeter of ghost cells to
+exchange data with neighbors or implement boundary conditions.
+
+High-level operations exist on \multifab s to add, subtract, multiply,
+etc., them together or with scalars, so you don't need to write out
+loops over the data directly.
+
+In \boxlib, an AMR level has a global index space, with (0,0,0) being
+the lower left corner of the domain at that level, and $(N_x-1, N_y-1,
+N_z-1)$ being the upper right corner of the domain (for a domain of
+$N_x \times N_y \times N_z$ zones).  The location of any box at a
+level can be uniquely specified with respect to this global index
+space by giving the index of its lower-left and upper-right corners.
+Figure~\ref{fig:soft:indexspace} shows an example of three boxes at
+the same level of refinement.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=4.0in]{index_grid2}
+\caption[Single-level grid structure]
+{\label{fig:boxes} Three boxes that comprise a single level.  At this
+  resolution, the domain is 20$\times$18 zones.  Note that the
+  indexing in BoxLib starts with $0$.}
+\end{figure}
+
+
+
+
+\subsection{State Data}
+
+
+Data is made \statedata\ in \castro\ if we need it to be stored in
+checkpoints / plotfiles, and/or we want it to be automatically
+interpolated when we refine.
+
+
+\subsection{MFIter}
+
+
+
+\subsection{Boundaries: FillPatch and FillPatchIterator}
+
+FillBoundary -- fills interior ghost cells for an arbitrary multifab
+
+FillPatch works in the case that I have statedata that was defined
+with ghost cells already.
+
+FillPatchIterator works on statedata 
+
+
+\subsection{Boundaries Between Grids}
+Boundaries between grids are of two types. The first we call
+``fine-fine'', which is two grids at the same level.  Filling ghost
+cells at the same level is also part of the fillpatch operation---it's
+just a straight copy from ``valid regions'' to ghost cells. The second
+type is "coarse-fine", which needs interpolation from the coarse grid
+to fill the fine grid ghost cells.  This also happens as part of the
+FillPatch operation, which is why arrays aren't just arrays, they're
+``State Data'', which means that the data knows how to interpolate
+itself (in an anthropomorphical sense).  The type of interpolation to
+use is defined in {\tt Castro\_setup.cpp} as well---search for
+{\tt cell\_cons\_interp}, for example---that's ``cell conservative
+interpolation'', i.e., the data is cell-based (as opposed to node-based
+or edge-based) and the interpolation is such that the average of the
+fine values created is equal to the coarse value from which they came.
+(This wouldn't be the case with straight linear interpolation, for
+example.)
+
+A {\tt FillPatchIterator} is used to loop over the grids and fill
+ghostcells.  One should never assume that ghostcells are valid.  A key
+thing to keep in mind about the {\tt FillPatchIterator} is that you
+operate on a copy of the data---the data is disconnected from the
+original source.  If you want to update the data in the source,
+you need to explicitly copy it back.  Also note: {\tt FillPatchIterator}
+takes a multifab, but this is not filled---this is only used to
+get the grid layout.  \MarginPar{did I say that right?}
+
+{\color{red}simple example}
+
+Basically, boundary conditions are imposed on ``state variables'' every
+time that they're ``fillpatched'', as part of the fillpatch operation.
+
+For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) starts with
+\begin{lstlisting}
+   for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
+                              time, State_Type, strtComp, NUM_STATE);
+         fpi.isValid(); ++fpi)
+   {
+     FArrayBox &state = fpi();
+
+     // work on the state FAB
+   }
+\end{lstlisting}
+Here the {\tt FillPatchIterator} is the thing that distributes the
+grids over processors and makes parallel ``just work''. This fills the
+single patch ``{\tt fpi}'' , which has {\tt NUM\_GROW} ghost cells,
+with data of type ``{\tt State\_Type}'' at time ``{\tt time}'',
+starting with component {\tt strtComp} and including a total of {\tt
+  NUM\_STATE} components.
+
+The way that you tell the code what kind of physical boundary
+condition to use is given in {\tt Castro\_setup.cpp}. At the top we
+define arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'',
+etc, which say which kind of bc to use on which kind of physical
+boundary.  Boundary conditions are set in functions like ``{\tt
+  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
+arrays.
+
+If you want to specify a value at a function (like at an inflow
+boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
+that. Which routine is called for which variable is again defined in
+{\tt Castro\_setup.cpp}.
+
+
+\subsection{pArray}
+
 
 
 \section{An Overview of \castro}
@@ -66,7 +223,7 @@ desired simulation time is reached:
 \end{lstlisting}
 This uses the \boxlib\ machinery to do the necessary subcycling in time,
 including synchronization between levels, to advance the level hierarchy
-forward in time.  
+forward in time.
 
 \subsection{Geometry class}
 
@@ -89,8 +246,8 @@ The main descriptors are:
   RADIATION} is defined).
 
 \item {\tt PhiGrav\_Type}: the data required for the gravitational potential solve (only
-  enabled if {\tt GRAVITY} is defined).  
-  
+  enabled if {\tt GRAVITY} is defined).
+
 \item {\tt Gravity\_Type}: the data required for the gravitational acceleration solve (only
   enabled if {\tt GRAVITY} is defined).
 
@@ -109,7 +266,7 @@ to multifabs.  For instance:
 MultiFab& S_new = get_new_data(State_Type);
 \end{lstlisting}
 gets a pointer to the multifab containing the hydrodynamics state data
-at the new time (here {\tt State\_Type} is the {\tt enum} defined in 
+at the new time (here {\tt State\_Type} is the {\tt enum} defined in
 {\tt Castro.H}).
 
 We iterate over the multifabs using an iterator {\tt MFIter}.  This
@@ -133,9 +290,9 @@ for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 \end{lstlisting}
 Here {\tt BL\_TO\_FORTRAN} is a special \boxlib\ macro that converts the
 C++ multifab into a Fortran array, and {\tt BL\_FORT\_PROC\_CALL}
-is a BoxLib macro that is used to interface with Fortran routines. 
-{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab, 
-and {\tt mfi.isValid()} returns {\tt false} after we've reached 
+is a BoxLib macro that is used to interface with Fortran routines.
+{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab,
+and {\tt mfi.isValid()} returns {\tt false} after we've reached
 the last box contained in the MultiFab, terminating the loop.
 
 The corresponding Fortran function will look like:
@@ -194,10 +351,10 @@ side of \castro\ or perform other useful tasks.
 \item {\tt fundamental\_constants\_module}:
 
   This provides the CGS values of many physical constants.
-  
+
 \end{itemize}
 
-  
+
 
 \section{Setting Up Your Own Problem}
 
@@ -258,7 +415,7 @@ The purpose of these files is:
       integer indices of the upper right corner of the box in each
       coordinate direction.  These are for the box as allocated in memory,
       so they include any ghost cells as well as the valid data regions.
-      
+
     \item {\tt state()}: the main state array.  This is dimensioned as:
 \begin{verbatim}
 double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
@@ -268,7 +425,7 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
     When accessing this array, we use the index keys provided by
     {\tt meth\_params\_module} (e.g., {\tt URHO}) to refer to specific
     quantities
-    
+
     \item {\tt delta()}: this is an array containing the zone width ($\Delta x$)
       in each coordinate direction: $\mathtt{delta(1)} = \Delta x$,
       $\mathtt{delta(2)} = \Delta y$, $\ldots$.
@@ -287,9 +444,9 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
      {\tt lo} and {\tt xlo} may not refer to the same corner, and instead
      coordinates should be computed using {\tt problo()} from the {\tt
      prob\_params\_module}.)
-     
+
     \end{itemize}
-  \end{itemize}    
+  \end{itemize}
 
 \item \code{bc\_fill\_?d.f90}:
 
@@ -309,7 +466,7 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
   if the {\tt bc()} flag at a boundary is {\tt EXT\_DIR}.  The
   problem-specific code implementing these specific conditions
   should {\em follow} the {\tt filcc} call.
-        
+
   \begin{itemize}
   \item {\tt ca\_hypfill}:
     This handles the boundary filling for the hyperbolic system.
@@ -319,10 +476,10 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
     instead of the entire state.  When the fill patch routine is called
     with {\tt first\_comp = Density} and {\tt num\_comp = 1}, then we
     use {\tt ca\_denfill} instead of {\tt ca\_hypfill}.
-    
+
     (Note: it seems that this may be used for more than just
     density, but it is only used for tagging and the plotfile)
-      
+
   \item {\tt ca\_grav?fill}: These routines fill will the ghostcells
     of the gravitational acceleration grids with the gravitational
     acceleration.
@@ -361,10 +518,10 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
   \item {\tt adv()}: the array of data whose ghost cells we are filling.
     Depending on the routine, this may have an additional index refering
     to the variable.
-    
+
     This is dimensioned as:
 \begin{verbatim}
-  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)                             
+  double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
 \end{verbatim}
 
   \item {\tt domlo()}, {\tt domhi()}: the integer indices of the lower
@@ -405,42 +562,13 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
     defined in {\tt bc\_types.fi} included in each subroutine,
     for example, {\tt EXT\_DIR}, {\tt FOEXTRAP}, $\ldots$.  The
     meaning of these are explained below.
-      
+
   \end{itemize}
-    
+
 \end{itemize}
 
 
 \section{Boundaries}
-\subsection{Boundaries Between Grids}
-Boundaries between grids are of two types. The first we call
-``fine-fine'', which is two grids at the same level.  Filling ghost
-cells at the same level is also part of the fillpatch operation---it's
-just a straight copy from ``valid regions'' to ghost cells. The second
-type is "coarse-fine", which needs interpolation from the coarse grid
-to fill the fine grid ghost cells.  This also happens as part of the
-FillPatch operation, which is why arrays aren't just arrays, they're
-``State Data'', which means that the data knows how to interpolate
-itself (in an anthropomorphical sense).  The type of interpolation to
-use is defined in {\tt Castro\_setup.cpp} as well---search for
-{\tt cell\_cons\_interp}, for example---that's ``cell conservative
-interpolation'', i.e., the data is cell-based (as opposed to node-based
-or edge-based) and the interpolation is such that the average of the
-fine values created is equal to the coarse value from which they came.
-(This wouldn't be the case with straight linear interpolation, for
-example.)
-
-A {\tt FillPatchIterator} is used to loop over the grids and fill
-ghostcells.  One should never assume that ghostcells are valid.  A key
-thing to keep in mind about the {\tt FillPatchIterator} is that you
-operate on a copy of the data---the data is disconnected from the
-original source.  If you want to update the data in the source,
-you need to explicitly copy it back.  Also note: {\tt FillPatchIterator}
-takes a multifab, but this is not filled---this is only used to
-get the grid layout.  \MarginPar{did I say that right?} 
-
-{\color{red}simple example}
-
 
 \subsection{Physical Boundaries}
 
@@ -454,7 +582,7 @@ more details.
     \item temperature: {\tt FOEXTRAP}
     \item scalars: {\tt FOEXTRAP}
   \end{itemize}
-  
+
 \item {\it No Slip Wall with Adiabatic Temp}:
   \begin{itemize}
   \item velocity: {\tt EXT\_DIR}, $u=v=0$
@@ -468,14 +596,14 @@ more details.
   \item temperature: {\tt EXT\_DIR}
   \item scalars: {\tt HOEXTRAP}
   \end{itemize}
-    
+
 \item {\it Slip Wall with Adiabatic Temp}:
   \begin{itemize}
   \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
   \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
   \item scalars: {\tt HOEXTRAP}
   \end{itemize}
-  
+
 \item {\it Slip Wall with Fixed Temp}:
   \begin{itemize}
   \item velocity: {\tt EXT\_DIR}, $u_n=0$
@@ -504,39 +632,6 @@ words from above:
 
 \subsection{Filling the boundaries}
 
-Basically, boundary conditions are imposed on ``state variables'' every
-time that they're ``fillpatched'', as part of the fillpatch operation.
-
-For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) starts with
-\begin{lstlisting}
-   for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
-                              time, State_Type, strtComp, NUM_STATE);
-         fpi.isValid(); ++fpi)
-   {
-     FArrayBox &state = fpi();
-
-     // work on the state FAB
-   }           
-\end{lstlisting}
-Here the {\tt FillPatchIterator} is the thing that distributes the
-grids over processors and makes parallel ``just work''. This fills the
-single patch ``{\tt fpi}'' , which has {\tt NUM\_GROW} ghost cells,
-with data of type ``{\tt State\_Type}'' at time ``{\tt time}'',
-starting with component {\tt strtComp} and including a total of {\tt
-  NUM\_STATE} components.
-
-The way that you tell the code what kind of physical boundary
-condition to use is given in {\tt Castro\_setup.cpp}. At the top we
-define arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'',
-etc, which say which kind of bc to use on which kind of physical
-boundary.  Boundary conditions are set in functions like ``{\tt
-  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
-arrays.
-
-If you want to specify a value at a function (like at an inflow
-boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
-that. Which routine is called for which variable is again defined in
-{\tt Castro\_setup.cpp}.
 
 \section{Parallel I/O}
 
@@ -576,5 +671,3 @@ filesytem should be able to handle any reasonable value of $N$.  The
 value {\tt -1} forces $N$ to the number of CPUs on which you're
 running, which means that each CPU writes to a unique file, which can
 create a very large number of files, which can lead to inode issues.
-
-
