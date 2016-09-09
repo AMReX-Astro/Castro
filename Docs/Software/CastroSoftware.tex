@@ -223,9 +223,15 @@ The current \statedata\ names  \castro\ carries are:
   the specific energy generation rate ($\dot{e}_\mathrm{nuc}$),
   and its density ($\rho \dot{e}_\mathrm{nuc}$).  \MarginPar{why do we need to store these as state data?  Also, why do we need rho edot and edot separately?}
 
-\item \variable{SDC\_Source\_Type} :
+\item \variable{SDC\_Source\_Type} : this is used with the SDC
+  time-advancement algorithm (not the default Strang-splitting
+  algorithn).  This will store the {\tt NUM\_STATE} advective source
+  terms for use in the evolution of the reactive terms in the SDC
+  advancement.
 
-\item \variable{SDC\_React\_Type} :
+\item \variable{SDC\_React\_Type} : this is used with the SDC
+  time-advancement algorithm.  \MarginPar{confused --- what are these sources, why dimensioned {\tt QVAR}?}
+
 \end{itemize}
 
 We access the multifabs that carry the data of interest by interacting
@@ -238,13 +244,19 @@ at the new time.
 
 
 
-\subsection{pArray}
+\subsection{\parray}
+
+The {\tt PArray<T>} class is similar to the \cpp {\tt Array<T>} class,
+but it manages an array of pointers to objects of type {\tt T}, rather
+than the objects themself.  There are additional options that control
+whether the objects are deleted or the pointers simply destructed.
+
+In \castro\, this will commonly be used with \multifab s.
 
 
+\section{Interacting with Fortran and \mfiter}
 
-\section{MFIter}
-
-We iterate over the multifabs using an iterator {\tt MFIter}.  This
+We iterate over the multifabs using an iterator \code{\mfiter}.  This
 iterator knows about the locality of the data---only the boxes on the
 processor will be looped over.  An example loop (for the
 initialization, from {\tt Castro\_setup.cpp} would be):
@@ -349,7 +361,6 @@ that. Which routine is called for which variable is again defined in
 {\tt Castro\_setup.cpp}.
 
 
-\section{Interacting with Fortran}
 
 
 
