@@ -2392,8 +2392,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
 
-        // Create MultiFab with one component and no grow cells
-        MultiFab S(grids[lev],1,0);
+	const int NUM_STATE = LevelData[lev].get_new_data(State_Type).nComp();
+
+        // Create MultiFab with NUM_STATE components and no ghost cells
+        MultiFab S(grids[lev],NUM_STATE,0);
 
 	if ( eps == 0.0 )
 	{
@@ -2401,19 +2403,19 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
 	}
         else if ( std::abs(time-t_old) < eps)
         {
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,NUM_STATE);
         }
         else if ( std::abs(time-t_new) < eps)
         {
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
             if (lev < level)
             {
                 Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev+1));
-                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,1,parent->Geom(lev));
+                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,NUM_STATE,parent->Geom(lev));
             }
         }
         else if (time > t_old && time < t_new)
@@ -2421,14 +2423,14 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             Real alpha   = (time - t_old)/(t_new - t_old);
             Real omalpha = 1.0 - alpha;
 
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,NUM_STATE);
             S.mult(omalpha);
 
             MultiFab S_new(grids[lev],1,0);
-            S_new.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S_new.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
             S_new.mult(alpha);
 
-            S.plus(S_new,Density,1,0);
+            S.plus(S_new,Density,NUM_STATE,0);
         }
         else
         {
@@ -2441,7 +2443,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         {
 	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 	    const MultiFab& mask = fine_level->build_fine_mask();
-	    MultiFab::Multiply(S, mask, 0, 0, 1, 0);
+	    MultiFab::Multiply(S, mask, 0, 0, NUM_STATE, 0);
         }
 
         int n1d = radial_mass[lev].size();
