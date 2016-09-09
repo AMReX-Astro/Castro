@@ -11,7 +11,6 @@ section_sources = Introduction/CastroIntroduction.tex \
 	          Inputs/CastroInputs.tex \
                   UnitsAndConstants/CastroUnits.tex \
                   Software/CastroSoftware.tex \
-                  Parallel/Parallel.tex \
 	          FlowChart/FlowChart.tex \
                   runtime_parameters/runtime_parameters.tex \
                   runtime_parameters/rp_intro.tex \
