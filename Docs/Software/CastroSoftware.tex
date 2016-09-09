@@ -1,6 +1,6 @@
 \section{Code structure}
 
-\castro\ is built upon the \boxlib\ C++ framework.  This provides
+\castro\ is built upon the \boxlib\ \cpp\ framework.  This provides
 high-level classes for managing an adaptive mesh refinement simulation,
 including the core data structures we will deal with.
 
@@ -73,36 +73,25 @@ but also for the {\tt Gravity}, {\tt Diffusion}, and {\tt Radiation}
 objects.  This means that those objects cover all levels and are the
 same object in each instantiation of the {\tt Castro} class.
 
+\subsection{Floating point data}
 
-\subsection{\multifab}
+Floating point data in the \cpp\ \boxlib\ frame work is declared as
+{\tt Real}.  This is {\tt typedef} to either {\tt float} or {\tt
+  double} depending on the make variable \makevar{PRECISION}.
 
-A \multifab\ is a collection of the data in boxes (usually called {\tt
-  FArrayBoxes} or {\em FAB}s\footnote{where FAB stands for Fortran
-  Array Box---this is at the heart of \boxlib.  The data management is
-  done in \cpp, but the data in a box in a \multifab\ can easily be
-  passed to Fortran where it appears as a 3+1 dimensional array (3
-  space + 1 component)}) that together make up a single level of data
-in the AMR hierarchy.  A \multifab\ can have multiple components (like
-density, temperature, ...) as well as a perimeter of ghost cells to
-exchange data with neighbors or implement boundary conditions.  
+\subsection{\bbox\ and \farraybox}
 
-Parallelization in \boxlib\ is done by distributing the FABs across
-processors.  Each processor knows which FABs are local to it.  To loop
-over all the boxes local to a processor, an {\tt MFIter} is used (more
-on this below).
-
-High-level operations exist on \multifab s to add, subtract, multiply,
-etc., them together or with scalars, so you don't need to write out
-loops over the data directly.
-
-In \boxlib, an AMR level has a global index space, with (0,0,0) being
-the lower left corner of the domain at that level, and $(N_x-1, N_y-1,
-N_z-1)$ being the upper right corner of the domain (for a domain of
-$N_x \times N_y \times N_z$ zones).  The location of any box at a
-level can be uniquely specified with respect to this global index
-space by giving the index of its lower-left and upper-right corners.
-Figure~\ref{fig:soft:indexspace} shows an example of three boxes at
-the same level of refinement.
+A \bbox\ is simply a rectangular region in space.  It does not hold
+data.  In \boxlib, an AMR level has a global index space, with
+$(0,0,0)$ being the lower left corner of the domain at that level, and
+$(N_x-1, N_y-1, N_z-1)$ being the upper right corner of the domain
+(for a domain of $N_x \times N_y \times N_z$ zones).  The location of
+any \bbox\ at a level can be uniquely specified with respect to this
+global index space by giving the index of its lower-left and
+upper-right corners.  Figure~\ref{fig:soft:indexspace} shows an
+example of three boxes at the same level of refinement.
+\boxlib\ provides other data structures that collect \bbox es together
+(e.g., \boxarray), but we will not usually use those directly.
 
 \begin{figure}[t]
 \centering
@@ -113,6 +102,34 @@ the same level of refinement.
   indexing in BoxLib starts with $0$.}
 \end{figure}
 
+
+A \farraybox\ or {\em FAB}, for {\em Fortran array box} is a data
+structure that contains a \bbox\ locating it in space, as well as a
+pointer to a data buffer.  The key part of the \cpp\ \boxlib\ data
+structures is that this data buffer can be sent to Fortran, where it
+will appear as a {\tt DIM}+1 dimensional array ({\tt DIM} space + 1
+component).
+
+Note: \castro\ is complied for a specific dimensionality.
+
+
+\subsection{\multifab}
+
+A \multifab\ is a collection of the \farraybox s that together make up
+a single level of data in the AMR hierarchy.  A \multifab\ can have
+multiple components (like density, temperature, ...) as well as a
+perimeter of ghost cells to exchange data with neighbors or implement
+boundary conditions (this is all reflected in the underlying
+\farraybox).
+
+Parallelization in \boxlib\ is done by distributing the FABs across
+processors.  Each processor knows which FABs are local to it.  To loop
+over all the boxes local to a processor, an \mfiter\ is used (more
+on this below).
+
+High-level operations exist on \multifab s to add, subtract, multiply,
+etc., them together or with scalars, so you don't need to write out
+loops over the data directly.
 
 
 
