@@ -1,25 +1,3 @@
-\section{Primary Data-structures}
-
-\castro\ is built on the \cpp\ \boxlib\ framework, and relies on the
-{\tt Amr} class defined there to drive the simulation.
-
-The following other classes / concepts also play a major role laying
-out \castro's algorithm:
-\begin{itemize}
-\item \code{AmrLevel} : this is a class that has the whole fluid state \MarginPar{more}
-
-\item \code{Castro} : this is an {\tt AmrLevel}-derived class for a
-  single level---it contains all the data needed to advance the state
-  for a single level
-
-\item \code{MultiFab} : this is the collection of boxes (w/ data) at the 
-  same level of refinement.  A \tt {\tt MultiFab} can have multiple
-  components, ghost cells, etc.  \MarginPar{what else? does it know about boundaries?}
-
-\item \code{\statedata}
-
-\end{itemize}
-
 
 \section{Overview of a single step (no SDC)}
 
