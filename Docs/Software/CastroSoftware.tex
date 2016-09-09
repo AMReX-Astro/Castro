@@ -146,12 +146,20 @@ stored as \statedata.  Essentially, data is made \statedata\ in
 \castro\ if we need it to be stored in checkpoints / plotfiles, and/or
 we want it to be automatically interpolated when we refine.
 
-An {\tt AmrLevel} stores an array of \statedata.  We index this array
-using integer keys (defined via an {\tt enum} in {\tt Castro.H}).  
-The state data is registered with \boxlib\ in \code{Castro\_setup.cpp}.
-The current \statedata\ that \castro\ carries is:
+An {\tt AmrLevel} stores an array of \statedata\ (in a \cpp\ array
+called {\tt state}).  We index this array using integer keys (defined
+via an {\tt enum} in {\tt Castro.H}).  The state data is registered
+with \boxlib\ in \code{Castro\_setup.cpp}.  
+
+Note that each of the different \statedata\ carried in the {\tt state}
+array can have different numbers of components, ghost cells, boundary
+conditions, etc.  This is the main reason we separate all this data
+into separate \statedata\ objects collected together in an indexable
+array.
+
+The current \statedata\ names  \castro\ carries are:
 \begin{itemize}
-\item {\tt State\_Type} : this is the {\tt NUM\_STATE} hydrodynamics
+\item \variable{State\_Type} : this is the {\tt NUM\_STATE} hydrodynamics
   components that make up the conserved hydrodynamics state (usually
   referred to as $\Ub$ in these notes.  But note that this does 
   not include the radiation energy density.
@@ -161,21 +169,63 @@ The current \statedata\ that \castro\ carries is:
   and stored in \code{meth\_params\_module}, e.g., {\tt URHO}, {\tt UMX},
   {\tt UMY}, ...
 
-  {\tt State\_Type} \multifab s have no ghost cells by default (although, there
-  is an option to force them to have ghost cells by setting the parameter
-  \runparam{castro.state\_nghost} at runtime.
+  Note: regardless of dimensionality, we always carry around all
+  three velocity components.  The ``out-of-plane'' components
+  will simply be advected, but we will allow rotation (in particular,
+  the Coriolis force) to affect them.
 
+  {\tt State\_Type} \multifab s have no ghost cells by default
+  (although, there is an option to force them to have ghost cells by
+  setting the parameter \runparam{castro.state\_nghost} at runtime).
 
-\item {\tt Rad\_Type} :
-\item {\tt PhiGrav\_Type} :
-\item {\tt Gravity\_Type} :
-\item {\tt PhiRot\_Type} :
-\item {\tt Rotation\_Type} :
-\item {\tt Source\_Type} :
-\item {\tt LS\_State\_Type} :
-\item {\tt Reactions\_Type} :
-\item {\tt SDC\_Source\_Type} :
-\item {\tt SDC\_React\_Type} :
+  Note that the prediction of the hydrodynamic state to the interface
+  will require 4 ghost cells.  This accomodated by creating a separate
+  \multifab, \variable{Sborder} that lives at the old-time level and
+  has the necessary ghost cells.  We will describe this more later.
+
+\item \variable{Rad\_Type} : this stores the radiation energy density,
+  commonly denoted $E_r$ in these notes.  It has \variable{nGroups}
+  components---the number of energy groups used in the multigroup
+  radiation hydrodynamics approximation. \MarginPar{not sure how
+    neutrinos factor in here}
+
+\item \variable{PhiGrav\_Type} : this is simply the gravitational
+  potential, usually denoted $\Phi$ in these notes.
+
+\item \variable{Gravity\_Type} : this is the gravitational
+  acceleration. There are always 3 components, regardless of the
+  dimensionality (consistent with our choice of always carrying all 3
+  velocity components).
+
+\item \variable{PhiRot\_Type} : this is the rotational potential.
+  When rotation is enabled, this will store the effective potential
+  corresponding to the centrifugal force. \MarginPar{just centrifugal, right?}
+
+\item \variable{Rotation\_Type} : this is the rotational acceleration.
+  There are always 3 components, regardless of the dimensionality
+  (consistent with our choice of always carrying all 3 velocity
+  components).  This includes the terms corresponding to the Coriolis
+  force, the centrifugal force, as well as optional terms due to the 
+  change in rotation rate, $\Omega$.
+
+\item \variable{Source\_Type} : this holds the time-rate of change of
+  the source terms, $d\Sb/dt$, for each of the {\tt NUM\_STATE} {\tt
+    State\_Type} variables.
+
+  Note: we do not make use of the old-time quantity here. \MarginPar{is this true? seems like a waste of memory then}
+
+\item \variable{LS\_State\_Type} : this stores the level-set variable.
+  This is not currently supported in \castro.
+
+\item \variable{Reactions\_Type} : this holds the data for the nuclear
+  reactions.  It has {\tt NumSpec+2} components: the species 
+  creation rates (usually denoted $\omegadot_k$ in these notes),
+  the specific energy generation rate ($\dot{e}_\mathrm{nuc}$),
+  and its density ($\rho \dot{e}_\mathrm{nuc}$).  \MarginPar{why do we need to store these as state data?  Also, why do we need rho edot and edot separately?}
+
+\item \variable{SDC\_Source\_Type} :
+
+\item \variable{SDC\_React\_Type} :
 \end{itemize}
 
 We access the multifabs that carry the data of interest by interacting
@@ -188,8 +238,11 @@ at the new time.
 
 
 
+\subsection{pArray}
 
-\subsection{MFIter}
+
+
+\section{MFIter}
 
 We iterate over the multifabs using an iterator {\tt MFIter}.  This
 iterator knows about the locality of the data---only the boxes on the
@@ -222,7 +275,7 @@ The corresponding Fortran function will look like:
 
 
 
-\subsection{Boundaries: FillPatch and FillPatchIterator}
+\section{Boundaries: FillPatch and FillPatchIterator}
 
 FillBoundary -- fills interior ghost cells for an arbitrary multifab
 
@@ -296,9 +349,11 @@ that. Which routine is called for which variable is again defined in
 {\tt Castro\_setup.cpp}.
 
 
-\subsection{pArray}
+\section{Interacting with Fortran}
 
 
+
+\section{Other \boxlib\ Concepts}
 
 \subsection{Geometry class}
 
@@ -309,10 +364,10 @@ that. Which routine is called for which variable is again defined in
 \subsection{Error Estimators}
 
 
-\subsection{Gravity class}
+\section{Gravity class}
 
 
-\subsection{Fortran Helper Modules}
+\section{Fortran Helper Modules}
 
 There are a number of modules that make data available to the Fortran
 side of \castro\ or perform other useful tasks.
