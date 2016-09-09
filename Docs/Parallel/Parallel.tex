@@ -1,9 +1,6 @@
 \section{Parallelization}
 
-\castro\ uses a hybrid MPI + OpenMP approach to parallelism.  The
-basic idea is that MPI is used to distribute individual boxes across
-nodes while OpenMP is used to distribute the work in local boxes to
-the cores within a node.  The OpenMP approach in \castro\ has evolved
+The OpenMP approach in \castro\ has evolved
 considerably since the original paper was written, with the modern
 approach, called {\em tiling}, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers.
@@ -12,16 +9,6 @@ many-core processors in the next-generation of supercomputers.
 \subsection{\boxlib's Non-Tiling Approach In C++}
 \label{sec:boxlib0}
 
-At the highest abstraction level, we have {\tt MultiFab} (mulitple
-{\tt FArrayBox}es).  A {\tt MultiFab} contains an array of {\tt
-  Box}es (a {\tt Box} contains integers specifying the index space it
-covers), including {\tt Box}es owned by other processors for the
-purpose of communication, an array of MPI ranks specifying which MPI
-processor owns each {\tt Box}, and an array of pointers to {\tt
-  FArrayBox}es owned by this MPI processor.  The real floating point
-data are stored as one-dimensional arrays in {\tt FArrayBox}es.  An
-{\tt FArrayBox} also contains a box that can be used to reshape the 1D
-array into multi-dimensional arrays to be used by Fortran subroutines.
 
 A typical usage of {\tt MultiFab} is as follows,
 

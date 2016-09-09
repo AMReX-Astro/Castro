@@ -1,10 +1,37 @@
 \section{Code structure}
 
 \castro\ is built upon the \boxlib\ \cpp\ framework.  This provides
-high-level classes for managing an adaptive mesh refinement simulation,
-including the core data structures we will deal with.
+high-level classes for managing an adaptive mesh refinement
+simulation, including the core data structures we will deal with.  A
+key design pattern in \boxlib\ is that the overall memory management
+and parallelization is done in the \cpp\ layer, while the heavy
+computational work is done in Fortran kernels.  \boxlib\ provides
+convenient data structures that allow for this workflow---high level
+objects in \cpp\ that communicate with Fortran through pointers to
+data regions that appear as multidimensional arrays.
 
-The code structure in the {\tt Castro/} directory is as follows:
+\castro\ uses a structured-grid approach to hydrodynamics.  We work
+with square/cubic zones that hold state variables (density, momentum,
+etc.)  and compute the fluxes of these quantities through the
+interfaces of the zones (this is a finite-volume approach).
+Parallelization is achieved by domain decomposition.  We divide our
+domain into many smaller boxes, and distributed these across
+processors.  When information is needed at the boundaries of the
+boxes, messages are exchanged and this data is held in a perimeter of
+{\em ghost cells}.  \boxlib\ manages this decompostion and
+communication for us.  Additionally, \boxlib\ implements adaptive mesh
+refinement.  In addition to the coarse decomposition of our domain
+into zones and boxes, we can refine rectangular regions by adding
+finer-gridded boxes on top of the coarser grid.  We call the
+collection of boxes at the same resolution a {\em level}.
+
+\castro\ uses a hybrid MPI + OpenMP approach to parallelism.  MPI is
+at used to communicate across nodes on a computer and OpenMP is used
+within a node, to loop over subregions of a box with different
+threads.
+
+The code structure in the {\tt Castro/} directory reflects the
+division between \cpp\ and Fortran.
 \begin{itemize}
 \item {\tt constants/}: contains a file of useful constants in CGS units
 
@@ -18,15 +45,25 @@ The code structure in the {\tt Castro/} directory is as follows:
   \item $\ldots$
   \end{itemize}
 
-\item {\tt Microphysics/}: contains directories for different default microphysics
+\item {\tt Microphysics/}: contains directories for different default
+  microphysics (these are all implemented in Fortran)
   \begin{itemize}
   \item {\tt conductivity/}: the thermal conductivity
   \item {\tt EOS/}: the equation of state
   \item {\tt networks/}: the nuclear reaction networks
   \end{itemize}
 
-\item {\tt Source/}: source code
-
+\item {\tt Source/}: source code.  In this main directory is all of
+  the \cpp\ code.  The associated Fortran code is in the following
+  sub-directories:
+  \begin{itemize}
+  \item {\tt Src\_1d}: one-dimensional Fortran code
+  \item {\tt Src\_2d}: two-dimensional Fortran code
+  \item {\tt Src\_3d}: three-dimensional Fortran code
+  \item {\tt Src\_nd}: dimension agnostic Fortran code---this is code that
+    is written in a generic fashion so that it can be called regardless
+    of the dimensionality of the problem.
+  \end{itemize}
 \item {\tt Util/}: a catch-all for additional things you may need
   \begin{itemize}
   \item {\tt ConvertCheckpoint/}: a tool to convert a checkpoint file to
@@ -105,7 +142,10 @@ example of three boxes at the same level of refinement.
 
 A \farraybox\ or {\em FAB}, for {\em Fortran array box} is a data
 structure that contains a \bbox\ locating it in space, as well as a
-pointer to a data buffer.  The key part of the \cpp\ \boxlib\ data
+pointer to a data buffer.  The real floating point data are stored as
+one-dimensional arrays in \farraybox es.  The associated \bbox can be
+used to reshape the 1D array into multi-dimensional arrays to be used
+by Fortran subroutines.  The key part of the \cpp\ \boxlib\ data
 structures is that this data buffer can be sent to Fortran, where it
 will appear as a {\tt DIM}+1 dimensional array ({\tt DIM} space + 1
 component).
@@ -115,12 +155,19 @@ Note: \castro\ is complied for a specific dimensionality.
 
 \subsection{\multifab}
 
-A \multifab\ is a collection of the \farraybox s that together make up
-a single level of data in the AMR hierarchy.  A \multifab\ can have
-multiple components (like density, temperature, ...) as well as a
-perimeter of ghost cells to exchange data with neighbors or implement
-boundary conditions (this is all reflected in the underlying
-\farraybox).
+At the highest abstraction level, we have the \multifab\ (mulitple
+\farraybox es).  A \multifab\ contains an array of \bbox es, including
+\bbox es owned by other processors for the purpose of communication,
+an array of MPI ranks specifying which MPI processor owns each \bbox,
+and an array of pointers to \farraybox es owned by this MPI
+processor. \MarginPar{is this still an accurate description?}  Note: a
+\multifab\ is a collection of the boxes that together make up a single
+level of data in the AMR hierarchy.
+
+A \multifab\ can have multiple components (like density, temperature,
+...) as well as a perimeter of ghost cells to exchange data with
+neighbors or implement boundary conditions (this is all reflected in
+the underlying \farraybox).
 
 Parallelization in \boxlib\ is done by distributing the FABs across
 processors.  Each processor knows which FABs are local to it.  To loop
