@@ -11,12 +11,21 @@
   -- a flaw in the source terms for the primitive variables in the
      hydro update has been fixed, so that source terms like gravity
      should no longer affect the pressure and (rho e) interface states
+     (issue #19)
+
+  -- the prediction of source terms to the half-time used in the
+     hydrodynamics reconstruction was not being done properly.
+     This has been fixed (issue #18)
 
   -- the radiation hydro ppm now implements the ppm_predict_gammae
      option
 
-  -- we no longer ship VODE, LAPACK, or BLAS with Castro -- these
-     are provided by the separate Microphysics git repo
+  -- we no longer ship VODE or BLAS with Castro -- these are provided
+     by the separate Microphysics git repo
+
+  -- the documentation of the architecture of Castro has been
+     significantly improved (issue #23)
+
 
 previous changes:
 
