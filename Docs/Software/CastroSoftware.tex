@@ -131,6 +131,8 @@ High-level operations exist on \multifab s to add, subtract, multiply,
 etc., them together or with scalars, so you don't need to write out
 loops over the data directly.
 
+In \castro, \multifab s are one of the main data structures you will
+interact with in the \cpp\ portions of the code.
 
 
 \subsection{\statedata}
@@ -149,7 +151,21 @@ using integer keys (defined via an {\tt enum} in {\tt Castro.H}).
 The state data is registered with \boxlib\ in \code{Castro\_setup.cpp}.
 The current \statedata\ that \castro\ carries is:
 \begin{itemize}
-\item {\tt State\_Type} :
+\item {\tt State\_Type} : this is the {\tt NUM\_STATE} hydrodynamics
+  components that make up the conserved hydrodynamics state (usually
+  referred to as $\Ub$ in these notes.  But note that this does 
+  not include the radiation energy density.
+  
+  In Fortran, the components of a FAB derived from {\tt State\_Type}
+  is indexed using the integer keys defined in \code{Castro\_nd.F90}
+  and stored in \code{meth\_params\_module}, e.g., {\tt URHO}, {\tt UMX},
+  {\tt UMY}, ...
+
+  {\tt State\_Type} \multifab s have no ghost cells by default (although, there
+  is an option to force them to have ghost cells by setting the parameter
+  \runparam{castro.state\_nghost} at runtime.
+
+
 \item {\tt Rad\_Type} :
 \item {\tt PhiGrav\_Type} :
 \item {\tt Gravity\_Type} :
