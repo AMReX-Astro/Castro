@@ -361,11 +361,11 @@ A few comments about this code
 
 Note: some older code will use a special \boxlib\ preprocessor macro,
 \code{BL\_TO\_FORTRAN}, defined in \code{ArrayLim.H}, that converts
-the C++ multifab into a Fortran array and its {\tt lo} and {\tt hi} indices.
+the \cpp\ multifab into a Fortran array and its {\tt lo} and {\tt hi} indices.
 Additionally, some older code will wrap the Fortran subroutine name
 in an additional preprocessor macro, \code{BL\_FORT\_PROC\_CALL}
 to handle the name mangling between Fortran and C.  This later
-macro is generally not needed any more because of Fortran 2008
+macro is generally not needed any more because of Fortran 2003
 interoperability with C (through the Fortran {\tt bind} keyword).
 
 {\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab, and
