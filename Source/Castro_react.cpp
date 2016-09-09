@@ -3,6 +3,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+#include "DistributionMapping.H"
+
 using std::string;
 
 #ifndef SDC
@@ -10,6 +12,15 @@ using std::string;
 void
 Castro::strang_react_first_half(Real time, Real dt)
 {
+    // Get the current state data.
+
+    MultiFab& state = Sborder;
+
+    const int ng = state.nGrow();
+
+    // Get the reactions MultiFab to fill in.
+
+    MultiFab& reactions = get_old_data(Reactions_Type);
 
     // Reactions are expensive and we would usually rather do a communication
     // step than burn on the ghost zones. So what we will do here is create a mask
@@ -20,21 +31,78 @@ Castro::strang_react_first_half(Real time, Real dt)
     // not mask out those zones, and the subsequent FillBoundary call will not
     // interfere with it.
 
-    MultiFab& reactions = get_old_data(Reactions_Type);
+    iMultiFab& interior_mask = build_interior_boundary_mask(ng);
 
-    MultiFab& state = Sborder;
+    // The reaction weightings.
 
-    const int ng = state.nGrow();
+    MultiFab* weights;
 
-    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+    // If we're using the custom knapsack weighting, copy the state data
+    // to a new MultiFab with a corresponding distribution map.
+
+    MultiFab* state_temp;
+    MultiFab* reactions_temp;
+    iMultiFab* mask_temp;
+    MultiFab* weights_temp;
+
+    if (use_custom_knapsack_weights) {
+
+	weights = &get_old_data(Knapsack_Weight_Type);
+
+	const DistributionMapping& dm = DistributionMapping::makeKnapSack(get_old_data(Knapsack_Weight_Type));
+	state_temp = new MultiFab(state.boxArray(), state.nComp(), state.nGrow(), dm);
+	reactions_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), dm);
+	mask_temp = new iMultiFab(interior_mask.boxArray(), interior_mask.nComp(), interior_mask.nGrow(), dm);
+	weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm);
+
+	state_temp->copy(state, 0, 0, state.nComp(), state.nGrow(), state.nGrow());
+	reactions_temp->copy(reactions, 0, 0, reactions.nComp(), reactions.nGrow(), reactions.nGrow());
+	mask_temp->copy(interior_mask, 0, 0, interior_mask.nComp(), interior_mask.nGrow(), interior_mask.nGrow());
+	weights_temp->copy(*weights, 0, 0, weights->nComp(), weights->nGrow(), weights->nGrow());
+
+    }
+    else {
+
+	state_temp = &state;
+	reactions_temp = &reactions;
+	mask_temp = &interior_mask;
+
+	// Create a dummy weight array to pass to Fortran.
+	weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), Fab_allocate);
+
+    }
+
+    // Initialize the weights to the default value (everything is weighted equally).
+
+    weights_temp->setVal(1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
-    react_state(state, reactions, interior_mask, time, dt, ng);
+    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, ng);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+
+    // Copy data back to the state data.
+
+    if (use_custom_knapsack_weights) {
+
+	state.copy(*state_temp, 0, 0, state_temp->nComp(), state_temp->nGrow(), state_temp->nGrow());
+	reactions.copy(*reactions_temp, 0, 0, reactions_temp->nComp(), reactions_temp->nGrow(), reactions_temp->nGrow());
+	weights->copy(*weights_temp, 0, 0, weights_temp->nComp(), weights_temp->nGrow(), weights_temp->nGrow());
+
+	delete state_temp;
+	delete reactions_temp;
+	delete mask_temp;
+	delete weights_temp;
+
+    }
+    else {
+
+	delete weights_temp;
+
+    }
 
     reset_internal_energy(state);
 
@@ -54,15 +122,74 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     const int ng = state.nGrow();
 
-    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+    iMultiFab& interior_mask = build_interior_boundary_mask(ng);
+
+    MultiFab* weights;
+
+    // If we're using the custom knapsack weighting, copy the state data
+    // to a new MultiFab with a corresponding distribution map.
+
+    MultiFab* state_temp;
+    MultiFab* reactions_temp;
+    iMultiFab* mask_temp;
+    MultiFab* weights_temp;
+
+    if (use_custom_knapsack_weights) {
+
+	weights = &get_new_data(Knapsack_Weight_Type);
+
+	const DistributionMapping& dm = DistributionMapping::makeKnapSack(get_old_data(Knapsack_Weight_Type));
+	state_temp = new MultiFab(state.boxArray(), state.nComp(), state.nGrow(), dm);
+	reactions_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), dm);
+	mask_temp = new iMultiFab(interior_mask.boxArray(), interior_mask.nComp(), interior_mask.nGrow(), dm);
+	weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm);
+
+	state_temp->copy(state, 0, 0, state.nComp(), state.nGrow(), state.nGrow());
+	reactions_temp->copy(reactions, 0, 0, reactions.nComp(), reactions.nGrow(), reactions.nGrow());
+	mask_temp->copy(interior_mask, 0, 0, interior_mask.nComp(), interior_mask.nGrow(), interior_mask.nGrow());
+	weights_temp->copy(*weights, 0, 0, weights->nComp(), weights->nGrow(), weights->nGrow());
+
+    }
+    else {
+
+	state_temp = &state;
+	reactions_temp = &reactions;
+	mask_temp = &interior_mask;
+
+	// Create a dummy weight array to pass to Fortran.
+	weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), Fab_allocate);
+
+    }
+
+    weights_temp->setVal(1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
-    react_state(state, reactions, interior_mask, time, dt, ng);
+    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, ng);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
+
+    // Copy data back to the state data.
+
+    if (use_custom_knapsack_weights) {
+
+	state.copy(*state_temp, 0, 0, state_temp->nComp(), state_temp->nGrow(), state_temp->nGrow());
+	reactions.copy(*reactions_temp, 0, 0, reactions_temp->nComp(), reactions_temp->nGrow(), reactions_temp->nGrow());
+	weights->copy(*weights_temp, 0, 0, weights_temp->nComp(), weights_temp->nGrow(), weights_temp->nGrow());
+
+	delete state_temp;
+	delete reactions_temp;
+	delete mask_temp;
+	delete weights_temp;
+
+    }
+    else {
+
+	delete weights_temp;
+
+    }
 
     reset_internal_energy(state);
 
@@ -73,7 +200,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
 
 void
-Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, Real dt_react, int ngrow)
+Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w, Real time, Real dt_react, int ngrow)
 {
 
     BL_PROFILE("Castro::react_state()");
@@ -97,6 +224,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, Real time, 
 	  ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			 BL_TO_FORTRAN_3D(s[mfi]),
 			 BL_TO_FORTRAN_3D(r[mfi]),
+			 BL_TO_FORTRAN_3D(w[mfi]),
 #ifdef TAU
 			 BL_TO_FORTRAN_3D(tau_diff[mfi]),
 #endif

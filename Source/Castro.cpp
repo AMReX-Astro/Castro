@@ -2957,7 +2957,7 @@ Castro::build_fine_mask()
     return fine_mask;
 }
 
-const iMultiFab&
+iMultiFab&
 Castro::build_interior_boundary_mask (int ng)
 {
     for (int i = 0; i < ib_mask.size(); ++i)

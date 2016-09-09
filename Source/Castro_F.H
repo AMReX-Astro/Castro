@@ -698,6 +698,7 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
+     BL_FORT_FAB_ARG_3D(weights),
 #ifdef TAU
      const BL_FORT_FAB_ARG_3D(Tau),
 #endif

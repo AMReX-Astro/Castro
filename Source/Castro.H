@@ -386,6 +386,7 @@ public:
     void react_state(MultiFab& state,
 		     MultiFab& reactions,
 		     const iMultiFab& mask,
+		     MultiFab& weights,
 		     Real time,
 		     Real dt_react,
 		     int  ngrow = 0);
@@ -557,7 +558,7 @@ protected:
     // are set to 0, whereas others are set to 1.
     //
     PArray<iMultiFab> ib_mask;
-    const iMultiFab& build_interior_boundary_mask (int ng);
+    iMultiFab& build_interior_boundary_mask (int ng);
 
     int get_numpts();
 
