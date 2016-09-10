@@ -1,0 +1,4 @@
+FILE = inputs.common
+
+radiation.use_WiensLaw = 0
+

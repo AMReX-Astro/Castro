@@ -1,0 +1,13 @@
+&fortin
+
+  rbasefac = 0.8d0
+  rwind0 = 2.0d13
+  rwind1 = 1.0d14
+  rhowind1 = 1.d-16
+  Twind1 = 800.0d0
+
+  ! filter is used only when rho or time is below.
+  filter_rhomax = 1.d-12
+  filter_timemax = 4.d0
+/
+

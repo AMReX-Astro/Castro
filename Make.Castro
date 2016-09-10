@@ -1,0 +1,18 @@
+CASTRO_HOME ?= ../../../Castro   # path to Castro
+HYPRE_DIR ?= /path/to/Hypre
+HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
+### HDF5_DIR ?= /path/to/HDF5
+
+
+RADIATION_DIR = ../../../CastroRadiation
+
+
+USE_MPI    = TRUE
+USE_HYPRE  = TRUE
+USE_RAD    = TRUE
+RAD_INTERP = TRUE
+
+BUILD_GIT_NAME := CastroRadiation
+BUILD_GIT_DIR := $(realpath $(RADIATION_DIR))
+
+include $(CASTRO_HOME)/Exec/Make.Castro

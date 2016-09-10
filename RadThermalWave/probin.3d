@@ -1,0 +1,21 @@
+&fortin
+  rhocv = 0.05d0
+  T0 = 1.d-6
+  Eexp = 3.d7
+  rexp =3.125
+/
+
+
+&tagging
+
+  max_tempgrad_lev = 4
+  tempgrad = 0.5
+  temperr = 2.d-6
+/
+
+
+&extern
+
+  eos_gamma = 1.4
+
+/
