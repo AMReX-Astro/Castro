@@ -404,22 +404,27 @@ A few comments about this code
 \end{itemize}
 
 To properly compile, we need a prototype for the Fortran
-function.  These are placed in the {\tt .H} files in the
+function.  These are placed in the {\tt *\_F.H} files in the
 \castro\ {\tt Source/} directory.  Here's the prototype for
 our function:
 
 \begin{lstlisting}[language=C++]
   void do_work
     (const int* lo, const int* hi,
-     const Real* state, const Real& ncomp
+     Real* state, const Real& ncomp
      const int* s_lo, const int* s_hi)
 \end{lstlisting}
 
 A few comments on the prototype:
 \begin{itemize}
-\item we use the {\tt const} qualifier on the arguments.  This simply
-  means that the pointers themselves are to be unmodified.  But the
-  contents of the memory space that they point to can be modified.
+\item we use the {\tt const} qualifier on the many of the arguments.
+  This indicates that the data that is pointed to cannot be
+  modified\footnote{the way to read these complicated
+    \cpp\ declarations is right-to-left.  So `const int* lo` means
+    `lo` is a integer pointer to a memory space that is constant.  See
+    \url{https://isocpp.org/wiki/faq/const-correctness\#ptr-to-const}}
+    means that the pointers themselves are to be unmodified.  But the
+    contents of the memory space that they point to can be modified.
 
 \item For {\tt ncomp}, we in the calling sequence, we just did {\tt
   fab.nComp()}.  This returns a {\tt int}.  But Fortran is a
