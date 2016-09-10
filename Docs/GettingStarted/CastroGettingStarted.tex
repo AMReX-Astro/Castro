@@ -78,17 +78,14 @@ export CASTRO_HOME="/path/to/Castro/"
 \end{verbatim}
 
 
-\item (optional) Two additional repositories, {\tt Microphysics.git}
-  and {\tt CastroRadiation.git} are available at the {\tt
-    BoxLib-Codes} github page.  These add additional reaction
-  networks/EOSes and radiation, respectively, and can be cloned
-  following the same procedure as above:
+\item (optional) An additional repository, {\tt Microphysics.git} is
+  available at the {\tt BoxLib-Codes} github page.  This add
+  additional reaction networks and EOSes and can be cloned following
+  the same procedure as above\footnote{Note: previously the radiation
+    solver was distributed separately as {\tt CastroRadiation.git},
+    but this has been merged into the main \castro\ respository}:
 \begin{verbatim}
 git clone ssh://git@github.com:/BoxLib-Codes/Microphysics.git
-\end{verbatim}
-and
-\begin{verbatim}
-git clone ssh://git@github.com:/BoxLib-Codes/CastroRadiation.git
 \end{verbatim}
 
 To access the \microphysics\ routines, set the {\tt MICROPHYSICS\_HOME}
