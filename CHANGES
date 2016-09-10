@@ -1,5 +1,16 @@
 * changes since the last release:
 
+  -- the radiation hydro solver, that used to live in
+     CastroRadiation.git has now been completely integrated into
+     the main Castro git repo.  The history was preserved in the
+     transition.  
+
+     The radiation build variable Network_inputs was renamed
+     to NETWORK_INPUTS for consistency.
+
+     The EOSes that used to come with CastroRadiation are available
+     in Microphysics.git
+
   -- a flux limiter has been added that limits the size of the hydro
      fluxes if they would cause rho or (rho e) to go negative. This
      can be used with castro.limit_hydro_fluxes_on_small_dens = 1.

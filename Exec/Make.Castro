@@ -1,6 +1,10 @@
 BOXLIB_HOME ?= /path/to/BoxLib
 CASTRO_HOME ?= /path/to/Castro
 
+# radiation needs hypre
+HYPRE_DIR ?= /path/to/Hypre
+HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
+
 TOP := $(CASTRO_HOME)
 
 EOS_HOME ?= $(TOP)/Microphysics/EOS
@@ -74,9 +78,8 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
-  ifeq ($(RAD_INTERP), TRUE)
-    DEFINES += -DRAD_INTERP
-  endif
+  DEFINES += -DRAD_INTERP
+
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
     optionsSuffix   = $(DIM)d.Neutrino.$(machineSuffix)
@@ -97,6 +100,10 @@ endif
 
 ifeq ($(USE_ROTATION), TRUE)
   DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
 endif
 
 ifeq ($(USE_HYPRE), TRUE)
@@ -144,18 +151,15 @@ ifeq ($(USE_DIFFUSION), TRUE)
   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
-    EOS_PATH     := $(RADIATION_DIR)/EOS/$(strip $(EOS_dir))
-  endif
-  ifneq "$(wildcard $(RADIATION_DIR)/Networks/$(strip $(Network_dir)) )" ""
-    NETWORK_PATH := $(RADIATION_DIR)/Networks/$(strip $(Network_dir))
-  endif
-  # Check if the test directory has Network_inputs
-  ifneq "$(wildcard $(Network_inputs))" ""
-    GENERAL_NET_INPUTS := $(Network_inputs)
-  else 
-    GENERAL_NET_INPUTS := $(NETWORK_PATH)/$(strip $(Network_inputs))
+# Problems can specify the input file for general_null by 
+# setting GENERAL_NET_INPUTS directly (full path) or just
+# specifying the name of the inputs file as NETWORK_INPUTS
+# and let us sort it out
+ifndef GENERAL_NET_INPUTS
+  ifneq "$(wildcard $(NETWORK_INPUTS))" ""
+    GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
+  else
+    GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
   endif
 endif
 
@@ -192,7 +196,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif	      
 
 ifeq ($(USE_RAD), TRUE)
-  OPAC_PATH := $(RADIATION_DIR)/Opacity/$(Opacity_dir)
+  OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
   include $(OPAC_PATH)/Make.package
   EXTERN_CORE += $(OPAC_PATH)
 endif
@@ -249,7 +253,10 @@ Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 ifeq ($(USE_RAD), TRUE)
-include $(RADIATION_DIR)/Exec/Make.Radiation
+RadDirs := Source/_interpbndry
+
+Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
+Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
 endif
 
 include $(Bpack)

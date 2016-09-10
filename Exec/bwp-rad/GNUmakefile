@@ -1,18 +1,26 @@
-CASTRO_HOME ?= /path/to/Castro
-
-PRECISION        = DOUBLE
-PROFILE          = FALSE
-DEBUG            = FALSE
-DIM              = 2
 COMP	         = g++
 FCOMP	         = gfortran
+
+DIM              = 2
+
+PRECISION        = DOUBLE
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE
 
+DEBUG            = FALSE
+
+PROFILE          = FALSE
+
+
+USE_RAD = TRUE
+USE_NEUTRINO = FALSE
+
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
 USE_MODELPARSER  = TRUE
+
+CASTRO_HOME = ../..
 
 ifdef MICROPHYSICS_HOME
 
@@ -21,8 +29,7 @@ EOS_dir     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 Network_dir := general_null
-#GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(Network_dir)/ignition_wdconvect.net
-Network_inputs  := H_He.net
+NETWORK_INPUTS := H_He.net
 
 else
 

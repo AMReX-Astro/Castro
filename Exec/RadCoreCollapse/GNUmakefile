@@ -1,20 +1,19 @@
 COMP	   = g++
 FCOMP      = gfortran
-#COMP	   = Intel
-#FCOMP	   = Intel
 
 DIM        = 1
-#DIM        = 2
-#DIM        = 3
 
-DEBUG      = TRUE
+USE_MPI    = TRUE
 DEBUG      = FALSE
 
 PROFILE    = FALSE
 
+USE_RAD = TRUE
 USE_NEUTRINO = TRUE
 
 USE_GRAV     = TRUE
+
+CASTRO_HOME = ../..
 
 # data in the following directories are not public available 
 EOS_dir     := collapse
