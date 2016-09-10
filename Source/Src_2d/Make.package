@@ -34,3 +34,27 @@ endif
 ifeq ($(USE_LEVELSET), TRUE)
 f90EXE_sources += LevelSet_$(DIM)d.f90
 endif
+
+ifeq ($(USE_RAD), TRUE)
+ifeq ($(DIM), 1)
+
+  C$(CA_BASE)_sources += DumpModel1d.cpp
+  C$(CA_BASE)_headers += DumpModel1d.H
+
+endif
+
+F$(CA_BASE)_sources += RAD_$(DIM)D.F HABEC_$(DIM)D.F
+
+
+f90$(CA_BASE)_sources += RadHydro_$(DIM)d.f90 \
+                         trace_ppm_rad_$(DIM)d.f90 \
+                         MGFLD_$(DIM)d.f90 \
+                         RadEOS_$(DIM)d.f90 \
+                         filt_prim_$(DIM)d.f90 CastroRad_$(DIM)d.f90 \
+                         RadBndry_$(DIM)d.f90 RadPlotvar_$(DIM)d.f90
+
+ifeq ($(USE_NEUTRINO), TRUE)
+  f90$(CA_BASE)_sources += MGFLDneut_$(DIM)d.f90
+endif
+
+endif
