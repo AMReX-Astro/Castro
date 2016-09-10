@@ -83,7 +83,7 @@ working in the \cpp\ portions of \castro.  This are all
 
 \subsection{{\tt Amr}}
 
-This is the main class that drives the whole simulation.  This is 
+This is the main class that drives the whole simulation.  This is
 the highest level in \castro.
 
 
@@ -196,7 +196,7 @@ we want it to be automatically interpolated when we refine.
 An {\tt AmrLevel} stores an array of \statedata\ (in a \cpp\ array
 called {\tt state}).  We index this array using integer keys (defined
 via an {\tt enum} in {\tt Castro.H}).  The state data is registered
-with \boxlib\ in \code{Castro\_setup.cpp}.  
+with \boxlib\ in \code{Castro\_setup.cpp}.
 
 Note that each of the different \statedata\ carried in the {\tt state}
 array can have different numbers of components, ghost cells, boundary
@@ -208,9 +208,9 @@ The current \statedata\ names  \castro\ carries are:
 \begin{itemize}
 \item \variable{State\_Type} : this is the {\tt NUM\_STATE} hydrodynamics
   components that make up the conserved hydrodynamics state (usually
-  referred to as $\Ub$ in these notes.  But note that this does 
+  referred to as $\Ub$ in these notes.  But note that this does
   not include the radiation energy density.
-  
+
   In Fortran, the components of a FAB derived from {\tt State\_Type}
   is indexed using the integer keys defined in \code{Castro\_nd.F90}
   and stored in \code{meth\_params\_module}, e.g., {\tt URHO}, {\tt UMX},
@@ -252,7 +252,7 @@ The current \statedata\ names  \castro\ carries are:
   There are always 3 components, regardless of the dimensionality
   (consistent with our choice of always carrying all 3 velocity
   components).  This includes the terms corresponding to the Coriolis
-  force, the centrifugal force, as well as optional terms due to the 
+  force, the centrifugal force, as well as optional terms due to the
   change in rotation rate, $\Omega$.
 
 \item \variable{Source\_Type} : this holds the time-rate of change of
@@ -265,7 +265,7 @@ The current \statedata\ names  \castro\ carries are:
   This is not currently supported in \castro.
 
 \item \variable{Reactions\_Type} : this holds the data for the nuclear
-  reactions.  It has {\tt NumSpec+2} components: the species 
+  reactions.  It has {\tt NumSpec+2} components: the species
   creation rates (usually denoted $\omegadot_k$ in these notes),
   the specific energy generation rate ($\dot{e}_\mathrm{nuc}$),
   and its density ($\rho \dot{e}_\mathrm{nuc}$).  \MarginPar{why do we need to store these as state data?  Also, why do we need rho edot and edot separately?}
@@ -318,48 +318,8 @@ parallelism is hidden from view).
 
 \subsection{Non-Tiling \mfiter}
 
-The non-tiling way to iterate over the \farraybox s is:
-\begin{lstlisting}
-  for (MFIter mfi(mf); mfi.isValid(); ++mfi) // Loop over boxes
-  {
-    // Get the index space of this iteration
-    const Box& box = mfi.validbox(); 
-
-    // Get a reference to the FAB, which contains data and box  
-    FArrayBox& fab = mf[mfi];  
-
-    // Get double* of the FAB 
-    double* a = fab.dataPtr();
-
-    // Get the index space for the data pointed by the double* 
-    // Note "abox" may have ghost cells, and is thus larger than 
-    // or equal to "box" obtained using mfi.validbox().
-    const Box& abox = fab.box();
-
-    // We can now pass the information to a Fortran routine,
-    // which reshapes double* a into a multi-dimensional array 
-    // with dimensions specified by the information in "abox".
-    // We will also pass "box", which specifies our "work" region.
-  }
-\end{lstlisting}
-A few comments about this code
-\begin{itemize}
-\item Here the iterator, {\tt mfi}, will perform the loop only over the
-   boxes that are local to the MPI task.  If there are 3 boxes on the
-   processor, then this loop has 3 iterations.
-      
-\item {\tt box} as returned from {\tt mfi.validbox()} does not include
-   ghost cells.  We can get the indices of the valid zones as {\tt
-   box.loVect} and {\tt box.hiVect}.
-
-\item Instead of getting the data pointer explicitly (via {\tt fab.dataPtr()}),
-   \castro\ often uses the preprocessor macro {\tt BL\_TO\_FORTRAN(x)} (defined
-   in {\tt ArrayLim.H}) to substitute in the data pointer and the {\tt lo}
-   and {\tt hi} indices of the multidimensional Fortran array (including ghost cells).
-\end{itemize}
-
-
-Note: some older code will use a special \boxlib\ preprocessor macro,
+The non-tiling way to iterate over the \farraybox s is
+\footnote{Note: some older code will use a special \boxlib\ preprocessor macro,
 \code{BL\_TO\_FORTRAN}, defined in \code{ArrayLim.H}, that converts
 the \cpp\ multifab into a Fortran array and its {\tt lo} and {\tt hi} indices.
 Additionally, some older code will wrap the Fortran subroutine name
@@ -367,13 +327,152 @@ in an additional preprocessor macro, \code{BL\_FORT\_PROC\_CALL}
 to handle the name mangling between Fortran and C.  This later
 macro is generally not needed any more because of Fortran 2003
 interoperability with C (through the Fortran {\tt bind} keyword).
+}:
+\begin{lstlisting}[language=C++]
+  for (MFIter mfi(mf); mfi.isValid(); ++mfi) // Loop over boxes
+  {
+    // Get the index space of this iteration
+    const Box& box = mfi.validbox();
 
-{\tt ++mfi} iterates to the next FArrayBox owned by the MultiFab, and
-{\tt mfi.isValid()} returns {\tt false} after we've reached the last
-box contained in the MultiFab, terminating the loop.
+    // Get a reference to the FAB, which contains data and box
+    FArrayBox& fab = mf[mfi];
+
+    // Get the index space for the data region in th FAB.
+    // Note "abox" may have ghost cells, and is thus larger than
+    // or equal to "box" obtained using mfi.validbox().
+    const Box& abox = fab.box();
+
+    // We can now pass the information to a Fortran routine,
+    // fab.dataPtr() gives a double*, which is reshaped into
+    // a multi-dimensional array with dimensions specified by
+    // the information in "abox". We will also pass "box",
+    // which specifies our "work" region.
+    do_work(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+            fab.dataPtr(), fab.nComp(),
+            ARLIM_3D(abox.loVect()), ARLIM_3D(abox.hiVect())
+
+  }
+\end{lstlisting}
+A few comments about this code
+\begin{itemize}
+\item In this example, we are working off of a \multifab\ named {\tt mf}.
+  This could, for example, come from state data as:
+\begin{lstlisting}
+ MultiFab& mf = get_old_data(State_Type);
+\end{lstlisting}
+
+\item We are passing the data in {\tt mf} one box at a time to the
+  Fortran function {\tt do\_work}.
+
+\item Here the \mfiter\ iterator, {\tt mfi}, will perform the loop
+  only over the boxes that are local to the MPI task.  If there are 3
+  boxes on the processor, then this loop has 3 iterations.
+
+  {\tt ++mfi} iterates to the next \farraybox\ owned by the
+  \multifab\ {\tt mf}, and {\tt mfi.isValid()} returns {\tt false}
+  after we've reached the last box contained in the MultiFab,
+  terminating the loop.
+
+\item {\tt box} as returned from {\tt mfi.validbox()} does not include
+   ghost cells.  This is the valid data region only.
+   We can get the indices of the valid zones as {\tt box.loVect()} and
+   {\tt box.hiVect()}.
+
+   In passing to the Fortran function, we use the macro
+   \code{ARLIM\_3D}, defined in \code{ArrayLim.H} to pass the {\tt lo}
+   and {\tt hi} vectors as pointers to an {\tt int} array.  This array
+   is defined to always be 3D, with {\tt 0}s substituted for the
+   higher dimension values if we are running in 1- or 2D.
+
+   Passing the data in this 3D fashion is a newer approach in \castro.
+   This enables writing {\em dimension agnostic code}, like that found
+   in {\tt Src\_nd/}.  There are many other approaches that will pass
+   only the {\tt DIM} values of {\tt lo} and {\tt hi} using alternate
+   macros in {\tt ArrayLim.H}.
+
+\item {\tt fab.dataPtr()} returns a {\tt double *}---a pointer to the
+  data region.  This is what is passed to Fortran.
+
+\item {\tt fab.nComp()} gives an {\tt int}---the number of components
+  in the \multifab.  This will be used for dimensioning in Fortran.
+
+\item To properly dimension the array in Fortran, we need the actual
+  bounds of the data region, including any ghost cells.  This is the
+  \bbox\ {\tt abox}, obtained as {\tt fab.box()}.  We pass the {\tt
+    lo} and {\tt hi} of the full data region as well.
+
+\end{itemize}
+
+To properly compile, we need a prototype for the Fortran
+function.  These are placed in the {\tt .H} files in the
+\castro\ {\tt Source/} directory.  Here's the prototype for
+our function:
+
+\begin{lstlisting}[language=C++]
+void do_it
+  (const int* lo, const int* hi,
+   const Real* state, const Real& ncomp
+   const int* s_lo, const int* s_hi)
+\end{lstlisting}
+
+A few comments on the prototype:
+\begin{itemize}
+\item we use the {\tt const} qualifier on the arguments.  This simply
+  means that the pointers themselves are to be unmodified.  But the
+  contents of the memory space that they point to can be modified.
+
+\item For {\tt ncomp}, we in the calling sequence, we just did {\tt
+  fab.nComp()}.  This returns a {\tt int}.  But Fortran is a
+  pass-by-reference language, so we make the argument in the prototype
+  a reference.  This ensures that it is passed by reference.
+\end{itemize}
 
 The corresponding Fortran function will look like:
-{\color{red} Need to write the Fortran version here}
+\begin{lstlisting}[language=Fortran]
+subroutine do_work(lo, hi, &
+                   state, ncomp, &
+                   s_lo, s_hi) bind(C, name="do_work")
+
+  use prob_params_module, only : dg
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: s_lo(3), s_hi(3), ncomp
+
+  real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
+                                           s_lo(2):s_hi(2), &
+                                           s_lo(3):s_hi(3), ncomp)
+
+  ! loop over the data
+  do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
+     do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
+        do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
+
+           ! work on state(i,j,k,:), where the last index
+           ! is the component of the multifab
+  
+        enddo
+     enddo
+  enddo
+
+end subroutine do_work
+\end{lstlisting}
+
+Finally, comments on the Fortran routine;
+\begin{itemize}
+\item We use the Fortran 2003 {\tt bind} keyword to specify
+  that we want this to be interoperable with C.  Ordinarily
+  we would not need to specify the optional argument {\tt name}
+  in the binding, but the PGI compiler requires this if our
+  Fortran subroutine is part of a module.
+
+\item The spatial indices of {\tt state} don't necessarily
+  start at {\tt 1}---they reflect the global index space for the
+  entire domain at this level of refinement.  This means that we know
+  where the box is located.
+
+  Later we'll see how to compute the spatial coordinates using this
+  information.
+\end{itemize}
 
 
 \subsection{\boxlib's Current Tiling Approach In C++}
@@ -405,12 +504,12 @@ An example of using tiling is shown below.
   for (MFIter mfi(mf,tiling); mfi.isValid(); ++mfi) // Loop over tiles
   {
     // Get the index space of this iteration
-    const Box& box = mfi.tilebox(); 
+    const Box& box = mfi.tilebox();
 
-    // Get a reference to the FAB, which contains data and box  
-    FArrayBox& fab = mf[mfi];  
+    // Get a reference to the FAB, which contains data and box
+    FArrayBox& fab = mf[mfi];
 
-    // Get double* of the FAB 
+    // Get double* of the FAB
     double* a = fab.dataPtr();
 
     // Get the index space for the data pointed by the double*.
@@ -471,7 +570,7 @@ because there are four boxes, and a call to {\tt mfi.tilebox()} will
 return the traditional {\tt validbox}.  The non-tiling case is
 essentially having one tile per box.
 \end{itemize}
- 
+
 Tiling provides us the opportunity of a coarse-grained approach for
 OpenMP.  Threading can be turned on by inserting the following line
 above the {\tt for (MFIter...)} line.
@@ -480,7 +579,7 @@ above the {\tt for (MFIter...)} line.
 \end{lstlisting}
 Assuming four threads are used in the above example, thread 0 will
 work on 3 tiles from the first box, thread 1 on 1 tile from the first
-box and 2 tiles from the second box, and so forth.  Note that 
+box and 2 tiles from the second box, and so forth.  Note that
 OpenMP can be used even when tiling is turned off.  In that case, the
 OpenMP granularity is at the box level (and good performance would need
 many boxes per MPI task).
@@ -543,7 +642,7 @@ cell=centered MultiFab, {\tt s}:
   \item with {\tt mfi{ugdnv}}, the tiles are based on nodal indices,
   so your tiling boxes will range from $0\rightarrow 3$, $4\rightarrow 8$.
 
-  \end{itemize}  
+  \end{itemize}
 \item When updating routines to work with tiling, we need to understand
 the distinction between the index-space of the entire box (which
 corresponds to the memory layout) and the index-space of the tile.
@@ -594,7 +693,7 @@ FillBoundary -- fills interior ghost cells for an arbitrary multifab
 FillPatch works in the case that I have statedata that was defined
 with ghost cells already.
 
-FillPatchIterator works on statedata 
+FillPatchIterator works on statedata
 
 
 \subsection{Boundaries Between Grids}
