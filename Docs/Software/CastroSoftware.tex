@@ -520,9 +520,11 @@ to reflect how the tiling will be performed.  This is not considered
 in \boxlib.
 
 We have recently introduced logical tiling into parts of \boxlib\.  It
-is turned off by default, because this makes the transition smooth and
-because not everything should be tiled.  Examples can be found at {\tt
-  Tutorials/Tiling\_C}, and {\tt Src/LinearSolvers/C\_CellMG/}.
+is off by default, to make the transition smooth and because not
+everything should be tiled.  It can be enabled on a loop-by-loop basis
+by setting an optional argument to \mfiter.  We demonstrate this
+below.  Further examples can be found at {\tt Tutorials/Tiling\_C},
+and {\tt Src/LinearSolvers/C\_CellMG/}.
 
 In our logical tiling approach, a box is logically split into tiles,
 and a {\tt MFIter} loops over each tile in each box.  Note that the
