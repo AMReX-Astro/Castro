@@ -1,4 +1,0 @@
-RadDirs := Source Source/Src_$(DIM)d Source/_interpbndry
-
-Bpack += $(foreach dir, $(RadDirs), $(RADIATION_DIR)/$(dir)/Make.package)
-Blocs += $(foreach dir, $(RadDirs), $(RADIATION_DIR)/$(dir))
