@@ -427,7 +427,9 @@ A few comments on the prototype:
   a reference.  This ensures that it is passed by reference.
 \end{itemize}
 
-The corresponding Fortran function will look like:
+In our Fortran example, we want to loop over all of the data,
+including 1 ghost cell all around.  The corresponding Fortran function
+will look like:
 \begin{lstlisting}[language=Fortran]
 subroutine do_work(lo, hi, &
                    state, ncomp, &
@@ -465,14 +467,39 @@ Finally, comments on the Fortran routine;
   in the binding, but the PGI compiler requires this if our
   Fortran subroutine is part of a module.
 
-\item The spatial indices of {\tt state} don't necessarily
-  start at {\tt 1}---they reflect the global index space for the
-  entire domain at this level of refinement.  This means that we know
-  where the box is located.
+\item We dimension state using {\tt s\_lo} and {\tt s\_hi}---these are
+  the bounds we got from the \farraybox, and are for the entire data
+  region, including ghost cells.
+
+  Note, in Fortran, the spatial indices of {\tt state} don't
+  necessarily start at {\tt 1}---they reflect the global index space
+  for the entire domain at this level of refinement.  This means that
+  we know where the box is located.
 
   Later we'll see how to compute the spatial coordinates using this
   information.
+
+\item Our loop uses {\tt lo} and {\tt hi}---these are the indices
+  of the valid data region (no ghost cells).  Since we want a single
+  ghost cell all around, we subtract {\tt 1} from {\tt lo} and add {\tt 1}
+  to {\tt hi}.
+
+  Finally, since this is dimension-agnostic code (it should work
+  correctly in 1-, 2-, and 3D), we need to ensure the loops over the
+  higher dimensions do nothing when we compile for a lower
+  dimensionality.  This is the role of {\tt dg}---{\tt dg} is {\tt 1}
+  if our simulation includes that spatial dimension and {\tt 0}
+  otherwise.
+
+  If we were not looping over ghost cells too, then we would not need
+  to invoke {\tt dg}, since {\tt lo} and {\tt hi} are both set to {\tt
+    0} for any dimensions not represented in our simulation.
+
 \end{itemize}
+
+Up to this point, we have not said anything about threading.  In this
+style of using the \mfiter, we implement the OpenMP in Fortran, for
+instance by putting a pragma around the outer loop in this example.
 
 
 \subsection{\boxlib's Current Tiling Approach In C++}
