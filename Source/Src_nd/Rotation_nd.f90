@@ -143,7 +143,7 @@ contains
   function rotational_potential(r, time) result(phi)
 
     use bl_constants_module, only: ZERO, HALF
-    use meth_params_module, only: state_in_rotating_frame
+    use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
 
     implicit none
 
@@ -156,9 +156,15 @@ contains
 
        omega = get_omega(time)
 
-       omegacrossr = cross_product(omega, r)
+       phi = ZERO
 
-       phi = -HALF * dot_product(omegacrossr,omegacrossr)
+       if (rotation_include_centrifugal == 1) then
+
+          omegacrossr = cross_product(omega, r)
+
+          phi = phi - HALF * dot_product(omegacrossr,omegacrossr)
+
+       endif
 
     else
 
