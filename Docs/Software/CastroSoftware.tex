@@ -409,10 +409,10 @@ function.  These are placed in the {\tt .H} files in the
 our function:
 
 \begin{lstlisting}[language=C++]
-void do_it
-  (const int* lo, const int* hi,
-   const Real* state, const Real& ncomp
-   const int* s_lo, const int* s_hi)
+  void do_work
+    (const int* lo, const int* hi,
+     const Real* state, const Real& ncomp
+     const int* s_lo, const int* s_hi)
 \end{lstlisting}
 
 A few comments on the prototype:
@@ -431,32 +431,32 @@ In our Fortran example, we want to loop over all of the data,
 including 1 ghost cell all around.  The corresponding Fortran function
 will look like:
 \begin{lstlisting}[language=Fortran]
-subroutine do_work(lo, hi, &
-                   state, ncomp, &
-                   s_lo, s_hi) bind(C, name="do_work")
+  subroutine do_work(lo, hi, &
+                     state, ncomp, &
+                     s_lo, s_hi) bind(C, name="do_work")
 
-  use prob_params_module, only : dg
+    use prob_params_module, only : dg
 
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: s_lo(3), s_hi(3), ncomp
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3), ncomp
 
-  real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
-                                           s_lo(2):s_hi(2), &
-                                           s_lo(3):s_hi(3), ncomp)
+    real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
+                                             s_lo(2):s_hi(2), &
+                                             s_lo(3):s_hi(3), ncomp)
 
-  ! loop over the data
-  do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
-     do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
-        do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
+    ! loop over the data
+    do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+       do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+          do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
 
-           ! work on state(i,j,k,:), where the last index
-           ! is the component of the multifab
-  
-        enddo
-     enddo
-  enddo
+             ! work on state(i,j,k,:), where the last index
+             ! is the component of the multifab
 
-end subroutine do_work
+          enddo
+       enddo
+    enddo
+
+  end subroutine do_work
 \end{lstlisting}
 
 Finally, comments on the Fortran routine;
@@ -524,53 +524,6 @@ and a {\tt MFIter} loops over each tile in each box.  Note that the
 non-tiling iteration approach can be considered as a special case of
 tiling with the tile size equal to the box size.
 
-An example of using tiling is shown below.
-
-\begin{lstlisting}
-  bool tiling = true;
-  for (MFIter mfi(mf,tiling); mfi.isValid(); ++mfi) // Loop over tiles
-  {
-    // Get the index space of this iteration
-    const Box& box = mfi.tilebox();
-
-    // Get a reference to the FAB, which contains data and box
-    FArrayBox& fab = mf[mfi];
-
-    // Get double* of the FAB
-    double* a = fab.dataPtr();
-
-    // Get the index space for the data pointed by the double*.
-    const Box& abox = fab.box();
-
-    // We can now pass the information to a Fortran routine.
-  }
-\end{lstlisting}
-Note that the code is almost identical to the one in \S~\ref{sec:boxlib0}.
-Some comments:
-\begin{itemize}
-\item The iterator now takes an extra argument to turn on tiling
-(set to {\tt true}).  There is another interface fo {\tt MFIter}
-that can take an {\tt IntVect} that explicitly gives the tile size
-in each coordinate direction.
-
-If we don't explictly specify the tile size at the loop, then the
-runtime parameter {\tt fabarray.mfiter\_tile\_size} can be used to set it
-globally.
-
-\item {\tt .validBox()} has the same meaning as in the non-tile approach,
-so we don't use it.  Instead, we use {\tt .tilebox()} to get the
-{\tt Box} (and corresponding {\tt lo} and {\tt hi}) for the {\em
-current tile}, not the entire data region.
-
-\item When passing into the Fortran routine, we still use the
-index space of the entire fab (including ghost cells), as seen in
-the {\tt abox} construction.
-
-The Fortran routine will declare a multidimensional array that is of
-the same size as the entire box, but only work on the index space
-identified by the tile-box ({\tt box}).
-\end{itemize}
-
 Let us consider an example.  Suppose there are four boxes---see
 Figure~\ref{fig:domain-tiling}.
 \begin{figure}[t]
@@ -584,19 +537,108 @@ The first box is divided into 4 logical tiles, the second and third
 are divided into 2 tiles each (because they are small), and the fourth
 into 4 tiles.  So there are 12 tiles in total.  The difference between
 the tiling and non-tiling version are then:
-\begin{itemize}
-\item In the tiling version,
-the loop body will be run 12 times.  Note that {\tt tilebox} is
-different for each tile, whereas {\tt fab} might be referencing the
-same object if the tiles belong to the same box.
 
-\item In the non-tiling
-version (by constructing {\tt MFIter} without the optional second
-argument or setting to {\tt false}), the loop body will be run 4 times
-because there are four boxes, and a call to {\tt mfi.tilebox()} will
-return the traditional {\tt validbox}.  The non-tiling case is
-essentially having one tile per box.
+\begin{itemize}
+\item In the tiling version, the loop body will be run 12 times.  Note
+  that {\tt tilebox} is different for each tile, whereas {\tt fab}
+  might be referencing the same object if the tiles belong to the same
+  box.
+
+\item In the non-tiling version (by constructing {\tt MFIter} without
+  the optional second argument or setting to {\tt false}), the loop
+  body will be run 4 times because there are four boxes, and a call to
+  {\tt mfi.tilebox()} will return the traditional {\tt validbox}.  The
+  non-tiling case is essentially having one tile per box.
 \end{itemize}
+
+
+The tiling implementation of the same call to our the Fortran {\tt
+  do\_work} routine is show below:
+
+\begin{lstlisting}[language=C++]
+  bool tiling = true;
+  for (MFIter mfi(mf, tiling); mfi.isValid(); ++mfi) // Loop over tiles
+  {
+    // Get the index space of this iteration.
+    const Box& box = mfi.growntilebox(1);
+
+    // Get a reference to the FAB, which contains data and box
+    FArrayBox& fab = mf[mfi];
+
+    // Get the index space for the data pointed by the double*.
+    const Box& abox = fab.box();
+
+    // We can now pass the information to a Fortran routine.
+    do_work(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+            fab.dataPtr(), fab.nComp(),
+            ARLIM_3D(abox.loVect()), ARLIM_3D(abox.hiVect())
+
+  }
+\end{lstlisting}
+Note that the code is almost identical to the one in \S~\ref{sec:boxlib0}.
+Some comments:
+\begin{itemize}
+\item The iterator now takes an extra argument to turn on tiling (set
+  to {\tt true}).  
+
+  There is another interface fo {\tt MFIter} that can take an {\tt
+    IntVect} that explicitly gives the tile size in each coordinate
+  direction.  If we don't explictly specify the tile size at the loop,
+  then the runtime parameter \runparam{fabarray.mfiter\_tile\_size}
+  can be used to set it globally.
+
+\item {\tt .validBox()} has the same meaning as in the non-tile
+  approach, so we don't use it.  
+  Since in this example, we want to include a single ghost cell in our
+  loop over the data, we use {\tt .growntilebox(1)} (where the {\tt 1}
+  here indicates a single ghost cells) to get the {\tt Box} (and
+  corresponding {\tt lo} and {\tt hi}) for the {\em current tile}, not
+  the entire data region.  If instead, we just wanted the valid
+  region in Fortran, without any ghost cells, we would use {\tt
+    .tilebox()}.
+
+\item When passing into the Fortran routine, we still use the index
+  space of the entire \farraybox\ (including ghost cells), as seen in
+  the {\tt abox} construction.  This is needed to properly dimension
+  the array in Fortran.  
+
+  The Fortran routine will declare a multidimensional array that is of
+  the same size as the entire box, but only work on the index space
+  identified by the tile-box ({\tt box}).
+\end{itemize}
+
+The Fortran code is almost the same as before, but now our loop 
+simply uses {\tt lo} and {\tt hi}, since, by construction with
+{\tt .growntilebox(1)}, this already includes the single ghost cell 
+all around:
+\begin{lstlisting}[language=Fortran]
+  subroutine do_work(lo, hi, &
+                     state, ncomp, &
+                     s_lo, s_hi) bind(C, name="do_work")
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3), ncomp
+
+    real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
+                                             s_lo(2):s_hi(2), &
+                                             s_lo(3):s_hi(3), ncomp)
+
+    ! loop over the data
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! work on state(i,j,k,:), where the last index
+             ! is the component of the multifab
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine do_work
+\end{lstlisting}
+
+The function prototype is unchanged.
 
 Tiling provides us the opportunity of a coarse-grained approach for
 OpenMP.  Threading can be turned on by inserting the following line
@@ -604,18 +646,15 @@ above the {\tt for (MFIter...)} line.
 \begin{lstlisting}
   #pragma omp parallel
 \end{lstlisting}
+Note that the OpenMP pragma does not have a {\tt for}---this is not
+used when working with an iterator.
+
 Assuming four threads are used in the above example, thread 0 will
 work on 3 tiles from the first box, thread 1 on 1 tile from the first
 box and 2 tiles from the second box, and so forth.  Note that
 OpenMP can be used even when tiling is turned off.  In that case, the
 OpenMP granularity is at the box level (and good performance would need
 many boxes per MPI task).
-
-We also note that, independent of whether or not tiling is on, OpenMP
-threading can also be started within the function called inside the
-{\tt MFIter} loop, rather than at the {\tt MFIter} loop level.  This
-was the original way that threading was done in \castro, but we are in
-the process of removing this approach in favor of tiling.
 
 The tile size for the three spatial dimensions can be set by a
 parameter, e.g., {\tt fabarray.mfiter\_tile\_size = 1024000 8 8}.  A
@@ -628,17 +667,23 @@ on a single box to each thread working on a separate box as the boxes
 coarsen (e.g., in multigrid).
 
 The {\tt MFIter} class provides some other useful functions:
-\begin{lstlisting}
- mfi.validbox()       : The same meaning as before independent of tiling.
- mfi.growntilebox(int): A grown tile box that includes ghost cells at box
-                        boundaries only.  Thus the returned boxes for a
-                        Fab are non-overlapping.
- mfi.nodaltilebox(int): Returns non-overlapping edge-type boxes for tiles.
-                        The argument is for direction.
- mfi.fabbox()         : Same as mf[mfi].box().
-\end{lstlisting}
+\begin{itemize}
+  \item {\tt mfi.validbox()} : The same meaning as before independent of tiling.
 
-Finally we note that tiling is not always desired or better.  This
+  \item {\tt mfi.tilebox()} : The standard way of getting the bounds of the 
+    current tile box.  This will tile over the valid data region only.
+
+  \item {\tt mfi.growntilebox(int)} : A grown tile box that includes
+    ghost cells at box boundaries only.  Thus the returned boxes for a
+    \farraybox\ are non-overlapping.
+
+  \item {\tt mfi.nodaltilebox(int)} : Returns non-overlapping
+    edge-type boxes for tiles.  The argument is for direction.
+
+  \item {\tt mfi.fabbox()}  : Same as mf[mfi].box().
+\end{itemize}
+
+Finally we note that tiling is not always desired or better.  The
 traditional fine-grained approach coupled with dynamic scheduling is
 more appropriate for work with unbalanced loads, such as chemistry
 burning in cells by an implicit solver.  Tiling can also create extra
@@ -647,61 +692,65 @@ work in the ghost cells of tiles.
 
 \subsubsection{Practical Details in Working with Tiling}
 
-With tiling, the OpenMP is now all in C++, and not in Fortran for all
-modules except reactions and initdata.  Note that the OpenMP pragma
-does not have a {\tt for}---this is not used when working with an
-iterator.
+With tiling, the OpenMP is now all in \cpp, and not in Fortran for all
+modules except reactions and {\tt initdata}.  
 
-It is the responsibility of the coder to make sure that the routines with
-in a tiled region are safe to use with OpenMP.  In particular, note that:
+It is the responsibility of the coder to make sure that the routines
+within a tiled region are safe to use with OpenMP.  In particular,
+note that:
 \begin{itemize}
 \item tile boxes are non-overlapping
-\item the union of tile boxes completely cover the valid region of the fab
-\item Consider working with a node-centered MultiFab, {\tt ugdnv}, and a
-cell=centered MultiFab, {\tt s}:
+\item the union of tile boxes completely cover the valid region of the
+  fab
+\item Consider working with a node-centered MultiFab, {\tt ugdnv}, and
+  a cell=centered MultiFab, {\tt s}:
   \begin{itemize}
 
   \item with {\tt mfi(s)}, the tiles are based on the cell-centered
-  index space.  If you have an $8\times 8$ box, then and 4 tiles, then
-  your tiling boxes will range from $0\rightarrow 3$, $4\rightarrow
-  7$.
+    index space.  If you have an $8\times 8$ box, then and 4 tiles,
+    then your tiling boxes will range from $0\rightarrow 3$,
+    $4\rightarrow 7$.
 
   \item with {\tt mfi{ugdnv}}, the tiles are based on nodal indices,
-  so your tiling boxes will range from $0\rightarrow 3$, $4\rightarrow 8$.
+    so your tiling boxes will range from $0\rightarrow 3$,
+    $4\rightarrow 8$.
 
   \end{itemize}
-\item When updating routines to work with tiling, we need to understand
-the distinction between the index-space of the entire box (which
-corresponds to the memory layout) and the index-space of the tile.
+
+\item When updating routines to work with tiling, we need to
+  understand the distinction between the index-space of the entire box
+  (which corresponds to the memory layout) and the index-space of the
+  tile.
 
   \begin{itemize}
 
-  \item In the C++ end, we pass (usually via the {\tt
-  BL\_TO\_FORTRAN()} macro) the {\tt loVect} and {\tt hiVect} of the
-  entire box (including ghost cells).  These are then used to allocate
-  the array in Fortran as:
-  \begin{lstlisting}
-    double precision :: a(a_l1:a_h1, a_l2:a_h2, ...)
-  \end{lstlisting}
-  When tiling is used, we do not want to loop as {\tt do a\_l1, a\_h1},
-  but instead we need to loop over the tiling region.  The indices of
-  the tiling region need to be passed into the Fortran routine
-  separately, and they come from the {\tt mfi.tilebox()} statement.
+  \item In the \cpp\ end, we pass (sometimes via the {\tt
+    BL\_TO\_FORTRAN()} macro) the {\tt loVect} and {\tt hiVect} of the
+    entire box (including ghost cells).  These are then used to
+    allocate the array in Fortran as:
+\begin{lstlisting}
+  double precision :: a(a_l1:a_h1, a_l2:a_h2, ...)
+\end{lstlisting}
+    When tiling is used, we do not want to loop as {\tt do a\_l1,
+      a\_h1}, but instead we need to loop over the tiling region.  The
+    indices of the tiling region need to be passed into the Fortran
+    routine separately, and they come from the {\tt mfi.tilebox()}
+    or {\tt mfi.growntilebox()} statement.
 
-  \item In Fortran, when initializing an array to 0, do so only over
-  the tile region, not for the entire box.  For a Fortran array {\tt a},
-  this means we cannot do:
-  \begin{lstlisting}
+  \item In Fortran, when initializing an array to {\tt 0}, do so only
+    over the tile region, not for the entire box.  For a Fortran array
+    {\tt a}, this means we cannot do:
+\begin{lstlisting}
   a = 0.0
   a(:,:,:,:) = 0.0
-  \end{lstlisting}
-  but instead must do:
-  \begin{lstlisting}
+\end{lstlisting}
+    but instead must do:
+\begin{lstlisting}
   a(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.0
-  \end{lstlisting}
-  where {\tt lo()} and {\tt hi()} are the index-space for the tile box
-  returned from {\tt mfi.tilebox()} in C++ and passed into the Fortran
-  routine.
+\end{lstlisting}
+    where {\tt lo()} and {\tt hi()} are the index-space for the tile box
+    returned from {\tt mfi.tilebox()} in \cpp\ and passed into the Fortran
+    routine.
 
 \item Look at {\tt r\_old\_s} in {\tt Exec/DustCollapse/probdata.f90} as an
   example of how to declare a {\tt threadprivate} variable---this is then used
@@ -785,6 +834,66 @@ If you want to specify a value at a function (like at an inflow
 boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
 that. Which routine is called for which variable is again defined in
 {\tt Castro\_setup.cpp}.
+
+
+\subsection{Physical Boundaries}
+
+The following boundary conditions have already been implemented in
+\castro\ See {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H} for some
+more details.
+\begin{itemize}
+\item {\it Outflow}:
+  \begin{itemize}
+    \item velocity: {\tt FOEXTRAP}
+    \item temperature: {\tt FOEXTRAP}
+    \item scalars: {\tt FOEXTRAP}
+  \end{itemize}
+
+\item {\it No Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dt=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+
+\item {\it No Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u=v=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+
+\item {\it Slip Wall with Adiabatic Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
+  \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+
+\item {\it Slip Wall with Fixed Temp}:
+  \begin{itemize}
+  \item velocity: {\tt EXT\_DIR}, $u_n=0$
+  \item temperature: {\tt EXT\_DIR}
+  \item scalars: {\tt HOEXTRAP}
+  \end{itemize}
+
+\end{itemize}
+
+Here's definitions of some of the funny-sounding ``all-caps''
+words from above:
+\begin{itemize}
+\item {\tt INT\_DIR}: data taken from other grids or interpolated
+
+\item {\tt EXT\_DIR}: data specified on EDGE (FACE) of bndry
+
+\item {\tt HOEXTRAP}: higher order extrapolation to EDGE of bndry
+
+\item {\tt FOEXTRAP}: first order extrapolation from last cell in interior
+
+\item {\tt REFLECT\_EVEN}: $F(-n) = F(n)$ true reflection from interior cells
+
+\item {\tt REFLECT\_ODD}: $F(-n) = -F(n)$ true reflection from interior cells
+\end{itemize}
 
 
 
@@ -1063,71 +1172,6 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
   \end{itemize}
 
 \end{itemize}
-
-
-\section{Boundaries}
-
-\subsection{Physical Boundaries}
-
-The following boundary conditions have already been implemented in
-\castro\ See {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H} for some
-more details.
-\begin{itemize}
-\item {\it Outflow}:
-  \begin{itemize}
-    \item velocity: {\tt FOEXTRAP}
-    \item temperature: {\tt FOEXTRAP}
-    \item scalars: {\tt FOEXTRAP}
-  \end{itemize}
-
-\item {\it No Slip Wall with Adiabatic Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u=v=0$
-  \item temperature: {\tt REFLECT\_EVEN}, $dT/dt=0$
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it No Slip Wall with Fixed Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u=v=0$
-  \item temperature: {\tt EXT\_DIR}
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it Slip Wall with Adiabatic Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
-  \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it Slip Wall with Fixed Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u_n=0$
-  \item temperature: {\tt EXT\_DIR}
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\end{itemize}
-
-Here's definitions of some of the funny-sounding ``all-caps''
-words from above:
-\begin{itemize}
-\item {\tt INT\_DIR}: data taken from other grids or interpolated
-
-\item {\tt EXT\_DIR}: data specified on EDGE (FACE) of bndry
-
-\item {\tt HOEXTRAP}: higher order extrapolation to EDGE of bndry
-
-\item {\tt FOEXTRAP}: first order extrapolation from last cell in interior
-
-\item {\tt REFLECT\_EVEN}: $F(-n) = F(n)$ true reflection from interior cells
-
-\item {\tt REFLECT\_ODD}: $F(-n) = -F(n)$ true reflection from interior cells
-\end{itemize}
-
-
-\subsection{Filling the boundaries}
 
 
 \section{Parallel I/O}
