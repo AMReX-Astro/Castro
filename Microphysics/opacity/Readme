@@ -1,0 +1,14 @@
+
+An opacity module must include 
+
+* subroutine init_opacity_table()
+
+* module opacity_table_module
+  that must include the following subroutines (which 
+** subroutine get_opacities()
+   for photon simulations
+** subroutines get_opacity_emissivity() & prep_opacity()
+   for neutrino simulations
+
+Note that these subroutines could be empty if they are not being used.
+But they must be there, otherwise the code won't compile. 
