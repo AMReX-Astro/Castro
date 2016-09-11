@@ -38,10 +38,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Real oldtime = castro->get_state_data(Rad_Type).prevTime();
 
   MultiFab& S_new = castro->get_new_data(State_Type);
-  for (FillPatchIterator fpi(*castro,S_new,ngrow,time,State_Type,
-                             0,S_new.nComp()); fpi.isValid(); ++fpi) {
-    S_new[fpi].copy(fpi());
-  }
+  AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
 
   Tuple<MultiFab, BL_SPACEDIM> lambda;
   if (limiter > 0) {

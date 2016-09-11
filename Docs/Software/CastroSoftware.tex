@@ -1208,6 +1208,30 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
 \end{itemize}
 
 
+\subsection{Optional Files}
+
+The follow problem-specific files are optional.  There are stubs for
+each of these in the main source tree.  
+
+\begin{itemize}
+
+\item \code{Problem.f90}
+
+\item \code{problem\_tagging\_nd.F90}
+
+\item \code{problem\_derive\_nd.f90}
+
+\item \code{Prob.cpp}, \code{Problem.H}, \code{Problem\_F.H}
+
+\item \code{Problem\_Derive\_F.H}, \code{Problem\_Derives.H}
+
+\end{itemize}
+
+
+
+\subsection{Dimension Agnostic Problem Initialization}
+
+
 \section{Parallel I/O}
 
 Both checkpoint files and plotfiles are really directories containing

@@ -2403,15 +2403,15 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
+            S.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
 	}
         else if ( std::abs(time-t_old) < eps)
         {
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,NUM_STATE);
+            S.copy(LevelData[lev].get_old_data(State_Type),0,0,NUM_STATE);
         }
         else if ( std::abs(time-t_new) < eps)
         {
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
+            S.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
             if (lev < level)
             {
                 Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev+1));
@@ -2423,14 +2423,14 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             Real alpha   = (time - t_old)/(t_new - t_old);
             Real omalpha = 1.0 - alpha;
 
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,NUM_STATE);
+            S.copy(LevelData[lev].get_old_data(State_Type),0,0,NUM_STATE);
             S.mult(omalpha);
 
-            MultiFab S_new(grids[lev],1,0);
-            S_new.copy(LevelData[lev].get_new_data(State_Type),Density,0,NUM_STATE);
+            MultiFab S_new(grids[lev],NUM_STATE,0);
+            S_new.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
             S_new.mult(alpha);
 
-            S.plus(S_new,Density,NUM_STATE,0);
+            S.plus(S_new,0,NUM_STATE,0);
         }
         else
         {
@@ -2443,7 +2443,8 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         {
 	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 	    const MultiFab& mask = fine_level->build_fine_mask();
-	    MultiFab::Multiply(S, mask, 0, 0, NUM_STATE, 0);
+	    for (int n = 0; n < NUM_STATE; ++n)
+		MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();
