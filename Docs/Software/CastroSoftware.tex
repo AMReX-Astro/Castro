@@ -780,6 +780,7 @@ FillPatchIterator works on statedata
 
 
 \subsection{Boundaries Between Grids}
+
 Boundaries between grids are of two types. The first we call
 ``fine-fine'', which is two grids at the same level.  Filling ghost
 cells at the same level is also part of the fillpatch operation---it's
@@ -796,6 +797,32 @@ or edge-based) and the interpolation is such that the average of the
 fine values created is equal to the coarse value from which they came.
 (This wouldn't be the case with straight linear interpolation, for
 example.)
+
+\subsubsection{Examples}
+
+To illustrate the various ways we fill ghost cells and use the data,
+let's consider the following scenarios:
+
+\begin{itemize}
+
+is it the case that only state data can fill physical boundaries?
+
+
+\item You have state data that was defined with {\tt NGROW} ghost
+  cells.  You want to ensure that the ghost cells are filled
+  (including any physical boundaries) with valid data.
+
+\item You have state data that was defined with no ghost cells.  You
+  want to create a new \multifab\ containing a copy of that data with
+  {\tt NGROW} ghost cells.
+
+\item You have a \multfab\ with some derived quantity.  You want to
+  fill its ghost cells.
+
+\item You want to loop over the FABs in state data, filling ghost cells
+  along the way
+
+
 
 A {\tt FillPatchIterator} is used to loop over the grids and fill
 ghostcells.  One should never assume that ghostcells are valid.  A key
