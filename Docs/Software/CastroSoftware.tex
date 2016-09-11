@@ -1004,21 +1004,40 @@ side of \castro\ or perform other useful tasks.
 
 \item {\tt prob\_params\_module}:
 
-  This module makes the physical domain lower left and upper right
-  coordinates ({\tt problo()} and {\tt probhi}) and problem center
-  ({\tt center}) available.
+  This module stores information about the domain and current level,
+  and is periodically synced up with the \cpp\ driver.  The information
+  available here is:
+  \begin{itemize}
+  \item \code{physbc\_lo}, \code{physbc\_hi}: these are the boundary
+    condition types at the low and high ends of the domain, for each
+    coordinate direction.  Integer keys, {\tt Interior}, {\tt Inflow},
+    {\tt Outflow}, {\tt Symmetry}, {\tt SlipWall}, and {\tt
+      NoSlipWall} allow you to interpret the values.
 
-  Here {\tt center} is the center to
-  be used for the multipole expansion in gravity, certain diagnostics,
-  construction of the radial velocity, etc.  It is not necessarily
-  the center of the domain (e.g., for a problem modeling an octant
-  of a star, it would be the origin).  This is either set by
-  {\tt castro.center} or in the problem's {\tt probinit()}
-  subroutine.
+  \item \code{center} is the center of the problem.  Note---this is up
+    to the problem setup to define (in the {\tt probinit} subroutine).
+    Alternately, it can be set at runtime via
+    \runparam{castro.center}. \MarginPar{which wins if both try to set
+      it?}
 
-  This module also provides the type of physical boundary
-  condition in force at each domain edge (and the integer
-  keys needed to interpret them).
+    Usually {\tt center} will be the physical center of the domain,
+    but not always.  For instance, for axisymmetric problems, {\tt
+      center} may be on the symmetry axis.
+
+    {\tt center} is used in the multipole gravity, hybrid advection
+    algorithm, rotation sources, for the point mass gravity, in
+    defining the center of the sponge, and in deriving the radial
+    velocity.  \MarginPar{other important places?}
+
+  \item \code{coord\_type}
+
+  \item \code{dim}
+
+  \item \code{dg}
+
+  \item {\em refining information}
+
+  \end{itemize}
 
 \end{itemize}
 
@@ -1259,6 +1278,15 @@ each of these in the main source tree.
 
 \subsection{Dimension Agnostic Problem Initialization}
 
+Most of the problem setups have separate implementations for 1-, 2-,
+and 3D.  A new method exists that allows you to write just a single
+set of files for any dimensionality (this is called the {\em dimension
+  agnostic} format).  To use this mode, set
+\makevar{DIMENSION\_AGNOSTIC}{\tt = TRUE} in your {\tt GNUmakefile}.
+Then write you problem initialization in \code{Prob\_nd.F90}.
+Analogous routines exist for tagging and boundary conditions.  See the
+\problem{rotating\_torun} and \problem{Noh} problem setups for an
+example.
 
 \section{Parallel I/O}
 
