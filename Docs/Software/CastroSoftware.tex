@@ -954,23 +954,33 @@ There are a number of modules that make data available to the Fortran
 side of \castro\ or perform other useful tasks.
 
 \begin{itemize}
-\item {\tt prob\_params\_module}:
 
-  This module makes the physical domain lower left and upper right
-  coordinates ({\tt problo()} and {\tt probhi}) and problem center
-  ({\tt center}) available.
+\item \code{bl\_constants\_module}:
 
-  Here {\tt center} is the center to
-  be used for the multipole expansion in gravity, certain diagnostics,
-  construction of the radial velocity, etc.  It is not necessarily
-  the center of the domain (e.g., for a problem modeling an octant
-  of a star, it would be the origin).  This is either set by
-  {\tt castro.center} or in the problem's {\tt probinit()}
-  subroutine.
+  This provides double precision constants as Fortran parameters, like 
+  {\tt ZERO}, {\tt HALF}, and {\tt ONE}.
 
-  This module also provides the type of physical boundary
-  condition in force at each domain edge (and the integer
-  keys needed to interpret them).
+\item \code{bl\_types}:
+
+  This provides a double precision type, {\tt dp\_t} for use in
+  Fortran.  This should be identical to {\tt double precision} on most
+  architectures.
+
+\item \code{extern\_probin\_module}:
+
+  This module provides access to the runtime parameters for the
+  microphysics routines (EOS, reaction network, etc.).  The source
+  for this module is generated at compile type via a {\tt make} rule
+  that invokes a python script.  This will search for all of the 
+  \code{\_parameters} files in the external sources, parse them 
+  for runtime parameters, and build the module.
+  
+
+\item {\tt fundamental\_constants\_module}:
+
+  This provides the CGS values of many physical constants.
+
+\item {\tt math\_module}:
 
 \item {\tt meth\_params\_module}:
 
@@ -989,9 +999,23 @@ side of \castro\ or perform other useful tasks.
   initial model and routines to read it in and interpolate onto the
   \castro\ grid.
 
-\item {\tt fundamental\_constants\_module}:
+\item {\tt prob\_params\_module}:
 
-  This provides the CGS values of many physical constants.
+  This module makes the physical domain lower left and upper right
+  coordinates ({\tt problo()} and {\tt probhi}) and problem center
+  ({\tt center}) available.
+
+  Here {\tt center} is the center to
+  be used for the multipole expansion in gravity, certain diagnostics,
+  construction of the radial velocity, etc.  It is not necessarily
+  the center of the domain (e.g., for a problem modeling an octant
+  of a star, it would be the origin).  This is either set by
+  {\tt castro.center} or in the problem's {\tt probinit()}
+  subroutine.
+
+  This module also provides the type of physical boundary
+  condition in force at each domain edge (and the integer
+  keys needed to interpret them).
 
 \end{itemize}
 
