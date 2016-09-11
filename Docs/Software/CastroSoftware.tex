@@ -803,9 +803,10 @@ example.)
 To illustrate the various ways we fill ghost cells and use the data,
 let's consider the following scenarios:
 
+is it the case that only state data can fill physical boundaries?
+
 \begin{itemize}
 
-is it the case that only state data can fill physical boundaries?
 
 
 \item You have state data that was defined with {\tt NGROW} ghost
@@ -816,13 +817,13 @@ is it the case that only state data can fill physical boundaries?
   want to create a new \multifab\ containing a copy of that data with
   {\tt NGROW} ghost cells.
 
-\item You have a \multfab\ with some derived quantity.  You want to
+\item You have a \multifab\ with some derived quantity.  You want to
   fill its ghost cells.
 
 \item You want to loop over the FABs in state data, filling ghost cells
   along the way
 
-
+\end{itemize}
 
 A {\tt FillPatchIterator} is used to loop over the grids and fill
 ghostcells.  One should never assume that ghostcells are valid.  A key
