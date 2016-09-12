@@ -769,36 +769,30 @@ note that:
 
 
 
-\section{Boundaries: FillPatch and FillPatchIterator}
+\section{Boundaries: {\tt FillPatch} and {\tt FillPatchIterator}}
 
-FillBoundary -- fills interior ghost cells for an arbitrary multifab
-
-FillPatch works in the case that I have statedata that was defined
-with ghost cells already.
-
-FillPatchIterator works on statedata
-
-
-\subsection{Boundaries Between Grids}
-
-Boundaries between grids are of two types. The first we call
-``fine-fine'', which is two grids at the same level.  Filling ghost
-cells at the same level is also part of the fillpatch operation---it's
-just a straight copy from ``valid regions'' to ghost cells. The second
+\boxlib\ calls the act of filling ghost cells a {\em fillpatch}
+operation.  Boundaries between grids are of two types. The first we
+call ``fine-fine'', which is two grids at the same level.  The second
 type is "coarse-fine", which needs interpolation from the coarse grid
-to fill the fine grid ghost cells.  This also happens as part of the
-FillPatch operation, which is why arrays aren't just arrays, they're
-``State Data'', which means that the data knows how to interpolate
-itself (in an anthropomorphical sense).  The type of interpolation to
-use is defined in {\tt Castro\_setup.cpp} as well---search for
-{\tt cell\_cons\_interp}, for example---that's ``cell conservative
-interpolation'', i.e., the data is cell-based (as opposed to node-based
-or edge-based) and the interpolation is such that the average of the
-fine values created is equal to the coarse value from which they came.
-(This wouldn't be the case with straight linear interpolation, for
-example.)
+to fill the fine grid ghost cells.  Both of these are part of the
+fillpatch operation.  Fine-fine fills are just a straight copy from
+``valid regions'' to ghost cells.  Coarse-fine fills are enabled
+because the \statedata\ is not just arrays, they're ``State Data'',
+which means that the data knows how to interpolate itself (in an
+anthropomorphical sense).  The type of interpolation to use is defined
+in {\tt Castro\_setup.cpp}---search for {\tt
+  cell\_cons\_interp}, for example---that's ``cell conservative
+interpolation'', i.e., the data is cell-based (as opposed to
+node-based or edge-based) and the interpolation is such that the
+average of the fine values created is equal to the coarse value from
+which they came.  (This wouldn't be the case with straight linear
+interpolation, for example.)
 
-\subsubsection{Examples}
+Additionally, since \statedata\ has an old and new timelevel, 
+the fill patch operation can interpolate to an intermediate time.
+
+\subsection{Examples}
 
 To illustrate the various ways we fill ghost cells and use the data,
 let's consider the following scenarios:
@@ -928,8 +922,17 @@ starting with component {\tt strtComp} and including a total of {\tt
 
 \end{itemize}
 
-In general, one should never assume that ghostcells are valid, and instead
-do a fill patch operation when in doubt.
+In general, one should never assume that ghostcells are valid, and
+instead do a fill patch operation when in doubt.  Sometimes we will
+use a \fillpatchiterator\ to fill the ghost cells into a multifab
+without an explict look.  This is done as:
+\begin{lstlisting}
+  FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
+  MultiFab& state_old = fpi.get_mf();     
+\end{lstlisting}
+In this operation, {\tt state\_old} points to the internal
+\multifab\ in the \fillpatchiterator, by getting a reference to it as
+              {\tt fpi.get\_mf()}.  This avoids a local copy.
 
 Note that in the examples above, we see that only \statedata\ can fill
 physical boundaries (because these register how to fill the boundaries
