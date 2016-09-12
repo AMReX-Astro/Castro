@@ -803,51 +803,120 @@ example.)
 To illustrate the various ways we fill ghost cells and use the data,
 let's consider the following scenarios:
 
-is it the case that only state data can fill physical boundaries?
 
 \begin{itemize}
 
-
-
-\item You have state data that was defined with {\tt NGROW} ghost
-  cells.  You want to ensure that the ghost cells are filled
-  (including any physical boundaries) with valid data.
-
-\item You have state data that was defined with no ghost cells.  You
+\item {\em You have state data that was defined with no ghost cells.  You
   want to create a new \multifab\ containing a copy of that data with
-  {\tt NGROW} ghost cells.
+  {\tt NGROW} ghost cells.}
 
-\item You have a \multifab\ with some derived quantity.  You want to
-  fill its ghost cells.
+  This is the case with \variable{Sborder}---the \multifab\ of the
+  hydrodynamic state that we use to kick-off the hydrodynamics 
+  advance.
 
-\item You want to loop over the FABs in state data, filling ghost cells
-  along the way
+  {\tt Sborder} is declared in {\tt Castro.H} simply as:
+\begin{lstlisting}[language=C++]
+  Multifab Sborder;
+\end{lstlisting}
 
-\end{itemize}
+  It is then allocated in \code{Castro::initialize\_do\_advance()}
+\begin{lstlisting}[language=C++]
+  Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);                   
+  const Real prev_time = state[State_Type].prevTime();                        
+  expand_state(Sborder, prev_time, NUM_GROW);      
+\end{lstlisting}
+  Note in the call to {\tt .define()}, we tell \boxlib\ to already
+  allocate the data regions for the \farraybox s that are part of {\tt
+    Sborder}.
 
-A {\tt FillPatchIterator} is used to loop over the grids and fill
-ghostcells.  One should never assume that ghostcells are valid.  A key
-thing to keep in mind about the {\tt FillPatchIterator} is that you
-operate on a copy of the data---the data is disconnected from the
-original source.  If you want to update the data in the source,
-you need to explicitly copy it back.  Also note: {\tt FillPatchIterator}
-takes a multifab, but this is not filled---this is only used to
-get the grid layout.  \MarginPar{did I say that right?}
+  The actually filling of the ghost cells is done by
+  \code{Castro::expand\_state()}:
+\begin{lstlisting}[language=C++]
+  AmrLevel::FillPatch(*this, Sborder, NUM_GROW, 
+                      prev_time, State_Type, 0, NUM_STATE);                
+\end{lstlisting}
+  Here, we are filling the {\tt ng} ghost cells of \multifab {\tt
+    Sborder} at time {\tt prev\_time}.  We are using the
+  \statedata\ that is part of the current {\tt Castro} object that we
+  are part of.  Note: {\tt FillPatch} takes an object reference as its
+  first argument, which is the object that contains the relevant
+  \statedata---that is what the {\tt *this} pointer indicates.
+  Finally, we are copying the {\tt State\_Type} data components 0 to
+  {\tt NUM\_STATE}\footnote{for clarity and continuity in this
+    documentation, some of the variable names have been changed
+    compared to the actual code}.
 
-{\color{red}simple example}
+The result of this operation is that {\tt Sborder} will now have
+{\tt NUM\_GROW} ghost cells consistent with the {\tt State\_Type}
+data at the old time-level.
 
-Basically, boundary conditions are imposed on ``state variables'' every
-time that they're ``fillpatched'', as part of the fillpatch operation.
+\item {\em You have state data that was defined with {\tt NGROW} ghost
+  cells.  You want to ensure that the ghost cells are filled
+  (including any physical boundaries) with valid data.}
 
-For example, the loop that calls {\tt CA\_UMDRV} (all the integration stuff) starts with
+  This is very similar to the procedure shown above.  The main
+  difference is that for the \multifab\ that will be the target
+  of the ghost cell filling, we pass in a reference to the \statedata\
+  itself.  
+
+  The main thing you need to be careful of here, is that you 
+  need to ensure that the the time you are at is consistent with
+  the \statedata's time.  Here's an example from the radiation
+  portion of the code {\tt MGFLDRadSolver.cpp}:
+
+\begin{lstlisting}[language=C++]
+  Real time = castro->get_state_data(Rad_Type).curTime();
+  MultiFab& S_new = castro->get_new_data(State_Type);
+
+  AmrLevel::FillPatch(*castro, S_new, ngrow, time, State_Type,
+                      0, S_new.nComp(), 0); 
+\end{lstlisting}
+
+  In this example, {\tt S\_new} is a pointer to the new-time-level
+  {\tt State\_Type} \multifab.  So this operation will use the {\tt
+    State\_Type} data to fill its own ghost cells.  we fill the {\tt
+    ngrow} ghost cells of the new-time-level {\tt State\_Type} data,
+  for all the components.
+
+  Note that in this example, because the \statedata\ lives in the {\tt
+    Castro} object and we are working from the {\tt Radiation} object,
+  we need to make reference to the current {\tt castro} object
+  pointer.  If this were all done within the {\tt Castro} object, then
+  the pointer will simply be {\tt *this}, as we saw above.
+
+\item {\em You have a \multifab\ with some derived quantity.  You want to
+  fill its ghost cells.}
+
+  \multifab s have a {\tt FillBoundary()} method that will fill all
+  the ghost cells between boxes at the same level.  It will not fill
+  ghost cells at coarse-fine boundaries or at physical boundaries.  \MarginPar{what is the use case for this?}
+
+\item {\em You want to loop over the FABs in state data, filling ghost cells
+  along the way}
+
+  This is the job of the \code{\fillpatchiterator}---this iterator is used to
+  loop over the grids and fill ghostcells.  A key thing to keep in
+  mind about the \fillpatchiterator\ is that you operate on a copy
+  of the data---the data is disconnected from the original source.  If
+  you want to update the data in the source, you need to explicitly
+  copy it back.  Also note: {\tt FillPatchIterator} takes a multifab,
+  but this is not filled---this is only used to get the grid
+  layout.  Finally, the way the \fillpatchiterator\ is implemented
+  is that all the communication is done first, and then the iterating
+  over boxes commences.
+
+  For example, the loop that calls {\tt CA\_UMDRV} (all the
+  hydrodynamics integration stuff) starts with
 \begin{lstlisting}
    for (FillPatchIterator fpi(*this, S_new, NUM_GROW,
                               time, State_Type, strtComp, NUM_STATE);
          fpi.isValid(); ++fpi)
    {
      FArrayBox &state = fpi();
+     Box bx(fpi.validbox());
 
-     // work on the state FAB
+     // work on the state FAB.  The interior (valid) cells will 
+     // live between bx.loVect() and bx.hiVect()
    }
 \end{lstlisting}
 Here the {\tt FillPatchIterator} is the thing that distributes the
@@ -855,7 +924,19 @@ grids over processors and makes parallel ``just work''. This fills the
 single patch ``{\tt fpi}'' , which has {\tt NUM\_GROW} ghost cells,
 with data of type ``{\tt State\_Type}'' at time ``{\tt time}'',
 starting with component {\tt strtComp} and including a total of {\tt
-  NUM\_STATE} components.
+  NUM\_STATE} components. \MarginPar{how do tiling and \fillpatchiterator\ work together?}
+
+\end{itemize}
+
+In general, one should never assume that ghostcells are valid, and instead
+do a fill patch operation when in doubt.
+
+Note that in the examples above, we see that only \statedata\ can fill
+physical boundaries (because these register how to fill the boundaries
+when they are defined).  There are some advanced operations in
+\boxlib\ that can get around this, but we do not use them in \castro.  \MarginPar{ok?}
+
+\subsection{Physical Boundaries}
 
 The way that you tell the code what kind of physical boundary
 condition to use is given in {\tt Castro\_setup.cpp}. At the top we
@@ -871,48 +952,35 @@ that. Which routine is called for which variable is again defined in
 {\tt Castro\_setup.cpp}.
 
 
-\subsection{Physical Boundaries}
-
-The following boundary conditions have already been implemented in
-\castro\ See {\tt BoxLib/Src/C\_AMRLib/amrlib/BC\_TYPES.H} for some
+The boundary conditions listed in Table~\ref{table:castro:bcs} have already been implemented in
+\castro\ See \code{BC\_TYPES.H} for some
 more details.
-\begin{itemize}
-\item {\it Outflow}:
-  \begin{itemize}
-    \item velocity: {\tt FOEXTRAP}
-    \item temperature: {\tt FOEXTRAP}
-    \item scalars: {\tt FOEXTRAP}
-  \end{itemize}
-
-\item {\it No Slip Wall with Adiabatic Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u=v=0$
-  \item temperature: {\tt REFLECT\_EVEN}, $dT/dt=0$
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it No Slip Wall with Fixed Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u=v=0$
-  \item temperature: {\tt EXT\_DIR}
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it Slip Wall with Adiabatic Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u_n=0$; {\tt HOEXTRAP}, $u_t$
-  \item temperature: {\tt REFLECT\_EVEN}, $dT/dn=0$
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\item {\it Slip Wall with Fixed Temp}:
-  \begin{itemize}
-  \item velocity: {\tt EXT\_DIR}, $u_n=0$
-  \item temperature: {\tt EXT\_DIR}
-  \item scalars: {\tt HOEXTRAP}
-  \end{itemize}
-
-\end{itemize}
+\begin{table}
+\renewcommand{\arraystretch}{1.5}
+\centering
+\begin{tabular}{p{2.0in}p{1.1in}p{1.1in}p{1.1in}}
+{\bf name} & {\bf velocity action} & {\bf temperature action} & {\bf scalars action} \\
+\hline
+outflow  & {\tt FOEXTRAP} & {\tt FOEXTRAP} & {\tt FOEXTRAP} \\
+no-slip wall w/ adiabatic $T$ & {\tt EXT\_DIR}: $u = v = 0$ &
+                                   {\tt REFLECT\_EVEN}: $dT/dn=0$ &
+                                   {\tt HOEXTRAP} \\
+no-slip wall w/ fixed $T$ & {\tt EXT\_DIR}: $u=v=0$ &
+                               {\tt EXT\_DIR} &
+                               {\tt HOEXTRAP} \\
+slip wall w/ adiabatic $T$ &
+                               {\tt EXT\_DIR}: $u_n=0$; {\tt HOEXTRAP}: $u_t$ &
+                               {\tt REFLECT\_EVEN}: $dT/dn=0$ &
+                               {\tt HOEXTRAP} \\
+slip wall w/ fixed $T$ &
+                               {\tt EXT\_DIR}: $u_n=0$ &
+                               {\tt EXT\_DIR} &
+                               {\tt HOEXTRAP} \\
+\end{tabular}
+\caption[Physics boundary conditions in \castro]
+  {\label{table:castro:bcs} Physical boundary conditions supported in \castro.  {\color{red} is this list right?}}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
 
 Here's definitions of some of the funny-sounding ``all-caps''
 words from above:
