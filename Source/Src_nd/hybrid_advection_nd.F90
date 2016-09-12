@@ -301,7 +301,6 @@ contains
 
     integer          :: i, j, k
     double precision :: loc(3)
-    double precision :: old_ke, new_ke, rhoInv
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -309,18 +308,7 @@ contains
 
              loc = position(i,j,k) - center
 
-             rhoInv = ONE / state(i,j,k,URHO)
-
-             old_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-
              state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
-
-             new_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-
-             ! We have effectively updated the kinetic energy of the state; to account
-             ! for this, add the difference between the old and new KE to the total E.
-
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (new_ke - old_ke)
 
           enddo
        enddo
