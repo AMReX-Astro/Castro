@@ -355,7 +355,7 @@ contains
 
              if (courx .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... u, c                ', q(i,j,k,QU), q(i,j,k,QC)
@@ -364,7 +364,7 @@ contains
 
              if (coury .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
                 print *,'>>> ... v, c                ', q(i,j,k,QV), q(i,j,k,QC)
@@ -373,7 +373,7 @@ contains
 
              if (courz .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... w, c                ', q(i,j,k,QW), q(i,j,k,QC)
@@ -407,6 +407,11 @@ contains
                                    allow_negative_energy, small_dens
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_module, only: inertial_to_rotational_velocity
+    use amrinfo_module, only: amr_time
+#endif
 
     implicit none
 
@@ -469,6 +474,15 @@ contains
              else
                 q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
              endif
+
+             ! If we're advecting in the rotating reference frame,
+             ! then subtract off the rotation component here.
+
+#ifdef ROTATION
+             if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
+                call inertial_to_rotational_velocity([i, j, k], amr_time, q(i,j,k,QU:QW))
+             endif
+#endif
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 
