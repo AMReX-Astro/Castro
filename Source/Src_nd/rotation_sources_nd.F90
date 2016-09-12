@@ -270,12 +270,26 @@ contains
 
     if (implicit_rotation_update == 1) then
 
-       ! Don't do anything here if we've got the Coriolis force disabled,
-       ! or if our state variables are in the inertial frame.
+       ! Don't do anything here if we've got the Coriolis force disabled.
 
-       if (rotation_include_coriolis == 1 .or. state_in_rotating_frame /= 1) then
+       if (rotation_include_coriolis == 1) then
 
-          dt_omega = dt * omega_new
+          ! If the state variables are in the inertial frame, then we are doing
+          ! an implicit solve using (dt / 2) multiplied by the standard Coriolis term.
+          ! If not, then the rotation source term to the linear momenta (Equations 16
+          ! and 17 in Byerly et al., 2014) still retains a Coriolis-like form, with
+          ! the only difference being that the magnitude is half as large. Consequently
+          ! we can still do an implicit solve in that case.
+
+          if (state_in_rotating_frame == 1) then
+
+             dt_omega = dt * omega_new
+
+          else
+
+             dt_omega = HALF * dt * omega_new
+
+          endif
 
        else
 
@@ -355,9 +369,16 @@ contains
                 ! axes, obtained using Cramer's rule (the coefficient matrix is
                 ! defined above). In practice the user will probably only be using
                 ! one axis for rotation; if it's the z-axis, then this reduces to
-                ! Equations 25 and 26 in the wdmerger paper.
+                ! Equations 25 and 26 in the wdmerger paper. Note that this will
+                ! have the correct form regardless of whether the state variables are
+                ! measured in the rotating frame or not; we handled that in the construction
+                ! of the dt_omega_matrix. It also has the correct form if we have disabled
+                ! the Coriolis force entirely; at that point it reduces to the identity matrix.
 
                 new_mom = matmul(dt_omega_matrix, new_mom)
+
+                ! Obtain the effective source term; remember that we're ultimately going
+                ! to multiply the source term by dt to get the update to the state.
 
                 Srcorr = (new_mom - unew(i,j,k,UMX:UMZ)) / dt
 
