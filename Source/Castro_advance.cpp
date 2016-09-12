@@ -220,6 +220,12 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_new);
 
+    // Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(S_new);
+#endif
+
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
 
@@ -248,6 +254,9 @@ Castro::do_advance (Real time,
 	for (int n = 0; n < num_src; ++n) {
             construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 	    apply_source_to_state(S_new, new_sources[n], dt);
+#ifdef HYBRID_MOMENTUM
+	    hybrid_sync(S_new);
+#endif
 	    computeTemp(S_new);
 	}
 
@@ -262,6 +271,12 @@ Castro::do_advance (Real time,
 
 	for (int n = 0; n < num_src; ++n)
 	    apply_source_to_state(S_new, new_sources[n], dt);
+
+	// Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+	hybrid_sync(S_new);
+#endif
 
 	// Sync up the temperature now that all sources have been applied.
 
@@ -416,29 +431,6 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
     for (int n = 0; n < num_src; ++n)
 	MultiFab::Add(SDC_source_new, new_sources[n], 0, 0, NUM_STATE, new_sources[n].nGrow());
-#endif
-
-
-
-    // Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro) {
-
-        MultiFab& S_new = get_new_data(State_Type);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.tilebox();
-
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
-
-	}
-
-    }
 #endif
 
 #ifdef RADIATION

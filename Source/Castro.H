@@ -495,6 +495,8 @@ public:
     void construct_new_hybrid_source(Real time, Real dt);
 
     void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
+
+    void hybrid_sync(MultiFab& state);
 #endif
 
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
