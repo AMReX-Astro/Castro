@@ -32,8 +32,8 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
 
-FEXE_sources += RAD_$(DIM)D.F HABEC_$(DIM)D.F
-
+FEXE_sources += HABEC_$(DIM)D.F
+F90EXE_sources += RAD_$(DIM)D.F 
 
 f90EXE_sources += RadHydro_$(DIM)d.f90 \
                          trace_ppm_rad_$(DIM)d.f90 \
