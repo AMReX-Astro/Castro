@@ -2146,7 +2146,6 @@ Castro::define_tau (MultiFab& grav_vector, Real time)
                           fpi.isValid();++fpi)
    {
         Box bx(fpi.validbox());
-        int i = fpi.index();
         ca_define_tau(bx.loVect(), bx.hiVect(),
 		      BL_TO_FORTRAN(tau_diff[fpi]),
 		      BL_TO_FORTRAN(fpi()),
