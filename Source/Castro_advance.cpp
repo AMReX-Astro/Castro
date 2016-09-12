@@ -505,6 +505,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         }
     }
 
+    // Sync the linear and hybrid momenta. This is as precautionary step
+    // that addresses the fact that we may have new data on this level
+    // that was interpolated from a coarser level, and the interpolation
+    // in general cannot be trusted to respect the consistency between
+    // the hybrid and linear momenta.
+
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(get_old_data(State_Type));
+#endif
+
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
     if (use_retry) {
