@@ -116,6 +116,10 @@ Floating point data in the \cpp\ \boxlib\ frame work is declared as
 {\tt Real}.  This is {\tt typedef} to either {\tt float} or {\tt
   double} depending on the make variable \makevar{PRECISION}.
 
+At present, single precision is not supported in \castro.  This is
+because the Fortran routines that we interact with are all written to
+accept double precision inputs.
+
 \subsection{\bbox\ and \farraybox}
 
 A \bbox\ is simply a rectangular region in space.  It does not hold
@@ -246,7 +250,7 @@ The current \statedata\ names  \castro\ carries are:
 
 \item \variable{PhiRot\_Type} : this is the rotational potential.
   When rotation is enabled, this will store the effective potential
-  corresponding to the centrifugal force. \MarginPar{just centrifugal, right?}
+  corresponding to the centrifugal force. 
 
 \item \variable{Rotation\_Type} : this is the rotational acceleration.
   There are always 3 components, regardless of the dimensionality
@@ -259,7 +263,9 @@ The current \statedata\ names  \castro\ carries are:
   the source terms, $d\Sb/dt$, for each of the {\tt NUM\_STATE} {\tt
     State\_Type} variables.
 
-  Note: we do not make use of the old-time quantity here. \MarginPar{is this true? seems like a waste of memory then}
+  Note: we do not make use of the old-time quantity here. In fact, we
+  never allocate the \farraybox s for the old-time in the {\tt Source\_Type}
+  \statedata, so there is not wasted memory.
 
 \item \variable{LS\_State\_Type} : this stores the level-set variable.
   This is not currently supported in \castro.
@@ -268,7 +274,14 @@ The current \statedata\ names  \castro\ carries are:
   reactions.  It has {\tt NumSpec+2} components: the species
   creation rates (usually denoted $\omegadot_k$ in these notes),
   the specific energy generation rate ($\dot{e}_\mathrm{nuc}$),
-  and its density ($\rho \dot{e}_\mathrm{nuc}$).  \MarginPar{why do we need to store these as state data?  Also, why do we need rho edot and edot separately?}
+  and its density ($\rho \dot{e}_\mathrm{nuc}$).  
+
+  These are stored as \statedata\ so we have access to the reaction terms
+  outside of advance, both for diagnostics (like flame speed estimation)
+  and for reaction timestep limiting (this in particular needs the 
+  data stored in checkpoints for continuity of timestepping upon restart).
+
+\MarginPar{why do we need rho edot and edot separately?}
 
 \item \variable{SDC\_Source\_Type} : this is used with the SDC
   time-advancement algorithm (not the default Strang-splitting
@@ -277,7 +290,11 @@ The current \statedata\ names  \castro\ carries are:
   advancement.
 
 \item \variable{SDC\_React\_Type} : this is used with the SDC
-  time-advancement algorithm.  \MarginPar{confused --- what are these sources, why dimensioned {\tt QVAR}?}
+  time-advancement algorithm.  This stores the {\tt QVAR} terms
+  that describe how the primitive variables change over the timestep
+  due only to reactions.  These are used when predicting the interface
+  states of the primitive variables for the hydrodynamics portion of the
+  algorithm.
 
 \end{itemize}
 
