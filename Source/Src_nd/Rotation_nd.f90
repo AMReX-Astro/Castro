@@ -78,6 +78,16 @@ contains
     if (state_in_rotating_frame .eq. 1) then
 
        ! Allow the various terms to be turned off.
+       ! This is often used for diagnostic purposes,
+       ! but there are genuine science cases for
+       ! disabling certain terms in some cases (in
+       ! particular, when obtaining a system in
+       ! rotational equilibrium through a relaxation
+       ! process involving damping or sponging, one
+       ! may want to turn off the Coriolis force
+       ! during the relaxation process, on the
+       ! basis that the true equilibrium state
+       ! will have zero velocity anyway).
 
        if (rotation_include_centrifugal == 1) then
           c1 = .true.
@@ -130,7 +140,26 @@ contains
 
     else
 
-       Sr = -cross_product(omega, v)
+       ! The source term for the momenta when we're not measuring
+       ! state variables in the rotating frame is not strictly the
+       ! traditional Coriolis force, but we'll still allow it to
+       ! be disabled with the same parameter.
+
+       if (rotation_include_coriolis == 1) then
+          c2 = .true.
+       else
+          c2 = .false.
+       endif
+
+       if (present(coriolis)) then
+          if (.not. coriolis) c2 = .false.
+       endif
+
+       Sr = ZERO
+
+       if (c2) then
+          Sr = Sr - cross_product(omega, v)
+       endif
 
     endif
 
