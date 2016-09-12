@@ -5,7 +5,11 @@
 #include "HypreABec.H"
 #include "HABEC_F.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "_hypre_struct_mv.h"
 
@@ -53,10 +57,10 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
   if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
     first = 0;
     if (solver_flag == 1 || solver_flag == 3 || solver_flag == 5) {
-      cout << "habec.pfmg_relax_type           = " << pfmg_relax_type << endl;
+      std::cout << "habec.pfmg_relax_type           = " << pfmg_relax_type << std::endl;
     }
-    cout << "habec.verbose                   = " << verbose << endl;
-    cout << "habec.verbose_threshold         = " << verbose_threshold << endl;
+    std::cout << "habec.verbose                   = " << verbose << std::endl;
+    std::cout << "habec.verbose_threshold         = " << verbose_threshold << std::endl;
   }
   bho = 0; // higher order boundaries don't work with symmetric matrices
 
@@ -798,7 +802,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_StructHybridSetup(solver, A, b, x);
   }
   else {
-    cout << "HypreABec: no such solver" << endl;
+    std::cout << "HypreABec: no such solver" << std::endl;
     exit(1);
   }
 }
@@ -1028,11 +1032,11 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &res);
     }
     if (num_iterations >= verbose_threshold) {
-      int oldprec = cout.precision(20);
-      cout << num_iterations
+      int oldprec = std::cout.precision(20);
+      std::cout << num_iterations
            << " Hypre Multigrid Iterations, Relative Residual "
-           << res << endl;
-      cout.precision(oldprec);
+           << res << std::endl;
+      std::cout.precision(oldprec);
     }
   }
 }

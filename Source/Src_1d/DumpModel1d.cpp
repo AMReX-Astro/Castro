@@ -29,7 +29,12 @@
 #include "DumpModel1d.H"
 
 #include <ParmParse.H>
-#include "Using.H"
+
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 DumpModel::DumpModel() : interval(1000), verbose(1)
 {

@@ -11,13 +11,18 @@
 
 #include "RAD_F.H"
 
-#include <Using.H>
+#include <iostream>
+#include <iomanip>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 { 
   BL_PROFILE("Radiation::MGFLD_implicit_update");
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "Radiation MGFLD implicit update, level " << level << "..." << endl;
+    std::cout << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
   }
 
   BL_ASSERT(Radiation::nGroups > 0);
@@ -380,12 +385,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 			   temp_new, Ye_new, grids, delta_t);
 
       if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-	int oldprec = cout.precision(3);
-        cout << "Outer = " << it << ", Inner = " << innerIteration
-             << ", inner err =  " << setw(8) << relative_in << " (rel),  " 
-	     << setw(8) << absolute_in << " (abs)" << endl;
-	//	     << setw(8) << error_er << " (impact)"<< endl;
-	cout.precision(oldprec);
+	int oldprec = std::cout.precision(3);
+        std::cout << "Outer = " << it << ", Inner = " << innerIteration
+             << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
+	     << std::setw(8) << absolute_in << " (abs)" << std::endl;
+	//	     << std::setw(8) << error_er << " (impact)"<< std::endl;
+	std::cout.precision(oldprec);
       }
 
       if (relative_in < 1.e-15) {
@@ -429,11 +434,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     } while(!inner_converged && innerIteration < maxInIter); 
 
     if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(3);
-      cout << "Outer = " << it << ", Inner = " << innerIteration
-	   << ", inner tol =  " << setw(8) << relative_in << "  " 
-	   << setw(8) << absolute_in << endl;
-      cout.precision(oldprec);
+      int oldprec = std::cout.precision(3);
+      std::cout << "Outer = " << it << ", Inner = " << innerIteration
+	   << ", inner tol =  " << std::setw(8) << relative_in << "  " 
+	   << std::setw(8) << absolute_in << std::endl;
+      std::cout.precision(oldprec);
     }
     
     if (innerIteration >= maxInIter &&
@@ -492,16 +497,16 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Real yemin = Ye_new.min(0);
       Real yemax = Ye_new.max(0);
       if (ParallelDescriptor::IOProcessor()) {
-        int oldprec = cout.precision(5);
-        cout << "Update   Ye min, max are " << yemin << ", " << yemax;
+        int oldprec = std::cout.precision(5);
+        std::cout << "Update   Ye min, max are " << yemin << ", " << yemax;
         if (yemin < 0.05 || yemax > 0.513) {
-          cout << ":  out of range for EOS and opacities";
+          std::cout << ":  out of range for EOS and opacities";
         }
         else if (yemax > 0.5) {
-          cout << ":  out of range for opacities";
+          std::cout << ":  out of range for opacities";
         }
-        cout << endl;
-        cout.precision(oldprec);
+        std::cout << std::endl;
+        std::cout.precision(oldprec);
       }
     }
 
@@ -553,25 +558,25 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
 
     if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(4);
-      cout << "Update Errors for      rhoe,        FT,         T" 
+      int oldprec = std::cout.precision(4);
+      std::cout << "Update Errors for      rhoe,        FT,         T" 
 #ifdef NEUTRINO
 	   << ",        FY,        Ye"
 #endif
-	   <<endl;
-      cout << "       Relative = " << setw(9) << rel_rhoe << ", " 
-	   << setw(9) << rel_FT << ", " << setw(9) << rel_T 
+	   <<std::endl;
+      std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+	   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
 #ifdef NEUTRINO
-	   << ", " << setw(9) << rel_FY << ", " << setw(9) << rel_Ye 
+	   << ", " << std::setw(9) << rel_FY << ", " << std::setw(9) << rel_Ye 
 #endif
-	   << endl;
-      cout << "       Absolute = " << setw(9) << abs_rhoe << ", " 
-	   << setw(9) << abs_FT << ", " << setw(9) << abs_T 
+	   << std::endl;
+      std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+	   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
 #ifdef NEUTRINO
-	   << ", " << setw(9) << abs_FY << ", " << setw(9) << abs_Ye 
+	   << ", " << std::setw(9) << abs_FY << ", " << std::setw(9) << abs_Ye 
 #endif
-	   << endl;
-      cout.precision(oldprec);
+	   << std::endl;
+      std::cout.precision(oldprec);
     }
 
     if (it < miniter) {
@@ -608,30 +613,30 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
    	    || !conservative_update);
 
   if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
-    int oldprec = cout.precision(4);
-    cout << "Update Errors for      rhoe,        FT,         T" 
+    int oldprec = std::cout.precision(4);
+    std::cout << "Update Errors for      rhoe,        FT,         T" 
 #ifdef NEUTRINO
 	 << ",        FY,        Ye"
 #endif
-	 <<endl;
-    cout << "       Relative = " << setw(9) << rel_rhoe << ", " 
-	 << setw(9) << rel_FT << ", " << setw(9) << rel_T 
+	 <<std::endl;
+    std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+	 << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
 #ifdef NEUTRINO
-	 << ", " << setw(9) << rel_FY << ", " << setw(9) << rel_Ye 
+	 << ", " << std::setw(9) << rel_FY << ", " << std::setw(9) << rel_Ye 
 #endif
-	 << endl;
-    cout << "       Absolute = " << setw(9) << abs_rhoe << ", " 
-	 << setw(9) << abs_FT << ", " << setw(9) << abs_T 
+	 << std::endl;
+    std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+	 << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
 #ifdef NEUTRINO
-	 << ", " << setw(9) << abs_FY << ", " << setw(9) << abs_Ye 
+	 << ", " << std::setw(9) << abs_FY << ", " << std::setw(9) << abs_Ye 
 #endif
-	 << endl;
-    cout.precision(oldprec);
+	 << std::endl;
+    std::cout.precision(oldprec);
   }
 
   if (! converged) {
     if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      cout << "Implicit Update Failed to Converge" << endl;
+      std::cout << "Implicit Update Failed to Converge" << std::endl;
     }
     exit(1);
   }
@@ -682,11 +687,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
 #ifndef NEUTRINO
-    cout << "Delta Energy Ratio = " << derat << endl;
+    std::cout << "Delta Energy Ratio = " << derat << std::endl;
 #endif
-    cout << "Delta T      Ratio = " << dTrat << endl;
+    std::cout << "Delta T      Ratio = " << dTrat << std::endl;
 #ifdef NEUTRINO
-    cout << "Delta Ye           = " << dye   << endl;
+    std::cout << "Delta Ye           = " << dye   << std::endl;
 #endif
   }
 
@@ -715,6 +720,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "                                     done" << endl;
+    std::cout << "                                     done" << std::endl;
   }
 }

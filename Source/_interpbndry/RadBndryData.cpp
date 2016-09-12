@@ -2,7 +2,11 @@
 #include <RadBndryData.H>
 #include <Utility.H>
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define DEF_LIMITS(fab,fabdat,fablo,fabhi)   \
 const int* fablo = (fab).loVect();           \
@@ -47,7 +51,7 @@ RadBndryData::clear_masks()
     }
 }
 
-ostream& operator << (ostream& os, const RadBndryData &mgb)
+std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 {
     const BoxArray& grds = mgb.boxes();
     int ngrds = grds.size();
@@ -61,7 +65,7 @@ ostream& operator << (ostream& os, const RadBndryData &mgb)
 	    os << mgb.masks[f][grd];
 	    os << mgb.bndry[f][grd];
 	}
-	os << "--------------------------------------------------" << endl;
+	os << "--------------------------------------------------" << std::endl;
     }
     return os;
 }

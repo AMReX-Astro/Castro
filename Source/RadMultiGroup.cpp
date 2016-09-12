@@ -8,7 +8,12 @@
 #include "LHH.H"
 
 #include <ParmParse.H>
-#include <Using.H>
+
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void Radiation::get_groups(int verbose)
 {
@@ -163,7 +168,7 @@ void Radiation::get_groups(int verbose)
     }
   }
   else {
-    cout << "What groups to use?" << endl;
+    std::cout << "What groups to use?" << std::endl;
     exit(1);
   }
 
@@ -214,7 +219,7 @@ void Radiation::get_groups(int verbose)
         }
         else if (nNeutrinoGroups[ispec] == 1) {
           // should we support "gray" species?
-          cout << "Species with single energy group not supported" << endl;
+          std::cout << "Species with single energy group not supported" << std::endl;
           exit(1);
         }
         else {
@@ -258,10 +263,10 @@ void Radiation::get_groups(int verbose)
 
   if (ParallelDescriptor::IOProcessor()) {
 
-    ofstream groupfile;
+    std::ofstream groupfile;
     groupfile.open("group_structure.dat");
 
-    groupfile << "# total number of groups = " << nGroups << endl;
+    groupfile << "# total number of groups = " << nGroups << std::endl;
     if (nNeutrinoSpecies > 0) {
       groupfile << "# " << nNeutrinoSpecies
                 << " neutrino species, numbers of groups are: ";
@@ -271,47 +276,47 @@ void Radiation::get_groups(int verbose)
         }
         groupfile << nNeutrinoGroups[n];
       }
-      groupfile << endl;
+      groupfile << std::endl;
     }
-    groupfile << "# group center, group weight" << group_units << endl;
+    groupfile << "# group center, group weight" << group_units << std::endl;
 
     groupfile.precision(10);
     for (int i = 0; i < nGroups; i++) {
       groupfile.width(15);
       groupfile <<  nugroup[i] * group_print_factor << "\t";
       groupfile.width(15);
-      groupfile << dnugroup[i] * group_print_factor << endl;
+      groupfile << dnugroup[i] * group_print_factor << std::endl;
     }
-    groupfile << endl;
+    groupfile << std::endl;
 
     if (xnu.size() > 0) {
-      groupfile << "# group lower boundaries" << endl;
+      groupfile << "# group lower boundaries" << std::endl;
       for (int i = 0; i < xnu.size(); i++) {
         groupfile << "group(" << i << ") = "
-                  << xnu[i] * group_print_factor << endl;
+                  << xnu[i] * group_print_factor << std::endl;
       }
     }
 
     if (dlognugroup.size() > 0) {
-      groupfile << endl;
-      groupfile << "# group width in log space" << endl;
+      groupfile << std::endl;
+      groupfile << "# group width in log space" << std::endl;
       for (int i = 0; i < dlognugroup.size(); i++) {
         groupfile << "group(" << i << ") = "
-                  << dlognugroup[i] << endl;
+                  << dlognugroup[i] << std::endl;
       }      
     }
 
     groupfile.close();
 
     if (verbose >= 1) {
-      write_groups(cout);
+      write_groups(std::cout);
     }
   }
 }
 
 void Radiation::write_groups(ostream& os)
 {
-  os << "# total number of groups = " << nGroups << endl;
+  os << "# total number of groups = " << nGroups << std::endl;
   if (nNeutrinoSpecies > 0) {
     os << "# " << nNeutrinoSpecies
        << " neutrino species, numbers of groups are: ";
@@ -321,11 +326,11 @@ void Radiation::write_groups(ostream& os)
       }
       os << nNeutrinoGroups[n];
     }
-    os << endl;
+    os << std::endl;
   }
 
   if (nGroups > 1) {
-    os << "# group center, group weight" << group_units << endl;
+    os << "# group center, group weight" << group_units << std::endl;
     int oldprec = os.precision(10);
     for (int i = 0; i < nGroups; i++) {
       os.width(3);
@@ -333,16 +338,16 @@ void Radiation::write_groups(ostream& os)
       os.width(15);
       os <<  nugroup[i] * group_print_factor << ", ";
       os.width(15);
-      os << dnugroup[i] * group_print_factor << endl;
+      os << dnugroup[i] * group_print_factor << std::endl;
     }
     os.precision(oldprec);
   }
 
   if (xnu.size() > 0) {
-    os << "# group lower boundaries" << endl;
+    os << "# group lower boundaries" << std::endl;
     for (int i = 0; i < xnu.size(); i++) {
       os << "group(" << i << ") = "
-	 << xnu[i] * group_print_factor << endl;
+	 << xnu[i] * group_print_factor << std::endl;
     }
   }
 }

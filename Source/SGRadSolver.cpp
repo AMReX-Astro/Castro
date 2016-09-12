@@ -11,13 +11,17 @@
 
 #include "RAD_F.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void Radiation::single_group_update(int level, int iteration, int ncycle)
 {
   BL_PROFILE("Radiation::single_group_update");
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "Radiation implicit update, level " << level << "..." << endl;
+    std::cout << "Radiation implicit update, level " << level << "..." << std::endl;
   }
 
   bool has_dcoefs = (Radiation::SolverType == Radiation::SGFLDSolver &&
@@ -253,23 +257,23 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     }
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(20);
+      int oldprec = std::cout.precision(20);
       if (use_conservative_form)
-	cout << "Radiation Update:  Iteration " << it;
+	std::cout << "Radiation Update:  Iteration " << it;
       else
-	cout << "Nonconservative:   Iteration " << it;
-      cout << ", Relative = " << relative << endl;
-      cout << "                              "
-	   << "  Absolute = " << absolute << endl;
-      cout.precision(oldprec);
+	std::cout << "Nonconservative:   Iteration " << it;
+      std::cout << ", Relative = " << relative << std::endl;
+      std::cout << "                              "
+	   << "  Absolute = " << absolute << std::endl;
+      std::cout.precision(oldprec);
     }
 
     if (verbose > 2) {
        for (MFIter fi(frhoes); fi.isValid(); ++fi) {
           if (grids[fi.index()].contains(spot)) {
-             cout << "frhoes: ";
-             for (int m=0; m<1; ++m) cout << frhoes[0](spot,m) << " ";
-             cout << endl;
+             std::cout << "frhoes: ";
+             for (int m=0; m<1; ++m) std::cout << frhoes[0](spot,m) << " ";
+             std::cout << std::endl;
              break;
           }
        }
@@ -289,18 +293,18 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   } while (!converged);
 
   if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
-    int oldprec = cout.precision(20);
-    cout << "Radiation Update:  Iteration " << it
-        << ", Relative = " << relative << endl;
-    cout << "                              "
-        << "  Absolute = " << absolute << endl;
-    cout.precision(oldprec);
+    int oldprec = std::cout.precision(20);
+    std::cout << "Radiation Update:  Iteration " << it
+        << ", Relative = " << relative << std::endl;
+    std::cout << "                              "
+        << "  Absolute = " << absolute << std::endl;
+    std::cout.precision(oldprec);
   }
 
   if (it == maxiter &&
       (relative > reltol && absolute > abstol)) {
     if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      cout << "Implicit Update Failed to Converge" << endl;
+      std::cout << "Implicit Update Failed to Converge" << std::endl;
       BoxLib::Abort("You Lose");
     }
   }
@@ -352,9 +356,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   if (verbose > 2) {
      for (MFIter fi(frhoes); fi.isValid(); ++fi) {
         if (grids[fi.index()].contains(spot)) {
-           cout << "frhoes: ";
-           for (int m=0; m<1; ++m) cout << frhoes[0](spot,m) << " ";
-           cout << endl;
+           std::cout << "frhoes: ";
+           for (int m=0; m<1; ++m) std::cout << frhoes[0](spot,m) << " ";
+           std::cout << std::endl;
            break;
         }
      }
@@ -401,6 +405,6 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "                                     done" << endl;
+    std::cout << "                                     done" << std::endl;
   }
 }

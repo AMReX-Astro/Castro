@@ -8,7 +8,11 @@
 #include "RadSolve.H"
 #include "Radiation.H"  // for access to static physical constants only
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #undef BL_USE_ARLIM
 
@@ -93,13 +97,13 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
   static int first = 1;
   if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
     first = 0;
-    cout << "radsolve.level_solver_flag      = " << level_solver_flag << endl;
-    cout << "radsolve.maxiter                = " << maxiter << endl;
-    cout << "radsolve.reltol                 = " << reltol << endl;
-    cout << "radsolve.abstol                 = " << abstol << endl;
-    cout << "radsolve.use_hypre_nonsymmetric_terms = "
-         << use_hypre_nonsymmetric_terms << endl;
-    cout << "radsolve.verbose                = " << verbose << endl;
+    std::cout << "radsolve.level_solver_flag      = " << level_solver_flag << std::endl;
+    std::cout << "radsolve.maxiter                = " << maxiter << std::endl;
+    std::cout << "radsolve.reltol                 = " << reltol << std::endl;
+    std::cout << "radsolve.abstol                 = " << abstol << std::endl;
+    std::cout << "radsolve.use_hypre_nonsymmetric_terms = "
+         << use_hypre_nonsymmetric_terms << std::endl;
+    std::cout << "radsolve.verbose                = " << verbose << std::endl;
   }
 
   // Static initialization:
@@ -469,9 +473,9 @@ void RadSolve::levelSolve(int level,
     hd->solve(Er, igroup, rhs, Inhomogeneous_BC);
     Real res = hd->getAbsoluteResidual();
     if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(20);
-      cout << "Absolute residual = " << res << endl;
-      cout.precision(oldprec);
+      int oldprec = std::cout.precision(20);
+      std::cout << "Absolute residual = " << res << std::endl;
+      std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
     absres[level] = (absres[level] > res) ? absres[level] : res;
@@ -487,9 +491,9 @@ void RadSolve::levelSolve(int level,
     hm->getSolution(level, Er, igroup);
     Real res = hm->getAbsoluteResidual();
     if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-      int oldprec = cout.precision(20);
-      cout << "Absolute residual = " << res << endl;
-      cout.precision(oldprec);
+      int oldprec = std::cout.precision(20);
+      std::cout << "Absolute residual = " << res << std::endl;
+      std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
     absres[level] = (absres[level] > res) ? absres[level] : res;

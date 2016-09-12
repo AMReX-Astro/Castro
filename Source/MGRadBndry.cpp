@@ -4,7 +4,11 @@
 #include <LO_BCTYPES.H>
 #include "MGRadBndry.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "LHH.H"
 
@@ -180,7 +184,7 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
 	  //bloc[i] = -0.5 * dx[dir];
 	}
 	else {
-	  cerr << "MGRadBndry---Not a recognized boundary condition" << endl;
+	  std::cerr << "MGRadBndry---Not a recognized boundary condition" << std::endl;
 	  exit(1);
 	}
       }
@@ -250,7 +254,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	}
 	else {
 	  if(ParallelDescriptor::IOProcessor()) {
-	    cout << "MGRadBndry ERROR 2: feature not implemented" << endl;
+	    std::cout << "MGRadBndry ERROR 2: feature not implemented" << std::endl;
 	  }
 	  exit(2);
 

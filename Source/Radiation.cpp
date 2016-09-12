@@ -11,7 +11,12 @@
 #include "RAD_F.H"
 #include "PROB_AMR_F.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <sstream>
 
 // Radiation test problems and static parameters.  Some of these are
@@ -602,56 +607,56 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
     int n;
-    cout << "const_c_v     =";
-    for (n = 0; n < 1; n++) cout << " " << const_c_v[n];
-    cout << endl;
-    cout << "const_kappa_p =";
-    for (n = 0; n < 1; n++) cout << " " << const_kappa_p[n];
-    cout << endl;
-    cout << "const_kappa_r =";
-    for (n = 0; n < 1; n++) cout << " " << const_kappa_r[n];
-    cout << endl;
-    cout << "const_scattering =";
-    for (n = 0; n < 1; n++) cout << " " << const_scattering[n];
-    cout << endl;
-    cout << "c_v_exp_m     =";
-    for (n = 0; n < 1; n++) cout << " " << c_v_exp_m[n];
-    cout << endl;
-    cout << "c_v_exp_n     =";
-    for (n = 0; n < 1; n++) cout << " " << c_v_exp_n[n];
-    cout << endl;
-    cout << "kappa_p_exp_m =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_p_exp_m[n];
-    cout << endl;
-    cout << "kappa_p_exp_n =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_p_exp_n[n];
-    cout << endl;
-    cout << "kappa_p_exp_p =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_p_exp_p[n];
-    cout << endl;
-    cout << "kappa_r_exp_m =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_r_exp_m[n];
-    cout << endl;
-    cout << "kappa_r_exp_n =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_r_exp_n[n];
-    cout << endl;
-    cout << "kappa_r_exp_p =";
-    for (n = 0; n < 1; n++) cout << " " << kappa_r_exp_p[n];
-    cout << endl;
-    cout << "scattering_exp_m =";
-    for (n = 0; n < 1; n++) cout << " " << scattering_exp_m[n];
-    cout << endl;
-    cout << "scattering_exp_n =";
-    for (n = 0; n < 1; n++) cout << " " << scattering_exp_n[n];
-    cout << endl;
-    cout << "scattering_exp_p =";
-    for (n = 0; n < 1; n++) cout << " " << scattering_exp_p[n];
-    cout << endl;
-    cout << "prop_temp_floor =";
-    for (n = 0; n < 1; n++) cout << " " << prop_temp_floor[n];
-    cout << endl;
-    cout << "kappa_r_floor = " << kappa_r_floor << endl;
-    cout << "temp_floor    = " << temp_floor << endl;
+    std::cout << "const_c_v     =";
+    for (n = 0; n < 1; n++) std::cout << " " << const_c_v[n];
+    std::cout << std::endl;
+    std::cout << "const_kappa_p =";
+    for (n = 0; n < 1; n++) std::cout << " " << const_kappa_p[n];
+    std::cout << std::endl;
+    std::cout << "const_kappa_r =";
+    for (n = 0; n < 1; n++) std::cout << " " << const_kappa_r[n];
+    std::cout << std::endl;
+    std::cout << "const_scattering =";
+    for (n = 0; n < 1; n++) std::cout << " " << const_scattering[n];
+    std::cout << std::endl;
+    std::cout << "c_v_exp_m     =";
+    for (n = 0; n < 1; n++) std::cout << " " << c_v_exp_m[n];
+    std::cout << std::endl;
+    std::cout << "c_v_exp_n     =";
+    for (n = 0; n < 1; n++) std::cout << " " << c_v_exp_n[n];
+    std::cout << std::endl;
+    std::cout << "kappa_p_exp_m =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_p_exp_m[n];
+    std::cout << std::endl;
+    std::cout << "kappa_p_exp_n =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_p_exp_n[n];
+    std::cout << std::endl;
+    std::cout << "kappa_p_exp_p =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_p_exp_p[n];
+    std::cout << std::endl;
+    std::cout << "kappa_r_exp_m =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_r_exp_m[n];
+    std::cout << std::endl;
+    std::cout << "kappa_r_exp_n =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_r_exp_n[n];
+    std::cout << std::endl;
+    std::cout << "kappa_r_exp_p =";
+    for (n = 0; n < 1; n++) std::cout << " " << kappa_r_exp_p[n];
+    std::cout << std::endl;
+    std::cout << "scattering_exp_m =";
+    for (n = 0; n < 1; n++) std::cout << " " << scattering_exp_m[n];
+    std::cout << std::endl;
+    std::cout << "scattering_exp_n =";
+    for (n = 0; n < 1; n++) std::cout << " " << scattering_exp_n[n];
+    std::cout << std::endl;
+    std::cout << "scattering_exp_p =";
+    for (n = 0; n < 1; n++) std::cout << " " << scattering_exp_p[n];
+    std::cout << std::endl;
+    std::cout << "prop_temp_floor =";
+    for (n = 0; n < 1; n++) std::cout << " " << prop_temp_floor[n];
+    std::cout << std::endl;
+    std::cout << "kappa_r_floor = " << kappa_r_floor << std::endl;
+    std::cout << "temp_floor    = " << temp_floor << std::endl;
   }
 
   if (SolverType == MGFLDSolver ) {
@@ -672,7 +677,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
       IntVect tempi(temp);
       spot = tempi;
     }
-    if (ParallelDescriptor::IOProcessor()) cout << "Spot: " << spot << endl;
+    if (ParallelDescriptor::IOProcessor()) std::cout << "Spot: " << spot << std::endl;
   }
 
   // This call stores the value of surface_average in the kavg
@@ -681,59 +686,59 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   FORT_KAVG(foo, foo, foo, surface_average);
 
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-    cout << "Creating Radiation object" << endl;
+    std::cout << "Creating Radiation object" << std::endl;
   }
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    cout << "processors = " << ParallelDescriptor::NProcs() << endl;
-    cout << "do_sync            = " << do_sync << endl;
-    cout << "use_analytic_solution = " << use_analytic_solution << endl;
+    std::cout << "processors = " << ParallelDescriptor::NProcs() << std::endl;
+    std::cout << "do_sync            = " << do_sync << std::endl;
+    std::cout << "use_analytic_solution = " << use_analytic_solution << std::endl;
 
-    cout << "c        = " << c << endl;
-    cout << "sigma    = " << sigma << endl;
-    cout << "reltol   = " << reltol << endl;
-    cout << "abstol   = " << abstol << endl;
-    cout << "maxiter  = " << maxiter << endl;
-    cout << "relInTol = " << relInTol << endl;
-    cout << "absInTol = " << absInTol << endl;
-    cout << "maxInIter = " << maxInIter << endl;
-    cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << endl;
-    cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << endl;
-    cout << "delta_Ye_dt_tol    = " << delta_Ye_dt_tol    << endl;
-    cout << "limiter  = " << limiter << endl;
-    cout << "closure  = " << closure << endl;
-    cout << "update_limiter   = " << update_limiter << endl;
-    cout << "update_planck    = " << update_planck << endl;
-    cout << "update_rosseland = " << update_rosseland << endl;
-    cout << "delta_temp = " << dT << endl;
-    cout << "surface_average = " << surface_average << endl;
-    cout << "underfac = " << underfac << endl;
-    cout << "do_real_eos = " << do_real_eos << endl;
-    cout << "do_multigroup = " << do_multigroup << endl;
-    cout << "accelerate = " << accelerate << endl;
-    cout << "verbose  = " << verbose << endl;
+    std::cout << "c        = " << c << std::endl;
+    std::cout << "sigma    = " << sigma << std::endl;
+    std::cout << "reltol   = " << reltol << std::endl;
+    std::cout << "abstol   = " << abstol << std::endl;
+    std::cout << "maxiter  = " << maxiter << std::endl;
+    std::cout << "relInTol = " << relInTol << std::endl;
+    std::cout << "absInTol = " << absInTol << std::endl;
+    std::cout << "maxInIter = " << maxInIter << std::endl;
+    std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
+    std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
+    std::cout << "delta_Ye_dt_tol    = " << delta_Ye_dt_tol    << std::endl;
+    std::cout << "limiter  = " << limiter << std::endl;
+    std::cout << "closure  = " << closure << std::endl;
+    std::cout << "update_limiter   = " << update_limiter << std::endl;
+    std::cout << "update_planck    = " << update_planck << std::endl;
+    std::cout << "update_rosseland = " << update_rosseland << std::endl;
+    std::cout << "delta_temp = " << dT << std::endl;
+    std::cout << "surface_average = " << surface_average << std::endl;
+    std::cout << "underfac = " << underfac << std::endl;
+    std::cout << "do_real_eos = " << do_real_eos << std::endl;
+    std::cout << "do_multigroup = " << do_multigroup << std::endl;
+    std::cout << "accelerate = " << accelerate << std::endl;
+    std::cout << "verbose  = " << verbose << std::endl;
     if (RadTests::do_thermal_wave_cgs)
-      cout << "do_thermal_wave_cgs = " << RadTests::do_thermal_wave_cgs << endl;
+      std::cout << "do_thermal_wave_cgs = " << RadTests::do_thermal_wave_cgs << std::endl;
     if (RadTests::do_rad_sphere)
-      cout << "do_rad_sphere = " << RadTests::do_rad_sphere << endl;
+      std::cout << "do_rad_sphere = " << RadTests::do_rad_sphere << std::endl;
     if (SolverType == SingleGroupSolver) {
-      cout << "SolverType = 0: SingleGroupSolver " << endl;
+      std::cout << "SolverType = 0: SingleGroupSolver " << std::endl;
     }
     else if (SolverType == SGFLDSolver) {
-      cout << "SolverType = 5: SGFLDSolver " << endl;
+      std::cout << "SolverType = 5: SGFLDSolver " << std::endl;
     }
     else if (SolverType == MGFLDSolver) {
-      cout << "SolverType = 6: MGFLDSolver " << endl;
+      std::cout << "SolverType = 6: MGFLDSolver " << std::endl;
     }
     if (SolverType == MGFLDSolver || SolverType == SGFLDSolver) {
-      cout << "rad_hydro_combined = " << rad_hydro_combined << endl;
-      cout << "comoving = " << comoving << endl;
+      std::cout << "rad_hydro_combined = " << rad_hydro_combined << std::endl;
+      std::cout << "comoving = " << comoving << std::endl;
     }
     if (SolverType == MGFLDSolver) {
-      cout << "fspace_advection_type = " << fspace_advection_type << endl;
-      cout << "do_inelastic_scattering = " << do_inelastic_scattering << endl;
+      std::cout << "fspace_advection_type = " << fspace_advection_type << std::endl;
+      std::cout << "do_inelastic_scattering = " << do_inelastic_scattering << std::endl;
     }
     if (SolverType == SGFLDSolver && comoving == 0) {
-      cout << "Er_Lorentz_term = " << Er_Lorentz_term << endl;
+      std::cout << "Er_Lorentz_term = " << Er_Lorentz_term << std::endl;
     }
   }
 
@@ -747,7 +752,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
       int iverb = (verbose >= 1 && ParallelDescriptor::IOProcessor());
       //      int iverb = 0;
       if (iverb) {
-        cout << "reading opacity tables..." << endl;
+        std::cout << "reading opacity tables..." << std::endl;
       }
       FORT_INIT_OPACITY_TABLE(iverb);
     }
@@ -772,8 +777,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     rad_bc.setLo(i,lo_bc[i]);
     rad_bc.setHi(i,hi_bc[i]);
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-      cout << "dimension " << i << " rad boundary conditions = "
-            << lo_bc[i] << ", " << hi_bc[i] << endl;
+      std::cout << "dimension " << i << " rad boundary conditions = "
+            << lo_bc[i] << ", " << hi_bc[i] << std::endl;
     }
   }
 
@@ -812,7 +817,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   if (pure_hydro || limiter == 0) {
       if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-	  cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << endl;
+	  std::cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << std::endl;
       }
       do_inelastic_scattering = 0;
   }
@@ -825,8 +830,8 @@ void Radiation::regrid(int level, const BoxArray& grids)
 {
   BL_PROFILE("Radiation::Regrid");
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-    cout << "Regridding radiation object at level " << level
-	 << "..." << endl;
+    std::cout << "Regridding radiation object at level " << level
+	 << "..." << std::endl;
   }
   if (level > 0) {
     IntVect crse_ratio = parent->refRatio(level-1);
@@ -864,7 +869,7 @@ void Radiation::regrid(int level, const BoxArray& grids)
   // regridded:
 
   if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-    cout << "                                         done" << endl;
+    std::cout << "                                         done" << std::endl;
   }
 }
 
@@ -873,8 +878,8 @@ void Radiation::close(int level)
   // Only appropriate when a level disappears, otherwise see regrid:
   if (level > parent->finestLevel()) {
     if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      cout << "Clearing radiation object at level " << level
-            << "..." << endl;
+      std::cout << "Clearing radiation object at level " << level
+            << "..." << std::endl;
     }
     if (flux_cons.defined(level))
       delete flux_cons.remove(level);
@@ -891,7 +896,7 @@ void Radiation::close(int level)
 	delete plotvar.remove(level);
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-      cout << "                                       done" << endl;
+      std::cout << "                                       done" << std::endl;
     }
 
     // When a level is closed, then we have to make sure there is
@@ -1096,10 +1101,10 @@ void Radiation::analytic_solution(int level)
     //    /. 
     Real Tc = pow(xi0,3)*pow((p*xi0*xi0/(6.*p+4.)),1./p)*Tbar;
 
-    //cout << xi0 << " " << pfac << endl;
+    //std::cout << xi0 << " " << pfac << std::endl;
     if (verbose > 1 && level == 0 && ParallelDescriptor::IOProcessor()) {
-      cout << "Front velocity = " << xf / (time * (3.0 * p + 2.0)) 
-	   << "   Front position = " << xf << endl;
+      std::cout << "Front velocity = " << xf / (time * (3.0 * p + 2.0)) 
+	   << "   Front position = " << xf << std::endl;
     }
 
     MultiFab& S_new = castro->get_new_data(State_Type);
@@ -1178,8 +1183,8 @@ void Radiation::init_flux(int level, int ncycle)
 {
   BL_PROFILE("Radiation::init_flux");
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-    cout << "Radiation flux initialization at level " << level
-	 << "..." << endl;
+    std::cout << "Radiation flux initialization at level " << level
+	 << "..." << std::endl;
   }
 
   int fine_level = parent->finestLevel();
@@ -1191,7 +1196,7 @@ void Radiation::init_flux(int level, int ncycle)
   }
 
   if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-    cout << "                                           done" << endl;
+    std::cout << "                                           done" << std::endl;
   }
 }
 
@@ -1753,7 +1758,7 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
     FORT_NFLOOR(temp.dataPtr(), dimlist(tbox), dimlist(reg),
 		numfloor, temp_floor, temp.nComp());
     if (verbose > 2 && numfloor > 0) {
-	cout << numfloor << " temperatures raised to floor" << endl;
+	std::cout << numfloor << " temperatures raised to floor" << std::endl;
     }
 }
 
@@ -1983,7 +1988,7 @@ void Radiation::deferred_sync_setup(int crse_level)
 {
   BL_PROFILE("Radiation::deferred_sync_setup");
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    cout << "Radiation deferred sync setup for coarse level " << crse_level << "..." << endl;
+    std::cout << "Radiation deferred sync setup for coarse level " << crse_level << "..." << std::endl;
   }
 
   // sync is only called if this is not the finest level
@@ -2017,12 +2022,12 @@ void Radiation::deferred_sync_setup(int crse_level)
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
     if (do_sync) {
-      cout << "                                                   done"
-           << endl;
+      std::cout << "                                                   done"
+           << std::endl;
     }
     else {
-      cout << "                                                   zeroed out"
-           << endl;
+      std::cout << "                                                   zeroed out"
+           << std::endl;
     }
   }
 }
@@ -2537,9 +2542,9 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    }
 	    
 	    if (use_opacity_table_module) {
-		cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
+		std::cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
 		     << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
-		     << "when use_opacity_table_module=1"<<endl;
+		     << "when use_opacity_table_module=1"<<std::endl;
 		BoxLib::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
 	    }
 	    

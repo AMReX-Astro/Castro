@@ -9,7 +9,11 @@
 #include "_hypre_sstruct_mv.h"
 #include "HYPRE_krylov.h"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 static int ispow2(int i)
 {
@@ -53,14 +57,14 @@ void AuxVar::collapse()
   // AuxVar to include additional entries so long as they don't point
   // to any new locations not already established in the graph.
 
-  for (list<Connex>::iterator it = a.begin(); it != a.end(); ) {
+  for (std::list<Connex>::iterator it = a.begin(); it != a.end(); ) {
     AuxVar *o = it->other;
     if (o) {
-      list<Connex>::iterator kt = it;
+      std::list<Connex>::iterator kt = it;
       a.insert(++kt, o->a.begin(), o->a.end());
 
       // multiply inserted entries by it->var here:
-      for (list<Connex>::iterator jt = it; ++jt != kt; ) {
+      for (std::list<Connex>::iterator jt = it; ++jt != kt; ) {
         jt->val *= it->val;
       }
 
@@ -75,11 +79,11 @@ void AuxVar::collapse()
 
   // Combine entries that point to same cell:
 
-  for (list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
-    for (list<Connex>::iterator jt = it; ++jt != a.end(); ) {
+  for (std::list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
+    for (std::list<Connex>::iterator jt = it; ++jt != a.end(); ) {
       if (it->same_target(*jt)) {
         it->val += jt->val;
-        list<Connex>::iterator kt = jt;
+        std::list<Connex>::iterator kt = jt;
         --jt;
         a.erase(kt);
       }
@@ -104,7 +108,7 @@ int AuxVar::get_locations(Array<int>& levels, Array<IntVect>& cells)
   cells.resize(n);
 
   int i = 0;
-  for (list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
+  for (std::list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
     if (it->other != NULL) {
       return 2; // failure
     }
@@ -126,7 +130,7 @@ int AuxVar::get_coeffs(Array<Real>& values)
   values.resize(n);
 
   int i = 0;
-  for (list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
+  for (std::list<Connex>::iterator it = a.begin(); it != a.end(); ++it) {
     if (it->other != NULL) {
       return 2; // failure
     }
@@ -255,8 +259,8 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
     fine_index[ori].resize(cgrids.size());
 
     for (int i = firstLocal(); isValid(i); i = nextLocal(i)) {
-      list<Box> bl;
-      list<int> fi;
+      std::list<Box> bl;
+      std::list<int> fi;
       for (int j = 0; j < fgrids.size(); j++) {
         Box face = BoxLib::adjCell(fgrids[j], ori);
         if (cgrids[i].intersects(face)) {
@@ -276,12 +280,12 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
       fine_index[ori][i].resize(n);
 
       int j = 0;
-      for (list<int>::iterator it = fi.begin(); it != fi.end(); ++it) {
+      for (std::list<int>::iterator it = fi.begin(); it != fi.end(); ++it) {
         fine_index[ori][i][j++] = *it;
       }
 
       j = 0;
-      for (list<Box>::iterator it = bl.begin(); it != bl.end(); ++it) {
+      for (std::list<Box>::iterator it = bl.begin(); it != bl.end(); ++it) {
         aux[ori][i].set(j, new AuxVarBox(*it));
         Box mask_box = *it;
         for (int dir = 0; dir < BL_SPACEDIM; dir++) {
@@ -627,10 +631,10 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
   static int first = 1;
   if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
     first = 0;
-    cout << "hmabec.bho               = " << bho << endl;
-    cout << "hmabec.use_subgrids      = " << use_subgrids << endl;
-    cout << "hmabec.verbose           = " << verbose << endl;
-    cout << "hmabec.verbose_threshold = " << verbose_threshold << endl;
+    std::cout << "hmabec.bho               = " << bho << std::endl;
+    std::cout << "hmabec.use_subgrids      = " << use_subgrids << std::endl;
+    std::cout << "hmabec.verbose           = " << verbose << std::endl;
+    std::cout << "hmabec.verbose_threshold = " << verbose_threshold << std::endl;
   }
 
   if (solver_flag == 100 || solver_flag == 102 || solver_flag == 104 ||
@@ -649,7 +653,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
     ObjectType = HYPRE_STRUCT;
   }
   else {
-    cout << "HypreMultiABec: no such solver" << endl;
+    std::cout << "HypreMultiABec: no such solver" << std::endl;
     exit(1);
   }
 
@@ -788,10 +792,10 @@ void HypreMultiABec::addLevel(int             level,
       if (distributionMap[i] == myid) {
         subgrids[level][i] = BoxLib::complementIn(grids[level][i], mask);
 #if 0
-        cout << "Coarse level, grid " << i << " subgrids are "
-             << subgrids[level][i] << endl;
-        cout << "Box numPts = " << grids[level][i].numPts()
-             << "Subgrids numPts = " << subgrids[level][i].numPts() << endl;
+        std::cout << "Coarse level, grid " << i << " subgrids are "
+             << subgrids[level][i] << std::endl;
+        std::cout << "Box numPts = " << grids[level][i].numPts()
+             << "Subgrids numPts = " << subgrids[level][i].numPts() << std::endl;
 #endif
         for (int j = 0; j < subgrids[level][i].size(); j++) {
           HYPRE_SStructGridSetExtents(grid, part,
@@ -807,7 +811,7 @@ void HypreMultiABec::addLevel(int             level,
   HYPRE_SStructGridSetVariables(grid, part, 1, vars);
 }
 
-static void 
+static void
 TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
                       const Box& reg, const Box& creg,
                       D_DECL(const IntVect& rat, const Iv& vj1, const Iv& vk1),
@@ -957,7 +961,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
   }
 }
 
-static void 
+static void
 NormalDerivative(AuxVarBox& ederiv, AuxVarBox& cintrp,
                  const Mask& msk, const Box& reg,
                  const IntVect& vin, Real h, int r, int bho, int flevel)
@@ -998,7 +1002,7 @@ void HypreMultiABec::buildMatrixStructure()
     acoefs[level].setVal(0.0);
 
     bcoefs.set(level, new Tuple<MultiFab, BL_SPACEDIM>);
- 
+
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -1070,7 +1074,7 @@ void HypreMultiABec::buildMatrixStructure()
     ederiv.set(level, new BndryAuxVar(grids[level], BndryAuxVar::GHOST));
     BndryAuxVar entry(grids[level], BndryAuxVar::INTERIOR);
     IntVect rat = fine_ratio[level-1];
-    
+
     for (OrientationIter oitr; oitr; ++oitr) {
       Orientation ori = oitr();
       int idir = ori.coordDir();
@@ -1134,9 +1138,9 @@ void HypreMultiABec::buildMatrixStructure()
 #if (0 && !defined(NDEBUG))
           if (msk(v+vin) == RadBndryData::not_covered &&
               entry(ori)[i](v).slave()) {
-            cout << v << " is slave in orientation " << ori
+            std::cout << v << " is slave in orientation " << ori
                  << " on processor " << ParallelDescriptor::MyProc()
-                 << endl;
+                 << std::endl;
           }
 #endif
           // Even if this entry is covered, it could have a
@@ -1196,7 +1200,7 @@ void HypreMultiABec::buildMatrixStructure()
     c_entry.set( level, new CrseBndryAuxVar(c_cgrids, c_fgrids,
                                             c_cintrp[level],
                                             BndryAuxVar::EXTERIOR));
-    
+
     for (OrientationIter oitr; oitr; ++oitr) {
       Orientation ori = oitr();
       int idir = ori.coordDir();
@@ -1347,7 +1351,7 @@ void HypreMultiABec::aCoefficients(int level, const MultiFab &a)
   BL_ASSERT( a.boxArray() == acoefs[level].boxArray() );
   MultiFab::Copy(acoefs[level], a, 0, 0, 1, 0);
 }
- 
+
 void HypreMultiABec::bCoefficients(int level, const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
@@ -1457,7 +1461,7 @@ void HypreMultiABec::loadMatrix()
             }
             const Box &fsb = bd[level].bndryValues(oitr())[mfi].box();
 	    Real* pSPa;
-	    Box SPabox; 
+	    Box SPabox;
 	    if (SPa.defined(level)) {
 	      pSPa = SPa[level][mfi].dataPtr();
 	      SPabox = SPa[level][mfi].box();
@@ -1742,7 +1746,7 @@ void HypreMultiABec::finalizeMatrix()
 // dump the matrix
 #if 0
   HYPRE_SStructMatrixPrint("mat", A, 0);
-  cout << "printing done" << endl;
+  std::cout << "printing done" << std::endl;
   //cin.get();
 #endif
 #if 0
@@ -1750,7 +1754,7 @@ void HypreMultiABec::finalizeMatrix()
   HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
 
   HYPRE_ParCSRMatrixPrint(par_A, "mat");
-  cin.get();
+  std::cin.get();
 #endif
 }
 
@@ -1986,7 +1990,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_SStructMatrixPrint("A", A, 0);
     HYPRE_SStructVectorPrint("B", b, 0);
     cin.get();
-    cout << "HypreMultiABec: creating solver" << endl;
+    std::cout << "HypreMultiABec: creating solver" << std::endl;
 #endif
     HYPRE_BoomerAMGCreate(&solver);
     HYPRE_BoomerAMGSetMinIter(solver, 1);
@@ -2078,7 +2082,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     finalizeVectors();
 
     HYPRE_SStructFACSetup2(sstruct_solver, A, b, x);
-    cin.get();
+    std::cin.get();
 
     delete[] plevels;
     delete[] prefinements;
@@ -2097,7 +2101,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.kdim            = " << kdim << endl;
+      std::cout << "hmabec.kdim            = " << kdim << std::endl;
     }
 
     HYPRE_ParCSRGMRESCreate(MPI_COMM_WORLD, &solver);
@@ -2114,7 +2118,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.kdim            = " << kdim << endl;
+      std::cout << "hmabec.kdim            = " << kdim << std::endl;
     }
 
     HYPRE_SStructGMRESCreate(MPI_COMM_WORLD, &sstruct_solver);
@@ -2163,7 +2167,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.kdim            = " << kdim << endl;
+      std::cout << "hmabec.kdim            = " << kdim << std::endl;
     }
 
     HYPRE_ParCSRGMRESCreate(MPI_COMM_WORLD, &solver);
@@ -2210,20 +2214,20 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.kdim            = " << kdim << endl;
-      cout << "hmabec.interp          = " << interp << endl;
-      cout << "hmabec.coarsen         = " << coarsen << endl;
-      cout << "hmabec.relax           = " << relax << endl;
-      cout << "hmabec.strong          = " << strong << endl;
-      cout << "hmabec.trunc           = " << trunc << endl;
+      std::cout << "hmabec.kdim            = " << kdim << std::endl;
+      std::cout << "hmabec.interp          = " << interp << std::endl;
+      std::cout << "hmabec.coarsen         = " << coarsen << std::endl;
+      std::cout << "hmabec.relax           = " << relax << std::endl;
+      std::cout << "hmabec.strong          = " << strong << std::endl;
+      std::cout << "hmabec.trunc           = " << trunc << std::endl;
       if (p_max_elmts >= 0) {
-        cout << "hmabec.p_max_elmts     = " << p_max_elmts << endl;
+        std::cout << "hmabec.p_max_elmts     = " << p_max_elmts << std::endl;
       }
       if (agg_num_levels >= 0) {
-        cout << "hmabec.agg_num_levels  = " << agg_num_levels << endl;
+        std::cout << "hmabec.agg_num_levels  = " << agg_num_levels << std::endl;
       }
       if (num_paths >= 0) {
-        cout << "hmabec.num_paths       = " << num_paths << endl;
+        std::cout << "hmabec.num_paths       = " << num_paths << std::endl;
       }
     }
 
@@ -2265,23 +2269,23 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     ParmParse pp("hmabec");
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.struct_iter     = " << struct_iter << endl;
+      std::cout << "hmabec.struct_iter     = " << struct_iter << std::endl;
       if (struct_flag == 0) {
-        cout << "hmabec.struct_flag     = HYPRE_SMG" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_SMG" << std::endl;
       }
       else if (struct_flag == 1) {
-        cout << "hmabec.struct_flag     = HYPRE_PFMG" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_PFMG" << std::endl;
       }
       else {
-        cout << "hmabec.struct_flag     = HYPRE_Jacobi" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_Jacobi" << std::endl;
       }
     }
 
@@ -2314,25 +2318,25 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     int split_iter  = 1; pp.query("split_iter",  split_iter);
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "hmabec.kdim            = " << kdim << endl;
-      cout << "hmabec.split_iter      = " << split_iter << endl;
-      cout << "hmabec.struct_iter     = " << struct_iter << endl;
+      std::cout << "hmabec.kdim            = " << kdim << std::endl;
+      std::cout << "hmabec.split_iter      = " << split_iter << std::endl;
+      std::cout << "hmabec.struct_iter     = " << struct_iter << std::endl;
       if (struct_flag == 0) {
-        cout << "hmabec.struct_flag     = HYPRE_SMG" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_SMG" << std::endl;
       }
       else if (struct_flag == 1) {
-        cout << "hmabec.struct_flag     = HYPRE_PFMG" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_PFMG" << std::endl;
       }
       else {
-        cout << "hmabec.struct_flag     = HYPRE_Jacobi" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_Jacobi" << std::endl;
       }
     }
 
@@ -2381,16 +2385,16 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     static int first = 1;
     if (struct_flag == 0) {
       if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
         first = 0;
-        cout << "hmabec.struct_flag     = HYPRE_SMG" << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_SMG" << std::endl;
       }
       HYPRE_StructSMGCreate(MPI_COMM_WORLD, &struct_solver);
       HYPRE_StructSMGSetMemoryUse(struct_solver, 0);
@@ -2406,8 +2410,8 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       int pfmg_relax_type = 1; pp.query("pfmg_relax_type", pfmg_relax_type);
       if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
         first = 0;
-        cout << "hmabec.struct_flag     = HYPRE_PFMG" << endl;
-        cout << "hmabec.pfmg_relax_type = " << pfmg_relax_type << endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_PFMG" << std::endl;
+        std::cout << "hmabec.pfmg_relax_type = " << pfmg_relax_type << std::endl;
       }
       HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &struct_solver);
       //HYPRE_StructPFMGSetMemoryUse(struct_solver, 0);
@@ -2436,9 +2440,9 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     ParmParse pp("hmabec");
     int kdim = 5; pp.query("kdim", kdim);
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
 
@@ -2452,8 +2456,8 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     if (struct_flag == 0) {
       if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
         first = 0;
-        cout << "hmabec.kdim            = " << kdim << endl;
-        cout << "hmabec.struct_flag     = HYPRE_SMG" << endl;
+        std::cout << "hmabec.kdim            = " << kdim << std::endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_SMG" << std::endl;
       }
       HYPRE_StructSMGCreate(MPI_COMM_WORLD, &struct_precond);
       HYPRE_StructSMGSetMemoryUse(struct_precond, 0);
@@ -2474,11 +2478,11 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       int pfmg_post_relax = 1; pp.query("pfmg_post_relax", pfmg_post_relax);
       if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
         first = 0;
-        cout << "hmabec.kdim            = " << kdim << endl;
-        cout << "hmabec.struct_flag     = HYPRE_PFMG" << endl;
-        cout << "hmabec.pfmg_relax_type = " << pfmg_relax_type << endl;
-        cout << "hmabec.pfmg_pre_relax  = " << pfmg_pre_relax << endl;
-        cout << "hmabec.pfmg_post_relax = " << pfmg_post_relax << endl;
+        std::cout << "hmabec.kdim            = " << kdim << std::endl;
+        std::cout << "hmabec.struct_flag     = HYPRE_PFMG" << std::endl;
+        std::cout << "hmabec.pfmg_relax_type = " << pfmg_relax_type << std::endl;
+        std::cout << "hmabec.pfmg_pre_relax  = " << pfmg_pre_relax << std::endl;
+        std::cout << "hmabec.pfmg_post_relax = " << pfmg_post_relax << std::endl;
       }
       HYPRE_StructPFMGCreate(MPI_COMM_WORLD, &struct_precond);
       //HYPRE_StructPFMGSetMemoryUse(struct_precond, 0);
@@ -2514,7 +2518,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_SStructMatrixPrint("A", A, 0);
     HYPRE_SStructVectorPrint("B", b, 0);
     cin.get();
-    cout << "HypreMultiABec: creating solver" << endl;
+    std::cout << "HypreMultiABec: creating solver" << std::endl;
 #endif
     HYPRE_BoomerAMGCreate(&solver);
     HYPRE_BoomerAMGSetMinIter(solver, 1);
@@ -2573,7 +2577,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
        HYPRE_BoomerAMGSetAggNumLevels(precond, 1);
        HYPRE_BoomerAMGSetNumPaths(precond, 2);
     }
-    HYPRE_PCGSetPrecond(solver, 
+    HYPRE_PCGSetPrecond(solver,
                         (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSolve,
                         (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSetup,
                         precond );
@@ -2604,7 +2608,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
   }
   else {
-    cout << "HypreMultiABec: no such solver" << endl;
+    std::cout << "HypreMultiABec: no such solver" << std::endl;
     exit(1);
   }
 }
@@ -2643,9 +2647,9 @@ void HypreMultiABec::clearSolver()
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     if (struct_flag == 0) {
@@ -2658,9 +2662,9 @@ void HypreMultiABec::clearSolver()
   else if (solver_flag == 109) {
     ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     HYPRE_StructGMRESDestroy((HYPRE_StructSolver) solver);
@@ -2738,9 +2742,9 @@ void HypreMultiABec::solve()
       else if (solver_flag == 108) {
         ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-	int struct_flag = 0; 
+	int struct_flag = 0;
 #else
-	int struct_flag = 1; 
+	int struct_flag = 1;
 #endif
 	pp.query("struct_flag", struct_flag);
         if (struct_flag == 0) {
@@ -2773,9 +2777,9 @@ void HypreMultiABec::solve()
     HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
     HYPRE_SStructVectorGetObject(b, (void**) &par_b);
     HYPRE_SStructVectorGetObject(x, (void**) &par_x);
-    //cout << "HypreMultiABec: starting solver..." << endl;
+    //std::cout << "HypreMultiABec: starting solver..." << std::endl;
     HYPRE_BoomerAMGSolve(solver, par_A, par_b, par_x);
-    //cout << "                                  done." << endl;
+    //std::cout << "                                  done." << std::endl;
     //HYPRE_SStructVectorPrint("Xamg", x, 0);
     //HYPRE_SStructVectorPrint("Bamg", b, 0);
     //cin.get();
@@ -2834,9 +2838,9 @@ void HypreMultiABec::solve()
     HYPRE_SStructVectorGetObject(x, (void**) &s_x);
     ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     if (struct_flag == 0) {
@@ -2866,7 +2870,7 @@ void HypreMultiABec::solve()
     HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
     HYPRE_SStructVectorGetObject(b, (void**) &par_b);
     HYPRE_SStructVectorGetObject(x, (void**) &par_x);
-    //cout << "HypreMultiABec: starting solver..." << endl;
+    //std::cout << "HypreMultiABec: starting solver..." << std::endl;
     HYPRE_BoomerAMGSolve(solver, par_A, par_b, par_x);
     HYPRE_SStructVectorGather(x);
 
@@ -2875,10 +2879,10 @@ void HypreMultiABec::solve()
     MPI_Comm_rank(MPI_COMM_WORLD, &myid );
     if (!myid)
     {
-       cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
-            << res << endl;
+       std::cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
+            << res << std::endl;
     }
-    //cout << "                                  done." << endl;
+    //std::cout << "                                  done." << std::endl;
     //HYPRE_SStructVectorPrint("Xamg", x, 0);
     //HYPRE_SStructVectorPrint("Bamg", b, 0);
     //cin.get();
@@ -2890,7 +2894,7 @@ void HypreMultiABec::solve()
     HYPRE_ParCSRMatrix par_A;
     HYPRE_ParVector par_b;
     HYPRE_ParVector par_x;
-                                                                                                                                      
+
     HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
     HYPRE_SStructVectorGetObject(b, (void**) &par_b);
     HYPRE_SStructVectorGetObject(x, (void**) &par_x);
@@ -2903,8 +2907,8 @@ void HypreMultiABec::solve()
     MPI_Comm_rank(MPI_COMM_WORLD, &myid );
     if (!myid)
     {
-       cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
-            << res << endl;
+       std::cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
+            << res << std::endl;
     }
   }
   else if (solver_flag == 152) {
@@ -2920,8 +2924,8 @@ void HypreMultiABec::solve()
     MPI_Comm_rank(MPI_COMM_WORLD, &myid );
     if (!myid)
     {
-       cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
-            << res << endl;
+       std::cout << num_iterations << " Hypre Multigrid Iterations_inside, Relative Residual "
+            << res << std::endl;
     }
   }
 
@@ -2965,9 +2969,9 @@ void HypreMultiABec::solve()
     else if (solver_flag == 108) {
       ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-      int struct_flag = 0; 
+      int struct_flag = 0;
 #else
-      int struct_flag = 1; 
+      int struct_flag = 1;
 #endif
       pp.query("struct_flag", struct_flag);
       HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
@@ -2995,15 +2999,15 @@ void HypreMultiABec::solve()
     }
 
     if (num_iterations >= verbose_threshold) {
-      int oldprec = cout.precision(20);
+      int oldprec = std::cout.precision(20);
       if (Radiation::current_group_number >= 0) {
-	cout << Radiation::current_group_name << " Group " 
+	std::cout << Radiation::current_group_name << " Group "
 	     << Radiation::current_group_number << ": ";
       }
-      cout << num_iterations
+      std::cout << num_iterations
            << " Hypre Multigrid Iterations, Relative Residual "
-           << res << endl;
-      cout.precision(oldprec);
+           << res << std::endl;
+      std::cout.precision(oldprec);
     }
 
   }
@@ -3015,7 +3019,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
 #if 0
   HYPRE_SStructVectorPrint("vec", x, 0);
-  cout << "printing done" << endl;
+  std::cout << "printing done" << std::endl;
   cin.get();
 #endif
 
@@ -3079,9 +3083,9 @@ Real HypreMultiABec::getAbsoluteResidual()
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-    int struct_flag = 0; 
+    int struct_flag = 0;
 #else
-    int struct_flag = 1; 
+    int struct_flag = 1;
 #endif
     pp.query("struct_flag", struct_flag);
     HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
@@ -3127,7 +3131,7 @@ void HypreMultiABec::boundaryFlux(int level,
     {
 	Array<Real> r;
 	Real foo=1.e200;
-	
+
 	for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
 	    int i = mfi.index();
 	    const Box &reg = grids[level][i];
@@ -3156,7 +3160,7 @@ void HypreMultiABec::boundaryFlux(int level,
 		    // fluxes computed at domain boundaries but these do not
 		    // influence the evolution of the interior solution.
 		    Real* pSPa;
-		    Box SPabox; 
+		    Box SPabox;
 		    if (SPa.defined(level)) {
 			pSPa = SPa[level][mfi].dataPtr();
 			SPabox = SPa[level][mfi].box();
@@ -3281,7 +3285,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Box &fsb = fs.box();
 	Real* pSPa;
-	Box SPabox; 
+	Box SPabox;
 	if (SPa.defined(level)) {
 	  pSPa = SPa[level][mfi].dataPtr();
 	  SPabox = SPa[level][mfi].box();

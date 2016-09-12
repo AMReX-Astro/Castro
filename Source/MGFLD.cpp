@@ -2,7 +2,11 @@
 #include "Castro_F.H"
 #include "RAD_F.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_er,
 				     const MultiFab& Er_new, const MultiFab& Er_pi, 

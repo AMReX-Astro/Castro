@@ -2,7 +2,11 @@
 
 #include "RAD_F.H"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state)
 {

@@ -5,7 +5,11 @@
 
 #include "_hypre_sstruct_mv.h"
 
-#include <Using.H>
+#include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 HypreExtMultiABec::~HypreExtMultiABec()
 {
@@ -150,11 +154,11 @@ void HypreExtMultiABec::loadMatrix()
   HypreMultiABec::loadMatrix();
 
   if (0 && verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    cout << "In HypreExtMultiABec::loadMatrix(), the multipliers are:" << endl;
-    cout << "  HypreExtMultiABec::alpha2 = " << alpha2 << endl;
-    cout << "  HypreExtMultiABec::gamma  = " << gamma  << endl;
-    cout << "  HypreExtMultiABec::delta1 = " << delta1 << endl;
-    cout << "  HypreExtMultiABec::delta2 = " << delta2 << endl;
+    std::cout << "In HypreExtMultiABec::loadMatrix(), the multipliers are:" << std::endl;
+    std::cout << "  HypreExtMultiABec::alpha2 = " << alpha2 << std::endl;
+    std::cout << "  HypreExtMultiABec::gamma  = " << gamma  << std::endl;
+    std::cout << "  HypreExtMultiABec::delta1 = " << delta1 << std::endl;
+    std::cout << "  HypreExtMultiABec::delta2 = " << delta2 << std::endl;
   }
 
   // These really ought to be members and already defined:
@@ -778,14 +782,14 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
     static int first = 1;
     if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
       first = 0;
-      cout << "In HypreExtMultiABec::loadLevelVectorB(), the multipliers are:"
-           << endl;
-      cout << "  HypreExtMultiABec::alpha  = " << alpha  << endl;
-      cout << "  HypreExtMultiABec::alpha2 = " << alpha2 << endl;
-      cout << "  HypreExtMultiABec::beta   = " << beta   << endl;
-      cout << "  HypreExtMultiABec::gamma  = " << gamma  << endl;
-      cout << "  HypreExtMultiABec::delta1 = " << delta1 << endl;
-      cout << "  HypreExtMultiABec::delta2 = " << delta2 << endl;
+      std::cout << "In HypreExtMultiABec::loadLevelVectorB(), the multipliers are:"
+           << std::endl;
+      std::cout << "  HypreExtMultiABec::alpha  = " << alpha  << std::endl;
+      std::cout << "  HypreExtMultiABec::alpha2 = " << alpha2 << std::endl;
+      std::cout << "  HypreExtMultiABec::beta   = " << beta   << std::endl;
+      std::cout << "  HypreExtMultiABec::gamma  = " << gamma  << std::endl;
+      std::cout << "  HypreExtMultiABec::delta1 = " << delta1 << std::endl;
+      std::cout << "  HypreExtMultiABec::delta2 = " << delta2 << std::endl;
     }
 
     // This block is here for debugging purposes only.  I think the code
