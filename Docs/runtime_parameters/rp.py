@@ -172,8 +172,8 @@ def make_tex_table():
         else:
             odd = 1
 
-        print(r"\verb= {} = & {} & {} \\".format(
-            param.var, param.description, param.default))
+        print(r"\runparamc{{{}}} & {} & {} \\".format(
+            param.var.replace("_", r"\_"), param.description, param.default))
 
     # dump the footer
     print(footer)
