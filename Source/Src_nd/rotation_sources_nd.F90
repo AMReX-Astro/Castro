@@ -160,7 +160,7 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, &
-                                  implicit_rotation_update, rotation_include_coriolis
+                                  implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
     use bl_constants_module
     use math_module, only: cross_product
@@ -168,7 +168,7 @@ contains
     use rotation_frequency_module, only: get_omega, get_domegadt
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
-    use meth_params_module, only : UMR, UMP, state_in_rotating_frame
+    use meth_params_module, only : UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
