@@ -19,10 +19,6 @@
 #include "LevelSet_F.H"
 #endif
 
-#ifdef ROTATION
-#include "Rotation.H"
-#endif
-
 #include <cmath>
 
 using std::string;
