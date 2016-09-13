@@ -1,8 +1,8 @@
 #include "LO_BCTYPES.H"
 
-#define dims(a) a l0, a l1, a h0, a h1
+#define dims(a) a/**/l0, a/**/l1, a/**/h0, a/**/h1
 #define dimdec(a) dims(a)
-#define dimv(a) a l0:a h0,a l1:a h1
+#define dimv(a) a/**/l0:a/**/h0, a/**/l1:a/**/h1
 
 #define tiny 1.d-50
 ! define big  1.d+50

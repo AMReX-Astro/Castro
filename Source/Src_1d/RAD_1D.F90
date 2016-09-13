@@ -1,8 +1,8 @@
 #include "LO_BCTYPES.H"
 
-#define dims(a) a l0, a h0
+#define dims(a) a/**/l0, a/**/h0
 #define dimdec(a) dims(a)
-#define dimv(a) a l0:a h0
+#define dimv(a) a/**/l0:a/**/h0
 
 #define tiny 1.d-50
 ! define big  1.d+50
@@ -141,7 +141,7 @@ real*8 function kavg(a, b, d, iopt)
   else
      kavg = KAVG2(a,b,d)
   endif
-END PROGRAM
+end function kavg
 
 subroutine bclim(b, &
                  lambda, dims(bbox), &
