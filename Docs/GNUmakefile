@@ -20,6 +20,7 @@ section_sources = Introduction/CastroIntroduction.tex \
 	          Gravity/CastroGravity.tex \
 	          Diffusion/CastroDiffusion.tex \
 	          Rotation/CastroRotation.tex \
+                  Radiation/CastroRadiation.tex \
                   EOSNetwork/EOSNetwork.tex \
                   AMR/AMR.tex \
                   LevelSet/LevelSet.tex \

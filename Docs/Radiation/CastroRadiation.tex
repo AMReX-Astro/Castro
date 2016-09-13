@@ -1,0 +1,615 @@
+\section{Introduction}
+
+\castro\ has two radiation solvers: a gray rdiation hydrodynamics
+solver and a multigroup (MG) radiation hydrodynamics solver.  Both
+solvers adopt the flux-limited diffusion (FLD) approximation.  The
+gray solver has a comoving frame mode and a mixed frame mode, whereas
+the MG solver uses the comoving frame approach.  More details about
+the formulation and algorithm can be found in the seriers of
+\castro\ papers.
+
+\section{Getting Started}
+
+\subsection{Getting the Code}
+
+The \castro\ radiation solver is part of the main \castro\ git repo,
+so you already have all the \castro\ code and problem setups
+to exercise radiation.  The only other requirement is a copy
+of the \hypre\ library. \hypre\ provides the algebraic multigrid
+solvers used by the implicit radiation update.  You can get
+a copy at \url{https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html}.  You will need to follow their installation instructions.
+
+In addition to the environment variables you set for the main
+\castro\ hydrodynamics problems, you also need to tell the code
+where to find \hypre.  This is done via one of two variables:
+\begin{itemize}
+\item the environment variable {\tt HYPRE\_DIR} should
+  point to the location of your Hypre installation
+  (e.g., {\tt\seqsplit{/home/J.Doe/hypre}}) or
+  can be set directly in 
+  {\tt\seqsplit{CastroRadiation/Exec/Make.Castro}}.
+  This applies is you build with {\tt USE\_OMP=FALSE}
+
+\item the variable {\tt HYPRE\_OMP\_DIR} should be set (either as an
+  environment variable or in
+  {\tt\seqsplit{Castro/Exec/Make.Castro}}) to the directory
+  for openmp enabled Hypre (e.g.,
+  {\tt\seqsplit{/home/J.Doe/hypre-omp}}) if you build with {\tt
+    USE\_OMP=TRUE}
+\end{itemize}
+
+Now go to a ``run'' directory, say
+{\tt\seqsplit{Castro/Exec/RadThermalWave}},
+edit the file {\tt GNUmakefile}, and set
+\begin{itemize}
+\item {\tt COMP} = your favorite \cpp compiler (e.g., {\tt g++})
+\item {\tt FCOMP} = your favorite Fortran compiler (e.g., gfortran)
+\item {\tt DIM}   = 1 or 2 or 3
+\item \makevar{USE\_RAD} {\tt = 1}---this is important.  This tells the build system to
+  compile in, and link the the radiation code.
+\end{itemize}
+Then type {\tt make} to generate an executable file.
+
+\section{Microphysics: EOS, Network, and Opacity}
+
+\subsection{EOS}
+
+\castro\ provides several types of equation of state (EOS), including
+gamma-law and Helmholtz.  To use the gamma-law EOS, set
+\begin{verbatim}
+EOS_dir := gamma_law_general
+\end{verbatim}
+in the {\tt GNUmakefile}.
+
+The original Helmholtz EOS for stellar interiors includes a radiation
+contribution.  However, for radiation hydrodynamics calculations, the
+radition contribution should be taken out of EOS because radiation has
+been treated in other places.  To use Helmholtz EOS, we will use the
+version in \microphysics, as with the pure hydrodynamics code, but
+this will interpret the \ifdef{RADIATION} preprocessor variable and
+disable the radiation portion of the EOS\footnote{at the moment, we
+  don't have a way to allow for the EOS to provide radiation pressure
+  if the \castro\ radiation is used solely for neutrinos, but this is
+  something that could be added easily.}  If you have your own EOS, you
+can put it in \microphysics.
+
+
+\subsubsection{EOS Parameters}
+
+The following parameters affect how the radiation solver used the EOS:
+\begin{itemize}
+  \item {\tt radiation.do\_real\_eos = 1}
+
+    Usually you do not want to change this from the default.  Setting
+    this to {\tt 0} is only for contrived tests that assume the
+    specific heat is in the form of a power-law,
+    \begin{equation}
+      c_v = \mathrm{const}\ \rho^m T^{-n}
+    \end{equation}
+
+\end{itemize}
+  
+  
+
+\subsection{Network}
+
+The radiation solver uses the same networks as we saw for pure hydro,
+so nothing needs to change here.  Again, if you are not modeling
+reactions, then the {\tt general\_null} network can be used to define
+the appropriate composition for your problem.
+
+\subsection{Opacity}
+
+By default, we assume that
+\begin{equation}
+  \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p} , \label{eq:kappa}
+\end{equation}
+where $\kappa$ is either Planck or Rosseland mean absorption
+coefficients, $\rho$ is density, $T$ is temperature, $\nu$ is
+frequency, and $m$, $n$ and $p$ are constants.  For the gray solver,
+$p = 0$.  If Equation~(\ref{eq:kappa}) is sufficient, set
+\begin{verbatim}
+Opacity_dir := null
+\end{verbatim}
+in {\tt GNUmakefile}.  Otherwise, put your own opacity in
+{\tt\seqsplit{Castro/Microphysics/opacity}} and set
+the input parameter, {\tt radiation.use\_opacity\_table\_module = 1} (see
+\S~\ref{sec:opacpars}).
+
+Some notes:
+\begin{itemize}
+\item Here, $\kappa$ has units of $\mathrm{cm}^{-1}$.  Some papers or
+  texts may instead have an implicit density factor in $\kappa$,
+  yielding units $\mathrm{cm}^2~\mathrm{g}^{-1}$.
+
+\item \castro\ allows for two temperatures (different radiation and gas
+  temperature, so $E_\mathrm{r} \ne a T_\mathrm{gas}^4$).
+  Correspondingly,  \castro\ cares about both the Planck mean,
+  $\kappa_P$, and Rosseland mean, $\kappa_R$, opacities---these have
+  different weightings.
+
+  If we set $\kappa_P \Delta x \gg 1$ ($\kappa_P$ is really large),
+  then the two temperatures become the same.
+
+  If we set $\kappa_P = \kappa_R$, then we can see how different the
+  two temperature are.
+
+  In an optically thick medium, we would not expect the two temperatures
+  to be very different.
+
+\end{itemize}
+
+
+\subsubsection{Opacity Parameters}
+\label{sec:opacpars}
+
+The parameters describing the opacity include:
+\begin{itemize}
+
+\item {\tt radiation.use\_opacity\_table\_module = 0}
+  
+  For neutrino problems, this parameter is not ignored.  For photon
+  problems, this determines whether the opacity module at {\tt
+    Opacity\_dir} (which is set in {\tt GNUmakefile}) will be used to
+  compute opacities.  If this is set to 1, the following parameters
+  for opacities will be ignored.
+
+\item For the Planck mean opacity of the form in Eq.~(\ref{eq:kappa}),
+  the following parameters set the coefficient and exponents:
+  \begin{itemize}
+  \item {\tt radiation.const\_kappa\_p = -1.0}
+  \item {\tt radiation.kappa\_p\_exp\_m = 0.0}
+  \item {\tt radiation.kappa\_p\_exp\_n = 0.0}
+  \item {\tt radiation.kappa\_p\_exp\_p = 0.0}
+  \end{itemize}
+
+\item For the Rosseland mean opacity of the form in Eq.~(\ref{eq:kappa}),
+  the following parameters set the coefficient and exponents:
+  \begin{itemize}
+  \item {\tt radiation.const\_kappa\_r = -1.0}
+  \item {\tt radiation.kappa\_r\_exp\_m = 0.0}
+  \item {\tt radiation.kappa\_r\_exp\_n = 0.0}
+  \item {\tt radiation.kappa\_r\_exp\_p = 0.0}
+  \end{itemize}
+  
+\item For the scattering coefficient of the form in Eq.~(\ref{eq:kappa}),
+  the following parameters set the coefficient and exponents:
+  \begin{itemize}
+  \item {\tt radiation.const\_scattering = 0.0}
+  \item {\tt radiation.scattering\_exp\_m = 0.0}
+  \item {\tt radiation.scattering\_exp\_n = 0.0}
+  \item {\tt radiation.scattering\_exp\_p = 0.0}
+  \end{itemize}
+
+\item {\tt radiation.kappa\_r\_floor = 0.0}
+
+  Floor for Rosseland mean.
+
+\item{\tt radiation.do\_kappa\_stm\_emission = 0}
+
+  If it is 1, correction for stimulated emission is applied to Planck mean as
+  follows
+  \begin{equation}
+    \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
+    \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
+  \end{equation}
+
+\item {\tt radiation.surface\_average = 2}
+
+ How the averaging of opacity is done from faces to center for
+ the radiation solver.  {\tt 0} is arithmetic averaging, {\tt 1}
+ is harmonic averaging, and {\tt 2} is a combination of the two.
+ This is implemented in {\tt RAD\_?D.F} in {\tt kavg}.
+
+
+\end{itemize}
+
+\noindent Note that the unit for opacities is $\mathrm{cm}^{-1}$.  For
+the gray solver, the total opacity in the diffusion coefficient is the sum
+of {\tt kappa\_r} and {\tt scattering}, whereas for the MG solver,
+there are two possibilities.  If {\tt const\_kappa\_r} is greater than
+0, then the total opacity is set by {\tt kappa\_r} alone, otherwise
+the total opacity is the sum of {\tt kappa\_p} and {\tt scattering}.
+
+
+\section{Radiation Solver Physics}
+
+In this section, we list some radiation related parameters that you
+can set in an {\tt inputs} file.  Here are some important parameters:
+\begin{itemize}
+\item {\tt radiation.SolverType}:
+
+  Set it to {\tt 5} for the gray solver, and {\tt 6} for the MG solver.
+
+\item {\tt castro.do\_hydro}
+
+  Usually you want to set it to {\tt 1}.  If it is set to {\tt 0},
+  hydro will be turned off, and the calculation will only solve
+  radiation diffusion equation.
+
+\item {\tt castro.do\_radiation}
+
+  If it is {\tt 0}, the calculation will be pure hydro.
+\end{itemize}
+
+Below are more parameters.  For each parameter, the default value is
+on the right-hand side of the equal sign.
+
+
+\subsection{Verbosity and I/O}
+\label{sec:bothpar}
+
+\begin{itemize}
+\item {\tt radiation.v = 0}
+  
+  Verbosity
+
+\item {\tt radiation.verbose = 0}
+  
+  Verbosity
+
+\item {\tt radiation.plot\_lambda = 0}
+  
+  If {\tt 1}, save flux limiter in plotfiles.
+
+\item {\tt radiation.plot\_kappa\_p = 0}
+
+  If {\tt 1}, save Planck mean opacity in plotfiles.
+
+\item {\tt radiation.plot\_kappa\_r = 0}
+
+  If {\tt 1}, save Rosseland mean opacity in plotfiles.
+
+\item {\tt radiation.plot\_lab\_Er = 0}
+  
+  If {\tt 1}, save lab frame radiation energy density in plotfiles.
+  This flag is ignored when the mixed-frame gray solver is used.
+
+\item {\tt radiation.plot\_com\_flux = 0}
+  
+  If {\tt 1}, save comoving frame radiation flux in plotfiles.
+
+\item {\tt radiation.plot\_lab\_flux = 0}
+
+  If {\tt 1}, save lab frame radiation flux in plotfiles.
+
+\end{itemize}
+
+
+\subsection{Flux Limiter and Closure}
+
+\label{sec:fluxlimiter}
+
+\begin{itemize}
+
+\item {\tt radiation.limiter = 2}
+
+  Possible values are:
+  \begin{itemize}
+  \item {\tt ~0}: No flux limiter
+
+  \item {\tt ~2}: Approximate limiter of Levermore \& Pomraning
+
+  \item {\tt 12}: Bruenn's limiter
+
+  \item {\tt 22}: Larsen's square root limiter
+
+  \item {\tt 32}: Minerbo's limiter
+  \end{itemize}
+
+\item {\tt radiation.closure = 3}
+
+  Possible values are:
+  \begin{itemize}
+  \item {\tt 0}: $f = \lambda$, where $f$ is the scalar Eddington factor
+    and $\lambda$ is the flux limiter.
+
+  \item {\tt 1}: $f = \frac{1}{3}$
+  \item {\tt 2}: $f = 1 - 2 \lambda$
+  \item {\tt 3}: $f = \lambda + (\lambda R)^2$, where $R$ is the radiation
+    Knudsen number.
+  \item {\tt 4}: $f = \frac{1}{3} + \frac{2}{3} (\frac{F}{cE})^2$, where
+      $F$ is the radiation flux, $E$ is the radiation energy density,
+      and $c$ is the speed of light.
+  \end{itemize}
+\end{itemize}
+
+Note the behavior of the radiative flux in the optically thin and
+optically thick limits.  The flux limiter, $\lambda = \lambda(R)$,
+where
+\begin{equation}
+  R = \frac{|\nabla E_r^{(0)}|}{\chi_R E_r^{(0)}}
+\end{equation}
+Regardless of the limiter chosen, when we are optically thick,
+$\chi_R \rightarrow \infty$, $R \rightarrow 0$, and $\lambda \rightarrow 1/3$.
+The radiative flux then becomes
+\begin{equation}
+  F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+  \frac{1}{3} \frac{c}{\chi_R} \nabla E_r^{(0)}
+\end{equation}
+And when we are optically thin, $\chi_R \rightarrow 0$, $R \rightarrow \infty$,
+and $\lambda \rightarrow 1/R = \chi_R E_r^{(0)}/{|\nabla E_r^{0}|}$, and
+the radiative flux then becomes
+\begin{equation}
+  F_r^{(0)} = -\frac{c\lambda}{\chi_R} \nabla E_r^{(0)} \rightarrow
+  -\frac{c}{\chi_R}\frac{\chi_R E_r^{(0)}}{|\nabla E_r^{0}|}
+    \nabla E_r^{(0)} = -c E_r^{0}
+\end{equation}
+See Krumholz et al.\ 2007 for some discussion on this.
+\subsection{Boundary Conditions}
+
+\castro\ needs to know about the boundary conditions for both
+the hydrodynamics and radiation portions of the evolution.
+
+\subsubsection{Hydrodynamics Evolution}
+
+For the hydrodynamics portion of the solve, the boundary conditions
+for the normal hydrodynamic state values will be set by the problem's
+{\tt hypfill} routine (which typically just calls {\tt filcc} to handle
+the usual hydrodynamics boundary types: outflow, symmetry, etc.).
+
+A corresponding {\tt radfill} routine needs to be written to fill the
+ghost cells for the radiation energy density during the hydrodynamics
+evolution.  Again, this usually will just default to calling {\tt
+  filcc}.
+
+Note: if any of the hydrodynamic boundary conditions types are set
+to {\tt Inflow}, then you will need to ensure that the {\tt radfill}
+routine explicitly handles the boundary condition implementation
+for the radiation energy density in that case---the {\tt filcc}
+routine will not do a hydrodynamic {\tt Inflow} boundary.
+
+
+\subsubsection{Radiation Evolution}
+
+The following parameters are for radiation boundary in the diffusion
+equation. They do not affect hydrodynamic boundaries.
+\begin{itemize}
+\item {\tt radiation.lo\_bc}
+  
+  This sets the action to take at the lower edge of the domain in
+  each coordinate direction.  Possible values are:
+  \begin{itemize}
+
+  \item {\tt 101} {\em Dirchlet}:
+
+    Specify the radiation energy density on the boundary.
+    For gray radiation, this could be $E_r = a T^4$.
+
+    For multigroup radiation,  \castro\ stores the energy density as
+    $\mathrm{erg}~\mathrm{cm}^{-3}$, so the total radiation energy
+    can be found by simply summing over the groups.  So if you want
+    to set the radiation BCs using the Planck function, you simply
+    multiply by the group width---see {\tt Exec/RadSphere/Tools/radbc.f90}
+    for an example.
+
+  \item {\tt 102} {\em Neumann}:
+
+    Here, you specify the radiation flux on the boundary.  For gray
+    radiation, this is the expression given in the gray \castro\ paper
+    (Eq. 7, 8),
+    \begin{equation}
+      F_r = - \frac{c\lambda}{\kappa_R} \nabla E_r
+    \end{equation}
+    where $\lambda$ is the flux limiter.
+
+    Note that if your boundary represents an incoming flux through
+    a vacuum (like stellar irradiation), then $\kappa \rightarrow 0$, leaving
+    \begin{equation}
+      F_r = -c E_r
+    \end{equation}
+    (see \S~\ref{sec:fluxlimiter}) in that case.  
+
+  \item {\tt 104} {\em Marshak} (vacuum):
+      
+    Here, you specify the incident flux and the outside is a vacuum.
+    This differs from the Neumann condition because there is also a
+    flux coming from inside, for the net flux across the boundary is
+    different than the incident flux.
+
+  \item {\tt 105} {\em Sanchez-Pomraning}:
+
+    This is a modified form of the Marshak boundary condition that works with FLD.
+    This is like the Marshak condition, but $\lambda = 1/3$ is not assumed inside
+    the boundary (optical thickness).
+
+  \end{itemize}
+  
+\item {\tt radiation.hi\_bc}
+  
+  See {\tt radiation.lo\_bc}.
+
+\item {\tt radiation.lo\_bcflag = 0 0 0}
+  
+  If it is 0, {\tt bcval} is used for that dimension, otherwise
+  subroutine {\tt rbndry} in {\tt RadBndry\_1d.f90} is called to set
+  boundary conditions.
+
+\item {\tt radiation.hi\_bcflag = 0 0 0}
+  
+  See {\tt radiation.lo\_bcflag}
+
+\item {\tt radiation.lo\_bcval = 0.0 0.0 0.0}
+  
+  The actual value to impose for the boundary condition type set by
+  {\tt radiation.lo\_bc}.  This parameter is interpreted differently
+  depending on the boundary condition:
+  \begin{itemize}
+    \item Dirchlet: Dirichlet value of rad energy density
+    \item Neumann:  inward flux of rad energy
+    \item Marshak:  incident flux
+    \item Sanchez-Pomraning: incident flux
+  \end{itemize}
+
+\item {\tt radiation.hi\_bcval = 0.0 0.0 0.0}
+  
+  See {\tt radiation.lo\_bcval}
+\end{itemize}
+
+
+\subsection{Convergence}
+
+For the gray solver, there is only one iteration in the scheme,
+whereas for the MG solver, there are two iterations with an inner
+iteration embedded inside an outer iteration.  In the following, the
+iteration in the gray solver will also be referred as the outer
+iteration for convenience.  The parameters for the inner iteration are
+irrelevant to the gray solver.
+
+\begin{description}
+\item[radiation.maxiter = 50] \hfill \\
+  Maximal number of outer iteration steps.
+\item[radiation.miniter = 1] \hfill \\
+  Minimal number of outer iteration steps.
+\item[radiation.reltol = 1.e-6] \hfill \\
+  Relative tolerance for the outer iteration.
+\item[radiation.abstol = 0.0] \hfill \\
+  Absolute tolerance for the outer iteration.
+\item[radiation.maxInIter = 30] \hfill \\
+  Maximal number of inner iteration steps.
+\item[radiation.minInIter = 1] \hfill \\
+  Minimal number of inner iteration steps.
+\item[radiation.relInTol = 1.e-4] \hfill \\
+  Relative tolerance for the inner iteration.
+\item[radiation.absInTol = 0.0] \hfill \\
+  Absolute tolerance for the inner iteration.
+\item[radiation.convergence\_check\_type = 0] \hfill \\
+  For the MG solver only.  This specifiy the way of checking the
+  convergence of an outer iteration.  Possible values are
+  \begin{itemize}
+    \item 0: Check $T$, $Y_e$, and the residues of the equations for
+      $\rho e$ and $\rho Y_e$
+    \item 1: Check $\rho e$
+    \item 2: Check the residues of the equations for $\rho e$ and $\rho Y_e$
+    \item 3: Check $T$ and $Y_e$
+  \end{itemize}
+\end{description}
+
+
+\subsection{Parameters for Gray Solver}
+\label{sec:graypar}
+
+\begin{description}
+\item[radiation.comoving = 1] \hfill \\
+  Do we use the comoving frame approach?
+\item[radiation.Er\_Lorentz\_term = 1] \hfill \\
+  If the mixed-frame approach is taken, this parameter decides whether
+  Lorentz transformation terms are retained.
+\item[radiation.delta\_temp = 1.0] \hfill \\
+  This is used in computing numerical derivativas with respect to $T$.
+  So it should be a small number compared with $T$, but not too small.
+\item[radiation.update\_limiter = 1000] \hfill \\
+  Stop updating flux limiter after {\tt update\_limiter} iteration steps.
+\item[radiation.update\_planck = 1000] \hfill \\
+  Stop updating Planck mean opacity after {\tt update\_planck} iteration steps.
+\item[radiation.update\_rosseland = 1000] \hfill \\
+  Stop updating Rosseland mean opacity after {\tt update\_rosseland} iteration steps.
+\end{description}
+
+\subsection{Grouping in the MG Solver}
+
+We provide two methods of setting up groups based upon logarithmic
+spacing.  In both methods, you must provide:
+\begin{description}
+\item[radiation.nGroups] \hfill \\
+  Number of groups.
+\item[radiation.lowestGroupHz] \hfill \\
+  Frequency of the lower bound for the first group.
+\end{description}
+
+In addition, if the parameter {\tt groupGrowFactor} is provided, then
+the first method will be used, otherwise the second method will be
+used.  In the first way, you must also provide {\tt firstGroupWidthHz}
+(the width of the first group).  The width of other groups is set to
+be {\tt groupGrowFactor} times the width of its immediately preceding
+group.  In the second way, you must provide {\tt highestGroupHz} as
+the upper bound of the last group.  It should be noted that {\tt
+  lowestGroupHz} can be 0 in the first method, but not the second
+method.  However, when we compute the group-integrated Planck
+function, the lower bound for the first group and the upper bound for
+the last group are assumed to be 0 and $\infty$, respectively.
+
+\subsection{Parameters for MG Solver}
+\label{sec:mgpar}
+
+\begin{description}
+\item[radiation.delta\_e\_rat\_dt\_tol = 100.0] \hfill \\
+  Maximally allowed relative change in $e$ during one time step.
+\item[radiation.delta\_T\_rat\_dt\_tol = 100.0] \hfill \\
+  Maximally allowed relative change in $T$ during one time step.
+\item[radiation.delta\_Ye\_dt\_tol = 100.0] \hfill \\
+  Maximally allowed absolute change in $Y_e$ during one tim estep.
+\item[radiation.fspace\_advection\_type = 2] \hfill \\
+  Possible value is 1 or 2.  The latter is better.
+\item[radiation.integrate\_Planck = 1] \hfill \\
+  If 1, integrate Planck function for each group.  For the first
+  group, the lower bound in the integration is assumed to be 0 no
+  matter what the grouping is.  For the last group, the upper bound in
+  the integration is assumed to be $\infty$.
+\item[radiation.matter\_update\_type = 0] \hfill \\
+  How to update matter.  0 is proabaly the best.
+\item[radiation.accelerate = 2] \hfill \\
+  The inner iteration of the MG solver usually requires an
+  acceleration scheme.  Choices are
+  \begin{itemize}
+    \item 0: No acceleration
+    \item 1: Local acceleration
+    \item 2: Gray acceleration
+  \end{itemize}
+\item[radiation.skipAccelAllowed = 0] \hfill \\
+  If it is set to 1, skip acceleration if it does not help.
+\item[radiation.n\_bisect = 1000] \hfill \\
+  Do bisection for the outer iteration after {\tt n\_bisec} iteration steps.
+\item[radiation.use\_dkdT = 1] \hfill \\
+  If it is 1, $\frac{\partial \kappa}{\partial T}$ is retained in the
+  Jacobi matrix for the outer (Newton) iteration.
+\item[radiation.update\_opacity = 1000] \hfill \\
+  Stop updating opacities after {\tt update\_opacity} outer iteration steps.
+\item[radiation.inner\_update\_limiter = 0] \hfill \\
+  Stop updating flux limiter after {\tt inner\_update\_limiter} inner
+  iteration steps.  If it is 0, the limiter is lagged by one outer
+  iteration.  If it is -1, the limiter is lagged by one time step.  If
+  the inner iteration has difficulty in converging, setting this
+  parameter it to -1 can help.  Since the flux limiter is only a
+  kludge, it is justified to lag it.
+\end{description}
+
+
+\subsection{Linear System Solver}
+\label{sec:hypre}
+
+There are a number of choices for the linear system solver.  The
+performance of the solvers usually depends on problems and the
+computer.  So it is worth trying a few solvers to find out which one
+is best for your problem and computer.
+
+\begin{description}
+\item[radsolve.level\_solver\_flag] \hfill \\
+  Setting this to 109 (GMRES using Struct SMG/PFMG as preconditioner)
+  should work reasonably well for most problems.
+\item[radsolve.maxiter = 40] \hfill \\
+  Maximal number of iteration in Hypre.
+\item[radsolve.reltol = 1.e-10] \hfill \\
+  Relative tolerance in Hypre
+\item[radsolve.abstol = 0] \hfill \\
+  Absolute tolerance in Hypre
+\item[radsolve.v = 0] \hfill \\
+  Verbosity
+\item[radsolve.verbose = 0] \hfill \\
+  Verbosity
+\item[habec.verbose = 0] \hfill \\
+  Verbosity for {\tt level\_solver\_flag} $<$ 100
+\item[hmabec.verbose = 0] \hfill \\
+  Verbosity for {\tt level\_solver\_flag} $>=$ 100
+\end{description}
+
+
+\section{Output}
+
+\subsection{Gray Solver}
+
+For the gray radiation solver, the radiation energy density is stored in plotfiles
+as {\tt rad}.  Note that this quantity has units of $\mathrm{erg~cm^{-3}}$, which
+is different that the specify internal energy of the gas $\mathrm{erg~g^{-1}}$.
+
+
