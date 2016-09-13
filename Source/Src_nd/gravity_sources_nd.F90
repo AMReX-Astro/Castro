@@ -509,10 +509,15 @@ contains
                          gdphi,gdphi_lo,gdphi_hi, &
                          state,state_lo,state_hi, &
                          dstate,dstate_lo,dstate_hi, &
-                         sync_src,src_lo,src_hi,dt) bind(C, name="ca_syncgsrc")
+                         sync_src,src_lo,src_hi,ncomp,dt) bind(C, name="ca_syncgsrc")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ
     use bl_constants_module
+#ifdef HYBRID_MOMENTUM
+    use prob_params_module, only : center
+    use castro_util_module, only : position
+    use hybrid_advection_module, only : add_hybrid_momentum_source
+#endif
 
     implicit none
 
@@ -521,16 +526,16 @@ contains
     integer          :: gdphi_lo(3), gdphi_hi(3)
     integer          :: state_lo(3), state_hi(3)
     integer          :: dstate_lo(3), dstate_hi(3)
-    integer          :: src_lo(3), src_hi(3)
+    integer          :: src_lo(3), src_hi(3), ncomp
     double precision :: gphi(gphi_lo(1):gphi_hi(1),gphi_lo(2):gphi_hi(2),gphi_lo(3):gphi_hi(3),3)
     double precision :: gdphi(gdphi_lo(1):gdphi_hi(1),gdphi_lo(2):gdphi_hi(2),gdphi_lo(3):gdphi_hi(3),3)
     double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
     double precision :: dstate(dstate_lo(1):dstate_hi(1),dstate_lo(2):dstate_hi(2),dstate_lo(3):dstate_hi(3),3+1)
-    double precision :: sync_src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),3+1)
+    double precision :: sync_src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),ncomp)
     double precision :: dt
 
     !    Note that dstate is drho and drhoU, state is the entire state, and src
-    !    is S_rhoU and S_rhoE
+    !    is S_rhoU and S_rhoE, plus the source for the hybrid momentum if applicable
 
     integer          :: i, j, k
     double precision :: rho_pre, rhoU_pre(3)
@@ -551,6 +556,11 @@ contains
 
              sync_src(i,j,k,1:3) = Sr
              sync_src(i,j,k,4) = SrE
+
+#ifdef HYBRID_MOMENTUM
+             sync_src(i,j,k,5:7) = ZERO
+             call add_hybrid_momentum_source(position(i,j,k) - center, sync_src(i,j,k,5:7), Sr)
+#endif
 
           enddo
        enddo

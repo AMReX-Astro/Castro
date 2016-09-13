@@ -1610,17 +1610,21 @@ Castro::post_timestep (int iteration)
 		      }
 
 		      // Compute sync source
+
 #ifdef HYBRID_MOMENTUM
-		      sync_src.resize(bx,3+1+3);
+		      int ncomp = 7;
 #else
-		      sync_src.resize(bx,3+1);
+		      int ncomp = 4;
 #endif
+
+		      sync_src.resize(bx, ncomp);
+
 		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
 				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
 				  BL_TO_FORTRAN_3D(S_new_lev[mfi]),
 				  BL_TO_FORTRAN_3D(dstate),
-				  BL_TO_FORTRAN_3D(sync_src),
+				  BL_TO_FORTRAN_3D(sync_src), &ncomp,
 				  dt_lev);
 
 		      // Now multiply the sync source by dt / 2, where dt

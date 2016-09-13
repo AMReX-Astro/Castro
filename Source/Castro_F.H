@@ -595,7 +595,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(gdPhi),
      const BL_FORT_FAB_ARG_3D(S),
      const BL_FORT_FAB_ARG_3D(dS),
-     BL_FORT_FAB_ARG_3D(src),
+     BL_FORT_FAB_ARG_3D(src), const int* ncomp,
      const Real& dt);
 
 #endif
