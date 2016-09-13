@@ -6,7 +6,6 @@
 
 #ifdef BL_FORT_USE_UNDERSCORE
 #  define   FORT_KAVG    kavg_
-#  define   FORT_EDDFAC  eddfac_
 #  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
@@ -14,7 +13,6 @@
 #elif defined(BL_FORT_USE_UPPERCASE)
 
 #  define   FORT_KAVG    KAVG
-#  define   FORT_EDDFAC  EDDFAC
 #  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
@@ -744,7 +742,7 @@ extern "C" {
 
   void flxlim(Real* lambda, intS, intS, const int& limiter);
 
-  void FORT_EDDFAC(Real* efact, intS, intS, const int& limiter, const int& idim);
+  void eddfac(Real* efact, intS, intS, const int& limiter, const int& idim);
 
   void scgrd1(Real* R, intS, intS, const int& idim,
 	      Real* kappa_r, intS, Real* Er, const Real* dx);
