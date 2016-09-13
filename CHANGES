@@ -3,7 +3,7 @@
   -- the radiation hydro solver, that used to live in
      CastroRadiation.git has now been completely integrated into
      the main Castro git repo.  The history was preserved in the
-     transition (issue #24)
+     transition (issues #24, #31)
 
      The radiation build variable Network_inputs was renamed
      to NETWORK_INPUTS for consistency.
@@ -35,7 +35,7 @@
      by the separate Microphysics git repo
 
   -- the documentation of the architecture of Castro has been
-     significantly improved (issues #23, #29)
+     significantly improved (issues #23, #29, #31)
 
 
 previous changes:
