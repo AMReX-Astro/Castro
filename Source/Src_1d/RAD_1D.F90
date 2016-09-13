@@ -12,32 +12,14 @@ module rad_module
 
   use bl_types
 
+  use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
+
   implicit none
-
-  INCLUDE 'StateLayout.H'
-
 
   double precision, parameter :: tiny = 1.d-50
   double precision, parameter :: BIGKR = 1.e25_dp_t
+
 contains
-
-subroutine setlayout(Den_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-                     FirstSpec, FirstAux, NUM_STATE) bind(C, name="setlayout")
-
-  integer :: Den_in, Xmom_in, Eden_in, Eint_in, Temp_in
-  integer :: FirstSpec, FirstAux, NUM_STATE
-
-  DEN = Den_in
-  XMOM = Xmom_in
-  YMOM = Xmom_in+1
-  ZMOM = Xmom_in+2
-  EDEN = Eden_in
-  EINT = Eint_in
-  ITEMP = Temp_in
-  IFS = FirstSpec
-  IFX = FirstAux
-  SVSIZE = NUM_STATE
-end subroutine setlayout
 
 subroutine multrs(d, &
                   dims(dbox), &
@@ -345,14 +327,14 @@ subroutine cfrhoe(dims(reg), &
   integer :: dimdec(fb)
   integer :: dimdec(sb)
   real*8 :: frhoe(dimv(fb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   !      real*8 kin
   integer :: i
   do i = regl0, regh0
      !         kin = 0.5d0 * (state(i,XMOM) ** 2) /
      !     @                 state(i,DEN)
      !         frhoe(i) = state(i,EDEN) - kin
-     frhoe(i) = state(i,EINT)
+     frhoe(i) = state(i,UEINT)
   enddo
 end subroutine cfrhoe
 
@@ -368,7 +350,7 @@ subroutine gtemp(dims(reg), &
   integer :: dimdec(sb)
   real*8 :: temp(dimv(tb))
   real*8 :: const(0:1), em(0:1), en(0:1)
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: alpha, teff, ex, frhoal
   integer :: i
   if (en(0) >= 1.d0) then
@@ -380,9 +362,9 @@ subroutine gtemp(dims(reg), &
      if (em(0) == 0.d0) then
         alpha = const(0)
      else
-        alpha = const(0) * state(i,DEN) ** em(0)
+        alpha = const(0) * state(i,URHO) ** em(0)
      endif
-     frhoal = state(i,DEN) * alpha + tiny
+     frhoal = state(i, URHO) * alpha + tiny
      if (en(0) == 0.d0) then
         temp(i) = temp(i) / frhoal
      else
@@ -407,16 +389,16 @@ subroutine gcv(dims(reg), &
   real*8 :: cv(dimv(cbox))
   real*8 :: temp(dimv(tbox))
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: state(dimv(sbox), 0:SVSIZE-1)
+  real*8 :: state(dimv(sbox),  NVAR)
   real*8 :: alpha, teff, frhoal
   integer :: i
   do i = regl0, regh0
      if (em(0) == 0.d0) then
         alpha = const(0)
      else
-        alpha = const(0) * state(i,DEN) ** em(0)
+        alpha = const(0) * state(i, URHO) ** em(0)
      endif
-     frhoal = state(i,DEN) * alpha + tiny
+     frhoal = state(i, URHO) * alpha + tiny
      if (en(0) == 0.d0) then
         cv(i) = alpha
      else
@@ -604,14 +586,14 @@ subroutine nceup(dims(reg), relres, absres, &
   real*8 :: temp(dimv(grd))
   real*8 :: fkp(dimv(grd))
   real*8 :: cv(dimv(reg))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb),  NVAR)
   real*8 :: sigma, c, dt, theta, relres, absres
   real*8 :: tmp, chg, tot, exch, b, db, dbdt, frhocv
   integer :: i
   do i = regl0, regh0
      chg = 0.d0
      tot = 0.d0
-     frhocv = state(i,DEN) * cv(i)
+     frhocv = state(i, URHO) * cv(i)
      dbdt = 16.d0 * sigma * temp(i)**3
      b = 4.d0 * sigma * temp(i)**4
      exch = fkp(i) * (b - c * er(i))
@@ -645,16 +627,16 @@ subroutine cetot(dims(reg), &
   integer :: dimdec(reg)
   integer :: dimdec(sb)
   integer :: dimdec(fb)
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: frhoe(dimv(fb))
   real*8 :: kin
   integer :: i
   do i = regl0, regh0
      !         kin = 0.5d0 * (state(i,XMOM) ** 2) /
      !     @                 state(i,DEN)
-     kin = state(i,EDEN) - state(i,EINT)
-     state(i,EINT) = frhoe(i)
-     state(i,EDEN) = frhoe(i) + kin
+     kin = state(i, UEDEN) - state(i, UEINT)
+     state(i, UEINT) = frhoe(i)
+     state(i, UEDEN) = frhoe(i) + kin
   enddo
 end subroutine cetot
 
@@ -673,14 +655,14 @@ subroutine fkpn(dims(reg), &
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
   real*8 :: ep(0:1), nu
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb),  NVAR)
   real*8 :: teff
   integer :: i
   do i = regl0, regh0
      teff = max(temp(i), tiny)
      teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
      fkp(i) = const(0) * &
-          (state(i,DEN) ** em(0)) * &
+          (state(i, URHO) ** em(0)) * &
           (teff ** (-en(0))) * &
           (nu ** (ep(0)))
   enddo
@@ -702,7 +684,7 @@ subroutine rosse1( dims(reg), &
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
   real*8 :: ep(0:1), nu
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb),  NVAR)
   real*8 :: kfloor
   real*8 :: kf, teff
   integer :: i
@@ -710,7 +692,7 @@ subroutine rosse1( dims(reg), &
      teff = max(temp(i), tiny)
      teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
      kf = const(0) * &
-          (state(i,DEN) ** em(0)) * &
+          (state(i, URHO) ** em(0)) * &
           (teff ** (-en(0))) * &
           (nu ** (ep(0)))
      kappar(i) = max(kf, kfloor)
@@ -737,7 +719,7 @@ subroutine rosse1s(dims(reg), &
   real*8 :: ep(0:1), nu
   real*8 :: sconst(0:1), sem(0:1), sen(0:1), sep(0:1)
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb),  NVAR)
   real*8 :: kfloor
   real*8 :: kf, teff, sct
   integer :: i
@@ -745,11 +727,11 @@ subroutine rosse1s(dims(reg), &
      teff = max(temp(i), tiny)
      teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
      kf = const(0) * &
-          (state(i,DEN) ** em(0)) * &
+          (state(i, URHO) ** em(0)) * &
           (teff ** (-en(0))) * &
           (nu ** (ep(0)))
      sct = sconst(0) * &
-          (state(i,DEN) ** sem(0)) * &
+          (state(i, URHO) ** sem(0)) * &
           (teff ** (-sen(0))) * &
           (nu ** (sep(0)))
      kappar(i) = max(kf+sct, kfloor)

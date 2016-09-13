@@ -12,31 +12,14 @@ module rad_module
 
   use bl_types
 
-  implicit none
+  use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
 
-  include "StateLayout.H"
+  implicit none
 
   double precision, parameter :: tiny = 1.e-50_dp_t
   double precision, parameter :: BIGKR = 1.e25_dp_t
 
 contains
-
-subroutine setlayout(Den_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-                     FirstSpec, FirstAux, NUM_STATE) bind(C, name="setlayout")
-
-  integer :: Den_in, Xmom_in, Eden_in, Eint_in, Temp_in
-  integer :: FirstSpec, FirstAux, NUM_STATE
-  DEN = Den_in
-  XMOM = Xmom_in
-  YMOM = Xmom_in+1
-  ZMOM = Xmom_in+2
-  EDEN = Eden_in
-  EINT = Eint_in
-  ITEMP = Temp_in
-  IFS = FirstSpec
-  IFX = FirstAux
-  SVSIZE = NUM_STATE
-end subroutine setlayout
 
 ! The following routines implement metric terms in 2D and are included
 ! in the 3D source only to enable the code to link.
@@ -780,7 +763,7 @@ subroutine cfrhoe(dims(reg), &
   integer :: dimdec(fb)
   integer :: dimdec(sb)
   real*8 :: frhoe(dimv(fb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   !      real*8 kin
   integer :: i, j, k
   do k = regl2, regh2
@@ -791,7 +774,7 @@ subroutine cfrhoe(dims(reg), &
            !     @                        state(i,j,k,XMOM+2) ** 2) /
            !     @                       state(i,j,k,DEN)
            !               frhoe(i,j,k) = state(i,j,k,EDEN) - kin
-           frhoe(i,j,k) = state(i,j,k,EINT)
+           frhoe(i,j,k) = state(i,j,k, UEINT)
         enddo
      enddo
   enddo
@@ -809,7 +792,7 @@ subroutine gtemp(dims(reg), &
   integer :: dimdec(sb)
   real*8 :: temp(dimv(tb))
   real*8 :: const(0:1), em(0:1), en(0:1)
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: alpha, teff, ex, frhoal
   integer :: i, j, k
   if (en(0) >= 1.d0) then
@@ -823,9 +806,9 @@ subroutine gtemp(dims(reg), &
            if (em(0) == 0.d0) then
               alpha = const(0)
            else
-              alpha = const(0) * state(i,j,k,DEN) ** em(0)
+              alpha = const(0) * state(i,j,k, URHO) ** em(0)
            endif
-           frhoal = state(i,j,k,DEN) * alpha + tiny
+           frhoal = state(i,j,k, URHO) * alpha + tiny
            if (en(0) == 0.d0) then
               temp(i,j,k) = temp(i,j,k) / frhoal
            else
@@ -852,7 +835,7 @@ subroutine gcv(dims(reg), &
   real*8 :: cv(dimv(cbox))
   real*8 :: temp(dimv(tbox))
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: state(dimv(sbox), 0:SVSIZE-1)
+  real*8 :: state(dimv(sbox), NVAR)
   real*8 :: alpha, teff, frhoal
   integer :: i, j, k
   do k = regl2, regh2
@@ -861,9 +844,9 @@ subroutine gcv(dims(reg), &
            if (em(0) == 0.d0) then
               alpha = const(0)
            else
-              alpha = const(0) * state(i,j,k,DEN) ** em(0)
+              alpha = const(0) * state(i,j,k, URHO) ** em(0)
            endif
-           frhoal = state(i,j,k,DEN) * alpha + tiny
+           frhoal = state(i,j,k, URHO) * alpha + tiny
            if (en(0) == 0.d0) then
               cv(i,j,k) = alpha
            else
@@ -1067,7 +1050,7 @@ subroutine nceup(dims(reg), relres, absres, &
   real*8 :: temp(dimv(grd))
   real*8 :: fkp(dimv(grd))
   real*8 :: cv(dimv(reg))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: sigma, c, dt, theta, relres, absres
   real*8 :: tmp, chg, tot, exch, b, db, dbdt, frhocv
   integer :: i, j, k
@@ -1076,7 +1059,7 @@ subroutine nceup(dims(reg), relres, absres, &
         do i = regl0, regh0
            chg = 0.d0
            tot = 0.d0
-           frhocv = state(i,j,k,DEN) * cv(i,j,k)
+           frhocv = state(i,j,k, URHO) * cv(i,j,k)
            dbdt = 16.d0 * sigma * temp(i,j,k)**3
            b = 4.d0 * sigma * temp(i,j,k)**4
            exch = fkp(i,j,k) * (b - c * er(i,j,k))
@@ -1112,7 +1095,7 @@ subroutine cetot(dims(reg), &
   integer :: dimdec(reg)
   integer :: dimdec(sb)
   integer :: dimdec(fb)
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: frhoe(dimv(fb))
   real*8 :: kin
   integer :: i, j, k
@@ -1123,9 +1106,9 @@ subroutine cetot(dims(reg), &
            !     @                        state(i,j,k,XMOM+1) ** 2 +
            !     @                        state(i,j,k,XMOM+2) ** 2) /
            !     @                       state(i,j,k,DEN)
-           kin = state(i,j,k,EDEN) - state(i,j,k,EINT)
-           state(i,j,k,EINT) = frhoe(i,j,k)
-           state(i,j,k,EDEN) = frhoe(i,j,k) + kin
+           kin = state(i,j,k, UEDEN) - state(i,j,k, UEINT)
+           state(i,j,k, UEINT) = frhoe(i,j,k)
+           state(i,j,k, UEDEN) = frhoe(i,j,k) + kin
         enddo
      enddo
   enddo
@@ -1146,7 +1129,7 @@ subroutine fkpn(dims(reg), &
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
   real*8 :: ep(0:1), nu
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: teff
   integer :: i, j, k
   do k = regl2, regh2
@@ -1155,7 +1138,7 @@ subroutine fkpn(dims(reg), &
            teff = max(temp(i,j,k), tiny)
            teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
            fkp(i,j,k) = const(0) * &
-                (state(i,j,k,DEN) ** em(0)) * &
+                (state(i,j,k, URHO) ** em(0)) * &
                 (teff ** (-en(0))) * &
                 (nu ** (ep(0)))
         enddo
@@ -1179,7 +1162,7 @@ subroutine rosse1(dims(reg), &
   real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
   real*8 :: ep(0:1), nu
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: kfloor
   real*8 :: kf, teff
   integer :: i, j, k
@@ -1189,7 +1172,7 @@ subroutine rosse1(dims(reg), &
            teff = max(temp(i,j,k), tiny)
            teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
            kf = const(0) * &
-                (state(i,j,k,DEN) ** em(0)) * &
+                (state(i,j,k, URHO) ** em(0)) * &
                 (teff ** (-en(0))) * &
                 (nu ** (ep(0)))
            kappar(i,j,k) = max(kf, kfloor)
@@ -1218,7 +1201,7 @@ subroutine rosse1s(dims(reg), &
   real*8 :: ep(0:1), nu
   real*8 :: sconst(0:1), sem(0:1), sen(0:1), sep(0:1)
   real*8 :: temp(dimv(tb))
-  real*8 :: state(dimv(sb), 0:SVSIZE-1)
+  real*8 :: state(dimv(sb), NVAR)
   real*8 :: kfloor
   real*8 :: kf, teff, sct
   integer :: i, j, k
@@ -1228,11 +1211,11 @@ subroutine rosse1s(dims(reg), &
            teff = max(temp(i,j,k), tiny)
            teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
            kf = const(0) * &
-                (state(i,j,k,DEN) ** em(0)) * &
+                (state(i,j,k, URHO) ** em(0)) * &
                 (teff ** (-en(0))) * &
                 (nu ** (ep(0)))
            sct = sconst(0) * &
-                (state(i,j,k,DEN) ** sem(0)) * &
+                (state(i,j,k, URHO) ** sem(0)) * &
                 (teff ** (-sen(0))) * &
                 (nu ** (sep(0)))
            kappar(i,j,k) = max(kf+sct, kfloor)

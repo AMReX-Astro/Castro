@@ -809,8 +809,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   FirstAux  = castro->FirstAux;
   NUM_STATE = castro->NUM_STATE;
 
-  setlayout(Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE);
-
   pp.query("flatten_pp_threshold", flatten_pp_threshold);
   pp.query("first_order_hydro", first_order_hydro);
   pp.query("pure_hydro", pure_hydro);

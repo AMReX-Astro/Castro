@@ -719,9 +719,6 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
 extern "C" {
-  void setlayout(int& Density, int& Xmom, int& Eden, int& Eint, int& Temp, 
-		 int& FirstSpec, int& FirstAux, int& NUM_STATE);
-
   void multrs(Real* d, intS, intS, Real* r, Real* s);
 
   void sphc(Real* r, Real* s, intS, const Real* dx);
