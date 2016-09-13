@@ -156,14 +156,14 @@ subroutine bclim(b, &
   if (n == 0) then
      do j = regl1, regh1
         do i = regl0, regh0 + 1
-           kap = KAVG(kappar(i-1,j), kappar(i,j), dx(1))
+           kap = kavg(kappar(i-1,j), kappar(i,j), dx(1), -1)
            b(i,j) = r(i) * s(j) * c * lambda(i,j) / kap
         enddo
      enddo
   else
      do j = regl1, regh1 + 1
         do i = regl0, regh0
-           kap = KAVG(kappar(i,j-1), kappar(i,j), dx(2))
+           kap = kavg(kappar(i,j-1), kappar(i,j), dx(2), -1)
            b(i,j) = r(i) * s(j) * c * lambda(i,j) / kap
         enddo
      enddo
@@ -248,7 +248,7 @@ subroutine scgrd1(r, &
         endif
         ! construct coefficients:
         do i = regl0, regh0 + 1
-           kap = KAVG(kappar(i-1,j), kappar(i,j), dx(1))
+           kap = kavg(kappar(i-1,j), kappar(i,j), dx(1), -1)
            r(i,j) = r(i,j) / &
                 (kap * max(er(i-1,j), er(i,j), tiny))
         enddo
@@ -273,7 +273,7 @@ subroutine scgrd1(r, &
      ! construct coefficients:
      do j = regl1, regh1 + 1
         do i = regl0, regh0
-           kap = KAVG(kappar(i,j-1), kappar(i,j), dx(2))
+           kap = kavg(kappar(i,j-1), kappar(i,j), dx(2), -1)
            r(i,j) = r(i,j) / &
                 (kap * max(er(i,j-1), er(i,j), tiny))
         enddo
@@ -353,7 +353,7 @@ subroutine scgrd2(r, &
         endif
         ! construct scaled gradient:
         do i = regl0, regh0 + 1
-           kap = KAVG(kappar(i-1,j), kappar(i,j), dx(1))
+           kap = kavg(kappar(i-1,j), kappar(i,j), dx(1), -1)
            r(i,j) = sqrt(r(i,j)) / &
                 (kap * max(er(i-1,j), er(i,j), tiny))
         enddo
@@ -415,7 +415,7 @@ subroutine scgrd2(r, &
      ! construct coefficients:
      do j = regl1, regh1 + 1
         do i = regl0, regh0
-           kap = KAVG(kappar(i,j-1), kappar(i,j), dx(2))
+           kap = kavg(kappar(i,j-1), kappar(i,j), dx(2), -1)
            r(i,j) = sqrt(r(i,j)) / &
                 (kap * max(er(i,j-1), er(i,j), tiny))
         enddo
@@ -495,7 +495,7 @@ subroutine scgrd3(r, &
         endif
         ! construct scaled gradient:
         do i = regl0, regh0 + 1
-           kap = KAVG(kappar(i-1,j), kappar(i,j), dx(1))
+           kap = kavg(kappar(i-1,j), kappar(i,j), dx(1), -1)
            r(i,j) = sqrt(r(i,j)) / &
                 (kap * max(er(i-1,j), er(i,j), &
                 er(i-1,j-1), er(i,j-1), &
@@ -559,7 +559,7 @@ subroutine scgrd3(r, &
      ! construct coefficients:
      do j = regl1, regh1 + 1
         do i = regl0, regh0
-           kap = KAVG(kappar(i,j-1), kappar(i,j), dx(2))
+           kap = kavg(kappar(i,j-1), kappar(i,j), dx(2), -1)
            r(i,j) = sqrt(r(i,j)) / &
                 (kap * max(er(i,j-1), er(i,j), &
                 er(i-1,j-1), er(i-1,j), &

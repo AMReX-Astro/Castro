@@ -17,7 +17,7 @@ module rad_module
   INCLUDE 'StateLayout.H'
 
 
-  double precision, parameter :: tiny = 1.e-50_dp_t
+  double precision, parameter :: tiny = 1.d-50
   double precision, parameter :: BIGKR = 1.e25_dp_t
 contains
 
@@ -129,7 +129,7 @@ subroutine bclim(b, &
   integer :: i
   real*8 :: kap
   do i = regl0, regh0 + 1
-     kap = KAVG(kappar(i-1), kappar(i), dx(1))
+     kap = kavg(kappar(i-1), kappar(i), dx(1),-1)
      b(i) = r(i) * c * lambda(i) / kap
   enddo
 end subroutine bclim
@@ -196,7 +196,7 @@ subroutine scgrd1(r, &
   endif
   ! construct scaled gradient:
   do i = regl0, regh0 + 1
-     kap = KAVG(kappar(i-1), kappar(i), dx(1))
+     kap = kavg(kappar(i-1), kappar(i), dx(1), -1)
      r(i) = r(i) / &
           (kap * max(er(i-1), er(i), tiny))
   enddo
@@ -233,7 +233,7 @@ subroutine scgrd2(r, &
   endif
   ! construct scaled gradient:
   do i = regl0, regh0 + 1
-     kap = KAVG(kappar(i-1), kappar(i), dx(1))
+     kap = kavg(kappar(i-1), kappar(i), dx(1), -1)
      r(i) = r(i) / &
           (kap * max(er(i-1), er(i), tiny))
   enddo
@@ -270,7 +270,7 @@ subroutine scgrd3(r, &
   endif
   ! construct scaled gradient:
   do i = regl0, regh0 + 1
-     kap = KAVG(kappar(i-1), kappar(i), dx(1))
+     kap = kavg(kappar(i-1), kappar(i), dx(1), -1)
      r(i) = r(i) / &
           (kap * max(er(i-1), er(i), tiny))
   enddo
