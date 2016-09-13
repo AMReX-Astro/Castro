@@ -80,8 +80,5 @@ CEXE_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
 
 FEXE_headers += RAD_F.H HABEC_F.H
 
-f90EXE_sources += rad_params.f90 blackbody.f90 radhydro_params.f90 \
-                  Rad_nd.f90 fluxlimiter.f90 RadHydro_nd.f90 filter.f90 \
-                  RadDerive_nd.f90 rad_util.f90
 endif
 
