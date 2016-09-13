@@ -1,5 +1,7 @@
 ! arithmetic average, geometrically correct(?) but underestimates surface flux
 
+#define tiny 1.d-50
+
 #define KAVG0(a,b) (0.5d0 * (a + b + tiny))
 
 ! define KAVG(a,b,d) KAVG0(a,b)
@@ -20,6 +22,7 @@
 #define KAVG(a,b,d) kavg(a,b,d,-1)
 
 real*8 function kavg(a, b, d, iopt)
+  implicit none
   real*8 :: a, b, d
   integer :: iopt
   integer, save :: opt=100
