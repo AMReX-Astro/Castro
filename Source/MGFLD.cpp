@@ -343,12 +343,12 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	      dedT[mfi].setVal(const_c_v[0],box,0);
 	  }
 	  else if (const_c_v[0] > 0.0) {
-	      FORT_GCV(dimlist(box),
-		       dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
-		       temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
-		       const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-		       prop_temp_floor.dataPtr(),
-		       S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
+	      gcv(dimlist(box),
+		  dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
+		  temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
+		  const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
+		  prop_temp_floor.dataPtr(),
+		  S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
 	  }
 	  else {
 	      BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
@@ -583,11 +583,11 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 	  const Box&  bx  = mfi.nodaltilebox(idim);
 	  const Box& bbox = bcoefs[idim][mfi].box();
 	  const Box& sbox = spec[mfi].box();
-	  FORT_LBCOEFNA(bcoefs[idim][mfi].dataPtr(),
-			bcgrp[idim][mfi].dataPtr(),
-			dimlist(bbox), dimlist(bx),
-			spec[mfi].dataPtr(igroup), dimlist(sbox),
-			idim);
+	  lbcoefna(bcoefs[idim][mfi].dataPtr(),
+		   bcgrp[idim][mfi].dataPtr(),
+		   dimlist(bbox), dimlist(bx),
+		   spec[mfi].dataPtr(igroup), dimlist(sbox),
+		   idim);
 	  
 	  if (nGroups > 1) {
 	      BL_FORT_PROC_CALL(CA_ACCEL_CCOE, ca_accel_ccoe)
@@ -657,11 +657,11 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       const Box& jbox = Er_new[mfi].box();
       const Box& sbox = spec[mfi].box();
       const Box& abox = accel[mfi].box();
-      FORT_LJUPNA(Er_new[mfi].dataPtr(), dimlist(jbox),
-		  dimlist(reg),
-		  spec[mfi].dataPtr(), dimlist(sbox),
-		  accel[mfi].dataPtr(), dimlist(abox),
-		  nGroups);
+      ljupna(Er_new[mfi].dataPtr(), dimlist(jbox),
+	     dimlist(reg),
+	     spec[mfi].dataPtr(), dimlist(sbox),
+	     accel[mfi].dataPtr(), dimlist(abox),
+	     nGroups);
   }
 
   mgbd.unsetCorrection();

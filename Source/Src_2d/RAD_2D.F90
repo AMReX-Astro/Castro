@@ -4,20 +4,26 @@
 #define dimdec(a) dims(a)
 #define dimv(a) a/**/l0:a/**/h0, a/**/l1:a/**/h1
 
-#define tiny 1.d-50
-! define big  1.d+50
-
-#define BIGKR 1.d25
-! define BIGKP 1.d0
-
 #define REAL_T real*8
 
 #include "FLD_limiter.F"
 
-subroutine setlayout(Den_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-                     FirstSpec, FirstAux, NUM_STATE)
+module rad_module
+
+  use bl_types
+
   implicit none
-  INCLUDE 'StateLayout.H'
+
+  include "StateLayout.H"
+
+  double precision, parameter :: tiny = 1.e-50_dp_t
+  double precision, parameter :: BIGKR = 1.e25_dp_t
+
+contains
+
+subroutine setlayout(Den_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
+                     FirstSpec, FirstAux, NUM_STATE) bind(C, name="setlayout")
+
   integer :: Den_in, Xmom_in, Eden_in, Eint_in, Temp_in
   integer :: FirstSpec, FirstAux, NUM_STATE
   DEN = Den_in
@@ -35,7 +41,7 @@ end subroutine setlayout
 subroutine multrs(d, &
                   dims(dbox), &
                   dims(reg), &
-                  r, s)
+                  r, s) bind(C, name="multrs")
   implicit none
   integer :: dimdec(dbox)
   integer :: dimdec(reg)
@@ -51,8 +57,8 @@ subroutine multrs(d, &
 end subroutine multrs
 
 subroutine sphc(r, s, &
-                dims(reg), dx)
-  implicit none
+                dims(reg), dx) bind(C, name="sphc")
+
   integer :: dimdec(reg)
   real*8 :: r(regl0:regh0)
   real*8 :: s(regl1:regh1)
@@ -72,8 +78,8 @@ subroutine sphc(r, s, &
 end subroutine sphc
 
 subroutine sphe(r, s, n, &
-                dims(reg), dx)
-  implicit none
+                dims(reg), dx) bind(C, name="sphe")
+
   integer :: dimdec(reg)
   real*8 :: r(regl0:regh0)
   real*8 :: s(regl1:regh1)
@@ -105,8 +111,8 @@ end subroutine sphe
 subroutine lacoef(a, &
                   dims(abox), &
                   dims(reg), &
-                  fkp, eta, etainv, r, s, c, dt, theta)
-  implicit none
+                  fkp, eta, etainv, r, s, c, dt, theta) bind(C, name="lacoef")
+
   integer :: dimdec(abox)
   integer :: dimdec(reg)
   real*8 :: a(dimv(abox))
@@ -128,54 +134,12 @@ subroutine lacoef(a, &
   enddo
 end subroutine lacoef
 
-! arithmetic average, geometrically correct(?) but underestimates surface flux
-
-#define KAVG0(a,b) (0.5d0 * (a + b + tiny))
-
-! define KAVG(a,b,d) KAVG0(a,b)
-
-! harmonic average, overestimates surface flux
-
-#define KAVG1(a,b) ((2.d0 * a * b) / (a + b + tiny) + tiny)
-
-! define KAVG(a,b,d) KAVG1(a,b)
-
-! chooses arithmetic where optically thin, harmonic where optically thick,
-! surface flux approximation at a thick/thin boundary
-
-#define KAVG2(a,b,d) min(KAVG0(a,b), max(KAVG1(a,b), 4.d0 / (3.d0 * d)))
-
-! define KAVG(a,b,d) KAVG2(a,b,d)
-
-#define KAVG(a,b,d) kavg(a,b,d,-1)
-
-real*8 function kavg(a, b, d, iopt)
-  implicit none
-  real*8 :: a, b, d
-  integer :: iopt
-  integer, save :: opt=100
-  if (iopt >= 0) then
-     opt = iopt
-     if (opt > 2) then
-        print *, "Fortran KAVG: invalid averaging option"
-     endif
-     return
-  endif
-  if (opt == 0) then
-     kavg = KAVG0(a,b)
-  else if (opt == 1) then
-     kavg = KAVG1(a,b)
-  else
-     kavg = KAVG2(a,b,d)
-  endif
-end function kavg
-
 subroutine bclim(b, &
                  lambda, dims(bbox), &
                  dims(reg), &
                  n, kappar, dims(kbox), &
-                 r, s, c, dx)
-  implicit none
+                 r, s, c, dx) bind(C, name="bclim")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
@@ -208,8 +172,8 @@ end subroutine bclim
 
 subroutine flxlim(lambda, &
                   dims(rbox), &
-                  dims(reg), limiter)
-  implicit none
+                  dims(reg), limiter) bind(C, name="flxlim")
+
   integer :: dimdec(rbox)
   integer :: dimdec(reg)
   integer :: limiter
@@ -224,8 +188,8 @@ end subroutine flxlim
 
 subroutine eddfac(efact, &
                   dims(rbox), &
-                  dims(reg), limiter, n)
-  implicit none
+                  dims(reg), limiter, n) bind(C, name="eddfac")
+
   integer :: dimdec(rbox)
   integer :: dimdec(reg)
   integer :: n, limiter
@@ -255,8 +219,8 @@ subroutine scgrd1(r, &
                   dims(rbox), &
                   dims(reg), &
                   n, kappar, dims(kbox), &
-                  er, dx)
-  implicit none
+                  er, dx) bind(C, name="scgrd1")
+
   integer :: dimdec(rbox)
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
@@ -321,8 +285,8 @@ subroutine scgrd2(r, &
                   dims(rbox), &
                   dims(reg), &
                   n, kappar, dims(kbox), er, &
-                  dims(dbox), d, dx)
-  implicit none
+                  dims(dbox), d, dx) bind(C, name="scgrd2")
+
   integer :: dimdec(rbox)
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
@@ -463,8 +427,8 @@ subroutine scgrd3(r, &
                   dims(rbox), &
                   dims(reg), &
                   n, kappar, dims(kbox), er, &
-                  dims(dbox), d, dx)
-  implicit none
+                  dims(dbox), d, dx) bind(C, name="scgrd3")
+
   integer :: dimdec(rbox)
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
@@ -610,8 +574,8 @@ subroutine lrhs(rhs, &
                 dims(reg), &
                 temp, fkp, eta, etainv, frhoem, frhoes, dfo, &
                 ero, dims(ebox), edot, &
-                r, s, dt, sigma, c, theta)
-  implicit none
+                r, s, dt, sigma, c, theta) bind(C, name="lrhs")
+
   integer :: dimdec(rbox)
   integer :: dimdec(ebox)
   integer :: dimdec(reg)
@@ -649,8 +613,8 @@ end subroutine lrhs
 
 subroutine anatw2(test, &
                   dims(reg), &
-                  temp, p, xf, Tc, dx, xlo, lo)
-  implicit none
+                  temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")
+
   integer :: dimdec(reg)
   real*8 :: test(dimv(reg), 0:1)
   real*8 :: temp(dimv(reg))
@@ -673,9 +637,8 @@ subroutine cfrhoe(dims(reg), &
                   frhoe, &
                   dims(fb), &
                   state, &
-                  dims(sb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+                  dims(sb)) bind(C, name="cfrhoe")
+
   integer :: dimdec(reg)
   integer :: dimdec(fb)
   integer :: dimdec(sb)
@@ -699,9 +662,8 @@ end subroutine cfrhoe
 subroutine gtemp(dims(reg), &
                  temp, dims(tb), &
                  const, em, en, &
-                 state, dims(sb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+                 state, dims(sb)) bind(C, name="gtemp")
+
   integer :: dimdec(reg)
   integer :: dimdec(tb)
   integer :: dimdec(sb)
@@ -739,9 +701,8 @@ subroutine gcv(dims(reg), &
      cv,dims(cbox), &
      temp, dims(tbox), &
      const, em, en, tf, &
-     state, dims(sbox))
-  implicit none
-  INCLUDE 'StateLayout.H'
+     state, dims(sbox)) bind(C, name="gcv")
+
   integer :: dimdec(reg)
   integer :: dimdec(cbox)
   integer :: dimdec(tbox)
@@ -777,8 +738,8 @@ subroutine cexch( dims(reg), &
      exch, dims(xbox), &
      er  , dims(ebox), &
      fkp , dims(kbox), &
-     sigma, c)
-  implicit none
+     sigma, c) bind(C, name="cexch")
+
   integer :: dimdec(reg)
   integer :: dimdec(xbox)
   integer :: dimdec(ebox)
@@ -804,8 +765,8 @@ subroutine ceta2(dims(reg), &
                  cv, dims(cb), &
                  fkp, dims(fb), &
                  er, dims(ebox), &
-                 dtemp, dtime, sigma, c, underr, lagpla)
-  implicit none
+                 dtemp, dtime, sigma, c, underr, lagpla) bind(C, name="ceta2")
+
   integer :: dimdec(reg)
   integer :: dimdec(etab)
   integer :: dimdec(sb)
@@ -862,8 +823,8 @@ end subroutine ceta2
 subroutine ceup(dims(reg), relres, absres, &
                 frhoes, dims(grd), &
                 frhoem, eta, etainv, dfo, dfn, exch, &
-                dt, theta)
-  implicit none
+                dt, theta) bind(C, name="ceup")
+
   integer :: dimdec(reg)
   integer :: dimdec(grd)
   real*8 :: frhoes(dimv(grd))
@@ -898,8 +859,8 @@ end subroutine ceup
 subroutine ceupdterm( dims(reg), relres, absres, &
      frhoes, dims(grd), &
      frhoem, eta, etainv, dfo, dfn, exch, dterm, &
-     dt, theta)
-  implicit none
+     dt, theta) bind(C, name="ceupdterm")
+
   integer :: dimdec(reg)
   integer :: dimdec(grd)
   real*8 :: frhoes(dimv(grd))
@@ -940,9 +901,8 @@ subroutine nceup(dims(reg), relres, absres, &
                  er, dims(ebox), &
                  dfo, dfn, temp, fkp, cv, &
                  state, dims(sb), &
-                 sigma, c, dt, theta)
-  implicit none
-  INCLUDE 'StateLayout.H'
+                 sigma, c, dt, theta) bind(C, name="nceup")
+
   integer :: dimdec(reg)
   integer :: dimdec(grd)
   integer :: dimdec(sb)
@@ -995,9 +955,8 @@ end subroutine nceup
 
 subroutine cetot(dims(reg), &
                  state, dims(sb), &
-                 frhoe, dims(fb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+                 frhoe, dims(fb)) bind(C, name="cetot")
+
   integer :: dimdec(reg)
   integer :: dimdec(sb)
   integer :: dimdec(fb)
@@ -1022,9 +981,8 @@ subroutine fkpn( dims(reg), &
      const, em, en, &
      ep, nu, tf, &
      temp, dims(tb), &
-     state, dims(sb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+     state, dims(sb)) bind(C, name="fkpn")
+
   integer :: dimdec(reg)
   integer :: dimdec(fb)
   integer :: dimdec(tb)
@@ -1054,9 +1012,8 @@ subroutine rosse1(dims(reg), &
                   ep, nu, &
                   tf, kfloor, &
                   temp, dims(tb), &
-                  state, dims(sb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+                  state, dims(sb)) bind(C, name="rosse1")
+
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
   integer :: dimdec(tb)
@@ -1091,9 +1048,8 @@ subroutine rosse1s(dims(reg), &
                    nu, &
                    tf, kfloor, &
                    temp, dims(tb), &
-                   state, dims(sb))
-  implicit none
-  INCLUDE 'StateLayout.H'
+                   state, dims(sb)) bind(C, name="rosse1s")
+
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
   integer :: dimdec(tb)
@@ -1127,8 +1083,8 @@ end subroutine rosse1s
 subroutine nfloor(dest, &
                   dims(dbox), &
                   dims(reg), &
-                  nflr, flr, nvar)
-  implicit none
+                  nflr, flr, nvar) bind(C, name="nfloor")
+
   integer :: dimdec(dbox)
   integer :: dimdec(reg)
   integer :: nvar, nflr
@@ -1158,8 +1114,8 @@ subroutine lacoefmgfld(a, &
                        kappa, &
                        dims(kbox), &
                        r, s, &
-                       dt, c)
-  implicit none
+                       dt, c) bind(C, name="lacoefmgfld")
+
   integer :: dimdec(abox)
   integer :: dimdec(reg)
   integer :: dimdec(kbox)
@@ -1190,8 +1146,8 @@ subroutine rfface(fine, &
                   dims(fbox), &
                   crse, &
                   dims(cbox), &
-                  idim, irat)
-  implicit none
+                  idim, irat) bind(C, name="rfface")
+
   integer :: dimdec(fbox)
   integer :: dimdec(cbox)
   real*8 :: fine(dimv(fbox))
@@ -1211,9 +1167,8 @@ end subroutine rfface
 
 
 subroutine bextrp(f, fboxl0, fboxl1, fboxh0, fboxh1, &
-                  regl0, regl1, regh0, regh1)
+                  regl0, regl1, regh0, regh1) bind(C, name="bextrp")
 
-  implicit none
   integer :: fboxl0, fboxl1, fboxh0, fboxh1
   integer ::  regl0,  regl1,  regh0,  regh1
   real*8 :: f(fboxl0:fboxh0,fboxl1:fboxh1)
@@ -1243,7 +1198,7 @@ subroutine lbcoefna(bcoef, &
                     bcgrp, bboxl0, bboxl1, bboxh0, bboxh1, &
                     regl0, regl1, regh0, regh1, &
                     spec, sboxl0, sboxl1, sboxh0, sboxh1, &
-                    idim)
+                    idim) bind(C, name="lbcoefna")
 
   implicit none
   integer :: idim
@@ -1277,9 +1232,8 @@ subroutine ljupna(jnew, jboxl0, jboxl1, jboxh0, jboxh1, &
                   regl0, regl1, regh0, regh1, &
                   spec, sboxl0, sboxl1, sboxh0, sboxh1, &
                   accel, aboxl0, aboxl1, aboxh0, aboxh1, &
-                  nTotal)
+                  nTotal) bind(C, name="ljupna")
 
-  implicit none
   integer :: nTotal
   integer ::  regl0,  regl1,  regh0, regh1
   integer :: jboxl0, jboxl1, jboxh0, jboxh1
@@ -1290,6 +1244,7 @@ subroutine ljupna(jnew, jboxl0, jboxl1, jboxh0, jboxh1, &
   real*8 :: accel(aboxl0:aboxh0,aboxl1:aboxh1)
 
   integer :: i, j, n
+
   do n = 0, nTotal - 1
      do j = regl1, regh1
         do i = regl0, regh0
@@ -1299,3 +1254,5 @@ subroutine ljupna(jnew, jboxl0, jboxl1, jboxh0, jboxh1, &
   enddo
 
 end subroutine ljupna
+
+end module rad_module

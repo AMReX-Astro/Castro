@@ -5,79 +5,19 @@
 #include <LHH.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
-#  define   FORT_SETLAYOUT setlayout_
-#  define   FORT_MULTRS  multrs_
-#  define   FORT_SPHC    sphc_
-#  define   FORT_SPHE    sphe_
-#  define   FORT_LACOEF  lacoef_
 #  define   FORT_KAVG    kavg_
-#  define   FORT_BCLIM   bclim_
-#  define   FORT_FLXLIM  flxlim_
 #  define   FORT_EDDFAC  eddfac_
-#  define   FORT_SCGRD1  scgrd1_
-#  define   FORT_SCGRD2  scgrd2_
-#  define   FORT_SCGRD3  scgrd3_
-#  define   FORT_LRHS    lrhs_
-#  define   FORT_ANATW2  anatw2_
-#  define   FORT_CFRHOE  cfrhoe_
-#  define   FORT_GTEMP   gtemp_
-#  define   FORT_GCV     gcv_
-#  define   FORT_CEXCH   cexch_
-#  define   FORT_CETA2   ceta2_
-#  define   FORT_CEUP    ceup_
-#  define   FORT_CEUPDTERM    ceupdterm_
-#  define   FORT_NCEUP   nceup_
-#  define   FORT_CETOT   cetot_
-#  define   FORT_FKPN    fkpn_
-#  define   FORT_ROSSE1  rosse1_
-#  define   FORT_ROSSE1S  rosse1s_
-#  define   FORT_NFLOOR  nfloor_
-#  define   FORT_LACOEFMGFLD  lacoefmgfld_
-#  define   FORT_RFFACE  rfface_
 #  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
-#  define   FORT_BEXTRP bextrp_
-#  define   FORT_LBCOEFNA lbcoefna_
-#  define   FORT_LJUPNA ljupna_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
-#  define   FORT_SETLAYOUT SETLAYOUT
-#  define   FORT_MULTRS  MULTRS
-#  define   FORT_SPHC    SPHC
-#  define   FORT_SPHE    SPHE
-#  define   FORT_LACOEF  LACOEF
 #  define   FORT_KAVG    KAVG
-#  define   FORT_BCLIM   BCLIM
-#  define   FORT_FLXLIM  FLXLIM
 #  define   FORT_EDDFAC  EDDFAC
-#  define   FORT_SCGRD1  SCGRD1
-#  define   FORT_SCGRD2  SCGRD2
-#  define   FORT_SCGRD3  SCGRD3
-#  define   FORT_LRHS    LRHS
-#  define   FORT_ANATW2  ANATW2
-#  define   FORT_CFRHOE  CFRHOE
-#  define   FORT_GTEMP   GTEMP
-#  define   FORT_GCV     GCV
-#  define   FORT_CEXCH   CEXCH
-#  define   FORT_CETA2   CETA2
-#  define   FORT_CEUP    CEUP
-#  define   FORT_CEUPDTERM    CEUPDTERM
-#  define   FORT_NCEUP   NCEUP
-#  define   FORT_CETOT   CETOT
-#  define   FORT_FKPN    FKPN
-#  define   FORT_ROSSE1  ROSSE1
-#  define   FORT_ROSSE1S  ROSSE1S
-#  define   FORT_NFLOOR  NFLOOR
-#  define   FORT_LACOEFMGFLD  LACOEFMGFLD
-#  define   FORT_RFFACE  RFFACE
 #  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
-#  define   FORT_BEXTRP BEXTRP
-#  define   FORT_LBCOEFNA LBCOEFNA
-#  define   FORT_LJUPNA LJUPNA
 
 #endif
 
@@ -781,152 +721,152 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
 extern "C" {
-  void FORT_SETLAYOUT(int& Density, int& Xmom, int& Eden, int& Eint, int& Temp, 
-		      int& FirstSpec, int& FirstAux, int& NUM_STATE);
+  void setlayout(int& Density, int& Xmom, int& Eden, int& Eint, int& Temp, 
+		 int& FirstSpec, int& FirstAux, int& NUM_STATE);
 
-  void FORT_MULTRS(Real* d, intS, intS, Real* r, Real* s);
+  void multrs(Real* d, intS, intS, Real* r, Real* s);
 
-  void FORT_SPHC(Real* r, Real* s, intS, const Real* dx);
+  void sphc(Real* r, Real* s, intS, const Real* dx);
 
-  void FORT_SPHE(Real* r, Real* s, const int& idim, intS, const Real* dx);
+  void sphe(Real* r, Real* s, const int& idim, intS, const Real* dx);
 
-  void FORT_LACOEF(Real* acoefs, intS, intS,
-		   Real* fkp, Real* eta, Real* etainv,
-		   Real* r, Real* s,
-		   const Real& c, const Real& dt, const Real& theta);
+  void lacoef(Real* acoefs, intS, intS,
+	      Real* fkp, Real* eta, Real* etainv,
+	      Real* r, Real* s,
+	      const Real& c, const Real& dt, const Real& theta);
 
   Real FORT_KAVG(const Real& a, const Real& b, const Real& d, const int& iopt);
 
-  void FORT_BCLIM(Real* bcoefs, Real* lambda, intS, intS, const int& idim,
-                  Real* kappa_r, intS,
-                  Real* r, Real* s,
-                  const Real& c, const Real* dx);
+  void bclim(Real* bcoefs, Real* lambda, intS, intS, const int& idim,
+	     Real* kappa_r, intS,
+	     Real* r, Real* s,
+	     const Real& c, const Real* dx);
 
-  void FORT_FLXLIM(Real* lambda, intS, intS, const int& limiter);
+  void flxlim(Real* lambda, intS, intS, const int& limiter);
 
   void FORT_EDDFAC(Real* efact, intS, intS, const int& limiter, const int& idim);
 
-  void FORT_SCGRD1(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS, Real* Er, const Real* dx);
+  void scgrd1(Real* R, intS, intS, const int& idim,
+	      Real* kappa_r, intS, Real* Er, const Real* dx);
 
-  void FORT_SCGRD2(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS, Real* Er, 
+  void scgrd2(Real* R, intS, intS, const int& idim,
+	      Real* kappa_r, intS, Real* Er, 
 #if (BL_SPACEDIM >= 2)
-		   intS, Real* dtmp1, 
+	      intS, Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
-		   Real* dtmp2,
+	      Real* dtmp2,
 #endif
-                   const Real* dx);
+	      const Real* dx);
 
-  void FORT_SCGRD3(Real* R, intS, intS, const int& idim,
-		   Real* kappa_r, intS, Real* Er, 
+  void scgrd3(Real* R, intS, intS, const int& idim,
+	      Real* kappa_r, intS, Real* Er, 
 #if (BL_SPACEDIM >= 2)
-		   intS, Real* dtmp1, 
+	      intS, Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
-		   Real* dtmp2,
+	      Real* dtmp2,
 #endif
-                   const Real* dx);
+	      const Real* dx);
 
-  void FORT_LRHS(Real* rhs, intS, intS,
-		 Real* temp, Real* fkp, Real* eta, Real* etainv,
-		 Real* rhoem, Real* rhoes,
-		 Real* dflux_old, Real* Er_old, intS, Real* Edot,
-		 Real* r, Real* s, const Real& delta_t, const Real& sigma,
-		 const Real& c, const Real& theta);
+  void lrhs(Real* rhs, intS, intS,
+	    Real* temp, Real* fkp, Real* eta, Real* etainv,
+	    Real* rhoem, Real* rhoes,
+	    Real* dflux_old, Real* Er_old, intS, Real* Edot,
+	    Real* r, Real* s, const Real& delta_t, const Real& sigma,
+	    const Real& c, const Real& theta);
 
-  void FORT_ANATW2(Real* test, intS,
-		   Real* temp,
-		   const Real& p, const Real& xf, const Real& Tc,
-		   const Real* dx, const Real* xlo, const int* lo);
+  void anatw2(Real* test, intS,
+	      Real* temp,
+	      const Real& p, const Real& xf, const Real& Tc,
+	      const Real* dx, const Real* xlo, const int* lo);
 
-  void FORT_CFRHOE(intS, Real* frhoe, intS, Real* state, intS);
+  void cfrhoe(intS, Real* frhoe, intS, Real* state, intS);
 
-  void FORT_GTEMP(intS,
-		  Real* temp, intS,
-		  Real* con, Real* em, Real* en,
-                  Real* state, intS);
+  void gtemp(intS,
+	     Real* temp, intS,
+	     Real* con, Real* em, Real* en,
+	     Real* state, intS);
 
-  void FORT_GCV(intS,
-                Real* c_v, intS, const Real* temp, intS,
-		const Real* con, const Real* em, const Real* en, const Real* tf,
-		const Real* state, intS);
+  void gcv(intS,
+	   Real* c_v, intS, const Real* temp, intS,
+	   const Real* con, const Real* em, const Real* en, const Real* tf,
+	   const Real* state, intS);
 
-  void FORT_CEXCH(intS,
-		  Real* exch, intS,
-		  Real* er, intS, 
-		  Real* fkp, intS,
-		  const Real& sigma, const Real& c);
+  void cexch(intS,
+	     Real* exch, intS,
+	     Real* er, intS, 
+	     Real* fkp, intS,
+	     const Real& sigma, const Real& c);
 
-  void FORT_CETA2(intS,
-		  Real* eta, Real* etainv, intS,
-		  Real* frho, intS, 
-		  Real* temp, intS,
-		  Real* c_v, intS,
-		  Real* fkp, intS,
-		  Real* er, intS,
-		  const Real& dT, const Real& delta_t, const Real& sigma,
-		  const Real& c, const Real& underr, const int& lagpla);
+  void ceta2(intS,
+	     Real* eta, Real* etainv, intS,
+	     Real* frho, intS, 
+	     Real* temp, intS,
+	     Real* c_v, intS,
+	     Real* fkp, intS,
+	     Real* er, intS,
+	     const Real& dT, const Real& delta_t, const Real& sigma,
+	     const Real& c, const Real& underr, const int& lagpla);
 
-  void FORT_CEUP(intS, Real& relres, Real& absres,
+  void ceup(intS, Real& relres, Real& absres,
+	    Real* frhoes, intS,
+	    Real* frhoem, Real* eta, Real* etainv,
+	    Real* dflux_old, Real* dflux_new,
+	    Real* exch,
+	    const Real& delta_t, const Real& theta);
+
+  void ceupdterm(intS, Real& relres, Real& absres,
 		 Real* frhoes, intS,
 		 Real* frhoem, Real* eta, Real* etainv,
 		 Real* dflux_old, Real* dflux_new,
-		 Real* exch,
+		 Real* exch, Real* dterm, 
 		 const Real& delta_t, const Real& theta);
 
-  void FORT_CEUPDTERM(intS, Real& relres, Real& absres,
-		      Real* frhoes, intS,
-		      Real* frhoem, Real* eta, Real* etainv,
-		      Real* dflux_old, Real* dflux_new,
-		      Real* exch, Real* dterm, 
-		      const Real& delta_t, const Real& theta);
+  void nceup(intS, Real& relres, Real& absres,
+	     Real* frhoes, intS,
+	     Real* frhoem, Real* eta, Real* etainv,
+	     Real* er, intS, Real* dflux_old, Real* dflux_new,
+	     Real* temp, Real* fkp, Real* cv, Real* state, intS,
+	     const Real& sigma, const Real& c,
+	     const Real& delta_t, const Real& theta);
 
-  void FORT_NCEUP(intS, Real& relres, Real& absres,
-		  Real* frhoes, intS,
-		  Real* frhoem, Real* eta, Real* etainv,
-		  Real* er, intS, Real* dflux_old, Real* dflux_new,
-		  Real* temp, Real* fkp, Real* cv, Real* state, intS,
-		  const Real& sigma, const Real& c,
-		  const Real& delta_t, const Real& theta);
+  void cetot(intS, Real* state, intS, Real* rhoe, intS);
 
-  void FORT_CETOT(intS, Real* state, intS, Real* rhoe, intS);
+  void fkpn(intS,
+	    Real* fkp, intS,
+	    Real* con, Real* em, Real* en,
+	    Real* ep, const Real& xnu, Real* tf,
+	    Real* temp, intS, 
+	    Real* state, intS);
 
-  void FORT_FKPN(intS,
-		 Real* fkp, intS,
-		 Real* con, Real* em, Real* en,
-		 Real* ep, const Real& xnu, Real* tf,
-		 Real* temp, intS, 
-		 Real* state, intS);
+  void rosse1(intS,
+	      Real* kappar, intS,
+	      Real* con, Real* em, Real* en,
+	      Real* ep, const Real& xnu,
+	      Real* tf, const Real& kfloor,
+	      Real* temp, intS, Real* state, intS);
 
-  void FORT_ROSSE1(intS,
-		   Real* kappar, intS,
-		   Real* con, Real* em, Real* en,
-		   Real* ep, const Real& xnu,
-		   Real* tf, const Real& kfloor,
-		   Real* temp, intS, Real* state, intS);
+  void rosse1s(intS,
+	       Real* kappar, intS,
+	       Real* con, Real* em, Real* en,
+	       Real* ep, 
+	       Real* scon, Real* sem, Real* sen,
+	       Real* sep, 
+	       const Real& xnu,
+	       Real* tf, const Real& kfloor,
+	       Real* temp, intS, Real* state, intS);
+  
+  void nfloor(Real* dest, intS, intS,
+	      int& nflr, const Real& flr, const int& nvar);
 
-  void FORT_ROSSE1S(intS,
-		    Real* kappar, intS,
-		    Real* con, Real* em, Real* en,
-		    Real* ep, 
-		    Real* scon, Real* sem, Real* sen,
-		    Real* sep, 
-		    const Real& xnu,
-		    Real* tf, const Real& kfloor,
-		    Real* temp, intS, Real* state, intS);
+  void lacoefmgfld(Real* a, intS, intS,
+		   Real* kappa, intS,
+		   Real* r, Real* s,
+		   const Real& delta_t, const Real& c);
 
-  void FORT_NFLOOR(Real* dest, intS, intS,
-		   int& nflr, const Real& flr, const int& nvar);
-
-  void FORT_LACOEFMGFLD(Real* a, intS, intS,
-			Real* kappa, intS,
-			Real* r, Real* s,
-			const Real& delta_t, const Real& c);
-
-  void FORT_RFFACE(Real* fine, intS, Real* cres, intS,
-                   const int& idim, const int* irat);
+  void rfface(Real* fine, intS, Real* cres, intS,
+	      const int& idim, const int* irat);
 
   void FORT_RADBNDRY(Real* bf, intS, intS,
 		     const Real* dx, const Real* xlo, const Real& time,
@@ -935,20 +875,20 @@ extern "C" {
   void FORT_RADBNDRY2(Real* bf, intS, int* tfab, intS,
 		      const Real* dx, const Real* xlo, const Real& time);
 
-  void FORT_BEXTRP(Real* f, intS, intS);
+  void bextrp(Real* f, intS, intS);
 
   // neutrino routines below
 
   void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
-  void FORT_LBCOEFNA(Real* bcoef, Real* bcgrp, intS, intS,
-                     Real* spec, intS,
-                     const int& idim);
+  void lbcoefna(Real* bcoef, Real* bcgrp, intS, intS,
+		Real* spec, intS,
+		const int& idim);
 
-  void FORT_LJUPNA(Real* jnew, intS, intS,
-                   Real* spec, intS,
-                   Real* accel, intS,
-		   const int& nTotal);
+  void ljupna(Real* jnew, intS, intS,
+	      Real* spec, intS,
+	      Real* accel, intS,
+	      const int& nTotal);
 };
 
 #endif
