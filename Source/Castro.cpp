@@ -95,6 +95,7 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
+int          Castro::NQAUX         = -1;
 
 #include <castro_defaults.H>
 
@@ -2988,7 +2989,7 @@ Castro::check_for_nan(MultiFab& state)
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
 
 void
-Castro::cons_to_prim(MultiFab& u, MultiFab& q)
+Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
 
     BL_ASSERT(u.nComp() == NUM_STATE);
@@ -3006,7 +3007,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q)
 
 	ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
-		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()));
+		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
+	        qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
 
     }
 

@@ -28,7 +28,8 @@ contains
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth2d(q, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
+  subroutine umeth2d(q, flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                     qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      uout, uout_l1, uout_l2, uout_h1, uout_h2, &
@@ -44,7 +45,7 @@ contains
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, ngdnv, &
-                                   QC, QCSML, QGAMC
+                                   QC, QCSML, QGAMC, NQAUX
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
     use transverse_module, only : transx, transy
@@ -57,6 +58,7 @@ contains
     implicit none
 
     integer qd_l1, qd_l2, qd_h1, qd_h2
+    integer qa_l1, qa_l2, qa_h1, qa_h2
     integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer uout_l1, uout_l2, uout_h1, uout_h2
@@ -72,6 +74,7 @@ contains
 
     double precision dx, dy, dt
     double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    double precision  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
@@ -86,7 +89,7 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
 
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable::  qm(:,:,:),   qp(:,:,:)
+    double precision, allocatable::  qm(:,:,:),  qp(:,:,:)
     double precision, allocatable:: qxm(:,:,:), qym(:,:,:)
     double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
 
@@ -158,17 +161,17 @@ contains
     !      qxm and qxp will be the states on either side of the x interfaces
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
-       call trace(q,q(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+       call trace(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                   qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                   srcQ,src_l1,src_l2,src_h1,src_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     else
-       call trace_ppm(q,q(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+       call trace_ppm(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       srcQ,src_l1,src_l2,src_h1,src_h2, &
-                      q(:,:,QGAMC),qd_l1,qd_l2,qd_h1,qd_h2, &
+                      qaux(:,:,QGAMC),qd_l1,qd_l2,qd_h1,qd_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
     end if
 
@@ -177,7 +180,7 @@ contains
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -186,7 +189,7 @@ contains
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
@@ -196,7 +199,7 @@ contains
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                q(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
@@ -207,7 +210,7 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -217,7 +220,7 @@ contains
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                q(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -230,7 +233,7 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                q(:,:,QGAMC), q(:,:,QCSML), q(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 

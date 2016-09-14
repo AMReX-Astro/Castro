@@ -2,6 +2,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                     uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                     q,q_l1,q_l2,q_h1,q_h2, &
+                    qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                     srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                     update,updt_l1,updt_l2,updt_h1,updt_h2, &
                     ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
@@ -9,18 +10,18 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                     flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                    pradial,p_l1,p_l2,p_h1,p_h2,&
+                    pradial,p_l1,p_l2,p_h1,p_h2, &
                     area1,area1_l1,area1_l2,area1_h1,area1_h2, &
                     area2,area2_l1,area2_l2,area2_h1,area2_h2, &
                     dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                    vol,vol_l1,vol_l2,vol_h1,vol_h2,&
+                    vol,vol_l1,vol_l2,vol_h1,vol_h2, &
                     courno,verbose, &
                     mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, GDPRES, &
-                                 use_flattening, QU, QV, QW, QPRES
+                                 use_flattening, QU, QV, QW, QPRES, NQAUX
   use advection_module, only : umeth2d, consup
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
@@ -36,6 +37,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer uin_l1,uin_l2,uin_h1,uin_h2
   integer uout_l1,uout_l2,uout_h1,uout_h2
   integer q_l1, q_l2, q_h1, q_h2
+  integer qa_l1, qa_l2, qa_h1, qa_h2
   integer srQ_l1, srQ_l2, srQ_h1, srQ_h2
   integer updt_l1,updt_l2,updt_h1,updt_h2
   integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
@@ -51,6 +53,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
   double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
   double precision q(q_l1:q_h1,q_l2:q_h2,QVAR)
+  double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   double precision srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
   double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
@@ -134,6 +137,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth2d(q,flatn,q_l1,q_l2,q_h1,q_h2, &
+               qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                uout,uout_l1,uout_l2,uout_h1,uout_h2, &

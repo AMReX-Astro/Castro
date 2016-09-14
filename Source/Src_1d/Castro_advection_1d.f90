@@ -26,6 +26,7 @@ contains
 
   subroutine umeth1d(lo,hi,domlo,domhi, &
                      q,flatn,qd_l1,qd_h1, &
+                     qaux,qa_l1,qa_h1, &
                      srcQ,src_l1,src_h1, &
                      ilo,ihi,dx,dt, &
                      flux ,   fd_l1,   fd_h1, &
@@ -33,7 +34,7 @@ contains
                      ugdnv,ugdnv_l1,ugdnv_h1, &
                      dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC
+    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX
     use riemann_module, only : cmpflx
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
@@ -44,6 +45,7 @@ contains
     integer domlo(1),domhi(1)
     integer dloga_l1,dloga_h1
     integer qd_l1,qd_h1
+    integer qa_l1,qa_h1
     integer src_l1,src_h1
     integer fd_l1,fd_h1
     integer pgdnv_l1,pgdnv_h1
@@ -51,6 +53,7 @@ contains
     integer ilo,ihi
     double precision dx, dt
     double precision     q(   qd_l1:qd_h1,QVAR)
+    double precision  qaux(   qa_l1:qa_h1,NQAUX)
     double precision flatn(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
@@ -67,7 +70,7 @@ contains
 
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
-       call trace_ppm(q,q(:,QC),flatn,q(:,QGAMC),qd_l1,qd_h1, &
+       call trace_ppm(q,qaux(:,QC),flatn,qaux(:,QGAMC),qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
                       qm,qp,ilo-1,ihi+1, &
@@ -75,7 +78,7 @@ contains
     else
        allocate ( dq(ilo-1:ihi+1,QVAR))
 
-       call trace(q,dq,q(:,QC),flatn,qd_l1,qd_h1, &
+       call trace(q,dq,qaux(:,QC),flatn,qd_l1,qd_h1, &
                   dloga,dloga_l1,dloga_h1, &
                   srcQ,src_l1,src_h1, &
                   qm,qp,ilo-1,ihi+1, &
@@ -90,7 +93,7 @@ contains
                 flux ,  fd_l1, fd_h1, &
                 pgdnv,pgdnv_l1,pgdnv_h1, &
                 ugdnv,ugdnv_l1,ugdnv_h1, &
-                q(:,QGAMC),q(:,QCSML),q(:,QC),qd_l1,qd_h1,ilo,ihi)
+                qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
 
     deallocate (qm,qp)
 
@@ -118,7 +121,7 @@ contains
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, track_grid_losses, &
-                                   small_dens, limit_fluxes_on_small_dens, cfl, QVAR
+                                   limit_fluxes_on_small_dens, QVAR
     use bl_constants_module
     use advection_util_1d_module, only: normalize_species_fluxes
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens
@@ -156,9 +159,6 @@ contains
     double precision :: div1
     integer          :: domlo(3), domhi(3)
     double precision :: loc(3), ang_mom(3)
-
-    double precision :: rho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx
-    integer          :: dir
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
