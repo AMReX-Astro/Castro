@@ -963,52 +963,15 @@ when they are defined).  There are some advanced operations in
 
 \subsection{Physical Boundaries}
 
-The way that you tell the code what kind of physical boundary
-condition to use is given in {\tt Castro\_setup.cpp}. At the top we
-define arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'',
-etc, which say which kind of bc to use on which kind of physical
-boundary.  Boundary conditions are set in functions like ``{\tt
-  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
-arrays.
+Physical boundary conditions are specified by an integer
+index\footnote{the integer values are defined in \code{BC\_TYPES.H}} in
+  the inputs file, using the \runparam{castro.lo\_bc} and
+  \runparam{castro.hi\_bc} runtime parameters.  The generally
+  supported boundary conditions are, their corresponding integer key,
+  and the action they take for the normal velocity, transverse
+  velocity, and generic scalar are shown in Table~\ref{table:castro:bcs}
 
-If you want to specify a value at a function (like at an inflow
-boundary), there are routines in {\tt Prob\_1d.f90}, for example, which do
-that. Which routine is called for which variable is again defined in
-{\tt Castro\_setup.cpp}.
-
-
-The boundary conditions listed in Table~\ref{table:castro:bcs} have already been implemented in
-\castro\ See \code{BC\_TYPES.H} for some
-more details.
-\begin{table}
-\renewcommand{\arraystretch}{1.5}
-\centering
-\begin{tabular}{p{2.0in}p{1.1in}p{1.1in}p{1.1in}}
-{\bf name} & {\bf velocity action} & {\bf temperature action} & {\bf scalars action} \\
-\hline
-outflow  & {\tt FOEXTRAP} & {\tt FOEXTRAP} & {\tt FOEXTRAP} \\
-no-slip wall w/ adiabatic $T$ & {\tt EXT\_DIR}: $u = v = 0$ &
-                                   {\tt REFLECT\_EVEN}: $dT/dn=0$ &
-                                   {\tt HOEXTRAP} \\
-no-slip wall w/ fixed $T$ & {\tt EXT\_DIR}: $u=v=0$ &
-                               {\tt EXT\_DIR} &
-                               {\tt HOEXTRAP} \\
-slip wall w/ adiabatic $T$ &
-                               {\tt EXT\_DIR}: $u_n=0$; {\tt HOEXTRAP}: $u_t$ &
-                               {\tt REFLECT\_EVEN}: $dT/dn=0$ &
-                               {\tt HOEXTRAP} \\
-slip wall w/ fixed $T$ &
-                               {\tt EXT\_DIR}: $u_n=0$ &
-                               {\tt EXT\_DIR} &
-                               {\tt HOEXTRAP} \\
-\end{tabular}
-\caption[Physics boundary conditions in \castro]
-  {\label{table:castro:bcs} Physical boundary conditions supported in \castro.  {\color{red} is this list right?}}
-\renewcommand{\arraystretch}{1.0}
-\end{table}
-
-Here's definitions of some of the funny-sounding ``all-caps''
-words from above:
+The definition of the specific actions are:
 \begin{itemize}
 \item {\tt INT\_DIR}: data taken from other grids or interpolated
 
@@ -1024,12 +987,60 @@ words from above:
 \end{itemize}
 
 
+The actual registration of a boundary condition action to a particular
+variable is done in {\tt Castro\_setup.cpp}. At the top we define
+arrays such as ``{\tt scalar\_bc}'', ``{\tt norm\_vel\_bc}'', etc,
+which say which kind of bc to use on which kind of physical boundary.
+Boundary conditions are set in functions like ``{\tt
+  set\_scalar\_bc}'', which uses the {\tt scalar\_bc} pre-defined
+arrays.  We also specify the name of the Fortran routine that
+is responsible for filling the data there (e.g., \code{hypfill}).
+These routines are discussed more below.
+
+
+If you want to specify a value at a function (like at an inflow
+boundary), then you choose an {\em inflow} boundary at that face of
+the domain.  You then need to write the implementation code for this.
+An example is the problem \problem{toy\_convect} which implements a
+hydrostatic lower boundary (through its custom \code{bc\_fill\_?d.F90}
+routines.
+
+\begin{table}
+\renewcommand{\arraystretch}{1.5}
+\centering
+\begin{tabular}{lllll}
+{\bf name} & {\bf integer} & {\bf normal velocity} & {\bf transverse velocity} & {\bf scalars} \\
+\hline
+interior & 0 & {\tt INT\_DIR} & {\tt INT\_DIR} & {\tt INT\_DIR} \\
+inflow   & 1 & {\tt EXT\_DIR} & {\tt EXT\_DIR} & {\tt EXT\_DIR} \\
+outflow  & 2 & {\tt FOEXTRAP} & {\tt FOEXTRAP} & {\tt FOEXTRAP} \\
+symmetry & 3 & {\tt REFLECT\_ODD} & {\tt REFLECT\_EVEN} & {\tt REFLECT\_EVEN} \\
+slipwall & 4 & {\tt REFLECT\_ODD} & {\tt REFLECT\_EVEN} & {\tt REFLECT\_EVEN} \\
+noslipwall & 5 & {\tt REFLECT\_ODD} & {\tt REFLECT\_EVEN} & {\tt REFLECT\_EVEN} \\
+\hline
+\end{tabular}
+\caption[Physics boundary conditions in \castro]
+  {\label{table:castro:bcs} Physical boundary conditions supported in \castro.  {\color{red} why does slipwall and noslipwall do the same thing?}}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+
+
 
 
 
 \section{Other \boxlib\ Concepts}
 
+There are a large number of classes that help define the structure of
+the grids, metadata associate with the variables, etc.  A good way to
+get a sense of these is to look at the {\tt .H} files in the {\tt
+  BoxLib/Src/C\_AMRLib/} directory.
+
 \subsection{Geometry class}
+
+There is a {\tt Geometry} object, \code{geom} for each level as part of 
+the {\tt Castro} object (this is inhereted through \amrlevel). \MarginPar{correct?}
+
+
 
 \subsection{ParmParse class}
 
