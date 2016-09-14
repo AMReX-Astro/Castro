@@ -1155,7 +1155,7 @@ depending on the dimensionality of the problem), a {\tt probdata.f90}
 file, the {\tt inputs} and {\tt probin} files, and a {\tt
   Make.package} file that tells the build system what problem-specific
 routines exist.  Finally, if you need custom boundary conditions, a
-{\tt bc\_fill\_2d.f90} (or {\tt 1d}/{\tt 3d}) file is needed.  The
+{\tt bc\_fill\_2d.F90} (or {\tt 1d}/{\tt 3d}) file is needed.  The
 simplest way to get started is to copy these files from an existing
 problem.  Here we describe how to customize your problem.
 
@@ -1239,7 +1239,7 @@ double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
     \end{itemize}
   \end{itemize}
 
-\item \code{bc\_fill\_?d.f90}:
+\item \code{bc\_fill\_?d.F90}:
 
   These routines handle how \castro\ fills ghostcells {\em
   at physical boundaries} for specific data.  Most problem
