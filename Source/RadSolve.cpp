@@ -575,12 +575,12 @@ void RadSolve::levelFlux(int level,
 
     for (MFIter fi(Flux[n],true); fi.isValid(); ++fi) {
 	const Box& reg = fi.tilebox();
-	FORT_SET_ABEC_FLUX(dimlist(reg), &n,
-			   Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
-			   bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
-			   &beta,
-			   dx,
-			   Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
+	set_abec_flux(dimlist(reg), &n,
+		      Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
+		      bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
+		      &beta,
+		      dx,
+		      Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
     }
   }
 
