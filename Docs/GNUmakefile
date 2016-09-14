@@ -9,7 +9,6 @@ pdf_source = $(eps_source:.eps=.pdf)
 section_sources = Introduction/CastroIntroduction.tex \
                   GettingStarted/CastroGettingStarted.tex \
 	          Inputs/CastroInputs.tex \
-                  UnitsAndConstants/CastroUnits.tex \
                   Software/CastroSoftware.tex \
 	          FlowChart/FlowChart.tex \
                   runtime_parameters/runtime_parameters.tex \
