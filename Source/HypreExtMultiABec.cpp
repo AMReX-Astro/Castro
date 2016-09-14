@@ -213,36 +213,36 @@ void HypreExtMultiABec::loadMatrix()
       if (a2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
           const Box &bbox = a2coefs[level][idim][mfi].box();
-          FORT_HMA2C(mat, a2coefs[level][idim][mfi].dataPtr(),
-                     dimlist(bbox), dimlist(reg), alpha2,
-                     idim);
+          hma2c(mat, a2coefs[level][idim][mfi].dataPtr(),
+		dimlist(bbox), dimlist(reg), alpha2,
+		idim);
         }
       }
 
       if (ccoefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
           const Box &bbox = ccoefs[level][idim][mfi].box();
-          FORT_HMCC(mat, ccoefs[level][idim][mfi].dataPtr(),
-                    dimlist(bbox), dimlist(reg), gamma,
-                    geom[level].CellSize(), idim);
+          hmcc(mat, ccoefs[level][idim][mfi].dataPtr(),
+	       dimlist(bbox), dimlist(reg), gamma,
+	       geom[level].CellSize(), idim);
         }
       }
 
       if (d1coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
           const Box &abox = d1coefs[level][idim][mfi].box();
-          FORT_HMD1C(mat, d1coefs[level][idim][mfi].dataPtr(),
-                     dimlist(abox), dimlist(reg), delta1,
-                     geom[level].CellSize(), idim);
+          hmd1c(mat, d1coefs[level][idim][mfi].dataPtr(),
+		dimlist(abox), dimlist(reg), delta1,
+		geom[level].CellSize(), idim);
         }
       }
 
       if (d2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
           const Box &bbox = d2coefs[level][idim][mfi].box();
-          FORT_HMD2C(mat, d2coefs[level][idim][mfi].dataPtr(),
-                     dimlist(bbox), dimlist(reg), delta2,
-                     geom[level].CellSize(), idim);
+          hmd2c(mat, d2coefs[level][idim][mfi].dataPtr(),
+		dimlist(bbox), dimlist(reg), delta2,
+		geom[level].CellSize(), idim);
         }
       }
 
@@ -977,22 +977,22 @@ void HypreExtMultiABec::boundaryDterm(int level,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-        FORT_HDTERM3(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
-		     Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-		     cdir, bctype, tfp, bcl,
-		     bcv.dataPtr(bdcomp), dimlist(bcvb),
-		     msk.dataPtr(), dimlist(msb),
-		     d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
-		     geom[level].CellSize());
+        hdterm3(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
+		Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+		cdir, bctype, tfp, bcl,
+		bcv.dataPtr(bdcomp), dimlist(bcvb),
+		msk.dataPtr(), dimlist(msb),
+		d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
+		geom[level].CellSize());
       }
       else {
-        FORT_HDTERM(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
-		    Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-		    cdir, bct, bcl,
-		    bcv.dataPtr(bdcomp), dimlist(bcvb),
-		    msk.dataPtr(), dimlist(msb),
-		    d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
-		    geom[level].CellSize());
+        hdterm(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
+	       Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+	       cdir, bct, bcl,
+	       bcv.dataPtr(bdcomp), dimlist(bcvb),
+	       msk.dataPtr(), dimlist(msb),
+	       d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
+	       geom[level].CellSize());
       }
     }
   }

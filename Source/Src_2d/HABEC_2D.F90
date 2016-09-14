@@ -4,12 +4,19 @@
 #define dimdec(a) dims(a)
 #define dimv(a) a/**/l0:a/**/h0, a/**/l1:a/**/h1
 
-#define tiny 1.d-50
+
+module habec_module
+
+  use bl_types
+
+  implicit none
+
+contains
 
 subroutine hacoef(mat, a, &
                   dims(abox), &
                   dims(reg), &
-                  alpha)
+                  alpha) bind(C, name="hacoef")
   implicit none
   integer :: dimdec(abox)
   integer :: dimdec(reg)
@@ -35,8 +42,8 @@ end subroutine hacoef
 subroutine hbcoef(mat, b, &
                   dims(bbox), &
                   dims(reg), &
-                  beta, dx, n)
-  implicit none
+                  beta, dx, n) bind(C, name="hbcoef")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: n
@@ -69,8 +76,8 @@ subroutine hbmat(mat, &
                  cdir, bct, bcl, &
                  mask, dims(msk), &
                  b, dims(bbox), &
-                 beta, dx)
-  implicit none
+                 beta, dx) bind(C, name="hbmat")
+
   integer :: dimdec(reg)
   integer :: dimdec(msk)
   integer :: dimdec(bbox)
@@ -143,8 +150,8 @@ subroutine hbmat3(mat, &
                   mask, dims(msk), &
                   b, dims(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox))
-  implicit none
+                  spa, dims(spabox)) bind(C, name="hbmat3")
+
   integer :: dimdec(reg)
   integer :: dimdec(bcv)
   integer :: dimdec(msk)
@@ -296,8 +303,8 @@ subroutine hbvec(vec, &
                  bcval, dims(bcv), &
                  mask, dims(msk), &
                  b, dims(bbox), &
-                 beta, dx)
-  implicit none
+                 beta, dx) bind(C, name="hbvec")
+
   integer :: dimdec(reg)
   integer :: dimdec(bcv)
   integer :: dimdec(msk)
@@ -373,8 +380,8 @@ subroutine hbvec3(vec, &
                   bcval, dims(bcv), &
                   mask, dims(msk), &
                   b, dims(bbox), &
-                  beta, dx, r)
-  implicit none
+                  beta, dx, r) bind(C, name="hbvec3")
+
   integer :: dimdec(reg)
   integer :: dimdec(bcv)
   integer :: dimdec(msk)
@@ -535,8 +542,8 @@ subroutine hbflx(flux, &
                  bcval, dims(bcv), &
                  mask, dims(msk), &
                  b, dims(bbox), &
-                 beta, dx, inhom)
-  implicit none
+                 beta, dx, inhom) bind(C, name="hbflx")
+
   integer :: dimdec(fbox)
   integer :: dimdec(ebox)
   integer :: dimdec(reg)
@@ -634,8 +641,8 @@ subroutine hbflx3(flux, &
                   mask, dims(msk), &
                   b, dims(bbox), &
                   beta, dx, c, r, inhom, &
-                  spa, dims(spabox))
-  implicit none
+                  spa, dims(spabox)) bind(C, name="hbflx3")
+
   integer :: dimdec(fbox)
   integer :: dimdec(ebox)
   integer :: dimdec(reg)
@@ -893,8 +900,8 @@ subroutine hdterm(dterm, &
                   bcval, dims(bcv), &
                   mask, dims(msk), &
                   d, dims(dbox), &
-                  dx)
-  implicit none
+                  dx) bind(C, name="hdterm")
+
   integer :: dimdec(dtbox)
   integer :: dimdec(ebox)
   integer :: dimdec(reg)
@@ -965,8 +972,8 @@ subroutine hdterm3(dterm, &
                    bcval, dims(bcv), &
                    mask, dims(msk), &
                    d, dims(dbox), &
-                   dx)
-  implicit none
+                   dx) bind(C, name="hdterm3")
+
   integer :: dimdec(dtbox)
   integer :: dimdec(ebox)
   integer :: dimdec(reg)
@@ -1075,8 +1082,8 @@ end subroutine hdterm3
 subroutine hmac(mat, a, &
                 dims(abox), &
                 dims(reg), &
-                alpha)
-  implicit none
+                alpha) bind(C, name="hmac")
+
   integer :: dimdec(abox)
   integer :: dimdec(reg)
   real*8 :: a(dimv(abox))
@@ -1101,8 +1108,8 @@ end subroutine hmac
 subroutine hmbc(mat, b, &
                 dims(bbox), &
                 dims(reg), &
-                beta, dx, n)
-  implicit none
+                beta, dx, n) bind(C, name="hmbc")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: n
@@ -1135,8 +1142,8 @@ end subroutine hmbc
 subroutine hma2c(mat, a2, &
                  dims(bbox), &
                  dims(reg), &
-                 alpha2, n)
-  implicit none
+                 alpha2, n) bind(C, name="hma2c")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: n
@@ -1168,8 +1175,8 @@ end subroutine hma2c
 subroutine hmcc(mat, c, &
                 dims(bbox), &
                 dims(reg), &
-                gamma, dx, n)
-  implicit none
+                gamma, dx, n) bind(C, name="hmcc")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: n
@@ -1202,8 +1209,8 @@ end subroutine hmcc
 subroutine hmd1c(mat, d1, &
                  dims(abox), &
                  dims(reg), &
-                 delta1, dx, n)
-  implicit none
+                 delta1, dx, n) bind(C, name="hmd1c")
+
   integer :: dimdec(abox)
   integer :: dimdec(reg)
   integer :: n
@@ -1234,8 +1241,8 @@ end subroutine hmd1c
 subroutine hmd2c(mat, d2, &
                  dims(bbox), &
                  dims(reg), &
-                 delta2, dx, n)
-  implicit none
+                 delta2, dx, n) bind(C, name="hmd2c")
+
   integer :: dimdec(bbox)
   integer :: dimdec(reg)
   integer :: n
@@ -1270,8 +1277,8 @@ subroutine hmmat(mat, &
                  cdir, bct, bho, bcl, &
                  mask, dims(msk), &
                  b, dims(bbox), &
-                 beta, dx)
-  implicit none
+                 beta, dx) bind(C, name="hmmat")
+
   integer :: dimdec(reg)
   integer :: dimdec(msk)
   integer :: dimdec(bbox)
@@ -1366,8 +1373,8 @@ subroutine hmmat3(mat, &
                   mask, dims(msk), &
                   b, dims(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox))
-  implicit none
+                  spa, dims(spabox)) bind(C, name="hmmat3")
+
   integer :: dimdec(reg)
   integer :: dimdec(bcv)
   integer :: dimdec(msk)
@@ -1600,15 +1607,14 @@ subroutine hmmat3(mat, &
   endif
 end subroutine hmmat3
 
-subroutine setabecflux( &
-                       dims(reg), dir, &
-                       density, dims(density), &
-                       dcoef, dims(dcoef), &
-                       beta, &
-                       dx, &
-                       flux, dims(flux))
+subroutine set_abec_flux( &
+                         dims(reg), dir, &
+                         density, dims(density), &
+                         dcoef, dims(dcoef), &
+                         beta, &
+                         dx, &
+                         flux, dims(flux)) bind(C, name="set_abec_flux")
 
-  implicit none
   integer :: dimdec(reg)
   integer :: dimdec(density)
   integer :: dimdec(dcoef)
@@ -1648,4 +1654,6 @@ subroutine setabecflux( &
   endif
 
   return
-end subroutine setabecflux
+end subroutine set_abec_flux
+
+end module habec_module

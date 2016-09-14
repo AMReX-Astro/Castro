@@ -1424,14 +1424,14 @@ void HypreMultiABec::loadMatrix()
       // build matrix interior
 
       const Box &abox = acoefs[level][mfi].box();
-      FORT_HMAC(mat, acoefs[level][mfi].dataPtr(),
-		dimlist(abox), dimlist(reg), alpha);
+      hmac(mat, acoefs[level][mfi].dataPtr(),
+	   dimlist(abox), dimlist(reg), alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
 	const Box &bbox = bcoefs[level][idim][mfi].box();
-	FORT_HMBC(mat, bcoefs[level][idim][mfi].dataPtr(),
-		  dimlist(bbox), dimlist(reg), beta,
-		  geom[level].CellSize(), idim);
+	hmbc(mat, bcoefs[level][idim][mfi].dataPtr(),
+	     dimlist(bbox), dimlist(reg), beta,
+	     geom[level].CellSize(), idim);
       }
 
       // add b.c.'s to matrix diagonal, and
@@ -1471,20 +1471,20 @@ void HypreMultiABec::loadMatrix()
 	      SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	    }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            FORT_HMMAT3(mat, dimlist(reg),
-                        cdir, bctype, tfp, bho, bcl,
-                        dimlist(fsb), msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                        beta, geom[level].CellSize(),
-                        flux_factor, r.dataPtr(),
-			pSPa, dimlist(SPabox));
+            hmmat3(mat, dimlist(reg),
+		   cdir, bctype, tfp, bho, bcl,
+		   dimlist(fsb), msk.dataPtr(), dimlist(msb),
+		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		   beta, geom[level].CellSize(),
+		   flux_factor, r.dataPtr(),
+		   pSPa, dimlist(SPabox));
           }
           else {
-            FORT_HMMAT(mat, dimlist(reg),
-                       cdir, bct, bho, bcl,
-                       msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                       beta, geom[level].CellSize());
+            hmmat(mat, dimlist(reg),
+		  cdir, bct, bho, bcl,
+		  msk.dataPtr(), dimlist(msb),
+		  bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		  beta, geom[level].CellSize());
           }
         }
         else {
@@ -1494,11 +1494,11 @@ void HypreMultiABec::loadMatrix()
           // stencil using Neumann BC:
 
           const RadBoundCond bct_coarse = LO_NEUMANN;
-	  FORT_HMMAT(mat, dimlist(reg),
-		     cdir, bct_coarse, bho, bcl,
-		     msk.dataPtr(), dimlist(msb),
-		     bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-		     beta, geom[level].CellSize());
+	  hmmat(mat, dimlist(reg),
+		cdir, bct_coarse, bho, bcl,
+		msk.dataPtr(), dimlist(msb),
+		bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		beta, geom[level].CellSize());
         }
       }
 
@@ -1820,20 +1820,20 @@ void HypreMultiABec::loadLevelVectors(int level,
               bctype = -1;
             }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            FORT_HBVEC3(vec, dimlist(reg),
-                        cdir, bctype, tfp, bho, bcl,
-                        fs.dataPtr(bdcomp), dimlist(fsb),
-                        msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                        beta, geom[level].CellSize(), r.dataPtr());
+            hbvec3(vec, dimlist(reg),
+		   cdir, bctype, tfp, bho, bcl,
+		   fs.dataPtr(bdcomp), dimlist(fsb),
+		   msk.dataPtr(), dimlist(msb),
+		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		   beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
-            FORT_HBVEC(vec, dimlist(reg),
-                       cdir, bct, bho, bcl,
-                       fs.dataPtr(bdcomp), dimlist(fsb),
-                       msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                       beta, geom[level].CellSize());
+            hbvec(vec, dimlist(reg),
+		  cdir, bct, bho, bcl,
+		  fs.dataPtr(bdcomp), dimlist(fsb),
+		  msk.dataPtr(), dimlist(msb),
+		  bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		  beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an
@@ -1932,20 +1932,20 @@ void HypreMultiABec::loadLevelVectorB(int level,
               bctype = -1;
             }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            FORT_HBVEC3(vec, dimlist(reg),
-                        cdir, bctype, tfp, bho, bcl,
-                        fs.dataPtr(bdcomp), dimlist(fsb),
-                        msk.dataPtr(), dimlist(msb),
-                        bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                        beta, geom[level].CellSize(), r.dataPtr());
+            hbvec3(vec, dimlist(reg),
+		   cdir, bctype, tfp, bho, bcl,
+		   fs.dataPtr(bdcomp), dimlist(fsb),
+		   msk.dataPtr(), dimlist(msb),
+		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		   beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
-            FORT_HBVEC(vec, dimlist(reg),
-                       cdir, bct, bho, bcl,
-                       fs.dataPtr(bdcomp), dimlist(fsb),
-                       msk.dataPtr(), dimlist(msb),
-                       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                       beta, geom[level].CellSize());
+            hbvec(vec, dimlist(reg),
+		  cdir, bct, bho, bcl,
+		  fs.dataPtr(bdcomp), dimlist(fsb),
+		  msk.dataPtr(), dimlist(msb),
+		  bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		  beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an
@@ -3170,24 +3170,24 @@ void HypreMultiABec::boundaryFlux(int level,
 			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 		    }
 		    getFaceMetric(r, reg, oitr(), geom[level]);
-		    FORT_HBFLX3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-				Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-				cdir, bctype, tfp, bho, bcl,
-				fs.dataPtr(bdcomp), dimlist(fsb),
-				msk.dataPtr(), dimlist(msb),
-				bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-				beta, geom[level].CellSize(),
-				flux_factor, r.dataPtr(), inhom,
-				pSPa, dimlist(SPabox));
+		    hbflx3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+			   Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			   cdir, bctype, tfp, bho, bcl,
+			   fs.dataPtr(bdcomp), dimlist(fsb),
+			   msk.dataPtr(), dimlist(msb),
+			   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+			   beta, geom[level].CellSize(),
+			   flux_factor, r.dataPtr(), inhom,
+			   pSPa, dimlist(SPabox));
 		}
 		else {
-		    FORT_HBFLX(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-			       Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-			       cdir, bct, bho, bcl,
-			       fs.dataPtr(bdcomp), dimlist(fsb),
-			       msk.dataPtr(), dimlist(msb),
-			       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-			       beta, geom[level].CellSize(), inhom);
+		    hbflx(Flux[idim][mfi].dataPtr(), dimlist(fbox),
+			  Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			  cdir, bct, bho, bcl,
+			  fs.dataPtr(bdcomp), dimlist(fsb),
+			  msk.dataPtr(), dimlist(msb),
+			  bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+			  beta, geom[level].CellSize(), inhom);
 		}
 	    }
 	}
@@ -3252,14 +3252,14 @@ void HypreMultiABec::initializeApplyLevel(int level,
     // build matrix interior
 
     const Box &abox = acoefs[level][mfi].box();
-    FORT_HMAC(mat, acoefs[level][mfi].dataPtr(),
-	      dimlist(abox), dimlist(reg), alpha);
+    hmac(mat, acoefs[level][mfi].dataPtr(),
+	 dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
       const Box &bbox = bcoefs[level][idim][mfi].box();
-      FORT_HMBC(mat, bcoefs[level][idim][mfi].dataPtr(),
-		dimlist(bbox), dimlist(reg), beta,
-		geom[level].CellSize(), idim);
+      hmbc(mat, bcoefs[level][idim][mfi].dataPtr(),
+	   dimlist(bbox), dimlist(reg), beta,
+	   geom[level].CellSize(), idim);
     }
 
     // add b.c.'s to matrix diagonal and product (otherwise zero), and
@@ -3295,37 +3295,37 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom[level]);
-        FORT_HMMAT3(mat, dimlist(reg),
-                    cdir, bctype, tfp, bho, bcl,
-                    dimlist(fsb), msk.dataPtr(), dimlist(msb),
-                    bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-                    beta, geom[level].CellSize(),
-                    flux_factor, r.dataPtr(),
-		    pSPa, dimlist(SPabox));
+        hmmat3(mat, dimlist(reg),
+	       cdir, bctype, tfp, bho, bcl,
+	       dimlist(fsb), msk.dataPtr(), dimlist(msb),
+	       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+	       beta, geom[level].CellSize(),
+	       flux_factor, r.dataPtr(),
+	       pSPa, dimlist(SPabox));
 	if (inhom) {
-	  FORT_HBVEC3(vec, dimlist(reg),
-		      cdir, bctype, tfp, bho, bcl,
-		      fs.dataPtr(bdcomp), dimlist(fsb),
-                      msk.dataPtr(), dimlist(msb),
-		      bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-		      beta, geom[level].CellSize(), r.dataPtr());
+	  hbvec3(vec, dimlist(reg),
+		 cdir, bctype, tfp, bho, bcl,
+		 fs.dataPtr(bdcomp), dimlist(fsb),
+		 msk.dataPtr(), dimlist(msb),
+		 bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		 beta, geom[level].CellSize(), r.dataPtr());
 	}
       }
       else {
-	FORT_HMMAT(mat, dimlist(reg),
-		   cdir, bct, bho, bcl,
-		   msk.dataPtr(), dimlist(msb),
-		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-		   beta, geom[level].CellSize());
+	hmmat(mat, dimlist(reg),
+	      cdir, bct, bho, bcl,
+	      msk.dataPtr(), dimlist(msb),
+	      bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+	      beta, geom[level].CellSize());
 	if (inhom) {
 	  const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
 	  const Box &fsb = fs.box();
-	  FORT_HBVEC(vec, dimlist(reg),
-		     cdir, bct, bho, bcl,
-		     fs.dataPtr(bdcomp), dimlist(fsb),
-                     msk.dataPtr(), dimlist(msb),
-		     bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
-		     beta, geom[level].CellSize());
+	  hbvec(vec, dimlist(reg),
+		cdir, bct, bho, bcl,
+		fs.dataPtr(bdcomp), dimlist(fsb),
+		msk.dataPtr(), dimlist(msb),
+		bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
+		beta, geom[level].CellSize());
 	}
       }
     }

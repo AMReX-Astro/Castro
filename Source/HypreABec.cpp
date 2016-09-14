@@ -326,13 +326,13 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
     // build matrix interior
 
     const Box &abox = (*acoefs)[vi].box();
-    FORT_HACOEF(mat, (*acoefs)[vi].dataPtr(),
-		dimlist(abox), dimlist(reg), alpha);
+    hacoef(mat, (*acoefs)[vi].dataPtr(),
+	   dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
       const Box &bbox = (*bcoefs[idim])[vi].box();
-      FORT_HBCOEF(mat, (*bcoefs[idim])[vi].dataPtr(),
-		  dimlist(bbox), dimlist(reg), beta, dx, idim);
+      hbcoef(mat, (*bcoefs[idim])[vi].dataPtr(),
+	     dimlist(bbox), dimlist(reg), beta, dx, idim);
     }
 
     // add b.c.'s to matrix diagonal and product (otherwise zero), and
@@ -369,36 +369,36 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom);
-	FORT_HBMAT3(mat, dimlist(reg),
-		    cdir, bctype, tfp, bcl,
-		    dimlist(fsb), msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
-		    beta, dx, flux_factor, r.dataPtr(),
-		    pSPa, dimlist(SPabox));
+	hbmat3(mat, dimlist(reg),
+	       cdir, bctype, tfp, bcl,
+	       dimlist(fsb), msk.dataPtr(), dimlist(msb),
+	       (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
+	       beta, dx, flux_factor, r.dataPtr(),
+	       pSPa, dimlist(SPabox));
 	if (inhom) {
-	  FORT_HBVEC3(vec, dimlist(reg),
-		      cdir, bctype, tfp, bho, bcl,
-		      fs.dataPtr(bdcomp), dimlist(fsb),
-                      msk.dataPtr(), dimlist(msb),
-		      (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
-		      beta, dx, r.dataPtr());
+	  hbvec3(vec, dimlist(reg),
+		 cdir, bctype, tfp, bho, bcl,
+		 fs.dataPtr(bdcomp), dimlist(fsb),
+		 msk.dataPtr(), dimlist(msb),
+		 (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
+		 beta, dx, r.dataPtr());
 	}
       }
       else {
-	FORT_HBMAT(mat, dimlist(reg),
-		   cdir, bct, bcl,
-		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
-		   beta, dx);
+	hbmat(mat, dimlist(reg),
+	      cdir, bct, bcl,
+	      msk.dataPtr(), dimlist(msb),
+	      (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
+	      beta, dx);
 	if (inhom) {
 	  const Fab &fs  = bd.bndryValues(oitr())[vi];
 	  const Box &fsb = fs.box();
-	  FORT_HBVEC(vec, dimlist(reg),
-		     cdir, bct, bho, bcl,
-		     fs.dataPtr(bdcomp), dimlist(fsb),
-		     msk.dataPtr(), dimlist(msb),
-		     (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
-		     beta, dx);
+	  hbvec(vec, dimlist(reg),
+		cdir, bct, bho, bcl,
+		fs.dataPtr(bdcomp), dimlist(fsb),
+		msk.dataPtr(), dimlist(msb),
+		(*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
+		beta, dx);
 	}
       }
     }
@@ -496,23 +496,23 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 		    }
 		    getFaceMetric(r, reg, oitr(), geom);
-		    FORT_HBFLX3(Flux[idim][si].dataPtr(), dimlist(fbox),
-				Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-				cdir, bctype, tfp, bho, bcl,
-				fs.dataPtr(bdcomp), dimlist(fsb),
-				msk.dataPtr(), dimlist(msb),
-				(*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
-				beta, dx, flux_factor, r.dataPtr(), inhom,
-				pSPa, dimlist(SPabox));
+		    hbflx3(Flux[idim][si].dataPtr(), dimlist(fbox),
+			   Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			   cdir, bctype, tfp, bho, bcl,
+			   fs.dataPtr(bdcomp), dimlist(fsb),
+			   msk.dataPtr(), dimlist(msb),
+			   (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+			   beta, dx, flux_factor, r.dataPtr(), inhom,
+			   pSPa, dimlist(SPabox));
 		}
 		else {
-		    FORT_HBFLX(Flux[idim][si].dataPtr(), dimlist(fbox),
-			       Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
-			       cdir, bct, bho, bcl,
-			       fs.dataPtr(bdcomp), dimlist(fsb),
-			       msk.dataPtr(), dimlist(msb),
-			       (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
-			       beta, dx, inhom);
+		    hbflx(Flux[idim][si].dataPtr(), dimlist(fbox),
+			  Soln[si].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			  cdir, bct, bho, bcl,
+			  fs.dataPtr(bdcomp), dimlist(fsb),
+			  msk.dataPtr(), dimlist(msb),
+			  (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+			  beta, dx, inhom);
 		}
 	    }
 	}
@@ -582,13 +582,13 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     // build matrix interior
 
     const Box &abox = (*acoefs)[ai].box();
-    FORT_HACOEF(mat, (*acoefs)[ai].dataPtr(),
-		dimlist(abox), dimlist(reg), alpha);
+    hacoef(mat, (*acoefs)[ai].dataPtr(),
+	   dimlist(abox), dimlist(reg), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
       const Box &bbox = (*bcoefs[idim])[ai].box();
-      FORT_HBCOEF(mat, (*bcoefs[idim])[ai].dataPtr(),
-		  dimlist(bbox), dimlist(reg), beta, dx, idim);
+      hbcoef(mat, (*bcoefs[idim])[ai].dataPtr(),
+	     dimlist(bbox), dimlist(reg), beta, dx, idim);
     }
 
     // add b.c.'s to matrix diagonal, and
@@ -624,19 +624,19 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom);
-	FORT_HBMAT3(mat, dimlist(reg),
-		    cdir, bctype, tfp, bcl,
-		    dimlist(fsb), msk.dataPtr(), dimlist(msb),
-		    (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
-		    beta, dx, flux_factor, r.dataPtr(),
-		    pSPa, dimlist(SPabox));
+	hbmat3(mat, dimlist(reg),
+	       cdir, bctype, tfp, bcl,
+	       dimlist(fsb), msk.dataPtr(), dimlist(msb),
+	       (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
+	       beta, dx, flux_factor, r.dataPtr(),
+	       pSPa, dimlist(SPabox));
       }
       else {
-	FORT_HBMAT(mat, dimlist(reg),
-		   cdir, bct, bcl,
-		   msk.dataPtr(), dimlist(msb),
-		   (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
-		   beta, dx);
+	hbmat(mat, dimlist(reg),
+	      cdir, bct, bcl,
+	      msk.dataPtr(), dimlist(msb),
+	      (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
+	      beta, dx);
       }
     }
 
@@ -902,20 +902,20 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
             bctype = -1;
           }
           getFaceMetric(r, reg, oitr(), geom);
-	  FORT_HBVEC3(vec, dimlist(reg),
-		      cdir, bctype, tfp, bho, bcl,
-		      fs.dataPtr(bdcomp), dimlist(fsb),
-		      msk.dataPtr(), dimlist(msb),
-		      (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
-		      beta, dx, r.dataPtr());
+	  hbvec3(vec, dimlist(reg),
+		 cdir, bctype, tfp, bho, bcl,
+		 fs.dataPtr(bdcomp), dimlist(fsb),
+		 msk.dataPtr(), dimlist(msb),
+		 (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
+		 beta, dx, r.dataPtr());
 	}
 	else {
-	  FORT_HBVEC(vec, dimlist(reg),
-		     cdir, bct, bho, bcl,
-		     fs.dataPtr(bdcomp), dimlist(fsb),
-		     msk.dataPtr(), dimlist(msb),
-		     (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
-		     beta, dx);
+	  hbvec(vec, dimlist(reg),
+		cdir, bct, bho, bcl,
+		fs.dataPtr(bdcomp), dimlist(fsb),
+		msk.dataPtr(), dimlist(msb),
+		(*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
+		beta, dx);
 	}
       }
     }
