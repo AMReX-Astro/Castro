@@ -87,19 +87,19 @@ This is the main class that drives the whole simulation.  This is
 the highest level in \castro.
 
 
-\subsection{{\tt AmrLevel} and {\tt Castro} classes}
+\subsection{\amrlevel\ and {\tt Castro} classes}
 
-An {\tt AmrLevel} is a virtual base class provided by \boxlib\ that
+An \code{\amrlevel} is a virtual base class provided by \boxlib\ that
 stores all the state data on a single level in the AMR hierarchy and
 understands how to advance that data in time.
 
-The most important data managed by the {\tt AmrLevel} is an array of
-{\tt StateData}, which holds the fluid quantities, etc., in the boxes
+The most important data managed by the \amrlevel\ is an array of
+\statedata, which holds the fluid quantities, etc., in the boxes
 that together make up the level.
 
-The {\tt Castro} class is derived from the {\tt AmrLevel}.  It provides
+The {\tt Castro} class is derived from the \amrlevel.  It provides
 the \castro-specific routines to evolve our system of equations.  Like
-the {\tt AmrLevel}, there is one {\tt Castro} object for each level in the
+the \amrlevel, there is one {\tt Castro} object for each level in the
 AMR hierarchry.
 
 A lot of the member data in the {\tt Castro} class are static member
@@ -122,7 +122,7 @@ accept double precision inputs.
 
 \subsection{\bbox\ and \farraybox}
 
-A \bbox\ is simply a rectangular region in space.  It does not hold
+A \code{\bbox} is simply a rectangular region in space.  It does not hold
 data.  In \boxlib, an AMR level has a global index space, with
 $(0,0,0)$ being the lower left corner of the domain at that level, and
 $(N_x-1, N_y-1, N_z-1)$ being the upper right corner of the domain
@@ -131,8 +131,13 @@ any \bbox\ at a level can be uniquely specified with respect to this
 global index space by giving the index of its lower-left and
 upper-right corners.  Figure~\ref{fig:soft:indexspace} shows an
 example of three boxes at the same level of refinement.
-\boxlib\ provides other data structures that collect \bbox es together
-(e.g., \boxarray), but we will not usually use those directly.
+
+\boxlib\ provides other data structures that collect \bbox es together,
+most importantly the \code{\boxarray}.  We generally do not use these
+directly, with the exception of the \boxarray\ \variable{grids},
+which is defined as part of the \amrlevel\ class that {\tt Castro}
+inherits. {\tt grids} is used when building new \multifab s to give
+the layout of the boxes at the current level.
 
 \begin{figure}[t]
 \centering
@@ -144,7 +149,7 @@ example of three boxes at the same level of refinement.
 \end{figure}
 
 
-A \farraybox\ or {\em FAB}, for {\em Fortran array box} is a data
+A \code{\farraybox} or {\em FAB}, for {\em Fortran array box} is a data
 structure that contains a \bbox\ locating it in space, as well as a
 pointer to a data buffer.  The real floating point data are stored as
 one-dimensional arrays in \farraybox es.  The associated \bbox can be
@@ -159,7 +164,7 @@ Note: \castro\ is complied for a specific dimensionality.
 
 \subsection{\multifab}
 
-At the highest abstraction level, we have the \multifab\ (mulitple
+At the highest abstraction level, we have the \code{\multifab} (mulitple
 \farraybox es).  A \multifab\ contains an array of \bbox es, including
 \bbox es owned by other processors for the purpose of communication,
 an array of MPI ranks specifying which MPI processor owns each \bbox,
@@ -188,7 +193,7 @@ interact with in the \cpp\ portions of the code.
 
 \subsection{\statedata}
 
-\statedata\ is a class that essentially holds a pair of \multifab s: one
+\code{\statedata} is a class that essentially holds a pair of \multifab s: one
 at the old time and one at the new time.  \boxlib\ knows how to
 interpolate in time between these states to get data at any
 intermediate point in time.  The main data that we care about in
@@ -197,7 +202,7 @@ stored as \statedata.  Essentially, data is made \statedata\ in
 \castro\ if we need it to be stored in checkpoints / plotfiles, and/or
 we want it to be automatically interpolated when we refine.
 
-An {\tt AmrLevel} stores an array of \statedata\ (in a \cpp\ array
+An \amrlevel\ stores an array of \statedata\ (in a \cpp\ array
 called {\tt state}).  We index this array using integer keys (defined
 via an {\tt enum} in {\tt Castro.H}).  The state data is registered
 with \boxlib\ in \code{Castro\_setup.cpp}.
@@ -308,7 +313,7 @@ at the new time.
 
 
 
-\subsection{\parray}
+\subsection{\code{\parray}}
 
 The {\tt PArray<T>} class is similar to the \cpp\ {\tt Array<T>} class,
 but it manages an array of pointers to objects of type {\tt T}, rather
@@ -328,7 +333,7 @@ approach, called {\em tiling}, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers.  We
 discuss the original and new approach together here.
 
-In both cases, the key construct is the \mfiter---this is a
+In both cases, the key construct is the \code{\mfiter}---this is a
 \cpp\ iterator that knows how to loop over the \farraybox es in the
 \multifab\ that are local to the processor (in this way, a lot of the
 parallelism is hidden from view).
