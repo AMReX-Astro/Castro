@@ -14,7 +14,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
 
     old_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time);
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time, 0);
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
@@ -33,7 +33,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     new_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time);
+    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time, 1);
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
@@ -51,7 +51,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
 // **********************************************************************************************
 
 void
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t)
+Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old)
 {
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
@@ -59,7 +59,7 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
 #ifdef TAU
        getTempDiffusionTerm(t,DiffTerm,tau_diff);
 #else
-       getTempDiffusionTerm(t,DiffTerm);
+       getTempDiffusionTerm(t, DiffTerm, is_old);
 #endif
     } else if (diffuse_enth == 1) {
        getEnthDiffusionTerm(t,DiffTerm);
@@ -112,11 +112,20 @@ Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTermforMo
 // **********************************************************************************************
 
 void
-Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm)
+Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_new)
 {
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
-   MultiFab& S_old = get_old_data(State_Type);
+    MultiFab *S;
+    
+    if (is_new == 0) {
+      S = &get_old_data(State_Type);
+    } else if (is_new == 1) {
+      S = &get_new_data(State_Type);
+    } else {
+      BoxLib::Abort("invalid time level in getTempDiffusionTerm");
+    }
+
    if (verbose && ParallelDescriptor::IOProcessor())
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
@@ -141,17 +150,17 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm)
    MultiFab Temperature(grids,1,1,Fab_allocate);
 
    {
-       FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
-       MultiFab& state_old = fpi.get_mf();
+       FillPatchIterator fpi(*this, *S, 1, time, State_Type, 0, NUM_STATE);
+       MultiFab& state = fpi.get_mf();
 
-       MultiFab::Copy(Temperature, state_old, Temp, 0, 1, 1);
+       MultiFab::Copy(Temperature, state, Temp, 0, 1, 1);
 
-       for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+       for (MFIter mfi(state); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = grids[mfi.index()];
 
 	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_3D(state_old[mfi]),
+			     BL_TO_FORTRAN_3D(state[mfi]),
 #ifdef TAU
 			     BL_TO_FORTRAN_3D(tau_diff[mfi]),
 #endif

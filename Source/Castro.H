@@ -437,7 +437,7 @@ public:
     void construct_old_diff_source(Real time, Real dt);
     void construct_new_diff_source(Real time, Real dt);
 
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
 #if (BL_SPACEDIM == 1)
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
@@ -452,7 +452,7 @@ public:
     void define_tau (MultiFab& grav_vector, Real time);
 #endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
     void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
 #endif
