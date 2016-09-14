@@ -62,7 +62,7 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
        getTempDiffusionTerm(t, DiffTerm, is_old);
 #endif
     } else if (diffuse_enth == 1) {
-       getEnthDiffusionTerm(t,DiffTerm);
+       getEnthDiffusionTerm(t,DiffTerm, is_old);
     }
 
     if (diffuse_temp == 1 or diffuse_enth == 1) {
@@ -198,11 +198,20 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
 }
 
 void
-Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm)
+Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
 {
     BL_PROFILE("Castro::getEnthDiffusionTerm()");
 
-   MultiFab& S_old = get_old_data(State_Type);
+    MultiFab *S;
+
+    if (is_old == 1) {
+      S = &get_old_data(State_Type);
+    } else if (is_old == 0) {
+      S = &get_new_data(State_Type);
+    } else {
+      BoxLib::Abort("invalid time level in getEnthDiffusionTerm");
+    }
+
    if (verbose && ParallelDescriptor::IOProcessor())
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
@@ -221,18 +230,18 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm)
    // Define enthalpy at this level.
    MultiFab Enthalpy(grids,1,1,Fab_allocate);
    {
-       FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
-       MultiFab& state_old = fpi.get_mf();
+       FillPatchIterator fpi(*this, *S, 1, time, State_Type, 0, NUM_STATE);
+       MultiFab& state = fpi.get_mf();
 
-       for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+       for (MFIter mfi(state); mfi.isValid(); ++mfi)
        {
 	   const Box& bx = grids[mfi.index()];
 	   make_enthalpy(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-	                 BL_TO_FORTRAN_3D(state_old[mfi]),
+	                 BL_TO_FORTRAN_3D(state[mfi]),
 	                 BL_TO_FORTRAN_3D(Enthalpy[mfi]));
 
 	   ca_fill_enth_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     BL_TO_FORTRAN_3D(state_old[mfi]),
+			     BL_TO_FORTRAN_3D(state[mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));

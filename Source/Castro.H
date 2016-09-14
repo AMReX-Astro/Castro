@@ -438,7 +438,7 @@ public:
     void construct_new_diff_source(Real time, Real dt);
 
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
-    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
 #endif
