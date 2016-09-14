@@ -521,8 +521,8 @@ contains
              q(i,j,k,QTEMP)  = eos_state % T
              q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
+             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
 
-             qaux(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
              qaux(i,j,k,QGAMC)  = eos_state % gam1
              qaux(i,j,k,QC   )  = eos_state % cs
              qaux(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
