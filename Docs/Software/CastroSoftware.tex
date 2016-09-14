@@ -1037,7 +1037,7 @@ get a sense of these is to look at the {\tt .H} files in the {\tt
 
 \subsection{Geometry class}
 
-There is a {\tt Geometry} object, \code{geom} for each level as part of 
+There is a {\tt Geometry} object, \variable{geom} for each level as part of 
 the {\tt Castro} object (this is inhereted through \amrlevel). \MarginPar{correct?}
 
 
@@ -1112,13 +1112,13 @@ side of \castro\ or perform other useful tasks.
   and is periodically synced up with the \cpp\ driver.  The information
   available here is:
   \begin{itemize}
-  \item \code{physbc\_lo}, \code{physbc\_hi}: these are the boundary
+  \item \variable{physbc\_lo}, \variable{physbc\_hi}: these are the boundary
     condition types at the low and high ends of the domain, for each
     coordinate direction.  Integer keys, {\tt Interior}, {\tt Inflow},
     {\tt Outflow}, {\tt Symmetry}, {\tt SlipWall}, and {\tt
       NoSlipWall} allow you to interpret the values.
 
-  \item \code{center} is the center of the problem.  Note---this is up
+  \item \variable{center} is the center of the problem.  Note---this is up
     to the problem setup to define (in the {\tt probinit} subroutine).
     Alternately, it can be set at runtime via
     \runparam{castro.center}. \MarginPar{which wins if both try to set
@@ -1133,11 +1133,11 @@ side of \castro\ or perform other useful tasks.
     defining the center of the sponge, and in deriving the radial
     velocity.  \MarginPar{other important places?}
 
-  \item \code{coord\_type}
+  \item \variable{coord\_type}
 
-  \item \code{dim}
+  \item \variable{dim}
 
-  \item \code{dg}
+  \item \variable{dg}
 
   \item {\em refining information}
 
