@@ -14,7 +14,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
 
     old_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time, 0);
+    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time, 1);
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
@@ -33,7 +33,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     new_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time, 1);
+    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time, 0);
 
 #if (BL_SPACEDIM == 1)
     add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
@@ -112,15 +112,15 @@ Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTermforMo
 // **********************************************************************************************
 
 void
-Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_new)
+Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
 {
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
     MultiFab *S;
     
-    if (is_new == 0) {
+    if (is_old == 1) {
       S = &get_old_data(State_Type);
-    } else if (is_new == 1) {
+    } else if (is_old == 0) {
       S = &get_new_data(State_Type);
     } else {
       BoxLib::Abort("invalid time level in getTempDiffusionTerm");
