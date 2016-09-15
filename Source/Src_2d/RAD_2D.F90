@@ -1,12 +1,13 @@
 #include "LO_BCTYPES.H"
 #include "ArrayLim.H"
-#include "FLD_limiter.F"
 
 module rad_module
 
   use bl_types
 
   use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
+
+  use rad_util_module, only : FLDlambda
 
   implicit none
 
@@ -154,7 +155,7 @@ subroutine flxlim(lambda, &
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: limiter
-  real*8 :: lambda(DIMV(rbox)), FLDlambda
+  real*8 :: lambda(DIMV(rbox))
   integer :: i, j
   do j = reg_l2, reg_h2
      do i = reg_l1, reg_h1
@@ -172,7 +173,7 @@ subroutine eddfac(efact, &
   integer :: n, limiter
   real*8 :: efact(DIMV(rbox))
   integer :: i, j
-  real*8 :: r, lambda, FLDlambda
+  real*8 :: r, lambda
   if (n == 0) then
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1 + 1
