@@ -1,8 +1,5 @@
 #include "LO_BCTYPES.H"
-
-#define dims(a) a/**/l0, a/**/l1, a/**/h0, a/**/h1
-#define dimdec(a) dims(a)
-#define dimv(a) a/**/l0:a/**/h0, a/**/l1:a/**/h1
+#include "ArrayLim.H"
 
 
 module habec_module
@@ -14,25 +11,25 @@ module habec_module
 contains
 
 subroutine hacoef(mat, a, &
-                  dims(abox), &
-                  dims(reg), &
+                  DIMS(abox), &
+                  DIMS(reg), &
                   alpha) bind(C, name="hacoef")
-  implicit none
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
-  real*8 :: a(dimv(abox))
-  real*8 :: mat(0:2, dimv(reg))
+
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
+  real*8 :: a(DIMV(abox))
+  real*8 :: mat(0:2, DIMV(reg))
   real*8 :: alpha
   integer :: i, j
   if (alpha == 0.d0) then
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(2,i,j) = 0.d0
         enddo
      enddo
   else
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(2,i,j) = alpha * a(i,j)
         enddo
      enddo
@@ -40,30 +37,30 @@ subroutine hacoef(mat, a, &
 end subroutine hacoef
 
 subroutine hbcoef(mat, b, &
-                  dims(bbox), &
-                  dims(reg), &
+                  DIMS(bbox), &
+                  DIMS(reg), &
                   beta, dx, n) bind(C, name="hbcoef")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(dimv(bbox))
-  real*8 :: mat(0:2, dimv(reg))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: mat(0:2, DIMV(reg))
   real*8 :: beta, dx(2)
   real*8 :: fac
   integer :: i, j
   if (n == 0) then
      fac = beta / (dx(1)**2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = - fac * b(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * (b(i,j) + b(i+1,j))
         enddo
      enddo
   else
      fac = beta / (dx(2)**2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(1,i,j) = - fac * b(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * (b(i,j) + b(i,j+1))
         enddo
@@ -72,20 +69,20 @@ subroutine hbcoef(mat, b, &
 end subroutine hbcoef
 
 subroutine hbmat(mat, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bcl, &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbmat")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct
   real*8 :: bcl, beta, dx(2)
-  real*8 :: mat(0:2, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: mat(0:2, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, fac, bfm, bfv
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
@@ -106,8 +103,8 @@ subroutine hbmat(mat, &
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i,j)
            mat(0,i,j) = 0.d0
@@ -115,16 +112,16 @@ subroutine hbmat(mat, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i+1,j)
         endif
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i,j)
            mat(1,i,j) = 0.d0
@@ -132,8 +129,8 @@ subroutine hbmat(mat, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i,j+1)
         endif
@@ -144,34 +141,34 @@ subroutine hbmat(mat, &
 end subroutine hbmat
 
 subroutine hbmat3(mat, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bcl, &
-                  dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox)) bind(C, name="hbmat3")
+                  spa, DIMS(spabox)) bind(C, name="hbmat3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv))
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv))
   real*8 :: bcl, beta, dx(2), c
-  real*8 :: mat(0:2, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
-  real*8 :: r(regl0:regh0)
+  real*8 :: mat(0:2, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
+  real*8 :: r(reg_l1:reg_h1)
   real*8 :: h, fac, bfm, bfv, r0
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
      ! For the left and right faces, r is constant and the array actually has
-     ! only one element.  This following "r(regl0)" looks wrong, but what it
+     ! only one element.  This following "r(reg_l1)" looks wrong, but what it
      ! really means is that the array dimensions are meaningless for this case.
-     r0 = r(regl0)
+     r0 = r(reg_l1)
   else
      h = dx(2)
   endif
@@ -180,8 +177,8 @@ subroutine hbmat3(mat, &
   fac = beta / (h**2)
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i-1,j)
@@ -209,8 +206,8 @@ subroutine hbmat3(mat, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i+1,j)
@@ -237,8 +234,8 @@ subroutine hbmat3(mat, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j-1)
@@ -266,8 +263,8 @@ subroutine hbmat3(mat, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j+1)
@@ -298,23 +295,23 @@ subroutine hbmat3(mat, &
 end subroutine hbmat3
 
 subroutine hbvec(vec, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 bcval, dims(bcv), &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 bcval, DIMS(bcv), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbvec")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
   real*8 :: bcl, beta, dx(2)
-  real*8 :: vec(dimv(reg))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: vec(DIMV(reg))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, bfv
   real*8 :: h2, th2
   integer :: i, j
@@ -339,32 +336,32 @@ subroutine hbvec(vec, &
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            vec(i,j) = vec(i,j) + bfv * b(i,j) * bcval(i-1,j)
         endif
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            vec(i,j) = vec(i,j) + bfv * b(i+1,j) * bcval(i+1,j)
         endif
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            vec(i,j) = vec(i,j) + bfv * b(i,j) * bcval(i,j-1)
         endif
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            vec(i,j) = vec(i,j) + bfv * b(i,j+1) * bcval(i,j+1)
         endif
@@ -375,40 +372,40 @@ subroutine hbvec(vec, &
 end subroutine hbvec
 
 subroutine hbvec3(vec, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, r) bind(C, name="hbvec3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho
   real*8 :: bcl, beta, dx(2)
-  real*8 :: vec(dimv(reg))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: r(regl0:regh0)
+  real*8 :: vec(DIMV(reg))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: r(reg_l1:reg_h1)
   real*8 :: h, bfv, r0
   real*8 :: h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
      ! For the left and right faces, r is constant and the array actually has
-     ! only one element.  This following "r(regl0)" looks wrong, but what it
+     ! only one element.  This following "r(reg_l1)" looks wrong, but what it
      ! really means is that the array dimensions are meaningless for this case.
-     r0 = r(regl0)
+     r0 = r(reg_l1)
   else
      h = dx(2)
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i-1,j)
@@ -438,8 +435,8 @@ subroutine hbvec3(vec, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i+1,j)
@@ -469,8 +466,8 @@ subroutine hbvec3(vec, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j-1)
@@ -500,8 +497,8 @@ subroutine hbvec3(vec, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j+1)
@@ -535,28 +532,28 @@ subroutine hbvec3(vec, &
 end subroutine hbvec3
 
 subroutine hbflx(flux, &
-                 dims(fbox), &
-                 er, dims(ebox), &
-                 dims(reg), &
+                 DIMS(fbox), &
+                 er, DIMS(ebox), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 bcval, dims(bcv), &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 bcval, DIMS(bcv), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx, inhom) bind(C, name="hbflx")
 
-  integer :: dimdec(fbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(fbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho, inhom
   real*8 :: bcl, beta, dx(2)
-  real*8 :: flux(dimv(fbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: flux(DIMV(fbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, bfm, bfv
   real*8 :: bfm2, h2, th2
   integer :: i, j
@@ -585,8 +582,8 @@ subroutine hbflx(flux, &
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            flux(i,j) = b(i,j) * (bfv * bcval(i-1,j) - bfm * er(i,j))
            if (bho >= 1) then
@@ -596,8 +593,8 @@ subroutine hbflx(flux, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            flux(i+1,j) = -b(i+1,j) * (bfv * bcval(i+1,j) - bfm * er(i,j))
            if (bho >= 1) then
@@ -607,8 +604,8 @@ subroutine hbflx(flux, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            flux(i,j) = b(i,j) * (bfv * bcval(i,j-1) - bfm * er(i,j))
            if (bho >= 1) then
@@ -618,8 +615,8 @@ subroutine hbflx(flux, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            flux(i,j+1) = -b(i,j+1) * (bfv * bcval(i,j+1) - bfm * er(i,j))
            if (bho >= 1) then
@@ -633,48 +630,48 @@ subroutine hbflx(flux, &
 end subroutine hbflx
 
 subroutine hbflx3(flux, &
-                  dims(fbox), &
-                  er, dims(ebox), &
-                  dims(reg), &
+                  DIMS(fbox), &
+                  er, DIMS(ebox), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, inhom, &
-                  spa, dims(spabox)) bind(C, name="hbflx3")
+                  spa, DIMS(spabox)) bind(C, name="hbflx3")
 
-  integer :: dimdec(fbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho, inhom
+  integer :: DIMDEC(fbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho, inhom
   real*8 :: bcl, beta, dx(2), c
-  real*8 :: flux(dimv(fbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
-  real*8 :: r(regl0:regh0)
+  real*8 :: flux(DIMV(fbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
+  real*8 :: r(reg_l1:reg_h1)
   real*8 :: h, bfm, bfv, r0
   real*8 :: bfm2, h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
      ! For the left and right faces, r is constant and the array actually has
-     ! only one element.  This following "r(regl0)" looks wrong, but what it
+     ! only one element.  This following "r(reg_l1)" looks wrong, but what it
      ! really means is that the array dimensions are meaningless for this case.
-     r0 = r(regl0)
+     r0 = r(reg_l1)
   else
      h = dx(2)
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i-1,j)
@@ -727,8 +724,8 @@ subroutine hbflx3(flux, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i+1,j)
@@ -781,8 +778,8 @@ subroutine hbflx3(flux, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j-1)
@@ -835,8 +832,8 @@ subroutine hbflx3(flux, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j+1)
@@ -893,28 +890,28 @@ subroutine hbflx3(flux, &
 end subroutine hbflx3
 
 subroutine hdterm(dterm, &
-                  dims(dtbox), &
-                  er, dims(ebox), &
-                  dims(reg), &
+                  DIMS(dtbox), &
+                  er, DIMS(ebox), &
+                  DIMS(reg), &
                   cdir, bct, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  d, dims(dbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  d, DIMS(dbox), &
                   dx) bind(C, name="hdterm")
 
-  integer :: dimdec(dtbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(dbox)
+  integer :: DIMDEC(dtbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(dbox)
   integer :: cdir, bct
   real*8 :: bcl, dx(2)
-  real*8 :: dterm(dimv(dtbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: d(dimv(dbox))
+  real*8 :: dterm(DIMV(dtbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: d(DIMV(dbox))
   real*8 :: h
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
@@ -925,32 +922,32 @@ subroutine hdterm(dterm, &
   if (bct == LO_DIRICHLET) then
      if (cdir == 0) then
         !     Left face of grid
-        i = regl0
-        do j = regl1, regh1
+        i = reg_l1
+        do j = reg_l2, reg_h2
            if (mask(i-1,j) > 0) then
               dterm(i,j) = d(i,j)*(er(i,j)-bcval(i-1,j))/(0.5d0*h+bcl)
            endif
         enddo
      else if (cdir == 2) then
         !     Right face of grid
-        i = regh0
-        do j = regl1, regh1
+        i = reg_h1
+        do j = reg_l2, reg_h2
            if (mask(i+1,j) > 0) then
               dterm(i+1,j) = d(i+1,j)*(bcval(i+1,j)-er(i,j))/(0.5d0*h+bcl)
            endif
         enddo
      else if (cdir == 1) then
         !     Bottom face of grid
-        j = regl1
-        do i = regl0, regh0
+        j = reg_l2
+        do i = reg_l1, reg_h1
            if (mask(i,j-1) > 0) then
               dterm(i,j) = d(i,j)*(er(i,j)-bcval(i,j-1))/(0.5d0*h+bcl)
            endif
         enddo
      else if (cdir == 3) then
         !     Top face of grid
-        j = regh1
-        do i = regl0, regh0
+        j = reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j+1) > 0) then
               dterm(i,j+1) = d(i,j+1)*(bcval(i,j+1)-er(i,j))/(0.5d0*h+bcl)
            endif
@@ -965,28 +962,28 @@ subroutine hdterm(dterm, &
 end subroutine hdterm
 
 subroutine hdterm3(dterm, &
-                   dims(dtbox), &
-                   er, dims(ebox), &
-                   dims(reg), &
+                   DIMS(dtbox), &
+                   er, DIMS(ebox), &
+                   DIMS(reg), &
                    cdir, bctype, tf, bcl, &
-                   bcval, dims(bcv), &
-                   mask, dims(msk), &
-                   d, dims(dbox), &
+                   bcval, DIMS(bcv), &
+                   mask, DIMS(msk), &
+                   d, DIMS(dbox), &
                    dx) bind(C, name="hdterm3")
 
-  integer :: dimdec(dtbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(dbox)
-  integer :: cdir, bctype, tf(dimv(bcv))
+  integer :: DIMDEC(dtbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(dbox)
+  integer :: cdir, bctype, tf(DIMV(bcv))
   real*8 :: bcl, dx(2)
-  real*8 :: dterm(dimv(dtbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: d(dimv(dbox))
+  real*8 :: dterm(DIMV(dtbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: d(DIMV(dbox))
   real*8 :: h
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
@@ -996,8 +993,8 @@ subroutine hdterm3(dterm, &
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i-1,j)
@@ -1016,8 +1013,8 @@ subroutine hdterm3(dterm, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i+1,j)
@@ -1036,8 +1033,8 @@ subroutine hdterm3(dterm, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j-1)
@@ -1056,8 +1053,8 @@ subroutine hdterm3(dterm, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j+1)
@@ -1080,25 +1077,25 @@ subroutine hdterm3(dterm, &
 end subroutine hdterm3
 
 subroutine hmac(mat, a, &
-                dims(abox), &
-                dims(reg), &
+                DIMS(abox), &
+                DIMS(reg), &
                 alpha) bind(C, name="hmac")
 
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
-  real*8 :: a(dimv(abox))
-  real*8 :: mat(0:4, dimv(reg))
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
+  real*8 :: a(DIMV(abox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: alpha
   integer :: i, j
   if (alpha == 0.d0) then
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = 0.d0
         enddo
      enddo
   else
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = alpha * a(i,j)
         enddo
      enddo
@@ -1106,22 +1103,22 @@ subroutine hmac(mat, a, &
 end subroutine hmac
 
 subroutine hmbc(mat, b, &
-                dims(bbox), &
-                dims(reg), &
+                DIMS(bbox), &
+                DIMS(reg), &
                 beta, dx, n) bind(C, name="hmbc")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(dimv(bbox))
-  real*8 :: mat(0:4, dimv(reg))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: beta, dx(2)
   real*8 :: fac
   integer :: i, j
   if (n == 0) then
      fac = beta / (dx(1)**2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (b(i,j) + b(i+1,j))
            mat(1,i,j) = - fac * b(i,j)
            mat(2,i,j) = - fac * b(i+1,j)
@@ -1129,8 +1126,8 @@ subroutine hmbc(mat, b, &
      enddo
   else
      fac = beta / (dx(2)**2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (b(i,j) + b(i,j+1))
            mat(3,i,j) = - fac * b(i,j)
            mat(4,i,j) = - fac * b(i,j+1)
@@ -1140,30 +1137,30 @@ subroutine hmbc(mat, b, &
 end subroutine hmbc
 
 subroutine hma2c(mat, a2, &
-                 dims(bbox), &
-                 dims(reg), &
+                 DIMS(bbox), &
+                 DIMS(reg), &
                  alpha2, n) bind(C, name="hma2c")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: a2(dimv(bbox))
-  real*8 :: mat(0:4, dimv(reg))
+  real*8 :: a2(DIMV(bbox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: alpha2
   real*8 :: fac
   integer :: i, j
   fac = 0.25d0 * alpha2
   if (n == 0) then
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (a2(i,j) + a2(i+1,j))
            mat(1,i,j) = mat(1,i,j) + fac * a2(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * a2(i+1,j)
         enddo
      enddo
   else
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (a2(i,j) + a2(i,j+1))
            mat(3,i,j) = mat(3,i,j) + fac * a2(i,j)
            mat(4,i,j) = mat(4,i,j) + fac * a2(i,j+1)
@@ -1173,22 +1170,22 @@ subroutine hma2c(mat, a2, &
 end subroutine hma2c
 
 subroutine hmcc(mat, c, &
-                dims(bbox), &
-                dims(reg), &
+                DIMS(bbox), &
+                DIMS(reg), &
                 gamma, dx, n) bind(C, name="hmcc")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: c(dimv(bbox))
-  real*8 :: mat(0:4, dimv(reg))
+  real*8 :: c(DIMV(bbox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: gamma, dx(2)
   real*8 :: fac
   integer :: i, j
   if (n == 0) then
      fac = 0.5d0 * gamma / dx(1)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) - fac * (c(i,j) - c(i+1,j))
            mat(1,i,j) = mat(1,i,j) - fac * c(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * c(i+1,j)
@@ -1196,8 +1193,8 @@ subroutine hmcc(mat, c, &
      enddo
   else
      fac = 0.5d0 * gamma / dx(2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) - fac * (c(i,j) - c(i,j+1))
            mat(3,i,j) = mat(3,i,j) - fac * c(i,j)
            mat(4,i,j) = mat(4,i,j) + fac * c(i,j+1)
@@ -1207,30 +1204,30 @@ subroutine hmcc(mat, c, &
 end subroutine hmcc
 
 subroutine hmd1c(mat, d1, &
-                 dims(abox), &
-                 dims(reg), &
+                 DIMS(abox), &
+                 DIMS(reg), &
                  delta1, dx, n) bind(C, name="hmd1c")
 
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d1(dimv(abox))
-  real*8 :: mat(0:4, dimv(reg))
+  real*8 :: d1(DIMV(abox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: delta1, dx(2)
   real*8 :: fac
   integer :: i, j
   if (n == 0) then
      fac = 0.5d0 * delta1 / dx(1)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(1,i,j) = mat(1,i,j) - fac * d1(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * d1(i,j)
         enddo
      enddo
   else
      fac = 0.5d0 * delta1 / dx(2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(3,i,j) = mat(3,i,j) - fac * d1(i,j)
            mat(4,i,j) = mat(4,i,j) + fac * d1(i,j)
         enddo
@@ -1239,22 +1236,22 @@ subroutine hmd1c(mat, d1, &
 end subroutine hmd1c
 
 subroutine hmd2c(mat, d2, &
-                 dims(bbox), &
-                 dims(reg), &
+                 DIMS(bbox), &
+                 DIMS(reg), &
                  delta2, dx, n) bind(C, name="hmd2c")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d2(dimv(bbox))
-  real*8 :: mat(0:4, dimv(reg))
+  real*8 :: d2(DIMV(bbox))
+  real*8 :: mat(0:4, DIMV(reg))
   real*8 :: delta2, dx(2)
   real*8 :: fac
   integer :: i, j
   if (n == 0) then
      fac = 0.5d0 * delta2 / dx(1)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (d2(i,j) - d2(i+1,j))
            mat(1,i,j) = mat(1,i,j) - fac * d2(i,j)
            mat(2,i,j) = mat(2,i,j) + fac * d2(i+1,j)
@@ -1262,8 +1259,8 @@ subroutine hmd2c(mat, d2, &
      enddo
   else
      fac = 0.5d0 * delta2 / dx(2)
-     do j = regl1, regh1
-        do i = regl0, regh0
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (d2(i,j) - d2(i,j+1))
            mat(3,i,j) = mat(3,i,j) - fac * d2(i,j)
            mat(4,i,j) = mat(4,i,j) + fac * d2(i,j+1)
@@ -1273,20 +1270,20 @@ subroutine hmd2c(mat, d2, &
 end subroutine hmd2c
 
 subroutine hmmat(mat, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hmmat")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
   real*8 :: bcl, beta, dx(2)
-  real*8 :: mat(0:4, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: mat(0:4, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, fac, bfm, bfv
   real*8 :: bfm2, h2, th2
   integer :: i, j
@@ -1315,8 +1312,8 @@ subroutine hmmat(mat, &
   endif
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j)
            mat(1,i,j) = 0.d0
@@ -1327,8 +1324,8 @@ subroutine hmmat(mat, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i+1,j)
            mat(2,i,j) = 0.d0
@@ -1339,8 +1336,8 @@ subroutine hmmat(mat, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j)
            mat(3,i,j) = 0.d0
@@ -1351,8 +1348,8 @@ subroutine hmmat(mat, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j+1)
            mat(4,i,j) = 0.d0
@@ -1367,35 +1364,35 @@ subroutine hmmat(mat, &
 end subroutine hmmat
 
 subroutine hmmat3(mat, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox)) bind(C, name="hmmat3")
+                  spa, DIMS(spabox)) bind(C, name="hmmat3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho
   real*8 :: bcl, beta, dx(2), c
-  real*8 :: mat(0:4, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
-  real*8 :: r(regl0:regh0)
+  real*8 :: mat(0:4, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
+  real*8 :: r(reg_l1:reg_h1)
   real*8 :: h, fac, bfm, bfv, r0
   real*8 :: bfm2, h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
      ! For the left and right faces, r is constant and the array actually has
-     ! only one element.  This following "r(regl0)" looks wrong, but what it
+     ! only one element.  This following "r(reg_l1)" looks wrong, but what it
      ! really means is that the array dimensions are meaningless for this case.
-     r0 = r(regl0)
+     r0 = r(reg_l1)
   else
      h = dx(2)
   endif
@@ -1404,8 +1401,8 @@ subroutine hmmat3(mat, &
   fac = beta / (h**2)
   if (cdir == 0) then
      ! Left face of grid
-     i = regl0
-     do j = regl1, regh1
+     i = reg_l1
+     do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i-1,j)
@@ -1454,8 +1451,8 @@ subroutine hmmat3(mat, &
      enddo
   else if (cdir == 2) then
      ! Right face of grid
-     i = regh0
-     do j = regl1, regh1
+     i = reg_h1
+     do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            if (bctype == -1) then
               bct = tf(i+1,j)
@@ -1504,8 +1501,8 @@ subroutine hmmat3(mat, &
      enddo
   else if (cdir == 1) then
      ! Bottom face of grid
-     j = regl1
-     do i = regl0, regh0
+     j = reg_l2
+     do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j-1)
@@ -1554,8 +1551,8 @@ subroutine hmmat3(mat, &
      enddo
   else if (cdir == 3) then
      ! Top face of grid
-     j = regh1
-     do i = regl0, regh0
+     j = reg_h2
+     do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            if (bctype == -1) then
               bct = tf(i,j+1)
@@ -1608,21 +1605,21 @@ subroutine hmmat3(mat, &
 end subroutine hmmat3
 
 subroutine set_abec_flux( &
-                         dims(reg), dir, &
-                         density, dims(density), &
-                         dcoef, dims(dcoef), &
+                         DIMS(reg), dir, &
+                         density, DIMS(density), &
+                         dcoef, DIMS(dcoef), &
                          beta, &
                          dx, &
-                         flux, dims(flux)) bind(C, name="set_abec_flux")
+                         flux, DIMS(flux)) bind(C, name="set_abec_flux")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(density)
-  integer :: dimdec(dcoef)
-  integer :: dimdec(flux)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(density)
+  integer :: DIMDEC(dcoef)
+  integer :: DIMDEC(flux)
 
-  real*8 :: density(dimv(density))
-  real*8 :: dcoef(dimv(dcoef))
-  real*8 :: flux(dimv(flux))
+  real*8 :: density(DIMV(density))
+  real*8 :: dcoef(DIMV(dcoef))
+  real*8 :: flux(DIMV(flux))
 
   integer :: dir,i,j
   real*8 :: beta, dx(BL_SPACEDIM), fac
@@ -1634,8 +1631,8 @@ subroutine set_abec_flux( &
 
      fac = - beta / dx(1)
 
-     do j = regl1,regh1
-        do i = regl0,regh0
+     do j = reg_l2,reg_h2
+        do i = reg_l1,reg_h1
            flux(i,j) = dcoef(i,j) * (density(i,j) - density(i-1,j)) * fac
         end do
      end do
@@ -1646,8 +1643,8 @@ subroutine set_abec_flux( &
 
      fac = - beta / dx(2)
 
-     do j = regl1,regh1
-        do i = regl0,regh0
+     do j = reg_l2,reg_h2
+        do i = reg_l1,reg_h1
            flux(i,j) = dcoef(i,j) * (density(i,j) - density(i,j-1)) * fac
         end do
      end do

@@ -4,12 +4,12 @@ $\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):$
 \begin{eqnarray}
 \frac{\partial \rho}{\partial t} &=& - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
 \frac{\partial (\rho \ub)}{\partial t} &=& - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
-\frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E}, \\
+\frac{\partial (\rho E)}{\partial t} &=& - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
 \frac{\partial (\rho A_k)}{\partial t} &=& - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
 \frac{\partial (\rho X_k)}{\partial t} &=& - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
 \frac{\partial (\rho Y_k)}{\partial t} &=& - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}
 \end{eqnarray}
-Here $\rho, \ub, T, p$, and $\kappa$ are the density, velocity,
+Here $\rho, \ub, T, p$, and $\kth$ are the density, velocity,
 temperature, pressure, and thermal conductivity, respectively, and $E
 = e + \ub \cdot \ub / 2$ is the total energy with $e$ representing the
 internal energy.  In addition, $X_k$ is the abundance of the $k^{\rm
@@ -94,7 +94,7 @@ S_{Y_k}
 S_{{\rm ext},\rho} \\
 \gb + \frac{1}{\rho}\Sb_{{\rm ext},\rho\ub} \\
 \frac{1}{\rho}\frac{\partial p}{\partial e}S_{{\rm ext},\rho E} + \frac{\partial p}{\partial\rho}S_{{\rm ext}\rho} \\
-\nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \\
+\nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
 \frac{1}{\rho}S_{{\rm ext},\rho A_k} \\
 \frac{1}{\rho}S_{{\rm ext},\rho X_k} \\
 \frac{1}{\rho}S_{{\rm ext},\rho Y_k}
@@ -112,7 +112,7 @@ S_{\rho Y_k}
 =
 \left(\begin{array}{c}
 \rho \gb + \Sb_{{\rm ext},\rho\ub} \\
-\rho \ub \cdot \gb + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \\
+\rho \ub \cdot \gb + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \\
 S_{{\rm ext},\rho A_k} \\
 S_{{\rm ext},\rho X_k} \\
 S_{{\rm ext},\rho Y_k}
@@ -134,13 +134,13 @@ The primitive variable equations for density, velocity, and pressure are:
 \frac{\partial p}{\partial t} &=& -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
 \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
 &&+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
-&& +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kappa\nabla T \right.\nonumber\\
+&& +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
 && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] 
 \end{eqnarray}
 We augment these with an internal energy equation:
 \begin{eqnarray}
 \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
-                                        + \nabla\cdot\kappa\nabla T + S_{{\rm ext},\rho E} \nonumber\\
+                                        + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
 && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
 \end{eqnarray}
 This has two benefits. First, for a general equation of state,

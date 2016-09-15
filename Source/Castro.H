@@ -249,7 +249,7 @@ public:
 
     void check_for_nan(MultiFab& state);
 
-    void cons_to_prim(MultiFab& u, MultiFab& q);
+    void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
 
     void construct_old_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
@@ -437,8 +437,8 @@ public:
     void construct_old_diff_source(Real time, Real dt);
     void construct_new_diff_source(Real time, Real dt);
 
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
-    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
+    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
     void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
 #endif
@@ -452,7 +452,7 @@ public:
     void define_tau (MultiFab& grav_vector, Real time);
 #endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
     void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
 #endif
@@ -529,6 +529,7 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
+    static int       NQAUX;
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;

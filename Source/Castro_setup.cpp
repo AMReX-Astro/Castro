@@ -261,6 +261,7 @@ Castro::variableSetUp ()
   // Get the number of primitive variables from Fortran.
 
   get_qvar(&QVAR);
+  get_nqaux(&NQAUX);
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
  

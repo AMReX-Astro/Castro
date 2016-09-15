@@ -11,6 +11,9 @@
      The EOSes that used to come with CastroRadiation are available
      in Microphysics.git
 
+  -- enthalpy and temperature diffusion are now properly time-centered
+     (issue #22)
+  
   -- a flux limiter has been added that limits the size of the hydro
      fluxes if they would cause rho or (rho e) to go negative. This
      can be used with castro.limit_hydro_fluxes_on_small_dens = 1.

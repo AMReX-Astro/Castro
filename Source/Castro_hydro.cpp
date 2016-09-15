@@ -259,7 +259,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	{
 	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
 	    FArrayBox pradial(Box::TheUnitBox(),1);
-	    FArrayBox q, src_q;
+	    FArrayBox q, qaux, src_q;
 
 	    Real cflLoc = -1.0e+200;
 	    int is_finest_level = (level == finest_level) ? 1 : 0;
@@ -283,14 +283,17 @@ Castro::construct_hydro_source(Real time, Real dt)
 		FArrayBox &vol = volume[mfi];
 
 		q.resize(qbx, QVAR);
+		qaux.resize(qbx, NQAUX);
 		src_q.resize(qbx, QVAR);
 
 		ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		        statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
-		        q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()));
+		        q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+		        qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
 
 		srctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		          q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+			  qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()),
 		          source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
 		          src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
@@ -320,6 +323,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     BL_TO_FORTRAN(statein),
 		     BL_TO_FORTRAN(stateout),
 		     BL_TO_FORTRAN(q),
+		     BL_TO_FORTRAN(qaux),
 		     BL_TO_FORTRAN(src_q),
 		     BL_TO_FORTRAN(source_out),
 		     D_DECL(BL_TO_FORTRAN(ugdn[0]),

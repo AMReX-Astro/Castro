@@ -1,8 +1,5 @@
 #include "LO_BCTYPES.H"
-
-#define dims(a) a/**/l0, a/**/l1, a/**/l2, a/**/h0, a/**/h1, a/**/h2
-#define dimdec(a) dims(a)
-#define dimv(a) a/**/l0:a/**/h0,a/**/l1:a/**/h1,a/**/l2:a/**/h2
+#include "ArrayLim.H"
 
 
 module habec_module
@@ -14,28 +11,28 @@ module habec_module
 contains
 
 subroutine hacoef(mat, a, &
-                  dims(abox), &
-                  dims(reg), &
+                  DIMS(abox), &
+                  DIMS(reg), &
                   alpha) bind(C, name="hacoef")
 
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
-  real*8 :: a(dimv(abox))
-  real*8 :: mat(0:3, dimv(reg))
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
+  real*8 :: a(DIMV(abox))
+  real*8 :: mat(0:3, DIMV(reg))
   real*8 :: alpha
   integer :: i, j, k
   if (alpha == 0.d0) then
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(3,i,j,k) = 0.d0
            enddo
         enddo
      enddo
   else
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(3,i,j,k) = alpha * a(i,j,k)
            enddo
         enddo
@@ -44,23 +41,23 @@ subroutine hacoef(mat, a, &
 end subroutine hacoef
 
 subroutine hbcoef(mat, b, &
-                  dims(bbox), &
-                  dims(reg), &
+                  DIMS(bbox), &
+                  DIMS(reg), &
                   beta, dx, n) bind(C, name="hbcoef")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(dimv(bbox))
-  real*8 :: mat(0:3, dimv(reg))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: mat(0:3, DIMV(reg))
   real*8 :: beta, dx(3)
   real*8 :: fac
   integer :: i, j, k
   if (n == 0) then
      fac = beta / (dx(1)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = - fac * b(i,j,k)
               mat(3,i,j,k) = mat(3,i,j,k) + &
                    fac * (b(i,j,k) + b(i+1,j,k))
@@ -69,9 +66,9 @@ subroutine hbcoef(mat, b, &
      enddo
   elseif (n == 1) then
      fac = beta / (dx(2)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(1,i,j,k) = - fac * b(i,j,k)
               mat(3,i,j,k) = mat(3,i,j,k) + &
                    fac * (b(i,j,k) + b(i,j+1,k))
@@ -80,9 +77,9 @@ subroutine hbcoef(mat, b, &
      enddo
   else
      fac = beta / (dx(3)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(2,i,j,k) = - fac * b(i,j,k)
               mat(3,i,j,k) = mat(3,i,j,k) + &
                    fac * (b(i,j,k) + b(i,j,k+1))
@@ -93,20 +90,20 @@ subroutine hbcoef(mat, b, &
 end subroutine hbcoef
 
 subroutine hbmat(mat, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bcl, &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbmat")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct
   real*8 :: bcl, beta, dx(3)
-  real*8 :: mat(0:3, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: mat(0:3, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, fac, bfm, bfv
   integer :: i, j, k
   if (cdir == 0 .OR. cdir == 3) then
@@ -128,9 +125,9 @@ subroutine hbmat(mat, &
      stop
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i,j,k)
               mat(0,i,j,k) = 0.d0
@@ -138,18 +135,18 @@ subroutine hbmat(mat, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i+1,j,k)
            endif
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i,j,k)
               mat(1,i,j,k) = 0.d0
@@ -157,18 +154,18 @@ subroutine hbmat(mat, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i,j+1,k)
            endif
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i,j,k)
               mat(2,i,j,k) = 0.d0
@@ -176,9 +173,9 @@ subroutine hbmat(mat, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               mat(3,i,j,k) = mat(3,i,j,k) + bfm * b(i,j,k+1)
            endif
@@ -190,25 +187,25 @@ subroutine hbmat(mat, &
 end subroutine hbmat
 
 subroutine hbmat3(mat, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bcl, &
-                  dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox)) bind(C, name="hbmat3")
+                  spa, DIMS(spabox)) bind(C, name="hbmat3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv))
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv))
   real*8 :: bcl, beta, dx(3), c
-  real*8 :: mat(0:3, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
+  real*8 :: mat(0:3, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
   real*8 :: r(1)
   real*8 :: h, fac, bfm, bfv
   integer :: i, j, k, bct
@@ -223,9 +220,9 @@ subroutine hbmat3(mat, &
   endif
   fac = beta / (h**2)
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i-1,j,k)
@@ -253,9 +250,9 @@ subroutine hbmat3(mat, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i+1,j,k)
@@ -282,9 +279,9 @@ subroutine hbmat3(mat, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j-1,k)
@@ -312,9 +309,9 @@ subroutine hbmat3(mat, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j+1,k)
@@ -341,9 +338,9 @@ subroutine hbmat3(mat, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k-1)
@@ -371,9 +368,9 @@ subroutine hbmat3(mat, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k+1)
@@ -405,23 +402,23 @@ subroutine hbmat3(mat, &
 end subroutine hbmat3
 
 subroutine hbvec(vec, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 bcval, dims(bcv), &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 bcval, DIMS(bcv), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbvec")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
   real*8 :: bcl, beta, dx(3)
-  real*8 :: vec(dimv(reg))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: vec(DIMV(reg))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, bfv
   real*8 :: h2, th2
   integer :: i, j, k
@@ -447,9 +444,9 @@ subroutine hbvec(vec, &
      stop
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i,j,k) * bcval(i-1,j,k)
@@ -457,9 +454,9 @@ subroutine hbvec(vec, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i+1,j,k) * bcval(i+1,j,k)
@@ -467,9 +464,9 @@ subroutine hbvec(vec, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i,j,k) * bcval(i,j-1,k)
@@ -477,9 +474,9 @@ subroutine hbvec(vec, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i,j+1,k) * bcval(i,j+1,k)
@@ -487,9 +484,9 @@ subroutine hbvec(vec, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i,j,k) * bcval(i,j,k-1)
@@ -497,9 +494,9 @@ subroutine hbvec(vec, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               vec(i,j,k) = vec(i,j,k) + &
                    bfv * b(i,j,k+1) * bcval(i,j,k+1)
@@ -512,23 +509,23 @@ subroutine hbvec(vec, &
 end subroutine hbvec
 
 subroutine hbvec3(vec, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, r) bind(C, name="hbvec3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho
   real*8 :: bcl, beta, dx(3)
-  real*8 :: vec(dimv(reg))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: vec(DIMV(reg))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: r(1)
   real*8 :: h, bfv
   real*8 :: h2, th2
@@ -541,9 +538,9 @@ subroutine hbvec3(vec, &
      h = dx(3)
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i-1,j,k)
@@ -573,9 +570,9 @@ subroutine hbvec3(vec, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i+1,j,k)
@@ -605,9 +602,9 @@ subroutine hbvec3(vec, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j-1,k)
@@ -637,9 +634,9 @@ subroutine hbvec3(vec, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j+1,k)
@@ -669,9 +666,9 @@ subroutine hbvec3(vec, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k-1)
@@ -701,9 +698,9 @@ subroutine hbvec3(vec, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k+1)
@@ -738,28 +735,28 @@ subroutine hbvec3(vec, &
 end subroutine hbvec3
 
 subroutine hbflx(flux, &
-                 dims(fbox), &
-                 er, dims(ebox), &
-                 dims(reg), &
+                 DIMS(fbox), &
+                 er, DIMS(ebox), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 bcval, dims(bcv), &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 bcval, DIMS(bcv), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx, inhom) bind(C, name="hbflx")
 
-  integer :: dimdec(fbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(fbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho, inhom
   real*8 :: bcl, beta, dx(3)
-  real*8 :: flux(dimv(fbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: flux(DIMV(fbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, bfm, bfv
   real*8 :: bfm2, h2, th2
   integer :: i, j, k
@@ -789,9 +786,9 @@ subroutine hbflx(flux, &
      bfv = 0.d0
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               flux(i,j,k) = b(i,j,k) * &
                    (bfv * bcval(i-1,j,k) - bfm * er(i,j,k))
@@ -803,9 +800,9 @@ subroutine hbflx(flux, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               flux(i+1,j,k) = -b(i+1,j,k) * &
                    (bfv * bcval(i+1,j,k) - bfm * er(i,j,k))
@@ -817,9 +814,9 @@ subroutine hbflx(flux, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               flux(i,j,k) = b(i,j,k) * &
                    (bfv * bcval(i,j-1,k) - bfm * er(i,j,k))
@@ -831,9 +828,9 @@ subroutine hbflx(flux, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               flux(i,j+1,k) = -b(i,j+1,k) * &
                    (bfv * bcval(i,j+1,k) - bfm * er(i,j,k))
@@ -845,9 +842,9 @@ subroutine hbflx(flux, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               flux(i,j,k) = b(i,j,k) * &
                    (bfv * bcval(i,j,k-1) - bfm * er(i,j,k))
@@ -859,9 +856,9 @@ subroutine hbflx(flux, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               flux(i,j,k+1) = -b(i,j,k+1) * &
                    (bfv * bcval(i,j,k+1) - bfm * er(i,j,k))
@@ -878,31 +875,31 @@ subroutine hbflx(flux, &
 end subroutine hbflx
 
 subroutine hbflx3(flux, &
-                  dims(fbox), &
-                  er, dims(ebox), &
-                  dims(reg), &
+                  DIMS(fbox), &
+                  er, DIMS(ebox), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, inhom, &
-                  spa, dims(spabox)) bind(C, name="hbflx3")
+                  spa, DIMS(spabox)) bind(C, name="hbflx3")
 
-  integer :: dimdec(fbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho, inhom
+  integer :: DIMDEC(fbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho, inhom
   real*8 :: bcl, beta, dx(3), c
-  real*8 :: flux(dimv(fbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
+  real*8 :: flux(DIMV(fbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
   real*8 :: r(1)
   real*8 :: h, bfm, bfv
   real*8 :: bfm2, h2, th2
@@ -915,9 +912,9 @@ subroutine hbflx3(flux, &
      h = dx(3)
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i-1,j,k)
@@ -970,9 +967,9 @@ subroutine hbflx3(flux, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i+1,j,k)
@@ -1025,9 +1022,9 @@ subroutine hbflx3(flux, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j-1,k)
@@ -1080,9 +1077,9 @@ subroutine hbflx3(flux, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j+1,k)
@@ -1135,9 +1132,9 @@ subroutine hbflx3(flux, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k-1)
@@ -1190,9 +1187,9 @@ subroutine hbflx3(flux, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k+1)
@@ -1250,28 +1247,28 @@ subroutine hbflx3(flux, &
 end subroutine hbflx3
 
 subroutine hdterm(dterm, &
-                  dims(dtbox), &
-                  er, dims(ebox), &
-                  dims(reg), &
+                  DIMS(dtbox), &
+                  er, DIMS(ebox), &
+                  DIMS(reg), &
                   cdir, bct, bcl, &
-                  bcval, dims(bcv), &
-                  mask, dims(msk), &
-                  d, dims(dbox), &
+                  bcval, DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  d, DIMS(dbox), &
                   dx) bind(C, name="hdterm")
 
-  integer :: dimdec(dtbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(dbox)
+  integer :: DIMDEC(dtbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(dbox)
   integer :: cdir, bct
   real*8 :: bcl, dx(3)
-  real*8 :: dterm(dimv(dtbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: d(dimv(dbox))
+  real*8 :: dterm(DIMV(dtbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: d(DIMV(dbox))
   real*8 :: h, bfm, bfv
   integer :: i, j, k
   if (cdir == 0 .OR. cdir == 3) then
@@ -1283,9 +1280,9 @@ subroutine hdterm(dterm, &
   endif
   if (bct == LO_DIRICHLET) then
      if (cdir == 0) then
-        i = regl0
-        do k = regl2, regh2
-           do j = regl1, regh1
+        i = reg_l1
+        do k = reg_l3, reg_h3
+           do j = reg_l2, reg_h2
               if (mask(i-1,j,k) > 0) then
                  dterm(i,j,k) = d(i,j,k) * &
                       (er(i,j,k) - bcval(i-1,j,k)) &
@@ -1294,9 +1291,9 @@ subroutine hdterm(dterm, &
            enddo
         enddo
      else if (cdir == 3) then
-        i = regh0
-        do k = regl2, regh2
-           do j = regl1, regh1
+        i = reg_h1
+        do k = reg_l3, reg_h3
+           do j = reg_l2, reg_h2
               if (mask(i+1,j,k) > 0) then
                  dterm(i+1,j,k) = d(i+1,j,k) * &
                       (bcval(i+1,j,k) - er(i,j,k)) &
@@ -1305,9 +1302,9 @@ subroutine hdterm(dterm, &
            enddo
         enddo
      else if (cdir == 1) then
-        j = regl1
-        do k = regl2, regh2
-           do i = regl0, regh0
+        j = reg_l2
+        do k = reg_l3, reg_h3
+           do i = reg_l1, reg_h1
               if (mask(i,j-1,k) > 0) then
                  dterm(i,j,k) = d(i,j,k) * &
                       (er(i,j,k) - bcval(i,j-1,k)) &
@@ -1316,9 +1313,9 @@ subroutine hdterm(dterm, &
            enddo
         enddo
      else if (cdir == 4) then
-        j = regh1
-        do k = regl2, regh2
-           do i = regl0, regh0
+        j = reg_h2
+        do k = reg_l3, reg_h3
+           do i = reg_l1, reg_h1
               if (mask(i,j+1,k) > 0) then
                  dterm(i,j+1,k) = d(i,j+1,k) * &
                       (bcval(i,j+1,k) - er(i,j,k)) &
@@ -1327,9 +1324,9 @@ subroutine hdterm(dterm, &
            enddo
         enddo
      else if (cdir == 2) then
-        k = regl2
-        do j = regl1, regh1
-           do i = regl0, regh0
+        k = reg_l3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               if (mask(i,j,k-1) > 0) then
                  dterm(i,j,k) = d(i,j,k) * &
                       (er(i,j,k) - bcval(i,j,k-1)) &
@@ -1338,9 +1335,9 @@ subroutine hdterm(dterm, &
            enddo
         enddo
      else if (cdir == 5) then
-        k = regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+        k = reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               if (mask(i,j,k+1) > 0) then
                  dterm(i,j,k+1) = d(i,j,k+1) * &
                       (bcval(i,j,k+1) - er(i,j,k)) &
@@ -1358,28 +1355,28 @@ subroutine hdterm(dterm, &
 end subroutine hdterm
 
 subroutine hdterm3(dterm, &
-                   dims(dtbox), &
-                   er, dims(ebox), &
-                   dims(reg), &
+                   DIMS(dtbox), &
+                   er, DIMS(ebox), &
+                   DIMS(reg), &
                    cdir, bctype, tf, bcl, &
-                   bcval, dims(bcv), &
-                   mask, dims(msk), &
-                   d, dims(dbox), &
+                   bcval, DIMS(bcv), &
+                   mask, DIMS(msk), &
+                   d, DIMS(dbox), &
                    dx) bind(C, name="hdterm3")
 
-  integer :: dimdec(dtbox)
-  integer :: dimdec(ebox)
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(dbox)
-  integer :: cdir, bctype, tf(dimv(bcv))
+  integer :: DIMDEC(dtbox)
+  integer :: DIMDEC(ebox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(dbox)
+  integer :: cdir, bctype, tf(DIMV(bcv))
   real*8 :: bcl, dx(3)
-  real*8 :: dterm(dimv(dtbox))
-  real*8 :: er(dimv(ebox))
-  real*8 :: bcval(dimv(bcv))
-  integer :: mask(dimv(msk))
-  real*8 :: d(dimv(dbox))
+  real*8 :: dterm(DIMV(dtbox))
+  real*8 :: er(DIMV(ebox))
+  real*8 :: bcval(DIMV(bcv))
+  integer :: mask(DIMV(msk))
+  real*8 :: d(DIMV(dbox))
   real*8 :: h, bfm, bfv
   integer :: i, j, k, bct
   if (cdir == 0 .OR. cdir == 3) then
@@ -1390,9 +1387,9 @@ subroutine hdterm3(dterm, &
      h = dx(3)
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i-1,j,k)
@@ -1414,9 +1411,9 @@ subroutine hdterm3(dterm, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i+1,j,k)
@@ -1438,9 +1435,9 @@ subroutine hdterm3(dterm, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j-1,k)
@@ -1462,9 +1459,9 @@ subroutine hdterm3(dterm, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j+1,k)
@@ -1486,9 +1483,9 @@ subroutine hdterm3(dterm, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k-1)
@@ -1510,9 +1507,9 @@ subroutine hdterm3(dterm, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k+1)
@@ -1539,28 +1536,28 @@ subroutine hdterm3(dterm, &
 end subroutine hdterm3
 
 subroutine hmac(mat, a, &
-                dims(abox), &
-                dims(reg), &
+                DIMS(abox), &
+                DIMS(reg), &
                 alpha) bind(C, name="hmac")
 
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
-  real*8 :: a(dimv(abox))
-  real*8 :: mat(0:6, dimv(reg))
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
+  real*8 :: a(DIMV(abox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: alpha
   integer :: i, j, k
   if (alpha == 0.d0) then
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = 0.d0
            enddo
         enddo
      enddo
   else
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = alpha * a(i,j,k)
            enddo
         enddo
@@ -1569,23 +1566,23 @@ subroutine hmac(mat, a, &
 end subroutine hmac
 
 subroutine hmbc(mat, b, &
-                dims(bbox), &
-                dims(reg), &
+                DIMS(bbox), &
+                DIMS(reg), &
                 beta, dx, n) bind(C, name="hmbc")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(dimv(bbox))
-  real*8 :: mat(0:6, dimv(reg))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: beta, dx(3)
   real*8 :: fac
   integer :: i, j, k
   if (n == 0) then
      fac = beta / (dx(1)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i+1,j,k))
               mat(1,i,j,k) = - fac * b(i,j,k)
               mat(2,i,j,k) = - fac * b(i+1,j,k)
@@ -1594,9 +1591,9 @@ subroutine hmbc(mat, b, &
      enddo
   elseif (n == 1) then
      fac = beta / (dx(2)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i,j+1,k))
               mat(3,i,j,k) = - fac * b(i,j,k)
               mat(4,i,j,k) = - fac * b(i,j+1,k)
@@ -1605,9 +1602,9 @@ subroutine hmbc(mat, b, &
      enddo
   else
      fac = beta / (dx(3)**2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i,j,k+1))
               mat(5,i,j,k) = - fac * b(i,j,k)
               mat(6,i,j,k) = - fac * b(i,j,k+1)
@@ -1618,23 +1615,23 @@ subroutine hmbc(mat, b, &
 end subroutine hmbc
 
 subroutine hma2c(mat, a2, &
-                 dims(bbox), &
-                 dims(reg), &
+                 DIMS(bbox), &
+                 DIMS(reg), &
                  alpha2, n) bind(C, name="hma2c")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: a2(dimv(bbox))
-  real*8 :: mat(0:6, dimv(reg))
+  real*8 :: a2(DIMV(bbox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: alpha2
   real*8 :: fac
   integer :: i, j, k
   fac = 0.25d0 * alpha2
   if (n == 0) then
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i+1,j,k))
               mat(1,i,j,k) = mat(1,i,j,k) + fac * a2(i,j,k)
               mat(2,i,j,k) = mat(2,i,j,k) + fac * a2(i+1,j,k)
@@ -1642,9 +1639,9 @@ subroutine hma2c(mat, a2, &
         enddo
      enddo
   elseif (n == 1) then
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i,j+1,k))
               mat(3,i,j,k) = mat(3,i,j,k) + fac * a2(i,j,k)
               mat(4,i,j,k) = mat(4,i,j,k) + fac * a2(i,j+1,k)
@@ -1652,9 +1649,9 @@ subroutine hma2c(mat, a2, &
         enddo
      enddo
   else
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i,j,k+1))
               mat(5,i,j,k) = mat(5,i,j,k) + fac * a2(i,j,k)
               mat(6,i,j,k) = mat(6,i,j,k) + fac * a2(i,j,k+1)
@@ -1665,23 +1662,23 @@ subroutine hma2c(mat, a2, &
 end subroutine hma2c
 
 subroutine hmcc(mat, c, &
-                dims(bbox), &
-                dims(reg), &
+                DIMS(bbox), &
+                DIMS(reg), &
                 gamma, dx, n) bind(C, name="hmcc")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: c(dimv(bbox))
-  real*8 :: mat(0:6, dimv(reg))
+  real*8 :: c(DIMV(bbox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: gamma, dx(3)
   real*8 :: fac
   integer :: i, j, k
   if (n == 0) then
      fac = 0.5d0 * gamma / dx(1)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i+1,j,k))
               mat(1,i,j,k) = mat(1,i,j,k) - fac * c(i,j,k)
               mat(2,i,j,k) = mat(2,i,j,k) + fac * c(i+1,j,k)
@@ -1690,9 +1687,9 @@ subroutine hmcc(mat, c, &
      enddo
   elseif (n == 1) then
      fac = 0.5d0 * gamma / dx(2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i,j+1,k))
               mat(3,i,j,k) = mat(3,i,j,k) - fac * c(i,j,k)
               mat(4,i,j,k) = mat(4,i,j,k) + fac * c(i,j+1,k)
@@ -1701,9 +1698,9 @@ subroutine hmcc(mat, c, &
      enddo
   else
      fac = 0.5d0 * gamma / dx(3)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i,j,k+1))
               mat(5,i,j,k) = mat(5,i,j,k) - fac * c(i,j,k)
               mat(6,i,j,k) = mat(6,i,j,k) + fac * c(i,j,k+1)
@@ -1714,23 +1711,23 @@ subroutine hmcc(mat, c, &
 end subroutine hmcc
 
 subroutine hmd1c(mat, d1, &
-                 dims(abox), &
-                 dims(reg), &
+                 DIMS(abox), &
+                 DIMS(reg), &
                  delta1, dx, n) bind(C, name="hmd1c")
 
-  integer :: dimdec(abox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(abox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d1(dimv(abox))
-  real*8 :: mat(0:6, dimv(reg))
+  real*8 :: d1(DIMV(abox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: delta1, dx(3)
   real*8 :: fac
   integer :: i, j, k
   if (n == 0) then
      fac = 0.5d0 * delta1 / dx(1)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(1,i,j,k) = mat(1,i,j,k) - fac * d1(i,j,k)
               mat(2,i,j,k) = mat(2,i,j,k) + fac * d1(i,j,k)
            enddo
@@ -1738,9 +1735,9 @@ subroutine hmd1c(mat, d1, &
      enddo
   elseif (n == 1) then
      fac = 0.5d0 * delta1 / dx(2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(3,i,j,k) = mat(3,i,j,k) - fac * d1(i,j,k)
               mat(4,i,j,k) = mat(4,i,j,k) + fac * d1(i,j,k)
            enddo
@@ -1748,9 +1745,9 @@ subroutine hmd1c(mat, d1, &
      enddo
   else
      fac = 0.5d0 * delta1 / dx(3)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(5,i,j,k) = mat(5,i,j,k) - fac * d1(i,j,k)
               mat(6,i,j,k) = mat(6,i,j,k) + fac * d1(i,j,k)
            enddo
@@ -1760,23 +1757,23 @@ subroutine hmd1c(mat, d1, &
 end subroutine hmd1c
 
 subroutine hmd2c(mat, d2, &
-                 dims(bbox), &
-                 dims(reg), &
+                 DIMS(bbox), &
+                 DIMS(reg), &
                  delta2, dx, n) bind(C, name="hmd2c")
 
-  integer :: dimdec(bbox)
-  integer :: dimdec(reg)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d2(dimv(bbox))
-  real*8 :: mat(0:6, dimv(reg))
+  real*8 :: d2(DIMV(bbox))
+  real*8 :: mat(0:6, DIMV(reg))
   real*8 :: delta2, dx(3)
   real*8 :: fac
   integer :: i, j, k
   if (n == 0) then
      fac = 0.5d0 * delta2 / dx(1)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i+1,j,k))
               mat(1,i,j,k) = mat(1,i,j,k) - fac * d2(i,j,k)
               mat(2,i,j,k) = mat(2,i,j,k) + fac * d2(i+1,j,k)
@@ -1785,9 +1782,9 @@ subroutine hmd2c(mat, d2, &
      enddo
   elseif (n == 1) then
      fac = 0.5d0 * delta2 / dx(2)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i,j+1,k))
               mat(3,i,j,k) = mat(3,i,j,k) - fac * d2(i,j,k)
               mat(4,i,j,k) = mat(4,i,j,k) + fac * d2(i,j+1,k)
@@ -1796,9 +1793,9 @@ subroutine hmd2c(mat, d2, &
      enddo
   else
      fac = 0.5d0 * delta2 / dx(3)
-     do k = regl2, regh2
-        do j = regl1, regh1
-           do i = regl0, regh0
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
+           do i = reg_l1, reg_h1
               mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i,j,k+1))
               mat(5,i,j,k) = mat(5,i,j,k) - fac * d2(i,j,k)
               mat(6,i,j,k) = mat(6,i,j,k) + fac * d2(i,j,k+1)
@@ -1809,20 +1806,20 @@ subroutine hmd2c(mat, d2, &
 end subroutine hmd2c
 
 subroutine hmmat(mat, &
-                 dims(reg), &
+                 DIMS(reg), &
                  cdir, bct, bho, bcl, &
-                 mask, dims(msk), &
-                 b, dims(bbox), &
+                 mask, DIMS(msk), &
+                 b, DIMS(bbox), &
                  beta, dx) bind(C, name="hmmat")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
   real*8 :: bcl, beta, dx(3)
-  real*8 :: mat(0:6, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
+  real*8 :: mat(0:6, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
   real*8 :: h, fac, bfm, bfv
   real*8 :: bfm2, h2, th2
   integer :: i, j, k
@@ -1852,9 +1849,9 @@ subroutine hmmat(mat, &
      stop
   endif
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
               mat(1,i,j,k) = 0.d0
@@ -1865,9 +1862,9 @@ subroutine hmmat(mat, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i+1,j,k)
               mat(2,i,j,k) = 0.d0
@@ -1878,9 +1875,9 @@ subroutine hmmat(mat, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
               mat(3,i,j,k) = 0.d0
@@ -1891,9 +1888,9 @@ subroutine hmmat(mat, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j+1,k)
               mat(4,i,j,k) = 0.d0
@@ -1904,9 +1901,9 @@ subroutine hmmat(mat, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
               mat(5,i,j,k) = 0.d0
@@ -1917,9 +1914,9 @@ subroutine hmmat(mat, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k+1)
               mat(6,i,j,k) = 0.d0
@@ -1935,25 +1932,25 @@ subroutine hmmat(mat, &
 end subroutine hmmat
 
 subroutine hmmat3(mat, &
-                  dims(reg), &
+                  DIMS(reg), &
                   cdir, bctype, tf, bho, bcl, &
-                  dims(bcv), &
-                  mask, dims(msk), &
-                  b, dims(bbox), &
+                  DIMS(bcv), &
+                  mask, DIMS(msk), &
+                  b, DIMS(bbox), &
                   beta, dx, c, r, &
-                  spa, dims(spabox)) bind(C, name="hmmat3")
+                  spa, DIMS(spabox)) bind(C, name="hmmat3")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(bcv)
-  integer :: dimdec(msk)
-  integer :: dimdec(bbox)
-  integer :: dimdec(spabox)
-  integer :: cdir, bctype, tf(dimv(bcv)), bho
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(bcv)
+  integer :: DIMDEC(msk)
+  integer :: DIMDEC(bbox)
+  integer :: DIMDEC(spabox)
+  integer :: cdir, bctype, tf(DIMV(bcv)), bho
   real*8 :: bcl, beta, dx(3), c
-  real*8 :: mat(0:6, dimv(reg))
-  integer :: mask(dimv(msk))
-  real*8 :: b(dimv(bbox))
-  real*8 :: spa(dimv(spabox))
+  real*8 :: mat(0:6, DIMV(reg))
+  integer :: mask(DIMV(msk))
+  real*8 :: b(DIMV(bbox))
+  real*8 :: spa(DIMV(spabox))
   real*8 :: r(1)
   real*8 :: h, fac, bfm, bfv
   real*8 :: bfm2, h2, th2
@@ -1969,9 +1966,9 @@ subroutine hmmat3(mat, &
   endif
   fac = beta / (h**2)
   if (cdir == 0) then
-     i = regl0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_l1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i-1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i-1,j,k)
@@ -2020,9 +2017,9 @@ subroutine hmmat3(mat, &
         enddo
      enddo
   else if (cdir == 3) then
-     i = regh0
-     do k = regl2, regh2
-        do j = regl1, regh1
+     i = reg_h1
+     do k = reg_l3, reg_h3
+        do j = reg_l2, reg_h2
            if (mask(i+1,j,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i+1,j,k)
@@ -2071,9 +2068,9 @@ subroutine hmmat3(mat, &
         enddo
      enddo
   else if (cdir == 1) then
-     j = regl1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_l2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j-1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j-1,k)
@@ -2122,9 +2119,9 @@ subroutine hmmat3(mat, &
         enddo
      enddo
   else if (cdir == 4) then
-     j = regh1
-     do k = regl2, regh2
-        do i = regl0, regh0
+     j = reg_h2
+     do k = reg_l3, reg_h3
+        do i = reg_l1, reg_h1
            if (mask(i,j+1,k) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j+1,k)
@@ -2173,9 +2170,9 @@ subroutine hmmat3(mat, &
         enddo
      enddo
   else if (cdir == 2) then
-     k = regl2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_l3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k-1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k-1)
@@ -2224,9 +2221,9 @@ subroutine hmmat3(mat, &
         enddo
      enddo
   else if (cdir == 5) then
-     k = regh2
-     do j = regl1, regh1
-        do i = regl0, regh0
+     k = reg_h3
+     do j = reg_l2, reg_h2
+        do i = reg_l1, reg_h1
            if (mask(i,j,k+1) > 0) then
               if (bctype == -1) then
                  bct = tf(i,j,k+1)
@@ -2280,21 +2277,21 @@ subroutine hmmat3(mat, &
 end subroutine hmmat3
 
 subroutine set_abec_flux( &
-                         dims(reg), dir, &
-                         density, dims(density), &
-                         dcoef, dims(dcoef), &
+                         DIMS(reg), dir, &
+                         density, DIMS(density), &
+                         dcoef, DIMS(dcoef), &
                          beta, &
                          dx, &
-                         flux, dims(flux)) bind(C, name="set_abec_flux")
+                         flux, DIMS(flux)) bind(C, name="set_abec_flux")
 
-  integer :: dimdec(reg)
-  integer :: dimdec(density)
-  integer :: dimdec(dcoef)
-  integer :: dimdec(flux)
+  integer :: DIMDEC(reg)
+  integer :: DIMDEC(density)
+  integer :: DIMDEC(dcoef)
+  integer :: DIMDEC(flux)
 
-  real*8 :: density(dimv(density))
-  real*8 :: dcoef(dimv(dcoef))
-  real*8 :: flux(dimv(flux))
+  real*8 :: density(DIMV(density))
+  real*8 :: dcoef(DIMV(dcoef))
+  real*8 :: flux(DIMV(flux))
 
   integer :: dir,i,j,k
   real*8 :: beta, dx(BL_SPACEDIM), fac
@@ -2306,9 +2303,9 @@ subroutine set_abec_flux( &
 
      fac = - beta / dx(1)
 
-     do k = regl2,regh2
-        do j = regl1,regh1
-           do i = regl0,regh0
+     do k = reg_l3,reg_h3
+        do j = reg_l2,reg_h2
+           do i = reg_l1,reg_h1
               flux(i,j,k) = dcoef(i,j,k) * &
                    (density(i,j,k) - density(i-1,j,k)) * fac
            end do
@@ -2321,9 +2318,9 @@ subroutine set_abec_flux( &
 
      fac = - beta / dx(2)
 
-     do k = regl2,regh2
-        do j = regl1,regh1
-           do i = regl0,regh0
+     do k = reg_l3,reg_h3
+        do j = reg_l2,reg_h2
+           do i = reg_l1,reg_h1
               flux(i,j,k) = dcoef(i,j,k) * &
                    (density(i,j,k) - density(i,j-1,k)) * fac
            end do
@@ -2336,9 +2333,9 @@ subroutine set_abec_flux( &
 
      fac = - beta / dx(3)
 
-     do k = regl2,regh2
-        do j = regl1,regh1
-           do i = regl0,regh0
+     do k = reg_l3,reg_h3
+        do j = reg_l2,reg_h2
+           do i = reg_l1,reg_h1
               flux(i,j,k) = dcoef(i,j,k) * &
                    (density(i,j,k) - density(i,j,k-1)) * fac
            end do

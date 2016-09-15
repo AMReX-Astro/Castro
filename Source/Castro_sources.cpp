@@ -168,14 +168,16 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     // Compute its primitive counterpart.
 
     MultiFab q_noreact(grids, QVAR, ng, Fab_allocate);
+    MultiFab qaux_noreact(grids, NQAUX, ng, Fab_allocate);
 
-    cons_to_prim(S_noreact, q_noreact);
+    cons_to_prim(S_noreact, q_noreact, qaux_noreact);
 
     // Compute the primitive version of the old state.
 
     MultiFab q_old(grids, QVAR, ng, Fab_allocate);
+    MultiFab qaux_old(grids, NQAUX, ng, Fab_allocate);
 
-    cons_to_prim(S_old, q_old);
+    cons_to_prim(S_old, q_old, qaux_old);
 
     // Compute the effective advective update on the primitive state.
 
@@ -191,8 +193,9 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     // Compute the primitive version of the new state.
 
     MultiFab q_new(grids, QVAR, ng, Fab_allocate);
+    MultiFab qaux_new(grids, NQAUX, ng, Fab_allocate);
 
-    cons_to_prim(S_new, q_new);
+    cons_to_prim(S_new, q_new, qaux_new);
 
     // Compute the reaction source term.
 
