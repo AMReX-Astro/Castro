@@ -37,6 +37,7 @@ Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
+Real Gravity::max_dens       = 0.0;
 
 // ************************************************************************************** //
 
@@ -67,8 +68,6 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
     level_solver_resnorm(MAX_LEV),
-    ml_tol(MAX_LEV),
-    delta_tol(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
     phys_bc(_phys_bc)
@@ -164,88 +163,24 @@ Gravity::read_params ()
 	  if (ParallelDescriptor::IOProcessor())
 	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
-        // Allow run-time input of solver tolerances
+        // Allow run-time input of solver tolerance, but set default first.
 
-	for (int lev = 0; lev < MAX_LEV; lev++) {
-
-	    if (Geometry::IsCartesian()) {
-	      ml_tol[lev] = 1.e-11;
-	      delta_tol[lev] = 1.e-11;
-	    }
-	    else {
-	      ml_tol[lev] = 1.e-10;
-	      delta_tol[lev] = 1.e-10;
-	    }
-
-	}
-
-	int nlevs = parent->maxLevel() + 1;
-
-	Real tol;
-	Real d_tol;
-
-	// For backwards compatibility, read in sl_tol if we're
-	// only using a single level; but this is now considered
-	// deprecated, and we should use ml_tol for reading in
-	// the tolerance at every level. If we have set both
-	// ml_tol and sl_tol, sl_tol will be ignored on
-	// multi-level calculations.
-
-	int got_sl_tol = pp.query("sl_tol", tol);
-
-	if (parent->maxLevel() == 0 && got_sl_tol == 1) {
-	  ml_tol[0] = tol;
+	if (Geometry::IsCartesian()) {
+	    tol = 1.e-11;
 	}
 	else {
-
-	  // Only read in ml_tol if we're doing a multi-level
-	  // calculation and the user hasn't set sl_tol.
-
-	  int cnt = pp.countval("ml_tol");
-
-	  // If we've only got one value, set every level's
-	  // tolerance to that value. Otherwise, read in an
-	  // array that must have at least nlevs values.
-
-	  if (cnt == 1) {
-
-	    pp.get("ml_tol", tol);
-
-	    for (int lev = 0; lev < MAX_LEV; lev++) {
-
-	      ml_tol[lev] = tol;
-
-	    }
-
-	  }
-	  else if (cnt > 1) {
-
-	    pp.getarr("ml_tol", ml_tol, 0, nlevs);
-
-	  }
-
+	    tol = 1.e-10;
 	}
 
-	int cnt = pp.countval("delta_tol");
+	pp.query("tol", tol);
 
-	// Same approach as for ml_tol.
+	// Warn user about deprecated tolerance parameters.
 
-	if (cnt == 1) {
+	if (pp.contains("ml_tol"))
+	    BoxLib::Warning("The gravity parameter ml_tol is no longer used; switch to tol for the tolerance on all levels.");
 
-	  pp.get("delta_tol", d_tol);
-
-	  for (int lev = 0; lev < MAX_LEV; lev++ ) {
-
-	      delta_tol[lev] = d_tol;
-
-	    }
-
-	}
-	else if (cnt > 1) {
-
-	  pp.getarr("delta_tol", delta_tol, 0, nlevs);
-
-	}
+	if (pp.contains("sl_tol"))
+	    BoxLib::Warning("The gravity parameter sl_tol is no longer used; switch to tol for the tolerance.");
 
         Real Gconst;
         get_grav_const(&Gconst);
@@ -264,6 +199,18 @@ void
 Gravity::set_numpts_in_gravity (int numpts)
 {
   numpts_at_level = numpts;
+}
+
+void
+Gravity::set_max_dens(Real dens)
+{
+    max_dens = dens;
+}
+
+void
+Gravity::get_max_dens(Real& dens)
+{
+    dens = max_dens;
 }
 
 void
@@ -583,14 +530,14 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        rhs[0].plus(-local_correction,0,1,0);
     }
 
-    Real     tol = delta_tol[crse_level];
+    Real rel_tol = 0.0;
     Real abs_tol = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev < fine_level; lev++)
-        abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
+	abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
 
     int need_grad_phi = 1;
     int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    fmg.solve(delta_phi, rhs, tol, abs_tol, always_use_bnorm, need_grad_phi);
+    fmg.solve(delta_phi, rhs, rel_tol, abs_tol, always_use_bnorm, need_grad_phi);
 
     fmg.get_fluxes(grad_delta_phi);
 
@@ -2764,11 +2711,11 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real     tol = ml_tol[fine_level];
-	Real abs_tol = 0.0;
+	Real rel_tol = 0.0;
+	Real abs_tol = tol * Ggravity * (max_dens - mass_offset);
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-	final_resnorm = fmg.solve(phi, rhs, tol, abs_tol,
+	final_resnorm = fmg.solve(phi, rhs, rel_tol, abs_tol,
 				  always_use_bnorm, need_grad_phi);
 
 	fmg.get_fluxes(grad_phi);

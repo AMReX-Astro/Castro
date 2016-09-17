@@ -36,6 +36,10 @@ public:
 
   void swapTimeLevels (int level);
 
+  void set_max_dens(Real dens);
+
+  void get_max_dens(Real& dens);
+
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
@@ -125,10 +129,9 @@ protected:
   //
   Array<Real> level_solver_resnorm;
   //
-  // Error tolerance on each level
+  // Error tolerance
   //
-  Array<Real> ml_tol;
-  Array<Real> delta_tol;
+  Real tol;
   //
   // Volume and area fractions.
   //
@@ -166,6 +169,7 @@ protected:
 #endif
   static std::string gravity_type;
   static int   stencil_type;
+  static Real  max_dens;
 
   static Real max_radius_all_in_domain;
 

@@ -1807,6 +1807,12 @@ Castro::post_restart ()
                 if (gravity->NoComposite() != 1)
                 {
  		   int use_previous_phi = 1;
+
+		   // Set the maximum density, used in setting the solver tolerance.
+
+		   Real max_density = getMaxDens();
+		   gravity->set_max_dens(max_density);
+
 		   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
@@ -1894,6 +1900,14 @@ Castro::post_regrid (int lbase,
        {
 	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
 	       int use_previous_phi = 1;
+
+	       // Set the maximum density, used in setting the solver tolerance.
+
+	       if (level == 0) {
+		   Real max_density = getMaxDens();
+		   gravity->set_max_dens(max_density);
+	       }
+
 	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
 	   }
        }
@@ -1922,7 +1936,13 @@ Castro::post_init (Real stop_time)
     Real cur_time = state[State_Type].curTime();
 
     if (do_grav) {
+
        if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Set the maximum density, used in setting the solver tolerance.
+
+	  Real max_density = getMaxDens();
+	  gravity->set_max_dens(max_density);
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -2031,6 +2051,11 @@ Castro::post_grown_restart ()
 	Real cur_time = state[State_Type].curTime();
 
 	if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Set the maximum density, used in setting the solver tolerance.
+
+	  Real max_density = getMaxDens();
+	  gravity->set_max_dens(max_density);
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -3066,5 +3091,26 @@ Castro::clean_state(MultiFab& state, MultiFab& state_old) {
     reset_internal_energy(state);
 
     return frac_change;
+
+}
+
+Real
+Castro::getMaxDens()
+{
+    BL_ASSERT(level == 0);
+
+    // Calculate the maximum density over all levels.
+    // Should only be used at a synchronization point where
+    // all levels have valid new time data at the same simulation time.
+
+    Real max_density = 0.0;
+
+    for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
+
+	max_density = std::max(max_density, getLevel(lev).get_new_data(State_Type).max(Density));
+
+    }
+
+    return max_density;
 
 }
