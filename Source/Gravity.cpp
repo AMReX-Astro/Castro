@@ -24,9 +24,6 @@ int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
 #endif
-int  Gravity::get_g_from_phi = 0;
-int  Gravity::max_solve_level = MAX_LEV-1;
-int  Gravity::max_multipole_moment_level = 0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
@@ -124,24 +121,7 @@ Gravity::read_params ()
         }
 #endif
 
-	// For all gravity types, we can choose a maximum level for explicitly calculating the
-	// gravity and associated potential. Above that level, we interpolate from coarser levels.
-
-	pp.query("max_solve_level", max_solve_level);
-
-	// For multipole gravity calculations, this is the maximum level used for constructing the
-	// multipole moments.
-
-	pp.query("max_multipole_moment_level", max_multipole_moment_level);
-
-
-
-	// For non-Poisson gravity, do we want to construct the gravitational acceleration by taking
-	// the gradient of the potential, rather than constructing it directly?
-
-	int got_get_g_from_phi = pp.query("get_g_from_phi", get_g_from_phi);
-
-	if (got_get_g_from_phi && !get_g_from_phi && gravity_type == "PoissonGrav")
+	if (pp.contains("get_g_from_phi") && !get_g_from_phi && gravity_type == "PoissonGrav")
 	  if (ParallelDescriptor::IOProcessor())
 	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
