@@ -465,10 +465,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // This must be done before the swap because it relies on the new data.
 
     if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
-
-	Real max_density = getMaxDens();
-	gravity->set_max_dens(max_density);
-
+	gravity->update_max_rhs();
     }
 #endif
 

@@ -37,7 +37,7 @@ Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
-Real Gravity::max_dens       = 0.0;
+Real Gravity::tol            = 0.0;
 
 // ************************************************************************************** //
 
@@ -79,6 +79,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
 #if (BL_SPACEDIM > 1)
      if (gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
+     max_rhs = 0.0;
 }
 
 Gravity::~Gravity() {}
@@ -202,18 +203,6 @@ void
 Gravity::set_numpts_in_gravity (int numpts)
 {
   numpts_at_level = numpts;
-}
-
-void
-Gravity::set_max_dens(Real dens)
-{
-    max_dens = dens;
-}
-
-void
-Gravity::get_max_dens(Real& dens)
-{
-    dens = max_dens;
 }
 
 void
@@ -2721,9 +2710,10 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
 	// subtract off the mass_offset corresponding to the average
 	// density on the domain. This will automatically be zero for
-	// non-periodic BCs.
+	// non-periodic BCs. And this also accounts for the metric
+	// terms that are applied in non-Cartesian coordinates.
 
-	Real abs_tol = tol * Ggravity * (max_dens - mass_offset);
+	Real abs_tol = tol * max_rhs;
 
 	// Account for the fact that on finer levels, the scale of the
 	// Laplacian changes due to the zone size changing. We assume
@@ -2832,4 +2822,63 @@ GradPhiPhysBCFunct::doit (MultiFab& mf, int dcomp, int scomp, Real time)
     // So we do not need to do anything here.
 
     return;
+}
+
+void
+Gravity::update_max_rhs()
+{
+    // Calculate the maximum value of the RHS over all levels.
+    // This should only be called at a synchronization point where
+    // all Castro levels have valid new time data at the same simulation time.
+    // The RHS we will use is the density multiplied by 4*pi*G and also
+    // multiplied by the metric terms, just as it would be in a real solve.
+
+    int crse_level = 0;
+    int nlevs = parent->finestLevel() + 1;
+    PArray<MultiFab> rhs;
+    int is_new = 1;
+
+    get_rhs(crse_level, nlevs, rhs, is_new);
+
+#if (BL_SPACEDIM == 3)
+    if ( Geometry::isAllPeriodic() )
+    {
+	for (int lev = 0; lev < nlevs; ++lev) {
+	    rhs[lev].plus(-mass_offset,0,1,0);
+    }
+#endif
+
+    for (int lev = 0; lev < nlevs; ++lev)
+    {
+        rhs[lev].mult(Ggravity);
+    }
+
+#if (BL_SPACEDIM < 3)
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    {
+	Array<PArray<MultiFab> > coeffs(nlevs);
+
+	for (int lev = 0; lev < nlevs; ++lev) {
+
+	    // We need to include this bit about the coefficients because
+	    // it's required by applyMetricTerms.
+
+	    coeffs[lev].resize(BL_SPACEDIM, PArrayManage);
+
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		coeffs[lev].set(i, new MultiFab(grids[lev], 1, 0, Fab_allocate,
+                                                IntVect::TheDimensionVector(i)));
+		coeffs[lev][i].setVal(1.0);
+	    }
+
+	    applyMetricTerms(lev, rhs[lev], coeffs[lev]);
+	}
+    }
+#endif
+
+    max_rhs = 0.0;
+
+    for (int lev = 0; lev < nlevs; ++lev)
+	max_rhs = std::max(max_rhs, rhs[lev].max(0));
+
 }
