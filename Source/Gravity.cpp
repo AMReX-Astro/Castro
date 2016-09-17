@@ -2712,7 +2712,27 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
     if (grad_phi.size() > 0)
     {
 	Real rel_tol = 0.0;
+
+	// The absolute tolerance is determined by the error tolerance
+	// chosen by the user (tol) multiplied by the maximum value of
+	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
+	// subtract off the mass_offset corresponding to the average
+	// density on the domain. This will automatically be zero for
+	// non-periodic BCs.
+
 	Real abs_tol = tol * Ggravity * (max_dens - mass_offset);
+
+	// Account for the fact that on finer levels, the scale of the
+	// Laplacian changes due to the zone size changing. We assume
+	// dx == dy == dz, so it is fair to say that on each level the
+	// tolerance should increase by the factor ref_ratio**2, since
+	// in absolute terms the Laplacian increases by that ratio too.
+	// The actual tolerance we'll send in is the effective tolerance
+	// on the finest level that we solve for.
+
+	for (int lev = 1; lev <= fine_level; ++lev)
+	    abs_tol *= std::pow(parent->refRatio(lev-1)[0], 2);
+
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
 	final_resnorm = fmg.solve(phi, rhs, rel_tol, abs_tol,
