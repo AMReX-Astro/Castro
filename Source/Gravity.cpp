@@ -179,6 +179,9 @@ Gravity::read_params ()
 	if (pp.contains("ml_tol"))
 	    BoxLib::Warning("The gravity parameter ml_tol is no longer used; switch to tol for the tolerance on all levels.");
 
+	if (pp.contains("delta_tol"))
+	    BoxLib::Warning("The gravity parameter delta_tol is no longer used.");
+
 	if (pp.contains("sl_tol"))
 	    BoxLib::Warning("The gravity parameter sl_tol is no longer used; switch to tol for the tolerance.");
 
