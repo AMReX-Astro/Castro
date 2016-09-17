@@ -262,7 +262,6 @@ Diffusion::make_mg_bc ()
             if (phys_bc->hi(dir) == Symmetry   || 
                 phys_bc->hi(dir) == SlipWall   || 
                 phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) ==  Inflow    || 
                 phys_bc->hi(dir) == Outflow)   
             {
               mg_bc[2*dir + 1] = MGT_BC_NEU;
