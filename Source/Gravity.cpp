@@ -24,11 +24,6 @@ int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
 #endif
-int  Gravity::verbose        = 0;
-int  Gravity::no_sync        = 0;
-int  Gravity::no_composite   = 0;
-
-int  Gravity::lnum           = 0;
 int  Gravity::get_g_from_phi = 0;
 int  Gravity::max_solve_level = MAX_LEV-1;
 int  Gravity::max_multipole_moment_level = 0;
@@ -129,12 +124,6 @@ Gravity::read_params ()
         }
 #endif
 
-        pp.query("v", verbose);
-        pp.query("no_sync", no_sync);
-        pp.query("no_composite", no_composite);
-
-        pp.query("max_multipole_order", lnum);
-
 	// For all gravity types, we can choose a maximum level for explicitly calculating the
 	// gravity and associated potential. Above that level, we interpolate from coarser levels.
 
@@ -174,6 +163,7 @@ Gravity::read_params ()
 	int nlevs = parent->maxLevel() + 1;
 
 	Real tol;
+	Real dtol;
 
 	// For backwards compatibility, read in sl_tol if we're
 	// only using a single level; but this is now considered
@@ -222,6 +212,8 @@ Gravity::read_params ()
 	// Same approach as for ml_tol.
 
 	if (cnt == 1) {
+
+	  pp.get("delta_tol", d_tol);
 
 	  for (int lev = 0; lev < MAX_LEV; lev++ ) {
 

@@ -413,5 +413,19 @@ const_grav                   Real          0.0                y
 direct_sum_bcs               int           0
 
 # ratio of dr for monopole gravity binning to grid resolution
-drdxfac                     int           1
+drdxfac                     int            1                  y
+
+# the maximum mulitpole order to use for multipole BCs when doing
+# Poisson gravity
+max_multipole_order [lnum]  int            0                  y
+
+# the level of verbosity for the gravity solve (higher number means more
+# output on the status of the solve / multigrid
+v [verbose]                 int            0
+
+# do we perform the synchronization at coarse-fine interfaces?
+no_sync                     int            0
+
+# do we do a composite solve?
+no_composite                int            0
 
