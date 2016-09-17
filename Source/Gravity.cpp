@@ -2843,7 +2843,7 @@ Gravity::update_max_rhs()
 #if (BL_SPACEDIM == 3)
     if ( Geometry::isAllPeriodic() )
     {
-	for (int lev = 0; lev < nlevs; ++lev) {
+	for (int lev = 0; lev < nlevs; ++lev)
 	    rhs[lev].plus(-mass_offset,0,1,0);
     }
 #endif
