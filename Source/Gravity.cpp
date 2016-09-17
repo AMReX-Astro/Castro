@@ -27,13 +27,11 @@ int Gravity::test_solves  = 0;
 int  Gravity::verbose        = 0;
 int  Gravity::no_sync        = 0;
 int  Gravity::no_composite   = 0;
-int  Gravity::drdxfac        = 1;
+
 int  Gravity::lnum           = 0;
-int  Gravity::direct_sum_bcs = 0;
 int  Gravity::get_g_from_phi = 0;
 int  Gravity::max_solve_level = MAX_LEV-1;
 int  Gravity::max_multipole_moment_level = 0;
-Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
@@ -108,7 +106,6 @@ Gravity::read_params ()
         {
 	  if ( Geometry::IsSPHERICAL() )
 	      BoxLib::Abort("Cant use constant direction gravity with non-Cartesian coordinates");
-           pp.get("const_grav", const_grav);
         }
 
 #if (BL_SPACEDIM == 1)
@@ -132,8 +129,6 @@ Gravity::read_params ()
         }
 #endif
 
-        pp.query("drdxfac", drdxfac);
-
         pp.query("v", verbose);
         pp.query("no_sync", no_sync);
         pp.query("no_composite", no_composite);
@@ -150,10 +145,7 @@ Gravity::read_params ()
 
 	pp.query("max_multipole_moment_level", max_multipole_moment_level);
 
-        // Check if the user wants to compute the boundary conditions using the brute force method.
-        // Default is false, since this method is slow.
 
-        pp.query("direct_sum_bcs", direct_sum_bcs);
 
 	// For non-Poisson gravity, do we want to construct the gravitational acceleration by taking
 	// the gradient of the potential, rather than constructing it directly?
@@ -182,7 +174,6 @@ Gravity::read_params ()
 	int nlevs = parent->maxLevel() + 1;
 
 	Real tol;
-	Real d_tol;
 
 	// For backwards compatibility, read in sl_tol if we're
 	// only using a single level; but this is now considered
@@ -231,8 +222,6 @@ Gravity::read_params ()
 	// Same approach as for ml_tol.
 
 	if (cnt == 1) {
-
-	  pp.get("delta_tol", d_tol);
 
 	  for (int lev = 0; lev < MAX_LEV; lev++ ) {
 

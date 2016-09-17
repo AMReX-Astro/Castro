@@ -1,5 +1,7 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
+namespace: castro
+
 #-----------------------------------------------------------------------------
 # category: AMR
 #-----------------------------------------------------------------------------
@@ -394,3 +396,22 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
+
+
+
+namespace: gravity
+
+#
+gravity_type                 string        "fillme"
+
+
+# if doing constant gravity, what is the acceleration
+const_grav                   Real          0.0                y
+
+# Check if the user wants to compute the boundary conditions using the
+# brute force method.  Default is false, since this method is slow.
+direct_sum_bcs               int           0
+
+# ratio of dr for monopole gravity binning to grid resolution
+drdxfac                     int           1
+
