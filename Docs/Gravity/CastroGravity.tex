@@ -2,6 +2,71 @@
 
 \section{Introduction}
 
+\subsection{Integration Strategy}
+
+\castro\ uses subcycling to integrate levels at different timesteps.
+The gravity algorithm needs to respect this.  Self-gravity is computed
+via multigrid.  At coarse-fine interfaces, the stencil used in the
+Laplacian understands the coarse-fine interface and is different than
+the stencil used in the interior.
+
+There are two types of
+solves that we discuss with AMR:
+\begin{itemize}
+\item {\em composite solve} : This is a multilevel solve, starting at
+  a coarse level (usually level 0) and solving for the potential on
+  all levels up to the finest level.
+
+\item {\em level solve} : This solves for the potential only on
+ a particular level.  Finer levels are ignored.  At coarse-fine
+ interfaces, the data from the coarse levels acts as Dirichlet 
+ boundary conditions for the current-level-solve.
+\end{itemize}
+
+The overall integration strategy is unchanged from the discussion in
+\cite{castro_I}.  Briefly:
+\begin{itemize}
+\item At the beginning of a simulation, we do a multilevel composite
+  solve (if {\tt gravity.no\_composite = 0}).  
+
+  We also do a multilevel composite solve after each regrid.
+
+\item The old-time gravity on the coarse level is defined based on
+  this composite solve, but we also do a level solve on the coarse
+  level, and use it to determine the difference between the composite
+  solve and the level solve, and store that in a \multifab.
+
+\item After the hydro advance on the coarse level, we do another level
+  solve, and use the (level solve $-$ compositive solve) as a lagged
+  predictor of how much we need to add back to that level solve to get
+  an effective new-time value for phi on the coarse level, and that's
+  what defines the phi used for the new-time gravity
+
+\item Then we do the fine grid timestep(s), each using the same
+  strategy
+
+\item At the end of the fine grid timesteps, if we're doing a sync
+  solve ({\tt gravity.no\_sync == 0}), we then do a solve starting from
+  the coarse grid that adjusts for the mismatch between the fine-grid
+  phi and the coarse-grid phi, as well as the mismatch between the
+  fine-grid density fluxes and the coarse-grid density fluxes, and add
+  the resulting sync solve phi to both the coarse and the fine level
+
+  Thus, to within the gravity error tolerance, you get the same final
+  result as if you had done a full composite solve at the end of the
+  timestep (assuming {\tt gravity.no\_sync == 0}).
+\end{itemize}
+
+If you do {\tt gravity.no\_composite == 1}, then you never do a full
+multilevel solve, and the gravity on any level is defined only by the
+solve on that level.  The only time this would be appropriate is if
+the fine level(s) cover essentially all of the mass on the grid for
+all time.
+
+
+
+
+\subsection{Controls}
 \castro\ can incorporate gravity as a constant, monopole approximation,
 or a full Poisson solve.  To enable gravity in the code, set:
 \begin{verbatim}
