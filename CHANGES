@@ -1,5 +1,23 @@
 * changes since the last release:
 
+  -- the way we we use tolerances in the multigrid solve for Poisson
+     gravity has changed. The old behavior is that you would pass in
+     gravity.ml_tol as the relative tolerance on each grid level, and
+     absolute tolerances would not be used. This suffered from some
+     defects, notably that on fine grids you often had to loosen the
+     relative tolerance on each higher level to achieve convergence,
+     and in certain cases the scheme would fail completely, for example
+     if the fine grids were not covering the mass on the grid. We now
+     use a single input parameter gravity.tol which controls the absolute
+     scale of the tolerance, and the absolute tolerance passed into the
+     multigrid scheme is the tolerance multiplied by the maximum value
+     of the RHS over the entire domain. On the coarse grid, then, the
+     absolute tolerance is 4*pi*G*rho_max*tol, and on fine grids this
+     is multiplied by ref_ratio**2. The parameters gravity.ml_tol,
+     gravity.delta_tol, and gravity.sl_tol no longer have any effect.
+     If you do not pass in a tolerance choice, the default is specified
+     in Gravity.cpp; it is currently 1e-11 for Cartesian simulations.
+
   -- the radiation hydro solver, that used to live in
      CastroRadiation.git has now been completely integrated into
      the main Castro git repo.  The history was preserved in the

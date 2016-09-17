@@ -65,15 +65,18 @@ solves:
   $\phi$ and $\mathbf{g}$; above this level, interpolate from below
   (default: ${\tt MAX\_LEV} - 1$)
 
-\item {\tt gravity.ml\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the tolerance for level solves.  It can be
-  either a single value for all levels or you can specify one for each
-  level. (default: 1.e-11)
-
-\item {\tt gravity.delta\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the tolerance for sync solves. It can be
-  either a single value for all levels or you can specify one for each
-  level.  (default: 1.e-11)
+\item {\tt gravity.tol} : if {\tt gravity.gravity\_type =
+  PoissonGrav}, this is the absolute tolerance for the Poisson solve. You
+  specify a single value for this tolerance, and then the absolute tolerance
+  used by the multigrid solve is $\text{tol} \times 4\pi G\, \rho_{\text{max}}$
+  where $\rho_{\text{max}}$ is the maximum value of the density on the domain.
+  No relative tolerance is used in any solve.
+  On fine levels, this absolute tolerance is multiplied by $\text{ref\_ratio}^2$
+  to account for the change in the absolute scale of the Laplacian operator.
+  For a gravity sync solve, we continue to use as an absolute tolerance the final
+  residual norm obtained in the main Poisson solve. The old parameters
+  {\tt gravity.ml\_tol}, {\tt gravity.sl\_tol}, and {\tt gravity.delta\_tol} no
+  longer have any effect, and the user is warned about this if they try to set these.
 
 \item {\tt gravity.max\_multipole\_order} : if {\tt
   gravity.gravity\_type = PoissonGrav}, this is the max $\ell$ value
