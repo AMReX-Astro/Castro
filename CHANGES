@@ -11,6 +11,9 @@
      The EOSes that used to come with CastroRadiation are available
      in Microphysics.git
 
+  -- the gravity and diffusion runtime parameters have been moved
+     to the master _cpp_parameters file
+
   -- enthalpy and temperature diffusion are now properly time-centered
      (issue #22)
   
