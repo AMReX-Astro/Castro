@@ -130,15 +130,22 @@ solves:
   $\phi$ and $\mathbf{g}$; above this level, interpolate from below
   (default: ${\tt MAX\_LEV} - 1$)
 
-\item {\tt gravity.ml\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the tolerance for level solves.  It can be
-  either a single value for all levels or you can specify one for each
-  level. (default: 1.e-11)
+\item {\tt gravity.abs\_tol} : if {\tt gravity.gravity\_type =
+  PoissonGrav}, this is the absolute tolerance for the Poisson solve. You
+  can specify a single value for this tolerance (or do nothing, and get a reasonable
+  default value), and then the absolute tolerance used by the multigrid solve is
+  $\text{abs\_tol} \times 4\pi G\, \rho_{\text{max}}$ where $\rho_{\text{max}}$
+  is the maximum value of the density on the domain.
+  On fine levels, this absolute tolerance is multiplied by $\text{ref\_ratio}^2$
+  to account for the change in the absolute scale of the Laplacian operator.
+  You can also specify an array of values for \text{abs\_tol}, one for each possible
+  level in the simulation, and then the scaling by $\text{ref\_ratio}^2$ is not applied.
 
-\item {\tt gravity.delta\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the tolerance for sync solves. It can be
-  either a single value for all levels or you can specify one for each
-  level.  (default: 1.e-11)
+\item {\tt gravity.rel\_tol} : if {\tt gravity.gravity\_type =
+  PoissonGrav}, this is the relative tolerance for the Poisson solve. By default
+  it is zero. You can specify a single value for this tolerance and it will apply
+  on every level, or you can specify an array of values for \text{rel\_tol}, one
+  for each possible level in the simulation. This replaces the old parameter {\tt gravity.ml\_tol}.
 
 \item {\tt gravity.max\_multipole\_order} : if {\tt
   gravity.gravity\_type = PoissonGrav}, this is the max $\ell$ value

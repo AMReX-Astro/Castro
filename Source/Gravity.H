@@ -36,6 +36,8 @@ public:
 
   void swapTimeLevels (int level);
 
+  void update_max_rhs();
+
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
@@ -121,14 +123,21 @@ protected:
   //
   Array<BoxArray> grids;
   //
+  // Absolute tolerance on each level
+  //
+  Array<Real> abs_tol;
+  //
+  // Relative tolerance on each level
+  //
+  Array<Real> rel_tol;
+  //
   // Resnorm at each level
   //
   Array<Real> level_solver_resnorm;
   //
-  // Error tolerance on each level
+  // Maximum value of the RHS (used for obtaining absolute tolerances)
   //
-  Array<Real> ml_tol;
-  Array<Real> delta_tol;
+  Real max_rhs;
   //
   // Volume and area fractions.
   //

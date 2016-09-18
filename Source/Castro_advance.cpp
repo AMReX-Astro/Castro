@@ -459,6 +459,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         radiation->pre_timestep(level);
 #endif
 
+#ifdef GRAVITY
+    // If we're on level 0, update the maximum density used in the gravity solver
+    // for setting the tolerances. This will be used in all level solves to follow.
+    // This must be done before the swap because it relies on the new data.
+
+    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+	gravity->update_max_rhs();
+    }
+#endif
+
     // Swap the new data from the last timestep into the old state
     // data.  If we're on level 0, do it for all levels above this one
     // as well.  Or, if we're on a later iteration at a finer
