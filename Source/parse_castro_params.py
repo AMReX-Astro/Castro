@@ -367,7 +367,7 @@ def parse_params(infile, meth_template):
             # this is a command
             cmd, value = line.split(":")
             if cmd == "@namespace":
-                namespace = value
+                namespace = value.strip()
                 # do we have the static keyword?
                 if "static" in namespace:
                     static = 1
@@ -430,43 +430,50 @@ def parse_params(infile, meth_template):
 
     # output
 
-    # write castro_defaults.H
-    try: cd = open("castro_defaults.H", "w")
-    except:
-        sys.exit("unable to open castro_defaults.H for writing")
+    # find all the namespaces
+    namespaces = list(set([q.namespace for q in params]))
+    
+    for nm in namespaces:
 
-    cd.write(CWARNING)
+        params_nm = [q for q in params if q.namespace == nm]
 
-    for p in params:
-        cd.write(p.get_default_string())
+        # write name_defaults.H
+        try: cd = open("{}_defaults.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
-    cd.close()
+        cd.write(CWARNING)
 
-    # write castro_params.H
-    try: cp = open("castro_params.H", "w")
-    except:
-        sys.exit("unable to open castro_params.H for writing")
+        for p in params_nm:
+            cd.write(p.get_default_string())
 
-    cp.write(CWARNING)
+        cd.close()
 
-    for p in params:
-        cp.write(p.get_decl_string())
+        # write name_params.H
+        try: cp = open("{}_params.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_params.H for writing".format(nm))
 
-    cp.close()
+        cp.write(CWARNING)
 
-    # write castro_queries.H
-    try: cq = open("castro_queries.H", "w")
-    except:
-        sys.exit("unable to open castro_queries.H for writing")
+        for p in params_nm:
+            cp.write(p.get_decl_string())
 
-    cq.write(CWARNING)
+        cp.close()
 
-    for p in params:
-        cq.write(p.get_query_string("C++"))
+        # write castro_queries.H
+        try: cq = open("{}_queries.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_queries.H for writing".format(nm))
 
-    cq.close()
+        cq.write(CWARNING)
 
+        for p in params_nm:
+            cq.write(p.get_query_string("C++"))
 
+        cq.close()
+
+    
     # write the Fortran module
     write_meth_module(params, meth_template)
 
