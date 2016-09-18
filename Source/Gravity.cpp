@@ -275,7 +275,7 @@ Gravity::read_params ()
         Real Gconst;
         get_grav_const(&Gconst);
         Ggravity = 4.0 * M_PI * Gconst;
-        if (verbose > 0 && ParallelDescriptor::IOProcessor())
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
         {
            std::cout << "Getting Gconst from constants: " << Gconst << std::endl;
            std::cout << "Using " << Ggravity << " for 4 pi G in Gravity.cpp " << std::endl;
