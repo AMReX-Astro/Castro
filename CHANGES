@@ -8,15 +8,17 @@
      relative tolerance on each higher level to achieve convergence,
      and in certain cases the scheme would fail completely, for example
      if the fine grids were not covering the mass on the grid. We now
-     use a single input parameter gravity.tol which controls the absolute
-     scale of the tolerance, and the absolute tolerance passed into the
-     multigrid scheme is the tolerance multiplied by the maximum value
-     of the RHS over the entire domain. On the coarse grid, then, the
-     absolute tolerance is 4*pi*G*rho_max*tol, and on fine grids this
-     is multiplied by ref_ratio**2. The parameters gravity.ml_tol,
+     use an input parameter gravity.abs_tol which controls the absolute
+     scale of the tolerance. This can either be an array of values, one
+     for each level, or a single scalar value. If it is the latter, then
+     the absolute tolerance passed into the multigrid scheme is the tolerance
+     multiplied by the maximum value of the RHS over the entire domain.
+     On the coarse grid, then, the absolute tolerance is 4*pi*G*rho_max*abs_tol,
+     and on fine grids this is multiplied by ref_ratio**2. If you do not
+     specify gravity.abs_tol, then a reasonable value is selected for the
+     coarse level, and the same scheme is used to give it reasonable values
+     on the fine levels as well. The parameters gravity.ml_tol,
      gravity.delta_tol, and gravity.sl_tol no longer have any effect.
-     If you do not pass in a tolerance choice, the default is specified
-     in Gravity.cpp; it is currently 1e-11 for Cartesian simulations.
 
   -- the radiation hydro solver, that used to live in
      CastroRadiation.git has now been completely integrated into

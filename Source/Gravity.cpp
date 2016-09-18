@@ -37,7 +37,6 @@ Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
-Real Gravity::abs_tol        = 0.0;
 
 // ************************************************************************************** //
 
@@ -67,6 +66,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     grad_phi_prev(MAX_LEV),
     phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
+    abs_tol(MAX_LEV),
     level_solver_resnorm(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
@@ -164,16 +164,55 @@ Gravity::read_params ()
 	  if (ParallelDescriptor::IOProcessor())
 	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
-        // Allow run-time input of solver tolerance, but set default first.
+	int nlevs = parent->maxLevel() + 1;
 
-	if (Geometry::IsCartesian()) {
-	    abs_tol = 1.e-11;
-	}
-	else {
-	    abs_tol = 1.e-10;
-	}
+        // Allow run-time input of solver tolerance. If the user provides no value, set a reasonable default
+	// value on the coarse level, and then increase it by ref_ratio**2 as the levels get finer to account
+	// for the change in the absolute scale of the Laplacian. If the user provides one value, use that
+	// on the coarse level, and increase it the same way for the fine levels. If the user provides more than
+	// one value, we expect them to provide one for every level, and we do not apply the ref_ratio effect.
 
-	pp.query("abs_tol", abs_tol);
+	int n_abs_tol = pp.countval("abs_tol");
+
+	if (n_abs_tol <= 1) {
+
+	    Real tol;
+
+	    if (n_abs_tol == 1) {
+
+		pp.get("abs_tol", tol);
+
+	    } else {
+
+		if (Geometry::IsCartesian())
+		    tol = 1.e-11;
+		else
+		    tol = 1.e-10;
+
+	    }
+
+	    abs_tol[0] = tol;
+
+	    // Account for the fact that on finer levels, the scale of the
+	    // Laplacian changes due to the zone size changing. We assume
+	    // dx == dy == dz, so it is fair to say that on each level the
+	    // tolerance should increase by the factor ref_ratio**2, since
+	    // in absolute terms the Laplacian increases by that ratio too.
+	    // The actual tolerance we'll send in is the effective tolerance
+	    // on the finest level that we solve for.
+
+	    for (int lev = 1; lev < MAX_LEV; ++lev)
+		abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+
+	} else if (n_abs_tol >= nlevs) {
+
+	    pp.getarr("abs_tol", abs_tol, 0, nlevs);
+
+	} else {
+
+	    BoxLib::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
+
+	}
 
 	// Warn user about deprecated tolerance parameters.
 
@@ -2713,18 +2752,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	// non-periodic BCs. And this also accounts for the metric
 	// terms that are applied in non-Cartesian coordinates.
 
-	Real abs_eps = abs_tol * max_rhs;
-
-	// Account for the fact that on finer levels, the scale of the
-	// Laplacian changes due to the zone size changing. We assume
-	// dx == dy == dz, so it is fair to say that on each level the
-	// tolerance should increase by the factor ref_ratio**2, since
-	// in absolute terms the Laplacian increases by that ratio too.
-	// The actual tolerance we'll send in is the effective tolerance
-	// on the finest level that we solve for.
-
-	for (int lev = 1; lev <= fine_level; ++lev)
-	    abs_eps *= std::pow(parent->refRatio(lev-1)[0], 2);
+	Real abs_eps = abs_tol[fine_level] * max_rhs;
 
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;

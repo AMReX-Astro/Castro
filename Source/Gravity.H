@@ -123,6 +123,10 @@ protected:
   //
   Array<BoxArray> grids;
   //
+  // Absolute tolerance on each level
+  //
+  Array<Real> abs_tol;
+  //
   // Resnorm at each level
   //
   Array<Real> level_solver_resnorm;
@@ -167,7 +171,6 @@ protected:
 #endif
   static std::string gravity_type;
   static int   stencil_type;
-  static Real  abs_tol;
 
   static Real max_radius_all_in_domain;
 
