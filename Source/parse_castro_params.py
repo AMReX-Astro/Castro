@@ -6,20 +6,63 @@
 # in Castro's C++ routines and (optionally) the Fortran routines
 # through meth_params_module.
 #
-# specifically, we write out:
+# parameters have the format:
 #
-#   -- castro_params.H  (included in Castro.H):
+#   name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
+#
+# the first three (name, type, default) are mandatory:
+#
+#   name: the name of the parameter.  This will be the same name as the
+#     variable in C++ unless a pair is specified as (name, cpp_name)
+#
+#   type: the C++ data type (int, Real, string)
+#
+#   default: the default value.  If specified as a pair, (a, b), then
+#     the first value is the normal default and the second is for
+#     debug mode (#ifdef DEBUG)
+#
+# the next are optional:
+#
+#    need-in-fortran: if "y" then we do a pp.query() in meth_params.F90
+#
+#    ifdef: only define this parameter if the name provided is #ifdef-ed
+#
+#    fortran-name: if a different variable name in Fortran, specify here
+#
+#    fortran-type: if a different data type in Fortran, specify here
+#
+# Any line beginning with a "#" is ignored
+#
+# Commands begin with a "@":
+#
+#    @namespace: sets the namespace that these will be under (see below)
+#      it also gives the C++ class name.
+#      if we include the keyword "static" after the name, then the parameters
+#      will be defined as static member variables in C++
+#
+#      e.g. @namespace castro Castro static
+#
+# Note: categories listed in the input file aren't used for code generation
+# but are used for the documentation generation
+#
+#
+# For a namespace, name, we write out:
+#
+#   -- name_params.H  (for castro, included in Castro.H):
 #      declares the static variables of the Castro class
 #
-#   -- castro_defaults.H  (included in Castro.cpp):
+#   -- name_defaults.H  (for castro, included in Castro.cpp):
 #      sets the defaults of the runtime parameters
 #
-#   -- castro_queries.H  (included in Castro.cpp):
+#   -- name_queries.H  (for castro, included in Castro.cpp):
 #      does the parmparse query to override the default in C++
+#
+# we write out a single copy of:
 #
 #   -- meth_params.F90
 #      does the parmparse query to override the default in Fortran,
 #      and sets a number of other parameters specific to the F90 routinse
+#
 
 import argparse
 import re
@@ -46,6 +89,8 @@ class Param(object):
     """
 
     def __init__(self, name, dtype, default,
+                 cpp_var_name=None,
+                 namespace=None, cpp_class=None, static=None,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
@@ -53,6 +98,16 @@ class Param(object):
         self.name = name
         self.dtype = dtype
         self.default = default
+        self.cpp_var_name = cpp_var_name
+
+        self.namespace = namespace
+        self.cpp_class = cpp_class
+
+        if static is None:
+            self.static = 0
+        else:
+            self.static = static
+
         self.debug_default = debug_default
         self.in_fortran = in_fortran
 
@@ -76,11 +131,11 @@ class Param(object):
         # into Castro.cpp
 
         if self.dtype == "int":
-            tstr = "int         Castro::{}".format(self.name)
+            tstr = "int         {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "Real        Castro::{}".format(self.name)
+            tstr = "Real        {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "std::string Castro::{}".format(self.name)
+            tstr = "std::string {}::{}".format(self.cpp_class, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -116,7 +171,7 @@ class Param(object):
         # because the C++ will read it in that way and we want to
         # give identical results (at least to within roundoff)
 
-        if not self.debug_default is None:
+        if self.debug_default is not None:
             debug_default = self.debug_default
             if self.dtype == "Real":
                 if "e" in debug_default:
@@ -148,12 +203,13 @@ class Param(object):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
         # This goes into castro_queries.H included into Castro.cpp
+
         ostr = ""
         if not self.ifdef is None:
             ostr += "#ifdef {}\n".format(self.ifdef)
 
         if language == "C++":
-            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.name)
+            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.cpp_var_name)
         elif language == "F90":
             ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
         else:
@@ -168,12 +224,16 @@ class Param(object):
         # this is the line that goes into castro_params.H included
         # into Castro.H
 
+        static = ""
+        if self.static:
+            static = "static"
+
         if self.dtype == "int":
-            tstr = "static int {};\n".format(self.name)
+            tstr = "{} int {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "static Real {};\n".format(self.name)
+            tstr = "{} Real {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "static std::string {};\n".format(self.name)
+            tstr = "{} std::string {};\n".format(static, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -292,6 +352,10 @@ def parse_params(infile, meth_template):
 
     params = []
 
+    namespace = None
+    cpp_class = None
+    static = None
+
     try: f = open(infile)
     except:
         sys.exit("error openning the input file")
@@ -304,14 +368,43 @@ def parse_params(infile, meth_template):
         if line.strip() == "":
             continue
 
+        if line[0] == "@":
+            # this is a command
+            cmd, value = line.split(":")
+            if cmd == "@namespace":
+                fields = value.split()
+                namespace = fields[0]
+                cpp_class = fields[1]
+
+                try: static = fields[2]
+                except: static = ""
+
+                # do we have the static keyword?
+                if "static" in static:
+                    static = 1
+                else:
+                    static = 0
+
+            else:
+                sys.exit("invalid command")
+
+            continue
+
+        # this splits the line into separate fields.  A field is a
+        # single word or a pair in parentheses like "(a, b)"
         fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
 
         name = fields[0]
+        if name[0] == "(":
+            name, cpp_var_name = re.findall(r"\w+", name)
+        else:
+            cpp_var_name = name
+
         dtype = fields[1]
 
         default = fields[2]
         if default[0] == "(":
-            default, debug_default = re.findall(r'\w+', default)
+            default, debug_default = re.findall(r"\w+", default)
         else:
             debug_default = None
 
@@ -332,7 +425,15 @@ def parse_params(infile, meth_template):
         try: f90_dtype = fields[6]
         except: f90_dtype = None
 
-        params.append(Param(name, dtype, default, debug_default=debug_default,
+        if namespace is None:
+            sys.exit("namespace not set")
+
+        params.append(Param(name, dtype, default,
+                            cpp_var_name=cpp_var_name,
+                            namespace=namespace,
+                            cpp_class=cpp_class,
+                            static=static,
+                            debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
                             ifdef=ifdef))
 
@@ -340,41 +441,48 @@ def parse_params(infile, meth_template):
 
     # output
 
-    # write castro_defaults.H
-    try: cd = open("castro_defaults.H", "w")
-    except:
-        sys.exit("unable to open castro_defaults.H for writing")
+    # find all the namespaces
+    namespaces = list(set([q.namespace for q in params]))
 
-    cd.write(CWARNING)
+    for nm in namespaces:
 
-    for p in params:
-        cd.write(p.get_default_string())
+        params_nm = [q for q in params if q.namespace == nm]
 
-    cd.close()
+        # write name_defaults.H
+        try: cd = open("{}_defaults.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
-    # write castro_params.H
-    try: cp = open("castro_params.H", "w")
-    except:
-        sys.exit("unable to open castro_params.H for writing")
+        cd.write(CWARNING)
 
-    cp.write(CWARNING)
+        for p in params_nm:
+            cd.write(p.get_default_string())
 
-    for p in params:
-        cp.write(p.get_decl_string())
+        cd.close()
 
-    cp.close()
+        # write name_params.H
+        try: cp = open("{}_params.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_params.H for writing".format(nm))
 
-    # write castro_queries.H
-    try: cq = open("castro_queries.H", "w")
-    except:
-        sys.exit("unable to open castro_queries.H for writing")
+        cp.write(CWARNING)
 
-    cq.write(CWARNING)
+        for p in params_nm:
+            cp.write(p.get_decl_string())
 
-    for p in params:
-        cq.write(p.get_query_string("C++"))
+        cp.close()
 
-    cq.close()
+        # write castro_queries.H
+        try: cq = open("{}_queries.H".format(nm), "w")
+        except:
+            sys.exit("unable to open {}_queries.H for writing".format(nm))
+
+        cq.write(CWARNING)
+
+        for p in params_nm:
+            cq.write(p.get_query_string("C++"))
+
+        cq.close()
 
 
     # write the Fortran module

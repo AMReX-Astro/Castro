@@ -287,6 +287,11 @@ public:
 #endif
 
     //
+    // Obtain the maximum density over all levels.
+    //
+    Real getMaxDens ();
+
+    //
     // Estimate time step.
     //
     Real estTimeStep (Real dt_old);

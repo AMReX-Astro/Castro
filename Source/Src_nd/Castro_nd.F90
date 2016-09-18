@@ -341,9 +341,7 @@
                                    Shock, &
 #endif
                                    gravity_type_in, gravity_type_len, &
-                                   get_g_from_phi_in, &
-                                   diffuse_cutoff_density_in, &
-                                   const_grav_in) &
+                                   diffuse_cutoff_density_in) &
                                    bind(C, name="set_method_params")
 
         use meth_params_module
@@ -362,9 +360,8 @@
         integer, intent(in) :: Shock
 #endif
         integer, intent(in) :: gravity_type_len
-        integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
-        double precision, intent(in) :: const_grav_in, diffuse_cutoff_density_in
+        double precision, intent(in) :: diffuse_cutoff_density_in
         integer :: iadv, ispec
 
         integer :: QLAST
@@ -547,10 +544,7 @@
            gravity_type(i:i) = char(gravity_type_in(i))
         enddo
 
-        get_g_from_phi               = get_g_from_phi_in .ne. 0
-
         diffuse_cutoff_density       = diffuse_cutoff_density_in
-        const_grav                   = const_grav_in
 
 #ifdef ROTATION
         rot_vec = ZERO

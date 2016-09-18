@@ -54,7 +54,8 @@ protected:
 
   BCRec*       phys_bc;
 
-  static int   verbose;
+#include "diffusion_params.H"
+
   static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)

@@ -229,20 +229,17 @@ Castro::variableSetUp ()
   // we want const_grav in F90, get it here from parmparse, since it
   // it not in the Castro namespace
   ParmParse pp("gravity");
-  Real const_grav = 0;
-  pp.query("const_grav", const_grav);
   
-  // Pass in the name of the gravity type we're using.
+  // Pass in the name of the gravity type we're using -- we do this
+  // manually, since the Fortran parmparse doesn't support strings
   std::string gravity_type = "none";
   pp.query("gravity_type", gravity_type);    
   int gravity_type_length = gravity_type.length();
   Array<int> gravity_type_name(gravity_type_length);
-  
+
   for (int i = 0; i < gravity_type_length; i++)
     gravity_type_name[i] = gravity_type[i];    
-  
-  int get_g_from_phi = 0;
-  pp.query("get_g_from_phi", get_g_from_phi);
+
 
   // Read in the input values to Fortran.
 
@@ -253,10 +250,8 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		    Shock,
 #endif
-		    gravity_type_name.dataPtr(), &gravity_type_length,
-		    get_g_from_phi,
-		    diffuse_cutoff_density,
-		    const_grav);
+		    gravity_type_name.dataPtr(), gravity_type_length,
+		    diffuse_cutoff_density);
 
   // Get the number of primitive variables from Fortran.
 

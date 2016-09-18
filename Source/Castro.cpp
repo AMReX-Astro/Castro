@@ -1807,6 +1807,11 @@ Castro::post_restart ()
                 if (gravity->NoComposite() != 1)
                 {
  		   int use_previous_phi = 1;
+
+		   // Update the maximum density, used in setting the solver tolerance.
+
+		   gravity->update_max_rhs();
+
 		   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
@@ -1894,6 +1899,13 @@ Castro::post_regrid (int lbase,
        {
 	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
 	       int use_previous_phi = 1;
+
+	       // Update the maximum density, used in setting the solver tolerance.
+
+	       if (level == 0) {
+		   gravity->update_max_rhs();
+	       }
+
 	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
 	   }
        }
@@ -1922,7 +1934,12 @@ Castro::post_init (Real stop_time)
     Real cur_time = state[State_Type].curTime();
 
     if (do_grav) {
+
        if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Update the maximum density, used in setting the solver tolerance.
+
+	  gravity->update_max_rhs();
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -2031,6 +2048,10 @@ Castro::post_grown_restart ()
 	Real cur_time = state[State_Type].curTime();
 
 	if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Update the maximum density, used in setting the solver tolerance.
+
+	  gravity->update_max_rhs();
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);

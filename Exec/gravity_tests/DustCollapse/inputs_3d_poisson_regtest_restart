@@ -29,9 +29,7 @@ castro.do_grav       = 1
 gravity.gravity_type = PoissonGrav
 gravity.drdxfac      = 4
 
-gravity.sl_tol = 1.e-12
-gravity.ml_tol = 1.e-12
-gravity.delta_tol = 1.e-12
+gravity.rel_tol = 1.e-12
 
 # RELEVANT FOR EOS 
 castro.small_temp    = 1.e-3

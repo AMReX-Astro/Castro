@@ -30,7 +30,7 @@ castro.small_temp = 1.0e0
 # GRAVITY
 gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
 gravity.max_multipole_order = 2    # Multipole expansion includes terms up to r**(-max_multipole_order)
-gravity.sl_tol = 1.e-10            # Relative tolerance for multigrid solver (single level)
+gravity.rel_tol = 1.e-10           # Relative tolerance for multigrid solver
 
 # TIME STEP CONTROL
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt

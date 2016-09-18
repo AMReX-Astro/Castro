@@ -350,7 +350,7 @@ contains
 
              if (state(i,j,k,URHO) <= ZERO) then
                 print *,'   '
-                print *,'>>> Error: Castro_3d::compute_temp ',i,j,k
+                print *,'>>> Error: Castro_util.F90::compute_temp ',i,j,k
                 print *,'>>> ... negative density ',state(i,j,k,URHO)
                 print *,'    '
                 call bl_error("Error:: compute_temp_nd.f90")
@@ -358,7 +358,7 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
                 print *,'   '
-                print *,'>>> Warning: Castro_3d::compute_temp ',i,j,k
+                print *,'>>> Warning: Castro_util.F90::compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
                 print *,'   '
                 call bl_error("Error:: compute_temp_nd.f90")
@@ -850,7 +850,7 @@ contains
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
-                call bl_error("Error:: Castro_3d.f90 :: ca_compute_avgstate")
+                call bl_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
              radial_state(URHO,index) = radial_state(URHO,index) &
                                       + vol(i,j,k)*state(i,j,k,URHO)

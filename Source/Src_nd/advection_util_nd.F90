@@ -43,16 +43,20 @@ contains
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
 
+    logical :: have_reset
+
     initial_mass = ZERO
-      final_mass = ZERO
+    final_mass   = ZERO
 
     initial_eint = ZERO
-      final_eint = ZERO
+    final_eint   = ZERO
 
     initial_eden = ZERO
-      final_eden = ZERO
+    final_eden   = ZERO
 
     max_dens = ZERO
+
+    have_reset = .false.
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -69,6 +73,8 @@ contains
                 call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
+
+                have_reset = .true.
 
                 ! Store the maximum (negative) fractional change in the density
 
@@ -184,7 +190,7 @@ contains
        enddo
     enddo
 
-    if ( max_dens /= ZERO ) then
+    if ( have_reset ) then
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
@@ -355,7 +361,7 @@ contains
 
              if (courx .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... u, c                ', q(i,j,k,QU), q(i,j,k,QC)
@@ -364,7 +370,7 @@ contains
 
              if (coury .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
                 print *,'>>> ... v, c                ', q(i,j,k,QV), q(i,j,k,QC)
@@ -373,7 +379,7 @@ contains
 
              if (courz .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... w, c                ', q(i,j,k,QW), q(i,j,k,QC)
