@@ -7,7 +7,8 @@
 
 #define MAX_LEV 15
 
-int  Diffusion::verbose      = 0;
+#include "diffusion_defaults.H"
+
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
@@ -35,7 +36,7 @@ Diffusion::read_params ()
     {
         ParmParse pp("diffusion");
 
-        pp.query("v", verbose);
+#include "diffusion_queries.H"
 
         done = true;
     }

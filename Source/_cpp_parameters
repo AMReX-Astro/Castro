@@ -444,3 +444,12 @@ max_multipole_moment_level  int            0
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+
+
+
+@namespace: diffusion Diffusion static
+
+# the level of verbosity for the diffusion solve (higher number means
+# more output)
+(v, verbose)                int            0
+
