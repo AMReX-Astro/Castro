@@ -37,12 +37,13 @@ division between \cpp\ and Fortran.
 
 \item {\tt Docs/}: you're reading this now!
 
-\item {\tt Exec/}: various problem implementations, including:
+\item {\tt Exec/}: various problem implementations, sorted by category:
   \begin{itemize}
-  \item {\tt Sedov/}: run directory for the Sedov problem
-  \item {\tt Sod/}: run directory for the Sod problem
-  \item {\tt KH/}: run directory for the Kelvin-Helmholz problem
-  \item $\ldots$
+  \item {\tt gravity\_tests/}: test problems that primarily exercise the gravity solver
+  \item {\tt hydro\_tests/}: test problems of the hydrodynamics (with or without reactions)
+  \item {\tt radiation\_tests/}: test problems that primarily exercise the radiation hydrodynamics solver
+  \item {\tt science/}: problem setups that were used for scientific investigations
+  \item {\tt unit\_tests/}: test problems that exercise primarily a single module
   \end{itemize}
 
 \item {\tt Microphysics/}: contains directories for different default
@@ -813,7 +814,7 @@ note that:
     returned from {\tt mfi.tilebox()} in \cpp\ and passed into the Fortran
     routine.
 
-\item Look at {\tt r\_old\_s} in {\tt Exec/DustCollapse/probdata.f90} as an
+\item Look at {\tt r\_old\_s} in {\tt Exec/gravity\_tests/DustCollapse/probdata.f90} as an
   example of how to declare a {\tt threadprivate} variable---this is then used
   in {\tt sponge\_nd.f90}.
 
@@ -1181,7 +1182,8 @@ side of \castro\ or perform other useful tasks.
 
 \section{Setting Up Your Own Problem}
 
-To define a new problem, we create a new directory under {\tt Exec/},
+To define a new problem, we create a new directory in one
+of the subdirectories of {\tt Exec/},
 and place in it a {\tt Prob\_2d.f90} file (or {\tt 1d}/{\tt 3d},
 depending on the dimensionality of the problem), a {\tt probdata.f90}
 file, the {\tt inputs} and {\tt probin} files, and a {\tt

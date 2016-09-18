@@ -39,7 +39,7 @@ where to find \hypre.  This is done via one of two variables:
 \end{itemize}
 
 Now go to a ``run'' directory, say
-{\tt\seqsplit{Castro/Exec/RadThermalWave}},
+{\tt\seqsplit{Castro/Exec/radiation\_tests/RadThermalWave}},
 edit the file {\tt GNUmakefile}, and set
 \begin{itemize}
 \item {\tt COMP} = your favorite \cpp compiler (e.g., {\tt g++})
@@ -380,7 +380,7 @@ equation. They do not affect hydrodynamic boundaries.
     $\mathrm{erg}~\mathrm{cm}^{-3}$, so the total radiation energy
     can be found by simply summing over the groups.  So if you want
     to set the radiation BCs using the Planck function, you simply
-    multiply by the group width---see {\tt Exec/RadSphere/Tools/radbc.f90}
+    multiply by the group width---see {\tt Exec/radiation\_tests/RadSphere/Tools/radbc.f90}
     for an example.
 
   \item {\tt 102} {\em Neumann}:
