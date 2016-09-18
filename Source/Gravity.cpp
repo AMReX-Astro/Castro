@@ -164,7 +164,7 @@ Gravity::read_params ()
 	    // The actual tolerance we'll send in is the effective tolerance
 	    // on the finest level that we solve for.
 
-	    for (int lev = 1; lev < MAX_LEV; ++lev)
+	    for (int lev = 1; lev < nlevs; ++lev)
 		abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
 
 	} else if (n_abs_tol >= nlevs) {
