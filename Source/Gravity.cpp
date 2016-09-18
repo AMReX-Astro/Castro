@@ -37,7 +37,7 @@ Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
-Real Gravity::tol            = 0.0;
+Real Gravity::abs_tol        = 0.0;
 
 // ************************************************************************************** //
 
@@ -167,13 +167,13 @@ Gravity::read_params ()
         // Allow run-time input of solver tolerance, but set default first.
 
 	if (Geometry::IsCartesian()) {
-	    tol = 1.e-11;
+	    abs_tol = 1.e-11;
 	}
 	else {
-	    tol = 1.e-10;
+	    abs_tol = 1.e-10;
 	}
 
-	pp.query("tol", tol);
+	pp.query("abs_tol", abs_tol);
 
 	// Warn user about deprecated tolerance parameters.
 
@@ -522,14 +522,14 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        rhs[0].plus(-local_correction,0,1,0);
     }
 
-    Real rel_tol = 0.0;
-    Real abs_tol = level_solver_resnorm[crse_level];
+    Real rel_eps = 0.0;
+    Real abs_eps = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev < fine_level; lev++)
-	abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
+	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
 
     int need_grad_phi = 1;
     int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    fmg.solve(delta_phi, rhs, rel_tol, abs_tol, always_use_bnorm, need_grad_phi);
+    fmg.solve(delta_phi, rhs, rel_eps, abs_eps, always_use_bnorm, need_grad_phi);
 
     fmg.get_fluxes(grad_delta_phi);
 
@@ -2703,7 +2703,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real rel_tol = 0.0;
+	Real rel_eps = 0.0;
 
 	// The absolute tolerance is determined by the error tolerance
 	// chosen by the user (tol) multiplied by the maximum value of
@@ -2713,7 +2713,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	// non-periodic BCs. And this also accounts for the metric
 	// terms that are applied in non-Cartesian coordinates.
 
-	Real abs_tol = tol * max_rhs;
+	Real abs_eps = abs_tol * max_rhs;
 
 	// Account for the fact that on finer levels, the scale of the
 	// Laplacian changes due to the zone size changing. We assume
@@ -2724,11 +2724,11 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	// on the finest level that we solve for.
 
 	for (int lev = 1; lev <= fine_level; ++lev)
-	    abs_tol *= std::pow(parent->refRatio(lev-1)[0], 2);
+	    abs_eps *= std::pow(parent->refRatio(lev-1)[0], 2);
 
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-	final_resnorm = fmg.solve(phi, rhs, rel_tol, abs_tol,
+	final_resnorm = fmg.solve(phi, rhs, rel_eps, abs_eps,
 				  always_use_bnorm, need_grad_phi);
 
 	fmg.get_fluxes(grad_phi);

@@ -167,7 +167,7 @@ protected:
 #endif
   static std::string gravity_type;
   static int   stencil_type;
-  static Real tol;
+  static Real  abs_tol;
 
   static Real max_radius_all_in_domain;
 
