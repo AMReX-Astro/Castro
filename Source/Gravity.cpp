@@ -18,7 +18,6 @@
 #define MAX_LEV 15
 
 // Give this a bogus default value to force user to define in inputs file
-std::string Gravity::gravity_type = "fillme";
 #ifndef NDEBUG
 int Gravity::test_solves  = 1;
 #else

@@ -3,6 +3,7 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+ std::string gravity_type;
  Real const_grav;
  int direct_sum_bcs;
  int drdxfac;

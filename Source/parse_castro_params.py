@@ -36,8 +36,11 @@
 # Commands begin with a "@":
 #
 #    @namespace: sets the namespace that these will be under (see below)
+#      it also gives the C++ class name.
 #      if we include the keyword "static" after the name, then the parameters
 #      will be defined as static member variables in C++
+#
+#      e.g. @namespace castro Castro static
 #
 # Note: categories listed in the input file aren't used for code generation
 # but are used for the documentation generation
@@ -87,7 +90,7 @@ class Param(object):
 
     def __init__(self, name, dtype, default,
                  cpp_var_name=None,
-                 namespace=None, static=None,
+                 namespace=None, cpp_class=None, static=None,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
@@ -98,6 +101,7 @@ class Param(object):
         self.cpp_var_name = cpp_var_name
 
         self.namespace = namespace
+        self.cpp_class = cpp_class
 
         if static is None:
             self.static = 0
@@ -127,11 +131,11 @@ class Param(object):
         # into Castro.cpp
 
         if self.dtype == "int":
-            tstr = "int         Castro::{}".format(self.cpp_var_name)
+            tstr = "int         {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "Real        Castro::{}".format(self.cpp_var_name)
+            tstr = "Real        {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "std::string Castro::{}".format(self.cpp_var_name)
+            tstr = "std::string {}::{}".format(self.cpp_class, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -349,6 +353,7 @@ def parse_params(infile, meth_template):
     params = []
 
     namespace = None
+    cpp_class = None
     static = None
 
     try: f = open(infile)
@@ -367,11 +372,16 @@ def parse_params(infile, meth_template):
             # this is a command
             cmd, value = line.split(":")
             if cmd == "@namespace":
-                namespace = value.strip()
+                fields = value.split()
+                namespace = fields[0]
+                cpp_class = fields[1]
+
+                try: static = fields[2]
+                except: static = ""
+
                 # do we have the static keyword?
-                if "static" in namespace:
+                if "static" in static:
                     static = 1
-                    namespace = namespace.split()[0]
                 else:
                     static = 0
 
@@ -421,6 +431,7 @@ def parse_params(infile, meth_template):
         params.append(Param(name, dtype, default,
                             cpp_var_name=cpp_var_name,
                             namespace=namespace,
+                            cpp_class=cpp_class,
                             static=static,
                             debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,

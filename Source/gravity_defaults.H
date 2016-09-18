@@ -3,13 +3,14 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-Real        Castro::const_grav = 0.0;
-int         Castro::direct_sum_bcs = 0;
-int         Castro::drdxfac = 1;
-int         Castro::lnum = 0;
-int         Castro::verbose = 0;
-int         Castro::no_sync = 0;
-int         Castro::no_composite = 0;
-int         Castro::max_solve_level = MAX_LEV-1;
-int         Castro::max_multipole_moment_level = 0;
-int         Castro::get_g_from_phi = 0;
+std::string Gravity::gravity_type = "fillme";
+Real        Gravity::const_grav = 0.0;
+int         Gravity::direct_sum_bcs = 0;
+int         Gravity::drdxfac = 1;
+int         Gravity::lnum = 0;
+int         Gravity::verbose = 0;
+int         Gravity::no_sync = 0;
+int         Gravity::no_composite = 0;
+int         Gravity::max_solve_level = MAX_LEV-1;
+int         Gravity::max_multipole_moment_level = 0;
+int         Gravity::get_g_from_phi = 0;
