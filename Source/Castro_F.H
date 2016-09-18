@@ -53,6 +53,7 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
+     const int* gravity_type, const int& gravity_type_len,
      const Real& diffuse_cutoff_density);
 
   void set_castro_method_params();

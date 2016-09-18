@@ -10,7 +10,16 @@
 #
 #   name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
 #
-# the first three (name, type, default) are mandatory
+# the first three (name, type, default) are mandatory:
+#
+#   name: the name of the parameter.  This will be the same name as the 
+#     variable in C++ unless a pair is specified as (name, cpp_name)
+#
+#   type: the C++ data type (int, Real, string)
+#
+#   default: the default value.  If specified as a pair, (a, b), then
+#     the first value is the normal default and the second is for
+#     debug mode (#ifdef DEBUG)
 #
 # the next are optional:
 #
@@ -27,6 +36,8 @@
 # Commands begin with a "@":
 #
 #    @namespace: sets the namespace that these will be under (see below)
+#      if we include the keyword "static" after the name, then the parameters
+#      will be defined as static member variables in C++
 #
 # Note: categories listed in the input file aren't used for code generation
 # but are used for the documentation generation
@@ -75,7 +86,8 @@ class Param(object):
     """
 
     def __init__(self, name, dtype, default,
-                 namespace=None,
+                 cpp_var_name=None,
+                 namespace=None, static=None,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
@@ -83,7 +95,15 @@ class Param(object):
         self.name = name
         self.dtype = dtype
         self.default = default
+        self.cpp_var_name = cpp_var_name
+
         self.namespace = namespace
+
+        if static is None:
+            self.static = 0
+        else:
+            self.static = static
+
         self.debug_default = debug_default
         self.in_fortran = in_fortran
 
@@ -107,11 +127,11 @@ class Param(object):
         # into Castro.cpp
 
         if self.dtype == "int":
-            tstr = "int         Castro::{}".format(self.name)
+            tstr = "int         Castro::{}".format(self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "Real        Castro::{}".format(self.name)
+            tstr = "Real        Castro::{}".format(self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "std::string Castro::{}".format(self.name)
+            tstr = "std::string Castro::{}".format(self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -147,7 +167,7 @@ class Param(object):
         # because the C++ will read it in that way and we want to
         # give identical results (at least to within roundoff)
 
-        if not self.debug_default is None:
+        if self.debug_default is not None:
             debug_default = self.debug_default
             if self.dtype == "Real":
                 if "e" in debug_default:
@@ -185,7 +205,7 @@ class Param(object):
             ostr += "#ifdef {}\n".format(self.ifdef)
 
         if language == "C++":
-            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.name)
+            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.cpp_var_name)
         elif language == "F90":
             ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
         else:
@@ -200,12 +220,16 @@ class Param(object):
         # this is the line that goes into castro_params.H included
         # into Castro.H
 
+        static = ""
+        if self.static:
+            static = "static"
+
         if self.dtype == "int":
-            tstr = "static int {};\n".format(self.name)
+            tstr = "{} int {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "static Real {};\n".format(self.name)
+            tstr = "{} Real {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "static std::string {};\n".format(self.name)
+            tstr = "{} std::string {};\n".format(static, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -325,6 +349,7 @@ def parse_params(infile, meth_template):
     params = []
 
     namespace = None
+    static = None
 
     try: f = open(infile)
     except:
@@ -343,6 +368,13 @@ def parse_params(infile, meth_template):
             cmd, value = line.split(":")
             if cmd == "@namespace":
                 namespace = value
+                # do we have the static keyword?
+                if "static" in namespace:
+                    static = 1
+                    namespace = namespace.split()[0]
+                else:
+                    static = 0
+
             else:
                 sys.exit("invalid command")
 
@@ -352,16 +384,17 @@ def parse_params(infile, meth_template):
         # single word or a pair in parentheses like "(a, b)"
         fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
 
-        print(line)
-        print(fields)
-        print(" ")
-
         name = fields[0]
+        if name[0] == "(":
+            name, cpp_var_name = re.findall(r"\w+", name)
+        else:
+            cpp_var_name = name
+
         dtype = fields[1]
 
         default = fields[2]
         if default[0] == "(":
-            default, debug_default = re.findall(r'\w+', default)
+            default, debug_default = re.findall(r"\w+", default)
         else:
             debug_default = None
 
@@ -386,7 +419,9 @@ def parse_params(infile, meth_template):
             sys.exit("namespace not set")
 
         params.append(Param(name, dtype, default, 
+                            cpp_var_name=cpp_var_name,
                             namespace=namespace, 
+                            static=static,
                             debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
                             ifdef=ifdef))

@@ -143,7 +143,7 @@ Gravity::read_params ()
 	int nlevs = parent->maxLevel() + 1;
 
 	Real tol;
-	Real dtol;
+	Real d_tol;
 
 	// For backwards compatibility, read in sl_tol if we're
 	// only using a single level; but this is now considered

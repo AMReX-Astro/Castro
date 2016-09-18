@@ -1,6 +1,6 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
-@namespace: castro
+@namespace: castro static
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -402,7 +402,7 @@ job_name                     string        ""
 @namespace: gravity
 
 # what type 
-#gravity_type                 string        "fillme"           y
+#gravity_type                 string        "fillme"
 
 
 # if doing constant gravity, what is the acceleration
