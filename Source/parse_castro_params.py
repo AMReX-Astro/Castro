@@ -12,7 +12,7 @@
 #
 # the first three (name, type, default) are mandatory:
 #
-#   name: the name of the parameter.  This will be the same name as the 
+#   name: the name of the parameter.  This will be the same name as the
 #     variable in C++ unless a pair is specified as (name, cpp_name)
 #
 #   type: the C++ data type (int, Real, string)
@@ -41,7 +41,7 @@
 #
 # Note: categories listed in the input file aren't used for code generation
 # but are used for the documentation generation
-# 
+#
 #
 # For a namespace, name, we write out:
 #
@@ -418,9 +418,9 @@ def parse_params(infile, meth_template):
         if namespace is None:
             sys.exit("namespace not set")
 
-        params.append(Param(name, dtype, default, 
+        params.append(Param(name, dtype, default,
                             cpp_var_name=cpp_var_name,
-                            namespace=namespace, 
+                            namespace=namespace,
                             static=static,
                             debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
@@ -432,7 +432,7 @@ def parse_params(infile, meth_template):
 
     # find all the namespaces
     namespaces = list(set([q.namespace for q in params]))
-    
+
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
@@ -473,7 +473,7 @@ def parse_params(infile, meth_template):
 
         cq.close()
 
-    
+
     # write the Fortran module
     write_meth_module(params, meth_template)
 
