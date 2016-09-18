@@ -49,8 +49,6 @@ module meth_params_module
 
   double precision, save :: diffuse_cutoff_density
 
-  logical, save :: get_g_from_phi
-  
   character(len=:), allocatable :: gravity_type
 
   ! Create versions of these variables on the GPU

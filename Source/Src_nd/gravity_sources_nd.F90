@@ -309,7 +309,7 @@ contains
 
        endif
 
-       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi) ) ) then
+       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
 
           ! Construct the time-averaged edge-centered gravity.
 
@@ -444,7 +444,7 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
-                if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi) ) then
+                if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
                    SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
                                                        flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
