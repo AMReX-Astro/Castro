@@ -17,8 +17,12 @@
      and on fine grids this is multiplied by ref_ratio**2. If you do not
      specify gravity.abs_tol, then a reasonable value is selected for the
      coarse level, and the same scheme is used to give it reasonable values
-     on the fine levels as well. The parameters gravity.ml_tol,
-     gravity.delta_tol, and gravity.sl_tol no longer have any effect.
+     on the fine levels as well. The parameter gravity.ml_tol has been renamed
+     gravity.rel_tol, and has the same meaning as before, but it now defaults
+     to zero. gravity.ml_tol is now deprecated, and will be removed in a future
+     release. Note that the tolerance used in determining convergence is always
+     the less restrictive of the relative and absolute tolerance requirements.
+     gravity.delta_tol has been removed.
 
   -- the radiation hydro solver, that used to live in
      CastroRadiation.git has now been completely integrated into

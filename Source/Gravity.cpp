@@ -67,6 +67,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
     abs_tol(MAX_LEV),
+    rel_tol(MAX_LEV),
     level_solver_resnorm(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
@@ -214,16 +215,62 @@ Gravity::read_params ()
 
 	}
 
-	// Warn user about deprecated tolerance parameters.
+	// For the relative tolerance, we can again accept a single scalar (same for all levels)
+	// or one for all levels. The default value is zero, so that we only use the absolute tolerance.
+	// The multigrid always chooses the looser of the two criteria in determining whether the solve
+	// has converged.
 
-	if (pp.contains("ml_tol"))
-	    BoxLib::Warning("The gravity parameter ml_tol is no longer used; switch to tol for the tolerance on all levels.");
+	// Note that the parameter rel_tol used to be known as ml_tol, so if we detect that the user has
+	// set ml_tol but not rel_tol, we'll accept that for specifying the relative tolerance. ml_tol
+	// is now considered deprecated and will be removed in a future release.
+
+	std::string rel_tol_name = "rel_tol";
+
+	if (pp.contains("ml_tol")) {
+
+	    BoxLib::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
+
+	    if (!pp.contains("rel_tol"))
+		rel_tol_name = "ml_tol";
+
+	}
+
+	int n_rel_tol = pp.countval(rel_tol_name.c_str());
+
+	if (n_rel_tol <= 1) {
+
+	    Real tol;
+
+	    if (n_rel_tol == 1) {
+
+		pp.get(rel_tol_name.c_str(), tol);
+
+	    } else {
+
+		tol = 0.0;
+
+	    }
+
+	    for (int lev = 0; lev < MAX_LEV; ++lev)
+		rel_tol[lev] = tol;
+
+	} else if (n_rel_tol >= nlevs) {
+
+	    pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
+
+	} else {
+
+	    BoxLib::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
+
+	}
+
+	// Warn user about obsolete tolerance parameters.
 
 	if (pp.contains("delta_tol"))
 	    BoxLib::Warning("The gravity parameter delta_tol is no longer used.");
 
 	if (pp.contains("sl_tol"))
-	    BoxLib::Warning("The gravity parameter sl_tol is no longer used; switch to tol for the tolerance.");
+	    BoxLib::Warning("The gravity parameter sl_tol is no longer used.");
 
         Real Gconst;
         get_grav_const(&Gconst);
@@ -2742,7 +2789,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real rel_eps = 0.0;
+	Real rel_eps = rel_tol[fine_level];
 
 	// The absolute tolerance is determined by the error tolerance
 	// chosen by the user (tol) multiplied by the maximum value of

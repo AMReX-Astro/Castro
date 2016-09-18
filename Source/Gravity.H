@@ -127,6 +127,10 @@ protected:
   //
   Array<Real> abs_tol;
   //
+  // Relative tolerance on each level
+  //
+  Array<Real> rel_tol;
+  //
   // Resnorm at each level
   //
   Array<Real> level_solver_resnorm;

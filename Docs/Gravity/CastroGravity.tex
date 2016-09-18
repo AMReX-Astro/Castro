@@ -70,15 +70,17 @@ solves:
   can specify a single value for this tolerance (or do nothing, and get a reasonable
   default value), and then the absolute tolerance used by the multigrid solve is
   $\text{abs\_tol} \times 4\pi G\, \rho_{\text{max}}$ where $\rho_{\text{max}}$
-  is the maximum value of the density on the domain. (No relative tolerance is used in any solve.)
+  is the maximum value of the density on the domain.
   On fine levels, this absolute tolerance is multiplied by $\text{ref\_ratio}^2$
   to account for the change in the absolute scale of the Laplacian operator.
   You can also specify an array of values for \text{abs\_tol}, one for each possible
   level in the simulation, and then the scaling by $\text{ref\_ratio}^2$ is not applied.
-  For a gravity sync solve, we continue to use as an absolute tolerance the final
-  residual norm obtained in the main Poisson solve. The old parameters
-  {\tt gravity.ml\_tol}, {\tt gravity.sl\_tol}, and {\tt gravity.delta\_tol} no
-  longer have any effect, and the user is warned about this if they try to set these.
+
+\item {\tt gravity.rel\_tol} : if {\tt gravity.gravity\_type =
+  PoissonGrav}, this is the relative tolerance for the Poisson solve. By default
+  it is zero. You can specify a single value for this tolerance and it will apply
+  on every level, or you can specify an array of values for \text{rel\_tol}, one
+  for each possible level in the simulation. This replaces the old parameter {\tt gravity.ml\_tol}.
 
 \item {\tt gravity.max\_multipole\_order} : if {\tt
   gravity.gravity\_type = PoissonGrav}, this is the max $\ell$ value
