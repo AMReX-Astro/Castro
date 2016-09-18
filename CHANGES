@@ -1,5 +1,8 @@
 * changes since the last release:
 
+  -- the problem setups have been moved into sub-directory
+     categories to make it easier to read (#32)
+
   -- the way we we use tolerances in the multigrid solve for Poisson
      gravity has changed. The old behavior is that you would pass in
      gravity.ml_tol as the relative tolerance on each grid level, and
