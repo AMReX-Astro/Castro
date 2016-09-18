@@ -6,20 +6,49 @@
 # in Castro's C++ routines and (optionally) the Fortran routines
 # through meth_params_module.
 #
-# specifically, we write out:
+# parameters have the format:
 #
-#   -- castro_params.H  (included in Castro.H):
+#   name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
+#
+# the first three (name, type, default) are mandatory
+#
+# the next are optional:
+#
+#    need-in-fortran: if "y" then we do a pp.query() in meth_params.F90
+#
+#    ifdef: only define this parameter if the name provided is #ifdef-ed
+#
+#    fortran-name: if a different variable name in Fortran, specify here
+#
+#    fortran-type: if a different data type in Fortran, specify here
+#
+# Any line beginning with a "#" is ignored
+#
+# Commands begin with a "@":
+#
+#    @namespace: sets the namespace that these will be under (see below)
+#
+# Note: categories listed in the input file aren't used for code generation
+# but are used for the documentation generation
+# 
+#
+# For a namespace, name, we write out:
+#
+#   -- name_params.H  (for castro, included in Castro.H):
 #      declares the static variables of the Castro class
 #
-#   -- castro_defaults.H  (included in Castro.cpp):
+#   -- name_defaults.H  (for castro, included in Castro.cpp):
 #      sets the defaults of the runtime parameters
 #
-#   -- castro_queries.H  (included in Castro.cpp):
+#   -- name_queries.H  (for castro, included in Castro.cpp):
 #      does the parmparse query to override the default in C++
+#
+# we write out a single copy of:
 #
 #   -- meth_params.F90
 #      does the parmparse query to override the default in Fortran,
 #      and sets a number of other parameters specific to the F90 routinse
+#
 
 import argparse
 import re
@@ -46,6 +75,7 @@ class Param(object):
     """
 
     def __init__(self, name, dtype, default,
+                 namespace=None,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
@@ -53,6 +83,7 @@ class Param(object):
         self.name = name
         self.dtype = dtype
         self.default = default
+        self.namespace = namespace
         self.debug_default = debug_default
         self.in_fortran = in_fortran
 
@@ -148,6 +179,7 @@ class Param(object):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
         # This goes into castro_queries.H included into Castro.cpp
+
         ostr = ""
         if not self.ifdef is None:
             ostr += "#ifdef {}\n".format(self.ifdef)
@@ -292,6 +324,8 @@ def parse_params(infile, meth_template):
 
     params = []
 
+    namespace = None
+
     try: f = open(infile)
     except:
         sys.exit("error openning the input file")
@@ -304,7 +338,23 @@ def parse_params(infile, meth_template):
         if line.strip() == "":
             continue
 
+        if line[0] == "@":
+            # this is a command
+            cmd, value = line.split(":")
+            if cmd == "@namespace":
+                namespace = value
+            else:
+                sys.exit("invalid command")
+
+            continue
+
+        # this splits the line into separate fields.  A field is a
+        # single word or a pair in parentheses like "(a, b)"
         fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
+
+        print(line)
+        print(fields)
+        print(" ")
 
         name = fields[0]
         dtype = fields[1]
@@ -332,7 +382,12 @@ def parse_params(infile, meth_template):
         try: f90_dtype = fields[6]
         except: f90_dtype = None
 
-        params.append(Param(name, dtype, default, debug_default=debug_default,
+        if namespace is None:
+            sys.exit("namespace not set")
+
+        params.append(Param(name, dtype, default, 
+                            namespace=namespace, 
+                            debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
                             ifdef=ifdef))
 

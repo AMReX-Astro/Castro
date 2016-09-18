@@ -1,6 +1,6 @@
 # name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
 
-namespace: castro
+@namespace: castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -399,10 +399,10 @@ job_name                     string        ""
 
 
 
-namespace: gravity
+@namespace: gravity
 
-#
-gravity_type                 string        "fillme"           y
+# what type 
+#gravity_type                 string        "fillme"           y
 
 
 # if doing constant gravity, what is the acceleration
@@ -417,11 +417,11 @@ drdxfac                     int            1
 
 # the maximum mulitpole order to use for multipole BCs when doing
 # Poisson gravity
-max_multipole_order [lnum]  int            0
+(max_multipole_order, lnum) int            0
 
 # the level of verbosity for the gravity solve (higher number means more
 # output on the status of the solve / multigrid
-v [verbose]                 int            0
+(v, verbose)                int            0
 
 # do we perform the synchronization at coarse-fine interfaces?
 no_sync                     int            0
@@ -442,5 +442,5 @@ max_multipole_moment_level  int            0
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
-get_g_from_phi              int            0
+get_g_from_phi              int            0                  y
 

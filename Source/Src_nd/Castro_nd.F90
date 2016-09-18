@@ -340,10 +340,7 @@
 #ifdef SHOCK_VAR
                                    Shock, &
 #endif
-                                   gravity_type_in, gravity_type_len, &
-                                   get_g_from_phi_in, &
-                                   diffuse_cutoff_density_in, &
-                                   const_grav_in) &
+                                   diffuse_cutoff_density_in) &
                                    bind(C, name="set_method_params")
 
         use meth_params_module
