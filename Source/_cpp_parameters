@@ -399,7 +399,7 @@ job_name                     string        ""
 
 
 
-@namespace: gravity Gravity
+@namespace: gravity Gravity static
 
 # what type 
 gravity_type                 string        "fillme"

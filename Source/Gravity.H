@@ -145,17 +145,7 @@ protected:
 
   int   numpts_at_level;
 
-  static int   verbose;
   static int   test_solves;
-  static int   no_sync;
-  static int   no_composite;
-  static int   drdxfac;
-  static int   lnum;
-  static int   direct_sum_bcs;
-  static int   get_g_from_phi;
-  static int   max_solve_level;
-  static int   max_multipole_moment_level;
-  static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
@@ -164,10 +154,11 @@ protected:
 #ifdef GR_GRAV
   static Array< Array<Real> > radial_pres;
 #endif
-  static std::string gravity_type;
   static int   stencil_type;
 
   static Real max_radius_all_in_domain;
+
+#include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);

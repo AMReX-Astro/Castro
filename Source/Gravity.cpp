@@ -18,6 +18,8 @@
 #define MAX_LEV 15
 
 // Give this a bogus default value to force user to define in inputs file
+#include "gravity_defaults.H"
+
 #ifndef NDEBUG
 int Gravity::test_solves  = 1;
 #else
@@ -82,7 +84,7 @@ Gravity::read_params ()
     {
         ParmParse pp("gravity");
 
-        pp.get("gravity_type", gravity_type);
+#include "gravity_queries.H"
 
         if ( (gravity_type != "ConstantGrav") &&
 	     (gravity_type != "PoissonGrav") &&
@@ -96,7 +98,7 @@ Gravity::read_params ()
         if (  gravity_type == "ConstantGrav")
         {
 	  if ( Geometry::IsSPHERICAL() )
-	      BoxLib::Abort("Cant use constant direction gravity with non-Cartesian coordinates");
+	      BoxLib::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
 #if (BL_SPACEDIM == 1)
