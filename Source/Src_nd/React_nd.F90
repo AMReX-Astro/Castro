@@ -74,7 +74,13 @@ contains
 
              ! Make sure every zone has a meaningful weighting before we leave.
 
-             weights(i,j,k) = ONE
+             if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
+                  j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
+                  k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+
+                weights(i,j,k) = ONE
+
+             endif
 
              ! Don't burn on zones that we are intentionally masking out.
 
