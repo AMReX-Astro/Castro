@@ -56,9 +56,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 	weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm);
 
 	state_temp->copy(state, 0, 0, state.nComp(), state.nGrow(), state.nGrow());
-	reactions_temp->copy(reactions, 0, 0, reactions.nComp(), reactions.nGrow(), reactions.nGrow());
 	mask_temp->copy(interior_mask, 0, 0, interior_mask.nComp(), interior_mask.nGrow(), interior_mask.nGrow());
-	weights_temp->copy(*weights, 0, 0, weights->nComp(), weights->nGrow(), weights->nGrow());
 
     }
     else {
@@ -71,10 +69,6 @@ Castro::strang_react_first_half(Real time, Real dt)
 	weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), Fab_allocate);
 
     }
-
-    // Initialize the weights to the default value (everything is weighted equally).
-
-    weights_temp->setVal(1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
@@ -145,9 +139,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 	weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm);
 
 	state_temp->copy(state, 0, 0, state.nComp(), state.nGrow(), state.nGrow());
-	reactions_temp->copy(reactions, 0, 0, reactions.nComp(), reactions.nGrow(), reactions.nGrow());
 	mask_temp->copy(interior_mask, 0, 0, interior_mask.nComp(), interior_mask.nGrow(), interior_mask.nGrow());
-	weights_temp->copy(*weights, 0, 0, weights->nComp(), weights->nGrow(), weights->nGrow());
 
     }
     else {
@@ -160,8 +152,6 @@ Castro::strang_react_second_half(Real time, Real dt)
 	weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), Fab_allocate);
 
     }
-
-    weights_temp->setVal(1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
@@ -207,7 +197,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     const Real strt_time = ParallelDescriptor::second();
 
+    // Initialize reactions data to zero.
+
     r.setVal(0.0);
+
+    // Initialize the weights to the default value (everything is weighted equally).
+
+    w->setVal(1.0);
 
     if (do_react == 1)
     {
