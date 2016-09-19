@@ -1058,6 +1058,12 @@ noslipwall & 5 & {\tt REFLECT\_ODD} & {\tt REFLECT\_EVEN} & {\tt REFLECT\_EVEN} 
 \end{table}
 
 
+\subsection{\fluxregister}
+
+A \fluxregister\ holds face-centered data at the boundaries of a box.
+It is composed of a set of \multifab s (one for each face, so 6 for
+3D).  A \fluxregister\ stores fluxes at coarse-fine interfaces, 
+and isused for the flux-correction step.
 
 
 
