@@ -183,8 +183,6 @@ protected:
 
   // internal utility functions:
 
-  void clear_internal_borders(FluxRegister& fr, const Geometry& geom);
-
   void compute_exchange(MultiFab& exch, MultiFab& Er, MultiFab& fkp,
 			int igroup = -1);
 

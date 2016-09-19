@@ -417,7 +417,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
     // This works trivially for a multilevel solve since the finer level is
     // present in the rhs to overwrite the junk produced under it.
     // In a single-level version we have to be sure that fine_corr
-    // has been cleaned up using clear_internal_borders.
+    // has been cleaned up using ClearInternalBorders.
 
     // Hack:  For the single group case igroup defaults to -1, which is
     // significant later in this routine.  So we have to construct the
