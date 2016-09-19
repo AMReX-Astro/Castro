@@ -59,7 +59,7 @@ contains
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
     !$acc copyin(mask, dx_min) &
-    !$acc copy(state, reactions) if(do_acc == 1)
+    !$acc copy(state, reactions, weights) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
@@ -71,6 +71,10 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             ! Make sure every zone has a meaningful weighting before we leave.
+
+             weights(i,j,k) = ONE
 
              ! Don't burn on zones that we are intentionally masking out.
 
@@ -193,7 +197,7 @@ contains
                   j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
                   k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
 
-                weights(i,j,k) = 1.0
+                weights(i,j,k) = ONE
 
              endif
 
