@@ -17,7 +17,6 @@
 
 #define MAX_LEV 15
 
-// Give this a bogus default value to force user to define in inputs file
 #include "gravity_defaults.H"
 
 #ifndef NDEBUG
