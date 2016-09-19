@@ -50,10 +50,10 @@ enum StateType { State_Type = 0,
 #ifdef SDC
 		 SDC_Source_Type,
 #ifdef REACTIONS
-		 SDC_React_Type,
+		 SDC_React_Type
 #endif
 #endif
-                 NUM_STATE_TYPE };
+};
 
 // Create storage for all source terms.
 
@@ -386,6 +386,7 @@ public:
     void react_state(MultiFab& state,
 		     MultiFab& reactions,
 		     const iMultiFab& mask,
+		     MultiFab& weights,
 		     Real time,
 		     Real dt_react,
 		     int  ngrow = 0);
@@ -560,7 +561,7 @@ protected:
     // are set to 0, whereas others are set to 1.
     //
     PArray<iMultiFab> ib_mask;
-    const iMultiFab& build_interior_boundary_mask (int ng);
+    iMultiFab& build_interior_boundary_mask (int ng);
 
     int get_numpts();
 
@@ -761,6 +762,9 @@ protected:
     static std::string probin_file;
 
     static IntVect hydro_tile_size;
+
+    static int Knapsack_Weight_Type;
+    static int num_state_type;
 
 /* problem-specific includes */
 #include <Problem.H>

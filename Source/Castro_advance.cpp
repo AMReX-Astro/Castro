@@ -479,7 +479,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         for (int lev = level; lev <= parent->finestLevel(); lev++) {
 
 	    Real dt_lev = parent->dtLevel(lev);
-            for (int k = 0; k < NUM_STATE_TYPE; k++) {
+            for (int k = 0; k < num_state_type; k++) {
 
 	        // The following is a hack to make sure that we only
 	        // ever have new data for a few state types that only
@@ -527,7 +527,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       // Store the old and new time levels.
 
-      for (int k = 0; k < NUM_STATE_TYPE; k++) {
+      for (int k = 0; k < num_state_type; k++) {
 
 	prev_state.set(k, new StateData());
 
@@ -729,7 +729,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	// Restore the original values of the state data.
 
-	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+	for (int k = 0; k < num_state_type; k++) {
 
 	  if (prev_state[k].hasOldData())
 	      state[k].copyOld(prev_state[k]);
@@ -780,7 +780,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 		         << " with dt = " << dt_advance << std::endl << std::endl;
 	    }
 
-	    for (int k = 0; k < NUM_STATE_TYPE; k++) {
+	    for (int k = 0; k < num_state_type; k++) {
 
 	        if (k == Source_Type)
 		    state[k].swapTimeLevels(0.0);
@@ -827,7 +827,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	// data so that externally it appears like we took only
 	// a single timestep.
 
-	for (int k = 0; k < NUM_STATE_TYPE; k++) {
+	for (int k = 0; k < num_state_type; k++) {
 
            if (prev_state[k].hasOldData())
 	      state[k].copyOld(prev_state[k]);

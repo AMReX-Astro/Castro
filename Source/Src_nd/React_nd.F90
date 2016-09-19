@@ -11,6 +11,7 @@ contains
   subroutine ca_react_state(lo,hi, &
                             state,s_lo,s_hi, &
                             reactions,r_lo,r_hi, &
+                            weights,w_lo,w_hi, &
                             mask,m_lo,m_hi, &
                             time,dt_react) bind(C, name="ca_react_state")
 
@@ -37,9 +38,11 @@ contains
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
     integer          :: r_lo(3), r_hi(3)
+    integer          :: w_lo(3), w_hi(3)
     integer          :: m_lo(3), m_hi(3)
     double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    double precision :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
     integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     double precision :: time, dt_react
 
@@ -56,7 +59,7 @@ contains
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
     !$acc copyin(mask, dx_min) &
-    !$acc copy(state, reactions) if(do_acc == 1)
+    !$acc copy(state, reactions, weights) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
@@ -184,6 +187,15 @@ contains
 
              endif
 
+             ! Insert weights for these burns.
+
+             if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
+                  j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
+                  k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+
+                weights(i,j,k) = burn_state_out % n_rhs
+
+             endif
 
           enddo
        enddo

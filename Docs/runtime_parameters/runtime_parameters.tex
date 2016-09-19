@@ -1,3 +1,4 @@
+\section{ {\tt castro } Namespace}
 
 \label{ch:parameters}
 
@@ -15,10 +16,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ AMR
- parameters.]{ AMR
- parameters.} \label{table:  AMR
- parameters. runtime} \\
+\caption[castro :  AMR
+ parameters]{castro :  AMR
+ parameters} \label{table: castro :  AMR
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -45,6 +46,8 @@
 \rowcolor{tableShade}
 \runparamc{state\_interp\_order} &  highest order used in interpolation & 1 \\
 \runparamc{state\_nghost} &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
+\rowcolor{tableShade}
+\runparamc{use\_custom\_knapsack\_weights} &  should we have state data for custom load-balancing weighting? & 0 \\
 
 
 \end{longtable}
@@ -59,10 +62,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ diagnostics
- parameters.]{ diagnostics
- parameters.} \label{table:  diagnostics
- parameters. runtime} \\
+\caption[castro :  diagnostics
+ parameters]{castro :  diagnostics
+ parameters} \label{table: castro :  diagnostics
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -87,8 +90,8 @@
 \runparamc{hard\_cfl\_limit} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
 \runparamc{job\_name} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
 \rowcolor{tableShade}
-\runparamc{print\_energy\_diagnostics} &  display breakdown of energy sources & (0, \\
-\runparamc{print\_fortran\_warnings} &  display warnings in Fortran90 routines & (0, \\
+\runparamc{print\_energy\_diagnostics} &  display breakdown of energy sources & (0, 1) \\
+\runparamc{print\_fortran\_warnings} &  display warnings in Fortran90 routines & (0, 1) \\
 \rowcolor{tableShade}
 \runparamc{show\_center\_of\_mass} &  display center of mass diagnostics & 0 \\
 \runparamc{sum\_interval} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
@@ -109,10 +112,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ embiggening
- parameters.]{ embiggening
- parameters.} \label{table:  embiggening
- parameters. runtime} \\
+\caption[castro :  embiggening
+ parameters]{castro :  embiggening
+ parameters} \label{table: castro :  embiggening
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -150,10 +153,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ gravity and rotation
- parameters.]{ gravity and rotation
- parameters.} \label{table:  gravity and rotation
- parameters. runtime} \\
+\caption[castro :  gravity and rotation
+ parameters]{castro :  gravity and rotation
+ parameters} \label{table: castro :  gravity and rotation
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -211,10 +214,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ hydrodynamics
- parameters.]{ hydrodynamics
- parameters.} \label{table:  hydrodynamics
- parameters. runtime} \\
+\caption[castro :  hydrodynamics
+ parameters]{castro :  hydrodynamics
+ parameters} \label{table: castro :  hydrodynamics
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -309,10 +312,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ parallelization
- parameters.]{ parallelization
- parameters.} \label{table:  parallelization
- parameters. runtime} \\
+\caption[castro :  parallelization
+ parameters]{castro :  parallelization
+ parameters} \label{table: castro :  parallelization
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -350,10 +353,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ reactions
- parameters.]{ reactions
- parameters.} \label{table:  reactions
- parameters. runtime} \\
+\caption[castro :  reactions
+ parameters]{castro :  reactions
+ parameters} \label{table: castro :  reactions
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -403,10 +406,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ refinement
- parameters.]{ refinement
- parameters.} \label{table:  refinement
- parameters. runtime} \\
+\caption[castro :  refinement
+ parameters]{castro :  refinement
+ parameters} \label{table: castro :  refinement
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -444,10 +447,10 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[ timestep control
- parameters.]{ timestep control
- parameters.} \label{table:  timestep control
- parameters. runtime} \\
+\caption[castro :  timestep control
+ parameters]{castro :  timestep control
+ parameters} \label{table: castro :  timestep control
+ parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
        \multicolumn{1}{ c|}{\textbf{description}} & 
@@ -483,6 +486,129 @@
 \rowcolor{tableShade}
 \runparamc{sdc\_iters} &  Number of iterations for the SDC advance. & 2 \\
 \runparamc{use\_retry} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt diffusion } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[diffusion parameters]{diffusion parameters} \label{table: diffusion parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamc{v} &  the level of verbosity for the diffusion solve (higher number means more output) & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt gravity } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[gravity parameters]{gravity parameters} \label{table: gravity parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamc{const\_grav} &  if doing constant gravity, what is the acceleration & 0.0 \\
+\runparamc{direct\_sum\_bcs} &  Check if the user wants to compute the boundary conditions using the brute force method.  Default is false, since this method is slow. & 0 \\
+\rowcolor{tableShade}
+\runparamc{drdxfac} &  ratio of dr for monopole gravity binning to grid resolution & 1 \\
+\runparamc{get\_g\_from\_phi} &  For non-Poisson gravity, do we want to construct the gravitational acceleration by taking the gradient of the potential, rather than constructing it directly? & 0 \\
+\rowcolor{tableShade}
+\runparamc{gravity\_type} &  what type & "fillme" \\
+\runparamc{max\_multipole\_moment\_level} &  For multipole gravity calculations, this is the maximum level used for constructing the multipole moments. & 0 \\
+\rowcolor{tableShade}
+\runparamc{max\_multipole\_order} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
+\runparamc{max\_solve\_level} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
+\rowcolor{tableShade}
+\runparamc{no\_composite} &  do we do a composite solve? & 0 \\
+\runparamc{no\_sync} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\rowcolor{tableShade}
+\runparamc{v} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 
 \end{longtable}

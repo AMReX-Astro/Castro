@@ -139,6 +139,9 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
+int          Castro::Knapsack_Weight_Type = -1;
+int          Castro::num_state_type = 0;
+
 // Note: Castro::variableSetUp is in Castro_setup.cpp
 
 void
@@ -403,6 +406,7 @@ Castro::read_params ()
     {
 	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
     }
+
 }
 
 Castro::Castro ()
@@ -415,7 +419,7 @@ Castro::Castro ()
     u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(NUM_STATE_TYPE, PArrayManage)
+    prev_state(num_state_type, PArrayManage)
 {
 }
 
@@ -434,7 +438,7 @@ Castro::Castro (Amr&            papa,
     u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(NUM_STATE_TYPE, PArrayManage)
+    prev_state(num_state_type, PArrayManage)
 {
     buildMetrics();
 
@@ -791,6 +795,9 @@ Castro::initData ()
 #endif
 #endif
 
+   if (Knapsack_Weight_Type > 0) {
+       get_new_data(Knapsack_Weight_Type).setVal(1.0);
+   }
 
 #ifdef MAESTRO_INIT
     MAESTRO_init();
@@ -1036,6 +1043,13 @@ Castro::init (AmrLevel &old)
       }
     reinit_phi(cur_time);
 #endif
+
+    if (Knapsack_Weight_Type > 0) {
+	MultiFab& knapsack_weight_new = get_new_data(Knapsack_Weight_Type);
+	int ncomp = knapsack_weight_new.nComp();
+
+	FillPatch(old,knapsack_weight_new,0,cur_time,Knapsack_Weight_Type,0,ncomp);
+    }
 }
 
 //
@@ -1089,6 +1103,11 @@ Castro::init ()
     FillCoarsePatch(get_new_data(LS_State_Type),0,cur_time,LS_State_Type,0,1);
 #endif
 
+    if (Knapsack_Weight_Type > 0) {
+	MultiFab& knapsack_weight_new = get_new_data(Knapsack_Weight_Type);
+	int ncomp = knapsack_weight_new.nComp();
+	FillCoarsePatch(knapsack_weight_new, 0, cur_time, Knapsack_Weight_Type, 0, ncomp);
+    }
 }
 
 Real
@@ -2396,7 +2415,7 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
-    for (int k = 0; k < NUM_STATE_TYPE; k++)
+    for (int k = 0; k < num_state_type; k++)
         state[k].allocOldData();
 }
 
@@ -2950,7 +2969,7 @@ Castro::build_fine_mask()
     return fine_mask;
 }
 
-const iMultiFab&
+iMultiFab&
 Castro::build_interior_boundary_mask (int ng)
 {
     for (int i = 0; i < ib_mask.size(); ++i)
