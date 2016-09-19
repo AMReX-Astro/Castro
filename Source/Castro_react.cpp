@@ -22,14 +22,15 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& reactions = get_old_data(Reactions_Type);
 
-    // Reactions are expensive and we would usually rather do a communication
-    // step than burn on the ghost zones. So what we will do here is create a mask
-    // that indicates that we want to turn on the valid interior zones but NOT
-    // on the ghost zones that are interior to the level. However, we DO want to
-    // burn on the ghost zones that are on the coarse-fine interfaces, since that
-    // is going to be more accurate than interpolating from coarse zones. So we will
-    // not mask out those zones, and the subsequent FillBoundary call will not
-    // interfere with it.
+    // Reactions are expensive and we would usually rather do a
+    // communication step than burn on the ghost zones. So what we
+    // will do here is create a mask that indicates that we want to
+    // turn on the valid interior zones but NOT on the ghost zones
+    // that are interior to the level. However, we DO want to burn on
+    // the ghost zones that are on the coarse-fine interfaces, since
+    // that is going to be more accurate than interpolating from
+    // coarse zones. So we will not mask out those zones, and the
+    // subsequent FillBoundary call will not interfere with it.
 
     iMultiFab& interior_mask = build_interior_boundary_mask(ng);
 

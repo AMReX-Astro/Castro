@@ -181,10 +181,10 @@ contains
     mass_encl = mass_encl + mass(numpts_1d-1)
     phiBC = -Gconst * mass_encl / (numpts_1d*dr)
     gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
-    phi(numpts_1d-1) = phiBC - gravBC * dr
+    phi(numpts_1d-1) = phiBC + gravBC * dr
 
     do i = numpts_1d-2,0,-1
-       phi(i) = phi(i+1) - grav(i+1) * dr
+       phi(i) = phi(i+1) + grav(i+1) * dr
     enddo
 
   end subroutine ca_integrate_phi
@@ -202,7 +202,7 @@ contains
   subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) &
        bind(C, name="ca_integrate_gr_grav")
 
-    use fundamental_constants_module, only : Gconst
+    use fundamental_constants_module, only : Gconst, c_light
     use bl_constants_module
 
     implicit none
@@ -222,7 +222,7 @@ contains
 
     double precision, parameter ::  fourpi       = 4.d0 * M_PI
     double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
-    double precision, parameter ::  sqvc         = 29979245800.d0**2
+    double precision, parameter ::  sqvc         = c_light**2
 
     halfdr = 0.5d0 * dr
 
@@ -271,6 +271,8 @@ contains
           ga = (1.d0 + P/(R*sqvc))
           gb = (1.d0 + fourpi * rc**3 * P / (mass_encl*sqvc))
           gc = 1.d0 / (1.d0 - 2.d0 * Gconst * mass_encl / (rc*sqvc))
+
+          print *, i, grav(i), ga, gb, gc
 
           grav(i) = grav(i)*ga*gb*gc
        end if

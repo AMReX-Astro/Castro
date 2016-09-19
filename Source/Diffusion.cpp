@@ -7,7 +7,8 @@
 
 #define MAX_LEV 15
 
-int  Diffusion::verbose      = 0;
+#include "diffusion_defaults.H"
+
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
@@ -35,7 +36,7 @@ Diffusion::read_params ()
     {
         ParmParse pp("diffusion");
 
-        pp.query("v", verbose);
+#include "diffusion_queries.H"
 
         done = true;
     }
@@ -262,7 +263,6 @@ Diffusion::make_mg_bc ()
             if (phys_bc->hi(dir) == Symmetry   || 
                 phys_bc->hi(dir) == SlipWall   || 
                 phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) ==  Inflow    || 
                 phys_bc->hi(dir) == Outflow)   
             {
               mg_bc[2*dir + 1] = MGT_BC_NEU;

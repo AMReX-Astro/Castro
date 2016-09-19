@@ -4,7 +4,7 @@
 
 \subsection{Sod's Problem (and Other Shock Tube Problems)}
 
-The {\tt Exec/Sod} problem directory sets up a general one-dimensional
+The {\tt Exec/hydro\_tests/Sod} problem directory sets up a general one-dimensional
 shock tube.  The left and right primitive-variable states are specified
 and the solution evolves until a user-specified end time.  For a simple
 discontinuity, the exact solution can be found from an exact Riemann 
@@ -82,7 +82,7 @@ can be extracted from the \castro\ plotfile using the {\tt fextract} tool
 from {\tt BoxLib/Tools/Postprocessing/F\_Src/}.  
 The steps to generate this verification plot with \castro\ are:
 \begin{enumerate}
-\item in {\tt Exec/Sod}, build the \castro\ executable in 3-d
+\item in {\tt Exec/hydro\_tests/Sod}, build the \castro\ executable in 3-d
 \item run the Sod problem with \castro\ in the $x$, $y$, and $z$ directions: \\
  {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-x} \\
  {\tt ./Castro3d.Linux.Intel.Intel.ex inputs-sod-y} \\
@@ -236,7 +236,7 @@ factors in the hydrodynamics solver.
 We use a publically available code, {\tt sedov3.f}
 \cite{timmes_sedov_code}, to generate the analytic solutions.
 
-The \castro\ implementation of the Sedov problem is in {\tt Exec/Sedov}.
+The \castro\ implementation of the Sedov problem is in {\tt Exec/hydro\_tests/Sedov}.
 A number of different inputs/probin files are provided, corresponding
 to different Sedov/\castro\ geometries.  The main ones are:
 
@@ -326,7 +326,7 @@ profile can be extracted using the appropriate {\tt fsedov} routine,
 as listed in Table~\ref{table:fsedov}.  For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:
 \begin{enumerate}
-\item in {\tt Exec/Sedov}, build the \castro\ executable in 2-d
+\item in {\tt Exec/hydro\_tests/Sedov}, build the \castro\ executable in 2-d
 \item run the spherical Sedov problem with \castro\ in 2-d cylindrical coordinates: \\
  {\tt ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph\_in\_cylcoords} 
 \item build the {\tt fsedov2d\_sph\_in\_cylcoords} tool in 
@@ -478,7 +478,7 @@ solution exists \cite{graziani:2008} which gives the radiation energy
 as a function of energy group at a specified time and distance from
 the radiating sphere.
 
-Our implementation of this problem is in {\tt Exec/RadSphere} and
+Our implementation of this problem is in {\tt Exec/radiation\_tests/RadSphere} and
 follows that of \cite{swestymyra:2009}.  The routine that computes
 the analytic solution is provided as {\tt analytic.f90}.
 

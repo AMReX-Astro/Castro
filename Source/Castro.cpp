@@ -95,6 +95,7 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
+int          Castro::NQAUX         = -1;
 
 #include <castro_defaults.H>
 
@@ -1629,17 +1630,21 @@ Castro::post_timestep (int iteration)
 		      }
 
 		      // Compute sync source
+
 #ifdef HYBRID_MOMENTUM
-		      sync_src.resize(bx,3+1+3);
+		      int ncomp = 7;
 #else
-		      sync_src.resize(bx,3+1);
+		      int ncomp = 4;
 #endif
+
+		      sync_src.resize(bx, ncomp);
+
 		      ca_syncgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				  BL_TO_FORTRAN_3D(grad_phi_cc[mfi]),
 				  BL_TO_FORTRAN_3D(grad_delta_phi_cc[lev-level][mfi]),
 				  BL_TO_FORTRAN_3D(S_new_lev[mfi]),
 				  BL_TO_FORTRAN_3D(dstate),
-				  BL_TO_FORTRAN_3D(sync_src),
+				  BL_TO_FORTRAN_3D(sync_src), &ncomp,
 				  dt_lev);
 
 		      // Now multiply the sync source by dt / 2, where dt
@@ -1678,20 +1683,7 @@ Castro::post_timestep (int iteration)
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	const Box& bx = mfi.tilebox();
-
-	hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
-
-      }
-
-    }
+    hybrid_sync(S_new);
 #endif
 
     if (level < finest_level)
@@ -1834,6 +1826,11 @@ Castro::post_restart ()
                 if (gravity->NoComposite() != 1)
                 {
  		   int use_previous_phi = 1;
+
+		   // Update the maximum density, used in setting the solver tolerance.
+
+		   gravity->update_max_rhs();
+
 		   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
@@ -1921,6 +1918,13 @@ Castro::post_regrid (int lbase,
        {
 	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
 	       int use_previous_phi = 1;
+
+	       // Update the maximum density, used in setting the solver tolerance.
+
+	       if (level == 0) {
+		   gravity->update_max_rhs();
+	       }
+
 	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
 	   }
        }
@@ -1949,7 +1953,12 @@ Castro::post_init (Real stop_time)
     Real cur_time = state[State_Type].curTime();
 
     if (do_grav) {
+
        if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Update the maximum density, used in setting the solver tolerance.
+
+	  gravity->update_max_rhs();
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -2058,6 +2067,10 @@ Castro::post_grown_restart ()
 	Real cur_time = state[State_Type].curTime();
 
 	if (gravity->get_gravity_type() == "PoissonGrav") {
+
+	  // Update the maximum density, used in setting the solver tolerance.
+
+	  gravity->update_max_rhs();
 
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
@@ -2178,7 +2191,6 @@ Castro::define_tau (MultiFab& grav_vector, Real time)
                           fpi.isValid();++fpi)
    {
         Box bx(fpi.validbox());
-        int i = fpi.index();
         ca_define_tau(bx.loVect(), bx.hiVect(),
 		      BL_TO_FORTRAN(tau_diff[fpi]),
 		      BL_TO_FORTRAN(fpi()),
@@ -3017,7 +3029,7 @@ Castro::check_for_nan(MultiFab& state)
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
 
 void
-Castro::cons_to_prim(MultiFab& u, MultiFab& q)
+Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
 
     BL_ASSERT(u.nComp() == NUM_STATE);
@@ -3035,7 +3047,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q)
 
 	ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
-		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()));
+		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
+	        qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
 
     }
 
@@ -3060,6 +3073,12 @@ Castro::clean_state(MultiFab& state) {
     // Ensure all species are normalized.
 
     normalize_species(state);
+
+    // Sync the linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(state);
+#endif
 
     // Reset the internal energy and temperature to be consistent with the total energy.
 

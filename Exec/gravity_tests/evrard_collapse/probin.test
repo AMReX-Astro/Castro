@@ -1,0 +1,19 @@
+&fortin
+
+  sphere_mass   = 1.0d0
+  sphere_radius = 9.0d8
+
+/
+
+&tagging
+
+  max_denerr_lev = 20
+  denerr = 5.d6
+
+/
+
+&extern
+
+  eos_assume_neutral = T
+
+/

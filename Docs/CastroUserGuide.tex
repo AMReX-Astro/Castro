@@ -5,6 +5,8 @@
 % for \begin{center}, etc.
 \usepackage[margin=1.0in]{geometry}
 
+\usepackage{seqsplit}
+
 % all kinds of math macros
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -108,7 +110,7 @@
 
 \renewcommand{\sectionmark}[1]{\markright{\thesection---#1}}
 
-\graphicspath{{CastroVerification/}{ConvertCheckpoint/}{Parallel/}{Scaling/}{Visualization/}}
+\graphicspath{{CastroVerification/}{Software/}{ConvertCheckpoint/}{Scaling/}{Visualization/}}
 
 % skip a bit of space between paragraphs, to enhance readability
 \usepackage{parskip}
@@ -223,7 +225,7 @@
 
 \lstset{
   basicstyle=\small\ttfamily,%
-  frame=shadowbox,%
+  frame=single,%
   rulesepcolor=\color{gray},%
   backgroundcolor=\color{white}%
 }
@@ -231,6 +233,7 @@
 
 % Macros for indexing
 \newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
+\newcommand{\runparamc}[1]{\index{Runtime parameters!{\tt castro.#1}}{\tt #1}}
 \newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
 
 \newcommand{\code}[1]{\index{Code reference!{\tt #1}}{\tt #1}}
@@ -238,6 +241,8 @@
 
 \newcommand{\ifdef}[1]{\index{Preprocessor!{\tt #1}}{\tt #1}}
 \newcommand{\problem}[1]{\index{Problem setups!{\tt #1}}{\tt #1}}
+\newcommand{\makevar}[1]{\index{Makefiles!{\tt #1}}{\tt #1}}
+\newcommand{\variable}[1]{\index{Variables!{\tt #1}}{\tt #1}}
 
 \newcommand{\otherindex}[2]{\index{#1!#2}}
 
@@ -306,12 +311,8 @@
 \chapter{Inputs Files}
 \input Inputs/CastroInputs.tex
 
-\chapter{Units and Constants}
-\input UnitsAndConstants/CastroUnits.tex
-
 \chapter{Software Framework}
 \input Software/CastroSoftware.tex
-\input Parallel/Parallel.tex
 
 \chapter{Single-Level Flow Chart}
 \input FlowChart/FlowChart.tex
@@ -337,6 +338,9 @@
 
 \chapter{Rotation}
 \input Rotation/CastroRotation.tex
+
+\chapter{Radiation}
+\input Radiation/CastroRadiation.tex
 
 \chapter{Equation of State and Burning Network}
 \input EOSNetwork/EOSNetwork.tex

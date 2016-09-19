@@ -17,12 +17,9 @@ To build `Castro`, you need a copy of the `BoxLib` library:
 
 https://github.com/BoxLib-Codes/BoxLib.git
 
-(optionally) for Radiation, you'll want to get the
-[CastroRadiation](https://github.com/BoxLib-Codes/CastroRadiation) source too.
-
-There is a User's Guide in `Castro/Docs/` (type `make` to build
-from LaTeX source) that will guide you through running your first
-problem.  A PDF of the User's Guide can be found at
+There is a User's Guide in `Castro/Docs/` (type `make` to build from
+LaTeX source) that will guide you through running your first problem.
+A PDF of the User's Guide can be found at
 
 http://bender.astro.sunysb.edu/Castro/staging/Castro/Docs/CastroUserGuide.pdf
 
@@ -38,8 +35,8 @@ http://bender.astro.sunysb.edu/Castro/staging/Castro/html/
 
 New features are committed to the `development` branch.  Nightly
 regression testing is used to ensure that no answers change (or if
-they do, that the changes were expected).  No changes should ever
-be pushed directly into `master`.
+they do, that the changes were expected).  No changes should ever be
+pushed directly into `master`.
 
 On the first workday of each month, we perform a merge of
 `development` into `master`, in coordination with `BoxLib`, `Maestro`,

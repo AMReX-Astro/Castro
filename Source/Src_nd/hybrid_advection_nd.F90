@@ -79,60 +79,83 @@ contains
 
 
 
-  ! Convert a linear quantity such as momentum into the
-  ! "hybrid" scheme that has radial and angular components.
+  ! Convert a linear momentum into the "hybrid" scheme
+  ! that has radial and angular components.
 
-  function linear_to_hybrid(loc, vec_in) result(vec_out)
+  function linear_to_hybrid(loc, mom_in) result(mom_out)
+
+    use bl_constants_module, only: ZERO
 
     implicit none
 
-    double precision, intent(in ) :: loc(3), vec_in(3)
-    double precision :: vec_out(3)
+    double precision, intent(in) :: loc(3), mom_in(3)
+    double precision :: mom_out(3)
 
     double precision :: R
 
-    ! this conversion is Eqs. 25 and 26 in Byerly et al. 2014.  We
-    ! we do not use the corotating frame here
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
-    vec_out(1) = vec_in(1) * (loc(1) / R) + vec_in(2) * (loc(2) / R)
-    vec_out(2) = vec_in(2) * loc(1)       - vec_in(1) * loc(2)
-    vec_out(3) = vec_in(3)
+    ! This conversion is Eqs. 25 and 26 in Byerly et al. 2014.
+    ! Note that we expect the linear momentum to be consistent
+    ! with which frame we're measuring the fluid quantities in.
+    ! So we're effectively always using the first form of those
+    ! equalities, not the second. If state_in_rotating_frame = 1,
+    ! then we're not including the centrifugal term in the angular
+    ! momentum anyway, and if state_in_rotating_frame = 0, then
+    ! the linear momenta are already expressed in the inertial frame,
+    ! so we don't need to explicitly take rotation into account.
+
+    mom_out(1) = mom_in(1) * (loc(1) / R) + mom_in(2) * (loc(2) / R)
+    mom_out(2) = mom_in(2) * loc(1) - mom_in(1) * loc(2)
+    mom_out(3) = mom_in(3)
 
   end function linear_to_hybrid
 
 
 
-  ! Convert a "hybrid" quantity into a linear one.
+  ! Convert a "hybrid" momentum into a linear one.
 
-  function hybrid_to_linear(loc, vec_in) result(vec_out)
+  function hybrid_to_linear(loc, mom_in) result(mom_out)
+
+    use bl_constants_module, only: ZERO
 
     implicit none
 
-    double precision, intent(in ) :: loc(3), vec_in(3)
-    double precision :: vec_out(3)
+    double precision, intent(in) :: loc(3), mom_in(3)
+    double precision :: mom_out(3)
 
     double precision :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
-    vec_out(1) = vec_in(1) * (loc(1) / R)    - vec_in(2) * (loc(2) / R**2)
-    vec_out(2) = vec_in(2) * (loc(1) / R**2) + vec_in(1) * (loc(2) / R)
-    vec_out(3) = vec_in(3)
+    ! This is the inverse of Byerly et al., Equations 25 and 26.
+
+    mom_out(1) = mom_in(1) * (loc(1) / R)    - mom_in(2) * (loc(2) / R**2)
+    mom_out(2) = mom_in(2) * (loc(1) / R**2) + mom_in(1) * (loc(2) / R)
+    mom_out(3) = mom_in(3)
 
   end function hybrid_to_linear
 
 
 
-  ! Update momentum to account for source term
+  ! Update hybrid momenta to account for source term to linear momenta.
 
   subroutine add_hybrid_momentum_source(loc, mom, source)
 
     implicit none
 
-    double precision :: loc(3), mom(3), source(3)
+    double precision, intent(in   ) :: loc(3), source(3)
+    double precision, intent(inout) :: mom(3)
 
-    mom = mom + linear_to_hybrid(loc, source)
+    double precision :: R
+
+    R = sqrt( loc(1)**2 + loc(2)**2 )
+
+    ! This is analogous to the conversion of linear momentum to hybrid momentum.
+
+    mom(1) = mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
+    mom(2) = mom(2) + source(2) * loc(2) - source(2) * loc(1)
+    mom(3) = mom(3) + source(3)
 
   end subroutine add_hybrid_momentum_source
 
@@ -144,11 +167,6 @@ contains
     use bl_error_module, only: bl_error
     use prob_params_module, only: center
     use castro_util_module, only: position
-#ifdef ROTATION
-    use amrinfo_module, only: amr_time
-    use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_module, only: inertial_to_rotational_velocity
-#endif
 
     implicit none
 
@@ -162,10 +180,6 @@ contains
 
     double precision :: u_adv
     logical :: cc
-
-#ifdef ROTATION
-    double precision :: vel(3)
-#endif
 
     cc = .false.
 
@@ -187,18 +201,6 @@ contains
     else
        call bl_error("Error: unknown direction in compute_hybrid_flux.")
     endif
-
-    ! If we are in the rotating frame but evolving inertial frame variables,
-    ! subtract off the coordinate frame velocity here.
-
-    
-#ifdef ROTATION
-    if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
-       vel = state(GDU:GDW)
-       call inertial_to_rotational_velocity(idx, amr_time, vel, idir)
-       u_adv = vel(idir)
-    endif
-#endif
 
     R = sqrt(loc(1)**2 + loc(2)**2)
 
@@ -299,7 +301,6 @@ contains
 
     integer          :: i, j, k
     double precision :: loc(3)
-    double precision :: old_ke, new_ke, rhoInv
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -307,18 +308,7 @@ contains
 
              loc = position(i,j,k) - center
 
-             rhoInv = ONE / state(i,j,k,URHO)
-
-             old_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-
              state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
-
-             new_ke = HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-
-             ! We have effectively updated the kinetic energy of the state; to account
-             ! for this, add the difference between the old and new KE to the total E.
-
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + (new_ke - old_ke)
 
           enddo
        enddo

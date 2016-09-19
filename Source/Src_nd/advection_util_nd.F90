@@ -43,16 +43,20 @@ contains
     double precision :: initial_eint, final_eint
     double precision :: initial_eden, final_eden
 
+    logical :: have_reset
+
     initial_mass = ZERO
-      final_mass = ZERO
+    final_mass   = ZERO
 
     initial_eint = ZERO
-      final_eint = ZERO
+    final_eint   = ZERO
 
     initial_eden = ZERO
-      final_eden = ZERO
+    final_eden   = ZERO
 
     max_dens = ZERO
+
+    have_reset = .false.
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -69,6 +73,8 @@ contains
                 call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
+
+                have_reset = .true.
 
                 ! Store the maximum (negative) fractional change in the density
 
@@ -184,7 +190,7 @@ contains
        enddo
     enddo
 
-    if ( max_dens /= ZERO ) then
+    if ( have_reset ) then
        mass_added = mass_added + final_mass - initial_mass
        eint_added = eint_added + final_eint - initial_eint
        eden_added = eden_added + final_eden - initial_eden
@@ -355,7 +361,7 @@ contains
 
              if (courx .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... u, c                ', q(i,j,k,QU), q(i,j,k,QC)
@@ -364,7 +370,7 @@ contains
 
              if (coury .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
                 print *,'>>> ... v, c                ', q(i,j,k,QV), q(i,j,k,QC)
@@ -373,7 +379,7 @@ contains
 
              if (courz .gt. ONE) then
                 print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ca_compute_cfl")
+                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
                 print *,'>>> ... w, c                ', q(i,j,k,QW), q(i,j,k,QC)
@@ -392,7 +398,8 @@ contains
 
   subroutine ctoprim(lo, hi, &
                      uin, uin_lo, uin_hi, &
-                     q,     q_lo,   q_hi) bind(C, name = "ctoprim")
+                     q,     q_lo,   q_hi, &
+                     qaux, qa_lo,  qa_hi) bind(C, name = "ctoprim")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -402,20 +409,27 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   QC, QCSML, QGAMC, QDPDR, QDPDE, &
+                                   QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy, small_dens
+                                   small_dens
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_module, only: inertial_to_rotational_velocity
+    use amrinfo_module, only: amr_time
+#endif
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
 
     double precision, intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision, intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     double precision, parameter :: small = 1.d-8
 
@@ -470,6 +484,15 @@ contains
                 q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
              endif
 
+             ! If we're advecting in the rotating reference frame,
+             ! then subtract off the rotation component here.
+
+#ifdef ROTATION
+             if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
+                call inertial_to_rotational_velocity([i, j, k], amr_time, q(i,j,k,QU:QW))
+             endif
+#endif
+
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 
           enddo
@@ -502,15 +525,15 @@ contains
              call eos(eos_input_re, eos_state)
 
              q(i,j,k,QTEMP)  = eos_state % T
-             q(i,j,k,QREINT) = eos_state % e
+             q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
-             q(i,j,k,QDPDR)  = eos_state % dpdr_e
-             q(i,j,k,QDPDE)  = eos_state % dpde
-             q(i,j,k,QC)     = eos_state % cs
-             q(i,j,k,QGAMC)  = eos_state % gam1
-             q(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
-             q(i,j,k,QREINT) = q(i,j,k,QREINT) * q(i,j,k,QRHO)
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
+
+             qaux(i,j,k,QGAMC)  = eos_state % gam1
+             qaux(i,j,k,QC   )  = eos_state % cs
+             qaux(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
+             qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
+             qaux(i,j,k,QDPDE)  = eos_state % dpde
 
           enddo
        enddo
@@ -522,6 +545,7 @@ contains
 
   subroutine srctoprim(lo, hi, &
                        q,     q_lo,   q_hi, &
+                       qaux, qa_lo,  qa_hi, &
                        src, src_lo, src_hi, &
                        srcQ,srQ_lo, srQ_hi) bind(C, name = "srctoprim")
 
@@ -531,7 +555,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QDPDR, QDPDE, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
@@ -540,10 +564,12 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3),   qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
     double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision, intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
@@ -565,9 +591,9 @@ contains
              srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv
              srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
-             srcQ(i,j,k,QPRES ) = q(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
+             srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
                                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
-                                  q(i,j,k,QDPDR)*srcQ(i,j,k,QRHO)
+                                  qaux(i,j,k,QDPDR)*srcQ(i,j,k,QRHO)
 
           enddo
        enddo
@@ -599,11 +625,11 @@ contains
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
-                                  QVAR, QRHO, QU, QW, QPRES, &
-                                  NGDNV, GDRHO, GDU, GDW, GDPRES, &
-                                  npassive, upass_map, qpass_map
+                                  QVAR, QU, QPRES, &
+                                  npassive, upass_map
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only: compute_hybrid_flux
+    use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
 
     implicit none

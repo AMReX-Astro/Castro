@@ -19,10 +19,6 @@
 #include "LevelSet_F.H"
 #endif
 
-#ifdef ROTATION
-#include "Rotation.H"
-#endif
-
 #include <cmath>
 
 using std::string;
@@ -199,7 +195,9 @@ Castro::do_advance (Real time,
 			    sub_iteration, sub_ncycle);
 
     // Apply the old-time sources directly to the new-time state,
-    // S_new
+    // S_new -- note that this addition is for full dt, since we
+    // will do a predictor-corrector on the sources to allow for
+    // state-dependent sources.
 
     for (int n = 0; n < num_src; ++n)
         apply_source_to_state(S_new, old_sources[n], dt);
@@ -217,6 +215,12 @@ Castro::do_advance (Real time,
     // Check for NaN's.
 
     check_for_nan(S_new);
+
+    // Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(S_new);
+#endif
 
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
@@ -246,6 +250,9 @@ Castro::do_advance (Real time,
 	for (int n = 0; n < num_src; ++n) {
             construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 	    apply_source_to_state(S_new, new_sources[n], dt);
+#ifdef HYBRID_MOMENTUM
+	    hybrid_sync(S_new);
+#endif
 	    computeTemp(S_new);
 	}
 
@@ -260,6 +267,12 @@ Castro::do_advance (Real time,
 
 	for (int n = 0; n < num_src; ++n)
 	    apply_source_to_state(S_new, new_sources[n], dt);
+
+	// Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+	hybrid_sync(S_new);
+#endif
 
 	// Sync up the temperature now that all sources have been applied.
 
@@ -416,29 +429,6 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	MultiFab::Add(SDC_source_new, new_sources[n], 0, 0, NUM_STATE, new_sources[n].nGrow());
 #endif
 
-
-
-    // Sync up the hybrid and linear momenta.
-
-#ifdef HYBRID_MOMENTUM
-    if (hybrid_hydro) {
-
-        MultiFab& S_new = get_new_data(State_Type);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.tilebox();
-
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(S_new[mfi]));
-
-	}
-
-    }
-#endif
-
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
 	MultiFab& Er_old = get_old_data(Rad_Type);
@@ -467,6 +457,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef RADIATION
     if (do_radiation)
         radiation->pre_timestep(level);
+#endif
+
+#ifdef GRAVITY
+    // If we're on level 0, update the maximum density used in the gravity solver
+    // for setting the tolerances. This will be used in all level solves to follow.
+    // This must be done before the swap because it relies on the new data.
+
+    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+	gravity->update_max_rhs();
+    }
 #endif
 
     // Swap the new data from the last timestep into the old state
@@ -510,6 +510,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
         }
     }
+
+    // Sync the linear and hybrid momenta. This is as precautionary step
+    // that addresses the fact that we may have new data on this level
+    // that was interpolated from a coarser level, and the interpolation
+    // in general cannot be trusted to respect the consistency between
+    // the hybrid and linear momenta.
+
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(get_old_data(State_Type));
+#endif
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 

@@ -25,6 +25,8 @@ extern "C"
 
   void get_qvar(int* qvar);
 
+  void get_nqaux(int* nqaux);
+
   void ca_set_special_tagging_flag(const Real& max_den, const int* flag);
 
   void set_amr_info(const int& level, const int& iteration, const int& ncycle,
@@ -53,10 +55,8 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
-     const int* gravity_type, const int* gravity_type_len,
-     const int& get_g_from_phi,
-     const Real& diffuse_cutoff_density,
-     const Real& const_grav);
+     const int* gravity_type, const int& gravity_type_len,
+     const Real& diffuse_cutoff_density);
 
   void set_castro_method_params();
 
@@ -110,10 +110,12 @@ extern "C"
 
   void ctoprim(const int* lo, const int* hi,
 	       const Real* u, const int* u_lo, const int* u_hi,
-	       const Real* q, const int* q_lo, const int* q_hi);
+	       const Real* q, const int* q_lo, const int* q_hi,
+               const Real* qaux, const int* qa_lo, const int* qa_hi);
 
   void srctoprim(const int* lo,   const int* hi,
 		 const Real* q,   const int* q_lo,   const int* q_hi,
+		 const Real* qaux, const int* qa_lo, const int* qa_hi,
 		 const Real* src, const int* src_lo, const int* src_hi,
 		 const Real* srQ, const int* srQ_lo, const int* srQ_hi);
 
@@ -457,6 +459,7 @@ extern "C"
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
      BL_FORT_FAB_ARG(q),
+     BL_FORT_FAB_ARG(qaux),
      BL_FORT_FAB_ARG(src_q),
      BL_FORT_FAB_ARG(update),
      BL_FORT_FAB_ARG(ugdnvx),
@@ -611,7 +614,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(gdPhi),
      const BL_FORT_FAB_ARG_3D(S),
      const BL_FORT_FAB_ARG_3D(dS),
-     BL_FORT_FAB_ARG_3D(src),
+     BL_FORT_FAB_ARG_3D(src), const int* ncomp,
      const Real& dt);
 
 #endif

@@ -1,0 +1,10 @@
+&fortin
+
+/
+
+
+&extern
+
+  eos_gamma = 1.6666666667
+
+/

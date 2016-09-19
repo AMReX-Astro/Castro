@@ -9,9 +9,7 @@ pdf_source = $(eps_source:.eps=.pdf)
 section_sources = Introduction/CastroIntroduction.tex \
                   GettingStarted/CastroGettingStarted.tex \
 	          Inputs/CastroInputs.tex \
-                  UnitsAndConstants/CastroUnits.tex \
                   Software/CastroSoftware.tex \
-                  Parallel/Parallel.tex \
 	          FlowChart/FlowChart.tex \
                   runtime_parameters/runtime_parameters.tex \
                   runtime_parameters/rp_intro.tex \
@@ -21,6 +19,7 @@ section_sources = Introduction/CastroIntroduction.tex \
 	          Gravity/CastroGravity.tex \
 	          Diffusion/CastroDiffusion.tex \
 	          Rotation/CastroRotation.tex \
+                  Radiation/CastroRadiation.tex \
                   EOSNetwork/EOSNetwork.tex \
                   AMR/AMR.tex \
                   LevelSet/LevelSet.tex \

@@ -24,8 +24,8 @@ module meth_params_module
 
   ! QTHERM: number of primitive variables
   integer         , save :: QTHERM, QVAR
-  integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP
-  integer         , save :: QGAMC, QGAME, QC, QCSML, QDPDR, QDPDE
+  integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  integer         , save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
   integer         , save :: QFA, QFS, QFX
 
   integer         , save :: nadv
@@ -49,10 +49,6 @@ module meth_params_module
 
   double precision, save :: diffuse_cutoff_density
 
-  double precision, save :: const_grav
-
-  logical, save :: get_g_from_phi
-  
   character(len=:), allocatable :: gravity_type
 
   ! Create versions of these variables on the GPU
@@ -129,6 +125,8 @@ module meth_params_module
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
+  double precision, save :: const_grav
+  integer         , save :: get_g_from_phi
 
   !$acc declare &
   !$acc create(difmag, small_dens, small_temp) &
@@ -151,7 +149,7 @@ module meth_params_module
   !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
   !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
   !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(track_grid_losses)
+  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -230,6 +228,8 @@ contains
     point_mass_fix_solution = 0;
     do_acc = -1;
     track_grid_losses = 0;
+    const_grav = 0.0d0;
+    get_g_from_phi = 0;
 
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -314,6 +314,8 @@ contains
 #endif
     call pp%query("do_acc", do_acc)
     call pp%query("track_grid_losses", track_grid_losses)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -336,7 +338,7 @@ contains
     !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
     !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
     !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(track_grid_losses)
+    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
 
     call parmparse_destroy(pp)
 
