@@ -621,14 +621,16 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
+    if (!do_reflux && !keep_sources_until_end) {
+	fluxes.clear();
+    }
+
     if (!keep_sources_until_end) {
 	hydro_source.clear();
 	sources_for_hydro.clear();
 
 	old_sources.clear();
 	new_sources.clear();
-
-	fluxes.clear();
 
 	P_radial.clear();
 

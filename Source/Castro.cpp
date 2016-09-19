@@ -1748,6 +1748,10 @@ Castro::post_timestep (int iteration)
     // Re-compute temperature after all the other updates.
     computeTemp(S_new);
 
+    if (do_reflux && !keep_sources_until_end) {
+	fluxes.clear();
+    }
+
     if (keep_sources_until_end && level == 0) {
 	for (int lev = 0; lev <= finest_level; ++lev) {
 	    getLevel(lev).hydro_source.clear();
@@ -2211,6 +2215,21 @@ Castro::reflux ()
     const Real strt = ParallelDescriptor::second();
 
     getFluxReg(level+1).Reflux(get_new_data(State_Type),volume,1.0,0,0,NUM_STATE,geom);
+
+    // Also update the fluxes MultiFab using the reflux data.
+
+    PArray<MultiFab> temp_fluxes(3, PArrayManage);
+    for (int i = 0; i < 3; ++i) {
+	temp_fluxes.set(i, new MultiFab(fluxes[i].boxArray(), fluxes[i].nComp(), fluxes[i].nGrow()));
+	temp_fluxes[i].setVal(0.0);
+    }
+    for (OrientationIter fi; fi; ++fi) {
+	const FabSet& fs = getFluxReg(level+1)[fi()];
+	int idir = fi().coordDir();
+	fs.copyTo(temp_fluxes[idir], 0, 0, 0, fluxes[idir].nComp());
+    }
+    for (int i = 0; i < 3; ++i)
+	MultiFab::Add(fluxes[i], temp_fluxes[i], 0, 0, fluxes[i].nComp(), 0);
 
     if (!Geometry::IsCartesian()) {
 	MultiFab dr(volume.boxArray(),1,volume.nGrow());
