@@ -1750,6 +1750,7 @@ Castro::post_timestep (int iteration)
 
     if (do_reflux && !keep_sources_until_end) {
 	fluxes.clear();
+	new_sources.clear();
     }
 
     if (keep_sources_until_end && level == 0) {

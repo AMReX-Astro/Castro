@@ -623,6 +623,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (!do_reflux && !keep_sources_until_end) {
 	fluxes.clear();
+	new_sources.clear();
     }
 
     if (!keep_sources_until_end) {
@@ -630,7 +631,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	sources_for_hydro.clear();
 
 	old_sources.clear();
-	new_sources.clear();
 
 	P_radial.clear();
 
