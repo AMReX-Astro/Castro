@@ -765,7 +765,7 @@ note that:
 \item the union of tile boxes completely cover the valid region of the
   fab
 \item Consider working with a node-centered MultiFab, {\tt ugdnv}, and
-  a cell=centered MultiFab, {\tt s}:
+  a cell-centered MultiFab, {\tt s}:
   \begin{itemize}
 
   \item with {\tt mfi(s)}, the tiles are based on the cell-centered
@@ -996,6 +996,8 @@ when they are defined).  There are some advanced operations in
 
 \subsection{Physical Boundaries}
 
+\label{soft:phys_bcs}
+
 Physical boundary conditions are specified by an integer
 index\footnote{the integer values are defined in \code{BC\_TYPES.H}} in
   the inputs file, using the \runparam{castro.lo\_bc} and
@@ -1146,6 +1148,8 @@ side of \castro\ or perform other useful tasks.
   \castro\ grid.
 
 \item {\tt prob\_params\_module}:
+
+  \label{soft:prob_params}
 
   This module stores information about the domain and current level,
   and is periodically synced up with the \cpp\ driver.  The information

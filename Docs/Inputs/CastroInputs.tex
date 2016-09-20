@@ -2,7 +2,7 @@ The \castro\ executable uses two inputs files at runtime to set and alter the
 behavior of the algorithm and initial conditions.
 
 The main inputs file, typically named {\tt inputs} is used to
-set \boxlib\ parameters and the control flow in the C++ portions of
+set \boxlib\ parameters and the control flow in the \cpp\ portions of
 the \castro\ code.  Each parameter here has a namespace (like {\tt
 amr.{\em optionname}} or {\tt castro.{\em optionname}}).  Parameters
 set here are read using the \boxlib\ {\tt ParmParse} class
@@ -39,7 +39,7 @@ that affect how we tag for refinement.
 
 \section{Common {\tt inputs} Options}
 
-{\bf Important}: because the {\tt inputs} file is handled by the C++ portion of
+{\bf Important}: because the {\tt inputs} file is handled by the \cpp\ portion of
 the code, any quantities you specify in scientific notation, must take the
 form {\tt 1.e5} and not {\tt 1.d5}---the `{\tt d}' specifier is not recognized.
 
@@ -47,31 +47,33 @@ Additionally, note that in \castro, all quantities are in CGS units.
 
 \subsection{Problem Geometry}
 
-The {\tt geometry.} namespace is used by \boxlib\ to define the
+The {\tt geometry} namespace is used by \boxlib\ to define the
 computational domain.  The main parameters here are:
 \begin{itemize}
-\item {\tt geometry.prob\_lo}: physical location of low corner of the
+\item \runparam{geometry.prob\_lo}: physical location of low corner of the
 domain (type: {\tt Real}; must be set)
 
   Note: a number is needed for each dimension in the problem
   
-\item {\tt geometry.prob\_hi}: physical location of high corner of the
+\item \runparam{geometry.prob\_hi}: physical location of high corner of the
 domain (type: {\tt Real}; must be set)
 
   Note: a number is needed for each dimension in the problem
   
-\item {\tt geometry.coord\_sys}: coordinate system, 0 = Cartesian,
+\item \runparam{geometry.coord\_sys}: coordinate system, 0 = Cartesian,
 1 = $r$-$z$ (2-d only), 2 = spherical (1-d only) (must be set)
 
-\item {\tt geometry.is\_periodic}: is the domain periodic in this direction?
+\item \runparam{geometry.is\_periodic}: is the domain periodic in this direction?
   {\tt 0} if false, {\tt 1} if true  (default: {\tt 0 0 0}) 
 
   Note: an integer is needed for each dimension in the problem
 
-\item {\tt castro.center}: physical location of problem center on the domain 
-(type: {\tt Real}; default: {\tt 0.0 0.0 0.0}).
-The problem center is used for gravity, rotation, and some other quantities.
-Often you should choose it to coincide with the center of mass of your system.
+\item {\tt castro.center}: physical location of problem center on the
+  domain (type: {\tt Real}; default: {\tt 0.0 0.0 0.0}).  The problem
+  center is used for gravity, rotation, and some other quantities.
+  This is not necessarily the geometric center of the domain---often
+  you should choose it to coincide with the center of mass of your
+  system.  See \S~\ref{soft:prob_params} for more details.
 
   Note: a number is needed for each dimension in the problem
 
@@ -85,11 +87,12 @@ geometry.coord_sys = 0
 geometry.is_periodic = 0 1 0 
 castro.center = 5.e7 1.e8 1.e8
 \end{lstlisting}
-defines the domain to run from $(0,0,0)$ at the lower left to
-$(10^8,2\times 10^8,2\times 10^8)$ at the upper right in physical space, specifies a
-Cartesian geometry, and makes the domain periodic in the $y$-direction
-only. The problem center is set to be halfway in between the lower left and 
-upper right corners.
+
+This defines the domain to run from $(0,0,0)$ at the lower left to
+$(10^8,\, 2\times 10^8,\, 2\times 10^8)$ at the upper right in physical
+space, specifies a Cartesian geometry, and makes the domain periodic
+in the $y$-direction only. The problem center is set to be halfway in
+between the lower left and upper right corners.
 
 
 \subsection{Domain Boundary Conditions}
@@ -112,9 +115,10 @@ The valid boundary types are:
 \end{center}
 \end{table*}
 
-\noindent Note: {\tt castro.lo\_bc} and {\tt castro.hi\_bc} must be consistent with 
-{\tt geometry.is\_periodic}---if the domain is periodic in a particular
-direction then the low and high bc's must be set to {\tt 0} for that direction.
+\noindent Note: {\tt castro.lo\_bc} and {\tt castro.hi\_bc} must be
+consistent with {\tt geometry.is\_periodic}---if the domain is
+periodic in a particular direction then the low and high bc's must be
+set to {\tt 0} for that direction.
 
 As an example, the following:
 \begin{lstlisting}
@@ -123,9 +127,11 @@ castro.hi_bc = 2 4 0
 
 geometry.is_periodic = 0 0 1
 \end{lstlisting}
-would define a problem with inflow ({\tt 1}) in the low-$x$ direction,
+
+This defines a problem with inflow ({\tt 1}) in the low-$x$ direction,
 outflow ({\tt 2}) in the high-$x$ direction, slip wall ({\tt 4}) on
 the low and high $y$-faces, and periodic in the $z$-direction.
+See \S~\ref{soft:phys_bcs} for more information.
 
 \subsection{Resolution}
 
@@ -133,18 +139,24 @@ The grid resolution is specified by defining the resolution at the
 coarsest level (level 0) and the number of refinement levels and
 factor of refinement between levels.  The relevant parameters are:
 \begin{itemize}
-\item {\tt amr.n\_cell}:  number of cells in each direction at the coarsest level (Integer $> 0$; must be set)
+\item \runparam{amr.n\_cell}: number of cells in each direction at the
+  coarsest level (Integer $> 0$; must be set)
 
-\item {\tt amr.max\_level}:  number of levels of refinement above the coarsest level (Integer $\geq 0$; must be set)
+\item \runparam{amr.max\_level}: number of levels of refinement above the
+  coarsest level (Integer $\geq 0$; must be set)
 
-\item {\tt amr.ref\_ratio}: ratio of coarse to fine grid spacing between subsequent levels (2 or 4; must be set)
+\item \runparam{amr.ref\_ratio}: ratio of coarse to fine grid spacing
+  between subsequent levels (2 or 4; must be set)
 
-\item {\tt amr.regrid\_int}: how often (in terms of number of steps) to regrid (Integer; must be set)
+\item \runparam{amr.regrid\_int}: how often (in terms of number of steps)
+  to regrid (Integer; must be set)
 
-\item {\tt amr.regrid\_on\_restart}: should we regrid immediately after restarting? (0 or 1; default: 0)
+\item \runparam{amr.regrid\_on\_restart}: should we regrid immediately
+  after restarting? (0 or 1; default: 0)
 \end{itemize}
 
-Note: if {\tt amr.max\_level = 0} then you do not need to set {\tt amr.ref\_ratio} or {\tt amr.regrid\_int}.
+Note: if {\tt amr.max\_level = 0} then you do not need to set {\tt
+  amr.ref\_ratio} or {\tt amr.regrid\_int}.
 
 Some examples:
 \begin{lstlisting}
@@ -153,7 +165,7 @@ amr.n_cell = 32 64 64
 would define the domain to have 32 cells in the $x$-direction, 64 cells
 in the $y$-direction, and 64 cells in the $z$-direction {\em{at the
 coarsest level}}.  (If this line appears in a 2D inputs file then the
-final number will be ignored.)
+final number will be ignored.)\newline
 
 \begin{lstlisting}
 amr.max_level = 2 
@@ -163,7 +175,7 @@ level.  Note that these additional levels will only be created only if
 the tagging criteria are such that cells are flagged as needing
 refinement.  The number of refined levels in a calculation must be
 $\leq$ {\tt amr.max\_level}, but can change in time and need not
-always be equal to {\tt amr.max\_level}.
+always be equal to {\tt amr.max\_level}.  \newline
  
 \begin{lstlisting}
 amr.ref_ratio = 2 4 
@@ -171,7 +183,7 @@ amr.ref_ratio = 2 4
 would set factor of 2 refinement between levels 0 and 1, and factor of 4
 refinement between levels 1 and 2.  Note that you must have at least
 {\tt amr.max\_level} values of {\tt amr.ref\_ratio} (Additional values
-may appear in that line and they will be ignored).
+may appear in that line and they will be ignored). \newline
 
 \begin{lstlisting}
 amr.regrid_int = 2 2
@@ -187,17 +199,20 @@ amr.regrid\_on\_restart = 1}.
 
 \subsection{Regridding}
 
-The details of the regridding strategy are described in a later section; here we 
-cover how the input parameters can control the gridding.
+The details of the regridding strategy are described in
+\S~\ref{sec:tagging}; here we cover how the input parameters can
+control the gridding.
 
-As described later, the user defines Fortran subroutines which tag individual
-cells at a given level if they need refinement.  This list of tagged cells is
-sent to a grid generation routine, which uses the Berger-Rigoutsos algorithm~\cite{br-refine}
-to create rectangular grids that contain the tagged cells.   
+As described later, the user defines Fortran subroutines which tag
+individual cells at a given level if they need refinement.  This list
+of tagged cells is sent to a grid generation routine, which uses the
+Berger-Rigoutsos algorithm~\cite{br-refine} to create rectangular
+grids that contain the tagged cells.
 
 The relevant runtime parameters are:
 \begin{itemize}
-\item {\tt amr.regrid\_file}: name of file from which to read the grids (text; default: no file)
+\item \runparam{amr.regrid\_file}: name of file from which to read the
+  grids (text; default: no file)
 
   If set to a filename, e.g.\ {\tt fixed\_girds}, then list of grids
   at each fine level are read in from this file during the gridding
@@ -205,25 +220,32 @@ The relevant runtime parameters are:
   amr.max\_grid\_size} criterion.  The rest of the gridding procedure
   described below will not occur if {\tt amr.regrid\_file} is set.
 
-\item {\tt amr.grid\_eff}: grid efficiency (Real $>0$ and $<1$; default: 0.7)
+\item \runparam{amr.grid\_eff}: grid efficiency (Real $>0$ and $<1$;
+  default: 0.7)
 
-\item {\tt amr.n\_error\_buf}: radius of additional tagging around already tagged cells
-   (Integer $\geq 0$; default: 1)
+\item \runparam{amr.n\_error\_buf}: radius of additional tagging
+  around already tagged cells (Integer $\geq 0$; default: 1)
 
-\item {\tt amr.max\_grid\_size}: maximum size of a grid in any direction (Integer $> 0$;
-   default: 128 (2-d), 32 (3-d))
+\item \runparam{amr.max\_grid\_size}: maximum size of a grid in any
+  direction (Integer $> 0$; default: 128 (2-d), 32 (3-d))
 
    Note: {\tt amr.max\_grid\_size} must be even, and a multiple of
    {\tt amr.blocking\_factor} at every level.
    
-\item {\tt amr.blocking\_factor}:  grid size must be a multiple of this (Integer $> 0$; default: 2)
+\item \runparam{amr.blocking\_factor}: grid size must be a multiple of this
+  (Integer $> 0$; default: 2)
 
    Note: {\tt amr.blocking\_factor} at every level must be a power of
    2 and the domain size must be a multiple of {\tt
-   amr.blocking\_factor} at level 0.
+     amr.blocking\_factor} at level 0.
    
-\item {\tt amr.refine\_grid\_layout}: refine grids more if \# of processors $>$ \# of grids
-  (0 if false, 1 if true; default: 1) \\
+   This can be very important for elliptic problems with
+   multigrid\index{multigrid}.  A higher blocking factor allows the
+   multigrid algorithm to coarsen more at the lowest level, reducing
+   the amount of work required by the bottom solver.
+
+\item \runparam{amr.refine\_grid\_layout}: refine grids more if \# of
+  processors $>$ \# of grids (0 if false, 1 if true; default: 1) \\
 \end{itemize}
 
 Note also that {\tt amr.n\_error\_buf}, {\tt amr.max\_grid\_size} and
