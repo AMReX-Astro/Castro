@@ -13,7 +13,7 @@ exact Riemann solver from Toro \cite{toro:1997}, Chapter 4.
 
 \subsubsection{Sod's Problem}
 
-The Sod problem \cite{sod:1978} is a simple shock tube problem that
+The \problem{Sod} problem \cite{sod:1978} is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:
 \begin{equation}
@@ -222,7 +222,7 @@ described for the Sod's problem above.  The gnuplot script {\tt
 
 \subsection{Sedov Problem}
 
-The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
+The \problem{Sedov} (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem.  A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave.  Analytic solutions were found by Sedov
@@ -466,17 +466,17 @@ Our implementation of this problem follows that of
 
 \subsection{Radiating Sphere}
 
-The radiating sphere is a multigroup radiation test problem.  A hot
-sphere is centered at the origin in a spherical geometry.  The
-spectrum from this sphere follows a Planck distribution.  The ambient
-medium is at a much lower temperature.  A frequency-dependent opacity
-makes the domain optically thin for high frequecies and optically
-thick for low frequency.  At long times, the solution will be a
-combination of the blackbody radiation from the ambient medium plus
-the radiation that propagated from the hot sphere.  An analytic
-solution exists \cite{graziani:2008} which gives the radiation energy
-as a function of energy group at a specified time and distance from
-the radiating sphere.
+The radiating sphere (\problem{RadSphere}) is a multigroup radiation
+test problem.  A hot sphere is centered at the origin in a spherical
+geometry.  The spectrum from this sphere follows a Planck
+distribution.  The ambient medium is at a much lower temperature.  A
+frequency-dependent opacity makes the domain optically thin for high
+frequecies and optically thick for low frequency.  At long times, the
+solution will be a combination of the blackbody radiation from the
+ambient medium plus the radiation that propagated from the hot sphere.
+An analytic solution exists \cite{graziani:2008} which gives the
+radiation energy as a function of energy group at a specified time and
+distance from the radiating sphere.
 
 Our implementation of this problem is in {\tt Exec/radiation\_tests/RadSphere} and
 follows that of \cite{swestymyra:2009}.  The routine that computes
