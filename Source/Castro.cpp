@@ -1695,6 +1695,9 @@ Castro::post_timestep (int iteration)
 
 #endif
 
+    // Re-compute temperature after all the other updates.
+    computeTemp(S_new);
+
     if (level == 0)
     {
         int nstep = parent->levelSteps(0);
@@ -1744,9 +1747,6 @@ Castro::post_timestep (int iteration)
     if (level == 0)
       do_energy_diagnostics();
 #endif
-
-    // Re-compute temperature after all the other updates.
-    computeTemp(S_new);
 
     if (keep_sources_until_end && level == 0) {
 	for (int lev = 0; lev <= finest_level; ++lev) {
