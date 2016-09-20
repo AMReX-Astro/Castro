@@ -1558,10 +1558,16 @@ Castro::post_timestep (int iteration)
 #ifdef GRAVITY
         MultiFab drho_and_drhoU;
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+
+	   // We need to do an average-down before the reflux so that we can isolate the
+	   // change that comes from the refluxing.
+	   avgDown();
+
            // Define the update to rho and rhoU due to refluxing.
            drho_and_drhoU.define(grids,3+1,0,Fab_allocate);
            MultiFab::Copy(drho_and_drhoU,S_new_crse,Density,0,3+1,0);
            drho_and_drhoU.mult(-1.0);
+
         }
 #endif
 
