@@ -130,7 +130,7 @@ This will force the code to output a checkpoint file that can be used
 to restart.  Other options are \code{plot\_and\_continue} to output
 a plotfile, \code{dump\_and\_stop} to output a checkpoint file
 and halt the code, and \code{stop\_run} to simply stop the code.
-Note that the parameter \code{amr.message\_int} controls how often
+Note that the parameter \runparam{amr.message\_int} controls how often
 the existence of these files is checked; by default it is 10, so the
 check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you'd like it to check every timestep.
