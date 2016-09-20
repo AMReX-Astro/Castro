@@ -1,19 +1,19 @@
 The \castro\ executable uses two inputs files at runtime to set and alter the
 behavior of the algorithm and initial conditions.
 
-The main inputs file, typically named {\tt inputs} is used to
-set \boxlib\ parameters and the control flow in the \cpp\ portions of
-the \castro\ code.  Each parameter here has a namespace (like {\tt
-amr.{\em optionname}} or {\tt castro.{\em optionname}}).  Parameters
-set here are read using the \boxlib\ {\tt ParmParse} class
-infrastructure.
+The main inputs file, typically named {\tt inputs}\index{{\tt inputs}}
+is used to set \boxlib\ parameters and the control flow in the
+\cpp\ portions of the \castro\ code.  Each parameter here has a
+namespace (like {\tt amr.{\em optionname}} or {\tt castro.{\em
+    optionname}}).  Parameters set here are read using the
+\boxlib\ {\tt ParmParse} class infrastructure.
 
-The second inputs file, typically named \runparam{probin} is used by
-the Fortran code that initializes the problem setup.  It is read at
-problem initialization (via a Fortran {\tt namelist}) and the
-problem-specific quantities are stored in a Fortran module
-\code{probdata\_module} defined in the problem's {\tt probdata.f90}
-file.
+The second inputs file, typically named {\tt probin}\index{{\tt
+    probin}} is used by the Fortran code that initializes the problem
+setup.  It is read at problem initialization (via a Fortran {\tt
+  namelist}) and the problem-specific quantities are stored in a
+Fortran module \code{probdata\_module} defined in the problem's {\tt
+  probdata.f90} file.
 
 Only the {\tt inputs} file is specified on the commandline.  The
 associated {\tt probin} file is specified in the {\tt inputs} file
@@ -220,9 +220,6 @@ The relevant runtime parameters are:
   amr.max\_grid\_size} criterion.  The rest of the gridding procedure
   described below will not occur if {\tt amr.regrid\_file} is set.
 
-\item \runparam{amr.grid\_eff}: grid efficiency (Real $>0$ and $<1$;
-  default: 0.7)
-
 \item \runparam{amr.n\_error\_buf}: radius of additional tagging
   around already tagged cells (Integer $\geq 0$; default: 1)
 
@@ -243,6 +240,21 @@ The relevant runtime parameters are:
    multigrid\index{multigrid}.  A higher blocking factor allows the
    multigrid algorithm to coarsen more at the lowest level, reducing
    the amount of work required by the bottom solver.
+
+\item \runparam{amr.grid\_eff}: grid efficiency (Real $>0$ and $<1$;
+  default: 0.7)  
+
+  When creating a refined grid, do we make boxes that only include
+  the coarse cells that were explicitly tagged for refinement? or 
+  do we allow ourselves to encompass nearby, untagged cells in order
+  to make larger and more regular boxes?  This is the grid efficiency.
+
+  When {\tt blocking\_factor} = 1, {\em grid efficiency} is exactly the
+  fraction of refined cells in the fine \boxarray\ which correspond to
+  coarse cells which were tagged.  For other blocking factors,
+  we actually apply {\tt grid\_eff} at the level which has been coarsened
+  by {\tt blocking\_factor}, so it is no longer strictly this fraction,
+  but the idea is still the same.
 
 \item \runparam{amr.refine\_grid\_layout}: refine grids more if \# of
   processors $>$ \# of grids (0 if false, 1 if true; default: 1) \\
@@ -319,8 +331,10 @@ in any dimension, is {\tt amr.max\_grid\_size}[$\ell$] / 4.
 
 There are two paramters that can define when a simulation ends:
 \begin{itemize}
-\item {\tt max\_step}: maximum number of level 0 time steps (Integer $\geq 0$; default: -1)
-\item {\tt stop\_time}: final simulation time (Real $\geq 0$;  default: -1.0)
+\item \runparam{max\_step}: maximum number of level 0 time steps (Integer
+  $\geq 0$; default: -1)
+\item \runparam{stop\_time}: final simulation time (Real $\geq 0$; default:
+  -1.0)
 \end{itemize}
 To control the number of time steps, you can limit by the maximum
 number of level 0 time steps ({\tt max\_step}) or by the final
@@ -350,25 +364,27 @@ dt = \mathtt{cfl} \frac{\Delta x}{\max_{i,j,k}\{|u|_{i,j,k}+c_{i,j,k}\}}
 
 The following parameters affect the timestep choice:
 \begin{itemize}
-\item {\tt castro.cfl}: CFL number (Real $> 0$ and $\leq 1$; default: 0.8)
+\item \runparam{castro.cfl}: CFL number (Real $> 0$ and $\leq 1$;
+  default: 0.8)
 
-\item {\tt castro.init\_shrink}: factor by which to shrink the initial
+\item \runparam{castro.init\_shrink}: factor by which to shrink the initial
    time step (Real $> 0$ and $\leq 1$; default: 1.0)
 
-\item {\tt castro.change\_max}: factor by which the time step can grow in
-   subsequent steps (Real $\geq 1$; default: 1.1)
+\item \runparam{castro.change\_max}: factor by which the time step can
+  grow in subsequent steps (Real $\geq 1$; default: 1.1)
 
-\item {\tt castro.fixed\_dt}: level 0 time step regardless of cfl or other settings
-   (Real $> 0$; unused if not set)
+\item \runparam{castro.fixed\_dt}: level 0 time step regardless of cfl
+  or other settings (Real $> 0$; unused if not set)
 
-\item {\tt castro.initial\_dt}: initial level 0 time
+\item \runparam{castro.initial\_dt}: initial level 0 time
    step regardless of other settings (Real $> 0$;  unused if not set)
 
-\item {\tt castro.dt\_cutoff}: time step below which calculation will abort
-   (Real $> 0$; default: 0.0)
+\item \runparam{castro.dt\_cutoff}: time step below which calculation
+  will abort (Real $> 0$; default: 0.0)
 
-\item {\tt castro.hard\_cfl\_limit}: whether or not to abort the simulation if the hydrodynamics
-   update creates velocities that violate the CFL criterion (Integer; default: 1)
+\item \runparam{castro.hard\_cfl\_limit}: whether or not to abort the
+  simulation if the hydrodynamics update creates velocities that
+  violate the CFL criterion (Integer; default: 1)
 \end{itemize}
 
 As an example, consider:
@@ -378,27 +394,28 @@ castro.init_shrink = 0.01
 castro.change_max = 1.1
 castro.dt_cutoff = 1.e-20
 \end{lstlisting}
-This defines the $\mathtt{cfl}$ parameter in Eq.~\ref{eq:cfl} to be 0.9,
-but sets (via {\tt init\_shrink}) the first timestep we take
-to be 1\% of what it would be otherwise.  This allows us to
-ramp up to the hydrodynamic timestep at the start of a simulation.
-The {\tt change\_max} parameter restricts the timestep from increasing
-by more than 10\% over a coarse timestep.    Note that the time step
-can shrink by any factor; this only controls the extent to which it can grow.
-The {\tt dt\_cutoff} parameter will force the code to abort if the
-timestep ever drops below $10^{-20}$.  This is a safety feature---if the
-code hits such a small value, then something likely went wrong in the
-simulation, and by aborting, you won't burn through your entire allocation
-before noticing that there is an issue.
+This defines the $\mathtt{cfl}$ parameter in Eq.~\ref{eq:cfl} to be
+0.9, but sets (via {\tt init\_shrink}) the first timestep we take to
+be 1\% of what it would be otherwise.  This allows us to ramp up to
+the hydrodynamic timestep at the start of a simulation.  The {\tt
+  change\_max} parameter restricts the timestep from increasing by
+more than 10\% over a coarse timestep.  Note that the time step can
+shrink by any factor; this only controls the extent to which it can
+grow.  The {\tt dt\_cutoff} parameter will force the code to abort if
+the timestep ever drops below $10^{-20}$.  This is a safety
+feature---if the code hits such a small value, then something likely
+went wrong in the simulation, and by aborting, you won't burn through
+your entire allocation before noticing that there is an issue.
 
 If we know what we are doing, then we can force a particular timestep:
 \begin{lstlisting}
 castro.fixed_dt = 1.e-4
 \end{lstlisting}
-sets the level 0 time step to be 1.e-4 for the entire simulation,
+This sets the level 0 time step to be 1.e-4 for the entire simulation,
 ignoring the other timestep controls.  Note that if {\tt
-castro.init\_shrink} $\neq 1$ then the first time step will in fact be
-{\tt castro.init\_shrink} $\cdot$ {\tt castro.fixed\_dt}.
+  castro.init\_shrink} $\neq 1$ then the first time step will in fact
+be {\tt castro.init\_shrink} $\cdot$ {\tt castro.fixed\_dt}. \newline
+
 \begin{lstlisting}
 castro.initial_dt = 1.e-4
 \end{lstlisting}
@@ -408,34 +425,35 @@ grow in subsequent steps by a factor of {\tt castro.change\_max} each step.
 
 
 \subsection{Subcycling}
-Castro supports a number of different modes for subcycling in time.
+Castro supports a number of different modes for subcycling in time,
+set via \runparam{amr.subcycling\_mode}.
 
 \begin{itemize}
-\item If {\tt amr.subcycling\_mode = Auto} (default), then the code 
-will run with equal refinement in space and time. In other words, if 
-level $n+1$ is a factor of 2 refinement above level $n$, then $n+1$ 
-will take 2 steps of half the duration for every level $n$ step.
+\item {\tt amr.subcycling\_mode = Auto} (default): the code will run
+  with equal refinement in space and time. In other words, if level
+  $n+1$ is a factor of 2 refinement above level $n$, then $n+1$ will
+  take 2 steps of half the duration for every level $n$ step.
 
-\item If {\tt amr.subcycling\_mode = None}, then the code 
-will not refine in time. All levels will advance together with a 
-timestep dictated by the level with the strictest $dt$. Note that this 
-is identical to the deprecated command {\tt amr.nosub = 1}.
+\item If {\tt amr.subcycling\_mode = None}: the code will not refine
+  in time. All levels will advance together with a timestep dictated
+  by the level with the strictest $dt$. Note that this is identical to
+  the deprecated command {\tt amr.nosub = 1}.
 
-\item If {\tt amr.subcycling\_mode = Manual}, then the code will 
-subcycle according to the values supplied by {\tt 
-subcycling\_iterations}.
+\item If {\tt amr.subcycling\_mode = Manual}: the code will subcycle
+  according to the values supplied by \runparam{amr.subcycling\_iterations}.
 
 \end{itemize}
 
-In the case of {\tt amr.subcycling\_mode = Manual},
-we subcycle in manual mode with largest allowable timestep.  The
-number of iterations at each level is then specified as:
+In the case of {\tt amr.subcycling\_mode = Manual}, we subcycle in
+manual mode with largest allowable timestep.  The number of iterations
+at each level is then specified as:
 \begin{lstlisting}
 amr.subcycling_iterations = 1 2 1 2
 \end{lstlisting}
 Here, we take 1 level-0 timestep at a time (required). Take 2 level-1
 timesteps for each level-0 step, 1 timestep at level-2 for each
 level-1 step, and take 2 timesteps at level-3 for each level-2 step.
+
 Alternately, we could do:
 \begin{lstlisting}
 amr.subcycling_iterations = 2
@@ -449,12 +467,13 @@ which will subcycle twice at every level (except level 0).
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
 \begin{itemize}
-\item {\tt amr.check\_file}: prefix for restart files (text; default: {\tt chk}) 
+\item \runparam{amr.check\_file}: prefix for restart files (text;
+  default: {\tt chk})
 
-\item {\tt amr.check\_int}: how often (by level 0 time steps) to write
-   restart files (Integer $> 0$; default: -1)
+\item \runparam{amr.check\_int}: how often (by level 0 time steps) to
+  write restart files (Integer $> 0$; default: -1)
 
-\item {\tt amr.check\_per}: how often (by simulation time) to
+\item \runparam{amr.check\_per}: how often (by simulation time) to
   write restart files (Real $> 0$; default: -1.0)
 
   Note that {\tt amr.check\_per} will write a checkpoint at the first
@@ -462,26 +481,27 @@ checkpoint files (which are really directories):
   In particular, the timestep is not modified to match this interval, so
   you won't get a checkpoint at exactly the time you requested.
 
-\item {\tt amr.restart}: name of the file (directory) from which to restart
-  (Text; not used if not set)
+\item \runparam{amr.restart}: name of the file (directory) from
+  which to restart (Text; not used if not set)
 
-\item {\tt amr.checkpoint\_files\_output}: should we write checkpoint files? (0 or 1; default: 1)
+\item \runparam{amr.checkpoint\_files\_output}: should we write
+  checkpoint files? (0 or 1; default: 1)
 
   If you are doing a scaling study then set {\tt
-  amr.checkpoint\_files\_output = 0} so you can test scaling of the
+    amr.checkpoint\_files\_output = 0} so you can test scaling of the
   algorithm without I/O.
 
-\item {\tt amr.check\_nfiles}: how parallel is the writing of the checkpoint files?
-  (Integer $\geq 1$; default: 64)
+\item \runparam{amr.check\_nfiles}: how parallel is the writing of
+  the checkpoint files?  (Integer $\geq 1$; default: 64)
 
-  See the Software Section for more details on parallel I/O and the 
+  See the \S~\ref{software:io} for more details on parallel I/O and the 
   {\tt amr.check\_nfiles} parameter.
 
-\item {\tt amr.checkpoint\_on\_restart}: should we write a checkpoint immediately after restarting?
-  (0 or 1; default: 0)
+\item \runparam{amr.checkpoint\_on\_restart}: should we write a
+  checkpoint immediately after restarting?  (0 or 1; default: 0)
 
-\item {\tt castro.grown\_factor}: factor by which domain has been grown
-  (Integer $\geq 1$; default: 1)
+\item \runparam{castro.grown\_factor}: factor by which domain has been
+  grown (Integer $\geq 1$; default: 1)
 \end{itemize}
 
 
@@ -494,8 +514,9 @@ Note:
   at integer multiples of {\tt amr.check\_int} timesteps and at integer
   multiples of {\tt amr.check\_per} simulation time intervals.
 
-\item {\tt amr.plotfile\_on\_restart} and {\tt amr.checkpoint\_on\_restart} 
-only take effect if {\tt amr.regrid\_on\_restart} is in effect.
+\item {\tt amr.plotfile\_on\_restart} and {\tt
+  amr.checkpoint\_on\_restart} require {\tt amr.regrid\_on\_restart}
+  to be in effect.
 \end{itemize}
 
 As an example,
@@ -532,13 +553,13 @@ The main output from \castro\ is in the form of plotfiles (which are
 really directories).  The following options in the inputs file control
 the generation of plotfiles:
 \begin{itemize}
-\item {\tt amr.plot\_file}: prefix for plotfiles (text; default:
+\item \runparam{amr.plot\_file}: prefix for plotfiles (text; default:
   ``{\tt plt}'')
 
-\item {\tt amr.plot\_int}: how often (by level-0 time steps) to write
-  plot files (Integer $> 0$; default: -1)
+\item \runparam{amr.plot\_int}: how often (by level-0 time steps) to
+  write plot files (Integer $> 0$; default: -1)
 
-\item {\tt amr.plot\_per}: how often (by simulation time) to write
+\item \runparam{amr.plot\_per}: how often (by simulation time) to write
   plot files (Real $> 0$; default: -1.0)
 
   Note that {\tt amr.plot\_per} will write a plotfile at the first
@@ -546,31 +567,32 @@ the generation of plotfiles:
   In particular, the timestep is not modified to match this interval, so
   you won't get a checkpoint at exactly the time you requested.
 
-\item {\tt amr.plot\_vars}: name of state variables to include in
+\item \runparam{amr.plot\_vars}: name of state variables to include in
   plotfiles (valid options: {\tt ALL}, {\tt NONE} or a list; default:
   {\tt ALL})
 
-\item {\tt amr.derive\_plot\_vars}: name of derived variables to
+\item \runparam{amr.derive\_plot\_vars}: name of derived variables to
   include in plotfiles (valid options: {\tt ALL}, {\tt NONE} or a
   list; default: {\tt NONE}
 
-\item {\tt amr.plot\_files\_output}: should we write plot files? (0 or
-  1; default: 1)
+\item \runparam{amr.plot\_files\_output}: should we write plot files?
+  (0 or 1; default: 1)
 
-If you are doing a scaling study then set {\tt amr.plot\_files\_output
-  = 0} so you can test scaling of the algorithm without I/O.
+  If you are doing a scaling study then set {\tt
+    amr.plot\_files\_output = 0} so you can test scaling of the
+  algorithm without I/O.
 
-\item {\tt amr.plotfile\_on\_restart}: should we write a plotfile
+\item \runparam{amr.plotfile\_on\_restart}: should we write a plotfile
   immediately after restarting?  (0 or 1; default: 0)
   
-\item {\tt amr.plot\_nfiles}: how parallel is the writing of the
+\item \runparam{amr.plot\_nfiles}: how parallel is the writing of the
   plotfiles?  (Integer $\geq 1$; default: 64)
 
-See the Software Section for more details on parallel I/O and the {\tt
-  amr.plot\_nfiles} parameter.
+  See the Software Section for more details on parallel I/O and the
+  {\tt amr.plot\_nfiles} parameter.
 
-\item {\tt castro.plot\_X}: include all the species mass fractions in
-  the plotfile (0 or 1; default: 0)
+\item \runparam{castro.plot\_X}: include all the species mass
+  fractions in the plotfile (0 or 1; default: 0)
 
 \end{itemize}
 
@@ -578,7 +600,6 @@ All the options for {\tt amr.derive\_plot\_vars} are kept in
 \texttt{derive\_lst} in {\tt Castro\_setup.cpp}.  Feel free to look at
 it and see what's there.
 
-{\color{red} discuss extra derives options}
 
 Some notes:
 \begin{itemize}
@@ -621,28 +642,28 @@ directory names will be {\tt plt\_run00000}, {\tt plt\_run00043}, {\tt
 There are several options that set how much output is written to the
 screen as \castro\ runs:
 \begin{itemize}
-\item {\tt amr.v}: verbosity of {\tt Amr.cpp} (0 or 1; default: 0)
+\item \runparam{amr.v}: verbosity of {\tt Amr.cpp} (0 or 1; default: 0)
 
-\item {\tt castro.v}: verbosity of {\tt Castro.cpp} (0 or 1; default: 0)
+\item \runparam{castro.v}: verbosity of {\tt Castro.cpp} (0 or 1; default: 0)
 
-\item {\tt gravity.v}: verbosity of {\tt Gravity.cpp} (0 or 1; default: 0)
+\item \runparam{gravity.v}: verbosity of {\tt Gravity.cpp} (0 or 1; default: 0)
   
-\item {\tt diffusion.v}: verbosity of {\tt Diffusion.cpp} (0 or 1;
+\item \runparam{diffusion.v}: verbosity of {\tt Diffusion.cpp} (0 or 1;
   default: 0)
   
-\item {\tt mg.v}: verbosity of multigrid solver (for gravity) (allow
+\item \runparam{mg.v}: verbosity of multigrid solver (for gravity) (allow
   values: 0,1,2,3,4; default: 0)
   
-\item {\tt amr.grid\_log}: name of the file to which the grids are
+\item \runparam{amr.grid\_log}: name of the file to which the grids are
   written (text; not used if not set)
   
-\item {\tt amr.run\_log}: name of the file to which certain output is
+\item \runparam{amr.run\_log}: name of the file to which certain output is
   written (text; not used if not set)
   
-\item {\tt amr.run\_log\_terse}: name of the file to which certain
+\item \runparam{amr.run\_log\_terse}: name of the file to which certain
   (terser) output is written (text; not used if not set)
   
-\item {\tt amr.sum\_interval}: if $> 0$, how often (in level-0 time
+\item \runparam{amr.sum\_interval}: if $> 0$, how often (in level-0 time
   steps) to compute and print integral quantities (Integer; default: -1)
 
   The integral quantities include total mass, momentum and energy in
@@ -655,7 +676,7 @@ screen as \castro\ runs:
   it will not compute and print these quanitities.
 
   
-\item {\tt castro.do\_special\_tagging}: allows the user to set a
+\item \runparam{castro.do\_special\_tagging}: allows the user to set a
   special flag based on user-specified criteria (0 or 1; default: 1)
 
   {\tt castro.do\_special\_tagging = 1} can be used, for example, to
