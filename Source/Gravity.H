@@ -194,11 +194,11 @@ private:
 };
 
 class GradPhiPhysBCFunct
-    : public PhysBCFunct
+    : public PhysBCFunctBase
 {
 public:
     GradPhiPhysBCFunct ();
-    virtual void doit (MultiFab& mf, int dcomp, int ncomp, Real time);
+    virtual void FillBoundary (MultiFab& mf, int dcomp, int ncomp, Real time);
 };
 #endif
 
