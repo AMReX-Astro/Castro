@@ -8,6 +8,7 @@ pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
 pp.query("do_reflux", do_reflux);
 pp.query("use_custom_knapsack_weights", use_custom_knapsack_weights);
+pp.query("update_sources_after_reflux", update_sources_after_reflux);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);
 pp.query("small_temp", small_temp);

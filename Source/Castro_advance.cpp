@@ -621,11 +621,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
-    if (!do_reflux && !keep_sources_until_end) {
-	fluxes.clear();
-	new_sources.clear();
-    }
-
     if (!keep_sources_until_end) {
 	hydro_source.clear();
 	sources_for_hydro.clear();
@@ -637,6 +632,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 #ifdef RADIATION
 	rad_fluxes.clear();
 #endif
+
+	if (!(do_reflux && update_sources_after_reflux)) {
+	    fluxes.clear();
+	    new_sources.clear();
+	}
+
     }
 
 #ifndef LEVELSET

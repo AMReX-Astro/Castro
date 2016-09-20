@@ -119,6 +119,8 @@ contains
 
              src(UEDEN) = SrE
 
+             snew(UEDEN) = snew(UEDEN) + dt * SrE
+
              ! **** Start Diagnostics ****
              new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
              new_rhoeint = snew(UEDEN) - new_ke
@@ -475,6 +477,8 @@ contains
 
              src(UEDEN) = SrEcorr
 
+             snew(UEDEN) = snew(UEDEN) + dt * SrEcorr
+
              ! **** Start Diagnostics ****
              new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
              new_rhoeint = snew(UEDEN) - new_ke
@@ -539,7 +543,7 @@ contains
 
     integer          :: i, j, k
     double precision :: rho_pre, rhoU_pre(3)
-    double precision :: grav(3), dgrav(3), Sr(3), SrE
+    double precision :: dgrav(3), Sr(3), SrE
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -548,10 +552,9 @@ contains
              rho_pre  = state(i,j,k,URHO) - dstate(i,j,k,1)
              rhoU_pre = state(i,j,k,UMX:UMZ)  - dstate(i,j,k,2:4)
 
-             grav = gphi(i,j,k,:)
              dgrav = gdphi(i,j,k,:)
 
-             Sr = dstate(i,j,k,1) * grav + rho_pre * dgrav
+             Sr = rho_pre * dgrav
              SrE = ( dot_product(Sr, rhoU_pre) + HALF * dt * dot_product(Sr,Sr) ) / rho_pre
 
              sync_src(i,j,k,1:3) = Sr

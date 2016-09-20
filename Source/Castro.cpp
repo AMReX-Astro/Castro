@@ -1552,6 +1552,8 @@ Castro::post_timestep (int iteration)
     if (do_reflux && level < finest_level) {
 
         MultiFab& S_new_crse = get_new_data(State_Type);
+	Real cur_time = state[State_Type].curTime();
+	Real dt = parent->dtLevel(level);
 
 #ifdef GRAVITY
         MultiFab drho_and_drhoU;
@@ -1599,8 +1601,6 @@ Castro::post_timestep (int iteration)
 
 	    int ncycle = parent->nCycle(level);
 	    gravity->gravity_sync(level,finest_level,iteration,ncycle,drho_and_drhoU,dphi,grad_delta_phi_cc);
-
-	    Real dt = parent->dtLevel(level);
 
             for (int lev = level; lev <= finest_level; lev++)
             {
@@ -1676,6 +1676,67 @@ Castro::post_timestep (int iteration)
             }
         }
 #endif
+
+	// Now subtract the new-time state data, recompute it, and add it back.
+	// This corrects for the fact that the new-time data was calculated
+	// the first time around using a state that hadn't yet been refluxed.
+	// Note that this needs to come after the gravity sync solve because
+	// the gravity source depends on an up-to-date value of phi.
+
+	if (update_sources_after_reflux) {
+
+	    for (int n = 0; n < num_src; ++n)
+		apply_source_to_state(S_new_crse, new_sources[n], -dt);
+
+	    // Note that in the following we are intentionally passing iteration == -1,
+	    // not the actual current AMR iteration. This is a trick we are using so
+	    // that some source terms get the message that they do not need to re-initialize
+	    // like the did for the first new-time source.
+
+	    if (update_state_between_sources) {
+
+		for (int n = 0; n < num_src; ++n) {
+		    construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
+		    apply_source_to_state(S_new_crse, new_sources[n], dt);
+#ifdef HYBRID_MOMENTUM
+		    hybrid_sync(S_new_crse);
+#endif
+		    computeTemp(S_new_crse);
+
+		}
+
+	    }
+	    else {
+
+		// Construct the new-time source terms.
+
+		for (int n = 0; n < num_src; ++n)
+		    construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
+
+		// Apply the new-time sources to the state.
+
+		for (int n = 0; n < num_src; ++n)
+		    apply_source_to_state(S_new_crse, new_sources[n], dt);
+
+		// Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+		hybrid_sync(S_new_crse);
+#endif
+
+		// Sync up the temperature now that all sources have been applied.
+
+		computeTemp(S_new_crse);
+
+	    }
+
+	    // We must do an average down here so that the state data under fine grids
+	    // stays consistent with that fine grid data.
+
+	    avgDown();
+
+	}
+
     }
 
     // Sync up the hybrid and linear momenta.
@@ -1748,7 +1809,7 @@ Castro::post_timestep (int iteration)
     // Re-compute temperature after all the other updates.
     computeTemp(S_new);
 
-    if (do_reflux && !keep_sources_until_end) {
+    if (do_reflux && update_sources_after_reflux && !keep_sources_until_end) {
 	fluxes.clear();
 	new_sources.clear();
     }
@@ -2219,18 +2280,27 @@ Castro::reflux ()
 
     // Also update the fluxes MultiFab using the reflux data.
 
-    PArray<MultiFab> temp_fluxes(3, PArrayManage);
-    for (int i = 0; i < 3; ++i) {
-	temp_fluxes.set(i, new MultiFab(fluxes[i].boxArray(), fluxes[i].nComp(), fluxes[i].nGrow()));
-	temp_fluxes[i].setVal(0.0);
+    if (update_sources_after_reflux) {
+
+	// Clear out the data that's not on coarse-fine boundaries so that this update only
+	// modifies the fluxes on coarse-fine interfaces.
+
+	getFluxReg(level+1).ClearInternalBorders(geom);
+
+	PArray<MultiFab> temp_fluxes(3, PArrayManage);
+	for (int i = 0; i < 3; ++i) {
+	    temp_fluxes.set(i, new MultiFab(fluxes[i].boxArray(), fluxes[i].nComp(), fluxes[i].nGrow()));
+	    temp_fluxes[i].setVal(0.0);
+	}
+	for (OrientationIter fi; fi; ++fi) {
+	    const FabSet& fs = getFluxReg(level+1)[fi()];
+	    int idir = fi().coordDir();
+	    fs.copyTo(temp_fluxes[idir], 0, 0, 0, fluxes[idir].nComp());
+	}
+	for (int i = 0; i < 3; ++i)
+	    MultiFab::Add(fluxes[i], temp_fluxes[i], 0, 0, fluxes[i].nComp(), 0);
+
     }
-    for (OrientationIter fi; fi; ++fi) {
-	const FabSet& fs = getFluxReg(level+1)[fi()];
-	int idir = fi().coordDir();
-	fs.copyTo(temp_fluxes[idir], 0, 0, 0, fluxes[idir].nComp());
-    }
-    for (int i = 0; i < 3; ++i)
-	MultiFab::Add(fluxes[i], temp_fluxes[i], 0, 0, fluxes[i].nComp(), 0);
 
     if (!Geometry::IsCartesian()) {
 	MultiFab dr(volume.boxArray(),1,volume.nGrow());

@@ -82,8 +82,14 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     if (do_grav)
     {
-	if (gravity->get_gravity_type() == "PoissonGrav")
-	  {
+
+	// If we're doing Poisson gravity, do the new-time level solve here. But we only
+	// need to do this if amr_iteration is non-negative; a negative amr_iteration
+	// means we're calling this from post_timestep and we already have the correct new-time phi.
+
+	if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration >= 0)
+	{
+
             if (verbose && ParallelDescriptor::IOProcessor()) {
 	      std::cout << " " << '\n';
 	      std::cout << "... new-time level solve at level " << level << '\n';
@@ -128,13 +134,14 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
             }
 
             if (do_reflux)  gravity->add_to_fluxes(level,amr_iteration,amr_ncycle);
-	  }
-	else {
+	}
+	else if (amr_iteration >= 0) {
 	    phi_new.setVal(0.0);  // so that plotfiles do not contain nans
 	}
 
 	// Now do corrector part of source term update
 	gravity->get_new_grav_vector(level,grav_new,time);
+
     }
 
 }
