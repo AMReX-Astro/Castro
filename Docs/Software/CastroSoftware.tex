@@ -1406,15 +1406,56 @@ each of these in the main source tree.
 
 \begin{itemize}
 
-\item \code{Problem.f90}
+\item \code{Problem.f90} :
 
-\item \code{problem\_tagging\_nd.F90}
+  This provides two routines, \code{problem\_checkpoint} and
+  \code{problem\_restart} that can be used to add information to the
+  checkpoint files and read it in upon restart.  This is useful for
+  some global problem-specific quantities.  For instance, the
+  \problem{wdmerger}\footnote{available separately at
+    \url{https://github.com/BoxLib-Codes/wdmerger}} problem uses this
+  to store center of mass position and velocity information in the
+  checkpoint files that are used for runtime diagnostics.
 
-\item \code{problem\_derive\_nd.f90}
+  The name of the checkpoint directory is passed in as an argument.
+  \code{Problem\_F.H} provides the \cpp\ interfaces for these routines.
+
+\item \code{problem\_tagging\_?d.F90}, \code{problem\_tagging\_nd.F90}
+
+  This implements problem-specific tagging for refinement, through a
+  subroutine \code{set\_problem\_tags}.  The full hydrodynamic state
+  ({\tt State\_Type}) is passed in, and the problem can mark zones for
+  refinement by setting the \variable{tag} variable for a zone to
+  \variable{set}.  An example is provided by the \problem{toy\_convect}
+  problem which refines a rectangular region (fuel layer) based on
+  a density parameter and the H mass fraction.
+
+\item \code{Problem\_Derive\_F.H}, \code{Problem\_Derives.H}, \code{problem\_derive\_nd.f90}
+
+  Together, these provide a mechanism to create derived quantities
+  that can be stored in the plotfile.  {\tt Problem\_Derives.H}
+  provides the \cpp\ code that defines these new plot variables.  It
+  does this by adding them to the \variable{derive\_lst}---a list of
+  derived variables that \castro\ knows about.  When adding new
+  variables, a descriptive name, Fortran routine that does the
+  deriving, and component of \statedata\ are specified.
+
+  The Fortran routine that does the deriving is put in the
+  problem-specific {\tt problem\_derive\_nd.f90} (and a prototype for
+  \cpp\ is put in {\tt Problem\_Derives.H}).  A example is provided by
+  the \problem{reacting\_bubble} problem, which derives several new
+  quantities (perturbations against a background one-dimensional
+  model, in this case).
 
 \item \code{Prob.cpp}, \code{Problem.H}, \code{Problem\_F.H}
 
-\item \code{Problem\_Derive\_F.H}, \code{Problem\_Derives.H}
+  These files provide problem-specific routines for computing global
+  diagnostic information through the \code{sum\_integrated\_quantities}
+  functionality that is part of the {\tt Castro} class.
+
+  An example is provided by \problem{toy\_flame}, where an estimate
+  of the flame speed is computed by integrating the mass of fuel on 
+  the grid.
 
 \end{itemize}
 
