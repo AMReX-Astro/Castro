@@ -17,7 +17,7 @@ Castro::construct_old_diff_source(Real time, Real dt)
     add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time, 1);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time);
+    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time, 1);
     add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
 #endif
 
@@ -36,7 +36,7 @@ Castro::construct_new_diff_source(Real time, Real dt)
     add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time, 0);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time);
+    add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time, 0);
     add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,*NewViscousTermforEnergy,time);
 #endif
 
@@ -76,12 +76,12 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
 
 #if (BL_SPACEDIM == 1)
 void
-Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm, Real t)
+Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm, Real t, int is_old)
 {
     // Define an explicit species update.
     SpecDiffTerm.setVal(0.);
     if (diffuse_spec == 1) {
-       getSpecDiffusionTerm(t,SpecDiffTerm);
+       getSpecDiffusionTerm(t, SpecDiffTerm, is_old);
        int ng = std::min(ext_src.nGrow(),SpecDiffTerm.nGrow());
        MultiFab::Add(ext_src,SpecDiffTerm,0,FirstSpec,NumSpec,ng);
     }
@@ -286,17 +286,26 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
 
 #if (BL_SPACEDIM == 1)
 void
-Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
+Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm, int is_old)
 {
-    BL_PROFILE("Castro::getSpecDiffusionTerm()");
+  BL_PROFILE("Castro::getSpecDiffusionTerm()");
 
-   MultiFab& S_old = get_old_data(State_Type);
-   if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "Calculating species diffusion term at time " << time << std::endl;
+  MultiFab *S;
 
-   // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+  if (is_old == 1) {
+    S = &get_old_data(State_Type);
+  } else if (is_old == 0) {
+    S = &get_new_data(State_Type);
+  } else {
+    BoxLib::Abort("invalid time level in getSpecDiffusionTerm");
+  }
+  
+  if (verbose && ParallelDescriptor::IOProcessor())
+    std::cout << "Calculating species diffusion term at time " << time << std::endl;
+
+  // Fill coefficients at this level.
+  PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
+  PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
@@ -306,15 +315,15 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
        }
    }
 
-   FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
-   MultiFab& state_old = fpi.get_mf();
+   FillPatchIterator fpi(*this, *S, 1, time, State_Type, 0, NUM_STATE);
+   MultiFab& state = fpi.get_mf();
 
-   for (MFIter mfi(state_old); mfi.isValid(); ++mfi)
+   for (MFIter mfi(state); mfi.isValid(); ++mfi)
    {
        const Box& bx = grids[mfi.index()];
 
        ca_fill_spec_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			  BL_TO_FORTRAN_3D(state_old[mfi]),
+			  BL_TO_FORTRAN_3D(state[mfi]),
 			  BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
 			  BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
 			  BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
@@ -339,8 +348,8 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm)
    // Fill one species at a time at this level.
    for (int ispec = 0; ispec < NumSpec; ispec++)
    {
-       MultiFab::Copy  (Species, state_old, FirstSpec+ispec, 0, 1, 1);
-       MultiFab::Divide(Species, state_old, Density        , 0, 1, 1);
+       MultiFab::Copy  (Species, state, FirstSpec+ispec, 0, 1, 1);
+       MultiFab::Divide(Species, state, Density        , 0, 1, 1);
 
        // Fill temperature at next coarser level, if it exists.
        if (level > 0)
