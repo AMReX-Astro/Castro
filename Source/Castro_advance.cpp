@@ -15,10 +15,6 @@
 #include "Diffusion.H"
 #endif
 
-#ifdef LEVELSET
-#include "LevelSet_F.H"
-#endif
-
 #include <cmath>
 
 using std::string;
@@ -108,10 +104,6 @@ Castro::advance (Real time,
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
-#endif
-
-#ifdef LEVELSET
-    advance_levelset(time, dt);
 #endif
 
 #if (BL_SPACEDIM > 1)
@@ -625,9 +617,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 #endif
     }
 
-#ifndef LEVELSET
-    u_gdnv.clear();
-#endif
 
     prev_state.clear();
 

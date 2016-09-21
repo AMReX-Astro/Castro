@@ -46,7 +46,7 @@ t/
 buildInfo.cpp
 
 
-Exec/*/helm_table.dat
+Exec/*/*/helm_table.dat
 
 *.hack
 *.bak

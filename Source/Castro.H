@@ -23,10 +23,6 @@ typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save or
 using std::istream;
 using std::ostream;
 
-#ifdef LEVELSET
-typedef BaseFab<int> IntFab;
-typedef FabArray<IntFab> IntMultiFab;
-#endif
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -41,9 +37,6 @@ enum StateType { State_Type = 0,
 		 Rotation_Type,
 #endif
 		 Source_Type,
-#ifdef LEVELSET
-                 LS_State_Type,
-#endif
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
@@ -502,11 +495,6 @@ public:
 
     void make_radial_data (int is_new);
 
-#ifdef LEVELSET
-    void advance_levelset(Real time, Real dt);
-    void reinit_phi(Real time);
-#endif
-
 #ifdef AUX_UPDATE
     void advance_aux(Real time, Real dt);
 #endif
@@ -737,12 +725,6 @@ protected:
     static class Radiation *radiation;
 
     friend class Radiation;
-#endif
-
-#ifdef LEVELSET
-  IntMultiFab LStype;
-  IntMultiFab LSnband;
-  IntMultiFab LSmine;
 #endif
 
 #ifdef PARTICLES
