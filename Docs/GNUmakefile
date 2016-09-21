@@ -23,7 +23,6 @@ section_sources = Preface/Preface.tex \
                   Radiation/CastroRadiation.tex \
                   EOSNetwork/EOSNetwork.tex \
                   AMR/AMR.tex \
-                  LevelSet/LevelSet.tex \
                   ConvertCheckpoint/ConvertCheckpoint.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
                   Visualization/CastroVisualization.tex \

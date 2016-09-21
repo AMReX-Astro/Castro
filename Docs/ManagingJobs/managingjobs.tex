@@ -1,94 +1,29 @@
-\section{General Info}
-
 
 \section{Linux boxes}
 
 The GCC compilers are the preferred compilers on Linux machines.
-\castro\ runs without issue with GCC 5.3, although anything in the 5.x
-series should work fine.
+\castro\ runs without issue with GCC 5.3 and GCC 6.1.
 
-The PGI compilers (16.4) are also tested with Castro and have no known
-issues.
+The PGI compilers (16.4--16.9) are also tested with \castro\ and have
+no known issues.
 
 \section{Working at OLCF (ORNL)}
+
+The preferred compilers on titan at OLCF are the Cray compilers.  The
+8.4.x and 8.5.0 compilers work well.  Note, you will need to swap
+the default PGI environment to use Cray:
+\begin{verbatim}
+module swap PrgEnv-pgi PrgEnv-cray
+\end{verbatim}
+
+If you are using OpenACC on the GPUs, then you need to use the PGI
+compilers instead.
+
 
 
 \subsection{Automatic Restarting and Archiving of Data}
 
-The submission script {\tt jaguar.run} and shell script
-{\tt process.jaguar} in {\tt Util/job\_scripts/}
-are designed to allow you to run CASTRO with minimal interaction,
-while being assured that the data is archived to HPSS on the NCCS
-machines.
-
-To use the scripts, first create a directory in HPSS that has the same
-name as the directory on lustre you are running in (just the directory
-name, not the full path).  E.g.\ if you are running in a directory
-called {\tt Castro\_run}, then do:
-\begin{verbatim}
-hsi
-mkdir Castro_run
-\end{verbatim}
-
-The script {\tt process.jaguar} is called from {\tt jaguar.run} and
-will run in the background and continually wait until checkpoint or
-plotfiles are created (actually, it always leaves the most recent one
-alone, since data may still be written to it, so it waits until there
-are more than one in the directory).
-
-Then the script will use {\tt htar} to archive the plotfiles and checkpoints
-to HPSS.  If the {\tt htar} command was successful, then the plotfiles are
-copied into a {\tt plotfile/} subdirectory.  This is actually important,
-since you don't want to try archiving the data a second time and
-overwriting the stored copy, especially if a purge took place.
-
-Additionally, if you have the path to the {\tt ftime} executable set in the
-script ({\tt ftime.f90} lives in {\tt BoxLib/Tools/Postprocessing/F\_Src/}), then the
-script will create a file called {\tt ftime.out} that lists the name of the
-plotfile and the corresponding simulation time.
-
-Finally, right when the job is submitted, the script will tar up all
-of the diagnostic files created by {\tt diag.f90} and archive them on HPSS.
-The {\tt .tar} file is given a name that contains the date-string to allow
-multiple archives to co-exist.
-
-This really allows you to run the job and have all of the data stored
-long term automatically.  This way you don't need to worry about
-filesystem purges.  It seems to work well.
-
-Also, the {\tt jaguar.run} submission script has code in it that will look
-at the most recently generated checkpoint files, make sure that they
-were written out correctly (it looks to see if there is a Header file,
-since that is the last thing written), and automatically set the
-{\tt --restart} flag on the run line to restart from the most recent
-checkpoint file.
-
-This allows you to job-chain a bunch of submission and have them wait
-until the previous job finished and then automatically queue up:
-\begin{verbatim}
-qsub -W depend=afterany:<JOB-ID>  <QSUB SCRIPT>
-\end{verbatim}
-where {\tt <JOB-ID>} is the id number of the job that must complete
-before the new submission runs and {\tt QSUB SCRIPT} is the submission
-script (e.g.\ {\tt jaguar.run}).
-This way you can queue up a bunch of runs and literally leave things
-alone and it will restart from the right place automatically and store
-the data as it is generated.
-
-When {\tt process.jaguar} is running, it creates a lockfile (called
-{\tt process.pid}) that ensures that only one instance of the script
-is running at any one time.  Sometimes if the machine crashes, the
-{\tt process.pid} file will be left behind, in which case, the script
-aborts.  Just delete that if you know the script is not running.
-
-Analogous scripts exist for running on Atlas, with the same general
-procedure.  The command to chain a job on atlas is:
-\begin{verbatim}
-msub -l depend=<JOB-ID> <MSUB SCRIPT>
-\end{verbatim}
-where, again, {\tt <JOB-ID>} is the id number of the job that must
-complete before the current submission runs and {\tt <MSUB SCRIPT>}
-is the job submission script (e.g.\ {\tt atlas.run}).
+See the \maestro\ User's Guide
 
 
 \section{Working at NERSC}
@@ -155,10 +90,93 @@ sent to the compilation by doing {\tt ftn -craype-verbose}).
 
 \subsection{Running jobs}
 
-A sample jobs script is in {\tt Castro/Util/job\_scripts/edison/}, and 
-includes logic to automatically add the correct restart options to the 
-run to continue a simulation from the last checkpoint file in the 
-submission directory.
+edison is configured with 24 cores per node split between two Intel             
+IvyBridge 12-core processors.  Each processor connects to 1/2 of the            
+node's memory and is called a NUMA node, so there are 2 NUMA nodes per          
+edison node.  Best performance is seen when running with 6 or 12 threads.  
+
+Jobs should be run in your {\tt \$SCRATCH} or {\tt \$CSCATCH} directory.
+By default, SLURM will change directory into the submission directory.
+
+A sample job submission script, {\tt edison.MPI.OMP.slurm} is in {\tt
+  Castro/Util/job\_scripts/edison/}, and includes logic to
+automatically add the correct restart options to the run to continue a
+simulation from the last checkpoint file in the submission directory.
+
+To chain jobs, such that one queues up after the previous job finished,         
+use the {\tt chainslurm.sh} script in that same directory. You can view         
+the job dependency using:                                                       
+\begin{verbatim}                                                                
+squeue -l -j job-id                                                             
+\end{verbatim}                                                                  
+where {\tt job-id} is the number of the job.                                    
+                                                                                
+Jobs are submitted with {\tt sbatch}.  A job can be canceled using              
+{\tt scancel}, and the status can be checked using {\tt squeue -u {\em          
+username}}.                                                                     
+
+
+\subsection{Archiving data to HPSS}
+
+The script {\tt edison.xfer.slurm} in {\tt
+  Castro/Util/job\_scripts/edison/} can be used to archive data to
+HPSS automatically.  This is submitted to the {\tt xfer} queue and
+runs the script {\tt process.xrb} which continually looks for output
+and stores it to HPSS.
+
+To use the scripts, first create a directory in HPSS that has the same          
+name as the directory on lustre you are running in (just the directory          
+name, not the full path).  E.g.\ if you are running in a directory              
+call {\tt wdconvect\_run}, then do:                                             
+\begin{verbatim}                                                                
+hsi                                                                             
+mkdir wdconvect_run                                                             
+\end{verbatim}                                                                  
+(Note: if the hsi command prompts you for your password, you will need          
+to talk to the NERSC help desk to ask for password-less access to                
+HPSS).                                                                          
+                                                                                
+The script {\tt process.xrb} is called from the xfer job and will
+run in the background and continually wait until checkpoint or                  
+plotfiles are created (actually, it always leaves the most recent one           
+alone, since data may still be written to it, so it waits until there           
+are more than 1 in the directory).                                              
+                                                                                
+Then the script will use {\tt htar} to archive the plotfiles and                
+checkpoints to HPSS.  If the {\tt htar} command was successful, then            
+the plotfiles are copied into a {\tt plotfile/} subdirectory.  This is          
+actually important, since you don't want to try archiving the data a            
+second time and overwriting the stored copy, especially if a purge              
+took place.  The same is done with checkpoint files.
+                                                                                
+Additionally, if the {\tt ftime} executable is in your path ({\tt               
+ftime.f90} lives in {\tt BoxLib/Tools/Postprocessing/F\_src/}), then            
+the script will create a file called {\tt ftime.out} that lists the             
+name of the plotfile and the corresponding simulation time.                     
+                                                                                
+Finally, right when the job is submitted, the script will tar up all
+of the diagnostic files, {\tt ftime.out}, submission script, inputs
+and probin, and archive them on HPSS.  The {\tt .tar} file is given a
+name that contains the date-string to allow multiple archives to
+co-exist.
+                                                                    
+When {\tt process.xrb} is running, it creates a lockfile (called              
+{\tt process.pid}) that ensures that only one instance of the script            
+is running at any one time.  Sometimes if the machine crashes, the              
+{\tt process.pid} file will be left behind, in which case, the script           
+aborts.  Just delete that if you know the script is not running.   
+
+Jobs in the {\tt xfer} queue start up quickly.  The best approach is            
+to start one as you start your main job (or make it dependent on the            
+main job).  The sample {\tt process.xrb} script will wait for output            
+and then archive it as it is produced, using the techniques described           
+for titan above.                                                                
+                                                                                
+To check the status of a job in the {\tt xfer} queue, use:                      
+\begin{verbatim}                                                                
+squeue -u username -M all                                                       
+\end{verbatim}           
+
 
 
 \section{Working at LANL}
@@ -174,7 +192,7 @@ For the following LANL systems, which all have access to a joint file system,
   \item Mustang
   \item Trinitite
 \end{itemize}
-the following steps are needed to get Castro compiling (reported by Platon Karpov, 6/13/2016):
+the following steps are needed to get \castro\ compiling (reported by Platon Karpov, 6/13/2016):
 
 1) Compile on the login node (thus host is lanl.gov)\\
 2) Do \textit{not} set env variable \texttt{BOXLIB\_USE\_MPI\_WRAPPERS} at all\\
