@@ -1,8 +1,10 @@
+\label{ch:rotation}
+
 \section{Introduction}
 
 Currently, \castro\ supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
-equations to the rotating frame of reference.  
+equations to the rotating frame of reference.
 
 To include rotation you must set
 \begin{verbatim}
@@ -48,19 +50,25 @@ The main parameters that affect rotation are:
 
 \item {\tt castro.rotational\_dPdt} : d(period) / dt for rotation (default: 0.0)
 
-\item {\tt castro.rotation\_include\_centrifugal} :
+\item {\tt castro.rotation\_include\_centrifugal} : whether to include the centrifugal
+  forcing (default: 1)
 
-\item {\tt castro.rotation\_include\_coriolis} :
+\item {\tt castro.rotation\_include\_coriolis} : whether to include the Coriolis
+  forcing (default: 1)
 
-\item {\tt castro.rotation\_include\_domegadt} :
+\item {\tt castro.rotation\_include\_domegadt} : whether to include the forcing
+  from the time derivative of the rotation frequency (default: 1)
 
-\item {\tt castro.state\_in\_rotating\_frame} :
+\item {\tt castro.state\_in\_rotating\_frame} : whether state variables are measured
+  in the rotating frame (default: 1)
 
-\item {\tt castro.rot\_source\_type} :
+\item {\tt castro.rot\_source\_type} : method of updating the energy during a rotation
+  update (default: 4)
 
-\item {\tt castro.implicit\_rotation\_update} :
+\item {\tt castro.implicit\_rotation\_update} : for the Coriolis term, which mixes
+  momenta in the source term, whether we should solve for the update implicitly (default: 1)
 
-\item {\tt castro.rot\_axis} :
+\item {\tt castro.rot\_axis} : rotation axis (default: 3 (Cartesian); 2 (cylindrical))
 
 \end{itemize}
 

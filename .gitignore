@@ -7,6 +7,9 @@
 *.blg
 *.lof
 *.lot
+*.idx
+*.ilg
+*.ind
 Docs/*.out
 Docs/*.ps
 Docs/*.pdf
@@ -43,7 +46,7 @@ t/
 buildInfo.cpp
 
 
-Exec/*/helm_table.dat
+Exec/*/*/helm_table.dat
 
 *.hack
 *.bak

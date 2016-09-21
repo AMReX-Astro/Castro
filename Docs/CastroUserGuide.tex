@@ -5,6 +5,8 @@
 % for \begin{center}, etc.
 \usepackage[margin=1.0in]{geometry}
 
+\usepackage{seqsplit}
+
 % all kinds of math macros
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -16,6 +18,11 @@
 \usepackage[Sonny]{fncychap}
 \ChNameVar{\LARGE}
 \ChTitleVar{\LARGE\sl}
+
+% index
+\usepackage{makeidx}
+\makeindex
+
 
 % part page style see
 % http://tex.stackexchange.com/questions/6609/problems-with-part-labels-using-titlesec
@@ -103,7 +110,7 @@
 
 \renewcommand{\sectionmark}[1]{\markright{\thesection---#1}}
 
-\graphicspath{{CastroVerification/}{ConvertCheckpoint/}{Parallel/}{Scaling/}{Visualization/}}
+\graphicspath{{Verification/}{Software/}{ConvertCheckpoint/}{Scaling/}{Visualization/}}
 
 % skip a bit of space between paragraphs, to enhance readability
 \usepackage{parskip}
@@ -207,15 +214,7 @@
 \newcommand{\nablab}{\boldsymbol{\nabla}}
 
 % codes
-\newcommand{\castro}{{\sf Castro}}
-\newcommand{\maestro}{{\sf Maestro}}
-\newcommand{\boxlib}{{\sf BoxLib}}
-\newcommand{\microphysics}{{\sf Microphysics}}
-\newcommand{\yt}{{\sf yt}}
-\newcommand{\amrvis}{{\sf Amrvis}}
-\newcommand{\visit}{{\sf VisIt}}
-
-\newcommand{\cpp}{C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\tiny\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\tiny\bf +}}
+\input castrosymbols
 
 \usepackage{listings}
 
@@ -226,10 +225,28 @@
 
 \lstset{
   basicstyle=\small\ttfamily,%
-  frame=shadowbox,%
+  frame=single,%
   rulesepcolor=\color{gray},%
   backgroundcolor=\color{white}%
 }
+\lstset{belowskip=-0.25em}
+
+
+% Macros for indexing
+\newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
+\newcommand{\runparamNS}[2]{\index{Runtime parameters!{\tt #2.#1}}{\tt #1}}
+\newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
+
+\newcommand{\code}[1]{\index{Code reference!{\tt #1}}{\tt #1}}
+\newcommand{\codeidx}[1]{\index{Code reference!{\tt #1}}}
+
+\newcommand{\ifdef}[1]{\index{Preprocessor!{\tt #1}}{\tt #1}}
+\newcommand{\problem}[1]{\index{Problem setups!{\tt #1}}{\tt #1}}
+\newcommand{\makevar}[1]{\index{Makefiles!{\tt #1}}{\tt #1}}
+\newcommand{\variable}[1]{\index{Variables!{\tt #1}}{\tt #1}}
+
+\newcommand{\otherindex}[2]{\index{#1!#2}}
+
 
 
 %------------------------------------------------------------------------------
@@ -282,12 +299,14 @@
 \chaptermark{Preface}
 \addcontentsline{toc}{chapter}{preface}
 
-\input Introduction/CastroIntroduction.tex
+\input Preface/Preface.tex
 
 \clearpage
 
 \mainmatter
 
+\chapter{Introduction}
+\input Introduction/Introduction.tex
 
 \chapter{Getting Started}
 \input GettingStarted/CastroGettingStarted.tex
@@ -295,12 +314,8 @@
 \chapter{Inputs Files}
 \input Inputs/CastroInputs.tex
 
-\chapter{Units and Constants}
-\input UnitsAndConstants/CastroUnits.tex
-
 \chapter{Software Framework}
 \input Software/CastroSoftware.tex
-\input Parallel/Parallel.tex
 
 \chapter{Single-Level Flow Chart}
 \input FlowChart/FlowChart.tex
@@ -327,15 +342,14 @@
 \chapter{Rotation}
 \input Rotation/CastroRotation.tex
 
+\chapter{Radiation}
+\input Radiation/CastroRadiation.tex
+
 \chapter{Equation of State and Burning Network}
 \input EOSNetwork/EOSNetwork.tex
 
 \chapter{AMR}
 \input AMR/AMR.tex
-
-\chapter{Level Sets}\label{Chap:Level Sets}
-\input LevelSet/LevelSet.tex
-
 
 \chapter{ConvertCheckpoint}
 \input ConvertCheckpoint/ConvertCheckpoint.tex
@@ -347,7 +361,7 @@
 \input Visualization/CastroVisualization.tex
 
 \chapter{Verification Test Problems}
-\input CastroVerification/Verification.tex
+\input Verification/Verification.tex
 
 
 %------------------------------------------------------------------------------
@@ -356,6 +370,11 @@
 \renewcommand\bibname{References}
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{plain}
-\bibliography{refs,CastroVerification/verification,Gravity/gr,LevelSet/levelset}
+\bibliography{refs,Verification/verification,Gravity/gr,LevelSet/levelset}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Index}
+\printindex
 
 \end{document}

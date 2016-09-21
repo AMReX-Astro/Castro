@@ -428,11 +428,6 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-#ifdef ROTATION
-    use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use amrinfo_module, only: amr_time
-    use rotation_module, only: inertial_to_rotational_velocity
-#endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
@@ -993,17 +988,6 @@ contains
 
           u_adv = qint(i,j,kc,iu)
 
-          ! If we are in the rotating frame but evolving inertial frame variables,
-          ! subtract off the coordinate frame velocity here.
-
-#ifdef ROTATION
-          if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
-             vel = qint(i,j,kc,QU:QW)
-             call inertial_to_rotational_velocity([i, j, k3d], amr_time, vel, idir)
-             u_adv = vel(idir)
-          endif
-#endif
-
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
                special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
@@ -1076,11 +1060,6 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
-#ifdef ROTATION
-    use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use amrinfo_module, only: amr_time
-    use rotation_module, only: inertial_to_rotational_velocity
-#endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
@@ -1452,17 +1431,6 @@ contains
 #endif
 
           u_adv = qint(i,j,kc,iu)
-
-          ! If we are in the rotating frame but evolving inertial frame variables,
-          ! subtract off the coordinate frame velocity here.
-
-#ifdef ROTATION
-          if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
-             vel = qint(i,j,kc,QU:QW)
-             call inertial_to_rotational_velocity([i, j, k3d], amr_time, vel, idir)
-             u_adv = vel(idir)
-          endif
-#endif
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &

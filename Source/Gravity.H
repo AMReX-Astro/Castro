@@ -36,6 +36,8 @@ public:
 
   void swapTimeLevels (int level);
 
+  void update_max_rhs();
+
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
@@ -121,14 +123,21 @@ protected:
   //
   Array<BoxArray> grids;
   //
+  // Absolute tolerance on each level
+  //
+  Array<Real> abs_tol;
+  //
+  // Relative tolerance on each level
+  //
+  Array<Real> rel_tol;
+  //
   // Resnorm at each level
   //
   Array<Real> level_solver_resnorm;
   //
-  // Error tolerance on each level
+  // Maximum value of the RHS (used for obtaining absolute tolerances)
   //
-  Array<Real> ml_tol;
-  Array<Real> delta_tol;
+  Real max_rhs;
   //
   // Volume and area fractions.
   //
@@ -145,17 +154,7 @@ protected:
 
   int   numpts_at_level;
 
-  static int   verbose;
   static int   test_solves;
-  static int   no_sync;
-  static int   no_composite;
-  static int   drdxfac;
-  static int   lnum;
-  static int   direct_sum_bcs;
-  static int   get_g_from_phi;
-  static int   max_solve_level;
-  static int   max_multipole_moment_level;
-  static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
@@ -164,10 +163,11 @@ protected:
 #ifdef GR_GRAV
   static Array< Array<Real> > radial_pres;
 #endif
-  static std::string gravity_type;
   static int   stencil_type;
 
   static Real max_radius_all_in_domain;
+
+#include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
@@ -191,6 +191,14 @@ private:
     void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
 
     void sanity_check (int level);
+};
+
+class GradPhiPhysBCFunct
+    : public PhysBCFunctBase
+{
+public:
+    GradPhiPhysBCFunct ();
+    virtual void FillBoundary (MultiFab& mf, int dcomp, int ncomp, Real time);
 };
 #endif
 

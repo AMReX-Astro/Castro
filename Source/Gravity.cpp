@@ -11,27 +11,19 @@
 #include <Gravity_F.H>
 #include <Castro_F.H>
 
+#include <FillPatchUtil.H>
+
 #include <FMultiGrid.H>
 
 #define MAX_LEV 15
 
-// Give this a bogus default value to force user to define in inputs file
-std::string Gravity::gravity_type = "fillme";
+#include "gravity_defaults.H"
+
 #ifndef NDEBUG
 int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
 #endif
-int  Gravity::verbose        = 0;
-int  Gravity::no_sync        = 0;
-int  Gravity::no_composite   = 0;
-int  Gravity::drdxfac        = 1;
-int  Gravity::lnum           = 0;
-int  Gravity::direct_sum_bcs = 0;
-int  Gravity::get_g_from_phi = 0;
-int  Gravity::max_solve_level = MAX_LEV-1;
-int  Gravity::max_multipole_moment_level = 0;
-Real Gravity::const_grav     =  0.0;
 Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 int  Gravity::stencil_type   = CC_CROSS_STENCIL;
@@ -64,9 +56,9 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     grad_phi_prev(MAX_LEV),
     phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
+    abs_tol(MAX_LEV),
+    rel_tol(MAX_LEV),
     level_solver_resnorm(MAX_LEV),
-    ml_tol(MAX_LEV),
-    delta_tol(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
     phys_bc(_phys_bc)
@@ -78,6 +70,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
 #if (BL_SPACEDIM > 1)
      if (gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
+     max_rhs = 0.0;
 }
 
 Gravity::~Gravity() {}
@@ -91,7 +84,7 @@ Gravity::read_params ()
     {
         ParmParse pp("gravity");
 
-        pp.get("gravity_type", gravity_type);
+#include "gravity_queries.H"
 
         if ( (gravity_type != "ConstantGrav") &&
 	     (gravity_type != "PoissonGrav") &&
@@ -105,8 +98,7 @@ Gravity::read_params ()
         if (  gravity_type == "ConstantGrav")
         {
 	  if ( Geometry::IsSPHERICAL() )
-	      BoxLib::Abort("Cant use constant direction gravity with non-Cartesian coordinates");
-           pp.get("const_grav", const_grav);
+	      BoxLib::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
 #if (BL_SPACEDIM == 1)
@@ -130,126 +122,121 @@ Gravity::read_params ()
         }
 #endif
 
-        pp.query("drdxfac", drdxfac);
-
-        pp.query("v", verbose);
-        pp.query("no_sync", no_sync);
-        pp.query("no_composite", no_composite);
-
-        pp.query("max_multipole_order", lnum);
-
-	// For all gravity types, we can choose a maximum level for explicitly calculating the
-	// gravity and associated potential. Above that level, we interpolate from coarser levels.
-
-	pp.query("max_solve_level", max_solve_level);
-
-	// For multipole gravity calculations, this is the maximum level used for constructing the
-	// multipole moments.
-
-	pp.query("max_multipole_moment_level", max_multipole_moment_level);
-
-        // Check if the user wants to compute the boundary conditions using the brute force method.
-        // Default is false, since this method is slow.
-
-        pp.query("direct_sum_bcs", direct_sum_bcs);
-
-	// For non-Poisson gravity, do we want to construct the gravitational acceleration by taking
-	// the gradient of the potential, rather than constructing it directly?
-
-	int got_get_g_from_phi = pp.query("get_g_from_phi", get_g_from_phi);
-
-	if (got_get_g_from_phi && !get_g_from_phi && gravity_type == "PoissonGrav")
+	if (pp.contains("get_g_from_phi") && !get_g_from_phi && gravity_type == "PoissonGrav")
 	  if (ParallelDescriptor::IOProcessor())
 	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
-        // Allow run-time input of solver tolerances
-
-	for (int lev = 0; lev < MAX_LEV; lev++) {
-
-	    if (Geometry::IsCartesian()) {
-	      ml_tol[lev] = 1.e-11;
-	      delta_tol[lev] = 1.e-11;
-	    }
-	    else {
-	      ml_tol[lev] = 1.e-10;
-	      delta_tol[lev] = 1.e-10;
-	    }
-
-	}
-
 	int nlevs = parent->maxLevel() + 1;
 
-	Real tol;
-	Real d_tol;
+        // Allow run-time input of solver tolerance. If the user provides no value, set a reasonable default
+	// value on the coarse level, and then increase it by ref_ratio**2 as the levels get finer to account
+	// for the change in the absolute scale of the Laplacian. If the user provides one value, use that
+	// on the coarse level, and increase it the same way for the fine levels. If the user provides more than
+	// one value, we expect them to provide one for every level, and we do not apply the ref_ratio effect.
 
-	// For backwards compatibility, read in sl_tol if we're
-	// only using a single level; but this is now considered
-	// deprecated, and we should use ml_tol for reading in
-	// the tolerance at every level. If we have set both
-	// ml_tol and sl_tol, sl_tol will be ignored on
-	// multi-level calculations.
+	int n_abs_tol = pp.countval("abs_tol");
 
-	int got_sl_tol = pp.query("sl_tol", tol);
+	if (n_abs_tol <= 1) {
 
-	if (parent->maxLevel() == 0) {
-	  ml_tol[0] = tol;
-	}
+	    Real tol;
 
-	int cnt = pp.countval("ml_tol");
+	    if (n_abs_tol == 1) {
 
-	// Only read in ml_tol if we're doing a multi-level
-	// calculation and the user hasn't set sl_tol.
+		pp.get("abs_tol", tol);
 
-	if (!(nlevs == 1 && got_sl_tol == 1)) {
+	    } else {
 
-	  // If we've only got one value, set every level's
-	  // tolerance to that value. Otherwise, read in an
-	  // array that must have at least nlevs values.
-
-	  if (cnt == 1) {
-
-	    pp.get("ml_tol", tol);
-
-	    for (int lev = 0; lev < MAX_LEV; lev++) {
-
-	      ml_tol[lev] = tol;
+		if (Geometry::IsCartesian())
+		    tol = 1.e-11;
+		else
+		    tol = 1.e-10;
 
 	    }
 
-	  }
-	  else if (cnt > 1) {
+	    abs_tol[0] = tol;
 
-	    pp.getarr("ml_tol", ml_tol, 0, nlevs);
+	    // Account for the fact that on finer levels, the scale of the
+	    // Laplacian changes due to the zone size changing. We assume
+	    // dx == dy == dz, so it is fair to say that on each level the
+	    // tolerance should increase by the factor ref_ratio**2, since
+	    // in absolute terms the Laplacian increases by that ratio too.
+	    // The actual tolerance we'll send in is the effective tolerance
+	    // on the finest level that we solve for.
 
-	  }
+	    for (int lev = 1; lev < nlevs; ++lev)
+		abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+
+	} else if (n_abs_tol >= nlevs) {
+
+	    pp.getarr("abs_tol", abs_tol, 0, nlevs);
+
+	} else {
+
+	    BoxLib::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
 
 	}
 
-	cnt = pp.countval("delta_tol");
+	// For the relative tolerance, we can again accept a single scalar (same for all levels)
+	// or one for all levels. The default value is zero, so that we only use the absolute tolerance.
+	// The multigrid always chooses the looser of the two criteria in determining whether the solve
+	// has converged.
 
-	// Same approach as for ml_tol.
+	// Note that the parameter rel_tol used to be known as ml_tol, so if we detect that the user has
+	// set ml_tol but not rel_tol, we'll accept that for specifying the relative tolerance. ml_tol
+	// is now considered deprecated and will be removed in a future release.
 
-	if (cnt == 1) {
+	std::string rel_tol_name = "rel_tol";
 
-	  pp.get("delta_tol", d_tol);
+	if (pp.contains("ml_tol")) {
 
-	  for (int lev = 0; lev < MAX_LEV; lev++ ) {
+	    BoxLib::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
 
-	      delta_tol[lev] = d_tol;
+	    if (!pp.contains("rel_tol"))
+		rel_tol_name = "ml_tol";
+
+	}
+
+	int n_rel_tol = pp.countval(rel_tol_name.c_str());
+
+	if (n_rel_tol <= 1) {
+
+	    Real tol;
+
+	    if (n_rel_tol == 1) {
+
+		pp.get(rel_tol_name.c_str(), tol);
+
+	    } else {
+
+		tol = 0.0;
 
 	    }
 
-	}
-	else if (cnt > 1) {
+	    for (int lev = 0; lev < MAX_LEV; ++lev)
+		rel_tol[lev] = tol;
 
-	  pp.getarr("delta_tol", delta_tol, 0, nlevs);
+	} else if (n_rel_tol >= nlevs) {
+
+	    pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
+
+	} else {
+
+	    BoxLib::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
 
 	}
+
+	// Warn user about obsolete tolerance parameters.
+
+	if (pp.contains("delta_tol"))
+	    BoxLib::Warning("The gravity parameter delta_tol is no longer used.");
+
+	if (pp.contains("sl_tol"))
+	    BoxLib::Warning("The gravity parameter sl_tol is no longer used.");
 
         Real Gconst;
         get_grav_const(&Gconst);
         Ggravity = 4.0 * M_PI * Gconst;
-        if (verbose > 0 && ParallelDescriptor::IOProcessor())
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
         {
            std::cout << "Getting Gconst from constants: " << Gconst << std::endl;
            std::cout << "Using " << Ggravity << " for 4 pi G in Gravity.cpp " << std::endl;
@@ -582,14 +569,14 @@ Gravity::solve_for_delta_phi (int                        crse_level,
        rhs[0].plus(-local_correction,0,1,0);
     }
 
-    Real     tol = delta_tol[crse_level];
-    Real abs_tol = level_solver_resnorm[crse_level];
+    Real rel_eps = 0.0;
+    Real abs_eps = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev < fine_level; lev++)
-        abs_tol = std::max(abs_tol,level_solver_resnorm[lev]);
+	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
 
     int need_grad_phi = 1;
     int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-    fmg.solve(delta_phi, rhs, tol, abs_tol, always_use_bnorm, need_grad_phi);
+    fmg.solve(delta_phi, rhs, rel_eps, abs_eps, always_use_bnorm, need_grad_phi);
 
     fmg.get_fluxes(grad_delta_phi);
 
@@ -954,6 +941,8 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
     for (int amr_lev = max_solve_level+1; amr_lev <= finest_level; amr_lev++) {
 
+      // Interpolate the potential.
+
       if (is_new == 1) {
 
 	MultiFab& phi = LevelData[amr_lev].get_new_data(PhiGrav_Type);
@@ -967,6 +956,30 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
 	LevelData[amr_lev].FillCoarsePatch(phi,0,time,PhiGrav_Type,0,1,1);
 
+      }
+
+      // Interpolate the grad_phi.
+
+      // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
+      // since the fine levels for Poisson gravity do not touch the physical boundary.
+
+      GradPhiPhysBCFunct gp_phys_bc;
+
+      // We need to use a nodal interpolater.
+
+      Interpolater* gp_interp = &node_bilinear_interp;
+
+      // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
+      // not do anything because we do not fill on physical boundaries.
+
+      const Array<BCRec>& gp_bcs = LevelData[amr_lev].get_desc_lst()[Gravity_Type].getBCs();
+
+      for (int n = 0; n < BL_SPACEDIM; ++n) {
+	  BoxLib::InterpFromCoarseLevel(grad_phi[amr_lev][n], time, grad_phi[amr_lev-1][n],
+					0, 0, 1,
+					parent->Geom(amr_lev-1), parent->Geom(amr_lev),
+					gp_phys_bc, gp_phys_bc, parent->refRatio(amr_lev-1),
+					gp_interp, gp_bcs);
       }
 
     }
@@ -2365,8 +2378,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         const Real t_new = LevelData[lev].get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
 
-        // Create MultiFab with one component and no grow cells
-        MultiFab S(grids[lev],1,0);
+	const int NUM_STATE = LevelData[lev].get_new_data(State_Type).nComp();
+
+        // Create MultiFab with NUM_STATE components and no ghost cells
+        MultiFab S(grids[lev],NUM_STATE,0);
 
 	if ( eps == 0.0 )
 	{
@@ -2374,19 +2389,19 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
 	}
         else if ( std::abs(time-t_old) < eps)
         {
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_old_data(State_Type),0,0,NUM_STATE);
         }
         else if ( std::abs(time-t_new) < eps)
         {
-            S.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
             if (lev < level)
             {
                 Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev+1));
-                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,1,parent->Geom(lev));
+                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,NUM_STATE,parent->Geom(lev));
             }
         }
         else if (time > t_old && time < t_new)
@@ -2394,14 +2409,14 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
             Real alpha   = (time - t_old)/(t_new - t_old);
             Real omalpha = 1.0 - alpha;
 
-            S.copy(LevelData[lev].get_old_data(State_Type),Density,0,1);
+            S.copy(LevelData[lev].get_old_data(State_Type),0,0,NUM_STATE);
             S.mult(omalpha);
 
-            MultiFab S_new(grids[lev],1,0);
-            S_new.copy(LevelData[lev].get_new_data(State_Type),Density,0,1);
+            MultiFab S_new(grids[lev],NUM_STATE,0);
+            S_new.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
             S_new.mult(alpha);
 
-            S.plus(S_new,Density,1,0);
+            S.plus(S_new,0,NUM_STATE,0);
         }
         else
         {
@@ -2414,7 +2429,8 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         {
 	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
 	    const MultiFab& mask = fine_level->build_fine_mask();
-	    MultiFab::Multiply(S, mask, 0, 0, 1, 0);
+	    for (int n = 0; n < NUM_STATE; ++n)
+		MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();
@@ -2734,11 +2750,21 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
     if (grad_phi.size() > 0)
     {
-	Real     tol = ml_tol[fine_level];
-	Real abs_tol = 0.0;
+	Real rel_eps = rel_tol[fine_level];
+
+	// The absolute tolerance is determined by the error tolerance
+	// chosen by the user (tol) multiplied by the maximum value of
+	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
+	// subtract off the mass_offset corresponding to the average
+	// density on the domain. This will automatically be zero for
+	// non-periodic BCs. And this also accounts for the metric
+	// terms that are applied in non-Cartesian coordinates.
+
+	Real abs_eps = abs_tol[fine_level] * max_rhs;
+
 	int need_grad_phi = 1;
 	int always_use_bnorm = (Geometry::isAllPeriodic()) ? 0 : 1;
-	final_resnorm = fmg.solve(phi, rhs, tol, abs_tol,
+	final_resnorm = fmg.solve(phi, rhs, rel_eps, abs_eps,
 				  always_use_bnorm, need_grad_phi);
 
 	fmg.get_fluxes(grad_phi);
@@ -2817,4 +2843,78 @@ Gravity::sanity_check (int level)
 	if (!shrunk_domain_ba.contains(grids[level]))
 	    BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
+}
+
+// Instantiate the necessary functions to call InterpFromCoarseLevel on grad_phi.
+
+GradPhiPhysBCFunct::GradPhiPhysBCFunct () { }
+
+void
+GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time)
+{
+    BL_PROFILE("GradPhiPhysBCFunct::FillBoundary");
+
+    // We should never need to actually fill physical ghost zones for grad_phi.
+    // So we do not need to do anything here.
+
+    return;
+}
+
+void
+Gravity::update_max_rhs()
+{
+    // Calculate the maximum value of the RHS over all levels.
+    // This should only be called at a synchronization point where
+    // all Castro levels have valid new time data at the same simulation time.
+    // The RHS we will use is the density multiplied by 4*pi*G and also
+    // multiplied by the metric terms, just as it would be in a real solve.
+
+    int crse_level = 0;
+    int nlevs = parent->finestLevel() + 1;
+    PArray<MultiFab> rhs;
+    int is_new = 1;
+
+    get_rhs(crse_level, nlevs, rhs, is_new);
+
+#if (BL_SPACEDIM == 3)
+    if ( Geometry::isAllPeriodic() )
+    {
+	for (int lev = 0; lev < nlevs; ++lev)
+	    rhs[lev].plus(-mass_offset,0,1,0);
+    }
+#endif
+
+    for (int lev = 0; lev < nlevs; ++lev)
+    {
+        rhs[lev].mult(Ggravity);
+    }
+
+#if (BL_SPACEDIM < 3)
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    {
+	Array<PArray<MultiFab> > coeffs(nlevs);
+
+	for (int lev = 0; lev < nlevs; ++lev) {
+
+	    // We need to include this bit about the coefficients because
+	    // it's required by applyMetricTerms.
+
+	    coeffs[lev].resize(BL_SPACEDIM, PArrayManage);
+
+	    for (int i = 0; i < BL_SPACEDIM ; i++) {
+		coeffs[lev].set(i, new MultiFab(grids[lev], 1, 0, Fab_allocate,
+                                                IntVect::TheDimensionVector(i)));
+		coeffs[lev][i].setVal(1.0);
+	    }
+
+	    applyMetricTerms(lev, rhs[lev], coeffs[lev]);
+	}
+    }
+#endif
+
+    max_rhs = 0.0;
+
+    for (int lev = 0; lev < nlevs; ++lev)
+	max_rhs = std::max(max_rhs, rhs[lev].max(0));
+
 }

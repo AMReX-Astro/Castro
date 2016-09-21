@@ -78,17 +78,14 @@ export CASTRO_HOME="/path/to/Castro/"
 \end{verbatim}
 
 
-\item (optional) Two additional repositories, {\tt Microphysics.git}
-  and {\tt CastroRadiation.git} are available at the {\tt
-    BoxLib-Codes} github page.  These add additional reaction
-  networks/EOSes and radiation, respectively, and can be cloned
-  following the same procedure as above:
+\item (optional) An additional repository, {\tt Microphysics.git} is
+  available at the {\tt BoxLib-Codes} github page.  This add
+  additional reaction networks and EOSes and can be cloned following
+  the same procedure as above\footnote{Note: previously the radiation
+    solver was distributed separately as {\tt CastroRadiation.git},
+    but this has been merged into the main \castro\ respository}:
 \begin{verbatim}
 git clone ssh://git@github.com:/BoxLib-Codes/Microphysics.git
-\end{verbatim}
-and
-\begin{verbatim}
-git clone ssh://git@github.com:/BoxLib-Codes/CastroRadiation.git
 \end{verbatim}
 
 To access the \microphysics\ routines, set the {\tt MICROPHYSICS\_HOME}
@@ -110,7 +107,7 @@ build the {\tt Sedov} problem:
 \item From the directory in which you checked out the Castro git repo,
   type
 \begin{verbatim}
-cd Castro/Exec/Sedov
+cd Castro/Exec/hydro_tests/Sedov
 \end{verbatim}
 This will put you into a directory in which you can run the Sedov
 problem in 1-d, 2-d or 3-d.
@@ -170,6 +167,7 @@ clear by the names of the inputs files.
 \end{enumerate}
 
 \section{Visualization of the Results}
+\index{visualization}
 
 There are several options for visualizing the data.  The popular
 \visit\ package supports the \boxlib\ file format natively, as does
@@ -225,7 +223,7 @@ where {\tt /tmp/Amrvis/amrvis2d...ex} is the full path and name of the \amrvis\ 
 
 \item Visualize:
 
-  Return to the {\tt Castro/Exec/Sedov} directory.  You should
+  Return to the {\tt Castro/Exec/hydro\_tests/Sedov} directory.  You should
   have a number of output files, including some in the form {\tt *pltXXXXX},
   where {\tt XXXXX} is a number corresponding to the timestep the file
   was output.  {\tt
@@ -253,88 +251,105 @@ You have now completed a brief introduction to \castro.
 
 There are a number of standard problem setups that come with \castro.
 These can be used as a starting point toward writing your own setup.
-The standard problems are:
+We organize these into subdirectories by broad type (radiation, hydro,
+gravity, etc.): The standard categories and {\em some} of the included
+problems are:
 \begin{itemize}
+\item {\tt gravity\_tests}:
 
-\item {\tt double\_bubble}:
+  \begin{itemize}
+  \item {\tt DustCollapse}:
 
-  Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal or
-  isentropic) and allow for the bubbles to have the same or a
-  different $\gamma$ from one another / the background atmosphere.  This
-  uses the {\tt multigamma} EOS.
-
-  An analogous problem is implemented in \maestro.
+    A pressureless cloud collapse that is a standard test problem for
+    gravity.  An analytic solution that describes the radius of the
+    sphere as a function of time is found in Colgate and
+    White~\cite{colgwhite}.  This problem is also found in the FLASH
+    User's Guide.
     
-\item {\tt DustCollapse}:
+  \item {\tt hydrostatic\_adjust}:
 
-  A pressureless cloud collapse that is a standard test problem for
-  gravity.  An analytic solution that describes the radius of the
-  sphere as a function of time is found in Colgate and
-  White~\cite{colgwhite}.  This problem is also found in the FLASH
-  User's Guide.
-  
-  
-\item {\tt HCBubble}
-  
-\item {\tt hydrostatic\_adjust}:
+    Model a 1-d stellar atmosphere (plane-parallel or
+    spherical/self-gravitating) and dump energy in via an analytic
+    heat source and watch the atmosphere's hydrostatic state adjust in
+    response.  This is the counterpart to the \maestro\ {\tt
+      test\_basestate} unit test.
 
-  Model a 1-d stellar atmosphere (plane-parallel or
-  spherical/self-gravitating) and dump energy in via an analytic heat
-  source and watch the atmosphere's hydrostatic state adjust in
-  response.  This is the counterpart to the \maestro\ {\tt
-    test\_basestate} unit test.
+  \end{itemize}
 
-\item {\tt KH}:
 
-  A Kelvin-Helmholtz shear instability problem.
-  
-\item {\tt oddeven}:
+\item {\tt hydro\_tests}:
 
-  A grid-aligned shock hitting a very small density perturbation.
-  This demonstrates the odd-even decoupling problem discussed in
-  \cite{quirk1997}.  This setup serves to test the {\tt
-    castro.hybrid\_riemann} option to hydrodynamics.
-  
-  
-\item {\tt reacting\_bubble}:
+  \begin{itemize}
+  \item {\tt double\_bubble}:
 
-  A reacting bubble in a stratified white dwarf atmosphere.  This
-  problem was featured in the \maestro\ reaction
-  paper~\cite{maestro:III}.
+    Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal
+    or isentropic) and allow for the bubbles to have the same or a
+    different $\gamma$ from one another / the background atmosphere.
+    This uses the {\tt multigamma} EOS.
 
-  
-\item {\tt RT}:
-
-  A single-model Rayleigh-Taylor instability problem.
-  
-  
-\item {\tt RT\_particles}
-
-\item {\tt Sedov}:
-
-  The standard Sedov-Taylor blast wave problem.  This setup was used
-  in the first \castro\ paper~\cite{castro_I}.
+    An analogous problem is implemented in \maestro.
     
-\item {\tt Sod}:
+  \item {\tt HCBubble}:
   
-  A one-dimensional shock tube setup, including the classic Sod
-  problem.  This setup was used in the original \castro\ paper.
+  \item {\tt KH}:
+
+    A Kelvin-Helmholtz shear instability problem.
   
-\item {\tt Sod\_stellar}:
+  \item {\tt oddeven}:
 
-  A version of the Sod shock tube for the general stellar equation of
-  state.  This setup and the included inputs files was used
-  in~\cite{zingalekatz}.
+    A grid-aligned shock hitting a very small density perturbation.
+    This demonstrates the odd-even decoupling problem discussed in
+    \cite{quirk1997}.  This setup serves to test the {\tt
+      castro.hybrid\_riemann} option to hydrodynamics.
+  
+  \item {\tt reacting\_bubble}:
+
+    A reacting bubble in a stratified white dwarf atmosphere.  This
+    problem was featured in the \maestro\ reaction
+    paper~\cite{maestro:III}.
+
+  \item {\tt RT}:
+
+    A single-model Rayleigh-Taylor instability problem.
+  
+  \item {\tt RT\_particles}:
+
+  \item {\tt Sedov}:
+
+    The standard Sedov-Taylor blast wave problem.  This setup was used
+    in the first \castro\ paper~\cite{castro_I}.
+    
+  \item {\tt Sod}:
+  
+    A one-dimensional shock tube setup, including the classic Sod
+    problem.  This setup was used in the original \castro\ paper.
+  
+  \item {\tt Sod\_stellar}:
+
+    A version of the Sod shock tube for the general stellar equation
+    of state.  This setup and the included inputs files was used
+    in~\cite{zingalekatz}.
+
+  \item {\tt toy\_convect}:
+
+    A simple nova-like convection problem with an external heating
+    source.  This problem shows how to use the model parser to
+    initialize a 1-d atmosphere on the Castro grid, incorporate a
+    custom tagging routine, sponge the fluid above the atmosphere, and
+    write a custom diagnostics routine.
+
+    A \maestro\ version of this problem setup also exists.
+  \end{itemize}
+    
+
+\item{\tt radiation\_tests}:
+
+\item{\tt science}:
+
+\item{\tt unit\_tests}:
+
 
   
-\item {\tt toy\_convect}:
-
-  A simple nova-like convection problem with an external heating
-  source.  This problem shows how to use the model parser to
-  initialize a 1-d atmosphere on the Castro grid, incorporate a custom
-  tagging routine, sponge the fluid above the atmosphere, and write a
-  custom diagnostics routine.
-
-  A \maestro\ version of this problem setup also exists.
+  
   
 \end{itemize}

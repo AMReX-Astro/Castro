@@ -23,10 +23,6 @@ typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save or
 using std::istream;
 using std::ostream;
 
-#ifdef LEVELSET
-typedef BaseFab<int> IntFab;
-typedef FabArray<IntFab> IntMultiFab;
-#endif
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -41,19 +37,16 @@ enum StateType { State_Type = 0,
 		 Rotation_Type,
 #endif
 		 Source_Type,
-#ifdef LEVELSET
-                 LS_State_Type,
-#endif
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
 #ifdef SDC
 		 SDC_Source_Type,
 #ifdef REACTIONS
-		 SDC_React_Type,
+		 SDC_React_Type
 #endif
 #endif
-                 NUM_STATE_TYPE };
+};
 
 // Create storage for all source terms.
 
@@ -249,7 +242,7 @@ public:
 
     void check_for_nan(MultiFab& state);
 
-    void cons_to_prim(MultiFab& u, MultiFab& q);
+    void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
 
     void construct_old_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
@@ -386,6 +379,7 @@ public:
     void react_state(MultiFab& state,
 		     MultiFab& reactions,
 		     const iMultiFab& mask,
+		     MultiFab& weights,
 		     Real time,
 		     Real dt_react,
 		     int  ngrow = 0);
@@ -400,9 +394,6 @@ public:
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
-#ifdef TAU
-                      MultiFab&  tau,
-#endif
                       Real       time,
                       Real       dt);
 #endif
@@ -437,10 +428,10 @@ public:
     void construct_old_diff_source(Real time, Real dt);
     void construct_new_diff_source(Real time, Real dt);
 
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm);
-    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
+    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
-    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
@@ -448,13 +439,9 @@ public:
     void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
-#ifdef TAU
-    void define_tau (MultiFab& grav_vector, Real time);
-#endif
-    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
@@ -495,6 +482,8 @@ public:
     void construct_new_hybrid_source(Real time, Real dt);
 
     void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
+
+    void hybrid_sync(MultiFab& state);
 #endif
 
     void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
@@ -504,11 +493,6 @@ public:
     void expand_state(MultiFab& S, Real time, int ng);
 
     void make_radial_data (int is_new);
-
-#ifdef LEVELSET
-    void advance_levelset(Real time, Real dt);
-    void reinit_phi(Real time);
-#endif
 
 #ifdef AUX_UPDATE
     void advance_aux(Real time, Real dt);
@@ -527,6 +511,7 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
+    static int       NQAUX;
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
@@ -557,7 +542,7 @@ protected:
     // are set to 0, whereas others are set to 1.
     //
     PArray<iMultiFab> ib_mask;
-    const iMultiFab& build_interior_boundary_mask (int ng);
+    iMultiFab& build_interior_boundary_mask (int ng);
 
     int get_numpts();
 
@@ -632,6 +617,8 @@ protected:
     Real enforce_min_density (MultiFab& S_old, MultiFab& S_new);
 
     Real clean_state (MultiFab& state);
+
+    Real clean_state (MultiFab& state, MultiFab& state_old);
 
     void avgDown ();
 
@@ -716,9 +703,6 @@ protected:
     MultiFab* NewViscousTermforEnergy;
 #endif
 
-#ifdef TAU
-    MultiFab tau_diff;
-#endif
 
 #ifdef PARTICLES
     static int       do_tracer_particles;
@@ -742,12 +726,6 @@ protected:
     friend class Radiation;
 #endif
 
-#ifdef LEVELSET
-  IntMultiFab LStype;
-  IntMultiFab LSnband;
-  IntMultiFab LSmine;
-#endif
-
 #ifdef PARTICLES
     static TracerParticleContainer* TracerPC;
 #endif
@@ -756,6 +734,9 @@ protected:
     static std::string probin_file;
 
     static IntVect hydro_tile_size;
+
+    static int Knapsack_Weight_Type;
+    static int num_state_type;
 
 /* problem-specific includes */
 #include <Problem.H>

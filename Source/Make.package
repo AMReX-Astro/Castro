@@ -2,6 +2,7 @@
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_hydro.cpp
+CEXE_sources += Castro_sources.cpp
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_error.cpp 
 CEXE_sources += Castro_io.cpp 
@@ -11,6 +12,14 @@ CEXE_sources += main.cpp
 CEXE_headers += castro_params.H
 CEXE_headers += castro_queries.H
 CEXE_headers += castro_defaults.H
+
+CEXE_headers += gravity_params.H
+CEXE_headers += gravity_queries.H
+CEXE_headers += gravity_defaults.H
+
+CEXE_headers += diffusion_params.H
+CEXE_headers += diffusion_queries.H
+CEXE_headers += diffusion_defaults.H
 
 CEXE_headers += Castro.H
 CEXE_headers += Castro_io.H
@@ -51,10 +60,6 @@ ifeq ($(USE_PARTICLES), TRUE)
 CEXE_sources += CastroParticles.cpp
 endif
 
-ifeq ($(USE_LEVELSET), TRUE)
-CEXE_sources += Castro_levelset.cpp
-endif
-
 ifeq ($(USE_DIFFUSION), TRUE)
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
@@ -64,3 +69,20 @@ endif
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
 CEXE_sources += Castro_hybrid.cpp
 endif
+
+ifeq ($(USE_RAD), TRUE)
+CEXE_sources += HypreExtMultiABec.cpp HypreMultiABec.cpp HypreABec.cpp \
+                Radiation.cpp RadSolve.cpp RadBndry.cpp \
+                RadMultiGroup.cpp MGRadBndry.cpp \
+                SGRadSolver.cpp SGFLD.cpp RadPlotvar.cpp \
+                MGFLD.cpp MGFLDRadSolver.cpp Castro_radiation.cpp \
+                energy_diagnostics.cpp
+
+CEXE_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
+                Radiation.H RadSolve.H RadBndry.H \
+                RadTypes.H LHH.H MGRadBndry.H
+
+FEXE_headers += RAD_F.H HABEC_F.H
+
+endif
+

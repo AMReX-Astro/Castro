@@ -70,19 +70,18 @@ contains
     ! ptot : total pressure (note for pure hydro, this is 
     !        just the gas pressure)
     ! rhoe_g : gas specific internal energy
-    ! rhoe : total specific internal energy (including radiation,
-    !        if available)
     ! cgas : sound speed for just the gas contribution
     ! cc : total sound speed (including radiation)
     ! h_g : gas specific enthalpy / cc**2
-    ! htot : total specific enthalpy
+    ! gam_g : the gas Gamma_1
+    ! game : gas gamma_e
     !
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     double precision :: cc, csq, cgassq, Clag
     double precision :: rho, u, v, p, rhoe_g, h_g
-    double precision :: gam, game
+    double precision :: gam_g, game
 
     double precision :: drho, dptot, drhoe_g
     double precision :: dge, dtau
@@ -92,7 +91,7 @@ contains
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
     double precision :: tau_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, gam_ref, game_ref, gfactor
+    double precision :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
     double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
 
     double precision :: alpham, alphap, alpha0r, alpha0e_g
@@ -249,7 +248,7 @@ contains
 
           Clag = rho*cc
 
-          gam = gamc(i,j)
+          gam_g = gamc(i,j)
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
@@ -268,14 +267,14 @@ contains
 
           tau_ref  = ONE/Im(i,j,1,1,QRHO)
 
-          gam_ref  = Im_gc(i,j,1,1,1)
+          gam_g_ref  = Im_gc(i,j,1,1,1)
           game_ref  = Im(i,j,1,1,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
@@ -350,7 +349,7 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              dge = game_ref - Im(i,j,1,2,QGAME)
-             gfactor = (game - ONE)*(game - gam)
+             gfactor = (game - ONE)*(game - gam_g)  ! why not reference ev here?
              alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif ! which tracing method
@@ -396,7 +395,7 @@ contains
                 qxp(i,j,QRHO)   = ONE/tau_s
 
                 qxp(i,j,QU)     = u_ref + (alpham - alphap)*Clag_ev
-                qxp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qxp(i,j,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qxp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qxp(i,j,QREINT) = qxp(i,j,QPRES )/(qxp(i,j,QGAME) - ONE)
@@ -437,14 +436,14 @@ contains
 
           tau_ref  = ONE/Ip(i,j,1,3,QRHO)
 
-          gam_ref    = Ip_gc(i,j,1,3,1)
+          gam_g_ref    = Ip_gc(i,j,1,3,1)
           game_ref    = Ip(i,j,1,3,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref )/csq_ref
@@ -516,7 +515,7 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              dge = game_ref - Ip(i,j,1,2,QGAME)
-             gfactor = (game - ONE)*(game - gam)
+             gfactor = (game - ONE)*(game - gam_g)
              alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
@@ -561,11 +560,11 @@ contains
                 qxm(i+1,j,QPRES)  = p_ref + (alphap + alpham)*csq_ev
 
              else
-                tau_s = tau_ref + (alphap + alpham + alpha0r)
+                tau_s = tau_ref + alphap + alpham + alpha0r
                 qxm(i+1,j,QRHO)   = ONE/tau_s
 
                 qxm(i+1,j,QU)     = u_ref + (alpham - alphap)*Clag_ev
-                qxm(i+1,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qxm(i+1,j,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qxm(i+1,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qxm(i+1,j,QREINT) = qxm(i+1,j,QPRES )/(qxm(i+1,j,QGAME) - ONE)
@@ -690,8 +689,7 @@ contains
 
           Clag = rho*cc
 
-          gam = gamc(i,j)
-
+          gam_g = gamc(i,j)
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
@@ -702,21 +700,20 @@ contains
           ! this will be the fastest moving state to the left
           rho_ref  = Im(i,j,2,1,QRHO)
           v_ref    = Im(i,j,2,1,QV)
-          
+
           p_ref    = Im(i,j,2,1,QPRES)
           rhoe_g_ref = Im(i,j,2,1,QREINT)
 
           tau_ref  = ONE/Im(i,j,2,1,QRHO)
 
-          gam_ref  = Im_gc(i,j,2,1,1)
-          
+          gam_g_ref  = Im_gc(i,j,2,1,1)
           game_ref = Im(i,j,2,1,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
@@ -787,7 +784,7 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              dge = game_ref - Im(i,j,2,2,QGAME)
-             gfactor = (game - ONE)*(game - gam)
+             gfactor = (game - ONE)*(game - gam_g)
              alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
@@ -833,7 +830,7 @@ contains
                 qyp(i,j,QRHO)   = ONE/tau_s
 
                 qyp(i,j,QV)     = v_ref + (alpham - alphap)*Clag_ev
-                qyp(i,j,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qyp(i,j,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qyp(i,j,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qyp(i,j,QREINT) = qyp(i,j,QPRES )/(qyp(i,j,QGAME) - ONE)
@@ -870,15 +867,14 @@ contains
           
           tau_ref  = ONE/Ip(i,j,2,3,QRHO)
 
-          gam_ref    = Ip_gc(i,j,2,3,1)
-
+          gam_g_ref    = Ip_gc(i,j,2,3,1)
           game_ref    = Ip(i,j,2,3,QGAME)
 
           rho_ref = max(rho_ref,small_dens)
           p_ref = max(p_ref,small_pres)
 
           ! for tracing (optionally)
-          cc_ref = sqrt(gam_ref*p_ref/rho_ref)
+          cc_ref = sqrt(gam_g_ref*p_ref/rho_ref)
           csq_ref = cc_ref**2
           Clag_ref = rho_ref*cc_ref
           h_g_ref = ( (rhoe_g_ref+p_ref)/rho_ref )/csq_ref
@@ -947,7 +943,7 @@ contains
              alpha0r = dtau + dptot/Clag_ev**2
 
              dge = game_ref - Ip(i,j,2,2,QGAME)
-             gfactor = (game - ONE)*(game - gam)
+             gfactor = (game - ONE)*(game - gam_g)
              alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
           endif
@@ -992,7 +988,7 @@ contains
                 qym(i,j+1,QRHO)   = ONE/tau_s
 
                 qym(i,j+1,QV)     = v_ref + (alpham - alphap)*Clag_ev
-                qym(i,j+1,QPRES)  = p_ref + (-alphap - alpham)*Clag_ev**2
+                qym(i,j+1,QPRES)  = p_ref - (alphap + alpham)*Clag_ev**2
 
                 qym(i,j+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
                 qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)

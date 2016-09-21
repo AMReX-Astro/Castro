@@ -26,6 +26,7 @@ contains
 
   subroutine umeth1d(lo,hi,domlo,domhi, &
                      q,flatn,qd_l1,qd_h1, &
+                     qaux,qa_l1,qa_h1, &
                      srcQ,src_l1,src_h1, &
                      ilo,ihi,dx,dt, &
                      flux ,   fd_l1,   fd_h1, &
@@ -33,7 +34,7 @@ contains
                      ugdnv,ugdnv_l1,ugdnv_h1, &
                      dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC
+    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX
     use riemann_module, only : cmpflx
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
@@ -44,6 +45,7 @@ contains
     integer domlo(1),domhi(1)
     integer dloga_l1,dloga_h1
     integer qd_l1,qd_h1
+    integer qa_l1,qa_h1
     integer src_l1,src_h1
     integer fd_l1,fd_h1
     integer pgdnv_l1,pgdnv_h1
@@ -51,6 +53,7 @@ contains
     integer ilo,ihi
     double precision dx, dt
     double precision     q(   qd_l1:qd_h1,QVAR)
+    double precision  qaux(   qa_l1:qa_h1,NQAUX)
     double precision flatn(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
@@ -67,7 +70,7 @@ contains
 
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
-       call trace_ppm(q,q(:,QC),flatn,q(:,QGAMC),qd_l1,qd_h1, &
+       call trace_ppm(q,qaux(:,QC),flatn,qaux(:,QGAMC),qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
                       qm,qp,ilo-1,ihi+1, &
@@ -75,7 +78,7 @@ contains
     else
        allocate ( dq(ilo-1:ihi+1,QVAR))
 
-       call trace(q,dq,q(:,QC),flatn,qd_l1,qd_h1, &
+       call trace(q,dq,qaux(:,QC),flatn,qd_l1,qd_h1, &
                   dloga,dloga_l1,dloga_h1, &
                   srcQ,src_l1,src_h1, &
                   qm,qp,ilo-1,ihi+1, &
@@ -90,7 +93,7 @@ contains
                 flux ,  fd_l1, fd_h1, &
                 pgdnv,pgdnv_l1,pgdnv_h1, &
                 ugdnv,ugdnv_l1,ugdnv_h1, &
-                q(:,QGAMC),q(:,QCSML),q(:,QC),qd_l1,qd_h1,ilo,ihi)
+                qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
 
     deallocate (qm,qp)
 
@@ -105,6 +108,7 @@ contains
                     uout, uout_l1 ,uout_h1, &
                     update,updt_l1,updt_h1, &
                     pgdnv,pgdnv_l1,pgdnv_h1, &
+                    q, q_l1, q_h1, &
                     flux, flux_l1, flux_h1, &
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
@@ -116,9 +120,11 @@ contains
 
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, track_grid_losses
+                                   UEDEN, UEINT, UTEMP, track_grid_losses, &
+                                   limit_fluxes_on_small_dens, QVAR
     use bl_constants_module
     use advection_util_1d_module, only: normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -128,6 +134,7 @@ contains
     integer  uout_l1, uout_h1
     integer  updt_l1, updt_h1
     integer pgdnv_l1,pgdnv_h1
+    integer     q_l1,    q_h1
     integer  flux_l1, flux_h1
     integer  area_l1, area_h1
     integer   vol_l1,  vol_h1
@@ -136,6 +143,7 @@ contains
     double precision  uout(uout_l1:uout_h1,NVAR)
     double precision update(updt_l1:updt_h1,NVAR)
     double precision pgdnv(pgdnv_l1:pgdnv_h1)
+    double precision     q(q_l1:q_h1,QVAR)
     double precision  flux( flux_l1: flux_h1,NVAR)
     double precision  area( area_l1: area_h1)
     double precision    vol(vol_l1:vol_h1)
@@ -154,20 +162,30 @@ contains
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else if ( n == UMY ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else if ( n == UMZ ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
        else
           do i = lo(1),hi(1)+1
              div1 = difmag*min(ZERO,div(i))
-             flux(i,n) = flux(i,n) &
-                  + dx*div1*(uin(i,n) - uin(i-1,n))
-             flux(i,n) = area(i) * flux(i,n)
+             flux(i,n) = flux(i,n) + dx*div1*(uin(i,n) - uin(i-1,n))
           enddo
        endif
     enddo
+
+
+    ! Limit the fluxes to avoid negative/small densities.
+
+    if (limit_fluxes_on_small_dens .eq. 1) then
+       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, 0, 0], [uin_h1, 0, 0], &
+                                             q, [q_l1, 0, 0], [q_h1, 0, 0], &
+                                             vol, [vol_l1, 0, 0], [vol_h1, 0, 0], &
+                                             flux, [flux_l1, 0, 0], [flux_h1, 0, 0], &
+                                             area, [area_l1, 0, 0], [area_h1, 0, 0], &
+                                             [lo(1), 0, 0], [hi(1), 0, 0], dt, [dx, ZERO, ZERO])
+    endif
 
     ! Normalize the species fluxes.
 
@@ -178,7 +196,7 @@ contains
     do n = 1, NVAR
        do i = lo(1), hi(1)
 
-          update(i,n) = update(i,n) + ( flux(i,n) - flux(i+1,n) ) / vol(i)
+          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
 
           ! Add p div(u) source term to (rho e).
 
@@ -199,17 +217,33 @@ contains
 
     enddo
 
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do i = lo(1), hi(1)+1
+
+          flux(i,n) = dt * area(i) * flux(i,n)
+
+          ! Correct the momentum flux with the grad p part.
+
+          if (coord_type .eq. 0 .and. n == UMX) then
+             flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
+          endif
+
+       enddo
+    enddo
+
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
 
        do i = lo(1), hi(1)
 
-          mass_added_flux = mass_added_flux + dt * ( flux(i,URHO ) - flux(i+1,URHO ) )
-          xmom_added_flux = xmom_added_flux + dt * ( flux(i,UMX  ) - flux(i+1,UMX  ) )
-          ymom_added_flux = ymom_added_flux + dt * ( flux(i,UMY  ) - flux(i+1,UMY  ) )
-          zmom_added_flux = zmom_added_flux + dt * ( flux(i,UMZ  ) - flux(i+1,UMZ  ) )
-          E_added_flux    = E_added_flux    + dt * ( flux(i,UEDEN) - flux(i+1,UEDEN) )
+          mass_added_flux = mass_added_flux + ( flux(i,URHO ) - flux(i+1,URHO ) )
+          xmom_added_flux = xmom_added_flux + ( flux(i,UMX  ) - flux(i+1,UMX  ) )
+          ymom_added_flux = ymom_added_flux + ( flux(i,UMY  ) - flux(i+1,UMY  ) )
+          zmom_added_flux = zmom_added_flux + ( flux(i,UMZ  ) - flux(i+1,UMZ  ) )
+          E_added_flux    = E_added_flux    + ( flux(i,UEDEN) - flux(i+1,UEDEN) )
 
        enddo
 
@@ -229,13 +263,13 @@ contains
 
           loc = position(i,j,k,ccx=.false.)
 
-          mass_lost = mass_lost - dt * flux(i,URHO)
-          xmom_lost = xmom_lost - dt * flux(i,UMX)
-          ymom_lost = ymom_lost - dt * flux(i,UMY)
-          zmom_lost = zmom_lost - dt * flux(i,UMZ)
-          eden_lost = eden_lost - dt * flux(i,UEDEN)
+          mass_lost = mass_lost - flux(i,URHO)
+          xmom_lost = xmom_lost - flux(i,UMX)
+          ymom_lost = ymom_lost - flux(i,UMY)
+          zmom_lost = zmom_lost - flux(i,UMZ)
+          eden_lost = eden_lost - flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc - center, dt * flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost - ang_mom(1)
           yang_lost = yang_lost - ang_mom(2)
           zang_lost = zang_lost - ang_mom(3)
@@ -248,13 +282,13 @@ contains
 
           loc = position(i,j,k,ccx=.false.)
 
-          mass_lost = mass_lost + dt * flux(i,URHO)
-          xmom_lost = xmom_lost + dt * flux(i,UMX)
-          ymom_lost = ymom_lost + dt * flux(i,UMY)
-          zmom_lost = zmom_lost + dt * flux(i,UMZ)
-          eden_lost = eden_lost + dt * flux(i,UEDEN)
+          mass_lost = mass_lost + flux(i,URHO)
+          xmom_lost = xmom_lost + flux(i,UMX)
+          ymom_lost = ymom_lost + flux(i,UMY)
+          zmom_lost = zmom_lost + flux(i,UMZ)
+          eden_lost = eden_lost + flux(i,UEDEN)
 
-          ang_mom   = linear_to_angular_momentum(loc - center, dt * flux(i,UMX:UMZ))
+          ang_mom   = linear_to_angular_momentum(loc - center, flux(i,UMX:UMZ))
           xang_lost = xang_lost + ang_mom(1)
           yang_lost = yang_lost + ang_mom(2)
           zang_lost = zang_lost + ang_mom(3)
@@ -262,22 +296,6 @@ contains
        endif
 
     endif
-
-    ! Scale the fluxes for the form we expect later in refluxing.
-
-    do n = 1, NVAR
-       do i = lo(1), hi(1)+1
-
-          flux(i,n) = dt * flux(i,n)
-
-          ! Correct the momentum flux with the grad p part.
-
-          if (coord_type .eq. 0 .and. n == UMX) then
-             flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
-          endif
-
-       enddo
-    enddo
 
   end subroutine consup
 

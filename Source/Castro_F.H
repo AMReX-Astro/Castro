@@ -2,6 +2,8 @@
 #define _Castro_F_H_
 #include <BLFort.H>
 
+#include <BoxLib.H>
+
 extern "C"
 {
 
@@ -22,6 +24,8 @@ extern "C"
   void get_aux_names(int* aux_names, int* iaux, int* len);
 
   void get_qvar(int* qvar);
+
+  void get_nqaux(int* nqaux);
 
   void ca_set_special_tagging_flag(const Real& max_den, const int* flag);
 
@@ -51,10 +55,8 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
-     const int* gravity_type, const int* gravity_type_len,
-     const int& get_g_from_phi,
-     const Real& diffuse_cutoff_density,
-     const Real& const_grav);
+     const int* gravity_type, const int& gravity_type_len,
+     const Real& diffuse_cutoff_density);
 
   void set_castro_method_params();
 
@@ -108,10 +110,12 @@ extern "C"
 
   void ctoprim(const int* lo, const int* hi,
 	       const Real* u, const int* u_lo, const int* u_hi,
-	       const Real* q, const int* q_lo, const int* q_hi);
+	       const Real* q, const int* q_lo, const int* q_hi,
+               const Real* qaux, const int* qa_lo, const int* qa_hi);
 
   void srctoprim(const int* lo,   const int* hi,
 		 const Real* q,   const int* q_lo,   const int* q_hi,
+		 const Real* qaux, const int* qa_lo, const int* qa_hi,
 		 const Real* src, const int* src_lo, const int* src_hi,
 		 const Real* srQ, const int* srQ_lo, const int* srQ_hi);
 
@@ -267,6 +271,13 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
+  inline void ca_nullfill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const Real* dx, const Real* glo, 
+     const Real* time, const int* bc)
+  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
+
 #else
 
   void ca_hypfill
@@ -387,6 +398,13 @@ extern "C"
      const Real* time, const int bc[]);
 #endif
 
+  inline void ca_nullfill
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const Real dx[], const Real glo[],
+     const Real* time, const int bc[])
+  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
+
 #endif
 
   void ca_estdt
@@ -441,6 +459,7 @@ extern "C"
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
      BL_FORT_FAB_ARG(q),
+     BL_FORT_FAB_ARG(qaux),
      BL_FORT_FAB_ARG(src_q),
      BL_FORT_FAB_ARG(update),
      BL_FORT_FAB_ARG(ugdnvx),
@@ -595,7 +614,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(gdPhi),
      const BL_FORT_FAB_ARG_3D(S),
      const BL_FORT_FAB_ARG_3D(dS),
-     BL_FORT_FAB_ARG_3D(src),
+     BL_FORT_FAB_ARG_3D(src), const int* ncomp,
      const Real& dt);
 
 #endif
@@ -682,9 +701,7 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
-#ifdef TAU
-     const BL_FORT_FAB_ARG_3D(Tau),
-#endif
+     BL_FORT_FAB_ARG_3D(weights),
      const BL_FORT_IFAB_ARG_3D(mask),
      const Real& time, const Real& dt_react);
 #endif
@@ -702,9 +719,6 @@ extern "C"
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-#ifdef TAU
-     const BL_FORT_FAB_ARG_3D(tau_diff),
-#endif
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
      const BL_FORT_FAB_ARG_3D(zcoeffs));
@@ -743,14 +757,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, const int* coord_type);
 
-#ifdef TAU
-  void ca_define_tau
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(tau_diff),
-     const BL_FORT_FAB_ARG(state),
-     const BL_FORT_FAB_ARG(grav),
-     const Real dx[]);
-#endif
 
 #ifdef AUX_UPDATE
   void ca_auxupdate

@@ -3,6 +3,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      uin,uin_l1,uin_h1,&
      uout,uout_l1,uout_h1,&
      q,q_l1,q_h1,&
+     qaux,qa_l1,qa_h1,&
      srcQ,srQ_l1,srQ_h1,&
      update,updt_l1,updt_h1,&
      ugdnv,ugdnv_l1,ugdnv_h1,&
@@ -16,7 +17,7 @@ subroutine ca_umdrv(is_finest_level,time,&
      E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
      eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NVAR, NHYP, use_flattening
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, use_flattening
   use advection_module  , only : umeth1d, consup
   use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
@@ -31,6 +32,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer uin_l1,uin_h1
   integer uout_l1,uout_h1
   integer q_l1,q_h1
+  integer qa_l1,qa_h1
   integer srQ_l1,srQ_h1
   integer updt_l1,updt_h1
   integer ugdnv_l1,ugdnv_h1
@@ -42,6 +44,7 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision   uin(  uin_l1:  uin_h1,NVAR)
   double precision  uout( uout_l1: uout_h1,NVAR)
   double precision     q(    q_l1:    q_h1,QVAR)
+  double precision  qaux(   qa_l1:   qa_h1,NQAUX)
   double precision  srcQ(  srQ_l1:  srQ_h1,QVAR)
   double precision update(updt_l1: updt_h1,NVAR)
   double precision ugdnv(ugdnv_l1:ugdnv_h1)
@@ -114,13 +117,14 @@ subroutine ca_umdrv(is_finest_level,time,&
   endif
 
   call umeth1d(lo,hi,domlo,domhi, &
-       q,flatn,q_l1,q_h1, &
-       srcQ,srQ_l1,srQ_h1, &
-       lo(1),hi(1),dx,dt, &
-       flux,flux_l1,flux_h1, &
-       pgdnv,lo(1),hi(1)+1, &
-       ugdnv,ugdnv_l1,ugdnv_h1, &
-       dloga,dloga_l1,dloga_h1)
+               q,flatn,q_l1,q_h1, &
+               qaux,qa_l1,qa_h1, &
+               srcQ,srQ_l1,srQ_h1, &
+               lo(1),hi(1),dx,dt, &
+               flux,flux_l1,flux_h1, &
+               pgdnv,lo(1),hi(1)+1, &
+               ugdnv,ugdnv_l1,ugdnv_h1, &
+               dloga,dloga_l1,dloga_h1)
 
   ! Define p*divu
   do i = lo(1), hi(1)
@@ -138,6 +142,7 @@ subroutine ca_umdrv(is_finest_level,time,&
        uout,uout_l1,uout_h1, &
        update,updt_l1,updt_h1, &
        pgdnv,lo(1),hi(1)+1, &
+       q,q_l1,q_h1, &
        flux,flux_l1,flux_h1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &

@@ -1,6 +1,10 @@
 BOXLIB_HOME ?= /path/to/BoxLib
 CASTRO_HOME ?= /path/to/Castro
 
+# radiation needs hypre
+HYPRE_DIR ?= /path/to/Hypre
+HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
+
 TOP := $(CASTRO_HOME)
 
 EOS_HOME ?= $(TOP)/Microphysics/EOS
@@ -74,9 +78,8 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
-  ifeq ($(RAD_INTERP), TRUE)
-    DEFINES += -DRAD_INTERP
-  endif
+  DEFINES += -DRAD_INTERP
+
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
     optionsSuffix   = $(DIM)d.Neutrino.$(machineSuffix)
@@ -99,6 +102,10 @@ ifeq ($(USE_ROTATION), TRUE)
   DEFINES += -DROTATION
 endif
 
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
+endif
+
 ifeq ($(USE_HYPRE), TRUE)
   ifeq ($(USE_OMP), TRUE)
     INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
@@ -118,7 +125,6 @@ ifeq ($(USE_HDF5), TRUE)
 endif
 
 all: $(executable) 
-	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
 # for backward compatibility -- MICROPHYSICS_DIR is deprecated
@@ -145,18 +151,15 @@ ifeq ($(USE_DIFFUSION), TRUE)
   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
-    EOS_PATH     := $(RADIATION_DIR)/EOS/$(strip $(EOS_dir))
-  endif
-  ifneq "$(wildcard $(RADIATION_DIR)/Networks/$(strip $(Network_dir)) )" ""
-    NETWORK_PATH := $(RADIATION_DIR)/Networks/$(strip $(Network_dir))
-  endif
-  # Check if the test directory has Network_inputs
-  ifneq "$(wildcard $(Network_inputs))" ""
-    GENERAL_NET_INPUTS := $(Network_inputs)
-  else 
-    GENERAL_NET_INPUTS := $(NETWORK_PATH)/$(strip $(Network_inputs))
+# Problems can specify the input file for general_null by 
+# setting GENERAL_NET_INPUTS directly (full path) or just
+# specifying the name of the inputs file as NETWORK_INPUTS
+# and let us sort it out
+ifndef GENERAL_NET_INPUTS
+  ifneq "$(wildcard $(NETWORK_INPUTS))" ""
+    GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
+  else
+    GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
   endif
 endif
 
@@ -193,7 +196,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif	      
 
 ifeq ($(USE_RAD), TRUE)
-  OPAC_PATH := $(RADIATION_DIR)/Opacity/$(Opacity_dir)
+  OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
   include $(OPAC_PATH)/Make.package
   EXTERN_CORE += $(OPAC_PATH)
 endif
@@ -250,7 +253,10 @@ Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 ifeq ($(USE_RAD), TRUE)
-include $(RADIATION_DIR)/Exec/Make.Radiation
+RadDirs := Source/_interpbndry
+
+Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
+Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
 endif
 
 include $(Bpack)
@@ -307,7 +313,7 @@ extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            --pa "$(EXTERN_PARAMETERS)" 
 
 # job_info support
-CEXE_sources += buildInfo.cpp
+#CEXE_sources += buildInfo.cpp
 CEXE_headers += $(BOXLIB_HOME)/Tools/C_scripts/buildInfo.H
 INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
 
@@ -321,7 +327,16 @@ ifeq ($(USE_RAD), TRUE)
   MNAMES += OPACITY=$(OPAC_PATH)
 endif
 
-buildInfo.cpp:
+# we make buildInfo.cpp as we make the .o file, so we can delete it
+# immediately.  this way if the build is interrupted, we are guaranteed
+# to remake it
+
+objForExecs += $(objEXETempDir)/buildInfo.o
+
+.FORCE:
+.PHONE: .FORCE
+
+$(objEXETempDir)/buildInfo.o: .FORCE
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
@@ -339,6 +354,9 @@ else
           --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)"
 endif
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) buildInfo.cpp -o $(objEXETempDir)/buildInfo.o
+	$(SILENT) $(RM) buildInfo.cpp
+
 
 vpath %.c   . $(VPATH_LOCATIONS)
 vpath %.cpp . $(VPATH_LOCATIONS)

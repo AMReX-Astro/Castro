@@ -2,6 +2,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
                     uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
                     q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
+                    qaux,qa_l1,qa_l2,qa_l3,qa_h1,qa_h2,qa_h3, &
                     srcQ,srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
                     update,updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3, &
                     ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
@@ -21,7 +22,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NVAR, NHYP, NGDNV, &
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
                                  GDU, GDV, GDW, use_flattening
   use advection_module, only : umeth3d, consup
   use advection_util_3d_module, only : divu
@@ -37,6 +38,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer, intent(in) :: uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
   integer, intent(in) :: uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
   integer, intent(in) :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+  integer, intent(in) :: qa_l1,qa_l2,qa_l3,qa_h1,qa_h2,qa_h3
   integer, intent(in) :: srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
   integer, intent(in) :: updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3
   integer, intent(in) :: ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
@@ -57,6 +59,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(out) :: ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
   double precision, intent(out) :: ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
   double precision, intent(inout) ::  q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+  double precision, intent(in) ::  qaux(qa_l1:qa_h1,qa_l2:qa_h2,qa_l3:qa_h3,NQAUX)
   double precision, intent(in) ::   srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
   double precision, intent(inout) :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
   double precision, intent(inout) :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
@@ -96,6 +99,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: ugdnvz_lo(3), ugdnvz_hi(3)
   integer :: vol_lo(3), vol_hi(3)
   integer :: q_lo(3), q_hi(3)
+  integer :: qa_lo(3), qa_hi(3)
   integer :: srQ_lo(3), srQ_hi(3)
   integer :: q1_lo(3), q1_hi(3), q2_lo(3), q2_hi(3), q3_lo(3), q3_hi(3)
 
@@ -104,6 +108,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   q_lo = [ q_l1, q_l2, q_l3 ]
   q_hi = [ q_h1, q_h2, q_h3 ]
+
+  qa_lo = [ qa_l1, qa_l2, qa_l3 ]
+  qa_hi = [ qa_h1, qa_h2, qa_h3 ]
 
   srQ_lo = [ srQ_l1, srQ_l2, srQ_l3 ]
   srQ_hi = [ srQ_h1, srQ_h2, srQ_h3 ]
@@ -175,6 +182,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d(q,flatn,q_lo,q_hi, &
+               qaux,qa_lo,qa_hi, &
                srcQ,srQ_lo,srQ_hi, &
                lo,hi,delta,dt, &
                uout,uout_lo,uout_hi, &
@@ -191,6 +199,7 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Conservative update
   call consup(uin ,  uin_lo , uin_hi, &
+              q, q_lo, q_hi, &
               uout, uout_lo, uout_hi, &
               update, updt_lo, updt_hi, &
               flux1, flux1_lo, flux1_hi, &

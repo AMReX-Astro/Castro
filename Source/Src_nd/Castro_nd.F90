@@ -157,6 +157,22 @@
 ! ::: ----------------------------------------------------------------
 ! :::
 
+      subroutine get_nqaux(nqaux_in) bind(C, name="get_nqaux")
+
+        use meth_params_module, only: NQAUX
+
+        implicit none
+
+        integer, intent(inout) :: nqaux_in
+
+        nqaux_in = NQAUX
+
+      end subroutine get_nqaux
+
+! :::
+! ::: ----------------------------------------------------------------
+! :::
+
       subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
            bind(C, name="set_amr_info")
 
@@ -325,9 +341,7 @@
                                    Shock, &
 #endif
                                    gravity_type_in, gravity_type_len, &
-                                   get_g_from_phi_in, &
-                                   diffuse_cutoff_density_in, &
-                                   const_grav_in) &
+                                   diffuse_cutoff_density_in) &
                                    bind(C, name="set_method_params")
 
         use meth_params_module
@@ -346,12 +360,11 @@
         integer, intent(in) :: Shock
 #endif
         integer, intent(in) :: gravity_type_len
-        integer, intent(in) :: get_g_from_phi_in
         integer, intent(in) :: gravity_type_in(gravity_type_len)
-        double precision, intent(in) :: const_grav_in, diffuse_cutoff_density_in
+        double precision, intent(in) :: diffuse_cutoff_density_in
         integer :: iadv, ispec
 
-        integer             :: QLAST
+        integer :: QLAST
 
         integer :: i
         integer :: ioproc
@@ -365,7 +378,10 @@
         ! NTHERM: number of thermodynamic variables (rho, 3 momenta, rho*e, rho*E, T)
         ! NVAR  : number of total variables in initial system
         NTHERM = 7
+
 #ifdef HYBRID_MOMENTUM
+        ! Include the hybrid momenta in here as well if we're using them.
+
         NTHERM = NTHERM + 3
 #endif
 
@@ -412,15 +428,19 @@
         ! primitive state components
         !---------------------------------------------------------------------
 
-        ! QTHERM: number of primitive variables: rho, p, (rho e), T
-        !         + 3 velocity components + 6 auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
+        ! QTHERM: number of primitive variables: rho, p, (rho e), T + 3 velocity components 
         ! QVAR  : number of total variables in primitive form
 
-        QTHERM = NTHERM + 6
+        QTHERM = NTHERM + 1 ! the + 1 is for QGAME which is always defined in primitive mode
 
 #ifdef HYBRID_MOMENTUM
+        ! There is no primitive variable analogue of the hybrid momenta;
+        ! all of the hydro reconstructions are done using the linear momenta,
+        ! which are always intended to be in sync with the hybrid momenta.
+
         QTHERM = QTHERM - 3
 #endif
+
         QVAR = QTHERM + nspec + naux + numadv
 
         ! We use these to index into the state "Q"
@@ -430,19 +450,14 @@
         QV    = 3
         QW    = 4
 
-        ! Carry some auxiliary data around that we get from the EOS
-        QGAME   = 5
-        QGAMC   = 6
-        QC      = 7
-        QCSML   = 8
-        QDPDR   = 9
-        QDPDE   = 10
-        QLAST   = QDPDE
+        QGAME = 5
+
+        QLAST   = QGAME
 
         QPRES   = QLAST + 1
         QREINT  = QLAST + 2
 
-        QTEMP   = QTHERM
+        QTEMP   = QTHERM ! = QLAST + 3
 
         if (numadv >= 1) then
           QFA = QTHERM + 1
@@ -461,6 +476,18 @@
           QFX = 1
 
         end if
+
+        ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
+        ! that we create in the primitive variable call but that do not need to
+        ! participate in tracing.
+
+        NQAUX = 5
+
+        QGAMC   = 1
+        QC      = 2
+        QCSML   = 3
+        QDPDR   = 4
+        QDPDE   = 5
 
         ! easy indexing for the passively advected quantities.  This
         ! lets us loop over all groups (advected, species, aux)
@@ -517,10 +544,7 @@
            gravity_type(i:i) = char(gravity_type_in(i))
         enddo
 
-        get_g_from_phi               = get_g_from_phi_in .ne. 0
-
         diffuse_cutoff_density       = diffuse_cutoff_density_in
-        const_grav                   = const_grav_in
 
 #ifdef ROTATION
         rot_vec = ZERO
@@ -567,9 +591,9 @@
         !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
         !$acc device(USHK) &
         !$acc device(QTHERM, QVAR) &
-        !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-        !$acc device(QGAMC, QGAME) &
-        !$acc device(QFA, QFS, QFX), &
+        !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
+        !$acc device(QFA, QFS, QFX) &
+        !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
         !$acc device(small_dens, small_temp)
 
       end subroutine set_method_params

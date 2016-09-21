@@ -1,5 +1,84 @@
 * changes since the last release:
 
+  -- the problem setups have been moved into sub-directory
+     categories to make it easier to read (issue #32)
+
+  -- the way we we use tolerances in the multigrid solve for Poisson
+     gravity has changed. The old behavior is that you would pass in
+     gravity.ml_tol as the relative tolerance on each grid level, and
+     absolute tolerances would not be used. This suffered from some
+     defects, notably that on fine grids you often had to loosen the
+     relative tolerance on each higher level to achieve convergence,
+     and in certain cases the scheme would fail completely, for
+     example if the fine grids were not covering the mass on the
+     grid. We now use an input parameter gravity.abs_tol which
+     controls the absolute scale of the tolerance. This can either be
+     an array of values, one for each level, or a single scalar
+     value. If it is the latter, then the absolute tolerance passed
+     into the multigrid scheme is the tolerance multiplied by the
+     maximum value of the RHS over the entire domain.  On the coarse
+     grid, then, the absolute tolerance is 4*pi*G*rho_max*abs_tol, and
+     on fine grids this is multiplied by ref_ratio**2. If you do not
+     specify gravity.abs_tol, then a reasonable value is selected for
+     the coarse level, and the same scheme is used to give it
+     reasonable values on the fine levels as well. The parameter
+     gravity.ml_tol has been renamed gravity.rel_tol, and has the same
+     meaning as before, but it now defaults to zero. gravity.ml_tol is
+     now deprecated, and will be removed in a future release. Note
+     that the tolerance used in determining convergence is always the
+     less restrictive of the relative and absolute tolerance
+     requirements.  gravity.delta_tol has been removed. (issue #43)
+
+  -- the radiation hydro solver, that used to live in
+     CastroRadiation.git has now been completely integrated into the
+     main Castro git repo.  The history was preserved in the
+     transition It has also been cleaned up a little (issues #24, #31,
+     #33)
+
+     The radiation build variable Network_inputs was renamed
+     to NETWORK_INPUTS for consistency.
+
+     The EOSes that used to come with CastroRadiation are available
+     in Microphysics.git
+
+  -- the gravity and diffusion runtime parameters have been moved
+     to the master _cpp_parameters file (issue #42)
+
+  -- enthalpy, species, and temperature diffusion are now properly
+     time-centered (issue #22), and a bug in the hi boundary
+     inflow boundary conditions for diffusion was fixed (issue #41)
+  
+  -- a flux limiter has been added that limits the size of the hydro
+     fluxes if they would cause rho or (rho e) to go negative. This
+     can be used with castro.limit_hydro_fluxes_on_small_dens = 1.
+
+  -- a bug for single-level problems with Poisson gravity has been
+     fixed where the multi-grid tolerance was being set to an
+     uninitialized value
+
+  -- a flaw in the source terms for the primitive variables in the
+     hydro update has been fixed, so that source terms like gravity
+     should no longer affect the pressure and (rho e) interface states
+     (issue #19)
+
+  -- the prediction of source terms to the half-time used in the
+     hydrodynamics reconstruction was not being done properly.
+     This has been fixed (issue #18)
+
+  -- the radiation hydro ppm now implements the ppm_predict_gammae
+     option
+
+  -- we no longer ship VODE or BLAS with Castro -- these are provided
+     by the separate Microphysics git repo
+
+  -- the documentation of the architecture of Castro has been
+     significantly improved (issues #20, #23, #29, #31)
+
+
+previous changes:
+
+* 16.09:
+
   -- the PPM tracing routine for radiation was synced up with the pure
      hydro version.  In particular, it now supports ppm_trace_sources,
      implements the reference states and fixes an issue with the
@@ -70,7 +149,6 @@
   -- the default for castro.point_mass_fix_solution was changed to 0
      -- this is a more expected behavior for new users.
 
-previous changes:
 
 * 16.08
 

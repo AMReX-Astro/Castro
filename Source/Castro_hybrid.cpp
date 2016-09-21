@@ -55,3 +55,26 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
   }
 
 }
+
+
+
+void
+Castro::hybrid_sync(MultiFab& state)
+{
+
+    if (hybrid_hydro) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+
+	    const Box& bx = mfi.tilebox();
+
+	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(state[mfi]));
+
+	}
+
+    }
+
+}

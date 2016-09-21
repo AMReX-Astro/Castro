@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import re
 import sys
 
 # tex format stuff
@@ -71,6 +72,7 @@ class Parameter(object):
         self.default=""
         self.description=[]
         self.category=""
+        self.namespace=""
 
     def value(self):
         """ the value is what we sort based on """
@@ -105,6 +107,20 @@ def make_tex_table():
             line = f.readline()
             continue
 
+        if line.startswith("@"):
+            # this is a command -- we only know namespace
+            fields = line.split()
+            if fields[0].startswith("@namespace"):
+                namespace = fields[1].strip()
+                category = ""
+                line = f.readline()
+                continue
+
+            else:
+                print(fields[0])
+                sys.exit("invalid command in parameter file")
+                
+
         # look for category definition
         if line.startswith("#------"):
 
@@ -131,13 +147,19 @@ def make_tex_table():
 
         else:
             current_param = Parameter()
-            line_list = line.split()
 
-            current_param.var = line_list[0]
-            current_param.default = line_list[2].replace("_", "\_")
+            # this splits the line into separate fields.  A field is a                              
+            # single word or a pair in parentheses like "(a, b)"                                    
+            fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line) 
+
+            current_param.var = fields[0]
+            if current_param.var.startswith("("):
+                current_param.var = re.findall(r"\w+", fields[0])[0]
+
+            current_param.default = fields[2].replace("_", "\_")
             current_param.description = descr
             current_param.category = category
-
+            current_param.namespace = namespace
             descr = r""
 
         # store the current parameter in the list
@@ -145,39 +167,54 @@ def make_tex_table():
                 
         line = f.readline()
 
-    
-    # dump the main header
-    print(Mheader)
 
-    # sort the parameters and dump them in latex-fashion.  Group
-    # things by category
-    current_category = ""
-    start = 1
+    namespaces = list(set([q.namespace for q in params_list]))
 
-    for param in sorted(params_list):
+    for nm in sorted(namespaces):
+  
+        print(r"\section{{ {{\tt {} }} Namespace}}".format(nm))
 
-        if not param.category == current_category:
-            if not start == 1:
-                print(footer)
+        # dump the main header
+        print(Mheader)
 
-            current_category = param.category
-            odd = 1
-            cat_header = header.replace("@@catname@@", param.category + " parameters.")
-            print(cat_header)
-            start = 0
+        # sort the parameters and dump them in latex-fashion.  Group
+        # things by category
+        current_category = -1
+        start = 1
 
-        if odd == 1:
-            print(r"\rowcolor{tableShade}")
-            odd = 0
-        else:
-            odd = 1
+        nm_params = [q for q in params_list if q.namespace == nm]
 
-        print(r"\verb= {} = & {} & {} \\".format(
-            param.var, param.description, param.default))
+        for param in sorted(nm_params):
 
-    # dump the footer
-    print(footer)
-    print(Mfooter)
+            if not param.category == current_category:
+                if not start == 1:
+                    print(footer)
+
+                current_category = param.category
+                odd = 1
+                if param.category != "":
+                    cat_header = header.replace("@@catname@@", "{} : {} parameters".format(
+                        param.namespace, param.category))
+                else:
+                    cat_header = header.replace("@@catname@@", "{} parameters".format(
+                        param.namespace))
+
+                print(cat_header)
+                start = 0
+
+            if odd == 1:
+                print(r"\rowcolor{tableShade}")
+                odd = 0
+            else:
+                odd = 1
+
+            print(r"\runparamNS{{{}}}{{{}}} & {} & {} \\".format(
+                param.var.replace("_", r"\_"), param.namespace,
+                param.description, param.default))
+
+        # dump the footer
+        print(footer)
+        print(Mfooter)
 
 if __name__ == "__main__":
     make_tex_table()

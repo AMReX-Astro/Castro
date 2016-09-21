@@ -112,3 +112,30 @@ other missing files need to be investigated.
 
 
 \end{enumerate}
+
+
+\section{Managing Runs}
+
+\begin{enumerate}
+
+\item {\em How can I force the running code to output, even it the plot or
+ checkpoint interval parameters don't require it?}
+
+Create a file called \code{dump\_and\_continue}, e.g., as:
+\begin{verbatim}
+touch dump_and_continue
+\end{verbatim}
+
+This will force the code to output a checkpoint file that can be used
+to restart.  Other options are \code{plot\_and\_continue} to output
+a plotfile, \code{dump\_and\_stop} to output a checkpoint file
+and halt the code, and \code{stop\_run} to simply stop the code.
+Note that the parameter \runparam{amr.message\_int} controls how often
+the existence of these files is checked; by default it is 10, so the
+check will be done at the end of every timestep that is a multiple of 10.
+Set that to 1 in your inputs file if you'd like it to check every timestep.
+
+
+
+
+\end{enumerate}

@@ -1,4 +1,10 @@
-# name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
+# name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+#
+# note, name can have two values, as (a, b).  a will be the name used
+# in the inputs file, b is the variable name in the C++ class.
+
+
+@namespace: castro Castro static
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -19,6 +25,9 @@ state_nghost                 int           0
 
 # do we do the hyperbolic reflux at coarse-fine interfaces?
 do_reflux                    int           1
+
+# should we have state data for custom load-balancing weighting?
+use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -394,3 +403,60 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
+
+
+
+@namespace: gravity Gravity static
+
+# what type 
+gravity_type                 string        "fillme"
+
+
+# if doing constant gravity, what is the acceleration
+const_grav                   Real          0.0                y
+
+# Check if the user wants to compute the boundary conditions using the
+# brute force method.  Default is false, since this method is slow.
+direct_sum_bcs               int           0
+
+# ratio of dr for monopole gravity binning to grid resolution
+drdxfac                     int            1
+
+# the maximum mulitpole order to use for multipole BCs when doing
+# Poisson gravity
+(max_multipole_order, lnum) int            0
+
+# the level of verbosity for the gravity solve (higher number means more
+# output on the status of the solve / multigrid
+(v, verbose)                int            0
+
+# do we perform the synchronization at coarse-fine interfaces?
+no_sync                     int            0
+
+# do we do a composite solve?
+no_composite                int            0
+
+#  For all gravity types, we can choose a maximum level for explicitly
+#  calculating the gravity and associated potential. Above that level,
+#  we interpolate from coarser levels.
+max_solve_level             int            MAX_LEV-1
+
+
+# For multipole gravity calculations, this is the maximum level used
+# for constructing the multipole moments.  
+max_multipole_moment_level  int            0
+
+# For non-Poisson gravity, do we want to construct the gravitational
+# acceleration by taking the gradient of the potential, rather than
+# constructing it directly?
+get_g_from_phi              int            0                  y
+
+
+
+
+@namespace: diffusion Diffusion static
+
+# the level of verbosity for the diffusion solve (higher number means
+# more output)
+(v, verbose)                int            0
+
