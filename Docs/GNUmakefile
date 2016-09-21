@@ -6,7 +6,8 @@ eps_source = $(wildcard *.eps) $(wildcard */*.eps)
 
 pdf_source = $(eps_source:.eps=.pdf)
 
-section_sources = Introduction/CastroIntroduction.tex \
+section_sources = Preface/Preface.tex \
+                  Introduction/Introduction.tex \
                   GettingStarted/CastroGettingStarted.tex \
 	          Inputs/CastroInputs.tex \
                   Software/CastroSoftware.tex \

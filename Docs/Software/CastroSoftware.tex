@@ -75,38 +75,6 @@ division between \cpp\ and Fortran.
 
 \end{itemize}
 
-\section{Units}
-
-\castro\ works in CGS units unless otherwise specified.
-Table~\ref{table:units} shows some of the common symbols / names used
-throughout the code documentation and papers.
-
-\begin{table}[t]
-\renewcommand{\arraystretch}{1.2}
-\centering
-\begin{tabular}{lll}
-name & units & description \\
-\hline
-$t$    & s       & time \\
-$\rho$ & $\gcc$  & mass density \\
-$\ub$  & $\cms$  & velocity vector \\
-$p$    & $\presunit$ & pressure \\
-$\gb$  & $\accelunit$ & gravitational acceleration \\
-$\Sb$  & varies       & source term \\
-$E$    & $\ergg$      & specific total energy \\
-$e$    & $\ergg$      & specific internal energy \\
-$T$    & $K$          & temperature \\
-$\kth$ & $\mathrm{erg~cm^{-1}~s^{-1}~K~{-1}}$ & thermal conductivity \\
-$X_k$  & --           & mass fraction of species $k$ \\
-$\omegadot_k$ & $\mathrm{s^{-1}}$  & species creation rate (from reactions) \\
-\hline
-\end{tabular}
-\caption{\label{table:units} Common quantities and units.}
-\renewcommand{\arraystretch}{1.0}
-\end{table}
-
-Physical constants, again using the CGS system are available 
-in {\tt Castro/constants/constants\_cgs.f90}
 
 \section{Major data structures}
 
