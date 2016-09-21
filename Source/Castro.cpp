@@ -2176,30 +2176,6 @@ Castro::advance_aux(Real time, Real dt)
 }
 #endif
 
-#ifdef DIFFUSION
-#ifdef TAU
-void
-Castro::define_tau (MultiFab& grav_vector, Real time)
-{
-   MultiFab& S_old = get_old_data(State_Type);
-   const int ncomp = S_old.nComp();
-
-   const Geometry& fine_geom = parent->Geom(parent->finestLevel());
-   const Real*       dx_fine = fine_geom.CellSize();
-
-   for (FillPatchIterator fpi(*this,S_old,NUM_GROW,time,State_Type,Density,ncomp);
-                          fpi.isValid();++fpi)
-   {
-        Box bx(fpi.validbox());
-        ca_define_tau(bx.loVect(), bx.hiVect(),
-		      BL_TO_FORTRAN(tau_diff[fpi]),
-		      BL_TO_FORTRAN(fpi()),
-		      BL_TO_FORTRAN(grav_vector[fpi]),
-		      dx_fine);
-   }
-}
-#endif
-#endif
 
 void
 Castro::reflux ()

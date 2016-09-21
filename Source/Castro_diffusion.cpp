@@ -56,11 +56,7 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
     if (diffuse_temp == 1) {
-#ifdef TAU
-       getTempDiffusionTerm(t,DiffTerm,tau_diff);
-#else
        getTempDiffusionTerm(t, DiffTerm, is_old);
-#endif
     } else if (diffuse_enth == 1) {
        getEnthDiffusionTerm(t,DiffTerm, is_old);
     }
@@ -129,11 +125,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
    if (verbose && ParallelDescriptor::IOProcessor())
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
-#ifdef TAU
-   if (tau_diff == 0)
-     std::cerr << "ERROR:tau must be defined if USE_TAU = TRUE " << std::endl;
-#endif
-
    // Fill coefficients at this level.
    PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
    PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
@@ -161,9 +152,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
 
 	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     BL_TO_FORTRAN_3D(state[mfi]),
-#ifdef TAU
-			     BL_TO_FORTRAN_3D(tau_diff[mfi]),
-#endif
 			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
 			     BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));

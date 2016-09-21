@@ -359,13 +359,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     }
 #endif
 
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff.setVal(0.);
-    define_tau(grav_old,time);
-#endif
-#endif
-
     for (int j = 0; j < 3; j++) {
         fluxes[j].setVal(0.0);
     }
@@ -586,11 +579,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	u_gdnv.set(dir, new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate));
     }
 
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff.define(grids, 1, NUM_GROW, Fab_allocate);
-#endif
-#endif
 
 #ifdef DIFFUSION
     OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
@@ -648,10 +636,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     OldSpecDiffTerm.clear();
     OldViscousTermforMomentum.clear();
     OldViscousTermforEnergy.clear();
-#endif
-
-#ifdef TAU
-    tau_diff.clear();
 #endif
 
 }

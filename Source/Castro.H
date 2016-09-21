@@ -401,9 +401,6 @@ public:
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
-#ifdef TAU
-                      MultiFab&  tau,
-#endif
                       Real       time,
                       Real       dt);
 #endif
@@ -448,9 +445,6 @@ public:
     void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
     void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
-#endif
-#ifdef TAU
-    void define_tau (MultiFab& grav_vector, Real time);
 #endif
     void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
@@ -722,9 +716,6 @@ protected:
     MultiFab* NewViscousTermforEnergy;
 #endif
 
-#ifdef TAU
-    MultiFab tau_diff;
-#endif
 
 #ifdef PARTICLES
     static int       do_tracer_particles;

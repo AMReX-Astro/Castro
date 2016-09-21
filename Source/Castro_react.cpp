@@ -246,9 +246,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 			 BL_TO_FORTRAN_3D(s[mfi]),
 			 BL_TO_FORTRAN_3D(r[mfi]),
 			 BL_TO_FORTRAN_3D(w[mfi]),
-#ifdef TAU
-			 BL_TO_FORTRAN_3D(tau_diff[mfi]),
-#endif
 			 BL_TO_FORTRAN_3D(mask[mfi]),
 			 time, dt_react);
 

@@ -702,9 +702,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
      BL_FORT_FAB_ARG_3D(weights),
-#ifdef TAU
-     const BL_FORT_FAB_ARG_3D(Tau),
-#endif
      const BL_FORT_IFAB_ARG_3D(mask),
      const Real& time, const Real& dt_react);
 #endif
@@ -722,9 +719,6 @@ extern "C"
   void ca_fill_temp_cond
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-#ifdef TAU
-     const BL_FORT_FAB_ARG_3D(tau_diff),
-#endif
      const BL_FORT_FAB_ARG_3D(xcoeffs),
      const BL_FORT_FAB_ARG_3D(ycoeffs),
      const BL_FORT_FAB_ARG_3D(zcoeffs));
@@ -763,14 +757,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const Real* dx, const int* coord_type);
 
-#ifdef TAU
-  void ca_define_tau
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(tau_diff),
-     const BL_FORT_FAB_ARG(state),
-     const BL_FORT_FAB_ARG(grav),
-     const Real dx[]);
-#endif
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
