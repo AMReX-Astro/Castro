@@ -27,8 +27,6 @@ Castro::construct_old_diff_source(Real time, Real dt)
 void
 Castro::construct_new_diff_source(Real time, Real dt)
 {
-    MultiFab& S_new = get_new_data(State_Type);
-
     int ng = 0;
 
     new_sources[diff_src].setVal(0.0);

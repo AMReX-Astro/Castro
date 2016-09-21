@@ -431,7 +431,7 @@ public:
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
-    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
@@ -439,10 +439,9 @@ public:
     void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
-    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
