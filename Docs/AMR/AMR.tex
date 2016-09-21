@@ -16,7 +16,7 @@ remove rectangular fine grid patches as resolution requirements change.
 
 A good introduction to the style of AMR used here is in Lecture 1
 of the Adaptive Mesh Refinement Short Course at
-https://ccse.lbl.gov/people/jbb/index.html
+\url{https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf}.
 
 \section{Tagging for Refinement}
 \label{sec:tagging}
@@ -30,53 +30,58 @@ to a certain number of zones beyond these tagged zones. This section
 describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.
 
-The routines for tagging cells are located in the {\tt Tagging\_nd.f90} file 
-in the {\tt Src\_nd} directory. (These are dimension-agnostic routines that loop 
-over all three dimensional indices even for 1D or 2D problems.) The main routines are 
-{\tt ca\_denerror}, {\tt ca\_temperror}, {\tt ca\_presserror}, {\tt ca\_velerror}, 
-and {\tt ca\_raderror}. They refine based on density, temperature, pressure, 
-velocity, and radiation (if enabled), respectively. The same approach is used 
-for all of them. As an example, we consider the density tagging routine. There 
-are four parameters that control tagging. If the density in a zone is greater than 
-the user-specified parameter {\tt denerr}, then that zone will be tagged 
-for refinement, but only if the current AMR level is less than the 
-user-specified parameter {\tt max\_denerr\_lev}. Similarly, 
-if the absolute density gradient between a zone and any adjacent zone 
-is greater than the user-specified parameter {\tt dengrad}, that zone 
-will be tagged for refinement, but only if we are currently on a level 
-below {\tt max\_dengrad\_lev}. Note that setting {\tt denerr} alone will 
-not do anything; you'll need to set {\tt max\_dengrad\_lev} $>= 1$ for
-this to have any effect.
+The routines for tagging cells are located in the
+\code{Tagging\_nd.f90} file in the {\tt Src\_nd} directory. (These are
+dimension-agnostic routines that loop over all three dimensional
+indices even for 1D or 2D problems.) The main routines are
+\code{ca\_denerror}, \code{ca\_temperror}, \code{ca\_presserror},
+\code{ca\_velerror}, and \code{ca\_raderror}. They refine based on
+density, temperature, pressure, velocity, and radiation energy density
+(if enabled), respectively. The same approach is used for all of
+them. As an example, we consider the density tagging routine. There
+are four parameters that control tagging. If the density in a zone is
+greater than the user-specified parameter \runparam{denerr}, then that
+zone will be tagged for refinement, but only if the current AMR level
+is less than the user-specified parameter \runparam{max\_denerr\_lev}.
+Similarly, if the absolute density gradient between a zone and any
+adjacent zone is greater than the user-specified parameter
+\runparam{dengrad}, that zone will be tagged for refinement, but only
+if we are currently on a level below
+\runparam{max\_dengrad\_lev}. Note that setting {\tt denerr} alone
+will not do anything; you'll need to set {\tt max\_dengrad\_lev} $>=
+1$ for this to have any effect.
 
-All four of these parameters are set in the {\tt \&tagging} namelist 
-in your {\tt probin} file. If left unmodified, they default to a value 
-that means we will never tag. The complete set of parameters that can 
-be controlled this way is the following:
-\begin{multicols}{5}
+All four of these parameters are set in the \code{\&tagging} namelist
+in your {\tt probin}\index{\tt probin} file. If left unmodified, they
+default to a value that means we will never tag. The complete set of
+parameters that can be controlled this way is the following:
 \begin{itemize}
-  \setlength{\itemindent}{-3em}
-  \item {\tt denerr}
-  \item {\tt max\_denerr\_lev}
-  \item {\tt dengrad}
-  \item {\tt max\_dengrad\_lev}
-  \item {\tt temperr}
-  \item {\tt max\_temperr\_lev}
-  \item {\tt tempgrad}
-  \item {\tt max\_tempgrad\_lev}
-  \item {\tt velerr}
-  \item {\tt max\_velerr\_lev}
-  \item {\tt velgrad}
-  \item {\tt max\_velgrad\_lev}
-  \item {\tt presserr}
-  \item {\tt max\_presserr\_lev}
-  \item {\tt pressgrad}
-  \item {\tt max\_pressgrad\_lev}
-  \item {\tt raderr}
-  \item {\tt max\_raderr\_lev}
-  \item {\tt radgrad}
-  \item {\tt max\_radgrad\_lev}
+\item density:
+  \begin{itemize}
+  \item value: {\tt denerr}, {\tt max\_denerr\_lev}
+  \item gradient: {\tt dengrad}, {\tt max\_dengrad\_lev}
+  \end{itemize}
+\item temperature:
+  \begin{itemize}
+  \item value: {\tt temperr}, {\tt max\_temperr\_lev}
+  \item gradient: {\tt tempgrad}, {\tt max\_tempgrad\_lev}
+  \end{itemize}
+\item velocity (magnitude):
+  \begin{itemize}
+  \item value: {\tt velerr}, {\tt max\_velerr\_lev}
+  \item gradient: {\tt velgrad}, {\tt max\_velgrad\_lev}
+  \end{itemize}
+\item pressure:
+  \begin{itemize}
+  \item value: {\tt presserr}, {\tt max\_presserr\_lev}
+  \item gradient: {\tt pressgrad}, {\tt max\_pressgrad\_lev}
+  \end{itemize}
+\item radiation energy density:
+  \begin{itemize}
+  \item value: {\tt raderr}, {\tt max\_raderr\_lev}
+  \item gradient: {\tt radgrad}, {\tt max\_radgrad\_lev}
+  \end{itemize}
 \end{itemize}
-\end{multicols}
 Since there are multiple algorithms for determining 
 whether a zone is tagged or not, it is worthwhile to specify 
 in detail what is happening to a zone in the code during this step. 
@@ -102,8 +107,8 @@ it is possible to overwrite the {\tt Tagging\_nd.f90} file if you want to change
 be aware that {\tt CLEAR}ing a zone this way may not have the desired effect.
 
 We provide also the ability for the user to define their own tagging criteria.
-This is done through the Fortran function {\tt set\_problem\_tags} in the 
-{\tt problem\_tagging\_*d.f90} files. This function is provided the entire 
+This is done through the Fortran function \code{set\_problem\_tags} in the 
+\code{problem\_tagging\_*d.f90} files. This function is provided the entire 
 state (including density, temperature, velocity, etc.) and the array 
 of tagging status for every zone. As an example of how to use this, suppose we 
 have a 3D Cartesian simulation where we want to tag any zone that has a 
@@ -113,10 +118,10 @@ We also want to ensure that the region $r \leq 10$ is always refined.
 In our {\tt probin} file we would set {\tt denerr = 10} and {\tt max\_denerr\_lev = 1}
 in the {\tt \&tagging} namelist. We would also make a copy of 
 {\tt problem\_tagging\_3d.f90} to our work directory and set it up as follows:
-\clearpage
-\begin{verbatim}
+\begin{lstlisting}[language=fortran]
 subroutine set_problem_tags(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
-                            state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3,&
+                            state,state_l1,state_l2,state_l3, &
+                            state_h1,state_h2,state_h3,&
                             set,clear,&
                             lo,hi,&
                             dx,problo,time,level)
@@ -159,7 +164,7 @@ subroutine set_problem_tags(tag,tagl1,tagl2,tagl3,tagh1,tagh2,tagh3, &
   enddo
   
 end subroutine set_problem_tags
-\end{verbatim}
+\end{lstlisting}
 
 \section{Synchronization Algorithm}
 
