@@ -46,7 +46,7 @@ The overall integration strategy is unchanged from the discussion in
   strategy
 
 \item At the end of the fine grid timesteps, if we're doing a sync
-  solve ({\tt gravity.no\_sync == 0}), we then do a solve starting from
+  solve ({\tt gravity.no\_sync = 0}), we then do a solve starting from
   the coarse grid that adjusts for the mismatch between the fine-grid
   phi and the coarse-grid phi, as well as the mismatch between the
   fine-grid density fluxes and the coarse-grid density fluxes, and add
@@ -54,10 +54,10 @@ The overall integration strategy is unchanged from the discussion in
 
   Thus, to within the gravity error tolerance, you get the same final
   result as if you had done a full composite solve at the end of the
-  timestep (assuming {\tt gravity.no\_sync == 0}).
+  timestep (assuming {\tt gravity.no\_sync = 0}).
 \end{itemize}
 
-If you do {\tt gravity.no\_composite == 1}, then you never do a full
+If you do {\tt gravity.no\_composite = 1}, then you never do a full
 multilevel solve, and the gravity on any level is defined only by the
 solve on that level.  The only time this would be appropriate is if
 the fine level(s) cover essentially all of the mass on the grid for
