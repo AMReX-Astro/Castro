@@ -13,14 +13,6 @@
 #include <string>
 #include <ctime>
 
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::istream;
-using std::ostream;
-using std::pair;
-using std::string;
-
 #include <Utility.H>
 #include <CONSTANTS.H>
 #include <Castro.H>
@@ -151,7 +143,7 @@ Castro::variableCleanUp ()
 #ifdef GRAVITY
   if (gravity != 0) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-      cout << "Deleting gravity in variableCleanUp..." << '\n';
+      std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
     delete gravity;
     gravity = 0;
@@ -161,7 +153,7 @@ Castro::variableCleanUp ()
 #ifdef DIFFUSION
   if (diffusion != 0) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-      cout << "Deleting diffusion in variableCleanUp..." << '\n';
+      std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
     delete diffusion;
     diffusion = 0;
@@ -171,12 +163,12 @@ Castro::variableCleanUp ()
 #ifdef RADIATION
   if (radiation != 0) { int report = (verbose || radiation->verbose);
     if (report && ParallelDescriptor::IOProcessor()) {
-      cout << "Deleting radiation in variableCleanUp..." << '\n';
+      std::cout << "Deleting radiation in variableCleanUp..." << '\n';
     }
     delete radiation;
     radiation = 0;
     if (report && ParallelDescriptor::IOProcessor()) {
-      cout << "                                        done" << endl;
+      std::cout << "                                        done" << endl;
     }
   }
 #endif
@@ -844,7 +836,7 @@ Castro::initData ()
           int i = mfi.index();
 
 	  if (radiation->verbose > 2) {
-	    cout << "Calling RADINIT at level " << level << ", grid "
+	    std::cout << "Calling RADINIT at level " << level << ", grid "
 		 << i << endl;
 	  }
 
@@ -1371,7 +1363,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
-      cout << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
+      std::cout << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
 
     return estdt;
 }
@@ -1427,11 +1419,11 @@ Castro::computeNewDt (int                   finest_level,
              if (verbose && ParallelDescriptor::IOProcessor())
                  if (dt_min[i] > change_max*dt_level[i])
                  {
-                        cout << "Castro::compute_new_dt : limiting dt at level "
+                        std::cout << "Castro::compute_new_dt : limiting dt at level "
                              << i << '\n';
-                        cout << " ... new dt computed: " << dt_min[i]
+                        std::cout << " ... new dt computed: " << dt_min[i]
                              << '\n';
-                        cout << " ... but limiting to: "
+                        std::cout << " ... but limiting to: "
                              << change_max * dt_level[i] << " = " << change_max
                              << " * " << dt_level[i] << '\n';
                  }
