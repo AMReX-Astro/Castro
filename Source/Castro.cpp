@@ -2139,6 +2139,7 @@ Castro::reflux(int crse_level, int fine_level)
     for (int lev = fine_level; lev > crse_level; --lev) {
 
 	reg = &flux_reg[lev - crse_level - 1];
+	reg->setVal(0.0);
 
 	Castro& crse_lev = getLevel(lev-1);
 	Castro& fine_lev = getLevel(lev);
@@ -2204,6 +2205,7 @@ Castro::reflux(int crse_level, int fine_level)
 	if (!Geometry::IsCartesian()) {
 
 	    reg = &pres_reg[lev - crse_level - 1];
+	    reg->setVal(0.0);
 
 	    // The fine pressure scaling depends on dimensionality,
 	    // as the dimensionality determines the number of
@@ -2265,6 +2267,7 @@ Castro::reflux(int crse_level, int fine_level)
 	if (Radiation::rad_hydro_combined) {
 
 	    reg = &rad_flux_reg[lev - crse_level - 1];
+	    reg->setVal(0.0);
 
 	    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, crse_scale);
 	    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, fine_scale);
@@ -2301,6 +2304,7 @@ Castro::reflux(int crse_level, int fine_level)
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
 	    reg = &phi_reg[lev - crse_level - 1];
+	    reg->setVal(0.0);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, crse_scale);
