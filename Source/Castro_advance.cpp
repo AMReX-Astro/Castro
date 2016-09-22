@@ -338,11 +338,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     get_new_data(State_Type).setBndry(0.0);
 #endif
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-	u_gdnv[dir].setVal(1.e40,1);
-    }
-
     // Reset the grid loss tracking.
 
     if (track_grid_losses)
@@ -546,10 +541,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	rad_fluxes[dir].setVal(0.0);
 #endif
-
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	u_gdnv.set(dir, new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate));
-
 
 #ifdef DIFFUSION
     OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);

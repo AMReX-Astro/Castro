@@ -574,11 +574,6 @@ protected:
 #endif
 
     //
-    // Face-centered velocities from the Riemann solve.
-    //
-    PArray<MultiFab> u_gdnv;
-
-    //
     // Non-hydro source terms.
     //
     PArray<MultiFab> old_sources;

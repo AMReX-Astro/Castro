@@ -5,8 +5,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                     srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                     update,updt_l1,updt_l2,updt_h1,updt_h2, &
-                    ugdx,ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2, &
-                    ugdy,ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                     flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -40,8 +38,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer qa_l1, qa_l2, qa_h1, qa_h2
   integer srQ_l1, srQ_l2, srQ_h1, srQ_h2
   integer updt_l1,updt_l2,updt_h1,updt_h2
-  integer ugdx_l1,ugdx_l2,ugdx_h1,ugdx_h2
-  integer ugdy_l1,ugdy_l2,ugdy_h1,ugdy_h2
   integer flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer flux2_l1,flux2_l2,flux2_h1,flux2_h2
   integer p_l1,p_l2,p_h1,p_h2
@@ -56,8 +52,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   double precision srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
-  double precision ugdx(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2)
-  double precision ugdy(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
   double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
   double precision pradial(  p_l1:    p_h1,    p_l2:p_h2)
@@ -117,8 +111,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
-  allocate(q1(ugdx_l1:ugdx_h1,ugdx_l2:ugdx_h2,ngdnv))
-  allocate(q2(ugdy_l1:ugdy_h1,ugdy_l2:ugdy_h2,ngdnv))
+  allocate(q1(flux1_l1-1:flux1_h1+1,flux1_l2-1:flux1_h2+1,ngdnv))
+  allocate(q2(flux2_l1-1:flux2_h1+1,flux2_l2-1:flux2_h2+1,ngdnv))
 
   dx = delta(1)
   dy = delta(2)
@@ -143,8 +137,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                uout,uout_l1,uout_l2,uout_h1,uout_h2, &
                flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-               q1, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-               q2, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+               q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
+               q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
                area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                area2, area2_l1, area2_l2, area2_h1, area2_h2, &
                pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
@@ -161,8 +155,8 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               q, q_l1, q_l2, q_h1, q_h2, &
               uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
               update, updt_l1, updt_l2, updt_h1, updt_h2, &
-              q1, ugdx_l1, ugdx_l2, ugdx_h1, ugdx_h2, &
-              q2, ugdy_l1, ugdy_l2, ugdy_h1, ugdy_h2, &
+              q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
+              q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
               flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
               flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
               area1,area1_l1,area1_l2,area1_h1,area1_h2, &
@@ -179,9 +173,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   if (coord_type .eq. 1) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
   end if
-
-  ugdx(:,:) = q1(:,:,GDU)
-  ugdy(:,:) = q2(:,:,GDV)
 
   deallocate(flatn,div,q1,q2,pdivu)
 

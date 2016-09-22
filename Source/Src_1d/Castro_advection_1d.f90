@@ -30,11 +30,10 @@ contains
                      srcQ,src_l1,src_h1, &
                      ilo,ihi,dx,dt, &
                      flux ,   fd_l1,   fd_h1, &
-                     pgdnv,pgdnv_l1,pgdnv_h1, &
-                     ugdnv,ugdnv_l1,ugdnv_h1, &
+                     q1, q1_l1, q1_h1, &
                      dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX
+    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX, NGDNV
     use riemann_module, only : cmpflx
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
@@ -48,8 +47,7 @@ contains
     integer qa_l1,qa_h1
     integer src_l1,src_h1
     integer fd_l1,fd_h1
-    integer pgdnv_l1,pgdnv_h1
-    integer ugdnv_l1,ugdnv_h1
+    integer q1_l1,q1_h1
     integer ilo,ihi
     double precision dx, dt
     double precision     q(   qd_l1:qd_h1,QVAR)
@@ -57,8 +55,7 @@ contains
     double precision flatn(   qd_l1:qd_h1)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
-    double precision pgdnv(pgdnv_l1:pgdnv_h1)
-    double precision ugdnv(ugdnv_l1:ugdnv_h1)
+    double precision    q1(q1_l1:q1_h1,NGDNV)
     double precision dloga(dloga_l1:dloga_h1)
     
     ! Left and right state arrays (edge centered, cell centered)
@@ -91,8 +88,7 @@ contains
     call cmpflx(lo, hi, domlo, domhi, &
                 qm, qp, ilo-1,ihi+1, &
                 flux ,  fd_l1, fd_h1, &
-                pgdnv,pgdnv_l1,pgdnv_h1, &
-                ugdnv,ugdnv_l1,ugdnv_h1, &
+                q1, q1_l1, q1_h1, &
                 qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
 
     deallocate (qm,qp)
@@ -107,9 +103,9 @@ contains
                     uin,  uin_l1,  uin_h1, &
                     uout, uout_l1 ,uout_h1, &
                     update,updt_l1,updt_h1, &
-                    pgdnv,pgdnv_l1,pgdnv_h1, &
                     q, q_l1, q_h1, &
                     flux, flux_l1, flux_h1, &
+                    q1, q1_l1, q1_h1, &
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
                     div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
@@ -121,7 +117,7 @@ contains
     use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, track_grid_losses, &
-                                   limit_fluxes_on_small_dens, QVAR
+                                   limit_fluxes_on_small_dens, QVAR, NGDNV, GDPRES
     use bl_constants_module
     use advection_util_1d_module, only: normalize_species_fluxes
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens
@@ -133,7 +129,7 @@ contains
     integer   uin_l1,  uin_h1
     integer  uout_l1, uout_h1
     integer  updt_l1, updt_h1
-    integer pgdnv_l1,pgdnv_h1
+    integer    q1_l1,   q1_h1
     integer     q_l1,    q_h1
     integer  flux_l1, flux_h1
     integer  area_l1, area_h1
@@ -142,7 +138,7 @@ contains
     double precision   uin(uin_l1:uin_h1,NVAR)
     double precision  uout(uout_l1:uout_h1,NVAR)
     double precision update(updt_l1:updt_h1,NVAR)
-    double precision pgdnv(pgdnv_l1:pgdnv_h1)
+    double precision     q1(q1_l1:q1_h1,NGDNV)
     double precision     q(q_l1:q_h1,QVAR)
     double precision  flux( flux_l1: flux_h1,NVAR)
     double precision  area( area_l1: area_h1)
@@ -213,7 +209,7 @@ contains
 
     do i = lo(1),hi(1)
 
-       update(i,UMX) = update(i,UMX) - ( pgdnv(i+1) - pgdnv(i) ) / dx
+       update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx
 
     enddo
 
@@ -227,7 +223,7 @@ contains
           ! Correct the momentum flux with the grad p part.
 
           if (coord_type .eq. 0 .and. n == UMX) then
-             flux(i,n) = flux(i,n) + dt * area(i) * pgdnv(i)
+             flux(i,n) = flux(i,n) + dt * area(i) * q1(i,GDPRES)
           endif
 
        enddo
