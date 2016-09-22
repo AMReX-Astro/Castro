@@ -2231,12 +2231,12 @@ Castro::reflux(int crse_level, int fine_level)
 	    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, crse_scale * pres_scale_crse);
 	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, fine_scale * pres_scale_fine);
 
-	    MultiFab dr(crse_lev.volume.boxArray(), 1, crse_lev.volume.nGrow());
+	    MultiFab dr(crse_lev.grids, 1, 0);
 	    dr.setVal(crse_lev.geom.CellSize(0));
 
-	    reg->Reflux(state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
-
 	    reg->ClearInternalBorders(crse_lev.geom);
+
+	    reg->Reflux(state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    if (update_sources_after_reflux) {
 
@@ -2266,16 +2266,12 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg = &rad_flux_reg[lev - crse_level - 1];
 
-	    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -1.0 / fine_lev.crse_ratio[0]);
-	    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, 1.0);
+	    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, crse_scale);
+	    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, fine_scale);
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
-	    // Trigger the actual reflux on the coarse level now.
-
 	    reg->Reflux(crse_lev.get_new_data(Rad_Type), crse_lev.volume, 1.0, 0, 0, Radiation::nGroups, crse_lev.geom);
-
-	    // Also update the rad_fluxes MultiFab using the reflux data.
 
 	    PArray<MultiFab> temp_fluxes(3, PArrayManage);
 
