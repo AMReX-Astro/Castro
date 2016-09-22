@@ -2188,7 +2188,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		MultiFab::Add(crse_lev.fluxes[i], temp_fluxes[i], 0, 0, crse_lev.fluxes[i].nComp(), 0);
-		temp_fluxes[i].clear();
+		temp_fluxes.clear(i);
 	    }
 
 	}
@@ -2253,7 +2253,7 @@ Castro::reflux(int crse_level, int fine_level)
 		}
 
 		MultiFab::Add(crse_lev.P_radial, temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
-		temp_fluxes[0].clear();
+		temp_fluxes.clear(0);
 
 	    }
 
@@ -2288,7 +2288,7 @@ Castro::reflux(int crse_level, int fine_level)
 		}
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    MultiFab::Add(crse_lev.rad_fluxes[i], temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i].nComp(), 0);
-		    temp_fluxes[i].clear();
+		    temp_fluxes.clear(i);
 		}
 
 	    }
