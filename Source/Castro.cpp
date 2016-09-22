@@ -1625,8 +1625,10 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-    if (do_reflux && update_sources_after_reflux && !keep_sources_until_end)
+    if (do_reflux && update_sources_after_reflux && !keep_sources_until_end) {
+	old_sources.clear();
 	new_sources.clear();
+    }
 
     if (keep_sources_until_end && level == 0) {
 	for (int lev = 0; lev <= finest_level; ++lev) {
@@ -2315,7 +2317,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
-	    reg->Reflux(dphi[lev-1], crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
+	    reg->Reflux(dphi[lev-1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
 
 	}
 #endif

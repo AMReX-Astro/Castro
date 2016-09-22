@@ -572,7 +572,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 
     // Average down the RHS so that fine-level refluxing is seen on the coarse grid.
 
-    for (int lev = fine_level; lev >= crse_level; --lev)
+    for (int lev = fine_level; lev > crse_level; --lev)
 	BoxLib::average_down(rhs[lev], rhs[lev-1], 0, 1, parent->refRatio(lev-1));
 
     // In the all-periodic case we enforce that the RHS sums to zero.

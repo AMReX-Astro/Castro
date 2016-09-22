@@ -579,10 +579,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	hydro_source.clear();
 	sources_for_hydro.clear();
 
-	old_sources.clear();
-
-	if (!(do_reflux && update_sources_after_reflux))
+	if (!(do_reflux && update_sources_after_reflux)) {
+	    old_sources.clear();
 	    new_sources.clear();
+	}
 
     }
 
