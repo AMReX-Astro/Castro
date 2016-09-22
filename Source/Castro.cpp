@@ -1545,82 +1545,26 @@ Castro::post_timestep (int iteration)
 
     // Sync up the hybrid and linear momenta.
 
+    MultiFab& S_new = get_new_data(State_Type);
+
 #ifdef HYBRID_MOMENTUM
     hybrid_sync(S_new);
 #endif
 
-    // Now subtract the new-time state data, recompute it, and add it back.
-    // This corrects for the fact that the new-time data was calculated
-    // the first time around using a state that hadn't yet been refluxed.
-    // Note that this needs to come after the gravity sync solve because
-    // the gravity source depends on an up-to-date value of phi.
+    // Re-compute temperature after all the other updates.
 
-    MultiFab& S_new = get_new_data(State_Type);
-    Real cur_time = state[State_Type].curTime();
-    Real dt = parent->dtLevel(level);
-
-    if (do_reflux && update_sources_after_reflux && level < finest_level) {
-
-	for (int n = 0; n < num_src; ++n)
-	    apply_source_to_state(S_new, new_sources[n], -dt);
-
-	// Note that in the following we are intentionally passing iteration == -1,
-	// not the actual current AMR iteration. This is a trick we are using so
-	// that some source terms get the message that they do not need to re-initialize
-	// like the did for the first new-time source.
-
-	if (update_state_between_sources) {
-
-	    for (int n = 0; n < num_src; ++n) {
-		construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
-		apply_source_to_state(S_new, new_sources[n], dt);
-#ifdef HYBRID_MOMENTUM
-		hybrid_sync(S_new);
-#endif
-		computeTemp(S_new);
-
-	    }
-
-	}
-	else {
-
-	    // Construct the new-time source terms.
-
-	    for (int n = 0; n < num_src; ++n)
-		construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
-
-	    // Apply the new-time sources to the state.
-
-	    for (int n = 0; n < num_src; ++n)
-		apply_source_to_state(S_new, new_sources[n], dt);
-
-	    // Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-	    hybrid_sync(S_new);
-#endif
-
-	    // Sync up the temperature now that all sources have been applied.
-
-	    computeTemp(S_new);
-
-	}
-
-	// We must do an average down here so that the state data under fine grids
-	// stays consistent with that fine grid data.
-
-	avgDown();
-
-    }
+    computeTemp(S_new);
 
 #ifdef DO_PROBLEM_POST_TIMESTEP
+
+    // Provide a hook for the user to do things after all of
+    // the normal updates have been applied. The user is
+    // responsible for any actions after this point, like
+    // doing a computeTemp call if they change the state data.
 
     problem_post_timestep();
 
 #endif
-
-    // Re-compute temperature after all the other updates.
-    computeTemp(S_new);
 
     if (level == 0)
     {
@@ -2343,7 +2287,6 @@ Castro::reflux ()
 	    reg->Reflux(dphi[lev-1], crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
 	}
-
 #endif
 
 	// Now do an average-down on the coarse level, since the answer will have
@@ -2362,12 +2305,80 @@ Castro::reflux ()
 
     }
 
-    // Finally, do the sync solve across all levels.
+    // Do the sync solve across all levels.
 
 #ifdef GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
 	    gravity->gravity_sync(0, level, drho, dphi);
 #endif
+
+    // Now subtract the new-time state data on the coarser levels,
+    // recompute it, and add it back. This corrects for the fact
+    // that the new-time data was calculated the first time around
+    // using a state that hadn't yet been refluxed. Note that this
+    // needs to come after the gravity sync solve because the gravity
+    // source depends on an up-to-date value of phi.
+
+    if (update_sources_after_reflux) {
+
+	for (int lev = level-1; lev >= 0; --lev) {
+
+	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+	    Real cur_time = getLevel(lev).state[State_Type].curTime();
+	    Real dt = parent->dtLevel(lev);
+
+	    for (int n = 0; n < num_src; ++n)
+		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
+
+	    // Note that in the following we are intentionally passing iteration == -1,
+	    // not the actual current AMR iteration. This is a trick we are using so
+	    // that some source terms get the message that they do not need to re-initialize
+	    // like the did for the first new-time source.
+
+	    if (update_state_between_sources) {
+
+		for (int n = 0; n < num_src; ++n) {
+#ifdef HYBRID_MOMENTUM
+		    getLevel(lev).hybrid_sync(S_new);
+#endif
+		    getLevel(lev).computeTemp(S_new);
+		    getLevel(lev).construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
+		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], dt);
+		}
+
+	    }
+	    else {
+
+		// Construct the new-time source terms.
+
+		for (int n = 0; n < num_src; ++n)
+		    getLevel(lev).construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
+
+		// Apply the new-time sources to the state.
+
+		for (int n = 0; n < num_src; ++n)
+		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], dt);
+
+	    }
+
+	    // We must do an average down here so that the state data under fine grids
+	    // stays consistent with that fine grid data.
+
+	    getLevel(lev).avgDown();
+
+	    // Sync up linear and hybrid momenta.
+
+#ifdef HYBRID_MOMENTUM
+	    getLevel(lev).hybrid_sync(S_new);
+#endif
+
+	    // Sync up the temperature now that all sources have been applied.
+
+	    getLevel(lev).computeTemp(S_new);
+
+	}
+
+    }
 
     if (verbose)
     {
