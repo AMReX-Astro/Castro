@@ -2314,11 +2314,6 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         else if ( std::abs(time-t_new) < eps)
         {
             S.copy(LevelData[lev].get_new_data(State_Type),0,0,NUM_STATE);
-            if (lev < level)
-            {
-                Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev+1));
-                cs->getFluxReg().Reflux(S,volume[lev],1.0,0,0,NUM_STATE,parent->Geom(lev));
-            }
         }
         else if (time > t_old && time < t_new)
         {

@@ -524,16 +524,6 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    FluxRegister     flux_reg;
-
-    FluxRegister& getFluxReg ();
-    FluxRegister& getFluxReg (int lev);
-
-    FluxRegister     pres_reg;
-
-    FluxRegister& getPresReg ();
-    FluxRegister& getPresReg (int lev);
-
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
     // to mask out the finer level.  We only build this when it is needed.
@@ -616,7 +606,7 @@ protected:
     FluxRegister& getRADFluxReg (int lev);
 #endif
 
-    void reflux ();
+    void reflux (int crse_level, int fine_level);
 
     void normalize_species (MultiFab& S_new);
 
@@ -660,9 +650,6 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
-#ifdef RADIATION
-    FluxRegister         rad_flux_reg;
-#endif
 
     //
     // Static data members.
@@ -796,53 +783,6 @@ Castro::stopJob()
 {
   signalStopJob = true;
 }
-
-inline
-FluxRegister&
-Castro::getFluxReg ()
-{
-    BL_ASSERT(flux_reg.size()>0);
-    return flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getFluxReg (int lev)
-{
-    return getLevel(lev).getFluxReg();
-}
-
-inline
-FluxRegister&
-Castro::getPresReg ()
-{
-    BL_ASSERT(pres_reg.size()>0);
-    return pres_reg;
-}
-
-inline
-FluxRegister&
-Castro::getPresReg (int lev)
-{
-    return getLevel(lev).getPresReg();
-}
-
-#ifdef RADIATION
-inline
-FluxRegister&
-Castro::getRADFluxReg ()
-{
-    BL_ASSERT(rad_flux_reg.size()>0);
-    return rad_flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getRADFluxReg (int lev)
-{
-    return getLevel(lev).getRADFluxReg();
-}
-#endif
 
 #ifdef POINTMASS
 inline

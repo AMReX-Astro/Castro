@@ -272,20 +272,6 @@ Castro::restart (Amr&     papa,
 
     }
 
-    if (level > 0 && do_reflux) {
-        flux_reg.define(grids,crse_ratio,level,NUM_STATE);
-
-	if (!Geometry::IsCartesian()) {
-	    pres_reg.define(grids,crse_ratio,level,1);
-	}
-
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	    rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
-	}
-#endif
-    }
-
     const Real* dx  = geom.CellSize();
 
     if ( (grown_factor > 1) && (parent->maxLevel() < 1) )

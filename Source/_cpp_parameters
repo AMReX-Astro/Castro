@@ -26,11 +26,17 @@ state_nghost                 int           0
 # do we do the hyperbolic reflux at coarse-fine interfaces?
 do_reflux                    int           1
 
-# should we have state data for custom load-balancing weighting?
-use_custom_knapsack_weights  int           0
+# refluxing strategy. Ordered in descending level of accuracy
+# and descending computational expense.
+# 1 = reflux during every finest level timestep
+# 2 = reflux at the end of every timestep on every level
+reflux_strategy              int           1
 
 # whether to re-compute new-time source terms after a reflux
 update_sources_after_reflux  int           1
+
+# should we have state data for custom load-balancing weighting?
+use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics

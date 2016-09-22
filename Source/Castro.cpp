@@ -447,24 +447,6 @@ Castro::Castro (Amr&            papa,
       material_lost_through_boundary_temp[i] = 0.;
     }
 
-    if (level > 0 && do_reflux)
-    {
-        flux_reg.define(grids,crse_ratio,level,NUM_STATE);
-        flux_reg.setVal(0.0);
-
-	if (!Geometry::IsCartesian()) {
-	    pres_reg.define(grids,crse_ratio,level,1);
-	    pres_reg.setVal(0.0);
-	}
-
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	    rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
-	    rad_flux_reg.setVal(0.0);
-	}
-#endif
-    }
-
 #ifdef GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
@@ -1538,6 +1520,11 @@ Castro::post_timestep (int iteration)
     }
 #endif
 
+    // Optionally, reflux here.
+
+    if (do_reflux && reflux_strategy == 2 && level < finest_level)
+	reflux(level, level+1);
+
     // Ensure consistency with finer grids.
 
     if (level < finest_level)
@@ -1616,11 +1603,21 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-    fluxes.clear();
-    P_radial.clear();
+    if (level == 0) {
+
+	for (int n = 0; n < 3; ++n) {
+	    fluxes.clear();
+	}
+
 #ifdef RADIATION
-    rad_fluxes.clear();
+	for (int n = 0; n < BL_SPACEDIM; ++n) {
+	    rad_fluxes.clear();
+	}
 #endif
+
+	P_radial.clear();
+
+    }
 
     if (do_reflux && update_sources_after_reflux && !keep_sources_until_end) {
 	new_sources.clear();
@@ -1631,8 +1628,10 @@ Castro::post_timestep (int iteration)
 	    getLevel(lev).hydro_source.clear();
 	    getLevel(lev).sources_for_hydro.clear();
 
-	    getLevel(lev).old_sources.clear();
-	    getLevel(lev).new_sources.clear();
+	    for (int n = 0; n < num_src; ++n) {
+		getLevel(lev).old_sources[n].clear();
+		getLevel(lev).new_sources[n].clear();
+	    }
 	}
     }
 
@@ -2048,15 +2047,13 @@ Castro::advance_aux(Real time, Real dt)
 
 
 void
-Castro::reflux ()
+Castro::reflux(int crse_level, int fine_level)
 {
     BL_PROFILE("Castro::reflux()");
 
-    BL_ASSERT(level == parent->finestLevel());
-
     const Real strt = ParallelDescriptor::second();
 
-    int nlevs = level + 1;
+    int nlevs = fine_level - crse_level + 1;
 
     // Before we start with the hydro refluxing, we need to record what the density
     // was if we're going to do a gravity sync, so that we know how much changed
@@ -2069,26 +2066,26 @@ Castro::reflux ()
 
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-	for (int lev = level; lev >= 0; --lev) {
+	for (int lev = fine_level; lev >= crse_level; --lev) {
 
-	    drho.set(lev, new MultiFab(getLevel(lev).grids, 1, 0));
-	    dphi.set(lev, new MultiFab(getLevel(lev).grids, 1, 0));
+	    drho.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
+	    dphi.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
 
 	    // We do an average-down before the reflux so that we can isolate the
 	    // change that comes from the refluxing.
 
-	    if (lev < level) {
+	    if (lev < fine_level) {
 		getLevel(lev).avgDown();
 
-		MultiFab::Copy(drho[lev], getLevel(lev).get_new_data(State_Type), Density, 0, 1, 0);
-		drho[lev].mult(-1.0);
+		MultiFab::Copy(drho[lev - crse_level], getLevel(lev).get_new_data(State_Type), Density, 0, 1, 0);
+		drho[lev - crse_level].mult(-1.0);
 
-		dphi[lev].setVal(0.0);
+		dphi[lev - crse_level].setVal(0.0);
 	    }
 	    else {
 
-		drho[lev].setVal(0.0);
-		dphi[lev].setVal(0.0);
+		drho[lev - crse_level].setVal(0.0);
+		dphi[lev - crse_level].setVal(0.0);
 
 	    }
 
@@ -2099,18 +2096,38 @@ Castro::reflux ()
 
     FluxRegister* reg;
 
-    // Update the flux registers. We'll use the fine-grid fluxes on this level
+    // Define the flux registers. We'll use the fine-grid fluxes on this level
     // plus 1 / ref_ratio of the coarse-grid fluxes on the level below. That
     // way the sum of the refluxes over all fine timesteps is equal to what
     // it would have been if we had done a single reflux at the end of the
     // coarse timestep.
 
     int crse_scale = -1.0;
-    int fine_scale = crse_ratio[0];
+    int fine_scale = getLevel(fine_level).crse_ratio[0];
 
-    for (int lev = level; lev >= 1; --lev) {
+    Array<FluxRegister> flux_reg(nlevs - 1);
+    Array<FluxRegister> pres_reg(nlevs - 1);
+#ifdef RADIATION
+    Array<FluxRegister> rad_flux_reg(nlevs - 1);
+#endif
 
-	reg = &getFluxReg(lev);
+    for (int lev = fine_level; lev > crse_level; --lev) {
+
+	flux_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE);
+
+	if (!Geometry::IsCartesian())
+	    pres_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1);
+
+#ifdef RADIATION
+	if (Radiation::rad_hydro_combined)
+	    rad_flux_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups);
+#endif
+
+    }
+
+    for (int lev = fine_level; lev > crse_level; --lev) {
+
+	reg = &flux_reg[lev - crse_level - 1];
 
 	Castro& crse_lev = getLevel(lev-1);
 	Castro& fine_lev = getLevel(lev);
@@ -2176,7 +2193,7 @@ Castro::reflux ()
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 
-	    reg = &getPresReg(lev);
+	    reg = &pres_reg[lev - crse_level - 1];
 
 	    // The fine pressure scaling depends on dimensionality,
 	    // as the dimensionality determines the number of
@@ -2193,14 +2210,16 @@ Castro::reflux ()
 	    // fluxes, we want the total refluxing contribution
 	    // over the full set of fine timesteps to equal P_radial.
 
+	    Real pres_scale_crse = 1.0;
+
 #if (BL_SPACEDIM == 1)
-	    Real pres_scale = 1.0;
+	    Real pres_scale_fine = 1.0;
 #elif (BL_SPACEDIM == 2)
-	    Real pres_scale = 1.0 / crse_ratio[1];
+	    Real pres_scale_fine = 1.0 / getLevel(lev).crse_ratio[1];
 #endif
 
-	    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, crse_scale);
-	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, fine_scale / pres_scale);
+	    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, crse_scale * pres_scale_crse);
+	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, fine_scale * pres_scale_fine);
 
 	    MultiFab dr(crse_lev.volume.boxArray(), 1, crse_lev.volume.nGrow());
 	    dr.setVal(crse_lev.geom.CellSize(0));
@@ -2235,7 +2254,7 @@ Castro::reflux ()
 
 	if (Radiation::rad_hydro_combined) {
 
-	    reg = &getRADFluxReg(lev);
+	    reg = &rad_flux_reg[lev - crse_level - 1];
 
 	    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -1.0 / fine_lev.crse_ratio[0]);
 	    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, 1.0);
@@ -2252,7 +2271,7 @@ Castro::reflux ()
 
 	    if (update_sources_after_reflux) {
 
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    temp_fluxes.set(i, new MultiFab(crse_lev.rad_fluxes[i].boxArray(), crse_lev.rad_fluxes[i].nComp(), crse_lev.rad_fluxes[i].nGrow()));
 		    temp_fluxes[i].setVal(0.0);
 		}
@@ -2261,7 +2280,7 @@ Castro::reflux ()
 		    int idir = fi().coordDir();
 		    fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
 		}
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    MultiFab::Add(crse_lev.rad_fluxes[i], temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i].nComp(), 0);
 		    temp_fluxes[i].clear();
 		}
@@ -2309,7 +2328,7 @@ Castro::reflux ()
 
 #ifdef GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    gravity->gravity_sync(0, level, drho, dphi);
+	    gravity->gravity_sync(crse_level, fine_level, drho, dphi);
 #endif
 
     // Now subtract the new-time state data on the coarser levels,
@@ -2321,7 +2340,7 @@ Castro::reflux ()
 
     if (update_sources_after_reflux) {
 
-	for (int lev = level-1; lev >= 0; --lev) {
+	for (int lev = fine_level-1; lev >= crse_level; --lev) {
 
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real cur_time = getLevel(lev).state[State_Type].curTime();

@@ -255,8 +255,8 @@ Castro::do_advance (Real time,
     // correcting the flux mismatch on all levels below this one simultaneously.
     // If we're using gravity it will also do the sync solve associated with the reflux.
 
-    if (do_reflux && level == parent->finestLevel())
-	reflux();
+    if (do_reflux && reflux_strategy == 1 && level == parent->finestLevel())
+	reflux(0, level);
 
     // For the new-time source terms, we have an option for how to proceed.
     // We can either construct all of the old-time sources using the same
@@ -323,21 +323,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     frac_change = 1.e0;
 
     int finest_level = parent->finestLevel();
-
-    if (do_reflux && level < finest_level && sub_iteration < 2) {
-        //
-        // Set reflux registers to zero.
-        //
-        getFluxReg(level+1).setVal(0.0);
-	if (!Geometry::IsCartesian()) {
-	    getPresReg(level+1).setVal(0.0);
-	}
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	  getRADFluxReg(level+1).setVal(0.0);
-	}
-#endif
-    }
 
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
@@ -620,14 +605,14 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	hydro_source.clear();
 	sources_for_hydro.clear();
 
-	old_sources.clear();
+	for (int n = 0; n < num_src; ++n) {
+	    old_sources[n].clear();
 
-	if (!(do_reflux && update_sources_after_reflux)) {
-	    new_sources.clear();
+	    if (!(do_reflux && update_sources_after_reflux))
+		new_sources[n].clear();
 	}
 
     }
-
 
     prev_state.clear();
 
