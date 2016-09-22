@@ -537,38 +537,18 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
-    for (int j = 0; j < BL_SPACEDIM; j++)
-    {
-        fluxes.set(j, new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate));
-	fluxes[j].setVal(0.0);
-    }
+    for (int dir = 0; dir < 3; ++dir)
+	fluxes[dir].setVal(0.0);
 
-    for (int j = BL_SPACEDIM; j < 3; j++)
-    {
-        BoxArray ba = get_new_data(State_Type).boxArray();
-	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
-	fluxes[j].setVal(0.0);
-    }
-
-    if (!Geometry::IsCartesian()) {
-	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
-	P_radial.setVal(0.0);
-    }
+    P_radial.setVal(0.0);
 
 #ifdef RADIATION
-    MultiFab& Er_new = get_new_data(Rad_Type);
-    if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate));
-	    rad_fluxes[dir].setVal(0.0);
-	}
-    }
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+	rad_fluxes[dir].setVal(0.0);
 #endif
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	u_gdnv.set(dir, new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate));
-    }
 
 
 #ifdef DIFFUSION
@@ -600,17 +580,17 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
+    u_gdnv.clear();
+
     if (!keep_sources_until_end) {
 
 	hydro_source.clear();
 	sources_for_hydro.clear();
 
-	for (int n = 0; n < num_src; ++n) {
-	    old_sources[n].clear();
+	old_sources.clear();
 
-	    if (!(do_reflux && update_sources_after_reflux))
-		new_sources[n].clear();
-	}
+	if (!(do_reflux && update_sources_after_reflux))
+	    new_sources.clear();
 
     }
 
