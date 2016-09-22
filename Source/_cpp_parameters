@@ -30,7 +30,7 @@ do_reflux                    int           1
 use_custom_knapsack_weights  int           0
 
 # whether to re-compute new-time source terms after a reflux
-update_sources_after_reflux  int           0
+update_sources_after_reflux  int           1
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
