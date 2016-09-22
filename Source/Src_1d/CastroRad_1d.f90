@@ -5,7 +5,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         Erin,Erin_l1,Erin_h1,&
                         lam,lam_l1,lam_h1,&
                         Erout,Erout_l1,Erout_h1,&
-                        ugdnv,ugdnv_l1,ugdnv_h1,&
                         src,src_l1,src_h1, &
                         delta,dt,&
                         flux,flux_l1,flux_h1,&
@@ -16,7 +15,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol,vol_l1,vol_h1,courno,verbose, &
                         nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP
+  use meth_params_module, only : QVAR, QU, NVAR, NHYP, NGDNV, GDU, GDPRES
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
@@ -30,7 +29,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer domlo(1),domhi(1)
   integer uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1
   integer uout_l1,uout_h1, Erout_l1, Erout_h1
-  integer ugdnv_l1,ugdnv_h1
   integer flux_l1,flux_h1, radflux_l1,radflux_h1
   integer p_l1, p_h1
   integer area_l1,area_h1
@@ -42,7 +40,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision  Erin( Erin_l1: Erin_h1, 0:ngroups-1)
   double precision  lam( lam_l1: lam_h1, 0:ngroups-1)
   double precision Erout(Erout_l1:Erout_h1, 0:ngroups-1)
-  double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision   src(  src_l1:  src_h1,NVAR)
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision radflux(radflux_l1: radflux_h1, 0:ngroups-1)
@@ -61,7 +58,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: cg(:)
   double precision, allocatable:: csml(:)
   double precision, allocatable:: div(:)
-  double precision, allocatable:: pgdnv(:)
+  double precision, allocatable:: q1(:,:)
   double precision, allocatable:: ergdnv(:,:)
   double precision, allocatable:: lamgdnv(:,:)
   double precision, allocatable:: srcQ(:,:)
@@ -80,7 +77,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   q_l1 = lo(1)-NHYP
   q_h1 = hi(1)+NHYP
 
-  allocate(     q(q_l1:q_h1,QRADVAR))  ! 
+  allocate(     q(q_l1:q_h1,QRADVAR))
   allocate(    c (q_l1:q_h1))
   allocate(    cg(q_l1:q_h1))
   allocate( gamc (q_l1:q_h1))
@@ -92,7 +89,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate( pgdnv(lo(1):hi(1)+1))
+  allocate(   q1(flux_l1-1:flux_h1+1,NGDNV))
   allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
   allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
   
@@ -116,16 +113,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        lo(1),hi(1),dx,dt, &
        flux,flux_l1,flux_h1, &
        radflux,radflux_l1,radflux_h1, &
-       pgdnv,lo(1),hi(1)+1, &
+       q1,flux_l1-1,flux_h1+1, &
        ergdnv,lo(1),hi(1)+1, &
        lamgdnv,lo(1),hi(1)+1, &
-       ugdnv,ugdnv_l1,ugdnv_h1, &
        dloga,dloga_l1,dloga_h1)
 
   ! Define p*divu
   do i = lo(1), hi(1)
      pdivu(i) = 0.5d0 * &
-          (pgdnv(i+1)+pgdnv(i))*(ugdnv(i+1)*area(i+1)-ugdnv(i)*area(i)) / vol(i)
+          (q1(i+1,GDPRES)+q1(i,GDPRES))*(q1(i+1,GDU)*area(i+1)-q1(i,GDU)*area(i)) / vol(i)
   end do
 
   ! Define divu on surroundingNodes(lo,hi)
@@ -138,10 +134,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        uout,uout_l1,uout_h1, &
        Erin,Erin_l1,Erin_h1, &
        Erout,Erout_l1,Erout_h1, &
-       pgdnv,lo(1),hi(1)+1, &
+       q1,flux_l1-1,flux_h1+1, &
        ergdnv,lo(1),hi(1)+1, &
        lamgdnv,lo(1),hi(1)+1, &
-       ugdnv,ugdnv_l1,ugdnv_h1, &
        src , src_l1, src_h1, &
        flux,flux_l1,flux_h1, &
        radflux,radflux_l1,radflux_h1, &
@@ -152,10 +147,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
        nstep_fsp)
 
   if (coord_type .gt. 0) then
-     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1)
+     pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
   end if
   
-  deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,pgdnv,ergdnv,lamgdnv)
+  deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,q1,ergdnv,lamgdnv)
 
 end subroutine ca_umdrv_rad
 

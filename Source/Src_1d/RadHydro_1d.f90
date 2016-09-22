@@ -253,10 +253,9 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      ilo,ihi,dx,dt, &
      flux ,   fd_l1,   fd_h1, &
      rflux,  rfd_l1,  rfd_h1, &
-     pgdnv,pgdnv_l1,pgdnv_h1, &
+     q1, q1_l1, q1_h1, &
      ergdnv,ergdnv_l1,ergdnv_h1, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-     ugdnv,ugdnv_l1,ugdnv_h1, &
      dloga,dloga_l1,dloga_h1)
 
   use meth_params_module, only : NVAR, ppm_type
@@ -275,10 +274,9 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   integer src_l1,src_h1
   integer fd_l1,fd_h1
   integer rfd_l1,rfd_h1
-  integer pgdnv_l1,pgdnv_h1
+  integer q1_l1, q1_h1
   integer ergdnv_l1,ergdnv_h1
   integer lamgdnv_l1,lamgdnv_h1
-  integer ugdnv_l1,ugdnv_h1
   integer ilo,ihi
   double precision dx, dt
   double precision lam(lam_l1:lam_h1, 0:ngroups-1)
@@ -292,10 +290,9 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision  flux(fd_l1   :fd_h1,NVAR)
   double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
   double precision  srcQ(src_l1  :src_h1,NVAR)
-  double precision  pgdnv(pgdnv_l1:pgdnv_h1)
+  double precision    q1(   q1_l1:q1_h1)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
-  double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision dloga(dloga_l1:dloga_h1)
   
 !     Left and right state arrays (edge centered, cell centered)
@@ -327,8 +324,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   call cmpflx(lo, hi, domlo, domhi, &
               qm, qp, ilo-1,ihi+1, &
               flux ,  fd_l1, fd_h1, &
-              pgdnv,pgdnv_l1,pgdnv_h1, &
-              ugdnv,ugdnv_l1,ugdnv_h1, &
+              q1, q1_l1, q1_h1, &
               lam, lam_l1, lam_h1, & 
               rflux, rfd_l1,rfd_h1, &
               ergdnv,ergdnv_l1,ergdnv_h1, &
@@ -348,10 +344,9 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      uout, uout_l1 ,uout_h1, &
      Erin,Erin_l1,Erin_h1, &
      Erout,Erout_l1,Erout_h1, &
-     pgdnv,pgdnv_l1,pgdnv_h1, &
+     q1,q1_l1,q1_h1, &
      ergdnv,ergdnv_l1,ergdnv_h1, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-     ugdnv,ugdnv_l1,ugdnv_h1, &
      src,  src_l1,  src_h1, &
      flux, flux_l1, flux_h1, &
      rflux,rflux_l1,rflux_h1, &
@@ -361,7 +356,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      div,pdivu,lo,hi,dx,dt, &
      nstep_fsp)
 
-  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP
+  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDPRES
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
@@ -376,8 +371,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   integer  uout_l1, uout_h1
   integer  Erin_l1, Erin_h1
   integer Erout_l1,Erout_h1
-  integer pgdnv_l1,pgdnv_h1
-  integer ugdnv_l1,ugdnv_h1
+  integer    q1_l1,   q1_h1
   integer ergdnv_l1,ergdnv_h1
   integer lamgdnv_l1,lamgdnv_h1
   integer   src_l1,  src_h1
@@ -390,8 +384,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   double precision  uout(uout_l1:uout_h1,NVAR)
   double precision  Erin( Erin_l1: Erin_h1, 0:ngroups-1)
   double precision Erout(Erout_l1:Erout_h1, 0:ngroups-1)
-  double precision  pgdnv(pgdnv_l1:pgdnv_h1)
-  double precision  ugdnv(ugdnv_l1:ugdnv_h1)
+  double precision    q1(q1_l1:q1_h1, NGDNV)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision   src(  src_l1:  src_h1,NVAR)
@@ -466,7 +459,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   ! Add gradp term to momentum equation
   do i = lo(1),hi(1)
-     dpdx  = (  pgdnv(i+1)- pgdnv(i) ) / dx
+     dpdx  = (  q1(i+1,GDPRES)- q1(i,GDPRES) ) / dx
 
      dprdx = ZERO
      do g=0,ngroups-1
@@ -492,10 +485,10 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   if (comoving) then 
      do i = lo(1),hi(1)
 
-        ux = HALF*(ugdnv(i) + ugdnv(i+1))
+        ux = HALF*(q1(i,GDPRES) + q1(i+1,GDPRES))
 
-        divu = (ugdnv(i+1)*area(i+1)-ugdnv(i)*area(i))/vol(i)
-        dudx = (ugdnv(i+1)-ugdnv(i))/dx
+        divu = (q1(i+1,GDPRES)*area(i+1)-q1(i,GDPRES)*area(i))/vol(i)
+        dudx = (q1(i+1,GDPRES)-q1(i,GDPRES))/dx
 
         ! Note that for single group, fspace_type is always 1
         do g=0, ngroups-1
@@ -529,7 +522,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   if (coord_type .eq. 0) then
      do i = lo(1),hi(1)+1
-        flux(i,UMX) = flux(i,UMX) + dt*area(i)*pgdnv(i)
+        flux(i,UMX) = flux(i,UMX) + dt*area(i)*q1(i,GDPRES)
      enddo
   end if
 
