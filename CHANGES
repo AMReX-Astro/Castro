@@ -1,7 +1,7 @@
 * changes since the last release:
 
   -- the problem setups have been moved into sub-directory
-     categories to make it easier to read (#32)
+     categories to make it easier to read (issue #32)
 
   -- the way we we use tolerances in the multigrid solve for Poisson
      gravity has changed. The old behavior is that you would pass in
@@ -27,12 +27,13 @@
      now deprecated, and will be removed in a future release. Note
      that the tolerance used in determining convergence is always the
      less restrictive of the relative and absolute tolerance
-     requirements.  gravity.delta_tol has been removed.
+     requirements.  gravity.delta_tol has been removed. (issue #43)
 
   -- the radiation hydro solver, that used to live in
-     CastroRadiation.git has now been completely integrated into
-     the main Castro git repo.  The history was preserved in the
-     transition (issues #24, #31)
+     CastroRadiation.git has now been completely integrated into the
+     main Castro git repo.  The history was preserved in the
+     transition It has also been cleaned up a little (issues #24, #31,
+     #33)
 
      The radiation build variable Network_inputs was renamed
      to NETWORK_INPUTS for consistency.
@@ -41,10 +42,11 @@
      in Microphysics.git
 
   -- the gravity and diffusion runtime parameters have been moved
-     to the master _cpp_parameters file
+     to the master _cpp_parameters file (issue #42)
 
-  -- enthalpy and temperature diffusion are now properly time-centered
-     (issue #22)
+  -- enthalpy, species, and temperature diffusion are now properly
+     time-centered (issue #22), and a bug in the hi boundary
+     inflow boundary conditions for diffusion was fixed (issue #41)
   
   -- a flux limiter has been added that limits the size of the hydro
      fluxes if they would cause rho or (rho e) to go negative. This
@@ -70,7 +72,7 @@
      by the separate Microphysics git repo
 
   -- the documentation of the architecture of Castro has been
-     significantly improved (issues #23, #29, #31)
+     significantly improved (issues #20, #23, #29, #31)
 
 
 previous changes:

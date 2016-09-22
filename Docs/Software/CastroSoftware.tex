@@ -75,38 +75,6 @@ division between \cpp\ and Fortran.
 
 \end{itemize}
 
-\section{Units}
-
-\castro\ works in CGS units unless otherwise specified.
-Table~\ref{table:units} shows some of the common symbols / names used
-throughout the code documentation and papers.
-
-\begin{table}[t]
-\renewcommand{\arraystretch}{1.2}
-\centering
-\begin{tabular}{lll}
-name & units & description \\
-\hline
-$t$    & s       & time \\
-$\rho$ & $\gcc$  & mass density \\
-$\ub$  & $\cms$  & velocity vector \\
-$p$    & $\presunit$ & pressure \\
-$\gb$  & $\accelunit$ & gravitational acceleration \\
-$\Sb$  & varies       & source term \\
-$E$    & $\ergg$      & specific total energy \\
-$e$    & $\ergg$      & specific internal energy \\
-$T$    & $K$          & temperature \\
-$\kth$ & $\mathrm{erg~cm^{-1}~s^{-1}~K~{-1}}$ & thermal conductivity \\
-$X_k$  & --           & mass fraction of species $k$ \\
-$\omegadot_k$ & $\mathrm{s^{-1}}$  & species creation rate (from reactions) \\
-\hline
-\end{tabular}
-\caption{\label{table:units} Common quantities and units.}
-\renewcommand{\arraystretch}{1.0}
-\end{table}
-
-Physical constants, again using the CGS system are available 
-in {\tt Castro/constants/constants\_cgs.f90}
 
 \section{Major data structures}
 
@@ -304,9 +272,6 @@ The current \statedata\ names  \castro\ carries are:
   Note: we do not make use of the old-time quantity here. In fact, we
   never allocate the \farraybox s for the old-time in the {\tt Source\_Type}
   \statedata, so there is not wasted memory.
-
-\item \variable{LS\_State\_Type} : this stores the level-set variable.
-  This is not currently supported in \castro.
 
 \item \variable{Reactions\_Type} : this holds the data for the nuclear
   reactions.  It has {\tt NumSpec+2} components: the species
@@ -765,7 +730,7 @@ note that:
 \item the union of tile boxes completely cover the valid region of the
   fab
 \item Consider working with a node-centered MultiFab, {\tt ugdnv}, and
-  a cell=centered MultiFab, {\tt s}:
+  a cell-centered MultiFab, {\tt s}:
   \begin{itemize}
 
   \item with {\tt mfi(s)}, the tiles are based on the cell-centered
@@ -996,6 +961,8 @@ when they are defined).  There are some advanced operations in
 
 \subsection{Physical Boundaries}
 
+\label{soft:phys_bcs}
+
 Physical boundary conditions are specified by an integer
 index\footnote{the integer values are defined in \code{BC\_TYPES.H}} in
   the inputs file, using the \runparam{castro.lo\_bc} and
@@ -1058,6 +1025,12 @@ noslipwall & 5 & {\tt REFLECT\_ODD} & {\tt REFLECT\_EVEN} & {\tt REFLECT\_EVEN} 
 \end{table}
 
 
+\subsection{\fluxregister}
+
+A \fluxregister\ holds face-centered data at the boundaries of a box.
+It is composed of a set of \multifab s (one for each face, so 6 for
+3D).  A \fluxregister\ stores fluxes at coarse-fine interfaces, 
+and isused for the flux-correction step.
 
 
 
@@ -1082,7 +1055,24 @@ the {\tt Castro} object (this is inhereted through \amrlevel). \MarginPar{correc
 \subsection{Error Estimators}
 
 
-\section{Gravity class}
+\section{{\tt Gravity} class}
+
+There is a single {\tt Gravity} object, {\tt gravity}, that is a
+static class member of the {\tt Castro} object.  This means that all
+levels refer to the same {\tt Gravity} object.
+
+Within the {\tt Gravity} object, there are pointers to the {\tt Amr}
+object (as {\tt parent}), and all of the \amrlevel s (as a \parray,
+{\tt LevelData}).  The {\tt gravity} object gets the geometry
+information at each level through the parent {\tt Amr} class.
+
+
+The main job of the {\tt gravity} object is to provide the potential
+and gravitation acceleration for use in the hydrodynamic sources.
+Depending on the approximation used for gravity, this could mean
+calling the \boxlib\ multigrid solvers to solve the Poisson equation.
+
+
 
 
 \section{Fortran Helper Modules}
@@ -1140,6 +1130,8 @@ side of \castro\ or perform other useful tasks.
   \castro\ grid.
 
 \item {\tt prob\_params\_module}:
+
+  \label{soft:prob_params}
 
   This module stores information about the domain and current level,
   and is periodically synced up with the \cpp\ driver.  The information
@@ -1400,15 +1392,56 @@ each of these in the main source tree.
 
 \begin{itemize}
 
-\item \code{Problem.f90}
+\item \code{Problem.f90} :
 
-\item \code{problem\_tagging\_nd.F90}
+  This provides two routines, \code{problem\_checkpoint} and
+  \code{problem\_restart} that can be used to add information to the
+  checkpoint files and read it in upon restart.  This is useful for
+  some global problem-specific quantities.  For instance, the
+  \problem{wdmerger}\footnote{available separately at
+    \url{https://github.com/BoxLib-Codes/wdmerger}} problem uses this
+  to store center of mass position and velocity information in the
+  checkpoint files that are used for runtime diagnostics.
 
-\item \code{problem\_derive\_nd.f90}
+  The name of the checkpoint directory is passed in as an argument.
+  \code{Problem\_F.H} provides the \cpp\ interfaces for these routines.
+
+\item \code{problem\_tagging\_?d.F90}, \code{problem\_tagging\_nd.F90}
+
+  This implements problem-specific tagging for refinement, through a
+  subroutine \code{set\_problem\_tags}.  The full hydrodynamic state
+  ({\tt State\_Type}) is passed in, and the problem can mark zones for
+  refinement by setting the \variable{tag} variable for a zone to
+  \variable{set}.  An example is provided by the \problem{toy\_convect}
+  problem which refines a rectangular region (fuel layer) based on
+  a density parameter and the H mass fraction.
+
+\item \code{Problem\_Derive\_F.H}, \code{Problem\_Derives.H}, \code{problem\_derive\_nd.f90}
+
+  Together, these provide a mechanism to create derived quantities
+  that can be stored in the plotfile.  {\tt Problem\_Derives.H}
+  provides the \cpp\ code that defines these new plot variables.  It
+  does this by adding them to the \variable{derive\_lst}---a list of
+  derived variables that \castro\ knows about.  When adding new
+  variables, a descriptive name, Fortran routine that does the
+  deriving, and component of \statedata\ are specified.
+
+  The Fortran routine that does the deriving is put in the
+  problem-specific {\tt problem\_derive\_nd.f90} (and a prototype for
+  \cpp\ is put in {\tt Problem\_Derives.H}).  A example is provided by
+  the \problem{reacting\_bubble} problem, which derives several new
+  quantities (perturbations against a background one-dimensional
+  model, in this case).
 
 \item \code{Prob.cpp}, \code{Problem.H}, \code{Problem\_F.H}
 
-\item \code{Problem\_Derive\_F.H}, \code{Problem\_Derives.H}
+  These files provide problem-specific routines for computing global
+  diagnostic information through the \code{sum\_integrated\_quantities}
+  functionality that is part of the {\tt Castro} class.
+
+  An example is provided by \problem{toy\_flame}, where an estimate
+  of the flame speed is computed by integrating the mass of fuel on 
+  the grid.
 
 \end{itemize}
 
@@ -1423,10 +1456,12 @@ set of files for any dimensionality (this is called the {\em dimension
 \makevar{DIMENSION\_AGNOSTIC}{\tt = TRUE} in your {\tt GNUmakefile}.
 Then write you problem initialization in \code{Prob\_nd.F90}.
 Analogous routines exist for tagging and boundary conditions.  See the
-\problem{rotating\_torun} and \problem{Noh} problem setups for an
+\problem{rotating\_torus} and \problem{Noh} problem setups for an
 example.
 
 \section{Parallel I/O}
+
+\label{software:io}
 
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.

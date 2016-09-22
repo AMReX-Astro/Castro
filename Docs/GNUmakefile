@@ -6,7 +6,8 @@ eps_source = $(wildcard *.eps) $(wildcard */*.eps)
 
 pdf_source = $(eps_source:.eps=.pdf)
 
-section_sources = Introduction/CastroIntroduction.tex \
+section_sources = Preface/Preface.tex \
+                  Introduction/Introduction.tex \
                   GettingStarted/CastroGettingStarted.tex \
 	          Inputs/CastroInputs.tex \
                   Software/CastroSoftware.tex \
@@ -22,11 +23,10 @@ section_sources = Introduction/CastroIntroduction.tex \
                   Radiation/CastroRadiation.tex \
                   EOSNetwork/EOSNetwork.tex \
                   AMR/AMR.tex \
-                  LevelSet/LevelSet.tex \
                   ConvertCheckpoint/ConvertCheckpoint.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
                   Visualization/CastroVisualization.tex \
-                  CastroVerification/Verification.tex \
+                  Verification/Verification.tex \
                   castrosymbols.tex
 
 

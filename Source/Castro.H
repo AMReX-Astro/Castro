@@ -23,10 +23,6 @@ typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save or
 using std::istream;
 using std::ostream;
 
-#ifdef LEVELSET
-typedef BaseFab<int> IntFab;
-typedef FabArray<IntFab> IntMultiFab;
-#endif
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -41,9 +37,6 @@ enum StateType { State_Type = 0,
 		 Rotation_Type,
 #endif
 		 Source_Type,
-#ifdef LEVELSET
-                 LS_State_Type,
-#endif
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
@@ -409,9 +402,6 @@ public:
 
     void strang_chem (MultiFab&  state,
                       MultiFab&  react_mf,
-#ifdef TAU
-                      MultiFab&  tau,
-#endif
                       Real       time,
                       Real       dt);
 #endif
@@ -449,7 +439,7 @@ public:
     void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
     void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
-    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm);
+    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
@@ -457,13 +447,9 @@ public:
     void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
     void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
 #endif
-#ifdef TAU
-    void define_tau (MultiFab& grav_vector, Real time);
-#endif
-    void add_enth_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
     void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t);
+    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
@@ -515,11 +501,6 @@ public:
     void expand_state(MultiFab& S, Real time, int ng);
 
     void make_radial_data (int is_new);
-
-#ifdef LEVELSET
-    void advance_levelset(Real time, Real dt);
-    void reinit_phi(Real time);
-#endif
 
 #ifdef AUX_UPDATE
     void advance_aux(Real time, Real dt);
@@ -730,9 +711,6 @@ protected:
     MultiFab* NewViscousTermforEnergy;
 #endif
 
-#ifdef TAU
-    MultiFab tau_diff;
-#endif
 
 #ifdef PARTICLES
     static int       do_tracer_particles;
@@ -754,12 +732,6 @@ protected:
     static class Radiation *radiation;
 
     friend class Radiation;
-#endif
-
-#ifdef LEVELSET
-  IntMultiFab LStype;
-  IntMultiFab LSnband;
-  IntMultiFab LSmine;
 #endif
 
 #ifdef PARTICLES

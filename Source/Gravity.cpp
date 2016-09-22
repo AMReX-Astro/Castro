@@ -2766,9 +2766,9 @@ Gravity::sanity_check (int level)
 GradPhiPhysBCFunct::GradPhiPhysBCFunct () { }
 
 void
-GradPhiPhysBCFunct::doit (MultiFab& mf, int dcomp, int scomp, Real time)
+GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time)
 {
-    BL_PROFILE("GradPhiPhysBCFunct::doit");
+    BL_PROFILE("GradPhiPhysBCFunct::FillBoundary");
 
     // We should never need to actually fill physical ghost zones for grad_phi.
     // So we do not need to do anything here.

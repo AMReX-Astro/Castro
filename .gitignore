@@ -33,11 +33,6 @@ chk*
 *chk?????.old*
 *.xmgr
 
-
-# These files are created at build time
-extern.f90
-general_null_network.f90
-
 # build directories
 o/
 d/
@@ -45,8 +40,10 @@ f/
 t/
 buildInfo.cpp
 
-
-Exec/*/helm_table.dat
+# These files are created at build time
+Exec/*/*/extern.f90
+Exec/*/*/actual_network.f90
+Exec/*/*/helm_table.dat
 
 *.hack
 *.bak

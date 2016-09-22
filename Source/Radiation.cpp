@@ -1198,65 +1198,6 @@ void Radiation::init_flux(int level, int ncycle)
   }
 }
 
-void Radiation::clear_internal_borders(FluxRegister& fr, const Geometry& geom)
-{
-  int ncomp = fr.nComp();
-  const Box& domain = geom.Domain();
-
-  for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-      Orientation lo(dir, Orientation::low);
-      Orientation hi(dir, Orientation::high);
-      
-      FabSet& frlo = fr[lo];
-      FabSet& frhi = fr[hi];
-      
-      const BoxArray& balo = frlo.boxArray();
-      const BoxArray& bahi = frhi.boxArray();
-      
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      {
-	  for (FabSetIter fsi(frlo); fsi.isValid(); ++fsi) {
-	      const Box& bx = fsi.validbox();
-	      const std::vector< std::pair<int,Box> >& isects = bahi.intersections(bx);
-	      for (int ii = 0; ii < isects.size(); ++ii) {
-		  frlo[fsi].setVal(0.0, isects[ii].second, 0, ncomp);
-	      }
-	      if (geom.isPeriodic(dir)) {
-		  if (bx.smallEnd(dir) == domain.smallEnd(dir)) {
-		      const Box& sbx = BoxLib::shift(bx, dir, domain.length(dir));
-		      const std::vector<std::pair<int,Box> >& isects2 = bahi.intersections(sbx);
-		      for (int ii = 0; ii < isects2.size(); ++ii) {
-			  const Box& bx2 = BoxLib::shift(isects2[ii].second, dir, -domain.length(dir));
-			  frlo[fsi].setVal(0.0, bx2, 0, ncomp);
-		      }		      
-		  }
-	      }
-	  }
-	  
-	  for (FabSetIter fsi(frhi); fsi.isValid(); ++fsi) {
-	      const Box& bx = fsi.validbox();
-	      const std::vector< std::pair<int,Box> >& isects = balo.intersections(bx);
-	      for (int ii = 0; ii < isects.size(); ++ii) {
-		  frhi[fsi].setVal(0.0, isects[ii].second, 0, ncomp);
-	      }
-	      if (geom.isPeriodic(dir)) {
-		  if (bx.bigEnd(dir) == domain.bigEnd(dir)) {
-		      const Box& sbx = BoxLib::shift(bx, dir, -domain.length(dir));
-		      const std::vector<std::pair<int,Box> >& isects2 = balo.intersections(sbx);
-		      for (int ii = 0; ii < isects2.size(); ++ii) {
-			  const Box& bx2 = BoxLib::shift(isects2[ii].second, dir, domain.length(dir));
-			  frhi[fsi].setVal(0.0, bx2, 0, ncomp);
-		      }		      
-		  }
-	      }
-	  }
-      }
-  }
-}
-
-
 // Overwrites temperature with exchange term, exch = temp on input:
 
 // This version used by single group, multigroup
@@ -2044,7 +1985,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
     if (indx == 0) {
       // clean up fine-fine interfaces (does all groups at once)
-      clear_internal_borders(sync_flux, castro->Geom());
+	sync_flux.ClearInternalBorders(castro->Geom());
     }
 
     Real scale = delta_t_old[level] / delta_t;
@@ -2149,14 +2090,14 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
               // re-implement reflux from the FluxRegister class for
               // this special circumstance.
 
-              // clear_internal_borders may not have been done yet.
+              // ClearInternalBorders may not have been done yet.
               // We'll do it again when we advance finer levels up to
               // flev, so there is some duplication of effort, but
               // this is an unusual situation.
 
               if (indx == 0) {
-                // clean up fine-fine interfaces (does all groups at once)
-		clear_internal_borders(ff_sync, parent->Geom(flev));
+		  // clean up fine-fine interfaces (does all groups at once)
+		  ff_sync.ClearInternalBorders(parent->Geom(flev));
               }
 
               BoxArray coarsened_grids(ffgr);
@@ -2314,7 +2255,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
           }
         }
 
-        // clear_internal_borders has already been done---it
+        // ClearInternalBorders has already been done---it
         // was done when refluxing this data to level flev-1.
 
         // The units of the data in crse_sync_flux are

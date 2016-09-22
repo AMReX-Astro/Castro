@@ -30,10 +30,6 @@ ifeq ($(USE_DIFFUSION), TRUE)
 f90EXE_sources += MGutils_1d.f90
 endif
 
-ifeq ($(USE_LEVELSET), TRUE)
-f90EXE_sources += LevelSet_$(DIM)d.f90
-endif
-
 ifeq ($(USE_RAD), TRUE)
 ifeq ($(DIM), 1)
 

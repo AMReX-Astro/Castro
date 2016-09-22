@@ -110,7 +110,7 @@
 
 \renewcommand{\sectionmark}[1]{\markright{\thesection---#1}}
 
-\graphicspath{{CastroVerification/}{Software/}{ConvertCheckpoint/}{Scaling/}{Visualization/}}
+\graphicspath{{Verification/}{Software/}{ConvertCheckpoint/}{Scaling/}{Visualization/}}
 
 % skip a bit of space between paragraphs, to enhance readability
 \usepackage{parskip}
@@ -229,11 +229,12 @@
   rulesepcolor=\color{gray},%
   backgroundcolor=\color{white}%
 }
+\lstset{belowskip=-0.25em}
 
 
 % Macros for indexing
 \newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
-\newcommand{\runparamc}[1]{\index{Runtime parameters!{\tt castro.#1}}{\tt #1}}
+\newcommand{\runparamNS}[2]{\index{Runtime parameters!{\tt #2.#1}}{\tt #1}}
 \newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
 
 \newcommand{\code}[1]{\index{Code reference!{\tt #1}}{\tt #1}}
@@ -298,12 +299,14 @@
 \chaptermark{Preface}
 \addcontentsline{toc}{chapter}{preface}
 
-\input Introduction/CastroIntroduction.tex
+\input Preface/Preface.tex
 
 \clearpage
 
 \mainmatter
 
+\chapter{Introduction}
+\input Introduction/Introduction.tex
 
 \chapter{Getting Started}
 \input GettingStarted/CastroGettingStarted.tex
@@ -348,10 +351,6 @@
 \chapter{AMR}
 \input AMR/AMR.tex
 
-\chapter{Level Sets}\label{Chap:Level Sets}
-\input LevelSet/LevelSet.tex
-
-
 \chapter{ConvertCheckpoint}
 \input ConvertCheckpoint/ConvertCheckpoint.tex
 
@@ -362,7 +361,7 @@
 \input Visualization/CastroVisualization.tex
 
 \chapter{Verification Test Problems}
-\input CastroVerification/Verification.tex
+\input Verification/Verification.tex
 
 
 %------------------------------------------------------------------------------
@@ -371,7 +370,7 @@
 \renewcommand\bibname{References}
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{plain}
-\bibliography{refs,CastroVerification/verification,Gravity/gr,LevelSet/levelset}
+\bibliography{refs,Verification/verification,Gravity/gr}
 
 \cleardoublepage
 \phantomsection

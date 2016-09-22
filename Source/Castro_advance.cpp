@@ -15,10 +15,6 @@
 #include "Diffusion.H"
 #endif
 
-#ifdef LEVELSET
-#include "LevelSet_F.H"
-#endif
-
 #include <cmath>
 
 using std::string;
@@ -108,10 +104,6 @@ Castro::advance (Real time,
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
-#endif
-
-#ifdef LEVELSET
-    advance_levelset(time, dt);
 #endif
 
 #if (BL_SPACEDIM > 1)
@@ -385,13 +377,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     }
 #endif
 
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff.setVal(0.);
-    define_tau(grav_old,time);
-#endif
-#endif
-
     hydro_source.setVal(0.0);
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
@@ -600,11 +585,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	u_gdnv.set(dir, new MultiFab(getEdgeBoxArray(dir),1,1,Fab_allocate));
     }
 
-#ifdef DIFFUSION
-#ifdef TAU
-    tau_diff.define(grids, 1, NUM_GROW, Fab_allocate);
-#endif
-#endif
 
 #ifdef DIFFUSION
     OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
@@ -648,9 +628,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     }
 
-#ifndef LEVELSET
-    u_gdnv.clear();
-#endif
 
     prev_state.clear();
 
@@ -659,10 +636,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     OldSpecDiffTerm.clear();
     OldViscousTermforMomentum.clear();
     OldViscousTermforEnergy.clear();
-#endif
-
-#ifdef TAU
-    tau_diff.clear();
 #endif
 
 }
