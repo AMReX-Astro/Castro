@@ -2106,30 +2106,30 @@ Castro::reflux(int crse_level, int fine_level)
     int crse_scale = -1.0;
     int fine_scale = getLevel(fine_level).crse_ratio[0];
 
-    Array<FluxRegister> flux_reg(nlevs - 1);
-    Array<FluxRegister> pres_reg(nlevs - 1);
+    PArray<FluxRegister> flux_reg(nlevs - 1);
+    PArray<FluxRegister> pres_reg(nlevs - 1);
 #ifdef RADIATION
-    Array<FluxRegister> rad_flux_reg(nlevs - 1);
+    PArray<FluxRegister> rad_flux_reg(nlevs - 1);
 #endif
 #ifdef GRAVITY
-    Array<FluxRegister> phi_reg(nlevs - 1);
+    PArray<FluxRegister> phi_reg(nlevs - 1);
 #endif
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
-	flux_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE);
+	flux_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE));
 
 	if (!Geometry::IsCartesian())
-	    pres_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1);
+	    pres_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined)
-	    rad_flux_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups);
+	    rad_flux_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups));
 #endif
 
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    phi_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1);
+	    phi_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
 #endif
 
     }
