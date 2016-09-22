@@ -2269,8 +2269,10 @@ Castro::reflux(int crse_level, int fine_level)
 	    reg = &rad_flux_reg[lev - crse_level - 1];
 	    reg->setVal(0.0);
 
-	    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, crse_scale);
-	    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, fine_scale);
+	    for (int i = 0; i < BL_SPACEDIM; ++i) {
+		 reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, crse_scale);
+		 reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, fine_scale);
+	     }
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
@@ -2285,7 +2287,7 @@ Castro::reflux(int crse_level, int fine_level)
 		    temp_fluxes[i].setVal(0.0);
 		}
 		for (OrientationIter fi; fi; ++fi) {
-		    const FabSet& fs = reg[fi()];
+		    const FabSet& fs = (*reg)[fi()];
 		    int idir = fi().coordDir();
 		    fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
 		}

@@ -155,11 +155,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		}
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    fluxes    [i][mfi].add(    flux[i],mfi.nodaltilebox(i));
-		    rad_fluxes[i][mfi].add(rad_flux[i],mfi.nodaltilebox(i));
+		    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+		    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 		}
 		if (!Geometry::IsCartesian()) {
-		    P_radial[mfi].add(pradial, mfi.nodaltilebox(0));
+		    P_radial[mfi].plus(pradial, mfi.nodaltilebox(0),0,0,1);
 		}
 	    }
 
@@ -330,10 +330,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 		// to the fluxes MultiFAB even if we aren't on a fine grid.
 
 		for (int i = 0; i < BL_SPACEDIM ; i++)
-		    fluxes[i][mfi].copy(flux[i],mfi.nodaltilebox(i));
+		    fluxes[i][mfi].plus(flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 
 		if (!Geometry::IsCartesian()) {
-		    P_radial[mfi].copy(pradial, mfi.nodaltilebox(0));
+		    P_radial[mfi].plus(pradial, mfi.nodaltilebox(0),0,0,1);
 		}
 	    }
 
