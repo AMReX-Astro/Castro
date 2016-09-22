@@ -356,7 +356,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      div,pdivu,lo,hi,dx,dt, &
      nstep_fsp)
 
-  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDPRES
+  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDU, GDPRES
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
@@ -485,10 +485,10 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   if (comoving) then 
      do i = lo(1),hi(1)
 
-        ux = HALF*(q1(i,GDPRES) + q1(i+1,GDPRES))
+        ux = HALF*(q1(i,GDU) + q1(i+1,GDU))
 
-        divu = (q1(i+1,GDPRES)*area(i+1)-q1(i,GDPRES)*area(i))/vol(i)
-        dudx = (q1(i+1,GDPRES)-q1(i,GDPRES))/dx
+        divu = (q1(i+1,GDU)*area(i+1)-q1(i,GDU)*area(i))/vol(i)
+        dudx = (q1(i+1,GDU)-q1(i,GDU))/dx
 
         ! Note that for single group, fspace_type is always 1
         do g=0, ngroups-1
