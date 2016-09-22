@@ -84,7 +84,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
+#if (BL_SPACEDIM <= 2)
 	    FArrayBox pradial(Box::TheUnitBox(),1);
+#endif
 
 	    int priv_nstep_fsp = -1;
 	    Real cflLoc = -1.0e+200;
@@ -115,9 +117,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    rad_flux[i].resize(bxtmp,Radiation::nGroups);
 		}
 
+#if (BL_SPACEDIM <= 2)
 		if (!Geometry::IsCartesian()) {
 		    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 		}
+#endif
 
 		ca_umdrv_rad
 		    (&is_finest_level,&time,
@@ -150,9 +154,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 		    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 		}
+#if (BL_SPACEDIM <= 2)
 		if (!Geometry::IsCartesian()) {
 		    P_radial[mfi].plus(pradial, mfi.nodaltilebox(0),0,0,1);
 		}
+#endif
 	    }
 
 #ifdef _OPENMP
@@ -218,7 +224,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	{
 	    FArrayBox flux[BL_SPACEDIM];
+#if (BL_SPACEDIM <= 2)
 	    FArrayBox pradial(Box::TheUnitBox(),1);
+#endif
 	    FArrayBox q, qaux, src_q;
 
 	    Real cflLoc = -1.0e+200;
@@ -272,9 +280,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    flux[i].resize(bxtmp,NUM_STATE);
 		}
 
+#if (BL_SPACEDIM <= 2)
 		if (!Geometry::IsCartesian()) {
 		    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 		}
+#endif
 
 		ca_umdrv
 		    (&is_finest_level,&time,
@@ -314,9 +324,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		for (int i = 0; i < BL_SPACEDIM ; i++)
 		    fluxes[i][mfi].plus(flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 
+#if (BL_SPACEDIM <= 2)
 		if (!Geometry::IsCartesian()) {
 		    P_radial[mfi].plus(pradial, mfi.nodaltilebox(0),0,0,1);
 		}
+#endif
 	    }
 
 #ifdef _OPENMP

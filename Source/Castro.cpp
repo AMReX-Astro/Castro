@@ -455,8 +455,10 @@ Castro::Castro (Amr&            papa,
 	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
     }
 
+#if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+#endif
 
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);

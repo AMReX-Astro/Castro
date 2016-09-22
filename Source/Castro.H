@@ -568,7 +568,9 @@ protected:
     // Hydrodynamic (and radiation) fluxes.
     //
     PArray<MultiFab> fluxes;
+#if (BL_SPACEDIM <= 2)
     MultiFab         P_radial;
+#endif
 #ifdef RADIATION
     PArray<MultiFab> rad_fluxes;
 #endif
