@@ -115,7 +115,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #pragma omp parallel
 #endif
 	{
-	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
+	    FArrayBox flux[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
 	    FArrayBox pradial(Box::TheUnitBox(),1);
 
 	    int priv_nstep_fsp = -1;
@@ -145,7 +145,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 		    flux[i].resize(bxtmp,NUM_STATE);
 		    rad_flux[i].resize(bxtmp,Radiation::nGroups);
-		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		}
 
 		if (!Geometry::IsCartesian()) {
@@ -159,9 +158,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
 		     BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 		     BL_TO_FORTRAN(Erout),
-		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
-			    BL_TO_FORTRAN(ugdn[1]),
-			    BL_TO_FORTRAN(ugdn[2])),
 		     BL_TO_FORTRAN(sources_for_hydro[mfi]),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
@@ -181,10 +177,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 		     BL_TO_FORTRAN(volume[mfi]),
 		     &cflLoc, verbose, &priv_nstep_fsp);
-
-		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
-		}
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
 		    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
@@ -257,7 +249,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
 	{
-	    FArrayBox flux[BL_SPACEDIM], ugdn[BL_SPACEDIM];
+	    FArrayBox flux[BL_SPACEDIM];
 	    FArrayBox pradial(Box::TheUnitBox(),1);
 	    FArrayBox q, qaux, src_q;
 
@@ -310,7 +302,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 		for (int i = 0; i < BL_SPACEDIM; i++) {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 		    flux[i].resize(bxtmp,NUM_STATE);
-		    ugdn[i].resize(BoxLib::grow(bxtmp,1),1);
 		}
 
 		if (!Geometry::IsCartesian()) {
@@ -326,9 +317,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     BL_TO_FORTRAN(qaux),
 		     BL_TO_FORTRAN(src_q),
 		     BL_TO_FORTRAN(source_out),
-		     D_DECL(BL_TO_FORTRAN(ugdn[0]),
-			    BL_TO_FORTRAN(ugdn[1]),
-			    BL_TO_FORTRAN(ugdn[2])),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
@@ -351,12 +339,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     E_added_flux,
 		     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 		     eden_lost, xang_lost, yang_lost, zang_lost);
-
-		// Copy the normal velocities from the Riemann solver
-
-		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    u_gdnv[i][mfi].copy(ugdn[i],mfi.nodaltilebox(i));
-		}
 
 		// Since we may need the fluxes later on, we'll copy them
 		// to the fluxes MultiFAB even if we aren't on a fine grid.

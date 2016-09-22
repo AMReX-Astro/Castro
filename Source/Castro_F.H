@@ -462,13 +462,6 @@ extern "C"
      BL_FORT_FAB_ARG(qaux),
      BL_FORT_FAB_ARG(src_q),
      BL_FORT_FAB_ARG(update),
-     BL_FORT_FAB_ARG(ugdnvx),
-#if (BL_SPACEDIM >= 2)
-     BL_FORT_FAB_ARG(ugdnvy),
-#endif
-#if (BL_SPACEDIM == 3)
-     BL_FORT_FAB_ARG(ugdnvz),
-#endif
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
@@ -510,13 +503,6 @@ extern "C"
      const BL_FORT_FAB_ARG(Er),
      const BL_FORT_FAB_ARG(lam),
      BL_FORT_FAB_ARG(Erout),
-     BL_FORT_FAB_ARG(ugdnvx),
-#if (BL_SPACEDIM >= 2)
-     BL_FORT_FAB_ARG(ugdnvy),
-#endif
-#if (BL_SPACEDIM == 3)
-     BL_FORT_FAB_ARG(ugdnvz),
-#endif
      const BL_FORT_FAB_ARG(src),
      const Real dx[], const Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),

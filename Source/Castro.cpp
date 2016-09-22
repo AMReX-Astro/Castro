@@ -416,7 +416,6 @@ Castro::Castro ()
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
-    u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
     prev_state(num_state_type, PArrayManage)
@@ -435,7 +434,6 @@ Castro::Castro (Amr&            papa,
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
-    u_gdnv(BL_SPACEDIM, PArrayManage),
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
     prev_state(num_state_type, PArrayManage)

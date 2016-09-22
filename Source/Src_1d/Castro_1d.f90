@@ -6,7 +6,6 @@ subroutine ca_umdrv(is_finest_level,time,&
      qaux,qa_l1,qa_h1,&
      srcQ,srQ_l1,srQ_h1,&
      update,updt_l1,updt_h1,&
-     ugdnv,ugdnv_l1,ugdnv_h1,&
      delta,dt,&
      flux,flux_l1,flux_h1,&
      pradial,p_l1,p_h1,&
@@ -36,7 +35,6 @@ subroutine ca_umdrv(is_finest_level,time,&
   integer qa_l1,qa_h1
   integer srQ_l1,srQ_h1
   integer updt_l1,updt_h1
-  integer ugdnv_l1,ugdnv_h1
   integer flux_l1,flux_h1
   integer p_l1, p_h1
   integer area_l1,area_h1
@@ -48,7 +46,6 @@ subroutine ca_umdrv(is_finest_level,time,&
   double precision  qaux(   qa_l1:   qa_h1,NQAUX)
   double precision  srcQ(  srQ_l1:  srQ_h1,QVAR)
   double precision update(updt_l1: updt_h1,NVAR)
-  double precision ugdnv(ugdnv_l1:ugdnv_h1)
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision pradial(  p_l1:   p_h1)
   double precision  area( area_l1: area_h1     )
@@ -103,7 +100,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate(    q1(ugdnv_l1:ugdnv_h1,NGDNV))
+  allocate(    q1(flux_l1-1:flux_h1+1,NGDNV))
 
   dx = delta(1)
 
@@ -125,7 +122,7 @@ subroutine ca_umdrv(is_finest_level,time,&
                srcQ,srQ_l1,srQ_h1, &
                lo(1),hi(1),dx,dt, &
                flux,flux_l1,flux_h1, &
-               q1,ugdnv_l1,ugdnv_h1, &
+               q1,flux_l1-1,flux_h1+1, &
                dloga,dloga_l1,dloga_h1)
 
   ! Define p*divu
@@ -145,7 +142,7 @@ subroutine ca_umdrv(is_finest_level,time,&
        update,updt_l1,updt_h1, &
        q,q_l1,q_h1, &
        flux,flux_l1,flux_h1, &
-       q1,ugdnv_l1,ugdnv_h1, &
+       q1,flux_l1-1,flux_h1+1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &

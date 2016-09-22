@@ -5,9 +5,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
                     qaux,qa_l1,qa_l2,qa_l3,qa_h1,qa_h2,qa_h3, &
                     srcQ,srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3, &
                     update,updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3, &
-                    ugdnvx_out,ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3, &
-                    ugdnvy_out,ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3, &
-                    ugdnvz_out,ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3, &
                     delta,dt, &
                     flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                     flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -41,9 +38,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer, intent(in) :: qa_l1,qa_l2,qa_l3,qa_h1,qa_h2,qa_h3
   integer, intent(in) :: srQ_l1,srQ_l2,srQ_l3,srQ_h1,srQ_h2,srQ_h3
   integer, intent(in) :: updt_l1,updt_l2,updt_l3,updt_h1,updt_h2,updt_h3
-  integer, intent(in) :: ugdnvx_l1,ugdnvx_l2,ugdnvx_l3,ugdnvx_h1,ugdnvx_h2,ugdnvx_h3
-  integer, intent(in) :: ugdnvy_l1,ugdnvy_l2,ugdnvy_l3,ugdnvy_h1,ugdnvy_h2,ugdnvy_h3
-  integer, intent(in) :: ugdnvz_l1,ugdnvz_l2,ugdnvz_l3,ugdnvz_h1,ugdnvz_h2,ugdnvz_h3
   integer, intent(in) :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
   integer, intent(in) :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
   integer, intent(in) :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
@@ -55,9 +49,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, intent(in) ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
   double precision, intent(inout) ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
   double precision, intent(inout) :: update(updt_l1:updt_h1,  updt_l2:updt_h2,   updt_l3:updt_h3, NVAR)
-  double precision, intent(out) :: ugdnvx_out(ugdnvx_l1:ugdnvx_h1,ugdnvx_l2:ugdnvx_h2,ugdnvx_l3:ugdnvx_h3)
-  double precision, intent(out) :: ugdnvy_out(ugdnvy_l1:ugdnvy_h1,ugdnvy_l2:ugdnvy_h2,ugdnvy_l3:ugdnvy_h3)
-  double precision, intent(out) :: ugdnvz_out(ugdnvz_l1:ugdnvz_h1,ugdnvz_l2:ugdnvz_h2,ugdnvz_l3:ugdnvz_h3)
   double precision, intent(inout) ::  q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
   double precision, intent(in) ::  qaux(qa_l1:qa_h1,qa_l2:qa_h2,qa_l3:qa_h3,NQAUX)
   double precision, intent(in) ::   srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
@@ -94,9 +85,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: area1_lo(3), area1_hi(3)
   integer :: area2_lo(3), area2_hi(3)
   integer :: area3_lo(3), area3_hi(3)
-  integer :: ugdnvx_lo(3), ugdnvx_hi(3)
-  integer :: ugdnvy_lo(3), ugdnvy_hi(3)
-  integer :: ugdnvz_lo(3), ugdnvz_hi(3)
   integer :: vol_lo(3), vol_hi(3)
   integer :: q_lo(3), q_hi(3)
   integer :: qa_lo(3), qa_hi(3)
@@ -150,19 +138,12 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
-  ugdnvx_lo = [ugdnvx_l1, ugdnvx_l2, ugdnvx_l3]
-  ugdnvx_hi = [ugdnvx_h1, ugdnvx_h2, ugdnvx_h3]
-  ugdnvy_lo = [ugdnvy_l1, ugdnvy_l2, ugdnvy_l3]
-  ugdnvy_hi = [ugdnvy_h1, ugdnvy_h2, ugdnvy_h3]
-  ugdnvz_lo = [ugdnvz_l1, ugdnvz_l2, ugdnvz_l3]
-  ugdnvz_hi = [ugdnvz_h1, ugdnvz_h2, ugdnvz_h3]
-
-  q1_lo = ugdnvx_lo
-  q1_hi = ugdnvx_hi
-  q2_lo = ugdnvy_lo
-  q2_hi = ugdnvy_hi
-  q3_lo = ugdnvz_lo
-  q3_hi = ugdnvz_hi
+  q1_lo = flux1_lo - 1
+  q1_hi = flux1_hi + 1
+  q2_lo = flux2_lo - 1
+  q2_hi = flux2_hi + 1
+  q3_lo = flux3_lo - 1
+  q3_hi = flux3_hi + 1
 
   call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
   call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
@@ -217,12 +198,6 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
-
-  ! Copy data from the edge-centered state into ugdnv
-
-  ugdnvx_out(:,:,:) = q1(:,:,:,GDU)
-  ugdnvy_out(:,:,:) = q2(:,:,:,GDV)
-  ugdnvz_out(:,:,:) = q3(:,:,:,GDW)
 
   call bl_deallocate( flatn)
 
