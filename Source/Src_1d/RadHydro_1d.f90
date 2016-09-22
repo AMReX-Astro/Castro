@@ -258,7 +258,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
      dloga,dloga_l1,dloga_h1)
 
-  use meth_params_module, only : NVAR, ppm_type
+  use meth_params_module, only : NVAR, ppm_type, NGDNV
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
@@ -290,7 +290,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision  flux(fd_l1   :fd_h1,NVAR)
   double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
   double precision  srcQ(src_l1  :src_h1,NVAR)
-  double precision    q1(   q1_l1:q1_h1)
+  double precision    q1(   q1_l1:q1_h1, NGDNV)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision dloga(dloga_l1:dloga_h1)
