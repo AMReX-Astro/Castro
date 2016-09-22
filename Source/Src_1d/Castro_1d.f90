@@ -17,7 +17,8 @@ subroutine ca_umdrv(is_finest_level,time,&
      E_added_flux,mass_lost,xmom_lost,ymom_lost,zmom_lost, &
      eden_lost,xang_lost,yang_lost,zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, use_flattening
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, use_flattening, &
+                                 NGDNV, GDU, GDPRES
   use advection_module  , only : umeth1d, consup
   use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
@@ -58,8 +59,10 @@ subroutine ca_umdrv(is_finest_level,time,&
   !     Automatic arrays for workspace
   double precision, allocatable:: flatn(:)
   double precision, allocatable:: div(:)
-  double precision, allocatable:: pgdnv(:)
   double precision, allocatable:: pdivu(:)
+
+  ! Edge-centered primitive variables (Riemann state)
+  double precision, allocatable :: q1(:,:)
 
   double precision :: dx,E_added_flux,mass_added_flux
   double precision :: xmom_added_flux,ymom_added_flux,zmom_added_flux
@@ -100,7 +103,7 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate( pgdnv(lo(1):hi(1)+1))
+  allocate(    q1(ugdnv_l1:ugdnv_h1,NGDNV))
 
   dx = delta(1)
 
@@ -122,14 +125,13 @@ subroutine ca_umdrv(is_finest_level,time,&
                srcQ,srQ_l1,srQ_h1, &
                lo(1),hi(1),dx,dt, &
                flux,flux_l1,flux_h1, &
-               pgdnv,lo(1),hi(1)+1, &
-               ugdnv,ugdnv_l1,ugdnv_h1, &
+               q1,ugdnv_l1,ugdnv_h1, &
                dloga,dloga_l1,dloga_h1)
 
   ! Define p*divu
   do i = lo(1), hi(1)
      pdivu(i) = HALF * &
-          (pgdnv(i+1)+pgdnv(i))*(ugdnv(i+1)*area(i+1)-ugdnv(i)*area(i)) / vol(i)
+          (q1(i+1,GDPRES)+q1(i,GDPRES))*(q1(i+1,GDU)*area(i+1)-q1(i,GDU)*area(i)) / vol(i)
   end do
 
   ! Define divu on surroundingNodes(lo,hi)
@@ -141,9 +143,9 @@ subroutine ca_umdrv(is_finest_level,time,&
   call consup(uin,uin_l1,uin_h1, &
        uout,uout_l1,uout_h1, &
        update,updt_l1,updt_h1, &
-       pgdnv,lo(1),hi(1)+1, &
        q,q_l1,q_h1, &
        flux,flux_l1,flux_h1, &
+       q1,ugdnv_l1,ugdnv_h1, &
        area,area_l1,area_h1, &
        vol , vol_l1, vol_h1, &
        div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
@@ -153,9 +155,9 @@ subroutine ca_umdrv(is_finest_level,time,&
        verbose)
 
   if (coord_type .gt. 0) then
-     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1)
+     pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
   end if
 
-  deallocate(flatn,div,pdivu,pgdnv)
+  deallocate(flatn,div,pdivu,q1)
 
 end subroutine ca_umdrv
