@@ -1055,7 +1055,24 @@ the {\tt Castro} object (this is inhereted through \amrlevel). \MarginPar{correc
 \subsection{Error Estimators}
 
 
-\section{Gravity class}
+\section{{\tt Gravity} class}
+
+There is a single {\tt Gravity} object, {\tt gravity}, that is a
+static class member of the {\tt Castro} object.  This means that all
+levels refer to the same {\tt Gravity} object.
+
+Within the {\tt Gravity} object, there are pointers to the {\tt Amr}
+object (as {\tt parent}), and all of the \amrlevel s (as a \parray,
+{\tt LevelData}).  The {\tt gravity} object gets the geometry
+information at each level through the parent {\tt Amr} class.
+
+
+The main job of the {\tt gravity} object is to provide the potential
+and gravitation acceleration for use in the hydrodynamic sources.
+Depending on the approximation used for gravity, this could mean
+calling the \boxlib\ multigrid solvers to solve the Poisson equation.
+
+
 
 
 \section{Fortran Helper Modules}
