@@ -15,21 +15,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     if (do_grav) {
 
-       // Swap the old and new data at this level and all finer levels,
-       // and zero out the flux registers. 
-
-       if (level == 0 || amr_iteration > 1) {
-
-	 if (sub_iteration < 2)
-	   for (int lev = level; lev < finest_level; lev++) {
-               if (do_reflux && gravity->get_gravity_type() == "PoissonGrav")
-                   gravity->zeroPhiFluxReg(lev+1);
-           }
-
-       }
-
-       // Define the old gravity vector (aka grad_phi on cell centers)
-       //   Note that this is based on the multilevel solve when doing "PoissonGrav".
+       // Define the old gravity vector.
 
        gravity->get_old_grav_vector(level,grav_old,time);
 
@@ -44,7 +30,8 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     }
 
     // Do level solve at beginning of time step in order to compute the
-    //   difference between the multilevel and the single level solutions.
+    // difference between the multilevel and the single level solutions.
+
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
     {
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {

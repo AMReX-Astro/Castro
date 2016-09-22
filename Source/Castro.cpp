@@ -29,6 +29,7 @@ using std::string;
 #include <VisMF.H>
 #include <TagBox.H>
 #include <ParmParse.H>
+#include <FluxRegister.H>
 #include <Castro_error_F.H>
 
 #ifdef RADIATION
@@ -2110,6 +2111,9 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef RADIATION
     Array<FluxRegister> rad_flux_reg(nlevs - 1);
 #endif
+#ifdef GRAVITY
+    Array<FluxRegister> phi_reg(nlevs - 1);
+#endif
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
@@ -2121,6 +2125,11 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined)
 	    rad_flux_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups);
+#endif
+
+#ifdef GRAVITY
+	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
+	    phi_reg[lev - crse_level - 1].define(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1);
 #endif
 
     }
@@ -2294,7 +2303,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-	    reg = &gravity->getPhiFluxReg(lev);
+	    reg = &phi_reg[lev - crse_level - 1];
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, crse_scale);

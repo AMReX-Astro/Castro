@@ -2,7 +2,6 @@
 #define _Gravity_H_
 
 #include <AmrLevel.H>
-#include <FluxRegister.H>
 
 class Gravity {
 
@@ -73,9 +72,6 @@ public:
                   MultiFab& phi_crse,
                   Real time);
 
-  FluxRegister& getPhiFluxReg (int level);
-  void zeroPhiFluxReg (int level);
-
   void get_old_grav_vector(int level, MultiFab& grav_vector, Real time);
   void get_new_grav_vector(int level, MultiFab& grav_vector, Real time);
 
@@ -113,7 +109,6 @@ protected:
   Array< PArray<MultiFab> > grad_phi_curr;
   Array< PArray<MultiFab> > grad_phi_prev;
 
-  PArray<FluxRegister> phi_flux_reg;
   //
   // BoxArray at each level
   //

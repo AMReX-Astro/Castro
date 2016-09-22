@@ -6,7 +6,6 @@
 #include <AmrLevel.H>
 #include <iMultiFab.H>
 #include <ErrorList.H>
-#include <FluxRegister.H>
 #include <BL_CXX11.H>
 
 #ifdef BL_LAZY
@@ -600,11 +599,6 @@ protected:
     static void read_params ();
 
     Castro& getLevel (int lev);
-
-#ifdef RADIATION
-    FluxRegister& getRADFluxReg ();
-    FluxRegister& getRADFluxReg (int lev);
-#endif
 
     void reflux (int crse_level, int fine_level);
 

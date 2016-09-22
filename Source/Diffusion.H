@@ -2,7 +2,6 @@
 #define _Diffusion_H_
 
 #include <AmrLevel.H>
-#include <FluxRegister.H>
 
 class Diffusion {
 
@@ -39,7 +38,6 @@ protected:
   Amr*             parent;
   PArray<AmrLevel> LevelData;
 
-  PArray<FluxRegister> phi_flux_reg;
   //
   // BoxArray at each level
   //

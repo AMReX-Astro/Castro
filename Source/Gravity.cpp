@@ -54,7 +54,6 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     LevelData(MAX_LEV),
     grad_phi_curr(MAX_LEV),
     grad_phi_prev(MAX_LEV),
-    phi_flux_reg(MAX_LEV,PArrayManage),
     grids(MAX_LEV),
     abs_tol(MAX_LEV),
     rel_tol(MAX_LEV),
@@ -286,12 +285,6 @@ Gravity::install_level (int                   level,
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_curr[level].set(n,new MultiFab(level_data->getEdgeBoxArray(n),1,1));
 
-       if (level > 0) {
-          phi_flux_reg.clear(level);
-          IntVect crse_ratio = parent->refRatio(level-1);
-          phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
-       }
-
     } else if (gravity_type == "MonopoleGrav") {
 
         if (!Geometry::isAllPeriodic())
@@ -395,18 +388,6 @@ Gravity::swapTimeLevels (int level)
 	    grad_phi_curr[level][n].setVal(1.e50);
 	}
     }
-}
-
-FluxRegister&
-Gravity::getPhiFluxReg(int level)
-{
-  return phi_flux_reg[level];
-}
-
-void
-Gravity::zeroPhiFluxReg (int level)
-{
-  phi_flux_reg[level].setVal(0.);
 }
 
 void

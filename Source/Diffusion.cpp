@@ -15,7 +15,6 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
   : 
     parent(Parent),
     LevelData(MAX_LEV),
-    phi_flux_reg(MAX_LEV, PArrayManage),
     grids(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
@@ -61,18 +60,6 @@ Diffusion::install_level (int                   level,
 
     BoxArray ba(LevelData[level].boxArray());
     grids[level] = ba;
-
-    if (level > 0) {
-       phi_flux_reg.clear(level);
-       IntVect crse_ratio = parent->refRatio(level-1);
-       phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
-    }
-}
-
-void
-Diffusion::zeroPhiFluxReg (int level)
-{
-  phi_flux_reg[level].setVal(0.);
 }
 
 void
