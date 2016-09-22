@@ -165,7 +165,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                   lo,hi,dx,dy,dt, nstep_fsp)
 
   if (coord_type .eq. 1) then
-     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
+     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
   end if
   
   deallocate(q,gamc,gamcg,flatn,c,cg,csml,div)
