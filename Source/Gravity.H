@@ -46,13 +46,12 @@ public:
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
-                            MultiFab&                  CrseRhs,
+                            PArray<MultiFab>&          rhs,
                             PArray<MultiFab>&          delta_phi,
                             PArray<PArray<MultiFab> >& grad_delta_phi);
 
-  void gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
-                     const MultiFab& drho_and_drhoU, const MultiFab& dphi,
-                     PArray<MultiFab>& grad_delta_phi_cc);
+  void gravity_sync (int crse_level, int fine_level,
+		     const PArray<MultiFab>& drho, const PArray<MultiFab>& dphi);
 
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
@@ -74,6 +73,7 @@ public:
                   MultiFab& phi_crse,
                   Real time);
 
+  FluxRegister& getPhiFluxReg (int level);
   void zeroPhiFluxReg (int level);
 
   void get_old_grav_vector(int level, MultiFab& grav_vector, Real time);
@@ -84,10 +84,6 @@ public:
   void test_composite_phi(int level);
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
-
-  void add_to_fluxes(int level, int iteration, int ncycle);
-
-  void reflux_phi(int level, MultiFab& dphi);
 
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
   void interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector);

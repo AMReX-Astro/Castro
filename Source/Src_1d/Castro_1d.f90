@@ -152,8 +152,10 @@ subroutine ca_umdrv(is_finest_level,time,&
        eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
 
+  ! Save the radial pressure, and scale by dt for the purposes of refluxing.
+
   if (coord_type .gt. 0) then
-     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1)
+     pradial(lo(1):hi(1)+1) = pgdnv(lo(1):hi(1)+1) * dt
   end if
 
   deallocate(flatn,div,pdivu,pgdnv)

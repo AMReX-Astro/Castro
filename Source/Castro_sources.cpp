@@ -26,6 +26,31 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& src_old, MultiFab &s
 }
 
 void
+Castro::prepare_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+{
+    BL_ASSERT(src >= 0 && src < num_src);
+
+    switch(src) {
+
+#ifdef GRAVITY
+    case grav_src:
+	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	break;
+#endif
+
+#ifdef ROTATION
+    case rot_src:
+	construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	break;
+#endif
+
+    default:
+	break;
+
+    } // end switch
+}
+
+void
 Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
@@ -54,15 +79,47 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_old_gravity_source(time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_old_rotation_source(time, dt);
+	break;
+#endif
+
+    default:
+	break;
+
+    } // end switch
+}
+
+void
+Castro::prepare_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+{
+    BL_ASSERT(src >= 0 && src < num_src);
+
+    switch(src) {
+
+#ifdef DIFFUSION
+    case diff_src:
+	NewTempDiffTerm = &OldTempDiffTerm;
+	NewSpecDiffTerm = &OldSpecDiffTerm;
+	NewViscousTermforMomentum = &OldViscousTermforMomentum;
+	NewViscousTermforEnergy   = &OldViscousTermforEnergy;
+	break;
+#endif
+
+#ifdef GRAVITY
+    case grav_src:
+	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	break;
+#endif
+
+#ifdef ROTATION
+    case rot_src:
+	construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	break;
 #endif
 
@@ -86,11 +143,6 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef DIFFUSION
     case diff_src:
-	NewTempDiffTerm = &OldTempDiffTerm;
-	NewSpecDiffTerm = &OldSpecDiffTerm;
-	NewViscousTermforMomentum = &OldViscousTermforMomentum;
-	NewViscousTermforEnergy   = &OldViscousTermforEnergy;
-
 	construct_new_diff_source(time, dt);
 	break;
 #endif
@@ -103,17 +155,18 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
-	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_new_gravity_source(time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_new_rotation_source(time, dt);
 	break;
 #endif
+
+    default:
+	break;
 
     } // end switch
 }

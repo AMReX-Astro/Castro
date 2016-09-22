@@ -55,38 +55,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     int finest_level = parent->finestLevel();
 
-    //
-    // Get pointers to Flux registers, or set pointer to zero if not there.
-    //
-    FluxRegister *fine    = 0;
-    FluxRegister *current = 0;
-
-    if (do_reflux && level < finest_level)
-      fine = &getFluxReg(level+1);
-    if (do_reflux && level > 0)
-      current = &getFluxReg(level);
-
-    FluxRegister *pres_fine    = 0;
-    FluxRegister *pres_current = 0;
-    
-    if (!Geometry::IsCartesian() && do_reflux) {
-	if (level < finest_level) {
-	    pres_fine = &getPresReg(level+1);
-	}
-	if (level > 0) {
-	    pres_current = &getPresReg(level);
-	}
-    }
-
-#ifdef RADIATION
-    FluxRegister *rad_fine    = 0;
-    FluxRegister *rad_current = 0;
-    if (Radiation::rad_hydro_combined && do_reflux && level < finest_level)
-      rad_fine = &getRADFluxReg(level+1);
-    if (Radiation::rad_hydro_combined && do_reflux && level > 0)
-      rad_current = &getRADFluxReg(level);
-#endif
-
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
 
@@ -187,11 +155,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 		}
 
 		for (int i = 0; i < BL_SPACEDIM ; i++) {
-		    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
-		    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+		    fluxes    [i][mfi].add(    flux[i],mfi.nodaltilebox(i));
+		    rad_fluxes[i][mfi].add(rad_flux[i],mfi.nodaltilebox(i));
 		}
 		if (!Geometry::IsCartesian()) {
-		    P_radial[mfi].copy(pradial, mfi.nodaltilebox(0));
+		    P_radial[mfi].add(pradial, mfi.nodaltilebox(0));
 		}
 	    }
 
@@ -434,39 +402,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 	}
 
 #endif    // RADIATION
-
-    // Save the fluxes.
-
-    if (do_reflux) {
-	if (current) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
-	}
-	if (fine) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
-	}
-	if (pres_current) {
-	    Real scale = 1.0;
-#if (BL_SPACEDIM == 2)
-	    scale /= crse_ratio[1];
-#endif	    
-	    pres_current->FineAdd(P_radial,0,0,0,1,dt*scale);
-	}
-	if (pres_fine) {
-	    pres_fine->CrseInit(P_radial,0,0,0,1,-dt,FluxRegister::ADD);
-	}
-#ifdef RADIATION
-	if (rad_current) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_current->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
-	}
-	if (rad_fine) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
-        }
-#endif
-    }
 
     if (courno > 1.0) {
 	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';

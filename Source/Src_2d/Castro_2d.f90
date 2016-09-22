@@ -174,8 +174,10 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
+  ! Save the radial pressure, and scale by dt for the purposes of refluxing.
+
   if (coord_type .eq. 1) then
-     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
+     pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
   end if
 
   ugdx(:,:) = q1(:,:,GDU)

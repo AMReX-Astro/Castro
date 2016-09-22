@@ -188,11 +188,21 @@ Castro::do_advance (Real time,
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Construct the old-time sources. 
+    // Do any preparatory work needed for constructing the old sources,
+    // such as filling relevant state data fields. This preparation step
+    // is separated out because we may want to modify the fields after
+    // they've been created (the main case being the reflux step that
+    // occurs after we've constructed the new-time gravity).
 
     for (int n = 0; n < num_src; ++n)
-       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
-			    sub_iteration, sub_ncycle);
+	prepare_old_source(n, prev_time, dt, amr_iteration, amr_ncycle,
+			   sub_iteration, sub_ncycle);
+
+    // Construct the old-time sources.
+
+    for (int n = 0; n < num_src; ++n)
+	construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
+			     sub_iteration, sub_ncycle);
 
     // Apply the old-time sources directly to the new-time state,
     // S_new -- note that this addition is for full dt, since we
@@ -239,6 +249,22 @@ Castro::do_advance (Real time,
 	make_radial_data(is_new);
     }
 #endif
+
+    // Set up the new-time sources. This is done after the hydro but before
+    // we actually apply the sources so that the sources can be modified again
+    // if needed after the reflux (for example, because of an elliptic coupling
+    // like gravity where we need to update the potential before adding the force).
+
+    for (int n = 0; n < num_src; ++n)
+	prepare_new_source(n, prev_time, dt, amr_iteration, amr_ncycle,
+			   sub_iteration, sub_ncycle);
+
+    // Now do the refluxing if we're on the finest level. Note that this is
+    // correcting the flux mismatch on all levels below this one simultaneously.
+    // If we're using gravity it will also do the sync solve associated with the reflux.
+
+    if (do_reflux && level == parent->finestLevel())
+	reflux();
 
     // For the new-time source terms, we have an option for how to proceed.
     // We can either construct all of the old-time sources using the same
@@ -364,22 +390,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     tau_diff.setVal(0.);
     define_tau(grav_old,time);
 #endif
-#endif
-
-    for (int j = 0; j < 3; j++) {
-        fluxes[j].setVal(0.0);
-    }
-
-    if (!Geometry::IsCartesian()) {
-	P_radial.setVal(0.0);
-    }
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-	for (int i = 0; i < BL_SPACEDIM; ++i) {
-	    rad_fluxes[i].setVal(0.0);
-	}
-    }
 #endif
 
     hydro_source.setVal(0.0);
@@ -560,16 +570,19 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int j = 0; j < BL_SPACEDIM; j++)
     {
         fluxes.set(j, new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate));
+	fluxes[j].setVal(0.0);
     }
 
     for (int j = BL_SPACEDIM; j < 3; j++)
     {
         BoxArray ba = get_new_data(State_Type).boxArray();
 	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
+	fluxes[j].setVal(0.0);
     }
 
     if (!Geometry::IsCartesian()) {
 	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+	P_radial.setVal(0.0);
     }
 
 #ifdef RADIATION
@@ -577,6 +590,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (Radiation::rad_hydro_combined) {
         for (int dir = 0; dir < BL_SPACEDIM; dir++) {
 	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate));
+	    rad_fluxes[dir].setVal(0.0);
 	}
     }
 #endif
@@ -622,19 +636,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     set_special_tagging_flag(cur_time);
 
     if (!keep_sources_until_end) {
+
 	hydro_source.clear();
 	sources_for_hydro.clear();
 
 	old_sources.clear();
 
-	P_radial.clear();
-
-#ifdef RADIATION
-	rad_fluxes.clear();
-#endif
-
 	if (!(do_reflux && update_sources_after_reflux)) {
-	    fluxes.clear();
 	    new_sources.clear();
 	}
 

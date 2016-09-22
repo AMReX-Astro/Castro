@@ -133,7 +133,6 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	      }
             }
 
-            if (do_reflux)  gravity->add_to_fluxes(level,amr_iteration,amr_ncycle);
 	}
 	else if (amr_iteration >= 0) {
 	    phi_new.setVal(0.0);  // so that plotfiles do not contain nans
