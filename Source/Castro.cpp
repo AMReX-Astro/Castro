@@ -2043,6 +2043,8 @@ Castro::reflux(int crse_level, int fine_level)
 {
     BL_PROFILE("Castro::reflux()");
 
+    BL_ASSERT(fine_level > crse_level);
+
     const Real strt = ParallelDescriptor::second();
 
     int nlevs = fine_level - crse_level + 1;
@@ -2088,26 +2090,30 @@ Castro::reflux(int crse_level, int fine_level)
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
-	flux_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE));
+	int ilev = lev - crse_level - 1;
+
+	flux_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE));
 
 	if (!Geometry::IsCartesian())
-	    pres_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
+	    pres_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined)
-	    rad_flux_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups));
+	    rad_flux_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups));
 #endif
 
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    phi_reg.set(lev - crse_level - 1, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
+	    phi_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
 #endif
 
     }
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
-	reg = &flux_reg[lev - crse_level - 1];
+	int ilev = lev - crse_level - 1;
+
+	reg = &flux_reg[ilev];
 	reg->setVal(0.0);
 
 	Castro& crse_lev = getLevel(lev-1);
@@ -2140,8 +2146,8 @@ Castro::reflux(int crse_level, int fine_level)
 
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
-	    reg->Reflux(drho[lev - crse_level - 1], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
-	    BoxLib::average_down(drho[lev - crse_level], drho[lev - crse_level - 1], 0, 1, getLevel(lev).crse_ratio);
+	    reg->Reflux(drho[ilev], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
+	    BoxLib::average_down(drho[ilev + 1], drho[ilev], 0, 1, getLevel(lev).crse_ratio);
 	}
 #endif
 
@@ -2175,7 +2181,7 @@ Castro::reflux(int crse_level, int fine_level)
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 
-	    reg = &pres_reg[lev - crse_level - 1];
+	    reg = &pres_reg[ilev];
 	    reg->setVal(0.0);
 
 	    // The fine pressure scaling depends on dimensionality,
@@ -2237,7 +2243,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	if (Radiation::rad_hydro_combined) {
 
-	    reg = &rad_flux_reg[lev - crse_level - 1];
+	    reg = &rad_flux_reg[ilev];
 	    reg->setVal(0.0);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
@@ -2276,7 +2282,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-	    reg = &phi_reg[lev - crse_level - 1];
+	    reg = &phi_reg[ilev];
 	    reg->setVal(0.0);
 
 	    // Note that the scaling by the area here is corrected for by dividing by the
@@ -2290,9 +2296,9 @@ Castro::reflux(int crse_level, int fine_level)
 		reg->FineAdd(gravity->get_grad_phi_curr(lev)[i], fine_lev.area[i], i, 0, 0, 1, 1.0);
 	    }
 
-	    reg->Reflux(dphi[lev - crse_level - 1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
+	    reg->Reflux(dphi[ilev], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
 
-	    BoxLib::average_down(dphi[lev - crse_level], dphi[lev - crse_level - 1], 0, 1, getLevel(lev).crse_ratio);
+	    BoxLib::average_down(dphi[ilev + 1], dphi[ilev], 0, 1, getLevel(lev).crse_ratio);
 
 	}
 #endif
