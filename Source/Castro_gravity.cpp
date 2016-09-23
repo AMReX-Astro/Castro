@@ -6,57 +6,71 @@ void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
-    // Old and new gravitational potential.
-
-    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-    MultiFab& grav_old = get_old_data(Gravity_Type);
-
-    int finest_level = parent->finestLevel();
-
-    if (do_grav) {
-
-       // Define the old gravity vector.
-
-       gravity->get_old_grav_vector(level,grav_old,time);
-
-       if (gravity->get_gravity_type() == "PoissonGrav" &&
-           gravity->test_results_of_solves() == 1)
-          gravity->test_level_grad_phi_prev(level);
-    }
-    else
-    {
-       grav_old.setVal(0.0);
-       phi_old.setVal(0.0);
-    }
-
     // Do level solve at beginning of time step in order to compute the
     // difference between the multilevel and the single level solutions.
+    // Only do this if amr_iteration is non-negative; a negative amr_iteration
+    // means we don't want to calculate this.
 
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav")
+    if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration > 0)
     {
+
+	MultiFab& phi_old = get_old_data(PhiGrav_Type);
+
+	// Create a copy of the current (composite) data on this level.
+
+	MultiFab comp_phi;
+	PArray<MultiFab> comp_gphi(BL_SPACEDIM, PArrayManage);
+
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 
-	    comp_minus_level_phi.define(grids,1,0,Fab_allocate);
+	    comp_phi.define(phi_old.boxArray(), phi_old.nComp(), phi_old.nGrow(), Fab_allocate);
+	    MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
 	    for (int n = 0; n < BL_SPACEDIM; ++n) {
-		comp_minus_level_grad_phi.set(n, new MultiFab(getEdgeBoxArray(n),1,0));
-		    
+		comp_gphi.set(n, new MultiFab(getEdgeBoxArray(n), 1, 0));
+		comp_gphi[n].copy(gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
 	    }
 
+	}
+
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << " " << '\n';
+	    std::cout << "... old-time level solve at level " << level << '\n';
+	}
+
+	int is_new = 0;
+
+	gravity->solve_for_phi(level,
+			       phi_old,
+			       gravity->get_grad_phi_prev(level),
+			       is_new);
+
+        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
+
 	    gravity->create_comp_minus_level_grad_phi(level,
-                            comp_minus_level_phi,comp_minus_level_grad_phi);
-        } else {
-           if (verbose && ParallelDescriptor::IOProcessor()) {
-              std::cout << " " << '\n';
-              std::cout << "... old-time level solve at level " << level << '\n';
-           }
-	   int is_new = 0;
-           gravity->solve_for_phi(level, 
-				  phi_old,
-				  gravity->get_grad_phi_prev(level),
-				  is_new);
+						      comp_phi,
+						      comp_gphi,
+						      comp_minus_level_phi,
+						      comp_minus_level_grad_phi);
+
         }
+
+	if (gravity->test_results_of_solves() == 1) {
+
+	    if (verbose && ParallelDescriptor::IOProcessor()) {
+		std::cout << " " << '\n';
+		std::cout << "... testing grad_phi_curr after doing single level solve " << '\n';
+	    }
+
+	    gravity->test_level_grad_phi_prev(level);
+
+	}
+ 
     }
+
+    // Define the old gravity vector.
+
+    gravity->get_old_grav_vector(level, get_old_data(Gravity_Type), time);
 
 }
 
@@ -64,71 +78,79 @@ void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
-    MultiFab& phi_new = get_new_data(PhiGrav_Type);
-    MultiFab& grav_new = get_new_data(Gravity_Type);
+    // If we're doing Poisson gravity, do the new-time level solve here.
+    // Only do this if amr_iteration is non-negative; a negative amr_iteration
+    // means we don't want to calculate this.
 
-    if (do_grav)
+    if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration > 0)
     {
 
-	// If we're doing Poisson gravity, do the new-time level solve here. But we only
-	// need to do this if amr_iteration is non-negative; a negative amr_iteration
-	// means we're calling this from post_timestep and we already have the correct new-time phi.
+	// Use the "old" phi from the current time step as a guess for this solve.
 
-	if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration >= 0)
-	{
+	MultiFab& phi_old = get_old_data(PhiGrav_Type);
+	MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
-            if (verbose && ParallelDescriptor::IOProcessor()) {
-	      std::cout << " " << '\n';
-	      std::cout << "... new-time level solve at level " << level << '\n';
-            }
+	MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
 
-            // Here we use the "old" phi from the current time step as a guess for this solve
-	    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-	    MultiFab::Copy(phi_new,phi_old,0,0,1,phi_new.nGrow());
-            if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
-	    }
-            int is_new = 1;
-            gravity->solve_for_phi(level,
-				   phi_new,
-				   gravity->get_grad_phi_curr(level),
-				   is_new);
+	// Subtract off the (composite - level) contribution for the purposes
+	// of the level solve. We'll add it back later.
 
-            if (gravity->test_results_of_solves() == 1) {
-                if (verbose && ParallelDescriptor::IOProcessor()) {
+	if ( level < parent->finestLevel() && gravity->NoComposite() != 1 )
+	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+
+	if (verbose && ParallelDescriptor::IOProcessor()) {
+	    std::cout << " " << '\n';
+	    std::cout << "... new-time level solve at level " << level << '\n';
+	}
+
+	int is_new = 1;
+
+	gravity->solve_for_phi(level,
+			       phi_new,
+			       gravity->get_grad_phi_curr(level),
+			       is_new);
+
+	if (level < parent->finestLevel() && gravity->NoComposite() != 1) {
+
+	    if (gravity->test_results_of_solves() == 1) {
+
+		if (verbose && ParallelDescriptor::IOProcessor()) {
 		    std::cout << " " << '\n';
 		    std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
 		}
+
 		gravity->test_level_grad_phi_curr(level);
+
 	    }
 
-            if ( level < parent->finestLevel() && (gravity->NoComposite() != 1) ) {
-	      phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-	      gravity->plus_grad_phi_curr(level,comp_minus_level_grad_phi);
+	    // Add back the (composite - level) contribution.
 
-	      comp_minus_level_phi.clear();
-	      comp_minus_level_grad_phi.clear();
-            }
+	    phi_new.plus(comp_minus_level_phi, 0, 1, 0);
+	    gravity->plus_grad_phi_curr(level, comp_minus_level_grad_phi);
 
-            if (gravity->test_results_of_solves() == 1) {
-	      if (level < parent->finestLevel()) {
+	    // We can clear this memory, we no longer need it.
+
+	    comp_minus_level_phi.clear();
+	    comp_minus_level_grad_phi.clear();
+
+	    if (gravity->test_results_of_solves() == 1) {
+
 		if (verbose && ParallelDescriptor::IOProcessor()) {
-		  std::cout << " " << '\n';
-		  std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
+		    std::cout << " " << '\n';
+		    std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
 		}
+
 		gravity->test_level_grad_phi_curr(level);
-	      }
-            }
+
+	    }
 
 	}
-	else if (amr_iteration >= 0) {
-	    phi_new.setVal(0.0);  // so that plotfiles do not contain nans
-	}
-
-	// Now do corrector part of source term update
-	gravity->get_new_grav_vector(level,grav_new,time);
 
     }
+
+    // Define new gravity vector.
+
+    gravity->get_new_grav_vector(level, get_new_data(Gravity_Type), time);
 
 }
 

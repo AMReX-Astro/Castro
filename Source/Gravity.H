@@ -61,8 +61,11 @@ public:
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
-  void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
-                                        PArray<MultiFab>& cmlgp);
+  void create_comp_minus_level_grad_phi(int level,
+					MultiFab& comp_phi,
+					PArray<MultiFab>& comp_gphi,
+					MultiFab& cml_phi,
+                                        PArray<MultiFab>& cml_gphi);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,

@@ -1236,50 +1236,31 @@ Gravity::test_level_grad_phi_curr(int level)
 }
 
 void
-Gravity::create_comp_minus_level_grad_phi(int level, MultiFab& comp_minus_level_phi,
+Gravity::create_comp_minus_level_grad_phi(int level,
+					  MultiFab& comp_phi,
+					  PArray<MultiFab>& comp_gphi,
+					  MultiFab& comp_minus_level_phi,
                                           PArray<MultiFab>& comp_minus_level_grad_phi)
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
-    const MultiFab& phi_old = LevelData[level].get_old_data(PhiGrav_Type);
-
-    MultiFab SL_phi;
-    PArray<MultiFab> SL_grad_phi(BL_SPACEDIM,PArrayManage);
-
-    SL_phi.define(grids[level],1,1,Fab_allocate);
-    MultiFab::Copy(SL_phi,phi_old,0,0,1,1);
-
-    comp_minus_level_phi.setVal(0.);
-    for (int n=0; n<BL_SPACEDIM; ++n)
-      comp_minus_level_grad_phi[n].setVal(0.);
-
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        SL_grad_phi.clear(n);
-        SL_grad_phi.set(n,new MultiFab(LevelData[level].getEdgeBoxArray(n),1,0));
-        SL_grad_phi[n].setVal(0.);
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+	std::cout << "\n";
+	std::cout << "... compute difference between level and composite solves at level " << level << "\n";
+	std::cout << "\n";
     }
 
-    // Do level solve at beginning of time step in order to compute the
-    //   difference between the multilevel and the single level solutions.
+    comp_minus_level_phi.define(LevelData[level].boxArray(), 1, 0, Fab_allocate);
 
-    int is_new = 0;
-    solve_for_phi(level, SL_phi, SL_grad_phi, is_new);
+    comp_minus_level_phi.copy(comp_phi, 0, 0, 1);
+    comp_minus_level_phi.minus(parent->getLevel(level).get_old_data(PhiGrav_Type), 0, 1, 0);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-       std::cout << "... compute difference between level and composite solves at level " << level << '\n';
-
-    comp_minus_level_phi.copy(phi_old,0,0,1);
-    comp_minus_level_phi.minus(SL_phi,0,1,0);
-
-    for (int n=0; n<BL_SPACEDIM; ++n)
-    {
-        comp_minus_level_grad_phi[n].copy(grad_phi_prev[level][n],0,0,1);
-        comp_minus_level_grad_phi[n].minus(SL_grad_phi[n],0,1,0);
+    for (int n = 0; n < BL_SPACEDIM; ++n) {
+	comp_minus_level_grad_phi.set(n, new MultiFab(LevelData[level].getEdgeBoxArray(n), 1, 0));
+	comp_minus_level_grad_phi[n].copy(comp_gphi[n], 0, 0, 1);
+	comp_minus_level_grad_phi[n].minus(grad_phi_prev[level][n], 0, 1, 0);
     }
 
-    // Just do this to release the memory
-    for (int n=0; n<BL_SPACEDIM; ++n) SL_grad_phi.clear(n);
 }
 
 void
