@@ -450,11 +450,6 @@ no_composite                int            0
 #  we interpolate from coarser levels.
 max_solve_level             int            MAX_LEV-1
 
-
-# For multipole gravity calculations, this is the maximum level used
-# for constructing the multipole moments.  
-max_multipole_moment_level  int            0
-
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?

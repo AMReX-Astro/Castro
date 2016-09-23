@@ -12,5 +12,4 @@ int         Gravity::verbose = 0;
 int         Gravity::no_sync = 0;
 int         Gravity::no_composite = 0;
 int         Gravity::max_solve_level = MAX_LEV-1;
-int         Gravity::max_multipole_moment_level = 0;
 int         Gravity::get_g_from_phi = 0;

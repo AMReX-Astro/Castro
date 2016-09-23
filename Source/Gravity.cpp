@@ -1629,9 +1629,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFa
     // unless the user has indicated that a maximum level at which
     // to stop using the more accurate data.
 
-    int lev_max = std::min(max_multipole_moment_level, fine_level);
-
-    for (int lev = crse_level; lev <= lev_max; ++lev) {
+    for (int lev = crse_level; lev <= fine_level; ++lev) {
 
 	// Create a local copy of the RHS so that we can mask it.
 
@@ -1639,10 +1637,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFa
 
 	MultiFab::Copy(source, Rhs[lev - crse_level], 0, 0, 1, 0);
 
-	if (lev < lev_max && lev < parent->finestLevel()) {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-
-	    const MultiFab& mask = fine_level->build_fine_mask();
+	if (lev < fine_level) {
+	    const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
 	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
 	}
 
@@ -1903,9 +1899,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const PArray<MultiF
 	MultiFab::Copy(source, Rhs[lev - crse_level], 0, 0, 1, 0);
 
 	if (lev < fine_level) {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-
-	    const MultiFab& mask = fine_level->build_fine_mask();
+	    const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
 	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
 	}
 

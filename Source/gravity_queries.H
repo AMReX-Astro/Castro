@@ -12,5 +12,4 @@ pp.query("v", verbose);
 pp.query("no_sync", no_sync);
 pp.query("no_composite", no_composite);
 pp.query("max_solve_level", max_solve_level);
-pp.query("max_multipole_moment_level", max_multipole_moment_level);
 pp.query("get_g_from_phi", get_g_from_phi);
