@@ -53,6 +53,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 						      comp_minus_level_phi,
 						      comp_minus_level_grad_phi);
 
+	    // Copy the composite data back.
+
+	    MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
+
         }
 
 	if (gravity->test_results_of_solves() == 1) {
@@ -95,7 +99,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	// Subtract off the (composite - level) contribution for the purposes
 	// of the level solve. We'll add it back later.
 
-	if ( level < parent->finestLevel() && gravity->NoComposite() != 1 )
+	if (level < parent->finestLevel() && gravity->NoComposite() != 1)
 	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -123,7 +127,11 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	    }
 
-	    // Add back the (composite - level) contribution.
+	    // Add back the (composite - level) contribution. This ensures that
+	    // if we are not doing a sync solve, then we still get the difference
+	    // between the composite and level solves added to the force we
+	    // calculate, so it is slightly more accurate than it would have been.
+	    // If we are doing the sync solve, it should make that faster.
 
 	    phi_new.plus(comp_minus_level_phi, 0, 1, 0);
 	    gravity->plus_grad_phi_curr(level, comp_minus_level_grad_phi);
