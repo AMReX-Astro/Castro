@@ -2291,8 +2291,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    // phi / cm**2, which makes it correct for the RHS of the Poisson equation.
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, crse_scale);
-		reg->FineAdd(gravity->get_grad_phi_curr(lev)[i], fine_lev.area[i], i, 0, 0, 1, fine_scale);
+		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, -1.0);
+		reg->FineAdd(gravity->get_grad_phi_curr(lev)[i], fine_lev.area[i], i, 0, 0, 1, 1.0);
 	    }
 
 	    reg->Reflux(dphi[lev - crse_level - 1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
