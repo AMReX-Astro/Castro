@@ -255,7 +255,7 @@ Castro::do_advance (Real time,
     // correcting the flux mismatch on all levels below this one simultaneously.
     // If we're using gravity it will also do the sync solve associated with the reflux.
 
-    if (do_reflux && reflux_strategy == 1 && level == parent->finestLevel())
+    if (do_reflux && reflux_strategy == 1 && level == parent->finestLevel() && level > 0)
 	reflux(0, level);
 
     // For the new-time source terms, we have an option for how to proceed.
