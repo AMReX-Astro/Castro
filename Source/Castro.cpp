@@ -2068,23 +2068,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    drho.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
 	    dphi.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
 
-	    // We do an average-down before the reflux so that we can isolate the
-	    // change that comes from the refluxing.
-
-	    if (lev < fine_level) {
-		getLevel(lev).avgDown();
-
-		MultiFab::Copy(drho[lev - crse_level], getLevel(lev).get_new_data(State_Type), Density, 0, 1, 0);
-		drho[lev - crse_level].mult(-1.0);
-
-		dphi[lev - crse_level].setVal(0.0);
-	    }
-	    else {
-
-		drho[lev - crse_level].setVal(0.0);
-		dphi[lev - crse_level].setVal(0.0);
-
-	    }
+	    drho[lev - crse_level].setVal(0.0);
+	    dphi[lev - crse_level].setVal(0.0);
 
 	}
 
@@ -2157,20 +2142,27 @@ Castro::reflux(int crse_level, int fine_level)
 	    reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, fine_scale);
 	}
 
-	// Clear out the data that's not on coarse-fine boundaries so that this register only
-	// modifies the fluxes on coarse-fine interfaces.
-
-	reg->ClearInternalBorders(crse_lev.geom);
-
 	// Trigger the actual reflux on the coarse level now.
 
 	reg->Reflux(state, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
+
+	// Store the density change, for the gravity sync.
+
+#ifdef GRAVITY
+	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
+	    reg->Reflux(drho[lev - crse_level - 1], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
+#endif
 
 	// Also update the fluxes MultiFab using the reflux data.
 
 	PArray<MultiFab> temp_fluxes(3, PArrayManage);
 
 	if (update_sources_after_reflux) {
+
+	    // Clear out the data that's not on coarse-fine boundaries so that this register only
+	    // modifies the fluxes on coarse-fine interfaces.
+
+	    reg->ClearInternalBorders(crse_lev.geom);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		temp_fluxes.set(i, new MultiFab(crse_lev.fluxes[i].boxArray(), crse_lev.fluxes[i].nComp(), crse_lev.fluxes[i].nGrow()));
@@ -2187,13 +2179,6 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 
 	}
-
-	// Complete the calculation of drho on the coarse level.
-
-#ifdef GRAVITY
-	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    MultiFab::Add(drho[lev-1], state, Density, 0, 1, 0);
-#endif
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
@@ -2230,11 +2215,11 @@ Castro::reflux(int crse_level, int fine_level)
 	    MultiFab dr(crse_lev.grids, 1, 0);
 	    dr.setVal(crse_lev.geom.CellSize(0));
 
-	    reg->ClearInternalBorders(crse_lev.geom);
-
 	    reg->Reflux(state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    if (update_sources_after_reflux) {
+
+		reg->ClearInternalBorders(crse_lev.geom);
 
 		temp_fluxes.set(0, new MultiFab(crse_lev.P_radial.boxArray(), crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
 
@@ -2268,13 +2253,13 @@ Castro::reflux(int crse_level, int fine_level)
 		 reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, fine_scale);
 	     }
 
-	    reg->ClearInternalBorders(crse_lev.geom);
-
 	    reg->Reflux(crse_lev.get_new_data(Rad_Type), crse_lev.volume, 1.0, 0, 0, Radiation::nGroups, crse_lev.geom);
 
 	    PArray<MultiFab> temp_fluxes(3, PArrayManage);
 
 	    if (update_sources_after_reflux) {
+
+		reg->ClearInternalBorders(crse_lev.geom);
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    temp_fluxes.set(i, new MultiFab(crse_lev.rad_fluxes[i].boxArray(), crse_lev.rad_fluxes[i].nComp(), crse_lev.rad_fluxes[i].nGrow()));
@@ -2302,14 +2287,18 @@ Castro::reflux(int crse_level, int fine_level)
 	    reg = &phi_reg[lev - crse_level - 1];
 	    reg->setVal(0.0);
 
+	    // Note that the scaling by the area here is corrected for by dividing by the
+	    // cell volume in the reflux. In this way we get a discrete divergence that
+	    // is analogous to the divergence of the flux in the hydrodynamics. See Equation
+	    // 37 in the Castro I paper. The dimensions of dphi are therefore actually
+	    // phi / cm**2, which makes it correct for the RHS of the Poisson equation.
+
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, crse_scale);
 		reg->FineAdd(gravity->get_grad_phi_curr(lev)[i], fine_lev.area[i], i, 0, 0, 1, fine_scale);
 	    }
 
-	    reg->ClearInternalBorders(crse_lev.geom);
-
-	    reg->Reflux(dphi[lev-1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
+	    reg->Reflux(dphi[lev - crse_level - 1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
 
 	}
 #endif

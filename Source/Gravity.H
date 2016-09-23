@@ -88,7 +88,7 @@ public:
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int crse_level, int fine_level, MultiFab& Rhs, MultiFab& phi, Real time);
+  void fill_multipole_BCs(int crse_level, int fine_level, PArray<MultiFab>& Rhs, MultiFab& phi);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
