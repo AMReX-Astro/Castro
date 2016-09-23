@@ -251,12 +251,19 @@ Castro::do_advance (Real time,
 	prepare_new_source(n, prev_time, dt, amr_iteration, amr_ncycle,
 			   sub_iteration, sub_ncycle);
 
-    // Now do the refluxing if we're on the finest level. Note that this is
-    // correcting the flux mismatch on all levels below this one simultaneously.
-    // If we're using gravity it will also do the sync solve associated with the reflux.
+    // Now do the refluxing if we're on the finest level. Note that for
+    // reflux_strategy == 1 this is correcting the flux mismatch on all
+    // levels below this one simultaneously, while for reflux_strategy == 2,
+    // this is only correcting the mismatch on this level and the one
+    // immediately below it. If we're using gravity it will also do the
+    // sync solve associated with the reflux.
 
-    if (do_reflux && reflux_strategy == 1 && level == parent->finestLevel() && level > 0)
-	reflux(0, level);
+    if (do_reflux && level > 0) {
+	if (reflux_strategy == 1 && level == parent->finestLevel())
+	    reflux(0, level);
+	else if (reflux_strategy == 2 && amr_iteration == amr_ncycle)
+	    reflux(level-1, level);
+    }
 
     // For the new-time source terms, we have an option for how to proceed.
     // We can either construct all of the old-time sources using the same

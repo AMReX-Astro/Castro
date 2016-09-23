@@ -1534,11 +1534,6 @@ Castro::post_timestep (int iteration)
     }
 #endif
 
-    // Optionally, reflux here.
-
-    if (do_reflux && reflux_strategy == 2 && level < finest_level)
-	reflux(level, level+1);
-
     // Ensure consistency with finer grids.
 
     if (level < finest_level)
