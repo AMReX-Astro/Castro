@@ -7,7 +7,12 @@
   ! Problem 2 is the normalized uniform sphere;
   ! Problem 3 is the uniform cube.
 
-  problem = 1
+  problem = 3
+/
+
+&tagging
+  max_denerr_lev = 20
+  denerr = 1.0d0
 /
 
 &extern
