@@ -2052,18 +2052,13 @@ Castro::reflux(int crse_level, int fine_level)
 
     int nlevs = fine_level - crse_level + 1;
 
-    // Before we start with the hydro refluxing, we need to record what the density
-    // was if we're going to do a gravity sync, so that we know how much changed
-    // for the purposes of computing the change in phi. We'll also add to this RHS
-    // the contribution from the reflux to phi.
-
 #ifdef GRAVITY
     PArray<MultiFab> drho(nlevs, PArrayManage);
     PArray<MultiFab> dphi(nlevs, PArrayManage);
 
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-	for (int lev = fine_level; lev >= crse_level; --lev) {
+	for (int lev = crse_level; lev <= fine_level; ++lev) {
 
 	    drho.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
 	    dphi.set(lev - crse_level, new MultiFab(getLevel(lev).grids, 1, 0));
@@ -2149,8 +2144,10 @@ Castro::reflux(int crse_level, int fine_level)
 	// Store the density change, for the gravity sync.
 
 #ifdef GRAVITY
-	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
+	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    reg->Reflux(drho[lev - crse_level - 1], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
+	    BoxLib::average_down(drho[lev - crse_level], drho[lev - crse_level - 1], 0, 1, getLevel(lev).crse_ratio);
+	}
 #endif
 
 	// Also update the fluxes MultiFab using the reflux data.
@@ -2299,6 +2296,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 
 	    reg->Reflux(dphi[lev - crse_level - 1], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
+
+	    BoxLib::average_down(dphi[lev - crse_level], dphi[lev - crse_level - 1], 0, 1, getLevel(lev).crse_ratio);
 
 	}
 #endif

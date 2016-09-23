@@ -561,23 +561,65 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 
     int nlevs = fine_level - crse_level + 1;
 
-    PArray<MultiFab> rhs(nlevs, PArrayManage);
+    // Construct delta(phi) and delta(grad_phi). delta(phi)
+    // needs a ghost zone for holding the boundary condition
+    // in the same way that phi does.
 
-    // Note that when constructing the RHS, we're going to leave out the Ggravity
-    // scaling until after we've constructed the boundary conditions, because
-    // the boundary condition routines expect rho, not 4*pi*G*rho.
+    PArray<MultiFab> delta_phi(nlevs, PArrayManage);
+
+    for (int lev = crse_level; lev <= fine_level; ++lev) {
+       delta_phi.set(lev - crse_level, new MultiFab(grids[lev], 1, 1));
+       delta_phi[lev - crse_level].setVal(0.0);
+    }
+
+    PArray< PArray<MultiFab> > ec_gdPhi(nlevs, PArrayManage);
+
+    for (int lev = crse_level; lev <= fine_level; ++lev) {
+	ec_gdPhi.set(lev - crse_level, new PArray<MultiFab>(BL_SPACEDIM, PArrayManage));
+
+        for (int n = 0; n < BL_SPACEDIM; ++n) {
+	   ec_gdPhi[lev - crse_level].set(n, new MultiFab(LevelData[lev].getEdgeBoxArray(n), 1, 0));
+	   ec_gdPhi[lev - crse_level][n].setVal(0.0);
+	}
+    }
+
+    // Construct the boundary conditions for the Poisson solve.
+
+    if (crse_level == 0 && !crse_geom.isAllPeriodic()) {
+
+	if (verbose && ParallelDescriptor::IOProcessor())
+         std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
+
+#if (BL_SPACEDIM == 3)
+      if ( direct_sum_bcs )
+        fill_direct_sum_BCs(crse_level,drho[0],delta_phi[crse_level]);
+      else {
+        fill_multipole_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
+      }
+#elif (BL_SPACEDIM == 2)
+      if (lnum > 0) {
+	fill_multipole_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
+      } else {
+	int fill_interior = 0;
+	make_radial_phi(crse_level,drho[0],delta_phi[crse_level],fill_interior);
+      }
+#else
+      int fill_interior = 0;
+      make_radial_phi(crse_level,drho[0],delta_phi[crse_level],fill_interior);
+#endif
+
+    }
+
+    // Construct a container for the right-hand-side (4 * pi * G * drho + dphi).
+
+    PArray<MultiFab> rhs(nlevs, PArrayManage);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 	rhs.set(lev - crse_level, new MultiFab(LevelData[lev].boxArray(), 1, 0));
 	MultiFab::Copy(rhs[lev - crse_level], drho[lev - crse_level], 0, 0, 1, 0);
+	rhs[lev - crse_level].mult(Ggravity);
 	MultiFab::Add(rhs[lev - crse_level], dphi[lev - crse_level], 0, 0, 1, 0);
     }
-
-    // Average down the RHS so that fine-level refluxing is seen on the coarse grid,
-    // and so that the refluxing contribution on regions underlying fine grids is removed.
-
-    for (int lev = fine_level; lev > crse_level; --lev)
-	BoxLib::average_down(rhs[lev - crse_level], rhs[lev - crse_level - 1], 0, 1, parent->refRatio(lev-1));
 
     // In the all-periodic case we enforce that the RHS sums to zero.
     // We only do this if we're periodic and the coarse level covers the whole domain.
@@ -603,59 +645,6 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 	    rhs[lev-crse_level].plus(-local_correction, 0, 1, 0);
 
     }
-
-    // Construct delta(phi) and delta(grad_phi). delta(phi)
-    // needs a ghost zone for holding the boundary condition
-    // in the same way that phi does.
-
-    PArray<MultiFab> delta_phi(nlevs, PArrayManage);
-
-    for (int lev = crse_level; lev <= fine_level; ++lev) {
-       delta_phi.set(lev - crse_level, new MultiFab(grids[lev], 1, 1));
-       delta_phi[lev - crse_level].setVal(0.0);
-    }
-
-    PArray< PArray<MultiFab> > ec_gdPhi(nlevs, PArrayManage);
-
-    for (int lev = crse_level; lev <= fine_level; ++lev) {
-       ec_gdPhi.set(lev - crse_level, new PArray<MultiFab>(BL_SPACEDIM, PArrayManage));
-        for (int n = 0; n < BL_SPACEDIM; ++n) {
-	   ec_gdPhi[lev - crse_level].set(n, new MultiFab(LevelData[lev].getEdgeBoxArray(n), 1, 0));
-	   ec_gdPhi[lev - crse_level][n].setVal(0.0);
-	}
-    }
-
-    // Construct the boundary conditions for the Poisson solve.
-
-    if (crse_level == 0 && !crse_geom.isAllPeriodic()) {
-
-	if (verbose && ParallelDescriptor::IOProcessor())
-         std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
-
-#if (BL_SPACEDIM == 3)
-      if ( direct_sum_bcs )
-        fill_direct_sum_BCs(crse_level,rhs[0],delta_phi[crse_level]);
-      else {
-        fill_multipole_BCs(crse_level,fine_level,rhs,delta_phi[crse_level]);
-      }
-#elif (BL_SPACEDIM == 2)
-      if (lnum > 0) {
-	fill_multipole_BCs(crse_level,fine_level,rhs,delta_phi[crse_level]);
-      } else {
-	int fill_interior = 0;
-	make_radial_phi(crse_level,rhs[0],delta_phi[crse_level],fill_interior);
-      }
-#else
-      int fill_interior = 0;
-      make_radial_phi(crse_level,rhs[0],delta_phi[crse_level],fill_interior);
-#endif
-
-    }
-
-    // Scale by Ggravity for the Poisson solve.
-
-    for (int lev = crse_level; lev <= fine_level; ++lev)
-	rhs[lev - crse_level].mult(Ggravity);
 
     // Do multi-level solve for delta_phi.
 
@@ -1583,7 +1572,7 @@ Gravity::init_multipole_grav()
 }
 
 void
-Gravity::fill_multipole_BCs(int crse_level, int fine_level, PArray<MultiFab>& Rhs, MultiFab& phi)
+Gravity::fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi)
 {
     // Multipole BCs only make sense to construct if we are starting from the coarse level.
 
@@ -1834,7 +1823,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, PArray<MultiFab>& Rh
 
 #if (BL_SPACEDIM == 3)
 void
-Gravity::fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi)
+Gravity::fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi)
 {
     BL_ASSERT(level==0);
 

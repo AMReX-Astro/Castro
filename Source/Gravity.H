@@ -88,11 +88,11 @@ public:
   void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int crse_level, int fine_level, PArray<MultiFab>& Rhs, MultiFab& phi);
+  void fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
-  void fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi);
 #endif
 
   void make_mg_bc();
