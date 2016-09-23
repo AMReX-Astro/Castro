@@ -30,7 +30,7 @@ do_reflux                    int           1
 # and descending computational expense.
 # 1 = reflux during every finest level timestep
 # 2 = reflux at the end of every timestep on every level
-reflux_strategy              int           1
+reflux_strategy              int           2
 
 # whether to re-compute new-time source terms after a reflux
 update_sources_after_reflux  int           1
