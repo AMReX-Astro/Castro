@@ -592,7 +592,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
-        fill_direct_sum_BCs(crse_level,drho[0],delta_phi[crse_level]);
+        fill_direct_sum_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
       else {
         fill_multipole_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
       }
@@ -1823,19 +1823,18 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFa
 
 #if (BL_SPACEDIM == 3)
 void
-Gravity::fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi)
+Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi)
 {
-    BL_ASSERT(level==0);
+    BL_ASSERT(crse_level==0);
 
     const Real strt = ParallelDescriptor::second();
 
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
+    const Geometry& crse_geom = parent->Geom(crse_level);
 
     // Storage arrays for the BCs.
 
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
+    const int* domlo = crse_geom.Domain().loVect();
+    const int* domhi = crse_geom.Domain().hiVect();
 
     const int loVectXY[3] = {domlo[0]-1, domlo[1]-1, 0         };
     const int hiVectXY[3] = {domhi[0]+1, domhi[1]+1, 0         };
@@ -1845,6 +1844,11 @@ Gravity::fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi)
 
     const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
     const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
+
+    const int bclo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
+    const int bchi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
+
+    const Real* bcdx = crse_geom.CellSize();
 
     IntVect smallEndXY( loVectXY );
     IntVect bigEndXY  ( hiVectXY );
@@ -1890,93 +1894,117 @@ Gravity::fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi)
 
     int symmetry_type = Symmetry;
 
-#ifdef _OPENMP
-    int nthreads = omp_get_max_threads();
-    PArray<FArrayBox> priv_bcXYLo(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_bcXYHi(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_bcXZLo(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_bcXZHi(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_bcYZLo(nthreads, PArrayManage);
-    PArray<FArrayBox> priv_bcYZHi(nthreads, PArrayManage);
-    for (int i=0; i<nthreads; i++) {
-	priv_bcXYLo.set(i, new FArrayBox(boxXY));
-	priv_bcXYHi.set(i, new FArrayBox(boxXY));
-	priv_bcXZLo.set(i, new FArrayBox(boxXZ));
-	priv_bcXZHi.set(i, new FArrayBox(boxXZ));
-	priv_bcYZLo.set(i, new FArrayBox(boxYZ));
-	priv_bcYZHi.set(i, new FArrayBox(boxYZ));
-    }
-#pragma omp parallel
-#endif
-    {
-#ifdef _OPENMP
-	int tid = omp_get_thread_num();
-	priv_bcXYLo[tid].setVal(0.0);
-	priv_bcXYHi[tid].setVal(0.0);
-	priv_bcXZLo[tid].setVal(0.0);
-	priv_bcXZHi[tid].setVal(0.0);
-	priv_bcYZLo[tid].setVal(0.0);
-	priv_bcYZHi[tid].setVal(0.0);
-#endif
-	for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
-	{
-	    const Box bx = mfi.tilebox();
-	    ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), domlo, domhi,
-				     &symmetry_type,lo_bc,hi_bc,
-				     dx,BL_TO_FORTRAN(Rhs[mfi]),
-				     geom.ProbLo(),geom.ProbHi(),
-#ifdef _OPENMP
-				     priv_bcXYLo[tid].dataPtr(),
-				     priv_bcXYHi[tid].dataPtr(),
-				     priv_bcXZLo[tid].dataPtr(),
-				     priv_bcXZHi[tid].dataPtr(),
-				     priv_bcYZLo[tid].dataPtr(),
-				     priv_bcYZHi[tid].dataPtr()
-#else
-				     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-				     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-				     bcYZLo.dataPtr(), bcYZHi.dataPtr()
-#endif
-				     );
+    for (int lev = crse_level; lev <= fine_level; ++lev) {
+
+	// Create a local copy of the RHS so that we can mask it.
+
+        MultiFab source(Rhs[lev - crse_level].boxArray(), 1, 0);
+
+	MultiFab::Copy(source, Rhs[lev - crse_level], 0, 0, 1, 0);
+
+	if (lev < fine_level) {
+	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+
+	    const MultiFab& mask = fine_level->build_fine_mask();
+	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
 	}
 
+	const Real* dx = parent->Geom(lev).CellSize();
+
 #ifdef _OPENMP
-	Real* pXYLo = bcXYLo.dataPtr();
-	Real* pXYHi = bcXYHi.dataPtr();
-	Real* pXZLo = bcXZLo.dataPtr();
-	Real* pXZHi = bcXZHi.dataPtr();
-	Real* pYZLo = bcYZLo.dataPtr();
-	Real* pYZHi = bcYZHi.dataPtr();
+	int nthreads = omp_get_max_threads();
+	PArray<FArrayBox> priv_bcXYLo(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_bcXYHi(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_bcXZLo(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_bcXZHi(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_bcYZLo(nthreads, PArrayManage);
+	PArray<FArrayBox> priv_bcYZHi(nthreads, PArrayManage);
+	for (int i=0; i<nthreads; i++) {
+	    priv_bcXYLo.set(i, new FArrayBox(boxXY));
+	    priv_bcXYHi.set(i, new FArrayBox(boxXY));
+	    priv_bcXZLo.set(i, new FArrayBox(boxXZ));
+	    priv_bcXZHi.set(i, new FArrayBox(boxXZ));
+	    priv_bcYZLo.set(i, new FArrayBox(boxYZ));
+	    priv_bcYZHi.set(i, new FArrayBox(boxYZ));
+	}
+#pragma omp parallel
+#endif
+	{
+#ifdef _OPENMP
+	    int tid = omp_get_thread_num();
+	    priv_bcXYLo[tid].setVal(0.0);
+	    priv_bcXYHi[tid].setVal(0.0);
+	    priv_bcXZLo[tid].setVal(0.0);
+	    priv_bcXZHi[tid].setVal(0.0);
+	    priv_bcYZLo[tid].setVal(0.0);
+	    priv_bcYZHi[tid].setVal(0.0);
+#endif
+	    for (MFIter mfi(source,true); mfi.isValid(); ++mfi)
+	    {
+		const Box bx = mfi.tilebox();
+
+		const FArrayBox& r = source[mfi];
+		const FArrayBox& v = volume[lev][mfi];
+
+		ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), dx,
+					 &symmetry_type, lo_bc, hi_bc,
+					 r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
+					 v.dataPtr(), ARLIM_3D(v.loVect()), ARLIM_3D(v.hiVect()),
+					 crse_geom.ProbLo(),crse_geom.ProbHi(),
+#ifdef _OPENMP
+					 priv_bcXYLo[tid].dataPtr(),
+					 priv_bcXYHi[tid].dataPtr(),
+					 priv_bcXZLo[tid].dataPtr(),
+					 priv_bcXZHi[tid].dataPtr(),
+					 priv_bcYZLo[tid].dataPtr(),
+					 priv_bcYZHi[tid].dataPtr(),
+#else
+					 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+#endif
+	                                 bclo, bchi, bcdx);
+	    }
+
+#ifdef _OPENMP
+	    Real* pXYLo = bcXYLo.dataPtr();
+	    Real* pXYHi = bcXYHi.dataPtr();
+	    Real* pXZLo = bcXZLo.dataPtr();
+	    Real* pXZHi = bcXZHi.dataPtr();
+	    Real* pYZLo = bcYZLo.dataPtr();
+	    Real* pYZHi = bcYZHi.dataPtr();
 #pragma omp barrier
 #pragma omp for nowait
-        for (int i=0; i<nPtsXY; i++) {
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pl = priv_bcXYLo[it].dataPtr();
-		const Real* ph = priv_bcXYHi[it].dataPtr();
-		pXYLo[i] += pl[i];
-		pXYHi[i] += ph[i];
+	    for (int i=0; i<nPtsXY; i++) {
+		for (int it=0; it<nthreads; it++) {
+		    const Real* pl = priv_bcXYLo[it].dataPtr();
+		    const Real* ph = priv_bcXYHi[it].dataPtr();
+		    pXYLo[i] += pl[i];
+		    pXYHi[i] += ph[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-        for (int i=0; i<nPtsXZ; i++) {
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pl = priv_bcXZLo[it].dataPtr();
-		const Real* ph = priv_bcXZHi[it].dataPtr();
-		pXZLo[i] += pl[i];
-		pXZHi[i] += ph[i];
+	    for (int i=0; i<nPtsXZ; i++) {
+		for (int it=0; it<nthreads; it++) {
+		    const Real* pl = priv_bcXZLo[it].dataPtr();
+		    const Real* ph = priv_bcXZHi[it].dataPtr();
+		    pXZLo[i] += pl[i];
+		    pXZHi[i] += ph[i];
+		}
 	    }
-	}
 #pragma omp for nowait
-        for (int i=0; i<nPtsYZ; i++) {
-	    for (int it=0; it<nthreads; it++) {
-		const Real* pl = priv_bcYZLo[it].dataPtr();
-		const Real* ph = priv_bcYZHi[it].dataPtr();
-		pYZLo[i] += pl[i];
-		pYZHi[i] += ph[i];
+	    for (int i=0; i<nPtsYZ; i++) {
+		for (int it=0; it<nthreads; it++) {
+		    const Real* pl = priv_bcYZLo[it].dataPtr();
+		    const Real* ph = priv_bcYZHi[it].dataPtr();
+		    pYZLo[i] += pl[i];
+		    pYZHi[i] += ph[i];
+		}
 	    }
-	}
 #endif
-    }
+	}
+
+    } // end loop over levels
 
     // because the number of elments in mpi_reduce is int
     BL_ASSERT(nPtsXY <= std::numeric_limits<int>::max());
@@ -1996,11 +2024,15 @@ Gravity::fill_direct_sum_BCs(int level, const MultiFab& Rhs, MultiFab& phi)
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx= mfi.growntilebox();
-        ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(), domlo, domhi,
-			     BL_TO_FORTRAN(phi[mfi]),
+
+	FArrayBox& p = phi[mfi];
+
+        ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(),
+			     p.dataPtr(), ARLIM_3D(p.loVect()), ARLIM_3D(p.hiVect()),
 			     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
 			     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-			     bcYZLo.dataPtr(), bcYZHi.dataPtr());
+			     bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+	                     bclo, bchi);
     }
 
     if (verbose)
@@ -2537,7 +2569,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 
 #if (BL_SPACEDIM == 3)
 	if ( direct_sum_bcs ) {
-	    fill_direct_sum_BCs(crse_level, rhs[0], phi[0]);
+	    fill_direct_sum_BCs(crse_level, fine_level, rhs, phi[0]);
         } else {
 	    fill_multipole_BCs(crse_level, fine_level, rhs, phi[0]);
 	}

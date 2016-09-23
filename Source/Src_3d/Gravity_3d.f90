@@ -353,43 +353,46 @@ contains
 
 
 
-  subroutine ca_compute_direct_sum_bc (lo,hi,domlo,domhi,&
-       symmetry_type,lo_bc,hi_bc, &
-       dx,rho,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       problo, probhi, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
-       bind(C, name="ca_compute_direct_sum_bc")
+  subroutine ca_compute_direct_sum_bc (lo, hi, dx, &
+                                       symmetry_type, lo_bc, hi_bc, &
+                                       rho, r_lo, r_hi, &
+                                       vol, v_lo, v_hi, &
+                                       problo, probhi, &
+                                       bcXYLo, bcXYHi, &
+                                       bcXZLo, bcXZHi, &
+                                       bcYZLo, bcYZHi, &
+                                       bclo, bchi, bcdx) bind(C, name="ca_compute_direct_sum_bc")
 
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: domlo(3),domhi(3)
-    double precision :: dx(3),dV
-    double precision :: problo(3),probhi(3)
+    integer          :: lo(3), hi(3)
+    integer          :: bclo(3), bchi(3)
+    integer          :: r_lo(3), r_hi(3)
+    integer          :: v_lo(3), v_hi(3)
+    double precision :: dx(3), bcdx(3)
+    double precision :: problo(3), probhi(3)
 
     integer          :: symmetry_type
     integer          :: lo_bc(3), hi_bc(3)
 
-    double precision :: bcXYLo(domlo(1)-1:domhi(1)+1,domlo(2)-1:domhi(2)+1)
-    double precision :: bcXYHi(domlo(1)-1:domhi(1)+1,domlo(2)-1:domhi(2)+1)
-    double precision :: bcXZLo(domlo(1)-1:domhi(1)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcXZHi(domlo(1)-1:domhi(1)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcYZLo(domlo(2)-1:domhi(2)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcYZHi(domlo(2)-1:domhi(2)+1,domlo(3)-1:domhi(3)+1)
+    double precision :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    double precision :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    double precision :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    double precision :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    double precision :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    double precision :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
-    double precision :: rho(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i,j,k,l,m,n,b
+    integer          :: i, j, k, l, m, n, b
     double precision :: r
     double precision :: loc(3), locb(3), dx2, dy2, dz2
 
     logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
-
-    dV = dx(1) * dx(2) * dx(3)
 
     ! Determine if we need to add contributions from any symmetric boundaries
 
@@ -418,34 +421,38 @@ contains
           do i = lo(1), hi(1)
              loc(1) = problo(1) + (dble(i)+HALF) * dx(1)
 
-             ! Do xy interfaces first.
+             ! Do xy interfaces first. Note that the boundary conditions
+             ! on phi are expected to live directly on the interface.
+             ! We also have to handle the domain corners correctly. We are
+             ! assuming that bclo = domlo - 1 and bchi = domhi + 1, where
+             ! domlo and domhi are the coarse domain extent.
 
-             do l = domlo(1) - 1, domhi(1) + 1
-                if     ( l .lt. domlo(1) ) then
-                   locb(1) = problo(1) + (dble(l+1)     ) * dx(1)
-                elseif ( l .gt. domhi(1) ) then
-                   locb(1) = problo(1) + (dble(l  )     ) * dx(1)
+             do m = bclo(2), bchi(2)
+                if (m .eq. bclo(2)) then
+                   locb(2) = problo(2)
+                else if (m .eq. bchi(2)) then
+                   locb(2) = probhi(2)
                 else
-                   locb(1) = problo(1) + (dble(l  )+HALF) * dx(1)
+                   locb(2) = problo(2) + (dble(m)+HALF) * bcdx(2)
                 endif
+                dy2 = (loc(2) - locb(2))**2
 
-                dx2 = (loc(1) - locb(1))**2
-
-                locb(3) = problo(3)
-                dz2 = (loc(3) - locb(3))**2
-
-                do m = domlo(2) - 1, domhi(2) + 1
-                   if     ( m .lt. domlo(1) ) then
-                      locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
-                   elseif ( m .gt. domhi(1) ) then
-                      locb(2) = problo(2) + (dble(m  )     ) * dx(2)
+                do l = bclo(1), bchi(1)
+                   if (l .eq. bclo(1)) then
+                      locb(1) = problo(1)
+                   else if (l .eq. bchi(1)) then
+                      locb(1) = probhi(2)
                    else
-                      locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
+                      locb(1) = problo(1) + (dble(l)+HALF) * bcdx(1)
                    endif
+                   dx2 = (loc(1) - locb(1))**2
 
-                   r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
+                   locb(3) = problo(3)
+                   dz2 = (loc(3) - locb(3))**2
+                   
+                   r = ( dx2 + dy2 + dz2 )**HALF
 
-                   bcXYLo(l,m) = bcXYLo(l,m) - Gconst * rho(i,j,k) * dV / r
+                   bcXYLo(l,m) = bcXYLo(l,m) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    ! Now, add any contributions from mass that is hidden behind
                    ! a symmetric boundary.
@@ -453,92 +460,84 @@ contains
                    if ( doSymmetricAdd ) then
 
                       bcXYLo(l,m) = bcXYLo(l,m) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
-                enddo
+                   locb(3) = probhi(3)
+                   dz2 = (loc(3) - locb(3))**2
 
+                   r = ( dx2 + dy2 + dz2 )**HALF
 
-
-                locb(3) = probhi(3)
-                dz2 = (loc(3) - locb(3))**2
-
-                do m = domlo(2) - 1, domhi(2) + 1
-                   if     ( m .lt. domlo(1) ) then
-                      locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
-                   elseif ( m .gt. domhi(1) ) then
-                      locb(2) = problo(2) + (dble(m  )     ) * dx(2)
-                   else
-                      locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
-                   endif
-
-                   r = ( dx2 + (loc(2) - locb(2))**2 + dz2 )**HALF
-
-                   bcXYHi(l,m) = bcXYHi(l,m) - Gconst * rho(i,j,k) * dV / r
+                   bcXYHi(l,m) = bcXYHi(l,m) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    if ( doSymmetricAdd ) then
 
                       bcXYHi(l,m) = bcXYHi(l,m) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
                 enddo
 
+             enddo
 
 
-                ! Now do xz interfaces.
+             ! Now do xz interfaces.
 
-                locb(2) = problo(2)
-                dy2 = (loc(2) - locb(2))**2
-
-                do n = domlo(3) - 1, domhi(3) + 1
-                   if     ( n .lt. domlo(3) ) then
-                      locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
-                   elseif ( n .gt. domhi(3) ) then
-                      locb(3) = problo(3) + (dble(n  )     ) * dx(3)
+             do n = bclo(3), bchi(3)
+                if (n .eq. bclo(3)) then
+                   locb(3) = problo(3)
+                else if (n .eq. bchi(3)) then
+                   locb(3) = probhi(3)
+                else
+                   locb(3) = problo(3) + (dble(n)+HALF) * bcdx(3)
+                endif
+                dz2 = (loc(3) - locb(3))**2
+                
+                do l = bclo(1), bchi(1)
+                   if (l .eq. bclo(1)) then
+                      locb(1) = problo(1)
+                   else if (l .eq. bchi(1)) then
+                      locb(1) = probhi(1)
                    else
-                      locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
+                      locb(1) = problo(1) + (dble(l)+HALF) * bcdx(1)
                    endif
+                   dx2 = (loc(1) - locb(1))**2
 
-                   r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
+                   locb(2) = problo(2)
+                   dy2 = (loc(2) - locb(2))**2
 
-                   bcXZLo(l,n) = bcXZLo(l,n) - Gconst * rho(i,j,k) * dV / r
+                   r = ( dx2 + dy2 + dz2 )**HALF
+
+                   bcXZLo(l,n) = bcXZLo(l,n) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    if ( doSymmetricAdd ) then
 
                       bcXZLo(l,n) = bcXZLo(l,n) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
-                enddo
+                   locb(2) = probhi(2)
+                   dy2 = (loc(2) - locb(2))**2
 
-                locb(2) = probhi(2)
-                dy2 = (loc(2) - locb(2))**2
+                   r = ( dx2 + dy2 + dz2 )**HALF
 
-                do n = domlo(3) - 1, domhi(3) + 1
-                   if     ( n .lt. domlo(3) ) then
-                      locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
-                   elseif ( n .gt. domhi(3) ) then
-                      locb(3) = problo(3) + (dble(n  )     ) * dx(3)
-                   else
-                      locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
-                   endif
-
-                   r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
-
-                   bcXZHi(l,n) = bcXZHi(l,n) - Gconst * rho(i,j,k) * dV / r
+                   bcXZHi(l,n) = bcXZHi(l,n) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    if ( doSymmetricAdd ) then
 
                       bcXZHi(l,n) = bcXZHi(l,n) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -548,63 +547,54 @@ contains
 
              ! Finally, do yz interfaces.
 
-             do m = domlo(2) - 1, domhi(2) + 1
-                if     ( m .lt. domlo(2) ) then
-                   locb(2) = problo(2) + (dble(m+1)     ) * dx(2)
-                elseif ( m .gt. domhi(2) ) then
-                   locb(2) = problo(2) + (dble(m  )     ) * dx(2)
+             do n = bclo(3), bchi(3)
+                if (n .eq. bclo(3)) then
+                   locb(3) = problo(3)
+                else if (n .eq. bchi(3)) then
+                   locb(3) = probhi(3)
                 else
-                   locb(2) = problo(2) + (dble(m  )+HALF) * dx(2)
+                   locb(3) = problo(3) + (dble(n)+HALF) * bcdx(3)
                 endif
+                dz2 = (loc(3) - locb(3))**2
 
-                dy2 = (loc(2) - locb(2))**2
-
-                locb(1) = problo(1)
-                dx2 = (loc(1) - locb(1))**2
-
-                do n = domlo(3) - 1, domhi(3) + 1
-                   if     ( n .lt. domlo(3) ) then
-                      locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
-                   elseif ( n .gt. domhi(3) ) then
-                      locb(3) = problo(3) + (dble(n  )     ) * dx(3)
+                do m = bclo(2), bchi(2)
+                   if (m .eq. bclo(2)) then
+                      locb(2) = problo(2)
+                   else if (m .eq. bchi(2)) then
+                      locb(2) = probhi(2)
                    else
-                      locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
+                      locb(2) = problo(2) + (dble(m)+HALF) * bcdx(2)
                    endif
+                   dy2 = (loc(2) - locb(2))**2
 
-                   r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
+                   locb(1) = problo(1)
+                   dx2 = (loc(1) - locb(1))**2
 
-                   bcYZLo(m,n) = bcYZLo(m,n) - Gconst * rho(i,j,k) * dV / r
+                   r = ( dx2 + dy2 + dz2 )**HALF
+
+                   bcYZLo(m,n) = bcYZLo(m,n) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    if ( doSymmetricAdd ) then
 
                       bcYZLo(m,n) = bcYZLo(m,n) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
                    endif
 
-                enddo
+                   locb(1) = probhi(1)
+                   dx2 = (loc(1) - locb(1))**2
 
-                locb(1) = probhi(1)
-                dx2 = (loc(1) - locb(1))**2
+                   r = ( dx2 + dy2 + dz2 )**HALF
 
-                do n = domlo(3) - 1, domhi(3) + 1
-                   if     ( n .lt. domlo(3) ) then
-                      locb(3) = problo(3) + (dble(n+1)     ) * dx(3)
-                   elseif ( n .gt. domhi(3) ) then
-                      locb(3) = problo(3) + (dble(n  )     ) * dx(3)
-                   else
-                      locb(3) = problo(3) + (dble(n  )+HALF) * dx(3)
-                   endif
-
-                   r = ( dx2 + dy2 + (loc(3) - locb(3))**2 )**HALF
-
-                   bcYZHi(m,n) = bcYZHi(m,n) - Gconst * rho(i,j,k) * dV / r
+                   bcYZHi(m,n) = bcYZHi(m,n) - Gconst * rho(i,j,k) * vol(i,j,k) / r
 
                    if ( doSymmetricAdd ) then
 
                       bcYZHi(m,n) = bcYZHi(m,n) + &
-                           direct_sum_symmetric_add(loc,locb,problo,probhi, &
-                           rho(i,j,k),dV,doSymmetricAddLo,doSymmetricAddHi)
+                                    direct_sum_symmetric_add(loc,locb,problo,probhi, &
+                                                             rho(i,j,k),vol(i,j,k), &
+                                                             doSymmetricAddLo,doSymmetricAddHi)
 
                    endif
 
@@ -620,29 +610,36 @@ contains
 
 
 
-  subroutine ca_put_direct_sum_bc (lo,hi,domlo,domhi,phi,p_l1,p_l2,p_l3,p_h1,p_h2,p_h3, &
-       bcXYLo,bcXYHi,bcXZLo,bcXZHi,bcYZLo,bcYZHi) &
-       bind(C, name="ca_put_direct_sum_bc")
+  subroutine ca_put_direct_sum_bc (lo, hi, &
+                                   phi, p_lo, p_hi, &
+                                   bcXYLo, bcXYHi, &
+                                   bcXZLo, bcXZHi, &
+                                   bcYZLo, bcYZHi, &
+                                   bclo, bchi) bind(C, name="ca_put_direct_sum_bc")
 
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: domlo(3),domhi(3)
+    integer          :: lo(3), hi(3)
+    integer          :: bclo(3), bchi(3)
+    integer          :: p_lo(3), p_hi(3)
 
-    double precision :: bcXYLo(domlo(1)-1:domhi(1)+1,domlo(2)-1:domhi(2)+1)
-    double precision :: bcXYHi(domlo(1)-1:domhi(1)+1,domlo(2)-1:domhi(2)+1)
-    double precision :: bcXZLo(domlo(1)-1:domhi(1)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcXZHi(domlo(1)-1:domhi(1)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcYZLo(domlo(2)-1:domhi(2)+1,domlo(3)-1:domhi(3)+1)
-    double precision :: bcYZHi(domlo(2)-1:domhi(2)+1,domlo(3)-1:domhi(3)+1)
+    double precision :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    double precision :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    double precision :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    double precision :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    double precision :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    double precision :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
-    double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+    double precision :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
-    integer          :: i,j,k
+    integer          :: i, j, k
+
+    ! Note that we assume phi has one ghost zone relative to the domain,
+    ! and since we use a grown box for this loop, so the boxes that lie
+    ! on the perimeter of the domain will indeed have lo = domlo - 1.
 
     i = lo(1)
-    if (i .eq. domlo(1)-1) then
+    if (i .eq. bclo(3)) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              phi(i,j,k) = bcYZLo(j,k)
@@ -651,7 +648,7 @@ contains
     end if
 
     i = hi(1)
-    if (i .eq. domhi(1)+1) then
+    if (i .eq. bchi(3)) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              phi(i,j,k) = bcYZHi(j,k)
@@ -660,7 +657,7 @@ contains
     end if
 
     j = lo(2)
-    if (j .eq. domlo(2)-1) then
+    if (j .eq. bclo(2)) then
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
              phi(i,j,k) = bcXZLo(i,k)
@@ -669,7 +666,7 @@ contains
     end if
 
     j = hi(2)
-    if (j .eq. domhi(2)+1) then
+    if (j .eq. bchi(2)) then
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
              phi(i,j,k) = bcXZHi(i,k)
@@ -678,7 +675,7 @@ contains
     end if
 
     k = lo(3)
-    if (k .eq. domlo(3)-1) then
+    if (k .eq. bclo(3)) then
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              phi(i,j,k) = bcXYLo(i,j)
@@ -687,7 +684,7 @@ contains
     end if
 
     k = hi(3)
-    if (k .eq. domhi(3)+1) then
+    if (k .eq. bchi(3)) then
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              phi(i,j,k) = bcXYHi(i,j)
