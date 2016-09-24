@@ -11,16 +11,16 @@ void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_i
 
     // Fill the old rotation data.
 
-    if (do_rotation) {
+    if (!do_rotation) {
 
-      fill_rotation_field(phirot_old, rot_old, Sborder, time);
+	phirot_old.setVal(0.0);
+	rot_old.setVal(0.0);
 
-    } else {
-
-      phirot_old.setVal(0.);
-      rot_old.setVal(0.);
+	return;
 
     }
+
+    fill_rotation_field(phirot_old, rot_old, Sborder, time);
 
 }
 
@@ -32,20 +32,20 @@ void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_i
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    MultiFab& S_new = get_new_data(State_Type);
-
     // Fill the old rotation data.
 
-    if (do_rotation) {
-
-      fill_rotation_field(phirot_new, rot_new, S_new, time);
-
-    } else {
+    if (!do_rotation) {
 
       phirot_new.setVal(0.);
       rot_new.setVal(0.);
 
+      return;
+
     }
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    fill_rotation_field(phirot_new, rot_new, S_new, time);
 
 }
 

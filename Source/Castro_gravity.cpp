@@ -6,6 +6,18 @@ void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
 
+    MultiFab& grav_old = get_old_data(Gravity_Type);
+    MultiFab& phi_old = get_old_data(PhiGrav_Type);
+
+    if (!do_grav) {
+
+	grav_old.setVal(0.0);
+	phi_old.setVal(0.0);
+
+	return;
+
+    }
+
     // Do level solve at beginning of time step in order to compute the
     // difference between the multilevel and the single level solutions.
     // Only do this if amr_iteration is non-negative; a negative amr_iteration
@@ -13,8 +25,6 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration > 0)
     {
-
-	MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
 	// Create a copy of the current (composite) data on this level.
 
@@ -74,13 +84,25 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     // Define the old gravity vector.
 
-    gravity->get_old_grav_vector(level, get_old_data(Gravity_Type), time);
+    gravity->get_old_grav_vector(level, grav_old, time);
 
 }
 
 void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {
+
+    MultiFab& grav_new = get_new_data(Gravity_Type);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
+
+    if (!do_grav) {
+
+	grav_new.setVal(0.0);
+	phi_new.setVal(0.0);
+
+	return;
+
+    }
 
     // If we're doing Poisson gravity, do the new-time level solve here.
     // Only do this if amr_iteration is non-negative; a negative amr_iteration
@@ -92,7 +114,6 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	// Use the "old" phi from the current time step as a guess for this solve.
 
 	MultiFab& phi_old = get_old_data(PhiGrav_Type);
-	MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
 	MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
 
@@ -158,7 +179,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     // Define new gravity vector.
 
-    gravity->get_new_grav_vector(level, get_new_data(Gravity_Type), time);
+    gravity->get_new_grav_vector(level, grav_new, time);
 
 }
 

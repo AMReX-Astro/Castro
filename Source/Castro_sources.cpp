@@ -34,13 +34,15 @@ Castro::prepare_old_source(int src, Real time, Real dt, int amr_iteration, int a
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	if (do_grav)
+	    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+	if (do_rotation)
+	    construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	break;
 #endif
 
