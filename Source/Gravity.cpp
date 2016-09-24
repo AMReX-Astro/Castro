@@ -1427,7 +1427,7 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
 }
 
 void
-Gravity::make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior)
+Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior)
 {
     BL_PROFILE("Gravity::make_radial_phi()");
 

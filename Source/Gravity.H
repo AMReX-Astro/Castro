@@ -88,7 +88,7 @@ public:
   void interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector);
 
   void make_prescribed_grav(int level, Real time, MultiFab& grav, MultiFab& phi);
-  void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
+  void make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
   void fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
