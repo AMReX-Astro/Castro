@@ -406,8 +406,10 @@ Castro::Castro ()
     :
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
     fluxes(3, PArrayManage),
+    total_fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
+    total_rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
@@ -424,8 +426,10 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,time),
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
     fluxes(3, PArrayManage),
+    total_fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
+    total_rad_fluxes(BL_SPACEDIM, PArrayManage),
 #endif
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
@@ -438,25 +442,31 @@ Castro::Castro (Amr&            papa,
       material_lost_through_boundary_temp[i] = 0.;
     }
 
-    for (int j = 0; j < BL_SPACEDIM; j++)
-        fluxes.set(j, new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate));
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
+	total_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
+    }
 
-    for (int j = BL_SPACEDIM; j < 3; j++)
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
     {
         BoxArray ba = get_new_data(State_Type).boxArray();
-	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
+	fluxes.set(dir, new MultiFab(ba, NUM_STATE, 0));
+	total_fluxes.set(dir, new MultiFab(ba, NUM_STATE, 0));
     }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geometry::IsCartesian()) {
 	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+	total_P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+    }
 #endif
 
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
     if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate));
+        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0));
+	    total_rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0));
 	}
     }
 #endif
@@ -1612,19 +1622,32 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-    if (do_reflux && update_sources_after_reflux && !keep_sources_until_end) {
-	old_sources.clear();
-	new_sources.clear();
-    }
+    // If we're keeping sources until the end of the coarse timestep,
+    // then delete them only if we're only level 0.
 
-    if (keep_sources_until_end && level == 0) {
-	for (int lev = 0; lev <= finest_level; ++lev) {
-	    getLevel(lev).hydro_source.clear();
-	    getLevel(lev).sources_for_hydro.clear();
+    if (keep_sources_until_end) {
 
-	    getLevel(lev).old_sources.clear();
-	    getLevel(lev).new_sources.clear();
+	if (level == 0) {
+	    for (int lev = 0; lev <= finest_level; ++lev) {
+		getLevel(lev).old_sources.clear();
+		getLevel(lev).new_sources.clear();
+		getLevel(lev).hydro_source.clear();
+	    }
 	}
+
+    }
+    else {
+
+	// If we were updating the sources after the reflux,
+	// then we kept the sources until now, and so they
+	// need to be cleared.
+
+	if (do_reflux && update_sources_after_reflux) {
+	    old_sources.clear();
+	    new_sources.clear();
+	    hydro_source.clear();
+	}
+
     }
 
 #ifdef PARTICLES
@@ -2039,7 +2062,7 @@ Castro::advance_aux(Real time, Real dt)
 
 
 void
-Castro::reflux(int crse_level, int fine_level)
+Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
 {
     BL_PROFILE("Castro::reflux()");
 
@@ -2071,13 +2094,6 @@ Castro::reflux(int crse_level, int fine_level)
     FluxRegister* reg;
 
     // Define the flux registers. We'll use the fine-grid fluxes on this level
-    // plus 1 / ref_ratio of the coarse-grid fluxes on the level below. That
-    // way the sum of the refluxes over all fine timesteps is equal to what
-    // it would have been if we had done a single reflux at the end of the
-    // coarse timestep.
-
-    int crse_scale = -1.0;
-    int fine_scale = getLevel(fine_level).crse_ratio[0];
 
     PArray<FluxRegister> flux_reg(nlevs - 1);
     PArray<FluxRegister> pres_reg(nlevs - 1);
@@ -2109,6 +2125,17 @@ Castro::reflux(int crse_level, int fine_level)
 
     }
 
+    // The scaling to follow depends on when we're refluxing. We always want
+    // to reflux with the full value of the fine fluxes on this level, but the
+    // contribution from the coarse fluxes depends on where we're at in the
+    // subcycling. For example, if we have two subcycles per coarse timestep on
+    // this level, and we're still in the first iteration, then we only want the
+    // coarse grid to contribute 1/2 of its total flux, leaving the other half
+    // for the next iteration. So the coarse scaling is (iteration / ncycle).
+
+    int crse_scale = -(float(iteration) / float(ncycle));
+    int fine_scale = 1.0;
+
     for (int lev = fine_level; lev > crse_level; --lev) {
 
 	int ilev = lev - crse_level - 1;
@@ -2121,21 +2148,9 @@ Castro::reflux(int crse_level, int fine_level)
 
 	MultiFab& state = crse_lev.get_new_data(State_Type);
 
-	// The scaling for the fluxes is determined by the ratio of dt
-	// on the current (finest) level to the ratio of dt on the current
-	// loop iteration, lev. We initialized the scalings above, before
-	// the loop, such that on the finest level fine_scale = 1 and
-	// crse_scale = -1 / ref_ratio. The scaling will be compounded
-	// from there. Note that we're arbitrarily using the first component
-	// of ref_ratio, on the assumption that the refinement is equal
-	// in all dimensions.
-
-	crse_scale = crse_scale / getLevel(lev).crse_ratio[0];
-	fine_scale = fine_scale / getLevel(lev).crse_ratio[0];
-
 	for (int i = 0; i < BL_SPACEDIM; ++i) {
-	    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, crse_scale);
-	    reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, fine_scale);
+	    reg->CrseInit(crse_lev.total_fluxes[i], i, 0, 0, NUM_STATE, crse_scale);
+	    reg->FineAdd(fine_lev.total_fluxes[i], i, 0, 0, NUM_STATE, fine_scale);
 	}
 
 	// Trigger the actual reflux on the coarse level now.
@@ -2151,7 +2166,7 @@ Castro::reflux(int crse_level, int fine_level)
 	}
 #endif
 
-	// Also update the fluxes MultiFab using the reflux data.
+	// Also update the fluxes MultiFabs using the reflux data.
 
 	PArray<MultiFab> temp_fluxes(3, PArrayManage);
 
@@ -2161,6 +2176,10 @@ Castro::reflux(int crse_level, int fine_level)
 	    // modifies the fluxes on coarse-fine interfaces.
 
 	    reg->ClearInternalBorders(crse_lev.geom);
+
+	    // Reflux into the hydro_source array so that we have the most up-to-date version of it.
+
+	    reg->Reflux(getLevel(lev-1).hydro_source, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		temp_fluxes.set(i, new MultiFab(crse_lev.fluxes[i].boxArray(), crse_lev.fluxes[i].nComp(), crse_lev.fluxes[i].nGrow()));
@@ -2173,6 +2192,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		MultiFab::Add(crse_lev.fluxes[i], temp_fluxes[i], 0, 0, crse_lev.fluxes[i].nComp(), 0);
+		MultiFab::Add(crse_lev.total_fluxes[i], temp_fluxes[i], 0, 0, crse_lev.fluxes[i].nComp(), 0);
 		temp_fluxes.clear(i);
 	    }
 
@@ -2207,8 +2227,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real pres_scale_fine = 1.0 / getLevel(lev).crse_ratio[1];
 #endif
 
-	    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, crse_scale * pres_scale_crse);
-	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, fine_scale * pres_scale_fine);
+	    reg->CrseInit(crse_lev.total_P_radial, 0, 0, 0, 1, crse_scale * pres_scale_crse);
+	    reg->FineAdd(fine_lev.total_P_radial, 0, 0, 0, 1, fine_scale * pres_scale_fine);
 
 	    MultiFab dr(crse_lev.grids, 1, 0);
 	    dr.setVal(crse_lev.geom.CellSize(0));
@@ -2232,6 +2252,7 @@ Castro::reflux(int crse_level, int fine_level)
 		}
 
 		MultiFab::Add(crse_lev.P_radial, temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
+		MultiFab::Add(crse_lev.total_P_radial, temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
 		temp_fluxes.clear(0);
 
 	    }
@@ -2270,6 +2291,7 @@ Castro::reflux(int crse_level, int fine_level)
 		}
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    MultiFab::Add(crse_lev.rad_fluxes[i], temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i].nComp(), 0);
+		    MultiFab::Add(crse_lev.total_rad_fluxes[i], temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i].nComp(), 0);
 		    temp_fluxes.clear(i);
 		}
 
@@ -2316,6 +2338,13 @@ Castro::reflux(int crse_level, int fine_level)
 
 	if (verbose)
 	    flush_output();
+
+	// Set up the scaling for the next loop iteration. Note that we're
+	// arbitrarily using the first component of ref_ratio, on the
+	// assumption that the refinement is equal in all dimensions.
+
+	crse_scale = crse_scale / getLevel(lev).crse_ratio[0];
+	fine_scale = fine_scale / getLevel(lev).crse_ratio[0];
 
     }
 

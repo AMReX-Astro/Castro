@@ -12,6 +12,8 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
+    hydro_source.setVal(0.0);
+
     // Set up the source terms to go into the hydro.
 
     sources_for_hydro.setVal(0.0);
@@ -402,6 +404,22 @@ Castro::construct_hydro_source(Real time, Real dt)
 	if (hard_cfl_limit == 1)
 	  BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
     }
+
+    // Sum up the fluxes from this timestep.
+
+    for (int n = 0; n < BL_SPACEDIM; ++n)
+	MultiFab::Add(total_fluxes[n], fluxes[n], 0, 0, NUM_STATE, 0);
+
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	MultiFab::Add(total_P_radial, P_radial, 0, 0, 1, 0);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int n =0; n < BL_SPACEDIM; ++n)
+	    MultiFab::Add(total_rad_fluxes[n], rad_fluxes[n], 0, 0, Radiation::nGroups, 0);
+#endif
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;

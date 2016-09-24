@@ -576,6 +576,17 @@ protected:
 #endif
 
     //
+    // Sum of the above over iterations.
+    //
+    PArray<MultiFab> total_fluxes;
+#if (BL_SPACEDIM <= 2)
+    MultiFab         total_P_radial;
+#endif
+#ifdef RADIATION
+    PArray<MultiFab> total_rad_fluxes;
+#endif
+
+    //
     // Non-hydro source terms.
     //
     PArray<MultiFab> old_sources;
@@ -597,7 +608,7 @@ protected:
 
     Castro& getLevel (int lev);
 
-    void reflux (int crse_level, int fine_level);
+    void reflux (int crse_level, int fine_level, int iteration, int ncycle);
 
     void normalize_species (MultiFab& S_new);
 

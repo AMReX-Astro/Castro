@@ -260,9 +260,9 @@ Castro::do_advance (Real time,
 
     if (do_reflux && level > 0) {
 	if (reflux_strategy == 1 && level == parent->finestLevel())
-	    reflux(0, level);
+	    reflux(0, level, amr_iteration, amr_ncycle);
 	else if (reflux_strategy == 2 && amr_iteration == amr_ncycle)
-	    reflux(level-1, level);
+	    reflux(level-1, level, amr_iteration, amr_ncycle);
     }
 
     // For the new-time source terms, we have an option for how to proceed.
@@ -363,8 +363,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
        make_radial_data(is_new);
     }
 #endif
-
-    hydro_source.setVal(0.0);
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
@@ -539,18 +537,42 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
+    // Zero out the current fluxes.
+
     for (int dir = 0; dir < 3; ++dir)
 	fluxes[dir].setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
-	P_radial.setVal(0.0);
+	if (!Geometry::IsCartesian())
+	    P_radial.setVal(0.0);
 #endif
 
 #ifdef RADIATION
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	rad_fluxes[dir].setVal(0.0);
+	if (Radiation::rad_hydro_combined)
+	    for (int dir = 0; dir < 3; ++dir)
+		rad_fluxes[dir].setVal(0.0);
 #endif
+
+    // Zero out the sum of the fluxes on the first iteration, or if we're
+    // refluxing as we go.
+
+    if (amr_iteration == 1 || reflux_strategy == 1) {
+
+	for (int dir = 0; dir < 3; ++dir)
+	    total_fluxes[dir].setVal(0.0);
+
+#if (BL_SPACEDIM <= 2)
+	if (!Geometry::IsCartesian())
+	    total_P_radial.setVal(0.0);
+#endif
+
+#ifdef RADIATION
+	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+	    total_rad_fluxes[dir].setVal(0.0);
+#endif
+
+    }
+
 
 #ifdef DIFFUSION
     OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
@@ -581,14 +603,18 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
+    sources_for_hydro.clear();
+
+    // Optionally, retain the sources until the end of the coarse timestep.
+    // Otherwise, delete them, unless we're updating the sources after the
+    // next reflux.
+
     if (!keep_sources_until_end) {
 
-	hydro_source.clear();
-	sources_for_hydro.clear();
-
 	if (!(do_reflux && update_sources_after_reflux)) {
-	    old_sources.clear();
-	    new_sources.clear();
+		old_sources.clear();
+		new_sources.clear();
+		hydro_source.clear();
 	}
 
     }
