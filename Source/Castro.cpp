@@ -168,7 +168,7 @@ Castro::variableCleanUp ()
     delete radiation;
     radiation = 0;
     if (report && ParallelDescriptor::IOProcessor()) {
-      std::cout << "                                        done" << endl;
+      std::cout << "                                        done" << std::endl;
     }
   }
 #endif
@@ -837,7 +837,7 @@ Castro::initData ()
 
 	  if (radiation->verbose > 2) {
 	    std::cout << "Calling RADINIT at level " << level << ", grid "
-		 << i << endl;
+		 << i << std::endl;
 	  }
 
           RealBox    gridloc(grids[mfi.index()],
