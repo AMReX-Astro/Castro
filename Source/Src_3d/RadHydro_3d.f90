@@ -317,7 +317,7 @@ contains
           end do
 
           if (ppm_trace_sources .eq. 1) then
-             do n=1,QRADVAR
+             do n=1,QVAR
                 call ppm(srcQ(:,:,:,n),src_lo,src_hi, &
                          q(:,:,:,QU:),c,qd_lo,qd_hi, &
                          flatn,qd_lo,qd_hi, &
