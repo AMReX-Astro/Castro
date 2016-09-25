@@ -549,7 +549,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined)
-	    for (int dir = 0; dir < 3; ++dir)
+	    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 		rad_fluxes[dir].setVal(0.0);
 #endif
 
