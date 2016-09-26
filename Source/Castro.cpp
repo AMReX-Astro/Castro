@@ -2240,6 +2240,7 @@ Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
 		reg->ClearInternalBorders(crse_lev.geom);
 
 		temp_fluxes.set(0, new MultiFab(crse_lev.P_radial.boxArray(), crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
+		temp_fluxes[0].setVal(0.0);
 
 		for (OrientationIter fi; fi; ++fi) {
 
