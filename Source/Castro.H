@@ -688,16 +688,6 @@ protected:
     static int       diffuse_spec;
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
-
-    MultiFab OldTempDiffTerm;
-    MultiFab OldSpecDiffTerm;
-    MultiFab OldViscousTermforMomentum;
-    MultiFab OldViscousTermforEnergy;
-
-    MultiFab* NewTempDiffTerm;
-    MultiFab* NewSpecDiffTerm;
-    MultiFab* NewViscousTermforMomentum;
-    MultiFab* NewViscousTermforEnergy;
 #endif
 
 

@@ -573,14 +573,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-
-#ifdef DIFFUSION
-    OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
-    OldSpecDiffTerm.define(grids, NumSpec, 1, Fab_allocate);
-    OldViscousTermforMomentum.define(grids, BL_SPACEDIM, 1, Fab_allocate);
-    OldViscousTermforEnergy.define(grids, 1, 1, Fab_allocate);
-#endif
-
 }
 
 
@@ -620,13 +612,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     }
 
     prev_state.clear();
-
-#ifdef DIFFUSION
-    OldTempDiffTerm.clear();
-    OldSpecDiffTerm.clear();
-    OldViscousTermforMomentum.clear();
-    OldViscousTermforEnergy.clear();
-#endif
 
 }
 

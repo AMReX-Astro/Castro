@@ -104,15 +104,6 @@ Castro::prepare_new_source(int src, Real time, Real dt, int amr_iteration, int a
 
     switch(src) {
 
-#ifdef DIFFUSION
-    case diff_src:
-	NewTempDiffTerm = &OldTempDiffTerm;
-	NewSpecDiffTerm = &OldSpecDiffTerm;
-	NewViscousTermforMomentum = &OldViscousTermforMomentum;
-	NewViscousTermforEnergy   = &OldViscousTermforEnergy;
-	break;
-#endif
-
 #ifdef GRAVITY
     case grav_src:
 	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
