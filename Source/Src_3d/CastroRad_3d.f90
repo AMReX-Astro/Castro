@@ -20,11 +20,14 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, GDU, GDV, GDW, ngdnv
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
+                                 NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR
+  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
+  use bl_constants_module, only: ZERO, HALF, ONE  
   use advection_util_3d_module, only : divu
-  use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
+  use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad, ppflaten
+  use flatten_module, only : uflaten
   
   implicit none
 
@@ -74,6 +77,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer :: gamc(:,:,:)
   double precision, pointer :: gamcg(:,:,:)
   double precision, pointer :: flatn(:,:,:)
+  double precision, pointer :: flatg(:,:,:)
   double precision, pointer :: c(:,:,:)
   double precision, pointer :: cg(:,:,:)
   double precision, pointer :: csml(:,:,:)
@@ -109,6 +113,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   integer :: vol_lo(3), vol_hi(3)
   integer :: src_lo(3), src_hi(3)
   
+  integer :: i, j, k
+
   q_lo(:) = lo(:) - NHYP
   q_hi(:) = hi(:) + NHYP
 
@@ -166,7 +172,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(     q, q_lo, q_hi, QRADVAR)
   call bl_allocate(  gamc, q_lo, q_hi)
   call bl_allocate( gamcg, q_lo, q_hi)
-  call bl_allocate( flatn, q_lo, q_hi)
   call bl_allocate(     c, q_lo, q_hi)
   call bl_allocate(    cg, q_lo, q_hi)
   call bl_allocate(  csml, q_lo, q_hi)
@@ -197,10 +202,48 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
                    Erin,Erin_lo,Erin_hi, &
                    lam,lam_lo,lam_hi, &
-                   q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
+                   q,c,cg,gamc,gamcg,csml,q_lo,q_hi, &
                    src,src_lo,src_hi, &
                    srcQ,q_lo,q_hi, &
                    courno,dx,dy,dz,dt,ngq,ngf)
+
+  call bl_allocate(flatn, q_lo, q_hi)
+  call bl_allocate(flatg, q_lo, q_hi)
+
+    ! Compute flattening coef for slope calculations
+    if (first_order_hydro) then
+       flatn = ZERO
+    elseif (use_flattening == 1) then
+       call uflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
+                    [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
+                    q(:,:,:,qptot), &
+                    q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
+                    flatn, q_lo, q_hi)
+
+       call uflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
+                    [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
+                    q(:,:,:,qpres), &
+                    q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
+                    flatg, q_lo, q_hi)
+
+       do k = lo(3)-ngf, hi(3)+ngf
+          do j = lo(2)-ngf, hi(2)+ngf
+             do i = lo(1)-ngf, hi(1)+ngf
+                flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
+             enddo
+          enddo
+       enddo
+
+       if (flatten_pp_threshold > ZERO) then
+          call ppflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
+                        [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
+                        flatn, q, q_lo, q_hi)
+       end if
+    else
+       flatn = ONE
+    endif
+
+  call bl_deallocate(flatg)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &

@@ -6,7 +6,7 @@ module rad_advection_module
 
   private
 
-  public umeth3d_rad, ctoprim_rad, consup_rad
+  public umeth3d_rad, ctoprim_rad, consup_rad, ppflaten
 
 contains
 
@@ -685,17 +685,14 @@ contains
   subroutine ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
                          Erin,Erin_lo,Erin_hi, &
                          lam,lam_lo,lam_hi, &
-                         q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
+                         q,c,cg,gamc,gamcg,csml,q_lo,q_hi, &
                          src, src_lo, src_hi, &
                          srcQ, srQ_lo, srQ_hi, &
                          courno,dx,dy,dz,dt,ngp,ngf)
 
-    ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-    ! lo-ngf:hi+ngf.  Declared dimensions of
-    ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region
-    ! is assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call
-    ! assumes ngp>=ngf+3 (ie, primitve data is used by the routine
-    ! that computes flatn).
+    ! Will give primitive variables on lo-ngp:hi+ngp.  Declared
+    ! dimensions of q,c,gamc,csml,flatn are given by DIMS(q).  This
+    ! declared region is assumed to encompass lo-ngp:hi+ngp.  
 
     use network, only : nspec, naux
     use eos_module
@@ -704,12 +701,9 @@ contains
                                    QVAR, QRHO, QU, QV, QW, QGAME, &
                                    QREINT, QPRES, QTEMP, QFS, QFX, &
                                    nadv, allow_negative_energy, small_temp, &
-                                   use_flattening, &
                                    npassive, upass_map, qpass_map
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
-                                       flatten_pp_threshold, first_order_hydro
+    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving
     use rad_params_module, only : ngroups
-    use flatten_module, only : uflaten
     use mempool_module, only : bl_allocate, bl_deallocate
     use rad_util_module, only : compute_ptot_ctot
 
@@ -734,7 +728,6 @@ contains
     double precision :: gamc (q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision :: gamcg(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision :: csml (q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
     double precision ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
     double precision :: dx, dy, dz, dt, courno
@@ -744,7 +737,6 @@ contains
 
     double precision, pointer :: dpdrho(:,:,:)
     double precision, pointer :: dpde(:,:,:)
-    double precision, pointer :: flatg(:,:,:)
 
     integer          :: i, j, k, g
     integer          :: loq(3), hiq(3)
@@ -757,7 +749,6 @@ contains
 
     call bl_allocate( dpdrho, q_lo, q_hi)
     call bl_allocate(   dpde, q_lo, q_hi)
-    call bl_allocate(  flatg, q_lo, q_hi)
 
     do i=1,3
        loq(i) = lo(i)-ngp
@@ -939,44 +930,8 @@ contains
 
     courno = max( courmx, courmy, courmz )
 
-    ! Compute flattening coef for slope calculations
-    if (first_order_hydro) then
-       flatn = ZERO
-    elseif (use_flattening == 1) then
-       do n=1,3
-          loq(n)=lo(n)-ngf
-          hiq(n)=hi(n)+ngf
-       enddo
-       call uflaten(loq, hiq, &
-            q(:,:,:,qptot), &
-            q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
-            flatn, q_lo, q_hi)
-
-       call uflaten(loq, hiq, &
-            q(:,:,:,qpres), &
-            q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
-            flatg, q_lo, q_hi)
-
-       do k = loq(3), hiq(3)
-          do j = loq(2), hiq(2)
-             do i = loq(1), hiq(1)
-                flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
-             enddo
-          enddo
-       enddo
-
-       if (flatten_pp_threshold > ZERO) then
-          call ppflaten(loq, hiq, flatn, q, q_lo, q_hi)
-       end if
-    else
-       flatn = ONE
-    endif
-
     call bl_deallocate(dpdrho)
     call bl_deallocate(dpde)
-    call bl_deallocate(flatg)
-
-    q(:,:,:,QGAME) = ZERO ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
 
   end subroutine ctoprim_rad
 
