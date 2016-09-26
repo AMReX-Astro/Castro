@@ -15,18 +15,21 @@ contains
 ! ::: 
 
 subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
-     Erin, Erin_l1, Erin_h1, &
-     lam, lam_l1, lam_h1, &
-     q,c,cg,gamc,gamcg,csml,q_l1,q_h1,&
-     src,src_l1,src_h1, &
-     srcQ,srQ_l1,srQ_h1, &
-     courno,dx,dt,ngp,ngf)
+                       Erin, Erin_l1, Erin_h1, &
+                       lam, lam_l1, lam_h1, &
+                       q, q_l1, q_h1, &
+                       qaux, qa_l1, qa_h1, &
+                       src,src_l1,src_h1, &
+                       srcQ,srQ_l1,srQ_h1, &
+                       courno,dx,dt,ngp,ngf)
 
   use network, only : nspec, naux
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-       QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, QTEMP, QFS, QFX, &
-       npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
+                                 QVAR, QRHO, QU, QV, QW, QGAME, QREINT, &
+                                 QPRES, QTEMP, QFS, QFX, &
+                                 NQAUX, QGAMC, QGAMCG, QC, QCG, QCSML, QDPDR, QDPDE,  &
+                                 npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
        first_order_hydro
   use rad_params_module, only : ngroups
@@ -42,18 +45,14 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   integer          :: lo(1), hi(1)
   integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1 
-  integer          :: q_l1,q_h1
+  integer          :: q_l1, q_h1, qa_l1, qa_h1
   integer          ::  src_l1,src_h1
   integer          ::  srQ_l1,srQ_h1
   double precision ::   uin(uin_l1:uin_h1,NVAR)
   double precision :: Erin(Erin_l1:Erin_h1, 0:ngroups-1)
   double precision :: lam(lam_l1:lam_h1, 0:ngroups-1)
   double precision ::     q(  q_l1:  q_h1,QRADVAR)
-  double precision ::     c(  q_l1:  q_h1)
-  double precision ::    cg(  q_l1:  q_h1)
-  double precision :: gamcg(  q_l1:  q_h1)
-  double precision ::  gamc(  q_l1:  q_h1)
-  double precision ::  csml(  q_l1:  q_h1)
+  double precision ::  qaux( qa_l1: qa_h1,NQAUX)
   double precision ::   src(src_l1:src_h1,NVAR)
   double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
   double precision :: dx, dt, courno
@@ -91,7 +90,10 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
      q(i,QRHO) = uin(i,URHO)
      q(i,QU) = uin(i,UMX)/uin(i,URHO)
+
+     ! we should set this based on the kinetical energy, using dual_energy_eta1
      q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
+
      q(i,QTEMP ) = uin(i,UTEMP)
      q(i,qrad:qradhi) = Erin(i,0:ngroups-1)
   enddo
@@ -113,7 +115,8 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      eos_state % xn  = q(i,QFS:QFS+nspec-1)
      eos_state % aux = q(i,QFX:QFX+naux-1)
 
-     ! If necessary, reset the energy using small_temp
+     ! If necessary, reset the energy using small_temp -- TODO: we handle this
+     ! differently now
      if ((allow_negative_energy .eq. 0) .and. (q(i,QREINT) .lt. 0)) then
         q(i,QTEMP) = small_temp
         eos_state % T = q(i,QTEMP)
@@ -132,26 +135,28 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      call eos(eos_input_re, eos_state)
 
      q(i,QTEMP) = eos_state % T
+     q(i,QREINT) = eos_state % e * q(i,QRHO)
      q(i,QPRES) = eos_state % p
-     dpdrho(i)  = eos_state % dpdr_e
-     dpde(i)    = eos_state % dpde
-     gamcg(i)   = eos_state % gam1
-     cg(i)      = eos_state % cs
+     q(i,QGAME) = q(i,QPRES) / q(i,QREINT) + ONE
 
-     call compute_ptot_ctot(lam(i,:), q(i,:), cg(i), ptot, ctot, gamc_tot)
+     qaux(i,QGAMCG) = eos_state % gam1
+     qaux(i,QCG)    = eos_state % cs
+     qaux(i,QDPDR)  = eos_state % dpdr_e
+     qaux(i,QDPDE)  = eos_state % dpde
 
-     q(i,qptot) = ptot
-     c(i) = ctot
-     gamc(i) = gamc_tot
+     call compute_ptot_ctot(lam(i,:), q(i,:), qaux(i,QCG), ptot, ctot, gamc_tot)
 
-     csml(i) = max(small, small * c(i))
+     q(i,QPTOT) = ptot
+
+     qaux(i,QC)    = ctot
+     qaux(i,QGAMC) = gamc_tot
+
+     qaux(i,QCSML) = max(small, small * ctot)
   end do
 
   ! Make this "rho e" instead of "e"
   do i = loq(1),hiq(1)
-     q(i,QREINT ) = q(i,QREINT )*q(i,QRHO) 
      q(i,qreitot) = q(i,QREINT) + sum(q(i,qrad:qradhi))
-     q(i,QGAME) = q(i,QPRES) / q(i,QREINT) + ONE
   enddo
 
   ! compute srcQ terms
@@ -178,7 +183,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   courmx = courno
   do i = lo(1),hi(1)
 
-     courx  = ( c(i)+abs(q(i,QU)) ) * dt/dx
+     courx  = ( qaux(i,QC) + abs(q(i,QU)) ) * dt/dx
      courmx = max( courmx, courx )
 
      if (courx .gt. ONE) then
@@ -186,7 +191,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
         call bl_warning("Warning:: RadHydro_1d.f90 :: CFL violation in ctoprim")
         print *,'>>> ... (u+c) * dt / dx > 1 ', courx
         print *,'>>> ... at cell (i)       : ',i
-        print *,'>>> ... u, c                ',q(i,QU), c(i)
+        print *,'>>> ... u, c                ',q(i,QU), qaux(i,QC)
         print *,'>>> ... density             ',q(i,QRHO)
      end if
   enddo

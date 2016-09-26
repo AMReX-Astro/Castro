@@ -53,20 +53,18 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision delta(1),dt,time,courno
   
   !     Automatic arrays for workspace
-  double precision, allocatable:: q(:,:)
-  double precision, allocatable:: gamc(:)
-  double precision, allocatable:: gamcg(:)
-  double precision, allocatable:: flatn(:)
-  double precision, allocatable:: flatg(:)
-  double precision, allocatable:: c(:)
-  double precision, allocatable:: cg(:)
-  double precision, allocatable:: csml(:)
-  double precision, allocatable:: div(:)
-  double precision, allocatable:: q1(:,:)
-  double precision, allocatable:: ergdnv(:,:)
-  double precision, allocatable:: lamgdnv(:,:)
-  double precision, allocatable:: srcQ(:,:)
-  double precision, allocatable:: pdivu(:)
+  double precision, allocatable :: q(:,:)
+  double precision, allocatable :: qaux(:,:)
+  double precision, allocatable :: gamc(:)
+  double precision, allocatable :: gamcg(:)
+  double precision, allocatable :: flatn(:)
+  double precision, allocatable :: flatg(:)
+  double precision, allocatable :: div(:)
+  double precision, allocatable :: q1(:,:)
+  double precision, allocatable :: ergdnv(:,:)
+  double precision, allocatable :: lamgdnv(:,:)
+  double precision, allocatable :: srcQ(:,:)
+  double precision, allocatable :: pdivu(:)
   
   double precision dx
   integer i, ngf, ngq
@@ -81,11 +79,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   q_h1 = hi(1)+NHYP
 
   allocate(     q(q_l1:q_h1,QRADVAR))
-  allocate(    c (q_l1:q_h1))
-  allocate(    cg(q_l1:q_h1))
-  allocate( gamc (q_l1:q_h1))
-  allocate( gamcg(q_l1:q_h1))
-  allocate(  csml(q_l1:q_h1))
+  allocate(  qaux(q_l1:q_h1,QRADVAR))
   
   allocate(  srcQ(q_l1:q_h1,QVAR))
   
@@ -101,12 +95,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   !       and set to correspond to coordinates of (lo:hi)
   
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
-       Erin, Erin_l1, Erin_h1, &
-       lam, lam_l1, lam_h1, &
-       q,c,cg,gamc,gamcg,csml,q_l1,q_h1, &
-       src,src_l1,src_h1, &
-       srcQ,q_l1,q_h1, &
-       courno,dx,dt,NHYP,ngf)
+                   Erin, Erin_l1, Erin_h1, &
+                   lam, lam_l1, lam_h1, &
+                   q,q_l1,q_h1, &
+                   qaux, qa_l1, qa_h1, &
+                   src,src_l1,src_h1, &
+                   srcQ,q_l1,q_h1, &
+                   courno,dx,dt,NHYP,ngf)
 
   ! Compute flattening coefficient for slope calculations.  Note:
   ! uflaten call assumes ngp >= ngf+3 (ie, primitve data is used by

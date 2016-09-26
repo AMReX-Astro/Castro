@@ -512,6 +512,7 @@ contains
        enddo
     enddo
 
+    ! get gamc, p, T, c, csml using q state
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
