@@ -2133,8 +2133,8 @@ Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
     // coarse grid to contribute 1/2 of its total flux, leaving the other half
     // for the next iteration. So the coarse scaling is (iteration / ncycle).
 
-    int crse_scale = -(float(iteration) / float(ncycle));
-    int fine_scale = 1.0;
+    Real crse_scale = -(double(iteration) / double(ncycle));
+    Real fine_scale = 1.0;
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
