@@ -145,6 +145,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                    lam, lam_l1, lam_h1, &       
                    q, q_l1, q_h1, &
                    qaux, qa_l1, qa_h1, &
+                   flatn, &
                    srcQ,q_l1,q_h1, &
                    lo(1),hi(1),dx,dt, &
                    flux,flux_l1,flux_h1, &

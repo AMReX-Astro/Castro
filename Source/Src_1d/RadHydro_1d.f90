@@ -195,9 +195,7 @@ end subroutine ctoprim_rad
 ! ::: :: 
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: c           => (const)  sound speed
-! ::: :: gamc        => (const)  sound speed gamma
-! ::: :: csml        => (const)  local small c val
+! ::: :: qaux        => (const)  auxillary hydro info
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: dx          => (const)  grid spacing in X direction
@@ -209,6 +207,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
                        lam, lam_l1, lam_h1, &       
                        q, qd_l1, qd_h1, &
                        qaux, qa_l1, qa_h1, &
+                       flatn, &
                        srcQ,src_l1,src_h1, &
                        ilo,ihi,dx,dt, &
                        flux ,   fd_l1,   fd_h1, &
