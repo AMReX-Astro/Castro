@@ -2396,47 +2396,15 @@ Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
 	for (int lev = fine_level-1; lev >= crse_level; --lev) {
 
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-	    Real cur_time = getLevel(lev).state[State_Type].curTime();
+	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
 
 	    for (int n = 0; n < num_src; ++n)
 		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
 
-	    // Note that in the following we are intentionally passing iteration == -1,
-	    // not the actual current AMR iteration. This is a trick we are using so
-	    // that some source terms get the message that they do not need to re-initialize
-	    // like the did for the first new-time source.
+	    getLevel(lev).prepare_new_sources(time, dt);
 
-	    if (update_state_between_sources) {
-
-		for (int n = 0; n < num_src; ++n) {
-#ifdef HYBRID_MOMENTUM
-		    getLevel(lev).hybrid_sync(S_new);
-#endif
-		    getLevel(lev).computeTemp(S_new);
-		    getLevel(lev).construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
-		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], dt);
-		}
-
-	    }
-	    else {
-
-		// Construct the new-time source terms.
-
-		for (int n = 0; n < num_src; ++n)
-		    getLevel(lev).construct_new_source(n, cur_time, dt, -1, -1, -1, -1);
-
-		// Apply the new-time sources to the state.
-
-		for (int n = 0; n < num_src; ++n)
-		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], dt);
-
-	    }
-
-	    // We must do an average down here so that the state data under fine grids
-	    // stays consistent with that fine grid data.
-
-	    getLevel(lev).avgDown();
+	    getLevel(lev).do_new_sources(time, dt);
 
 	    // Sync up linear and hybrid momenta.
 

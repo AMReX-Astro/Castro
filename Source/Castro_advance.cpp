@@ -180,29 +180,13 @@ Castro::do_advance (Real time,
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Do any preparatory work needed for constructing the old sources,
-    // such as filling relevant state data fields. This preparation step
-    // is separated out because we may want to modify the fields after
-    // they've been created (the main case being the reflux step that
-    // occurs after we've constructed the new-time gravity).
+    // Construct and apply the old-time source terms to S_new.
 
-    for (int n = 0; n < num_src; ++n)
-	prepare_old_source(n, prev_time, dt, amr_iteration, amr_ncycle,
-			   sub_iteration, sub_ncycle);
+    prepare_old_sources(time, dt, amr_iteration, amr_ncycle,
+			sub_iteration, sub_ncycle);
 
-    // Construct the old-time sources.
-
-    for (int n = 0; n < num_src; ++n)
-	construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
-			     sub_iteration, sub_ncycle);
-
-    // Apply the old-time sources directly to the new-time state,
-    // S_new -- note that this addition is for full dt, since we
-    // will do a predictor-corrector on the sources to allow for
-    // state-dependent sources.
-
-    for (int n = 0; n < num_src; ++n)
-        apply_source_to_state(S_new, old_sources[n], dt);
+    do_old_sources(time, dt, amr_iteration, amr_ncycle,
+		   sub_iteration, sub_ncycle);
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn 
@@ -247,9 +231,8 @@ Castro::do_advance (Real time,
     // if needed after the reflux (for example, because of an elliptic coupling
     // like gravity where we need to update the potential before adding the force).
 
-    for (int n = 0; n < num_src; ++n)
-	prepare_new_source(n, prev_time, dt, amr_iteration, amr_ncycle,
-			   sub_iteration, sub_ncycle);
+    prepare_new_sources(time, dt, amr_iteration, amr_ncycle,
+			sub_iteration, sub_ncycle);
 
     // Now do the refluxing if we're on the finest level. Note that for
     // reflux_strategy == 1 this is correcting the flux mismatch on all
@@ -258,52 +241,17 @@ Castro::do_advance (Real time,
     // immediately below it. If we're using gravity it will also do the
     // sync solve associated with the reflux.
 
-    if (do_reflux && level > 0) {
+    if (do_reflux && level > 0 && amr_iteration > 0) {
 	if (reflux_strategy == 1 && level == parent->finestLevel())
 	    reflux(0, level, amr_iteration, amr_ncycle);
 	else if (reflux_strategy == 2 && amr_iteration == amr_ncycle)
 	    reflux(level-1, level, amr_iteration, amr_ncycle);
     }
 
-    // For the new-time source terms, we have an option for how to proceed.
-    // We can either construct all of the old-time sources using the same
-    // state that comes out of the hydro update, or we can evaluate the sources
-    // one by one and apply them as we go.
+    // Construct and apply new-time source terms.
 
-    if (update_state_between_sources) {
-
-	for (int n = 0; n < num_src; ++n) {
-            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-	    apply_source_to_state(S_new, new_sources[n], dt);
-#ifdef HYBRID_MOMENTUM
-	    hybrid_sync(S_new);
-#endif
-	    computeTemp(S_new);
-	}
-
-    } else {
-
-	// Construct the new-time source terms.
-
-	for (int n = 0; n < num_src; ++n)
-            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-
-	// Apply the new-time sources to the state.
-
-	for (int n = 0; n < num_src; ++n)
-	    apply_source_to_state(S_new, new_sources[n], dt);
-
-	// Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-	hybrid_sync(S_new);
-#endif
-
-	// Sync up the temperature now that all sources have been applied.
-
-	computeTemp(S_new);
-
-    }
+    do_new_sources(time, dt, amr_iteration, amr_ncycle,
+		   sub_iteration, sub_ncycle);
 
     // Do the second half of the reactions.
 
