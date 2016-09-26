@@ -12,9 +12,9 @@ geometry.coord_sys = 0         #cartesian
 geometry.prob_lo   =  0.    0.   0.
 geometry.prob_hi   =  2.48e10 2.48e10 2.48e10
 
-amr.n_cell         = 128 128 128
+amr.n_cell         = 64 64 64
 
-amr.max_level      = 2      # maximum level number allowed
+amr.max_level      = 1      # maximum level number allowed
 
 castro.lo_bc       =  2 2 2
 castro.hi_bc       =  2 2 2
