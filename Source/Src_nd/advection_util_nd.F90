@@ -439,7 +439,7 @@ contains
     integer          :: i, j, k
     integer          :: n, nq, ipassive
     double precision :: kineng, rhoinv
-    double precision :: loc(3), vel(3)
+    double precision :: vel(3)
 
     type (eos_t) :: eos_state
 
@@ -461,8 +461,6 @@ contains
           end do
 
           do i = lo(1), hi(1)
-
-             loc = position(i,j,k)
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
@@ -536,8 +534,23 @@ contains
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
 
+#ifdef RADIATION
+             qaux(i,j,k,QGAMCG)   = eos_state % gam1
+             qaux(i,j,k,QCG)      = eos_state % cs
+
+             call compute_ptot_ctot(lam(i,j,:), q(i,j,:), qaux(i,j,QCG), &
+                                    ptot, ctot, gamc_tot)
+
+             q(i,j,k,QPTOT) = ptot
+
+             qaux(i,j,QC)    = ctot
+             qaux(i,j,QGAMC) = gamc_tot
+
+             q(i,j,qreitot) = q(i,j,QREINT) + sum(q(i,j,qrad:qradhi))
+#else
              qaux(i,j,k,QGAMC)  = eos_state % gam1
              qaux(i,j,k,QC   )  = eos_state % cs
+#endif
 
              qaux(i,j,k,QCSML)  = max(small, small * qaux(i,j,k,QC))
           enddo
