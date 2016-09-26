@@ -17,7 +17,8 @@ subroutine ctoprim_rad(lo,hi, &
                        uin,uin_l1,uin_l2,uin_h1,uin_h2, &
                        Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
                        lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                       q,c,cg,gamc,gamcg,csml,q_l1,q_l2,q_h1,q_h2, &
+                       q,q_l1,q_l2,q_h1,q_h2, &
+                       qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                        src,src_l1,src_l2,src_h1,src_h2, &
                        srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                        courno,dx,dy,dt,ngp,ngf)
@@ -31,6 +32,7 @@ subroutine ctoprim_rad(lo,hi, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
                                  QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, &
                                  QTEMP, QFS, QFX, &
+                                 NQAUX, QGAMC, QGAMCG, QC, QCG, QCSML, QDPDR, QDPDE,  &
                                  nadv, allow_negative_energy, small_temp, &
                                  npassive, upass_map, qpass_map
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving
@@ -46,6 +48,7 @@ subroutine ctoprim_rad(lo,hi, &
   integer Erin_l1,Erin_l2,Erin_h1,Erin_h2
   integer lam_l1,lam_l2,lam_h1,lam_h2
   integer q_l1,q_l2,q_h1,q_h2
+  integer qa_l1,qa_l2,qa_h1,qa_h2
   integer src_l1,src_l2,src_h1,src_h2
   integer srQ_l1,srQ_l2,srQ_h1,srQ_h2
 
@@ -53,17 +56,10 @@ subroutine ctoprim_rad(lo,hi, &
   double precision :: Erin(Erin_l1:Erin_h1,Erin_l2:Erin_h2,0:ngroups-1)
   double precision :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
   double precision :: q(q_l1:q_h1,q_l2:q_h2,QRADVAR)
-  double precision ::    c (q_l1:q_h1,q_l2:q_h2)
-  double precision ::    cg(q_l1:q_h1,q_l2:q_h2)
-  double precision :: gamc (q_l1:q_h1,q_l2:q_h2)
-  double precision :: gamcg(q_l1:q_h1,q_l2:q_h2)
-  double precision ::  csml(q_l1:q_h1,q_l2:q_h2)
+  double precision :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,QRADVAR)
   double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
   double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision :: dx, dy, dt, courno
-
-  double precision, allocatable :: dpdrho(:,:)
-  double precision, allocatable :: dpde(:,:)
 
   integer          :: i, j, g
   integer          :: ngp, ngf, loq(2), hiq(2)
@@ -73,9 +69,6 @@ subroutine ctoprim_rad(lo,hi, &
   double precision :: csrad2, ptot, ctot, gamc_tot
 
   type(eos_t) :: eos_state
-
-  allocate(dpdrho(q_l1:q_h1,q_l2:q_h2))
-  allocate(dpde  (q_l1:q_h1,q_l2:q_h2))
 
   do i=1,2
      loq(i) = lo(i)-ngp
@@ -99,7 +92,10 @@ subroutine ctoprim_rad(lo,hi, &
         q(i,j,QRHO) = uin(i,j,URHO)
         q(i,j,QU) = uin(i,j,UMX)/uin(i,j,URHO)
         q(i,j,QV) = uin(i,j,UMY)/uin(i,j,URHO)
+
+        ! we should set this based on the kinetic energy, using dual_energy_eta1
         q(i,j,QREINT ) = uin(i,j,UEINT)/q(i,j,QRHO)
+
         q(i,j,QTEMP  ) = uin(i,j,UTEMP)
         q(i,j,qrad:qradhi) = Erin(i,j,:)
      enddo
@@ -128,7 +124,8 @@ subroutine ctoprim_rad(lo,hi, &
         eos_state % xn  = q(i,j,QFS:QFS+nspec-1)
         eos_state % aux = q(i,j,QFX:QFX+naux-1)
 
-        ! If necessary, reset the energy using small_temp
+        ! If necessary, reset the energy using small_temp -- TODO: we handle this 
+        ! differently now
         if ((allow_negative_energy .eq. 0) .and. (q(i,j,QREINT) .lt. 0)) then
            q(i,j,QTEMP) = small_temp
            eos_state % T = q(i,j,QTEMP)
@@ -147,25 +144,27 @@ subroutine ctoprim_rad(lo,hi, &
         call eos(eos_input_re, eos_state)
 
         q(i,j,QTEMP) = eos_state % T
+        q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
         q(i,j,QPRES) = eos_state % p
-        dpdrho(i,j)  = eos_state % dpdr_e
-        dpde(i,j)    = eos_state % dpde
-        gamcg(i,j)   = eos_state % gam1
-        cg(i,j)      = eos_state % cs
+        q(i,j,QGAME) = q(i,j,QPRES) / q(i,j,QREINT) + ONE
 
-        call compute_ptot_ctot(lam(i,j,:), q(i,j,:), cg(i,j), &
+        qaux(i,j,QGAMCG)   = eos_state % gam1
+        qaux(i,j,QCG)      = eos_state % cs
+        qaux(i,j,QDPDR)    = eos_state % dpdr_e
+        qaux(i,j,QDPDE)    = eos_state % dpde
+
+        call compute_ptot_ctot(lam(i,j,:), q(i,j,:), qaux(i,j,QCG), &
                                ptot, ctot, gamc_tot)
 
-        q(i,j,qptot) = ptot
-        c(i,j) = ctot
-        gamc(i,j) = gamc_tot
+        q(i,j,QPTOT) = ptot
 
-        csml(i,j) = max(small, small * c(i,j))
+        qaux(i,j,QC)    = ctot
+        qaux(i,j,QGAMC) = gamc_tot
 
-        ! Make this "rho e" instead of "e"
-        q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
+        qaux(i,j,QCSML) = max(small, small * qaux(i,j,QC))
+
         q(i,j,qreitot) = q(i,j,QREINT) + sum(q(i,j,qrad:qradhi))
-        q(i,j,QGAME) = q(i,j,QPRES) / q(i,j,QREINT) + ONE
+
      enddo
   enddo
 
@@ -176,12 +175,10 @@ subroutine ctoprim_rad(lo,hi, &
         srcQ(i,j,QRHO  ) = src(i,j,URHO)
         srcQ(i,j,QU    ) = (src(i,j,UMX) - q(i,j,QU) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
         srcQ(i,j,QV    ) = (src(i,j,UMY) - q(i,j,QV) * srcQ(i,j,QRHO)) / q(i,j,QRHO)
-        srcQ(i,j,QREINT) = src(i,j,UEDEN) - q(i,j,QU) *src(i,j,UMX)   &
-                                          - q(i,j,QV) *src(i,j,UMY) + &
-                      HALF * (q(i,j,QU)**2 + q(i,j,QV)**2) * srcQ(i,j,QRHO)
-        srcQ(i,j,QPRES ) =   dpde(i,j) * &
+        srcQ(i,j,QREINT) = src(i,j,UEINT)
+        srcQ(i,j,QPRES ) = qaux(i,j,QDPDE) * &
                 (srcQ(i,j,QREINT) - q(i,j,QREINT)*srcQ(i,j,QRHO)/q(i,j,QRHO))/q(i,j,QRHO) + &
-                dpdrho(i,j) * srcQ(i,j,QRHO)! + &
+                qaux(i,j,QDPDR) * srcQ(i,j,QRHO)! + &
 !                sum(dpdX_er(i,j,:)*(src(i,j,UFS:UFS+nspec-1) - &
 !                    q(i,j,QFS:QFS+nspec-1)*srcQ(i,j,QRHO))) / q(i,j,QRHO)
 
@@ -199,8 +196,8 @@ subroutine ctoprim_rad(lo,hi, &
   courmy = courno
   do j = lo(2),hi(2)
      do i = lo(1),hi(1)
-        courx =  ( c(i,j)+abs(q(i,j,QU)) ) * dt/dx
-        coury =  ( c(i,j)+abs(q(i,j,QV)) ) * dt/dy
+        courx =  ( qaux(i,j,QC) + abs(q(i,j,QU)) ) * dt/dx
+        coury =  ( qaux(i,j,QC) + abs(q(i,j,QV)) ) * dt/dy
         courmx = max( courmx, courx )
         courmy = max( courmy, coury )
 
@@ -209,7 +206,7 @@ subroutine ctoprim_rad(lo,hi, &
            call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
            print *,'>>> ... (u+c) * dt / dx > 1 ', courx
            print *,'>>> ... at cell (i,j)     : ',i,j
-           print *,'>>> ... u, c                ',q(i,j,QU), c(i,j)
+           print *,'>>> ... u, c                ',q(i,j,QU), qaux(i,j,QC)
            print *,'>>> ... density             ',q(i,j,QRHO)
         end if
 
@@ -218,15 +215,13 @@ subroutine ctoprim_rad(lo,hi, &
            call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
            print *,'>>> ... (v+c) * dt / dx > 1 ', coury
            print *,'>>> ... at cell (i,j)     : ',i,j
-           print *,'>>> ... v, c                ',q(i,j,QV), c(i,j)
+           print *,'>>> ... v, c                ',q(i,j,QV), qaux(i,j,QC)
            print *,'>>> ... density             ',q(i,j,QRHO)
         end if
 
      enddo
   enddo
   courno = max( courmx, courmy )
-
-  deallocate(dpdrho, dpde)
 
 end subroutine ctoprim_rad
 
@@ -237,9 +232,7 @@ end subroutine ctoprim_rad
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: c           => (const)  sound speed
-! ::: :: gamc        => (const)  cound speed gamma
-! ::: :: csml        => (const)  local small c val
+! ::: :: qaux        => (const)  auxillary hydro info
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
@@ -251,8 +244,10 @@ end subroutine ctoprim_rad
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd_h2,&
+subroutine umeth2d_rad(q, qd_l1, qd_l2, qd_h1, qd_h2, &
+                       qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                        lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                       flatn, &
                        srcQ, src_l1, src_l2, src_h1, src_h2, &
                        ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                        flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
@@ -269,7 +264,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
 
   use network, only : nspec
   use meth_params_module, only : NVAR, QVAR, ppm_type, GDPRES, &
-       GDU, GDV, GDERADS, GDLAMS, ngdnv
+       GDU, GDV, GDERADS, GDLAMS, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
 
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
@@ -280,6 +275,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   implicit none
 
   integer qd_l1, qd_l2, qd_h1, qd_h2
+  integer qa_l1, qa_l2, qa_h1, qa_h2
   integer lam_l1,lam_l2,lam_h1,lam_h2
   integer ergdx_l1, ergdx_l2, ergdx_h1, ergdx_h2
   integer ergdy_l1, ergdy_l2, ergdy_h1, ergdy_h2
@@ -301,12 +297,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
   
   double precision dx, dy, dt
   double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-  double precision  gamc(qd_l1:qd_h1,qd_l2:qd_h2)
-  double precision gamcg(qd_l1:qd_h1,qd_l2:qd_h2)
+  double precision  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-  double precision  csml(qd_l1:qd_h1,qd_l2:qd_h2)
-  double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-  double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2)
   double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
   double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
@@ -377,11 +369,11 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
      call bl_error("ppm_type <=0 is not supported in umeth2d_rad")
   else
      call trace_ppm_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                        q,c,cg,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+                        q,qaux(:,:,QC),qaux(:,:,QCG),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                         dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                         qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                         srcQ,src_l1,src_l2,src_h1,src_h2, &
-                        gamc,gamcg,qd_l1,qd_l2,qd_h1,qd_h2, &
+                        qaux(:,:,QGAMC),qaux(:,:,QGAMCG),qa_l1,qa_l2,qa_h1,qa_h2, &
                         ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
   end if
 
@@ -390,7 +382,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
               lam, lam_l1, lam_l2, lam_h1, lam_h2, &
               rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-              gamcg, gamc, csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+              qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -399,7 +392,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               q2, q2_l1, q2_l2, q2_h1, q2_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+              qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
   
@@ -408,7 +402,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
               rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
               q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-              gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
               srcQ, src_l1, src_l2, src_h1, src_h2, &
               hdt, hdtdy, &
               ilo1-1, ihi1+1, ilo2, ihi2)
@@ -418,7 +412,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               q1, q1_l1, q1_l2, q1_h1, q1_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
-              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+              qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -427,7 +422,7 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
               rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
               qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-              gamcg, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
               srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
               hdt, hdtdx, &
               area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -439,7 +434,8 @@ subroutine umeth2d_rad(q, c,cg, gamc,gamcg, csml, flatn, qd_l1, qd_l2, qd_h1, qd
               q2, q2_l1, q2_l2, q2_h1, q2_h2, &
               lam,lam_l1,lam_l2,lam_h1,lam_h2, &
               rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
-              gamcg, gamc,csml, c, qd_l1, qd_l2, qd_h1, qd_h2, &
+              qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+              qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
               2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
