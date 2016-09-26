@@ -258,7 +258,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
      dloga,dloga_l1,dloga_h1)
 
-  use meth_params_module, only : NVAR, ppm_type
+  use meth_params_module, only : NVAR, ppm_type, NGDNV
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
@@ -290,7 +290,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision  flux(fd_l1   :fd_h1,NVAR)
   double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
   double precision  srcQ(src_l1  :src_h1,NVAR)
-  double precision    q1(   q1_l1:q1_h1)
+  double precision    q1(   q1_l1:q1_h1, NGDNV)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision dloga(dloga_l1:dloga_h1)
@@ -356,7 +356,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      div,pdivu,lo,hi,dx,dt, &
      nstep_fsp)
 
-  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDPRES
+  use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDU, GDPRES
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_params_module, only : fspace_type, comoving
   use radhydro_nd_module, only : advect_in_fspace
@@ -485,10 +485,10 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   if (comoving) then 
      do i = lo(1),hi(1)
 
-        ux = HALF*(q1(i,GDPRES) + q1(i+1,GDPRES))
+        ux = HALF*(q1(i,GDU) + q1(i+1,GDU))
 
-        divu = (q1(i+1,GDPRES)*area(i+1)-q1(i,GDPRES)*area(i))/vol(i)
-        dudx = (q1(i+1,GDPRES)-q1(i,GDPRES))/dx
+        divu = (q1(i+1,GDU)*area(i+1)-q1(i,GDU)*area(i))/vol(i)
+        dudx = (q1(i+1,GDU)-q1(i,GDU))/dx
 
         ! Note that for single group, fspace_type is always 1
         do g=0, ngroups-1

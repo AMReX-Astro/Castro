@@ -233,12 +233,14 @@
 
 
 % Macros for indexing
-\newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
+\newcommand\nott[1]{\bgroup\let\tt\relax#1\egroup}
+
+\newcommand{\runparam}[1]{\index{Runtime parameters!#1@{\tt #1}}{\tt #1}}
 \newcommand{\runparamNS}[2]{\index{Runtime parameters!{\tt #2.#1}}{\tt #1}}
 \newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
 
-\newcommand{\code}[1]{\index{Code reference!{\tt #1}}{\tt #1}}
-\newcommand{\codeidx}[1]{\index{Code reference!{\tt #1}}}
+\newcommand{\code}[1]{\index{Code reference!#1@{\tt #1}}{\tt #1}}
+\newcommand{\codeidx}[1]{\index{Code reference!#1@{\tt #1}}}
 
 \newcommand{\ifdef}[1]{\index{Preprocessor!{\tt #1}}{\tt #1}}
 \newcommand{\problem}[1]{\index{Problem setups!{\tt #1}}{\tt #1}}

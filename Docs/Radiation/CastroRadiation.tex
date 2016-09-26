@@ -1,11 +1,27 @@
 \section{Introduction}
 
-\castro\ has two radiation solvers: a gray rdiation hydrodynamics
-solver and a multigroup (MG) radiation hydrodynamics solver.  Both
-solvers adopt the flux-limited diffusion (FLD) approximation.  The
-gray solver has a comoving frame mode and a mixed frame mode, whereas
-the MG solver uses the comoving frame approach.  More details about
-the formulation and algorithm can be found in the seriers of
+\castro\ has three radiation solvers: 
+\begin{itemize}
+\item {\tt SingleGroupSolver}: this solver does not have radiation
+  pressre.  It is pure hydro plus radiation diffusion.  This is only
+  applicable when the medium is optically thick and the pressure is small.
+
+\item {\tt SGFLDSolver}: this is the gray flux-limited diffusion
+  radiation hydrodymamics solver.  Here the radiation pressure is
+  separate from the gas pressure, and both pressures participate in
+  the Riemann solver.
+
+\item {\tt MGFLDSolver}: this is the multigroup flux-limited diffusion
+  radiation hydrodynamics solver.  As with the gray solver, radiation
+  pressure contributes to the pressure in the Riemann solver.  Here a
+  number of energy groups are used to represent the radiation field,
+  and the opacity can be frequency-dependent.
+
+\end{itemize}
+
+The gray solver has a comoving frame mode and a mixed frame mode,
+whereas the MG solver uses the comoving frame approach.  More details
+about the formulation and algorithm can be found in the series of
 \castro\ papers.
 
 \section{Getting Started}
