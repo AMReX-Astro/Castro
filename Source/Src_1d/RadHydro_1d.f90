@@ -62,18 +62,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   integer          :: ipassive, n, nq
   double precision :: courx, courmx
 
-  double precision, allocatable :: dpdrho(:), dpde(:)
-
   double precision :: ptot, ctot, gamc_tot
 
   type(eos_t) :: eos_state
 
   loq(1) = lo(1)-ngp
   hiq(1) = hi(1)+ngp
-
-  allocate(dpdrho(q_l1:q_h1))
-  allocate(dpde  (q_l1:q_h1))
-
 
   ! Make q (all but p), except put e in slot for rho.e, fix after eos
   ! call.  The temperature is used as an initial guess for the eos
@@ -91,7 +85,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      q(i,QRHO) = uin(i,URHO)
      q(i,QU) = uin(i,UMX)/uin(i,URHO)
 
-     ! we should set this based on the kinetical energy, using dual_energy_eta1
+     ! we should set this based on the kinetic energy, using dual_energy_eta1
      q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
 
      q(i,QTEMP ) = uin(i,UTEMP)
@@ -152,10 +146,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      qaux(i,QGAMC) = gamc_tot
 
      qaux(i,QCSML) = max(small, small * ctot)
-  end do
 
-  ! Make this "rho e" instead of "e"
-  do i = loq(1),hiq(1)
      q(i,qreitot) = q(i,QREINT) + sum(q(i,qrad:qradhi))
   enddo
 
@@ -163,11 +154,10 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   do i = loq(1), hiq(1)
      srcQ(i,QRHO   ) = src(i,URHO)
      srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
-     srcQ(i,QREINT ) = src(i,UEDEN) - q(i,QU) * src(i,UMX) + &
-          HALF * q(i,QU)**2 * srcQ(i,QRHO)
-     srcQ(i,QPRES  ) = dpde(i) * (srcQ(i,QREINT) - &
+     srcQ(i,QREINT ) = src(i,UEINT)
+     srcQ(i,QPRES  ) = qaux(i,QDPDE) * (srcQ(i,QREINT) - &
           q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
-          dpdrho(i) * srcQ(i,QRHO)! - &
+          qaux(i,QDPDR) * srcQ(i,QRHO)! - &
 !              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
 
 
@@ -196,8 +186,6 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      end if
   enddo
   courno = courmx
-
-  deallocate(dpdrho,dpde)
   
 end subroutine ctoprim_rad
 
