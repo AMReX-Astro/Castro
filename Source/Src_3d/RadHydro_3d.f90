@@ -976,8 +976,6 @@ contains
     call bl_deallocate(dpde)
     call bl_deallocate(flatg)
 
-    q(:,:,:,QGAME) = ZERO ! QGAME is not used in radiation hydro. Setting it to 0 to mute valgrind.
-
   end subroutine ctoprim_rad
 
   ! :::
