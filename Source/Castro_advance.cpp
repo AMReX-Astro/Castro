@@ -543,35 +543,15 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	fluxes[dir].setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian())
-	    P_radial.setVal(0.0);
+    if (!Geometry::IsCartesian())
+	P_radial.setVal(0.0);
 #endif
 
 #ifdef RADIATION
-	if (Radiation::rad_hydro_combined)
-	    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-		rad_fluxes[dir].setVal(0.0);
-#endif
-
-    // Zero out the sum of the fluxes on the first iteration, or if we're
-    // refluxing as we go.
-
-    if (amr_iteration == 1 || reflux_strategy == 1) {
-
-	for (int dir = 0; dir < 3; ++dir)
-	    total_fluxes[dir].setVal(0.0);
-
-#if (BL_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian())
-	    total_P_radial.setVal(0.0);
-#endif
-
-#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	    total_rad_fluxes[dir].setVal(0.0);
+	    rad_fluxes[dir].setVal(0.0);
 #endif
-
-    }
 
 }
 
