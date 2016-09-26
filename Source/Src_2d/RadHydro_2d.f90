@@ -144,7 +144,7 @@ subroutine ctoprim_rad(lo,hi, &
         call eos(eos_input_re, eos_state)
 
         q(i,j,QTEMP) = eos_state % T
-        q(i,j,QREINT) = q(i,j,QREINT)*q(i,j,QRHO)
+        q(i,j,QREINT) = eos_state % e * q(i,j,QRHO)
         q(i,j,QPRES) = eos_state % p
         q(i,j,QGAME) = q(i,j,QPRES) / q(i,j,QREINT) + ONE
 

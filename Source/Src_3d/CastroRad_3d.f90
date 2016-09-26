@@ -21,7 +21,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
-                                 NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening
+                                 NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening, NQAUX
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
   use bl_constants_module, only: ZERO, HALF, ONE  
@@ -74,13 +74,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   
   ! Automatic arrays for workspace
   double precision, pointer :: q(:,:,:,:)
-  double precision, pointer :: gamc(:,:,:)
-  double precision, pointer :: gamcg(:,:,:)
+  double precision, pointer :: qaux(:,:,:,:)
   double precision, pointer :: flatn(:,:,:)
   double precision, pointer :: flatg(:,:,:)
-  double precision, pointer :: c(:,:,:)
-  double precision, pointer :: cg(:,:,:)
-  double precision, pointer :: csml(:,:,:)
   double precision, pointer :: div(:,:,:)
   double precision, pointer :: pdivu(:,:,:)
   double precision, pointer :: srcQ(:,:,:,:)
@@ -89,10 +85,11 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision, pointer :: q2(:,:,:,:)
   double precision, pointer :: q3(:,:,:,:)
   
-  integer ngq,ngf
+  integer ngq, ngf
   double precision dx,dy,dz
 
   integer :: q_lo(3), q_hi(3)
+  integer :: qa_lo(3), qa_hi(3)
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
   integer :: Erin_lo(3), Erin_hi(3)
@@ -117,6 +114,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   q_lo(:) = lo(:) - NHYP
   q_hi(:) = hi(:) + NHYP
+
+  qa_lo(:) = q_lo(:)
+  qa_hi(:) = q_hi(:)
 
   lam_lo(:) = [lam_l1, lam_l2, lam_l3]
   lam_hi(:) = [lam_h1, lam_h2, lam_h3]
@@ -170,11 +170,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   ngf = 1
 
   call bl_allocate(     q, q_lo, q_hi, QRADVAR)
-  call bl_allocate(  gamc, q_lo, q_hi)
-  call bl_allocate( gamcg, q_lo, q_hi)
-  call bl_allocate(     c, q_lo, q_hi)
-  call bl_allocate(    cg, q_lo, q_hi)
-  call bl_allocate(  csml, q_lo, q_hi)
+  call bl_allocate(  qaux, qa_lo, qa_hi, NQAUX)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3))
@@ -202,7 +198,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
                    Erin,Erin_lo,Erin_hi, &
                    lam,lam_lo,lam_hi, &
-                   q,c,cg,gamc,gamcg,csml,q_lo,q_hi, &
+                   q,q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
                    src,src_lo,src_hi, &
                    srcQ,q_lo,q_hi, &
                    courno,dx,dy,dz,dt,ngq,ngf)
@@ -246,8 +243,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_deallocate(flatg)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
+  call umeth3d_rad(q,q_lo,q_hi, &
+                   qaux, qa_lo, qa_hi, &
                    lam, lam_lo, lam_hi, &
+                   flatn, &
                    srcQ, q_lo, q_hi, &
                    lo, hi, dx, dy, dz, dt, &
                    flux1, flux1_lo, flux1_hi, &
@@ -287,12 +286,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
                   lo,hi,dx,dy,dz,dt, nstep_fsp)
 
   call bl_deallocate(q)
-  call bl_deallocate(gamc)
-  call bl_deallocate(gamcg)
+  call bl_deallocate(qaux)
   call bl_deallocate(flatn)
-  call bl_deallocate(c)
-  call bl_deallocate(cg)
-  call bl_deallocate(csml)
   
   call bl_deallocate(div)
   call bl_deallocate(pdivu)
