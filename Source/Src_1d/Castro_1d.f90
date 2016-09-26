@@ -109,9 +109,9 @@ subroutine ca_umdrv(is_finest_level,time,&
 
   ! Compute flattening coefficient for slope calculations.
   if (use_flattening == 1) then
-     call uflaten((/ lo(1) - ngf, 0, 0 /), (/ hi(1) + ngf, 0, 0 /), &
+     call uflaten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
                   q(:,QPRES), q(:,QU), q(:,QV), q(:,QW), &
-                  flatn,(/ q_l1, 0, 0 /), (/ q_h1, 0, 0 /))
+                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
   else
      flatn = ONE
   endif

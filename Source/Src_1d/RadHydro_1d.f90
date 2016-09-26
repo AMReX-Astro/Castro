@@ -6,7 +6,7 @@ module rad_advection_module
 
   private
 
-  public umeth1d_rad, ctoprim_rad, consup_rad
+  public umeth1d_rad, ctoprim_rad, consup_rad, ppflaten
 
 contains
 
@@ -17,10 +17,10 @@ contains
 subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
      Erin, Erin_l1, Erin_h1, &
      lam, lam_l1, lam_h1, &
-     q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1,&
+     q,c,cg,gamc,gamcg,csml,q_l1,q_h1,&
      src,src_l1,src_h1, &
      srcQ,srQ_l1,srQ_h1, &
-     courno,dx,dt,ngp,ngf,iflaten)
+     courno,dx,dt,ngp,ngf)
 
   use network, only : nspec, naux
   use eos_module
@@ -28,21 +28,17 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
        QVAR, QRHO, QU, QV, QW, QGAME, QREINT, QPRES, QTEMP, QFS, QFX, &
        npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
   use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
-       flatten_pp_threshold, first_order_hydro
+       first_order_hydro
   use rad_params_module, only : ngroups
-  use flatten_module, only : uflaten
   use rad_util_module, only : compute_ptot_ctot
   
   implicit none
 
   double precision, parameter:: small = 1.d-8
 
-  ! Will give primitive variables on lo-ngp:hi+ngp, and flatn on
-  ! lo-ngf:hi+ngf if iflaten=1.  Declared dimensions of
-  ! q,c,gamc,csml,flatn are given by DIMS(q).  This declared region is
-  ! assumed to encompass lo-ngp:hi+ngp.  Also, uflaten call assumes
-  ! ngp>=ngf+3 (ie, primitve data is used by the routine that computes
-  ! flatn).
+  ! Will give primitive variables on lo-ngp:hi+ngp.  Declared dimensions of
+  ! q,c,gamc,csml are given by DIMS(q).  This declared region is
+  ! assumed to encompass lo-ngp:hi+ngp.  
 
   integer          :: lo(1), hi(1)
   integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1 
@@ -58,18 +54,16 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   double precision :: gamcg(  q_l1:  q_h1)
   double precision ::  gamc(  q_l1:  q_h1)
   double precision ::  csml(  q_l1:  q_h1)
-  double precision :: flatn(  q_l1:  q_h1)
   double precision ::   src(src_l1:src_h1,NVAR)
   double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
   double precision :: dx, dt, courno
-  integer iflaten
 
   integer          :: i, g
   integer          :: ngp, ngf, loq(1), hiq(1)
   integer          :: ipassive, n, nq
   double precision :: courx, courmx
 
-  double precision, allocatable :: dpdrho(:), dpde(:), flatg(:)
+  double precision, allocatable :: dpdrho(:), dpde(:)
 
   double precision :: ptot, ctot, gamc_tot
 
@@ -80,7 +74,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   allocate(dpdrho(q_l1:q_h1))
   allocate(dpde  (q_l1:q_h1))
-  allocate(flatg (q_l1:q_h1))
+
 
   ! Make q (all but p), except put e in slot for rho.e, fix after eos
   ! call.  The temperature is used as an initial guess for the eos
@@ -198,35 +192,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   enddo
   courno = courmx
 
-  ! Compute flattening coef for slope calculations
-  if (first_order_hydro) then
-     flatn = ZERO
-
-  else if (iflaten.eq.1) then
-     loq(1)=lo(1)-ngf
-     hiq(1)=hi(1)+ngf
-     call uflaten([loq(1), 0, 0], [hiq(1), 0, 0], &
-                  q(:,qptot), &
-                  q(:,QU), q(:,QV), q(:,QW), &
-                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
-     call uflaten([loq(1), 0, 0], [hiq(1), 0, 0], &
-                  q(:,qpres), &
-                  q(:,QU), q(:,QV), q(:,QW), &
-                  flatg, [q_l1, 0, 0], [q_h1, 0, 0])
-
-     do i = loq(1), hiq(1)
-        flatn(i) = flatn(i) * flatg(i)
-     enddo
-
-     if (flatten_pp_threshold > ZERO) then
-        call ppflaten(loq, hiq, flatn, q, q_l1, q_h1)
-     end if
-
-  else
-     flatn = ONE
-  endif
-
-  deallocate(dpdrho,dpde,flatg)
+  deallocate(dpdrho,dpde)
   
 end subroutine ctoprim_rad
 

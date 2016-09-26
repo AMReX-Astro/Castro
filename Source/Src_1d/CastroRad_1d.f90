@@ -15,10 +15,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         vol,vol_l1,vol_h1,courno,verbose, &
                         nstep_fsp) bind(C)
 
-  use meth_params_module, only : QVAR, QU, NVAR, NHYP, NGDNV, GDU, GDPRES
+  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
+                                 NVAR, NHYP, NGDNV, GDU, GDPRES, use_flattening
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR
-  use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad
+  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
+  use bl_constants_module, only: ZERO, HALF, ONE
+  use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad, ppflaten
+  use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
   
   implicit none
@@ -54,6 +57,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: gamc(:)
   double precision, allocatable:: gamcg(:)
   double precision, allocatable:: flatn(:)
+  double precision, allocatable:: flatg(:)
   double precision, allocatable:: c(:)
   double precision, allocatable:: cg(:)
   double precision, allocatable:: csml(:)
@@ -65,14 +69,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable:: pdivu(:)
   
   double precision dx
-  integer i,ngf,ngq,iflaten
+  integer i, ngf, ngq
   integer q_l1, q_h1
 
   dx = delta(1)
 
   ngq = NHYP
   ngf = 1
-  iflaten = 1
 
   q_l1 = lo(1)-NHYP
   q_h1 = hi(1)+NHYP
@@ -82,7 +85,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   allocate(    cg(q_l1:q_h1))
   allocate( gamc (q_l1:q_h1))
   allocate( gamcg(q_l1:q_h1))
-  allocate( flatn(q_l1:q_h1))
   allocate(  csml(q_l1:q_h1))
   
   allocate(  srcQ(q_l1:q_h1,QVAR))
@@ -95,16 +97,51 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   
 
   !     Translate to primitive variables, compute sound speeds
-  !     Note that (q,c,gamc,csml,flatn) are all dimensioned the same
+  !     Note that (q,c,gamc,csml) are all dimensioned the same
   !       and set to correspond to coordinates of (lo:hi)
   
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
        Erin, Erin_l1, Erin_h1, &
        lam, lam_l1, lam_h1, &
-       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
+       q,c,cg,gamc,gamcg,csml,q_l1,q_h1, &
        src,src_l1,src_h1, &
        srcQ,q_l1,q_h1, &
-       courno,dx,dt,NHYP,ngf,iflaten)
+       courno,dx,dt,NHYP,ngf)
+
+  ! Compute flattening coefficient for slope calculations.  Note:
+  ! uflaten call assumes ngp >= ngf+3 (ie, primitve data is used by
+  ! the routine that computes flatn).
+  allocate(flatn(q_l1:q_h1))
+  allocate(flatg(q_l1:q_h1))
+
+  ! Compute flattening coef for slope calculations
+  if (first_order_hydro) then
+     flatn = ZERO
+
+  else if (use_flattening == 1) then
+     call uflaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
+                  q(:,qptot), &
+                  q(:,QU), q(:,QV), q(:,QW), &
+                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+     call uflaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
+                  q(:,qpres), &
+                  q(:,QU), q(:,QV), q(:,QW), &
+                  flatg, [q_l1, 0, 0], [q_h1, 0, 0])
+
+     do i = lo(1)-ngf, hi(1)+ngf
+        flatn(i) = flatn(i) * flatg(i)
+     enddo
+
+     if (flatten_pp_threshold > ZERO) then
+        call ppflaten([lo(1)-ngf], [hi(1)+ngf], flatn, q, q_l1, q_h1)
+     end if
+
+  else
+     flatn = ONE
+  endif
+
+  deallocate(flatg)
+
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
        lam, lam_l1, lam_h1, &       

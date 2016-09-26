@@ -27,7 +27,7 @@ module meth_params_module
   integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer         , save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
 #ifdef RADIATION
-  integer         , save :: QGAMCG, QGG
+  integer         , save :: QGAMCG, QCG
 #endif
   integer         , save :: QFA, QFS, QFX
 
