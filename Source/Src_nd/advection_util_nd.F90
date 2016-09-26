@@ -533,12 +533,13 @@ contains
              q(i,j,k,QPRES)  = eos_state % p
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
 
-             qaux(i,j,k,QGAMC)  = eos_state % gam1
-             qaux(i,j,k,QC   )  = eos_state % cs
-             qaux(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
 
+             qaux(i,j,k,QGAMC)  = eos_state % gam1
+             qaux(i,j,k,QC   )  = eos_state % cs
+
+             qaux(i,j,k,QCSML)  = max(small, small * qaux(i,j,k,QC))
           enddo
        enddo
     enddo
