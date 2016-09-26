@@ -481,13 +481,21 @@
         ! that we create in the primitive variable call but that do not need to
         ! participate in tracing.
 
+#ifdef RADIATION
+        NQAUX = 7
+#else
         NQAUX = 5
+#endif        
 
         QGAMC   = 1
         QC      = 2
         QCSML   = 3
         QDPDR   = 4
         QDPDE   = 5
+#ifdef RADIATION
+        QGAMCG  = 6
+        QCG     = 7
+#endif
 
         ! easy indexing for the passively advected quantities.  This
         ! lets us loop over all groups (advected, species, aux)
@@ -594,6 +602,9 @@
         !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
         !$acc device(QFA, QFS, QFX) &
         !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
+#ifdef RADIATION
+        !$acc device(QGAMCG, QCG) &
+#endif
         !$acc device(small_dens, small_temp)
 
       end subroutine set_method_params

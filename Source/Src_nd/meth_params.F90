@@ -26,6 +26,9 @@ module meth_params_module
   integer         , save :: QTHERM, QVAR
   integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer         , save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
+#ifdef RADIATION
+  integer         , save :: QGAMCG, QGG
+#endif
   integer         , save :: QFA, QFS, QFX
 
   integer         , save :: nadv
@@ -60,6 +63,9 @@ module meth_params_module
   !$acc create(QTHERM, QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
   !$acc create(QGAMC, QGAME) &
+#ifdef RADIATION
+  !$acc create(QGAMCG, QCG) &
+#endif
   !$acc create(QFA, QFS, QFX)
 
   ! Begin the declarations of the ParmParse parameters
