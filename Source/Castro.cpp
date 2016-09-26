@@ -2096,7 +2096,9 @@ Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
     // Define the flux registers. We'll use the fine-grid fluxes on this level
 
     PArray<FluxRegister> flux_reg(nlevs - 1);
+#if (BL_SPACEDIM <= 2)
     PArray<FluxRegister> pres_reg(nlevs - 1);
+#endif
 #ifdef RADIATION
     PArray<FluxRegister> rad_flux_reg(nlevs - 1);
 #endif
@@ -2110,8 +2112,10 @@ Castro::reflux(int crse_level, int fine_level, int iteration, int ncycle)
 
 	flux_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE));
 
+#if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian())
 	    pres_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
+#endif
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined)
