@@ -218,18 +218,19 @@ end subroutine ctoprim_rad
 ! ::: ----------------------------------------------------------------
 
 subroutine umeth1d_rad(lo,hi,domlo,domhi, &
-     lam, lam_l1, lam_h1, &       
-     q,c,cg,gamc,gamcg,csml,flatn,qd_l1,qd_h1, &
-     srcQ,src_l1,src_h1, &
-     ilo,ihi,dx,dt, &
-     flux ,   fd_l1,   fd_h1, &
-     rflux,  rfd_l1,  rfd_h1, &
-     q1, q1_l1, q1_h1, &
-     ergdnv,ergdnv_l1,ergdnv_h1, &
-     lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-     dloga,dloga_l1,dloga_h1)
+                       lam, lam_l1, lam_h1, &       
+                       q, qd_l1, qd_h1, &
+                       qaux, qa_l1, qa_h1, &
+                       srcQ,src_l1,src_h1, &
+                       ilo,ihi,dx,dt, &
+                       flux ,   fd_l1,   fd_h1, &
+                       rflux,  rfd_l1,  rfd_h1, &
+                       q1, q1_l1, q1_h1, &
+                       ergdnv,ergdnv_l1,ergdnv_h1, &
+                       lamgdnv,lamgdnv_l1,lamgdnv_h1, &
+                       dloga,dloga_l1,dloga_h1)
 
-  use meth_params_module, only : NVAR, ppm_type, NGDNV
+  use meth_params_module, only : NVAR, ppm_type, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
   use radhydro_params_module, only : QRADVAR
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
@@ -242,6 +243,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   integer dloga_l1,dloga_h1
   integer lam_l1,lam_h1
   integer qd_l1,qd_h1
+  integer qa_l1,qa_h1
   integer src_l1,src_h1
   integer fd_l1,fd_h1
   integer rfd_l1,rfd_h1
@@ -252,12 +254,8 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision dx, dt
   double precision lam(lam_l1:lam_h1, 0:ngroups-1)
   double precision     q(   qd_l1:qd_h1,QRADVAR)
-  double precision  gamc(   qd_l1:qd_h1)
-  double precision gamcg(   qd_l1:qd_h1)
+  double precision  qaux(   qd_l1:qd_h1,NQAUX)
   double precision flatn(   qd_l1:qd_h1)
-  double precision  csml(   qd_l1:qd_h1)
-  double precision     c(   qd_l1:qd_h1)
-  double precision    cg(   qd_l1:qd_h1)
   double precision  flux(fd_l1   :fd_h1,NVAR)
   double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
   double precision  srcQ(src_l1  :src_h1,NVAR)
@@ -266,22 +264,22 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision dloga(dloga_l1:dloga_h1)
   
-!     Left and right state arrays (edge centered, cell centered)
+  ! Left and right state arrays (edge centered, cell centered)
   double precision, allocatable:: dq(:,:),  qm(:,:),   qp(:,:)
 
-!     Work arrays to hold 3 planes of riemann state and conservative fluxes
+  ! Work arrays to hold 3 planes of riemann state and conservative fluxes
   allocate ( dq(ilo-1:ihi+1,QRADVAR))
   allocate ( qm(ilo-1:ihi+1,QRADVAR))
   allocate ( qp(ilo-1:ihi+1,QRADVAR))
 
-!     Trace to edges w/o transverse flux correction terms
+  ! Trace to edges w/o transverse flux correction terms
   if (ppm_type .gt. 0) then
      call trace_ppm_rad(lam, lam_l1, lam_h1, &       
-          q,c,cg,gamc,gamcg,flatn,qd_l1,qd_h1, &
-          dloga,dloga_l1,dloga_h1, &
-          srcQ,src_l1,src_h1, &
-          qm,qp,ilo-1,ihi+1, &
-          ilo,ihi,domlo,domhi,dx,dt)
+                        q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG),flatn,qd_l1,qd_h1, &
+                        dloga,dloga_l1,dloga_h1, &
+                        srcQ,src_l1,src_h1, &
+                        qm,qp,ilo-1,ihi+1, &
+                        ilo,ihi,domlo,domhi,dx,dt)
   else
      call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
      ! call trace(q,dq,c,flatn,qd_l1,qd_h1, &
@@ -291,7 +289,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      !      ilo,ihi,domlo,domhi,dx,dt)
   end if
   
-  !     Solve Riemann problem, compute xflux from improved predicted states 
+  ! Solve Riemann problem, compute xflux from improved predicted states 
   call cmpflx(lo, hi, domlo, domhi, &
               qm, qp, ilo-1,ihi+1, &
               flux ,  fd_l1, fd_h1, &
@@ -300,7 +298,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
               rflux, rfd_l1,rfd_h1, &
               ergdnv,ergdnv_l1,ergdnv_h1, &
               lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-              gamcg,gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
+              qaux(:,QGAMCG),qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
 
   deallocate (dq,qm,qp)
 

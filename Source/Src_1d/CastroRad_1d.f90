@@ -68,7 +68,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   
   double precision dx
   integer i, ngf, ngq
-  integer q_l1, q_h1
+  integer q_l1, q_h1, qa_l1, qa_h1
 
   dx = delta(1)
 
@@ -77,6 +77,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   q_l1 = lo(1)-NHYP
   q_h1 = hi(1)+NHYP
+
+  qa_l1 = q_l1
+  qa_h1 = q_h1
 
   allocate(     q(q_l1:q_h1,QRADVAR))
   allocate(  qaux(q_l1:q_h1,QRADVAR))
@@ -139,16 +142,17 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
-       lam, lam_l1, lam_h1, &       
-       q,c,cg,gamc,gamcg,csml,flatn,q_l1,q_h1, &
-       srcQ,q_l1,q_h1, &
-       lo(1),hi(1),dx,dt, &
-       flux,flux_l1,flux_h1, &
-       radflux,radflux_l1,radflux_h1, &
-       q1,flux_l1-1,flux_h1+1, &
-       ergdnv,lo(1),hi(1)+1, &
-       lamgdnv,lo(1),hi(1)+1, &
-       dloga,dloga_l1,dloga_h1)
+                   lam, lam_l1, lam_h1, &       
+                   q, q_l1, q_h1, &
+                   qaux, qa_l1, qa_h1, &
+                   srcQ,q_l1,q_h1, &
+                   lo(1),hi(1),dx,dt, &
+                   flux,flux_l1,flux_h1, &
+                   radflux,radflux_l1,radflux_h1, &
+                   q1,flux_l1-1,flux_h1+1, &
+                   ergdnv,lo(1),hi(1)+1, &
+                   lamgdnv,lo(1),hi(1)+1, &
+                   dloga,dloga_l1,dloga_h1)
 
   ! Define p*divu
   do i = lo(1), hi(1)
@@ -163,26 +167,26 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   !     Conservative update
   call consup_rad(uin,uin_l1,uin_h1, &
-       uout,uout_l1,uout_h1, &
-       Erin,Erin_l1,Erin_h1, &
-       Erout,Erout_l1,Erout_h1, &
-       q1,flux_l1-1,flux_h1+1, &
-       ergdnv,lo(1),hi(1)+1, &
-       lamgdnv,lo(1),hi(1)+1, &
-       src , src_l1, src_h1, &
-       flux,flux_l1,flux_h1, &
-       radflux,radflux_l1,radflux_h1, &
-       flatn,uin_l1,uin_h1, &
-       area,area_l1,area_h1, &
-       vol , vol_l1, vol_h1, &
-       div ,pdivu,lo,hi,dx,dt, &
-       nstep_fsp)
+                  uout,uout_l1,uout_h1, &
+                  Erin,Erin_l1,Erin_h1, &
+                  Erout,Erout_l1,Erout_h1, &
+                  q1,flux_l1-1,flux_h1+1, &
+                  ergdnv,lo(1),hi(1)+1, &
+                  lamgdnv,lo(1),hi(1)+1, &
+                  src , src_l1, src_h1, &
+                  flux,flux_l1,flux_h1, &
+                  radflux,radflux_l1,radflux_h1, &
+                  flatn,uin_l1,uin_h1, &
+                  area,area_l1,area_h1, &
+                  vol , vol_l1, vol_h1, &
+                  div ,pdivu,lo,hi,dx,dt, &
+                  nstep_fsp)
 
   if (coord_type .gt. 0) then
      pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
   end if
   
-  deallocate(q,c,cg,gamc,gamcg,flatn,csml,srcQ,div,pdivu,q1,ergdnv,lamgdnv)
+  deallocate(q,qaux,flatn,srcQ,div,pdivu,q1,ergdnv,lamgdnv)
 
 end subroutine ca_umdrv_rad
 
