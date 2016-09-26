@@ -150,7 +150,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, lo, hi, dt, delta, courno)
+  call compute_cfl(q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   lo, hi, dt, delta, courno)
 
   ! Compute flattening coefficient for slope calculations.
   if (use_flattening == 1) then

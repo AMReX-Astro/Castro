@@ -118,7 +118,9 @@ subroutine ca_umdrv(is_finest_level,time,lo,hi,domlo,domhi, &
   dy = delta(2)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo_3D, q_hi_3D, lo_3D, hi_3D, dt, dx_3D, courno)
+  call compute_cfl(q, q_lo_3D, q_hi_3D, &
+                   qaux, [qa_l1, qa_l2, 0], [qa_h1, qa_h2, 0], &
+                   lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.
   if (use_flattening == 1) then
