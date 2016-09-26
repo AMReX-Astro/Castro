@@ -10,9 +10,9 @@ module rad_advection_module
 
 contains
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
 subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
                        Erin, Erin_l1, Erin_h1, &
@@ -21,7 +21,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
                        qaux, qa_l1, qa_h1, &
                        src,src_l1,src_h1, &
                        srcQ,srQ_l1,srQ_h1, &
-                       courno,dx,dt,ngp,ngf)
+                       dx,dt,ngp,ngf)
 
   use network, only : nspec, naux
   use eos_module
@@ -34,17 +34,17 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
        first_order_hydro
   use rad_params_module, only : ngroups
   use rad_util_module, only : compute_ptot_ctot
-  
+
   implicit none
 
   double precision, parameter:: small = 1.d-8
 
   ! Will give primitive variables on lo-ngp:hi+ngp.  Declared dimensions of
   ! q,c,gamc,csml are given by DIMS(q).  This declared region is
-  ! assumed to encompass lo-ngp:hi+ngp.  
+  ! assumed to encompass lo-ngp:hi+ngp.
 
   integer          :: lo(1), hi(1)
-  integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1 
+  integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1
   integer          :: q_l1, q_h1, qa_l1, qa_h1
   integer          ::  src_l1,src_h1
   integer          ::  srQ_l1,srQ_h1
@@ -55,7 +55,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
   double precision ::  qaux( qa_l1: qa_h1,NQAUX)
   double precision ::   src(src_l1:src_h1,NVAR)
   double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
-  double precision :: dx, dt, courno
+  double precision :: dx, dt
 
   integer          :: i, g
   integer          :: ngp, ngf, loq(1), hiq(1)
@@ -125,7 +125,7 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
            call bl_error("Error:: ctoprim")
         end if
      end if
-     
+
      call eos(eos_input_re, eos_state)
 
      q(i,QTEMP) = eos_state % T
@@ -169,30 +169,12 @@ subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
 
   end do
 
-  ! Compute running max of Courant number over grids
-  courmx = courno
-  do i = lo(1),hi(1)
-
-     courx  = ( qaux(i,QC) + abs(q(i,QU)) ) * dt/dx
-     courmx = max( courmx, courx )
-
-     if (courx .gt. ONE) then
-        print *,'   '
-        call bl_warning("Warning:: RadHydro_1d.f90 :: CFL violation in ctoprim")
-        print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-        print *,'>>> ... at cell (i)       : ',i
-        print *,'>>> ... u, c                ',q(i,QU), qaux(i,QC)
-        print *,'>>> ... density             ',q(i,QRHO)
-     end if
-  enddo
-  courno = courmx
-  
 end subroutine ctoprim_rad
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH1D     Compute hyperbolic fluxes using unsplit second
 ! ::: ::               order Godunov integrator.
-! ::: :: 
+! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: qaux        => (const)  auxillary hydro info
@@ -204,7 +186,7 @@ end subroutine ctoprim_rad
 ! ::: ----------------------------------------------------------------
 
 subroutine umeth1d_rad(lo,hi,domlo,domhi, &
-                       lam, lam_l1, lam_h1, &       
+                       lam, lam_l1, lam_h1, &
                        q, qd_l1, qd_h1, &
                        qaux, qa_l1, qa_h1, &
                        flatn, &
@@ -222,9 +204,9 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   use rad_params_module, only : ngroups
   use riemann_module, only : cmpflx
   use trace_ppm_rad_module, only : trace_ppm_rad
-  
+
   implicit none
-  
+
   integer lo(1),hi(1)
   integer domlo(1),domhi(1)
   integer dloga_l1,dloga_h1
@@ -250,7 +232,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
   double precision dloga(dloga_l1:dloga_h1)
-  
+
   ! Left and right state arrays (edge centered, cell centered)
   double precision, allocatable:: dq(:,:),  qm(:,:),   qp(:,:)
 
@@ -261,7 +243,7 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
 
   ! Trace to edges w/o transverse flux correction terms
   if (ppm_type .gt. 0) then
-     call trace_ppm_rad(lam, lam_l1, lam_h1, &       
+     call trace_ppm_rad(lam, lam_l1, lam_h1, &
                         q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG),flatn,qd_l1,qd_h1, &
                         dloga,dloga_l1,dloga_h1, &
                         srcQ,src_l1,src_h1, &
@@ -275,13 +257,13 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
      !      qm,qp,ilo-1,ihi+1, &
      !      ilo,ihi,domlo,domhi,dx,dt)
   end if
-  
-  ! Solve Riemann problem, compute xflux from improved predicted states 
+
+  ! Solve Riemann problem, compute xflux from improved predicted states
   call cmpflx(lo, hi, domlo, domhi, &
               qm, qp, ilo-1,ihi+1, &
               flux ,  fd_l1, fd_h1, &
               q1, q1_l1, q1_h1, &
-              lam, lam_l1, lam_h1, & 
+              lam, lam_l1, lam_h1, &
               rflux, rfd_l1,rfd_h1, &
               ergdnv,ergdnv_l1,ergdnv_h1, &
               lamgdnv,lamgdnv_l1,lamgdnv_h1, &
@@ -292,10 +274,10 @@ subroutine umeth1d_rad(lo,hi,domlo,domhi, &
 end subroutine umeth1d_rad
 
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
-     
+! :::
+
 subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      uout, uout_l1 ,uout_h1, &
      Erin,Erin_l1,Erin_h1, &
@@ -362,7 +344,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   double precision :: Eddf, Eddflft, Eddfrgt, f1, f2, f1lft, f1rgt
   double precision :: ux, divu, dudx, Egdc, lamc
   double precision :: dpdx, dprdx, ek1, ek2, dek
-  
+
   if (ngroups .gt. 1) then
      if (fspace_type .eq. 1) then
         Erscale = dlognu
@@ -404,7 +386,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
 
   do g=0, ngroups-1
      do i = lo(1),hi(1)
-        Erout(i,g) = Erin(i,g) + (rflux(i,g) - rflux(i+1,g) ) / vol(i) 
+        Erout(i,g) = Erin(i,g) + (rflux(i,g) - rflux(i+1,g) ) / vol(i)
      enddo
   end do
 
@@ -438,7 +420,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   enddo
 
   ! Add radiation source term to rho*u, rhoE, and Er
-  if (comoving) then 
+  if (comoving) then
      do i = lo(1),hi(1)
 
         ux = HALF*(q1(i,GDU) + q1(i+1,GDU))
@@ -454,13 +436,13 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
            f1 = (ONE-Eddf)*HALF
            f2 = (3.d0*Eddf-ONE)*HALF
            af(g) = -(f1*divu + f2*dudx)
-           
+
            if (fspace_type .eq. 1) then
               Eddflft = Edd_factor(lamgdnv(i,g))
               f1lft = HALF*(ONE-Eddflft)
               Eddfrgt = Edd_factor(lamgdnv(i+1,g))
               f1rgt = HALF*(ONE-Eddfrgt)
-           
+
               Egdc = HALF*(ergdnv(i,g)+ergdnv(i+1,g))
               Erout(i,g) = Erout(i,g) + dt*ux*(f1rgt*ergdnv(i+1,g)-f1lft*ergdnv(i,g))/dx &
                    - dt*f2*Egdc*dudx
@@ -472,7 +454,7 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
            ustar = Erout(i,:) / Erscale
            call advect_in_fspace(ustar, af, dt, nstep_fsp)
            Erout(i,:) = ustar * Erscale
-        end if 
+        end if
      end do
   end if
 

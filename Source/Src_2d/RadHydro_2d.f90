@@ -21,7 +21,7 @@ subroutine ctoprim_rad(lo,hi, &
                        qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                        src,src_l1,src_l2,src_h1,src_h2, &
                        srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                       courno,dx,dy,dt,ngp,ngf)
+                       dx,dy,dt,ngp,ngf)
 
   ! Will give primitive variables on lo-ngp:hi+ngp.  Declared
   ! dimensions of q,c,gamc,csml are given by DIMS(q).  This
@@ -59,7 +59,7 @@ subroutine ctoprim_rad(lo,hi, &
   double precision :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,QRADVAR)
   double precision :: src (src_l1:src_h1,src_l2:src_h2,NVAR)
   double precision :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
-  double precision :: dx, dy, dt, courno
+  double precision :: dx, dy, dt
 
   integer          :: i, j, g
   integer          :: ngp, ngf, loq(2), hiq(2)
@@ -190,38 +190,6 @@ subroutine ctoprim_rad(lo,hi, &
 
      end do
   end do
-
-  ! Compute running max of Courant number over grids
-  courmx = courno
-  courmy = courno
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
-        courx =  ( qaux(i,j,QC) + abs(q(i,j,QU)) ) * dt/dx
-        coury =  ( qaux(i,j,QC) + abs(q(i,j,QV)) ) * dt/dy
-        courmx = max( courmx, courx )
-        courmy = max( courmy, coury )
-
-        if (courx .gt. ONE) then
-           print *,'   '
-           call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
-           print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-           print *,'>>> ... at cell (i,j)     : ',i,j
-           print *,'>>> ... u, c                ',q(i,j,QU), qaux(i,j,QC)
-           print *,'>>> ... density             ',q(i,j,QRHO)
-        end if
-
-        if (coury .gt. ONE) then
-           print *,'   '
-           call bl_warning("Warning:: Castro_2d.f90 :: CFL violation in ctoprim")
-           print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-           print *,'>>> ... at cell (i,j)     : ',i,j
-           print *,'>>> ... v, c                ',q(i,j,QV), qaux(i,j,QC)
-           print *,'>>> ... density             ',q(i,j,QRHO)
-        end if
-
-     enddo
-  enddo
-  courno = max( courmx, courmy )
 
 end subroutine ctoprim_rad
 

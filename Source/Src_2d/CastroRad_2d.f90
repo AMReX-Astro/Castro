@@ -24,6 +24,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
   use bl_constants_module, only: ZERO, HALF, ONE
   use advection_util_2d_module, only : divu
+  use advection_util_module, only : compute_cfl
   use rad_advection_module, only : umeth2d_rad, ctoprim_rad, consup_rad, ppflaten
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
@@ -66,7 +67,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision dloga   (   dloga_l1:   dloga_h1,   dloga_l2:   dloga_h2)
   double precision vol     (     vol_l1:     vol_h1,     vol_l2:     vol_h2)
   double precision delta(2),dt,time,courno
-  
+
   ! Automatic arrays for workspace
   double precision, allocatable:: q(:,:,:)
   double precision, allocatable:: qaux(:,:,:)
@@ -86,10 +87,22 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer q_l1, q_l2, q_h1, q_h2
   integer qa_l1, qa_l2, qa_h1, qa_h2
 
+  integer :: lo_3D(3), hi_3D(3)
+  integer :: q_lo_3D(3), q_hi_3D(3)
+  double precision :: dx_3D(3)
+
   integer :: i, j
 
   ngq = NHYP
   ngf = 1
+
+  lo_3D   = [lo(1), lo(2), 0]
+  hi_3D   = [hi(1), hi(2), 0]
+
+  q_lo_3D = [q_l1, q_l2, 0]
+  q_hi_3D = [q_h1, q_h2, 0]
+
+  dx_3D   = [delta(1), delta(2), ZERO]
 
   q_l1 = lo(1)-NHYP
   q_l2 = lo(2)-NHYP
@@ -100,7 +113,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   qa_l2 = lo(2)-NHYP
   qa_h1 = hi(1)+NHYP
   qa_h2 = hi(2)+NHYP
-  
+
   allocate(     q(q_l1:q_h1,q_l2:q_h2,QRADVAR))
   allocate(  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX))
 
@@ -111,10 +124,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   allocate(q1(flux1_l1-1:flux1_h1+1,flux1_l2-1:flux1_h2+1,ngdnv))
   allocate(q2(flux2_l1-1:flux2_h1+1,flux2_l2-1:flux2_h2+1,ngdnv))
- 
+
   dx = delta(1)
   dy = delta(2)
-  
+
   ! Translate to primitive variables, compute sound speeds Note that
   ! (q,c,gamc,csml,flatn) are all dimensioned the same and set to
   ! correspond to coordinates of (lo:hi)
@@ -125,7 +138,13 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                    qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
                    src,src_l1,src_l2,src_h1,src_h2, &
                    srcQ,q_l1,q_l2,q_h1,q_h2, &
-                   courno,dx,dy,dt,ngq,ngf)
+                   dx,dy,dt,ngq,ngf)
+
+
+  ! Check if we have violated the CFL criterion.
+  call compute_cfl(q, q_lo_3D, q_hi_3D, &
+                   qaux, [qa_l1, qa_l2, 0], [qa_h1, qa_h2, 0], &
+                   lo_3D, hi_3D, dt, dx_3D, courno)
 
 
   ! Compute flattening coefficient for slope calculations.  Note:
@@ -210,7 +229,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   if (coord_type .eq. 1) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
   end if
-  
+
   deallocate(q,qaux,flatn,div)
   deallocate(srcQ,pdivu)
 
@@ -278,7 +297,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
 
         r = sqrt(r1**2 + r2**2)
         r = r / (kap(i,j) * max(Er(i,j,g), 1.d-50))
-        
+
         lam(i,j,g) = FLDlambda(r, limiter)
      end do
   end do
@@ -505,7 +524,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
         end do
 
         if (Er(reg_l1-1,j,g) .eq. -1.d0) then
-            i = reg_l1 
+            i = reg_l1
             lamfil(i,j) = dot_product(ff4b0, lam(i:i+4,j,g))
 
             i = reg_l1 + 1
@@ -598,7 +617,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
 
   end if
 
-  ! lo-x lo-y 
+  ! lo-x lo-y
   do j=lam_l2,reg_l2-1
      do i=lam_l1,reg_l1-1
         if (Er(i,j,g).eq.-1.d0) then
@@ -607,7 +626,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      end do
   end do
 
-  ! reg-x lo-y 
+  ! reg-x lo-y
   do j=lam_l2,reg_l2-1
      do i=reg_l1,reg_h1
         if (Er(i,j,g).eq.-1.d0) then
@@ -615,8 +634,8 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
         end if
      end do
   end do
-  
-  ! hi-x lo-y 
+
+  ! hi-x lo-y
   do j=lam_l2,reg_l2-1
      do i=reg_h1+1,lam_h1
         if (Er(i,j,g).eq.-1.d0) then
@@ -643,7 +662,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      end do
   end do
 
-  ! lo-x hi-y 
+  ! lo-x hi-y
   do j=reg_h2+1,lam_h2
      do i=lam_l1,reg_l1-1
         if (Er(i,j,g).eq.-1.d0) then
@@ -652,7 +671,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
      end do
   end do
 
-  ! reg-x hi-y 
+  ! reg-x hi-y
   do j=reg_h2+1,lam_h2
      do i=reg_l1,reg_h1
         if (Er(i,j,g).eq.-1.d0) then
@@ -723,14 +742,14 @@ subroutine ca_get_v_dcf(lo, hi, &
      do i=lo(1),hi(1)
         v(i,j,1) = s(i,j,UMX)/s(i,j,URHO)
         v(i,j,2) = s(i,j,UMY)/s(i,j,URHO)
-        
+
         alpha = fac0 * (kp2(i,j) * (T(i,j) + dtemp) ** 4    &
              -          kp (i,j) * (T(i,j)        ) ** 4)   &
              -  fac2 * (kp2(i,j) - kp(i,j)) * er(i,j)
-        
+
         frc = s(i,j,URHO) * c_v(i,j) + 1.0d-50
         etainv = frc / (alpha + frc)
-        
+
         dcf(i,j) = 2.d0 * etainv * (kp(i,j) / kr(i,j))
      end do
   end do
@@ -744,7 +763,7 @@ subroutine ca_compute_dcoefs(lo, hi, &
                              v ,    v_l1,   v_l2,   v_h1,   v_h2, &
                              dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
                              r, idir)
-  
+
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
@@ -797,7 +816,7 @@ subroutine ca_update_dcf(lo, hi, &
                          dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
                          etainv, eti_l1, eti_l2, eti_h1, eti_h2, &
                          kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2)
-  
+
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
@@ -824,7 +843,7 @@ subroutine ca_set_dterm_face(lo, hi, &
                              dc, dc_l1, dc_l2, dc_h1, dc_h2, &
                              dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir)
   implicit none
-  
+
   integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: Er_l1, Er_l2, Er_h1, Er_h2,  &
        dc_l1, dc_l2, dc_h1, dc_h2, dtf_l1, dtf_l2, dtf_h1, dtf_h2, idir
@@ -856,7 +875,7 @@ subroutine ca_face2center(lo, hi, &
                           foox, foox_l1, foox_l2, foox_h1, foox_h2, &
                           fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
                           fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2)
-  
+
   implicit none
 
   integer, intent(in) :: lo(2), hi(2), scomp,dcomp,ncomp,nf,nc
@@ -882,7 +901,7 @@ end subroutine ca_face2center
 
 
 ! no tiling
-subroutine ca_correct_dterm(  & 
+subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
                             dfy, dfy_l1, dfy_l2, dfy_h1, dfy_h2, &
                             re, rc)
@@ -920,9 +939,9 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_h1,u_h2, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy
-  
+
   implicit none
-  
+
   integer          :: u_l1,u_l2,u_h1,u_h2
   integer          :: gpr_l1,gpr_l2,gpr_h1,gpr_h2
   integer          :: lo(2), hi(2)
@@ -933,7 +952,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_h1,u_h2, &
   double precision :: rhoInv,ux,uy,dt1,dt2,c
   integer          :: i,j
   type(eos_t) :: eos_state
-  
+
   !    Translate to primitive variables, compute sound speed (call eos), get dtmax
   do j = lo(2),hi(2)
      do i = lo(1),hi(1)
@@ -957,7 +976,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_h1,u_h2, &
 
         ux = u(i,j,UMX)*rhoInv
         uy = u(i,j,UMY)*rhoInv
-                
+
         dt1 = dx(1)/(c + abs(ux))
         dt2 = dx(2)/(c + abs(uy))
         dt = min(dt,dt1,dt2)
@@ -1015,7 +1034,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
 
   integer :: i, j, g
   double precision :: gE(gPr_l1:gPr_h1,gPr_l2:gPr_h2)
-  double precision :: lam, gE1, gE2, r, f, gamr 
+  double precision :: lam, gE1, gE2, r, f, gamr
   integer :: im, ip, jm, jp
   double precision :: xm, xp, ym, yp
 
@@ -1034,7 +1053,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
      ip = 0
      xp = 1.d0
   end if
-  
+
   if (gPr_l2-1 .ge. vlo(2)) then
      jm = 1
      ym = 2.d0
@@ -1077,14 +1096,14 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
         gE2 = (Er(i  ,j+1,g) - Er(i  ,j-jm,g)) / (  ym*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
-     
+
      ! hi-x lo-y corner
      i = gPr_h1
      j = gPr_l2
      gE1 = (Er(i+ip,j  ,g) - Er(i-1,j   ,g)) / (xp*dx(1))
      gE2 = (Er(i   ,j+1,g) - Er(i  ,j-jm,g)) / (ym*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
-  
+
      ! lo-x med-y side
      i = gPr_l1
      do j = gPr_l2+1, gPr_h2-1
@@ -1092,7 +1111,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
         gE2 = (Er(i  ,j+1,g) - Er(i   ,j-1,g)) / (2.d0*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
-     
+
      ! hi-x med-y side
      i = gPr_h1
      do j = gPr_l2+1, gPr_h2-1
@@ -1100,14 +1119,14 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
         gE2 = (Er(i   ,j+1,g) - Er(i  ,j-1,g)) / (2.d0*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
-     
+
      ! lo-x hi-y corner
      i = gPr_l1
      j = gPr_h2
      gE1 = (Er(i+1,j   ,g) - Er(i-im,j  ,g)) / (xm*dx(1))
      gE2 = (Er(i  ,j+jp,g) - Er(i   ,j-1,g)) / (yp*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
-     
+
      ! med-x hi-y side
      j = gPr_h2
      do i = gPr_l1+1, gPr_h1-1
@@ -1115,14 +1134,14 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
         gE2 = (Er(i  ,j+jp,g) - Er(i,j-1,g)) / (  yp*dx(2))
         gE(i,j) = sqrt(gE1**2 + gE2**2)
      end do
-     
+
      ! hi-x hi-y corner
      i = gPr_h1
      j = gPr_h2
      gE1 = (Er(i+ip,j   ,g) - Er(i-1,j  ,g)) / (xp*dx(1))
      gE2 = (Er(i   ,j+jp,g) - Er(i  ,j-1,g)) / (yp*dx(2))
      gE(i,j) = sqrt(gE1**2 + gE2**2)
-     
+
      do j = gPr_l2, gPr_h2
         do i = gPr_l1, gPr_h1
            r = gE(i,j) / (kap(i,j,g) * max(Er(i,j,g), 1.d-50))
@@ -1136,8 +1155,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_h1, kap_h2, &
            gPr(i,j) = gPr(i,j) + lam * gamr * Er(i,j,g)
         end do
      end do
-     
+
   end do
 
 end subroutine ca_est_gpr2
-

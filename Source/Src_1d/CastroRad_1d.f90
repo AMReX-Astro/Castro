@@ -23,7 +23,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use rad_advection_module, only : umeth1d_rad, ctoprim_rad, consup_rad, ppflaten
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
-  
+  use advection_util_module, only : compute_cfl
+
   implicit none
 
   integer nstep_fsp
@@ -51,7 +52,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision dloga(dloga_l1:dloga_h1     )
   double precision   vol(  vol_l1: vol_h1      )
   double precision delta(1),dt,time,courno
-  
+
   !     Automatic arrays for workspace
   double precision, allocatable :: q(:,:)
   double precision, allocatable :: qaux(:,:)
@@ -65,10 +66,22 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision, allocatable :: lamgdnv(:,:)
   double precision, allocatable :: srcQ(:,:)
   double precision, allocatable :: pdivu(:)
-  
+
   double precision dx
   integer i, ngf, ngq
   integer q_l1, q_h1, qa_l1, qa_h1
+
+  integer :: lo_3D(3), hi_3D(3)
+  integer :: q_lo_3D(3), q_hi_3D(3)
+  double precision :: dx_3D(3)
+
+  lo_3D   = [lo(1), 0, 0]
+  hi_3D   = [hi(1), 0, 0]
+
+  q_lo_3D = [q_l1, 0, 0]
+  q_hi_3D = [q_h1, 0, 0]
+
+  dx_3D   = [delta(1), ZERO, ZERO]
 
   dx = delta(1)
 
@@ -83,20 +96,20 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   allocate(     q(q_l1:q_h1,QRADVAR))
   allocate(  qaux(q_l1:q_h1,QRADVAR))
-  
+
   allocate(  srcQ(q_l1:q_h1,QVAR))
-  
+
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
   allocate(   q1(flux_l1-1:flux_h1+1,NGDNV))
   allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
   allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
-  
+
 
   !     Translate to primitive variables, compute sound speeds
   !     Note that (q,c,gamc,csml) are all dimensioned the same
   !       and set to correspond to coordinates of (lo:hi)
-  
+
   call ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
                    Erin, Erin_l1, Erin_h1, &
                    lam, lam_l1, lam_h1, &
@@ -104,7 +117,12 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                    qaux, qa_l1, qa_h1, &
                    src,src_l1,src_h1, &
                    srcQ,q_l1,q_h1, &
-                   courno,dx,dt,NHYP,ngf)
+                   dx,dt,NHYP,ngf)
+
+  ! Check if we have violated the CFL criterion.
+  call compute_cfl(q, q_lo_3D, q_hi_3D, &
+                   qaux, [qa_l1, 0, 0], [qa_h1, 0, 0], &
+                   lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.  Note:
   ! uflaten call assumes ngp >= ngf+3 (ie, primitve data is used by
@@ -142,7 +160,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
-                   lam, lam_l1, lam_h1, &       
+                   lam, lam_l1, lam_h1, &
                    q, q_l1, q_h1, &
                    qaux, qa_l1, qa_h1, &
                    flatn, &
@@ -186,7 +204,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   if (coord_type .gt. 0) then
      pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
   end if
-  
+
   deallocate(q,qaux,flatn,srcQ,div,pdivu,q1,ergdnv,lamgdnv)
 
 end subroutine ca_umdrv_rad
@@ -237,7 +255,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
         r = r / (kap(reg_l1,g) * max(Er(reg_l1,g), 1.d-50))
         lam(reg_l1,g) = FLDlambda(r, limiter)
      end if
-     
+
      if (Er(reg_h1+1,g) .eq. -1.d0) then
         r = abs(Er(reg_h1,g) - Er(reg_h1-1,g)) / dx
         r = r / (kap(reg_h1,g) * max(Er(reg_h1,g), 1.d-50))
@@ -252,35 +270,35 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
                 &    + ff1(1) * (lam(i-1,g)+lam(i+1,g))
            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end do
-         
+
          if (Er(reg_l1-1,g) .eq. -1.d0) then
             i = reg_l1
             lamfil(i) = dot_product(ff1b, lam(i:i+1,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
-         
+
          if (Er(reg_h1+1,g) .eq. -1.d0) then
             i = reg_h1
             lamfil(i) = dot_product(ff1b(1:0:-1), lam(i-1:i,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
-         
+
          lam(reg_l1:reg_h1,g) = lamfil(reg_l1:reg_h1)
-         
+
       else if (filter_T .eq. 2) then
-         
+
          do i=reg_l1, reg_h1
             lamfil(i) = ff2(0,S) * lam(i,g) &
                  &    + ff2(1,S) * (lam(i-1,g)+lam(i+1,g)) &
                  &    + ff2(2,S) * (lam(i-2,g)+lam(i+2,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end do
-         
+
          if (Er(reg_l1-1,g) .eq. -1.d0) then
             i = reg_l1
             lamfil(i) = dot_product(ff2b0, lam(i:i+2,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
-            
+
             i = reg_l1 + 1
             lamfil(i) = dot_product(ff2b1, lam(i-1:i+2,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
@@ -307,33 +325,33 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
                  &    + ff3(3,S) * (lam(i-3,g)+lam(i+3,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end do
-         
+
          if (Er(reg_l1-1,g) .eq. -1.d0) then
             i = reg_l1
             lamfil(i) = dot_product(ff3b0, lam(i:i+3,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
-            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
+
             i = reg_l1 + 1
             lamfil(i) = dot_product(ff3b1, lam(i-1:i+3,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_l1 + 2
             lamfil(i) = dot_product(ff3b2, lam(i-2:i+3,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
 
          if (Er(reg_h1+1,g) .eq. -1.d0) then
             i = reg_h1 - 2
             lamfil(i) = dot_product(ff3b2(3:-2:-1), lam(i-3:i+2,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_h1 - 1
             lamfil(i) = dot_product(ff3b1(3:-1:-1), lam(i-3:i+1,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_h1
             lamfil(i) = dot_product(ff3b0(3:0:-1), lam(i-3:i,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i))) 
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
 
          lam(reg_l1:reg_h1,g) = lamfil(reg_l1:reg_h1)
@@ -348,41 +366,41 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
                  &    + ff4(4,S) * (lam(i-4,g)+lam(i+4,g))
             lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end do
-         
+
          if (Er(reg_l1-1,g) .eq. -1.d0) then
-            i = reg_l1 
+            i = reg_l1
             lamfil(i) = dot_product(ff4b0, lam(i:i+4,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
-            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
+
             i = reg_l1 + 1
             lamfil(i) = dot_product(ff4b1, lam(i-1:i+4,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_l1 + 2
             lamfil(i) = dot_product(ff4b2, lam(i-2:i+4,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_l1 + 3
             lamfil(i) = dot_product(ff4b3, lam(i-3:i+4,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
 
          if (Er(reg_h1+1,g) .eq. -1.d0) then
             i = reg_h1 - 3
             lamfil(i) = dot_product(ff4b3(4:-3:-1), lam(i-4:i+3,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_h1 - 2
             lamfil(i) = dot_product(ff4b2(4:-2:-1), lam(i-4:i+2,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_h1 - 1
             lamfil(i) = dot_product(ff4b1(4:-1:-1), lam(i-4:i+1,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
 
             i = reg_h1
             lamfil(i) = dot_product(ff4b0(4:0:-1), lam(i-4:i,g))
-            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))            
+            lamfil(i) = min(1.d0/3.d0, max(1.d-25, lamfil(i)))
          end if
 
          lam(reg_l1:reg_h1,g) = lamfil(reg_l1:reg_h1)
@@ -396,7 +414,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
            lam(i,g) = lam(reg_l1,g)
         end do
      end if
-     
+
      if (Er(reg_h1+1,g) .eq. -1.d0) then
         do i=reg_h1+1, lam_h1
            lam(i,g) = lam(reg_h1,g)
@@ -424,14 +442,14 @@ subroutine ca_get_v_dcf( lo, hi, &
      v  ,   v_l1,   v_h1, &
      dcf, dcf_l1, dcf_h1)
 
-  use meth_params_module, only : NVAR, URHO, UMX 
+  use meth_params_module, only : NVAR, URHO, UMX
 
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: er_l1,er_h1,s_l1,s_h1,T_l1,T_h1,c_v_l1,c_v_h1
   integer, intent(in) :: kr_l1,kr_h1,kp_l1,kp_h1,kp2_l1,kp2_h1
-  integer, intent(in) :: v_l1,v_h1,dcf_l1,dcf_h1 
+  integer, intent(in) :: v_l1,v_h1,dcf_l1,dcf_h1
   double precision, intent(in)  ::  er( er_l1: er_h1)
   double precision, intent(in)  ::   s(  s_l1:  s_h1, NVAR)
   double precision, intent(in)  ::   T(  T_l1:  T_h1)
@@ -530,7 +548,7 @@ subroutine ca_set_dterm_face( lo, hi, &
      Er, Er_l1, Er_h1, dc, dc_l1, dc_h1, &
      dtf, dtf_l1, dtf_h1, dx, idir)
   implicit none
-  
+
   integer, intent(in) :: lo(1), hi(1)
   integer, intent(in) :: Er_l1, Er_h1, dc_l1, dc_h1, dtf_l1, dtf_h1, idir
   double precision, intent(in) :: dx
@@ -594,7 +612,7 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
   use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy
   implicit none
-  
+
   integer u_l1,u_h1
   integer gpr_l1,gpr_h1
   integer lo(1), hi(1)
@@ -628,12 +646,12 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
      c = sqrt(c**2 + gpr(i)*rhoInv)
 
      ux = u(i,UMX)*rhoInv
-     
+
      dt1 = dx(1) /( c + abs(ux) )
      dt  = min(dt,dt1)
 
   enddo
-  
+
 end subroutine ca_estdt_rad
 
 
@@ -641,9 +659,9 @@ end subroutine ca_estdt_rad
 subroutine ca_est_gpr0(Er, Er_l1, Er_h1, gPr, gPr_l1, gPr_h1)
 
   use rad_params_module, only : ngroups
-  
+
   implicit none
-  
+
   integer, intent(in) :: Er_l1, Er_h1, gpr_l1, gpr_h1
   double precision, intent(in) :: Er(Er_l1:Er_h1, 0:ngroups-1)
   double precision, intent(out) :: gPr(gPr_l1:gPr_h1)
@@ -670,13 +688,13 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
 
   implicit none
 
-  integer, intent(in) :: kap_l1, kap_h1 
+  integer, intent(in) :: kap_l1, kap_h1
   integer, intent(in) ::  Er_l1,  Er_h1
   integer, intent(in) :: gPr_l1, gPr_h1
   integer, intent(in) :: vlo(1), vhi(1)  ! region with valid Er
   integer, intent(in) :: limiter, comoving
   double precision, intent(in) :: dx
-  double precision, intent(in) ::  kap(kap_l1:kap_h1, 0:ngroups-1) 
+  double precision, intent(in) ::  kap(kap_l1:kap_h1, 0:ngroups-1)
   double precision, intent(in) ::   Er( Er_l1: Er_h1, 0:ngroups-1)
   double precision, intent(out) :: gPr(gPr_l1:gPr_h1)
 
@@ -715,7 +733,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
         gamr = lam + 1.d0
      end if
      gPr(i) = gPr(i) + gamr * lam * Er(i,g)
-     
+
      do i = gPr_l1+1, gPr_h1-1
         r = abs(Er(i+1,g) - Er(i-1,g)) / (2.d0*dx)
         r = r / (kap(i,g) * max(Er(i,g), 1.d-50))
@@ -743,4 +761,3 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
   end do
 
 end subroutine ca_est_gpr2
-

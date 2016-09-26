@@ -686,7 +686,7 @@ contains
                          qaux, qa_lo, qa_hi, &
                          src, src_lo, src_hi, &
                          srcQ, srQ_lo, srQ_hi, &
-                         courno,dx,dy,dz,dt,ngp,ngf)
+                         dx,dy,dz,dt,ngp,ngf)
 
     ! Will give primitive variables on lo-ngp:hi+ngp.  Declared
     ! dimensions of q,c,gamc,csml,flatn are given by DIMS(q).  This
@@ -726,7 +726,7 @@ contains
     double precision ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
-    double precision :: dx, dy, dz, dt, courno
+    double precision :: dx, dy, dz, dt
     integer          :: ngp, ngf
 
     ! Local variables
@@ -871,55 +871,6 @@ contains
           enddo
        enddo
     enddo
-
-    ! Compute running max of Courant number over grids
-    courmx = courno
-    courmy = courno
-    courmz = courno
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             courx = ( qaux(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dt/dx
-             coury = ( qaux(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dt/dy
-             courz = ( qaux(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dt/dz
-
-             courmx = max( courmx, courx )
-             courmy = max( courmy, coury )
-             courmz = max( courmz, courz )
-
-             if (courx .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... u, c                ',q(i,j,k,QU), qaux(i,j,k,QC)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (coury .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... v, c                ',q(i,j,k,QV), qaux(i,j,k,QC)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (courz .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... w, c                ',q(i,j,k,QW), qaux(i,j,k,QC)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-          enddo
-       enddo
-    enddo
-
-    courno = max( courmx, courmy, courmz )
 
   end subroutine ctoprim_rad
 
