@@ -6,170 +6,10 @@ module rad_advection_module
 
   private
 
-  public umeth1d_rad, ctoprim_rad, consup_rad, ppflaten
+  public umeth1d_rad, consup_rad, ppflaten
 
 contains
 
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-subroutine ctoprim_rad(lo,hi,uin,uin_l1,uin_h1, &
-                       Erin, Erin_l1, Erin_h1, &
-                       lam, lam_l1, lam_h1, &
-                       q, q_l1, q_h1, &
-                       qaux, qa_l1, qa_h1, &
-                       src,src_l1,src_h1, &
-                       srcQ,srQ_l1,srQ_h1, &
-                       dx,dt,ngp,ngf)
-
-  use network, only : nspec, naux
-  use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-                                 QVAR, QRHO, QU, QV, QW, QGAME, QREINT, &
-                                 QPRES, QTEMP, QFS, QFX, &
-                                 NQAUX, QGAMC, QGAMCG, QC, QCG, QCSML, QDPDR, QDPDE,  &
-                                 npassive, upass_map, qpass_map, nadv, small_temp, allow_negative_energy
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, comoving, &
-       first_order_hydro
-  use rad_params_module, only : ngroups
-  use rad_util_module, only : compute_ptot_ctot
-
-  implicit none
-
-  double precision, parameter:: small = 1.d-8
-
-  ! Will give primitive variables on lo-ngp:hi+ngp.  Declared dimensions of
-  ! q,c,gamc,csml are given by DIMS(q).  This declared region is
-  ! assumed to encompass lo-ngp:hi+ngp.
-
-  integer          :: lo(1), hi(1)
-  integer          :: uin_l1,uin_h1, Erin_l1, Erin_h1, lam_l1, lam_h1
-  integer          :: q_l1, q_h1, qa_l1, qa_h1
-  integer          ::  src_l1,src_h1
-  integer          ::  srQ_l1,srQ_h1
-  double precision ::   uin(uin_l1:uin_h1,NVAR)
-  double precision :: Erin(Erin_l1:Erin_h1, 0:ngroups-1)
-  double precision :: lam(lam_l1:lam_h1, 0:ngroups-1)
-  double precision ::     q(  q_l1:  q_h1,QRADVAR)
-  double precision ::  qaux( qa_l1: qa_h1,NQAUX)
-  double precision ::   src(src_l1:src_h1,NVAR)
-  double precision ::  srcQ(srQ_l1:srQ_h1,QVAR)
-  double precision :: dx, dt
-
-  integer          :: i, g
-  integer          :: ngp, ngf, loq(1), hiq(1)
-  integer          :: ipassive, n, nq
-  double precision :: courx, courmx
-
-  double precision :: ptot, ctot, gamc_tot
-
-  type(eos_t) :: eos_state
-
-  loq(1) = lo(1)-ngp
-  hiq(1) = hi(1)+ngp
-
-  ! Make q (all but p), except put e in slot for rho.e, fix after eos
-  ! call.  The temperature is used as an initial guess for the eos
-  ! call and will be overwritten
-  do i = loq(1), hiq(1)
-
-     if (uin(i,URHO) .le. 0.d0) then
-        print *,'   '
-        print *,'>>> Error: Castro_1d::ctoprim ',i
-        print *,'>>> ... negative density ', uin(i,URHO)
-        print *,'    '
-        call bl_error("Error:: Castro_1d.f90 :: ctoprim")
-     end if
-
-     q(i,QRHO) = uin(i,URHO)
-     q(i,QU) = uin(i,UMX)/uin(i,URHO)
-
-     ! we should set this based on the kinetic energy, using dual_energy_eta1
-     q(i,QREINT) = uin(i,UEINT)/q(i,QRHO)
-
-     q(i,QTEMP ) = uin(i,UTEMP)
-     q(i,qrad:qradhi) = Erin(i,0:ngroups-1)
-  enddo
-
-  ! Load passive quantities, c, into q, assuming they arrived in uin
-  ! as rho.c
-  do ipassive = 1, npassive
-     n  = upass_map(ipassive)
-     nq = qpass_map(ipassive)
-     q(loq(1):hiq(1),nq) = uin(loq(1):hiq(1),n)/q(loq(1):hiq(1),QRHO)
-  enddo
-
-  ! Get gamc, p, T, c, csml using q state
-  do i = loq(1), hiq(1)
-
-     eos_state % rho = q(i,QRHO)
-     eos_state % T   = q(i,QTEMP)
-     eos_state % e   = q(i,QREINT)
-     eos_state % xn  = q(i,QFS:QFS+nspec-1)
-     eos_state % aux = q(i,QFX:QFX+naux-1)
-
-     ! If necessary, reset the energy using small_temp -- TODO: we handle this
-     ! differently now
-     if ((allow_negative_energy .eq. 0) .and. (q(i,QREINT) .lt. 0)) then
-        q(i,QTEMP) = small_temp
-        eos_state % T = q(i,QTEMP)
-        call eos(eos_input_rt, eos_state)
-        q(i,QPRES ) = eos_state % p
-        q(i,QREINT) = eos_state % e
-        if (q(i,QREINT) .lt. 0.d0) then
-           print *,'   '
-           print *,'>>> Error: ctoprim ',i
-           print *,'>>> ... new e from eos call is negative ', q(i,QREINT)
-           print *,'    '
-           call bl_error("Error:: ctoprim")
-        end if
-     end if
-
-     call eos(eos_input_re, eos_state)
-
-     q(i,QTEMP) = eos_state % T
-     q(i,QREINT) = eos_state % e * q(i,QRHO)
-     q(i,QPRES) = eos_state % p
-     q(i,QGAME) = q(i,QPRES) / q(i,QREINT) + ONE
-
-     qaux(i,QGAMCG) = eos_state % gam1
-     qaux(i,QCG)    = eos_state % cs
-     qaux(i,QDPDR)  = eos_state % dpdr_e
-     qaux(i,QDPDE)  = eos_state % dpde
-
-     call compute_ptot_ctot(lam(i,:), q(i,:), qaux(i,QCG), ptot, ctot, gamc_tot)
-
-     q(i,QPTOT) = ptot
-
-     qaux(i,QC)    = ctot
-     qaux(i,QGAMC) = gamc_tot
-
-     qaux(i,QCSML) = max(small, small * ctot)
-
-     q(i,qreitot) = q(i,QREINT) + sum(q(i,qrad:qradhi))
-  enddo
-
-  ! compute srcQ terms
-  do i = loq(1), hiq(1)
-     srcQ(i,QRHO   ) = src(i,URHO)
-     srcQ(i,QU     ) = (src(i,UMX) - q(i,QU) * srcQ(i,QRHO)) / q(i,QRHO)
-     srcQ(i,QREINT ) = src(i,UEINT)
-     srcQ(i,QPRES  ) = qaux(i,QDPDE) * (srcQ(i,QREINT) - &
-          q(i,QREINT)*srcQ(i,QRHO)/q(i,QRHO)) / q(i,QRHO) + &
-          qaux(i,QDPDR) * srcQ(i,QRHO)! - &
-!              sum(dpdX_er(i,:)*(src(i,UFS:UFS+nspec-1) - q(i,QFS:QFS+nspec-1)*srcQ(i,QRHO)))/q(i,QRHO)
-
-
-     do ipassive = 1, npassive
-        n  = upass_map(ipassive)
-        nq = qpass_map(ipassive)
-        srcQ(i,nq) = (src(i,n) - q(i,nq) * srcQ(i,QRHO))/q(i,QRHO)
-     enddo
-
-  end do
-
-end subroutine ctoprim_rad
 
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH1D     Compute hyperbolic fluxes using unsplit second
@@ -285,7 +125,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
      q1,q1_l1,q1_h1, &
      ergdnv,ergdnv_l1,ergdnv_h1, &
      lamgdnv,lamgdnv_l1,lamgdnv_h1, &
-     src,  src_l1,  src_h1, &
      flux, flux_l1, flux_h1, &
      rflux,rflux_l1,rflux_h1, &
      flat, flat_l1, flat_h1, &
@@ -312,7 +151,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   integer    q1_l1,   q1_h1
   integer ergdnv_l1,ergdnv_h1
   integer lamgdnv_l1,lamgdnv_h1
-  integer   src_l1,  src_h1
   integer  flux_l1, flux_h1
   integer rflux_l1,rflux_h1
   integer  flat_l1, flat_h1
@@ -325,7 +163,6 @@ subroutine consup_rad(uin,  uin_l1,  uin_h1, &
   double precision    q1(q1_l1:q1_h1, NGDNV)
   double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
   double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
-  double precision   src(  src_l1:  src_h1,NVAR)
   double precision  flux( flux_l1: flux_h1,NVAR)
   double precision rflux(rflux_l1:rflux_h1, 0:ngroups-1)
   double precision  flat( flat_l1: flat_h1)

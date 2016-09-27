@@ -5,7 +5,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                         Erin    ,    Erin_l1,    Erin_l2,    Erin_h1,    Erin_h2,&
                         lam     ,     lam_l1,     lam_l2,     lam_h1,     lam_h2,&
                         Erout   ,   Erout_l1,   Erout_l2,   Erout_h1,   Erout_h2,&
-                        src     ,     src_l1,     src_l2,     src_h1,     src_h2, &
+                        q       ,       q_l1,       q_l2,       q_h1,       q_h2, &
+                        qaux    ,      qa_l1,      qa_l2,      qa_h1,      qa_h2, &
+                        srcQ    ,     srQ_l1,     srQ_l2,     srQ_h1,     srQ_h2, &
                         delta,dt,&
                         flux1   ,   flux1_l1,   flux1_l2,   flux1_h1,   flux1_h2, &
                         flux2   ,   flux2_l1,   flux2_l2,   flux2_h1,   flux2_h2, &
@@ -25,7 +27,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   use bl_constants_module, only: ZERO, HALF, ONE
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
-  use rad_advection_module, only : umeth2d_rad, ctoprim_rad, consup_rad, ppflaten
+  use rad_advection_module, only : umeth2d_rad, consup_rad, ppflaten
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
 
@@ -40,6 +42,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer      lam_l1,     lam_l2,     lam_h1,     lam_h2
   integer     uout_l1,    uout_l2,    uout_h1,    uout_h2
   integer    Erout_l1,   Erout_l2,   Erout_h1,   Erout_h2
+  integer, intent(in) :: q_l1, q_l2, q_h1, q_h2
+  integer, intent(in) :: qa_l1, qa_l2, qa_h1, qa_h2
+  integer, intent(in) :: srQ_l1, srQ_l2, srQ_h1, srQ_h2
   integer    flux1_l1,   flux1_l2,   flux1_h1,   flux1_h2
   integer    flux2_l1,   flux2_l2,   flux2_h1,   flux2_h2
   integer radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2
@@ -49,14 +54,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   integer    area2_l1,   area2_l2,   area2_h1,   area2_h2
   integer    dloga_l1,   dloga_l2,   dloga_h1,   dloga_h2
   integer      vol_l1,     vol_l2,     vol_h1,     vol_h2
-  integer      src_l1,     src_l2,     src_h1,     src_h2
 
   double precision uin     (     uin_l1:     uin_h1,     uin_l2:     uin_h2,NVAR)
   double precision uout    (    uout_l1:    uout_h1,    uout_l2:    uout_h2,NVAR)
   double precision Erin    (    Erin_l1:    Erin_h1,    Erin_l2:    Erin_h2,0:ngroups-1)
   double precision lam     (     lam_l1:     lam_h1,     lam_l2:     lam_h2,0:ngroups-1)
   double precision Erout   (   Erout_l1:   Erout_h1,   Erout_l2:   Erout_h2,0:ngroups-1)
-  double precision src     (     src_l1:     src_h1,     src_l2:     src_h2,NVAR)
+  double precision q       (       q_l1:       q_h1,       q_l2:       q_h2,QRADVAR)
+  double precision qaux    (      qa_l1:      qa_h1,      qa_l2:      qa_h2,NQAUX)
+  double precision srcQ    (     srQ_l1:     srQ_h1,     srQ_l2:     srQ_h2,QVAR)
   double precision flux1   (   flux1_l1:   flux1_h1,   flux1_l2:   flux1_h2,NVAR)
   double precision flux2   (   flux2_l1:   flux2_h1,   flux2_l2:   flux2_h2,NVAR)
   double precision radflux1(radflux1_l1:radflux1_h1,radflux1_l2:radflux1_h2,0:ngroups-1)
@@ -69,12 +75,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision delta(2),dt,time,courno
 
   ! Automatic arrays for workspace
-  double precision, allocatable:: q(:,:,:)
-  double precision, allocatable:: qaux(:,:,:)
   double precision, allocatable:: flatn(:,:)
   double precision, allocatable:: flatg(:,:)
   double precision, allocatable:: div(:,:)
-  double precision, allocatable:: srcQ(:,:,:)
   double precision, allocatable:: pdivu(:,:)
 
   ! edge-centered primitive variables (Riemann state)
@@ -83,9 +86,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   integer ngq, ngf
   double precision dx,dy
-
-  integer q_l1, q_l2, q_h1, q_h2
-  integer qa_l1, qa_l2, qa_h1, qa_h2
 
   integer :: lo_3D(3), hi_3D(3)
   integer :: q_lo_3D(3), q_hi_3D(3)
@@ -104,21 +104,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   dx_3D   = [delta(1), delta(2), ZERO]
 
-  q_l1 = lo(1)-NHYP
-  q_l2 = lo(2)-NHYP
-  q_h1 = hi(1)+NHYP
-  q_h2 = hi(2)+NHYP
-
-  qa_l1 = lo(1)-NHYP
-  qa_l2 = lo(2)-NHYP
-  qa_h1 = hi(1)+NHYP
-  qa_h2 = hi(2)+NHYP
-
-  allocate(     q(q_l1:q_h1,q_l2:q_h2,QRADVAR))
-  allocate(  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX))
-
-  allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,QVAR))
-
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
@@ -127,19 +112,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   dx = delta(1)
   dy = delta(2)
-
-  ! Translate to primitive variables, compute sound speeds Note that
-  ! (q,c,gamc,csml,flatn) are all dimensioned the same and set to
-  ! correspond to coordinates of (lo:hi)
-  call ctoprim_rad(lo,hi,uin,uin_l1,uin_l2,uin_h1,uin_h2, &
-                   Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
-                   lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                   q,q_l1,q_l2,q_h1,q_h2, &
-                   qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
-                   src,src_l1,src_l2,src_h1,src_h2, &
-                   srcQ,q_l1,q_l2,q_h1,q_h2, &
-                   dx,dy,dt,ngq,ngf)
-
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, &
@@ -190,7 +162,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                    qaux,q_l1,q_l2,q_h1,q_h2, &
                    lam, lam_l1,lam_l2,lam_h1,lam_h2, &
                    flatn, &
-                   srcQ,q_l1,q_l2,q_h1,q_h2, &
+                   srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
                    lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
@@ -215,7 +187,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
                   Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
                   q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
                   q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
-                  src,    src_l1,  src_l2,  src_h1,  src_h2, &
                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                   radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
@@ -230,8 +201,8 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES)
   end if
 
-  deallocate(q,qaux,flatn,div)
-  deallocate(srcQ,pdivu)
+  deallocate(flatn,div)
+  deallocate(pdivu)
 
 end subroutine ca_umdrv_rad
 
