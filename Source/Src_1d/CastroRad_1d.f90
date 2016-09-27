@@ -78,9 +78,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   lo_3D   = [lo(1), 0, 0]
   hi_3D   = [hi(1), 0, 0]
 
-  q_lo_3D = [q_l1, 0, 0]
-  q_hi_3D = [q_h1, 0, 0]
-
   dx_3D   = [delta(1), ZERO, ZERO]
 
   dx = delta(1)
@@ -93,6 +90,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   qa_l1 = q_l1
   qa_h1 = q_h1
+
+  q_lo_3D = [q_l1, 0, 0]
+  q_hi_3D = [q_h1, 0, 0]
 
   allocate(     q(q_l1:q_h1,QRADVAR))
   allocate(  qaux(q_l1:q_h1,QRADVAR))
