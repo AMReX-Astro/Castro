@@ -25,6 +25,10 @@ extern "C"
 
   void get_qvar(int* qvar);
 
+#ifdef RADIATION
+  void get_qradvar(int* qradvar);
+#endif
+
   void get_nqaux(int* nqaux);
 
   void ca_set_special_tagging_flag(const Real& max_den, const int* flag);

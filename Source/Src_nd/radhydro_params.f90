@@ -1,5 +1,7 @@
 module radhydro_params_module
 
+  implicit none
+
   integer, save :: QRADVAR, qrad, qradhi, qptot, qreitot 
   integer, save :: fspace_type
   logical, save :: do_inelastic_scattering
@@ -8,7 +10,20 @@ module radhydro_params_module
   logical, save :: first_order_hydro = .false.
   double precision, save :: flatten_pp_threshold = -1.d0
 
+contains
+  
+  subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
+
+    implicit none
+
+    integer, intent(inout) :: qradvar_in
+
+    qradvar_in = QRADVAR
+
+  end subroutine get_qradvar
+
 end module radhydro_params_module
+
 
 subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in, foh,fppt)
   use meth_params_module, only : QVAR

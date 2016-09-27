@@ -95,6 +95,7 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
+int          Castro::QRADVAR       = -1;
 int          Castro::NQAUX         = -1;
 
 #include <castro_defaults.H>
@@ -573,6 +574,11 @@ Castro::Castro (Amr&            papa,
 #else
     init_godunov_indices();
 #endif
+
+#ifdef RADIATION
+    get_qradvar(&QRADVAR);
+#endif
+
 
 #ifdef LEVELSET
     // Build level set narrowband helpers
