@@ -110,6 +110,10 @@ extern "C"
 
   void ctoprim(const int* lo, const int* hi,
 	       const Real* u, const int* u_lo, const int* u_hi,
+#ifdef RADIATION
+	       const Real* Er, const int* Er_lo, const int* Er_hi,
+	       const Real* lam, const int* lam_lo, const int* lam_hi,
+#endif
 	       const Real* q, const int* q_lo, const int* q_hi,
                const Real* qaux, const int* qa_lo, const int* qa_hi);
 

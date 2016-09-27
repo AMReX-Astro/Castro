@@ -882,7 +882,6 @@ contains
                         uout, uout_lo, uout_hi, &
                         Erin, Erin_lo, Erin_hi, &
                         Erout, Erout_lo, Erout_hi, &
-                        src, src_lo, src_hi, &
                         flux1, flux1_lo, flux1_hi, &
                         flux2, flux2_lo, flux2_hi, &
                         flux3, flux3_lo, flux3_hi, &
@@ -916,7 +915,6 @@ contains
     integer :: uout_lo(3), uout_hi(3)
     integer :: Erout_lo(3), Erout_hi(3)
     integer :: Erin_lo(3), Erin_hi(3)
-    integer :: src_lo(3), src_hi(3)
     integer :: flux1_lo(3), flux1_hi(3)
     integer :: flux2_lo(3), flux2_hi(3)
     integer :: flux3_lo(3), flux3_hi(3)
@@ -936,7 +934,6 @@ contains
 
     double precision  Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
     double precision Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
-    double precision   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     double precision flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     double precision flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)

@@ -117,6 +117,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	{
 	    FArrayBox flux[BL_SPACEDIM], rad_flux[BL_SPACEDIM];
 	    FArrayBox pradial(Box::TheUnitBox(),1);
+	    FArrayBox q, qaux, src_q;
 
 	    int priv_nstep_fsp = -1;
 	    Real cflLoc = -1.0e+200;
@@ -126,7 +127,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 	    for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
 	    {
-		const Box &bx    = mfi.tilebox();
+		const Box& bx    = mfi.tilebox();
+	        const Box& qbx = BoxLib::grow(bx, NUM_GROW);
 
 		const int* lo = bx.loVect();
 		const int* hi = bx.hiVect();
@@ -134,13 +136,33 @@ Castro::construct_hydro_source(Real time, Real dt)
 		FArrayBox &statein  = Sborder[mfi];
 		FArrayBox &stateout = S_new[mfi];
 
+		FArrayBox &source_in  = sources_for_hydro[mfi];
+		FArrayBox &source_out = hydro_source[mfi];
+
 		FArrayBox &Er = Erborder[mfi];
 		FArrayBox &lam = lamborder[mfi];
 		FArrayBox &Erout = Er_new[mfi];
 
 		FArrayBox& vol      = volume[mfi];
 
-		// Allocate fabs for fluxes and Godunov velocities.
+		q.resize(qbx, QVAR);
+		qaux.resize(qbx, NQAUX);
+		src_q.resize(qbx, QVAR);
+
+		ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
+		        statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
+			Er.dataPtr(), ARLIM_3D(Er.loVect()), ARLIM_3D(Er.hiVect()),
+			lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
+		        q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+		        qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
+
+		srctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
+		          q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+			  qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()),
+		          source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
+		          src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
+
+		// Allocate fabs for fluxes
 		for (int i = 0; i < BL_SPACEDIM ; i++)  {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 		    flux[i].resize(bxtmp,NUM_STATE);
@@ -153,12 +175,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 		ca_umdrv_rad
 		    (&is_finest_level,&time,
-		     bx.loVect(), bx.hiVect(),
-		     domain_lo, domain_hi,
-		     BL_TO_FORTRAN(statein), BL_TO_FORTRAN(stateout),
+		     lo, hi, domain_lo, domain_hi,
+		     BL_TO_FORTRAN(statein), 
+		     BL_TO_FORTRAN(stateout),
 		     BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
 		     BL_TO_FORTRAN(Erout),
-		     BL_TO_FORTRAN(sources_for_hydro[mfi]),
+		     BL_TO_FORTRAN(q),
+		     BL_TO_FORTRAN(qaux),
+		     BL_TO_FORTRAN(src_q),
 		     dx, &dt,
 		     D_DECL(BL_TO_FORTRAN(flux[0]),
 			    BL_TO_FORTRAN(flux[1]),
@@ -298,7 +322,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 #endif
 
-		// Allocate fabs for fluxes and Godunov velocities.
+		// Allocate fabs for fluxes
 		for (int i = 0; i < BL_SPACEDIM; i++) {
 		    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 		    flux[i].resize(bxtmp,NUM_STATE);
