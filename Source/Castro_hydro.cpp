@@ -145,7 +145,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 		FArrayBox& vol      = volume[mfi];
 
-		q.resize(qbx, QVAR);
+		q.resize(qbx, QRADVAR);
 		qaux.resize(qbx, NQAUX);
 		src_q.resize(qbx, QVAR);
 

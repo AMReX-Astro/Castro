@@ -62,7 +62,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   double precision Erin ( Erin_l1: Erin_h1, Erin_l2: Erin_h2, Erin_l3: Erin_h3,0:ngroups-1)
   double precision Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,Erout_l3:Erout_h3,0:ngroups-1)
   double precision lam  (  lam_l1:  lam_h1,  lam_l2:  lam_h2,  lam_l3:  lam_h3,0:ngroups-1)
-  double precision, intent(inout) ::  q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+  double precision, intent(inout) ::  q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QRADVAR)
   double precision, intent(in) ::  qaux(qa_l1:qa_h1,qa_l2:qa_h2,qa_l3:qa_h3,NQAUX)
   double precision, intent(in) ::   srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,srQ_l3:srQ_h3,QVAR)
   double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
