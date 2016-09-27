@@ -81,15 +81,15 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   lo_3D   = [lo(1), 0, 0]
   hi_3D   = [hi(1), 0, 0]
 
-  q_lo_3D = [q_l1, 0, 0]
-  q_hi_3D = [q_h1, 0, 0]
-
   dx_3D   = [delta(1), ZERO, ZERO]
 
   dx = delta(1)
 
   ngq = NHYP
   ngf = 1
+
+  q_lo_3D = [q_l1, 0, 0]
+  q_hi_3D = [q_h1, 0, 0]
 
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
