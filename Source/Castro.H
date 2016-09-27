@@ -242,7 +242,9 @@ public:
 
     void check_for_nan(MultiFab& state);
 
+#ifdef SDC
     void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
+#endif
 
     void construct_old_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 

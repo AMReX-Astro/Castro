@@ -3001,7 +3001,7 @@ Castro::check_for_nan(MultiFab& state)
 }
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-
+#ifdef SDC
 void
 Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
@@ -3027,6 +3027,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
     }
 
 }
+#endif
 
 
 // Given State_Type state data, perform a number of cleaning steps to make
