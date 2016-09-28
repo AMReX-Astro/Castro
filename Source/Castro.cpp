@@ -95,8 +95,9 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
-int          Castro::QRADVAR       = -1;
+int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
+int          Castro::NQ            = -1;
 
 #include <castro_defaults.H>
 
@@ -579,6 +580,10 @@ Castro::Castro (Amr&            papa,
     get_qradvar(&QRADVAR);
 #endif
 
+    // NQ will be used to dimension the primitive variable state
+    // vector it will include the "pure" hydrodynamical variables +
+    // any radiation variables
+    NQ = QVAR + QRADVAR;
 
 #ifdef LEVELSET
     // Build level set narrowband helpers
