@@ -101,27 +101,9 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
 
   dx_3D   = [delta(1), delta(2), ZERO]
 
-<<<<<<< HEAD
-=======
-  q_l1 = lo(1)-NHYP
-  q_l2 = lo(2)-NHYP
-  q_h1 = hi(1)+NHYP
-  q_h2 = hi(2)+NHYP
-
-  qa_l1 = lo(1)-NHYP
-  qa_l2 = lo(2)-NHYP
-  qa_h1 = hi(1)+NHYP
-  qa_h2 = hi(2)+NHYP
-
   q_lo_3D = [q_l1, q_l2, 0]
   q_hi_3D = [q_h1, q_h2, 0]
 
-  allocate(     q(q_l1:q_h1,q_l2:q_h2,QRADVAR))
-  allocate(  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX))
-
-  allocate(  srcQ(q_l1:q_h1,q_l2:q_h2,QVAR))
-
->>>>>>> development
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
