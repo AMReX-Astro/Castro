@@ -1,20 +1,20 @@
-subroutine ca_umdrv_rad(is_finest_level,time,&
-                        lo,hi,domlo,domhi,&
-                        uin,uin_l1,uin_h1,&
-                        uout,uout_l1,uout_h1,&
-                        Erin,Erin_l1,Erin_h1,&
-                        lam,lam_l1,lam_h1,&
-                        Erout,Erout_l1,Erout_h1,&
+subroutine ca_umdrv_rad(is_finest_level, time,&
+                        lo, hi, domlo, domhi,&
+                        uin, uin_l1, uin_h1,&
+                        uout, uout_l1, uout_h1,&
+                        Erin, Erin_l1, Erin_h1,&
+                        lam, lam_l1, lam_h1,&
+                        Erout, Erout_l1, Erout_h1,&
                         q, q_l1, q_h1, &
                         qaux, qa_l1, qa_h1, &
                         srcQ, srQ_l1, srQ_h1, &
-                        delta,dt,&
-                        flux,flux_l1,flux_h1,&
-                        radflux,radflux_l1,radflux_h1,&
-                        pradial,p_l1,p_h1,&
-                        area,area_l1,area_h1,&
-                        dloga,dloga_l1,dloga_h1,&
-                        vol,vol_l1,vol_h1,courno,verbose, &
+                        delta, dt,&
+                        flux, flux_l1, flux_h1,&
+                        radflux, radflux_l1, radflux_h1,&
+                        pradial, p_l1, p_h1,&
+                        area, area_l1, area_h1,&
+                        dloga, dloga_l1, dloga_h1,&
+                        vol, vol_l1, vol_h1, courno, verbose, &
                         nstep_fsp) bind(C)
 
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
@@ -61,8 +61,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   double precision delta(1),dt,time,courno
 
   !     Automatic arrays for workspace
-  double precision, allocatable :: gamc(:)
-  double precision, allocatable :: gamcg(:)
   double precision, allocatable :: flatn(:)
   double precision, allocatable :: flatg(:)
   double precision, allocatable :: div(:)
@@ -97,10 +95,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,&
   allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
   allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
 
-
-  !     Translate to primitive variables, compute sound speeds
-  !     Note that (q,c,gamc,csml) are all dimensioned the same
-  !       and set to correspond to coordinates of (lo:hi)
 
   ! Check if we have violated the CFL criterion.
   call compute_cfl(q, q_lo_3D, q_hi_3D, &
