@@ -417,7 +417,9 @@ contains
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
+#ifdef RADIATION
                                    QCG, QGAMCG, &
+#endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
     use bl_constants_module, only: ZERO, HALF, ONE
