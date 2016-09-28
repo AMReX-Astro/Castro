@@ -21,7 +21,7 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
 F90EXE_sources += hybrid_advection_nd.F90
 endif
 
-f90EXE_sources += flatten_nd.f90
+F90EXE_sources += flatten_nd.F90
 
 f90EXE_sources += math.f90
 
