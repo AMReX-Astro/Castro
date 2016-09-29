@@ -104,6 +104,7 @@ module meth_params_module
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
+  integer         , save :: first_order_hydro
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -146,16 +147,17 @@ module meth_params_module
   !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
   !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
   !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
-  !$acc create(sponge_implicit, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_mode, dxnuc) &
-  !$acc create(do_react, react_T_min, react_T_max) &
-  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
+  !$acc create(sponge_implicit, first_order_hydro, cfl) &
+  !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
+  !$acc create(dxnuc, do_react, react_T_min) &
+  !$acc create(react_T_max, react_rho_min, react_rho_max) &
+  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
+  !$acc create(do_rotation, rot_period, rot_period_dot) &
+  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, track_grid_losses, const_grav) &
+  !$acc create(get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -207,6 +209,7 @@ contains
     allow_small_energy = 1;
     do_sponge = 0;
     sponge_implicit = 1;
+    first_order_hydro = 0;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -271,6 +274,7 @@ contains
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
+    call pp%query("first_order_hydro", first_order_hydro)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
@@ -335,16 +339,17 @@ contains
     !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
     !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
     !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_mode, dxnuc) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(sponge_implicit, first_order_hydro, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
+    !$acc device(dxnuc, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
     call parmparse_destroy(pp)
 

@@ -18,9 +18,10 @@ subroutine ca_umdrv_rad(is_finest_level, time,&
                         nstep_fsp) bind(C)
 
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
-                                 NVAR, NHYP, NGDNV, GDU, GDPRES, use_flattening, NQAUX
+                                 NVAR, NHYP, NGDNV, GDU, GDPRES, use_flattening, NQAUX, &
+                                 first_order_hydro
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT, first_order_hydro
+  use radhydro_params_module, only : QRADVAR, QPTOT
   use bl_constants_module, only: ZERO, HALF, ONE
   use rad_advection_module, only : umeth1d_rad, consup_rad
   use flatten_module, only : rad_flaten
@@ -107,7 +108,7 @@ subroutine ca_umdrv_rad(is_finest_level, time,&
   allocate(flatn(q_l1:q_h1))
 
   ! Compute flattening coef for slope calculations
-  if (first_order_hydro) then
+  if (first_order_hydro == 1) then
      flatn = ZERO
 
   else if (use_flattening == 1) then

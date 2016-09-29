@@ -48,6 +48,7 @@ static int time_center_sponge;
 static int update_state_between_sources;
 static int keep_sources_until_end;
 static int source_term_predictor;
+static int first_order_hydro;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;

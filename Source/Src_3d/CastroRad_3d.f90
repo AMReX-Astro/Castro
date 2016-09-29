@@ -23,9 +23,10 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
-                                 NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening, NQAUX
+                                 NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening, NQAUX, &
+                                 first_order_hydro
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
+  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold
   use bl_constants_module, only: ZERO, HALF, ONE
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
@@ -201,7 +202,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   call bl_allocate(flatn, q_lo, q_hi)
 
   ! Compute flattening coef for slope calculations
-  if (first_order_hydro) then
+  if (first_order_hydro == 1) then
      flatn = ZERO
   elseif (use_flattening == 1) then
      call rad_flaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &

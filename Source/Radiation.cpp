@@ -84,7 +84,6 @@ int Radiation::current_group_number = -1;
 std::string Radiation::current_group_name = "Radiation";
 
 Real Radiation:: flatten_pp_threshold = -1.0;
-int Radiation::first_order_hydro = 0;
 int Radiation::pure_hydro = 0;
 int Radiation ::do_real_eos = 1;
 
@@ -810,7 +809,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   NUM_STATE = castro->NUM_STATE;
 
   pp.query("flatten_pp_threshold", flatten_pp_threshold);
-  pp.query("first_order_hydro", first_order_hydro);
   pp.query("pure_hydro", pure_hydro);
 
   if (pure_hydro || limiter == 0) {
@@ -821,7 +819,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   BL_FORT_PROC_CALL(CA_INIT_RADHYDRO_PARS, ca_init_radhydro_pars)
-      (fspace_advection_type, do_inelastic_scattering, comoving, first_order_hydro, flatten_pp_threshold);
+      (fspace_advection_type, do_inelastic_scattering, comoving, flatten_pp_threshold);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids)

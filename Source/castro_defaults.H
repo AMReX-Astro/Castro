@@ -48,6 +48,7 @@ int         Castro::time_center_sponge = 0;
 int         Castro::update_state_between_sources = 1;
 int         Castro::keep_sources_until_end = 0;
 int         Castro::source_term_predictor = 0;
+int         Castro::first_order_hydro = 0;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;

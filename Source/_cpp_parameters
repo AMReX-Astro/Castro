@@ -194,6 +194,11 @@ keep_sources_until_end       int           0
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
 
+# set the flattening parameter to zero to force the reconstructed profiles
+# to be flat, resulting in a first-order method
+first_order_hydro            int           0                  y
+
+
 #-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------

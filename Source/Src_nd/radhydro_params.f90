@@ -7,7 +7,6 @@ module radhydro_params_module
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
 
-  logical, save :: first_order_hydro = .false.
   double precision, save :: flatten_pp_threshold = -1.d0
 
 contains
@@ -25,12 +24,12 @@ contains
 end module radhydro_params_module
 
 
-subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in, foh,fppt)
+subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt)
   use meth_params_module, only : QVAR
   use rad_params_module, only : ngroups
   use radhydro_params_module
   implicit none
-  integer, intent(in) :: fsp_type_in, do_is_in, com_in, foh
+  integer, intent(in) :: fsp_type_in, do_is_in, com_in
   double precision, intent(in) :: fppt
 
   qptot  = QVAR+1
@@ -62,11 +61,6 @@ subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in, foh,fppt)
      stop        
   end if
   
-  if (foh .eq. 1) then
-     first_order_hydro = .true.
-  else
-     first_order_hydro = .false.
-  end if
   flatten_pp_threshold = fppt
 
 end subroutine ca_init_radhydro_pars

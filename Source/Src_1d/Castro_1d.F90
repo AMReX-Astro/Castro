@@ -27,7 +27,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
-                                 NGDNV, GDU, GDPRES
+                                 NGDNV, GDU, GDPRES, first_order_hydro
   use advection_module  , only : umeth1d, consup
   use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
@@ -36,8 +36,8 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use radhydro_params_module, only : QRADVAR, QPTOT, &
-                                     flatten_pp_threshold, first_order_hydro
-  use rad_advection_module, only : umeth1d_rad, consup_rad, ppflaten
+                                     flatten_pp_threshold
+  use rad_advection_module, only : umeth1d_rad, consup_rad
 #endif
 
   implicit none
@@ -174,15 +174,16 @@ subroutine ca_umdrv(is_finest_level, time, &
   ! Define p*divu
   do i = lo(1), hi(1)
      pdivu(i) = HALF * &
-          (q1(i+1,GDPRES)+q1(i,GDPRES))*(q1(i+1,GDU)*area(i+1)-q1(i,GDU)*area(i)) / vol(i)
+          (q1(i+1,GDPRES) + q1(i,GDPRES))* &
+          (q1(i+1,GDU)*area(i+1) - q1(i,GDU)*area(i)) / vol(i)
   end do
 
   ! Define divu on surroundingNodes(lo,hi)
-  do i = lo(1),hi(1)+1
-     div(i) = (q(i,QU)-q(i-1,QU)) / dx
+  do i = lo(1), hi(1)+1
+     div(i) = (q(i,QU) - q(i-1,QU)) / dx
   enddo
 
-  !     Conservative update
+  ! Conservative update
   call consup(uin,uin_l1,uin_h1, &
        uout,uout_l1,uout_h1, &
        update,updt_l1,updt_h1, &
