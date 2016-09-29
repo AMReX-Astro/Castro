@@ -6,7 +6,7 @@ module rad_advection_module
 
   private
 
-  public umeth3d_rad, consup_rad, ppflaten
+  public umeth3d_rad, consup_rad
 
 contains
 
@@ -1021,31 +1021,5 @@ contains
     endif
 
   end subroutine consup_rad
-
-
-  subroutine ppflaten(lof, hif, flatn, q, q_lo, q_hi)
-    use meth_params_module, only : QPRES, QU, QV, QW
-    use radhydro_params_module, only : flatten_pp_threshold, QRADVAR, qptot
-    implicit none
-    integer, intent(in) :: lof(3), hif(3), q_lo(3), q_hi(3)
-    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
-    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-
-    integer :: i,j,k
-
-    do k=lof(3),hif(3)
-       do j=lof(2),hif(2)
-          do i=lof(1),hif(1)
-             if ( q(i-1,j,k,QU)+q(i,j-1,k,QV)+q(i,j,k-1,QW) > &
-                  q(i+1,j,k,QU)+q(i,j+1,k,QV)+q(i,j,k+1,QW) ) then
-                if (q(i,j,k,QPRES) < flatten_pp_threshold* q(i,j,k,qptot)) then
-                   flatn(i,j,k) = ZERO
-                end if
-             end if
-          end do
-       end do
-    end do
-
-  end subroutine ppflaten
 
 end module rad_advection_module
