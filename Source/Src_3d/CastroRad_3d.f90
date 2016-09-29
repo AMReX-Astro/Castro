@@ -29,7 +29,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   use bl_constants_module, only: ZERO, HALF, ONE
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
-  use rad_advection_module, only : umeth3d_rad, consup_rad, ppflaten
+  use rad_advection_module, only : umeth3d_rad, consup_rad
   use flatten_module, only : rad_flaten
 
   implicit none
