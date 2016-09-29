@@ -20,9 +20,10 @@ subroutine ca_umdrv_rad(is_finest_level, time,&
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
                                  NVAR, NHYP, NGDNV, GDU, GDPRES, use_flattening, NQAUX
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold, first_order_hydro
+  use radhydro_params_module, only : QRADVAR, QPTOT, first_order_hydro
   use bl_constants_module, only: ZERO, HALF, ONE
-  use rad_advection_module, only : umeth1d_rad, consup_rad, ppflaten
+  use rad_advection_module, only : umeth1d_rad, consup_rad
+  use flatten_module, only : rad_flaten
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
   use advection_util_module, only : compute_cfl
@@ -62,7 +63,6 @@ subroutine ca_umdrv_rad(is_finest_level, time,&
 
   !     Automatic arrays for workspace
   double precision, allocatable :: flatn(:)
-  double precision, allocatable :: flatg(:)
   double precision, allocatable :: div(:)
   double precision, allocatable :: q1(:,:)
   double precision, allocatable :: ergdnv(:,:)
@@ -105,36 +105,19 @@ subroutine ca_umdrv_rad(is_finest_level, time,&
   ! uflaten call assumes ngp >= ngf+3 (ie, primitve data is used by
   ! the routine that computes flatn).
   allocate(flatn(q_l1:q_h1))
-  allocate(flatg(q_l1:q_h1))
 
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
      flatn = ZERO
 
   else if (use_flattening == 1) then
-     call uflaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
-                  q(:,qptot), &
-                  q(:,QU), q(:,QV), q(:,QW), &
-                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
-     call uflaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
-                  q(:,qpres), &
-                  q(:,QU), q(:,QV), q(:,QW), &
-                  flatg, [q_l1, 0, 0], [q_h1, 0, 0])
-
-     do i = lo(1)-ngf, hi(1)+ngf
-        flatn(i) = flatn(i) * flatg(i)
-     enddo
-
-     if (flatten_pp_threshold > ZERO) then
-        call ppflaten([lo(1)-ngf], [hi(1)+ngf], flatn, q, q_l1, q_h1)
-     end if
-
+     call rad_flaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
+                      q(:,qpres), q(:,qptot), &
+                      q(:,QU), q(:,QV), q(:,QW), &
+                      flatn, [q_l1, 0, 0], [q_h1, 0, 0])
   else
      flatn = ONE
   endif
-
-  deallocate(flatg)
-
 
   call umeth1d_rad(lo,hi,domlo,domhi, &
                    lam, lam_l1, lam_h1, &

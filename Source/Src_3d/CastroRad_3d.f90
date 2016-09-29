@@ -30,7 +30,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
   use rad_advection_module, only : umeth3d_rad, consup_rad, ppflaten
-  use flatten_module, only : uflaten
+  use flatten_module, only : rad_flaten
 
   implicit none
 
@@ -82,7 +82,6 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
   ! Automatic arrays for workspace
   double precision, pointer :: flatn(:,:,:)
-  double precision, pointer :: flatg(:,:,:)
   double precision, pointer :: div(:,:,:)
   double precision, pointer :: pdivu(:,:,:)
 
@@ -200,42 +199,20 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
 
 
   call bl_allocate(flatn, q_lo, q_hi)
-  call bl_allocate(flatg, q_lo, q_hi)
 
   ! Compute flattening coef for slope calculations
   if (first_order_hydro) then
      flatn = ZERO
   elseif (use_flattening == 1) then
-     call uflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
-                  [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
-                  q(:,:,:,qptot), &
-                  q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
-                  flatn, q_lo, q_hi)
-
-     call uflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
-                  [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
-                  q(:,:,:,qpres), &
-                  q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
-                  flatg, q_lo, q_hi)
-
-     do k = lo(3)-ngf, hi(3)+ngf
-        do j = lo(2)-ngf, hi(2)+ngf
-           do i = lo(1)-ngf, hi(1)+ngf
-              flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
-           enddo
-        enddo
-     enddo
-
-     if (flatten_pp_threshold > ZERO) then
-        call ppflaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
-                      [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
-                      flatn, q, q_lo, q_hi)
-     end if
+     call rad_flaten([lo(1)-ngf, lo(2)-ngf, lo(3)-ngf], &
+                     [hi(1)+ngf, hi(2)+ngf, hi(3)+ngf], &
+                     q(:,:,:,qpres), q(:,:,:,qptot), &
+                     q(:,:,:,QU), q(:,:,:,QV), q(:,:,:,QW), &
+                     flatn, q_lo, q_hi)
   else
      flatn = ONE
   endif
 
-  call bl_deallocate(flatg)
 
   ! Compute hyperbolic fluxes using unsplit Godunov
   call umeth3d_rad(q,q_lo,q_hi, &

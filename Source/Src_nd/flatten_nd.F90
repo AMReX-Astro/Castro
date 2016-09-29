@@ -1,10 +1,13 @@
 module flatten_module
 
+  use mempool_module, only : bl_allocate, bl_deallocate
+  use bl_constants_module, only : ZERO
+
   implicit none
 
   private
 
-  public :: uflaten, ppflaten
+  public :: uflaten, rad_flaten
 
 contains
 
@@ -14,7 +17,6 @@ contains
 
   subroutine uflaten(lo, hi, p, u, v, w, flatn, q_lo, q_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : small_pres
     use prob_params_module, only : dg
     use bl_constants_module
@@ -182,7 +184,7 @@ contains
     call uflaten(lo, hi, ptot, u, v, w, flatn, q_lo, q_hi)
 
     call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflaten(lo, hi, p, u, v, w, flatn, q_lo, q_hi)
+    call uflaten(lo, hi, p, u, v, w, flatg, q_lo, q_hi)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -191,10 +193,10 @@ contains
              flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
 
              if (flatten_pp_threshold > ZERO) then
-                if ( q(i-1,j,k,QU)+q(i,j-1,k,QV)+q(i,j,k-1,QW) > &
-                     q(i+1,j,k,QU)+q(i,j+1,k,QV)+q(i,j,k+1,QW) ) then
+                if ( u(i-1,j,k) + v(i,j-1,k) + w(i,j,k-1) > &
+                     u(i+1,j,k) + v(i,j+1,k) + w(i,j,k+1) ) then
 
-                   if (q(i,j,k,QPRES) < flatten_pp_threshold* q(i,j,k,qptot)) then
+                   if (p(i,j,k) < flatten_pp_threshold * ptot(i,j,k)) then
                       flatn(i,j,k) = ZERO
                    end if
 
