@@ -1,5 +1,8 @@
 * changes since the last release:
 
+  -- the parameter first_order_hydro has been moved from the
+     radiation namespace to the castro namespace
+
   -- the problem setups have been moved into sub-directory
      categories to make it easier to read (issue #32)
 
