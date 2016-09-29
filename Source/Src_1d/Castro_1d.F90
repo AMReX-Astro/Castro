@@ -145,6 +145,10 @@ subroutine ca_umdrv(is_finest_level, time, &
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
   allocate(    q1(flux_l1-1:flux_h1+1,NGDNV))
+#ifdef RADIATION
+  allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
+  allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
+#endif
 
   dx = delta(1)
 
@@ -154,14 +158,39 @@ subroutine ca_umdrv(is_finest_level, time, &
                    lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.
-  if (use_flattening == 1) then
+  if (first_order_hydro == `) then
+     flatn = ZERO
+
+  else if (use_flattening == 1) then
+#ifdef RADIATION
+     call rad_flaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
+                      q(:,qpres), q(:,qptot), &
+                      q(:,QU), q(:,QV), q(:,QW), &
+                      flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+#else
      call uflaten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
                   q(:,QPRES), q(:,QU), q(:,QV), q(:,QW), &
                   flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+#endif
   else
      flatn = ONE
   endif
 
+#ifdef RADIATION
+  call umeth1d_rad(lo,hi,domlo,domhi, &
+                   lam, lam_l1, lam_h1, &
+                   q, q_l1, q_h1, &
+                   qaux, qa_l1, qa_h1, &
+                   flatn, &
+                   srcQ,srQ_l1,srQ_h1, &
+                   lo(1),hi(1),dx,dt, &
+                   flux,flux_l1,flux_h1, &
+                   radflux,radflux_l1,radflux_h1, &
+                   q1,flux_l1-1,flux_h1+1, &
+                   ergdnv,lo(1),hi(1)+1, &
+                   lamgdnv,lo(1),hi(1)+1, &
+                   dloga,dloga_l1,dloga_h1)
+#else
   call umeth1d(lo,hi,domlo,domhi, &
                q,flatn,q_l1,q_h1, &
                qaux,qa_l1,qa_h1, &
@@ -170,6 +199,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                flux,flux_l1,flux_h1, &
                q1,flux_l1-1,flux_h1+1, &
                dloga,dloga_l1,dloga_h1)
+#endif
 
   ! Define p*divu
   do i = lo(1), hi(1)
@@ -183,7 +213,24 @@ subroutine ca_umdrv(is_finest_level, time, &
      div(i) = (q(i,QU) - q(i-1,QU)) / dx
   enddo
 
+
   ! Conservative update
+#ifdef RADIATION
+  call consup_rad(uin,uin_l1,uin_h1, &
+                  uout,uout_l1,uout_h1, &
+                  Erin,Erin_l1,Erin_h1, &
+                  Erout,Erout_l1,Erout_h1, &
+                  q1,flux_l1-1,flux_h1+1, &
+                  ergdnv,lo(1),hi(1)+1, &
+                  lamgdnv,lo(1),hi(1)+1, &
+                  flux,flux_l1,flux_h1, &
+                  radflux,radflux_l1,radflux_h1, &
+                  flatn,uin_l1,uin_h1, &
+                  area,area_l1,area_h1, &
+                  vol , vol_l1, vol_h1, &
+                  div ,pdivu,lo,hi,dx,dt, &
+                  nstep_fsp)
+#else
   call consup(uin,uin_l1,uin_h1, &
        uout,uout_l1,uout_h1, &
        update,updt_l1,updt_h1, &
@@ -197,11 +244,15 @@ subroutine ca_umdrv(is_finest_level, time, &
        mass_lost,xmom_lost,ymom_lost,zmom_lost, &
        eden_lost,xang_lost,yang_lost,zang_lost, &
        verbose)
+#endif
 
   if (coord_type .gt. 0) then
      pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
   end if
 
   deallocate(flatn,div,pdivu,q1)
+#ifdef RADIATION
+  deallocate(ergdnv,lamgdnv)
+#endif
 
 end subroutine ca_umdrv

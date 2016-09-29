@@ -7,7 +7,10 @@ module flatten_module
 
   private
 
-  public :: uflaten, rad_flaten
+  public :: uflaten
+#ifdef RADIATION
+  public :: rad_flaten
+#endif
 
 contains
 
