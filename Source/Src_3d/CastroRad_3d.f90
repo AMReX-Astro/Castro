@@ -26,7 +26,7 @@ subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
                                  NVAR, NHYP, GDU, GDV, GDW, ngdnv, use_flattening, NQAUX, &
                                  first_order_hydro
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT, flatten_pp_threshold
+  use radhydro_params_module, only : QRADVAR, QPTOT
   use bl_constants_module, only: ZERO, HALF, ONE
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl

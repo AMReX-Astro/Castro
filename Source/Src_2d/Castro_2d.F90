@@ -96,7 +96,9 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(in) :: area2(area2_l1:area2_h1,area2_l2:area2_h2)
   double precision, intent(in) :: dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
   double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2)
-  double precision, intent(in) :: delta(2), dt, time, courno
+  double precision, intent(in) :: delta(2), dt, time
+  double precision, intent(inout) :: courno
+
   double precision, intent(inout) :: E_added_flux, mass_added_flux
   double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
   double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
@@ -168,14 +170,14 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   elseif (use_flattening == 1) then
 #ifdef RADIATION
-     call uflaten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
-                  q(:,:,QPRES), q(:,:,QU), q(:,:,QV), q(:,:,QW), &
-                  flatn, [q_l1, q_l2, 0], [q_h1, q_h2, 0])
-#else
      call rad_flaten([lo(1)-ngf, lo(2)-ngf, 0], [hi(1)+ngf, hi(2)+ngf, 0], &
                      q(:,:,qpres), q(:,:,qptot), &
                      q(:,:,QU), q(:,:,QV), q(:,:,QW), &
                      flatn, [q_l1, q_l2, 0], [q_h1, q_h2, 0])
+#else
+     call uflaten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
+                  q(:,:,QPRES), q(:,:,QU), q(:,:,QV), q(:,:,QW), &
+                  flatn, [q_l1, q_l2, 0], [q_h1, q_h2, 0])
 #endif
   else
      flatn = ONE

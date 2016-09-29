@@ -89,7 +89,8 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(in) :: area( area_l1: area_h1     )
   double precision, intent(in) :: dloga(dloga_l1:dloga_h1     )
   double precision, intent(in) ::   vol(  vol_l1: vol_h1      )
-  double precision, intent(in) :: delta(1), dt, time, courno
+  double precision, intent(in) :: delta(1), dt, time
+  double precision, intent(inout) :: courno
 
   double precision, intent(inout) :: E_added_flux, mass_added_flux
   double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
@@ -159,7 +160,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                    lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.
-  if (first_order_hydro == `) then
+  if (first_order_hydro == 1) then
      flatn = ZERO
 
   else if (use_flattening == 1) then
