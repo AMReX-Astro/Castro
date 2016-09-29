@@ -21,6 +21,9 @@ subroutine ca_umdrv(is_finest_level, time, &
                     dloga, dloga_l1, dloga_h1, &
                     vol, vol_l1, vol_h1, &
                     courno, verbose, &
+#ifdef RADIATION
+                    nstep_fsp, &
+#endif
                     mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
@@ -35,9 +38,9 @@ subroutine ca_umdrv(is_finest_level, time, &
   use prob_params_module, only : coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT, &
-                                     flatten_pp_threshold
+  use radhydro_params_module, only : QRADVAR, QPTOT
   use rad_advection_module, only : umeth1d_rad, consup_rad
+  use flatten_module, only : rad_flaten
 #endif
 
   implicit none
@@ -88,11 +91,13 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(in) ::   vol(  vol_l1: vol_h1      )
   double precision, intent(in) :: delta(1), dt, time, courno
 
+  double precision, intent(inout) :: E_added_flux, mass_added_flux
+  double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
+  double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+  double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+
   ! Automatic arrays for workspace
   double precision, allocatable:: flatn(:)
-#ifdef RADIATION
-  double precision, allocatable :: flatg(:)
-#endif
   double precision, allocatable:: div(:)
   double precision, allocatable:: pdivu(:)
 
@@ -104,10 +109,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #endif
 
   double precision :: dx
-  double precision :: E_added_flux, mass_added_flux
-  double precision :: xmom_added_flux, ymom_added_flux, zmom_added_flux
-  double precision :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-  double precision :: eden_lost, xang_lost, yang_lost, zang_lost
 
   integer i,ngf, ngq
 
@@ -232,18 +233,18 @@ subroutine ca_umdrv(is_finest_level, time, &
                   nstep_fsp)
 #else
   call consup(uin,uin_l1,uin_h1, &
-       uout,uout_l1,uout_h1, &
-       update,updt_l1,updt_h1, &
-       q,q_l1,q_h1, &
-       flux,flux_l1,flux_h1, &
-       q1,flux_l1-1,flux_h1+1, &
-       area,area_l1,area_h1, &
-       vol , vol_l1, vol_h1, &
-       div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
-       xmom_added_flux,ymom_added_flux,zmom_added_flux, &
-       mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-       eden_lost,xang_lost,yang_lost,zang_lost, &
-       verbose)
+              uout,uout_l1,uout_h1, &
+              update,updt_l1,updt_h1, &
+              q,q_l1,q_h1, &
+              flux,flux_l1,flux_h1, &
+              q1,flux_l1-1,flux_h1+1, &
+              area,area_l1,area_h1, &
+              vol , vol_l1, vol_h1, &
+              div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
+              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
+              eden_lost,xang_lost,yang_lost,zang_lost, &
+              verbose)
 #endif
 
   if (coord_type .gt. 0) then
