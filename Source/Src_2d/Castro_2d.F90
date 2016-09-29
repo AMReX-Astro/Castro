@@ -34,7 +34,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, GDPRES, &
                                  use_flattening, QU, QV, QW, QPRES, NQAUX, &
                                  first_order_hydro
-  use advection_module, only : umeth2d, consup
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, ONE
@@ -45,6 +44,8 @@ subroutine ca_umdrv(is_finest_level, time, &
   use radhydro_params_module, only : QRADVAR, QPTOT
   use rad_advection_module, only : umeth2d_rad, consup_rad
   use flatten_module, only : rad_flaten
+#else
+  use advection_module, only : umeth2d, consup
 #endif
 
   implicit none
@@ -68,6 +69,10 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: updt_l1,updt_l2,updt_h1,updt_h2
   integer, intent(in) :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer, intent(in) :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
+#ifdef RADIATION
+  integer, intent(in) :: radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2
+  integer, intent(in) :: radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2
+#endif
   integer, intent(in) :: p_l1,p_l2,p_h1,p_h2
   integer, intent(in) :: area1_l1,area1_l2,area1_h1,area1_h2
   integer, intent(in) :: area2_l1,area2_l2,area2_h1,area2_h2

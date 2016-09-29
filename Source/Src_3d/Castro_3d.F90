@@ -36,7 +36,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
                                  GDU, GDV, GDW, use_flattening, &
                                  first_order_hydro
-  use advection_module, only : umeth3d, consup
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, ONE
@@ -46,6 +45,8 @@ subroutine ca_umdrv(is_finest_level, time, &
   use radhydro_params_module, only : QRADVAR, QPTOT
   use rad_advection_module, only : umeth3d_rad, consup_rad
   use flatten_module, only : rad_flaten
+#else
+  use advection_module, only : umeth3d, consup
 #endif
 
   implicit none
@@ -70,6 +71,11 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: flux1_l1, flux1_l2, flux1_l3, flux1_h1, flux1_h2, flux1_h3
   integer, intent(in) :: flux2_l1, flux2_l2, flux2_l3, flux2_h1, flux2_h2, flux2_h3
   integer, intent(in) :: flux3_l1, flux3_l2, flux3_l3, flux3_h1, flux3_h2, flux3_h3
+#ifdef RADIATION
+  integer, intent(in) :: radflux1_l1, radflux1_l2, radflux1_l3, radflux1_h1, radflux1_h2, radflux1_h3
+  integer, intent(in) :: radflux2_l1, radflux2_l2, radflux2_l3, radflux2_h1, radflux2_h2, radflux2_h3
+  integer, intent(in) :: radflux3_l1, radflux3_l2, radflux3_l3, radflux3_h1, radflux3_h2, radflux3_h3
+#endif
   integer, intent(in) :: area1_l1, area1_l2, area1_l3, area1_h1, area1_h2, area1_h3
   integer, intent(in) :: area2_l1, area2_l2, area2_l3, area2_h1, area2_h2, area2_h3
   integer, intent(in) :: area3_l1, area3_l2, area3_l3, area3_h1, area3_h2, area3_h3
@@ -122,10 +128,20 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer :: ngq, ngf
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
+#ifdef RADIATION
+  integer :: Erin_lo(3), Erin_hi(3)                                             
+  integer :: Erout_lo(3), Erout_hi(3)                                           
+  integer :: lam_lo(3), lam_hi(3)
+#endif
   integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
   integer :: flux2_lo(3), flux2_hi(3)
   integer :: flux3_lo(3), flux3_hi(3)
+#ifdef RADIATION
+  integer :: radflux1_lo(3), radflux1_hi(3)
+  integer :: radflux2_lo(3), radflux2_hi(3)
+  integer :: radflux3_lo(3), radflux3_hi(3)
+#endif
   integer :: area1_lo(3), area1_hi(3)
   integer :: area2_lo(3), area2_hi(3)
   integer :: area3_lo(3), area3_hi(3)
@@ -153,6 +169,17 @@ subroutine ca_umdrv(is_finest_level, time, &
   uout_lo = [ uout_l1, uout_l2, uout_l3 ]
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
+#ifdef RADIATION
+  lam_lo(:) = [lam_l1, lam_l2, lam_l3]                                          
+  lam_hi(:) = [lam_h1, lam_h2, lam_h3]       
+
+  Erin_lo = [Erin_l1, Erin_l2, Erin_l3]                                         
+  Erin_hi = [Erin_h1, Erin_h2, Erin_h3]                                         
+                                                                                
+  Erout_lo = [Erout_l1, Erout_l2, Erout_l3]                                     
+  Erout_hi = [Erout_h1, Erout_h2, Erout_h3]     
+#endif
+
   updt_lo = [ updt_l1, updt_l2, updt_l3 ]
   updt_hi = [ updt_h1, updt_h2, updt_h3 ]
 
@@ -164,6 +191,17 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   flux3_lo = [ flux3_l1, flux3_l2, flux3_l3 ]
   flux3_hi = [ flux3_h1, flux3_h2, flux3_h3 ]
+
+#ifdef RADIATION
+  radflux1_lo = [ radflux1_l1, radflux1_l2, radflux1_l3 ]
+  radflux1_hi = [ radflux1_h1, radflux1_h2, radflux1_h3 ]
+
+  radflux2_lo = [ radflux2_l1, radflux2_l2, radflux2_l3 ]
+  radflux2_hi = [ radflux2_h1, radflux2_h2, radflux2_h3 ]
+
+  radflux3_lo = [ radflux3_l1, radflux3_l2, radflux3_l3 ]
+  radflux3_hi = [ radflux3_h1, radflux3_h2, radflux3_h3 ]
+#endif
 
   area1_lo = [ area1_l1, area1_l2, area1_l3 ]
   area1_hi = [ area1_h1, area1_h2, area1_h3 ]
@@ -224,7 +262,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                    lam, lam_lo, lam_hi, &
                    flatn, &
                    srcQ, srQ_lo, srQ_hi, &
-                   lo, hi, dx, dy, dz, dt, &
+                   lo, hi, delta, dt, &
                    flux1, flux1_lo, flux1_hi, &
                    flux2, flux2_lo, flux2_hi, &
                    flux3, flux3_lo, flux3_hi, &
@@ -275,7 +313,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                   area3, area3_lo, area3_hi, &
                   vol, vol_lo, vol_hi, &
                   div, pdivu, &
-                  lo,hi,dx,dy,dz,dt, nstep_fsp)
+                  lo, hi, delta, dt, nstep_fsp)
 #else
   call consup(uin ,  uin_lo , uin_hi, &
               q, q_lo, q_hi, &

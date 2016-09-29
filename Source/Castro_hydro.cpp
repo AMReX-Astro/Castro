@@ -112,7 +112,9 @@ Castro::construct_hydro_source(Real time, Real dt)
     }
 
     int nstep_fsp = -1;
-#else
+#endif
+
+    // note: the radiation consup currently does not fill these
     Real E_added_flux    = 0.;
     Real mass_added_flux = 0.;
     Real xmom_added_flux = 0.;
@@ -126,7 +128,6 @@ Castro::construct_hydro_source(Real time, Real dt)
     Real xang_lost       = 0.;
     Real yang_lost       = 0.;
     Real zang_lost       = 0.;
-#endif
 
     BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
@@ -225,24 +226,29 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 	  }
 
-#ifdef RADIATION
-	  ca_umdrv_rad
-	    (&is_finest_level,&time,
+	  ca_umdrv
+	    (&is_finest_level, &time,
 	     lo, hi, domain_lo, domain_hi,
 	     BL_TO_FORTRAN(statein), 
 	     BL_TO_FORTRAN(stateout),
-	     BL_TO_FORTRAN(Er), BL_TO_FORTRAN(lam),
+#ifdef RADIATION
+	     BL_TO_FORTRAN(Er), 
+	     BL_TO_FORTRAN(lam),
 	     BL_TO_FORTRAN(Erout),
+#endif
 	     BL_TO_FORTRAN(q),
 	     BL_TO_FORTRAN(qaux),
 	     BL_TO_FORTRAN(src_q),
+	     BL_TO_FORTRAN(source_out),
 	     dx, &dt,
 	     D_DECL(BL_TO_FORTRAN(flux[0]),
 		    BL_TO_FORTRAN(flux[1]),
 		    BL_TO_FORTRAN(flux[2])),
+#ifdef RADIATION
 	     D_DECL(BL_TO_FORTRAN(rad_flux[0]),
 		    BL_TO_FORTRAN(rad_flux[1]),
 		    BL_TO_FORTRAN(rad_flux[2])),
+#endif
 #if (BL_SPACEDIM < 3)
 	     BL_TO_FORTRAN(pradial),
 #endif
@@ -253,32 +259,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     BL_TO_FORTRAN(dLogArea[0][mfi]),
 #endif
 	     BL_TO_FORTRAN(volume[mfi]),
-	     &cflLoc, verbose, &priv_nstep_fsp);
-#else
-	  ca_umdrv
-	    (&is_finest_level,&time,
-	     lo, hi, domain_lo, domain_hi,
-	     BL_TO_FORTRAN(statein),
-	     BL_TO_FORTRAN(stateout),
-	     BL_TO_FORTRAN(q),
-	     BL_TO_FORTRAN(qaux),
-	     BL_TO_FORTRAN(src_q),
-	     BL_TO_FORTRAN(source_out),
-	     dx, &dt,
-	     D_DECL(BL_TO_FORTRAN(flux[0]),
-		    BL_TO_FORTRAN(flux[1]),
-		    BL_TO_FORTRAN(flux[2])),
-#if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN(pradial),
-#endif
-	     D_DECL(BL_TO_FORTRAN(area[0][mfi]),
-		    BL_TO_FORTRAN(area[1][mfi]),
-		    BL_TO_FORTRAN(area[2][mfi])),
-#if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN(dLogArea[0][mfi]),
-#endif
-	     BL_TO_FORTRAN(vol),
 	     &cflLoc, verbose,
+#ifdef RADIATION
+	     &priv_nstep_fsp,
+#endif
 	     mass_added_flux,
 	     xmom_added_flux,
 	     ymom_added_flux,
@@ -286,7 +270,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     E_added_flux,
 	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 	     eden_lost, xang_lost, yang_lost, zang_lost);
-#endif
 
 	  // Since we may need the fluxes later on, we'll copy them
 	  // to the fluxes MultiFAB even if we aren't on a fine grid.

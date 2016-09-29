@@ -22,9 +22,7 @@ contains
   ! ::: :: nx          => (const)  number of cells in X direction
   ! ::: :: ny          => (const)  number of cells in Y direction
   ! ::: :: nz          => (const)  number of cells in Z direction
-  ! ::: :: dx          => (const)  grid spacing in X direction
-  ! ::: :: dy          => (const)  grid spacing in Y direction
-  ! ::: :: dz          => (const)  grid spacing in Z direction
+  ! ::: :: delta       => (const)  grid spacing in X, Y, Z direction
   ! ::: :: dt          => (const)  time stepsize
   ! ::: :: flux1      <=  (modify) flux in X direction on X edges
   ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
@@ -36,7 +34,7 @@ contains
                          lam,lam_lo,lam_hi, &
                          flatn, &
                          srcQ, src_lo, src_hi, &
-                         lo, hi, dx, dy, dz, dt, &
+                         lo, hi, dx, dt, &
                          flux1, fd1_lo, fd1_hi, &
                          flux2, fd2_lo, fd2_hi, &
                          flux3, fd3_lo, fd3_hi, &
@@ -91,7 +89,7 @@ contains
     double precision ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-    double precision dx, dy, dz, dt
+    double precision dx(3), dt
 
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 
@@ -253,9 +251,9 @@ contains
     call bl_allocate(shk, shk_lo, shk_hi)
 
     ! Local constants
-    dtdx = dt/dx
-    dtdy = dt/dy
-    dtdz = dt/dz
+    dtdx = dt/dx(1)
+    dtdy = dt/dx(2)
+    dtdz = dt/dx(3)
     hdt = HALF*dt
     hdtdx = HALF*dtdx
     hdtdy = HALF*dtdy
@@ -271,7 +269,7 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, qd_lo, qd_hi, shk, shk_lo, shk_hi, lo, hi, (/dx,dy,dz/))
+       call shock(q, qd_lo, qd_hi, shk, shk_lo, shk_hi, lo, hi, dx)
     else
        shk(:,:,:) = ZERO
     endif
@@ -310,7 +308,7 @@ contains
                       q(:,:,:,QU:),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n), It_lo, It_hi, &
-                      lo(1),lo(2),hi(1),hi(2),[dx,dy,dz],dt,k3d,kc)
+                      lo(1),lo(2),hi(1),hi(2), dx, dt,k3d,kc)
           end do
 
           if (ppm_trace_sources .eq. 1) then
@@ -319,7 +317,7 @@ contains
                          q(:,:,:,QU:),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          flatn,qd_lo,qd_hi, &
                          Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n),It_lo,It_hi, &
-                         lo(1),lo(2),hi(1),hi(2),[dx,dy,dz],dt,k3d,kc)
+                         lo(1),lo(2),hi(1),hi(2), dx, dt,k3d,kc)
              enddo
           endif
 
@@ -485,7 +483,7 @@ contains
                 do i = lo(1), hi(1)
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
                         HALF*(qgdnvzf(i,j,kc,GDPRES) + qgdnvzf(i,j,km,GDPRES)) * &
-                             (qgdnvzf(i,j,kc,GDW) - qgdnvzf(i,j,km,GDW))/dz
+                             (qgdnvzf(i,j,kc,GDW) - qgdnvzf(i,j,km,GDW))/dx(3)
                 end do
              end do
           end if
@@ -583,9 +581,9 @@ contains
                 do i = lo(1), hi(1)
                    pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
                         HALF*(qgdnvxf(i+1,j,km,GDPRES) + qgdnvxf(i,j,km,GDPRES)) * &
-                             (qgdnvxf(i+1,j,km,GDU) - qgdnvxf(i,j,km,GDU))/dx + &
+                             (qgdnvxf(i+1,j,km,GDU) - qgdnvxf(i,j,km,GDU))/dx(1) + &
                         HALF*(qgdnvyf(i,j+1,km,GDPRES) + qgdnvyf(i,j,km,GDPRES)) * &
-                             (qgdnvyf(i,j+1,km,GDV) - qgdnvyf(i,j,km,GDV))/dy
+                             (qgdnvyf(i,j+1,km,GDV) - qgdnvyf(i,j,km,GDV))/dx(2)
                 end do
              end do
 
@@ -696,7 +694,7 @@ contains
                         area3, area3_lo, area3_hi, &
                         vol, vol_lo, vol_hi, &
                         div, pdivu, &
-                        lo,hi,dx,dy,dz,dt, nstep_fsp)
+                        lo,hi, dx, dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
@@ -751,7 +749,7 @@ contains
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
 
-    double precision dx, dy, dz, dt
+    double precision dx(3), dt
 
     ! Local variables
 
@@ -792,7 +790,7 @@ contains
                 do i = lo(1),hi(1)+1
                    div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                    div1 = difmag*min(ZERO,div1)
-                   flux1(i,j,k,n) = flux1(i,j,k,n) + dx*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
+                   flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1)*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
                    flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
              enddo
@@ -803,7 +801,7 @@ contains
                 do i = lo(1),hi(1)
                    div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
                    div1 = difmag*min(ZERO,div1)
-                   flux2(i,j,k,n) = flux2(i,j,k,n) + dy*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
+                   flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2)*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
                    flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
              enddo
@@ -814,7 +812,7 @@ contains
                 do i = lo(1),hi(1)
                    div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
                    div1 = difmag*min(ZERO,div1)
-                   flux3(i,j,k,n) = flux3(i,j,k,n) + dz*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
+                   flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3)*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
                    flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
              enddo
@@ -830,7 +828,7 @@ contains
              do i = lo(1),hi(1)+1
                 div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
                 div1 = difmag*min(ZERO,div1)
-                radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
+                radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx(1)*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
                 radflux1(i,j,k,g) = radflux1(i,j,k,g) * area1(i,j,k) * dt
              enddo
           enddo
@@ -843,7 +841,7 @@ contains
              do i = lo(1),hi(1)
                 div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
                 div1 = difmag*min(ZERO,div1)
-                radflux2(i,j,k,g) = radflux2(i,j,k,g) + dy*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
+                radflux2(i,j,k,g) = radflux2(i,j,k,g) + dx(2)*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
                 radflux2(i,j,k,g) = radflux2(i,j,k,g) * area2(i,j,k) * dt
              enddo
           enddo
@@ -856,7 +854,7 @@ contains
              do i = lo(1),hi(1)
                 div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
                 div1 = difmag*min(ZERO,div1)
-                radflux3(i,j,k,g) = radflux3(i,j,k,g) + dz*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
+                radflux3(i,j,k,g) = radflux3(i,j,k,g) + dx(3)*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
                 radflux3(i,j,k,g) = radflux3(i,j,k,g) * area3(i,j,k) * dt
              enddo
           enddo
@@ -912,9 +910,9 @@ contains
                 lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
                         q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
                         q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
-                dprdx = dprdx + lamc*(q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx
-                dprdy = dprdy + lamc*(q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dy
-                dprdz = dprdz + lamc*(q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dz
+                dprdx = dprdx + lamc*(q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx(1)
+                dprdy = dprdy + lamc*(q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dx(2)
+                dprdz = dprdz + lamc*(q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dx(3)
              end do
 
              ek1 = (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
@@ -946,26 +944,26 @@ contains
                 uy = HALF*(q2(i,j,k,GDV) + q2(i,j+1,k,GDV))
                 uz = HALF*(q3(i,j,k,GDW) + q3(i,j,k+1,GDW))
 
-                dudx(1) = (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx
-                dudx(2) = (q1(i+1,j,k,GDV) - q1(i,j,k,GDV))/dx
-                dudx(3) = (q1(i+1,j,k,GDW) - q1(i,j,k,GDW))/dx
+                dudx(1) = (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1)
+                dudx(2) = (q1(i+1,j,k,GDV) - q1(i,j,k,GDV))/dx(1)
+                dudx(3) = (q1(i+1,j,k,GDW) - q1(i,j,k,GDW))/dx(1)
 
-                dudy(1) = (q2(i,j+1,k,GDU) - q2(i,j,k,GDU))/dy
-                dudy(2) = (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dy
-                dudy(3) = (q2(i,j+1,k,GDW) - q2(i,j,k,GDW))/dy
+                dudy(1) = (q2(i,j+1,k,GDU) - q2(i,j,k,GDU))/dx(2)
+                dudy(2) = (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2)
+                dudy(3) = (q2(i,j+1,k,GDW) - q2(i,j,k,GDW))/dx(2)
 
-                dudz(1) = (q3(i,j,k+1,GDU) - q3(i,j,k,GDU))/dz
-                dudz(2) = (q3(i,j,k+1,GDV) - q3(i,j,k,GDV))/dz
-                dudz(3) = (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dz
+                dudz(1) = (q3(i,j,k+1,GDU) - q3(i,j,k,GDU))/dx(3)
+                dudz(2) = (q3(i,j,k+1,GDV) - q3(i,j,k,GDV))/dx(3)
+                dudz(3) = (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
 
                 divu = dudx(1) + dudy(2) + dudz(3)
 
                 ! Note that for single group, fspace_type is always 1
                 do g=0, ngroups-1
 
-                   nhat(1) = (q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx
-                   nhat(2) = (q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dy
-                   nhat(3) = (q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dz
+                   nhat(1) = (q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx(1)
+                   nhat(2) = (q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dx(2)
+                   nhat(3) = (q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dx(3)
 
                    GnDotu(1) = dot_product(nhat, dudx)
                    GnDotu(2) = dot_product(nhat, dudy)
@@ -996,9 +994,9 @@ contains
                       f1zp = HALF*(ONE-Eddfzp)
                       f1zm = HALF*(ONE-Eddfzm)
 
-                      Gf1E(1) = (f1xp*q1(i+1,j,k,GDERADS+g) - f1xm*q1(i,j,k,GDERADS+g)) / dx
-                      Gf1E(2) = (f1yp*q2(i,j+1,k,GDERADS+g) - f1ym*q2(i,j,k,GDERADS+g)) / dy
-                      Gf1E(3) = (f1zp*q3(i,j,k+1,GDERADS+g) - f1zm*q3(i,j,k,GDERADS+g)) / dz
+                      Gf1E(1) = (f1xp*q1(i+1,j,k,GDERADS+g) - f1xm*q1(i,j,k,GDERADS+g)) / dx(1)
+                      Gf1E(2) = (f1yp*q2(i,j+1,k,GDERADS+g) - f1ym*q2(i,j,k,GDERADS+g)) / dx(2)
+                      Gf1E(3) = (f1zp*q3(i,j,k+1,GDERADS+g) - f1zm*q3(i,j,k,GDERADS+g)) / dx(3)
 
                       Egdc = (q1(i,j,k,GDERADS+g) + q1(i+1,j,k,GDERADS+g) &
                            +  q2(i,j,k,GDERADS+g) + q2(i,j+1,k,GDERADS+g) &
