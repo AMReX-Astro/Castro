@@ -36,7 +36,7 @@
      CastroRadiation.git has now been completely integrated into the
      main Castro git repo.  The history was preserved in the
      transition It has also been cleaned up a little (issues #24, #31,
-     #33)
+     #33, #48)
 
      The radiation build variable Network_inputs was renamed
      to NETWORK_INPUTS for consistency.
