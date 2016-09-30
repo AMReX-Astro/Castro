@@ -108,10 +108,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   ! Edge-centered primitive variables (Riemann state)
   double precision, allocatable :: q1(:,:)
-#ifdef RADIATION
-  double precision, allocatable :: ergdnv(:,:)
-  double precision, allocatable :: lamgdnv(:,:)
-#endif
 
   double precision :: dx
 
@@ -151,10 +147,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
   allocate(    q1(flux_l1-1:flux_h1+1,NGDNV))
-#ifdef RADIATION
-  allocate(ergdnv(lo(1):hi(1)+1, 0:ngroups-1))
-  allocate(lamgdnv(lo(1):hi(1)+1, 0:ngroups-1))
-#endif
 
   dx = delta(1)
 
@@ -193,8 +185,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                    flux,flux_l1,flux_h1, &
                    radflux,radflux_l1,radflux_h1, &
                    q1,flux_l1-1,flux_h1+1, &
-                   ergdnv,lo(1),hi(1)+1, &
-                   lamgdnv,lo(1),hi(1)+1, &
                    dloga,dloga_l1,dloga_h1)
 #else
   call umeth1d(lo,hi,domlo,domhi, &
@@ -227,8 +217,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                   Erin,Erin_l1,Erin_h1, &
                   Erout,Erout_l1,Erout_h1, &
                   q1,flux_l1-1,flux_h1+1, &
-                  ergdnv,lo(1),hi(1)+1, &
-                  lamgdnv,lo(1),hi(1)+1, &
                   flux,flux_l1,flux_h1, &
                   radflux,radflux_l1,radflux_h1, &
                   flatn,uin_l1,uin_h1, &
@@ -257,8 +245,5 @@ subroutine ca_umdrv(is_finest_level, time, &
   end if
 
   deallocate(flatn,div,pdivu,q1)
-#ifdef RADIATION
-  deallocate(ergdnv,lamgdnv)
-#endif
 
 end subroutine ca_umdrv

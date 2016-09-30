@@ -35,8 +35,6 @@ contains
                          flux ,   fd_l1,   fd_h1, &
                          rflux,  rfd_l1,  rfd_h1, &
                          q1, q1_l1, q1_h1, &
-                         ergdnv,ergdnv_l1,ergdnv_h1, &
-                         lamgdnv,lamgdnv_l1,lamgdnv_h1, &
                          dloga,dloga_l1,dloga_h1)
 
     use meth_params_module, only : NVAR, ppm_type, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
@@ -57,8 +55,6 @@ contains
     integer fd_l1,fd_h1
     integer rfd_l1,rfd_h1
     integer q1_l1, q1_h1
-    integer ergdnv_l1,ergdnv_h1
-    integer lamgdnv_l1,lamgdnv_h1
     integer ilo,ihi
     double precision dx, dt
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
@@ -69,8 +65,6 @@ contains
     double precision rflux(rfd_l1:rfd_h1, 0:ngroups-1)
     double precision  srcQ(src_l1  :src_h1,NVAR)
     double precision    q1(   q1_l1:q1_h1, NGDNV)
-    double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
-    double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
     double precision dloga(dloga_l1:dloga_h1)
 
     ! Left and right state arrays (edge centered, cell centered)
@@ -105,8 +99,6 @@ contains
          q1, q1_l1, q1_h1, &
          lam, lam_l1, lam_h1, &
          rflux, rfd_l1,rfd_h1, &
-         ergdnv,ergdnv_l1,ergdnv_h1, &
-         lamgdnv,lamgdnv_l1,lamgdnv_h1, &
          qaux(:,QGAMCG),qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
 
     deallocate (dq,qm,qp)
@@ -123,8 +115,6 @@ contains
                         Erin,Erin_l1,Erin_h1, &
                         Erout,Erout_l1,Erout_h1, &
                         q1,q1_l1,q1_h1, &
-                        ergdnv,ergdnv_l1,ergdnv_h1, &
-                        lamgdnv,lamgdnv_l1,lamgdnv_h1, &
                         flux, flux_l1, flux_h1, &
                         rflux,rflux_l1,rflux_h1, &
                         flat, flat_l1, flat_h1, &
@@ -133,7 +123,8 @@ contains
                         div,pdivu,lo,hi,dx,dt, &
                         nstep_fsp)
 
-    use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, NGDNV, GDU, GDPRES
+    use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
+                                   NGDNV, GDU, GDPRES, GDLAMS, GDERADS
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
@@ -149,8 +140,6 @@ contains
     integer  Erin_l1, Erin_h1
     integer Erout_l1,Erout_h1
     integer    q1_l1,   q1_h1
-    integer ergdnv_l1,ergdnv_h1
-    integer lamgdnv_l1,lamgdnv_h1
     integer  flux_l1, flux_h1
     integer rflux_l1,rflux_h1
     integer  flat_l1, flat_h1
@@ -161,8 +150,6 @@ contains
     double precision  Erin( Erin_l1: Erin_h1, 0:ngroups-1)
     double precision Erout(Erout_l1:Erout_h1, 0:ngroups-1)
     double precision    q1(q1_l1:q1_h1, NGDNV)
-    double precision ergdnv(ergdnv_l1:ergdnv_h1, 0:ngroups-1)
-    double precision lamgdnv(lamgdnv_l1:lamgdnv_h1, 0:ngroups-1)
     double precision  flux( flux_l1: flux_h1,NVAR)
     double precision rflux(rflux_l1:rflux_h1, 0:ngroups-1)
     double precision  flat( flat_l1: flat_h1)
@@ -238,8 +225,8 @@ contains
 
        dprdx = ZERO
        do g=0,ngroups-1
-          lamc = HALF*(lamgdnv(i,g)+lamgdnv(i+1,g))
-          dprdx = dprdx + lamc*(ergdnv(i+1,g)-ergdnv(i,g))/dx
+          lamc = HALF*(q1(i,GDLAMS+g) + q1(i+1,GDLAMS+g))
+          dprdx = dprdx + lamc*(q1(i+1,GDERADS+g) - q1(i,GDERADS+g))/dx
        end do
 
        uout(i,UMX) = uout(i,UMX) - dt * dpdx
@@ -268,20 +255,21 @@ contains
           ! Note that for single group, fspace_type is always 1
           do g=0, ngroups-1
 
-             lamc = HALF*(lamgdnv(i,g)+lamgdnv(i+1,g))
+             lamc = HALF*(q1(i,GDLAMS+g) + q1(i+1,GDLAMS+g))
              Eddf = Edd_factor(lamc)
              f1 = (ONE-Eddf)*HALF
              f2 = (3.d0*Eddf-ONE)*HALF
              af(g) = -(f1*divu + f2*dudx)
 
              if (fspace_type .eq. 1) then
-                Eddflft = Edd_factor(lamgdnv(i,g))
+                Eddflft = Edd_factor(q1(i,GDLAMS+g))
                 f1lft = HALF*(ONE-Eddflft)
-                Eddfrgt = Edd_factor(lamgdnv(i+1,g))
+                Eddfrgt = Edd_factor(q1(i+1,GDLAMS+g))
                 f1rgt = HALF*(ONE-Eddfrgt)
 
-                Egdc = HALF*(ergdnv(i,g)+ergdnv(i+1,g))
-                Erout(i,g) = Erout(i,g) + dt*ux*(f1rgt*ergdnv(i+1,g)-f1lft*ergdnv(i,g))/dx &
+                Egdc = HALF*(q1(i,GDERADS+g) + q1(i+1,GDERADS+g))
+                Erout(i,g) = Erout(i,g) + &
+                     dt*ux*(f1rgt*q1(i+1,GDERADS+g) - f1lft*q1(i,GDERADS+g))/dx &
                      - dt*f2*Egdc*dudx
              end if
 
