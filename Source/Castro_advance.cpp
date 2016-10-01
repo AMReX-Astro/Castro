@@ -226,28 +226,6 @@ Castro::do_advance (Real time,
     }
 #endif
 
-    // Set up the new-time sources. This is done after the hydro but before
-    // we actually apply the sources so that the sources can be modified again
-    // if needed after the reflux (for example, because of an elliptic coupling
-    // like gravity where we need to update the potential before adding the force).
-
-    prepare_new_sources(time, dt, amr_iteration, amr_ncycle,
-			sub_iteration, sub_ncycle);
-
-    // Now do the refluxing if we're on the finest level. Note that for
-    // reflux_strategy == 1 this is correcting the flux mismatch on all
-    // levels below this one simultaneously, while for reflux_strategy == 2,
-    // this is only correcting the mismatch on this level and the one
-    // immediately below it. If we're using gravity it will also do the
-    // sync solve associated with the reflux.
-
-    if (do_reflux && level > 0 && amr_iteration > 0) {
-	if (reflux_strategy == 1 && level == parent->finestLevel())
-	    reflux(0, level, amr_iteration, amr_ncycle);
-	else if (reflux_strategy == 2 && amr_iteration == amr_ncycle)
-	    reflux(level-1, level, amr_iteration, amr_ncycle);
-    }
-
     // Construct and apply new-time source terms.
 
     do_new_sources(time, dt, amr_iteration, amr_ncycle,

@@ -616,7 +616,7 @@ protected:
 
     Castro& getLevel (int lev);
 
-    void reflux (int crse_level, int fine_level, int iteration, int ncycle);
+    void reflux (int crse_level, int fine_level);
 
     void normalize_species (MultiFab& S_new);
 

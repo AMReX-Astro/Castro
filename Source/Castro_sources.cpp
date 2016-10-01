@@ -49,6 +49,12 @@ void
 Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
 
+    // Set up the new-time sources. This is mainly for setting up fields and other
+    // variables that are needed to calculate the source terms.
+
+    prepare_new_sources(time, dt, amr_iteration, amr_ncycle,
+			sub_iteration, sub_ncycle);
+
     MultiFab& S_new = get_new_data(State_Type);
 
     // For the new-time source terms, we have an option for how to proceed.
