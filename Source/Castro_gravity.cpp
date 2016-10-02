@@ -20,10 +20,8 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     // Do level solve at beginning of time step in order to compute the
     // difference between the multilevel and the single level solutions.
-    // Only do this if amr_iteration is non-negative; a negative amr_iteration
-    // means we don't want to calculate this.
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration > 0)
+    if (gravity->get_gravity_type() == "PoissonGrav")
     {
 
 	// Create a copy of the current (composite) data on this level.
@@ -105,10 +103,8 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     }
 
     // If we're doing Poisson gravity, do the new-time level solve here.
-    // Only do this if amr_iteration is non-negative; a negative amr_iteration
-    // means we don't want to calculate this.
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && amr_iteration > 0)
+    if (gravity->get_gravity_type() == "PoissonGrav")
     {
 
 	// Use the "old" phi from the current time step as a guess for this solve.

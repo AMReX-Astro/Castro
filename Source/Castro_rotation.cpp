@@ -3,13 +3,16 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
-void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
+void Castro::construct_old_rotation_source(Real time, Real dt)
 {
-
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 
-    // Fill the old rotation data.
+    int ng = Sborder.nGrow();
+
+    old_sources[rot_src].setVal(0.0);
+
+    // Fill the rotation data.
 
     if (!do_rotation) {
 
@@ -21,46 +24,6 @@ void Castro::construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_i
     }
 
     fill_rotation_field(phirot_old, rot_old, Sborder, time);
-
-}
-
-
-
-void Castro::construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
-{
-
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
-
-    // Fill the old rotation data.
-
-    if (!do_rotation) {
-
-      phirot_new.setVal(0.);
-      rot_new.setVal(0.);
-
-      return;
-
-    }
-
-    MultiFab& S_new = get_new_data(State_Type);
-
-    fill_rotation_field(phirot_new, rot_new, S_new, time);
-
-}
-
-
-
-void Castro::construct_old_rotation_source(Real time, Real dt)
-{
-    MultiFab& phirot_old = get_old_data(PhiRot_Type);
-    MultiFab& rot_old = get_old_data(Rotation_Type);
-
-    int ng = Sborder.nGrow();
-
-    old_sources[rot_src].setVal(0.0);
-
-    if (!do_rotation) return;
 
     Real E_added    = 0.;
     Real xmom_added = 0.;
@@ -138,7 +101,18 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 
     new_sources[rot_src].setVal(0.0);
 
-    if (!do_rotation) return;
+    // Fill the rotation data.
+
+    if (!do_rotation) {
+
+      phirot_new.setVal(0.);
+      rot_new.setVal(0.);
+
+      return;
+
+    }
+
+    fill_rotation_field(phirot_new, rot_new, S_new, time);
 
     // Now do corrector part of rotation source term update
 

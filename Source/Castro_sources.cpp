@@ -49,12 +49,6 @@ void
 Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
 
-    // Set up the new-time sources. This is mainly for setting up fields and other
-    // variables that are needed to calculate the source terms.
-
-    prepare_new_sources(time, dt, amr_iteration, amr_ncycle,
-			sub_iteration, sub_ncycle);
-
     MultiFab& S_new = get_new_data(State_Type);
 
     // For the new-time source terms, we have an option for how to proceed.
@@ -100,42 +94,6 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 }
 
 void
-Castro::prepare_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
-{
-
-    for (int n = 0; n < num_src; ++n)
-	prepare_old_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-
-}
-
-void
-Castro::prepare_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
-{
-    BL_ASSERT(src >= 0 && src < num_src);
-
-    switch(src) {
-
-#ifdef GRAVITY
-    case grav_src:
-	if (do_grav)
-	    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-	break;
-#endif
-
-#ifdef ROTATION
-    case rot_src:
-	if (do_rotation)
-	    construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-	break;
-#endif
-
-    default:
-	break;
-
-    } // end switch
-}
-
-void
 Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
@@ -176,37 +134,6 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 
     default:
 	break;
-
-    } // end switch
-}
-
-void
-Castro::prepare_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
-{
-
-    for (int n = 0; n < num_src; ++n)
-	prepare_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-
-}
-
-void
-Castro::prepare_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
-{
-    BL_ASSERT(src >= 0 && src < num_src);
-
-    switch(src) {
-
-#ifdef GRAVITY
-    case grav_src:
-	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-	break;
-#endif
-
-#ifdef ROTATION
-    case rot_src:
-	construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-	break;
-#endif
 
     } // end switch
 }

@@ -2429,8 +2429,6 @@ Castro::reflux(int crse_level, int fine_level)
 	    for (int n = 0; n < num_src; ++n)
 		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
 
-	    getLevel(lev).prepare_new_sources(time, dt);
-
 	    getLevel(lev).do_new_sources(time, dt);
 
 	    // Sync up linear and hybrid momenta.
