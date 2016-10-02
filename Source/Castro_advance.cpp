@@ -183,10 +183,10 @@ Castro::do_advance (Real time,
     // Construct and apply the old-time source terms to S_new.
 
 #ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time);
 #endif
 
-    do_old_sources(time, dt, amr_iteration, amr_ncycle,
+    do_old_sources(prev_time, dt, amr_iteration, amr_ncycle,
 		   sub_iteration, sub_ncycle);
 
     // Do the hydro update.  We build directly off of Sborder, which
@@ -230,10 +230,10 @@ Castro::do_advance (Real time,
     // Construct and apply new-time source terms.
 
 #ifdef GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
 #endif
 
-    do_new_sources(time, dt, amr_iteration, amr_ncycle,
+    do_new_sources(cur_time, dt, amr_iteration, amr_ncycle,
 		   sub_iteration, sub_ncycle);
 
     // Do the second half of the reactions.
