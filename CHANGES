@@ -1,5 +1,9 @@
 * changes since the last release:
 
+previous changes:
+
+* 16.10
+
   -- the parameter first_order_hydro has been moved from the
      radiation namespace to the castro namespace
 
@@ -76,9 +80,6 @@
 
   -- the documentation of the architecture of Castro has been
      significantly improved (issues #20, #23, #29, #31)
-
-
-previous changes:
 
 * 16.09:
 
