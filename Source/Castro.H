@@ -15,7 +15,6 @@
 
 #ifdef PARTICLES
 #include "AmrParticles.H"
-typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save original position
 #endif
 
 #include <iostream>
@@ -501,7 +500,7 @@ public:
 #endif
 
 #ifdef PARTICLES
-    static TracerParticleContainer* theTracerPC () { return TracerPC; }
+    static AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
     static int       NUM_STATE;
@@ -727,7 +726,7 @@ protected:
 #endif
 
 #ifdef PARTICLES
-    static TracerParticleContainer* TracerPC;
+    static AmrTracerParticleContainer* TracerPC;
 #endif
 
     // Name of the probin file and its length.

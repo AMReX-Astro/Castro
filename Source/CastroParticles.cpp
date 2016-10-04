@@ -7,9 +7,9 @@
 
 #ifdef PARTICLES
 
-TracerParticleContainer* Castro::TracerPC =  0;
-int Castro::do_tracer_particles           =  0;
-int Castro::particle_verbose              =  1;
+AmrTracerParticleContainer* Castro::TracerPC =  0;
+int Castro::do_tracer_particles              =  0;
+int Castro::particle_verbose                 =  1;
 
 namespace {
     std::string       particle_init_file;
@@ -82,7 +82,7 @@ Castro::init_particles ()
     {
 	BL_ASSERT(TracerPC == 0);
 	
-	TracerPC = new TracerParticleContainer(parent);
+	TracerPC = new AmrTracerParticleContainer(parent);
 	
 	TracerPC->SetVerbose(particle_verbose);
 	
@@ -112,7 +112,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
         {
             BL_ASSERT(TracerPC == 0);
 
-            TracerPC = new TracerParticleContainer(parent);
+            TracerPC = new AmrTracerParticleContainer(parent);
 
             TracerPC->SetVerbose(particle_verbose);
 	    //
