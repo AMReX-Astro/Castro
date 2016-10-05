@@ -438,6 +438,10 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
 
   QVAR = QTHERM + nspec + naux + numadv
+  
+  ! NQ will be the number of hydro + radiation variables in the primitive
+  ! state.  Initialize it just for hydro here
+  NQ = QVAR
 
   ! We use these to index into the state "Q"
   QRHO  = 1
@@ -592,6 +596,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   !$acc update &
   !$acc device(NTHERM, NVAR) &
+  !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
   !$acc device(QTHERM, QVAR) &
