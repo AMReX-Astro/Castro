@@ -34,6 +34,9 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
+#ifdef RADIATION
+                                 QRADVAR, QPTOT, &
+#endif
                                  GDU, GDV, GDW, use_flattening, &
                                  first_order_hydro
   use advection_util_3d_module, only : divu
@@ -42,7 +45,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   use flatten_module, only: uflaten
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT
   use rad_advection_module, only : umeth3d_rad, consup_rad
   use flatten_module, only : rad_flaten
 #else

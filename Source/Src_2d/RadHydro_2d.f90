@@ -48,10 +48,9 @@ contains
                          domlo, domhi)
 
     use network, only : nspec
-    use meth_params_module, only : NVAR, QVAR, ppm_type, GDPRES, &
+    use meth_params_module, only : NVAR, QVAR, ppm_type, GDPRES, QRADVAR, &
          GDU, GDV, GDERADS, GDLAMS, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
 
-    use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
     use riemann_module, only : cmpflx
     use trace_ppm_rad_module, only : trace_ppm_rad
@@ -267,9 +266,8 @@ contains
                         lo,hi,dx,dy,dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, &
-         ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS
+         ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS, fspace_type, comoving
     use rad_params_module, only : ngroups, nugroup, dlognu
-    use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use advection_util_2d_module, only : normalize_species_fluxes

@@ -29,6 +29,9 @@ subroutine ca_umdrv(is_finest_level, time, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
+#ifdef RADIATION
+                                 QPTOT, &
+#endif
                                  NQAUX, NVAR, NHYP, use_flattening, &
                                  NGDNV, GDU, GDPRES, first_order_hydro
   use bl_constants_module, only : ZERO, HALF, ONE
@@ -37,7 +40,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   use prob_params_module, only : coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR, QPTOT
   use rad_advection_module, only : umeth1d_rad, consup_rad
   use flatten_module, only : rad_flaten
 #else

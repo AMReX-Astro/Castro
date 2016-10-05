@@ -3,7 +3,7 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+    use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    QFS, QFX, &
                                    NGDNV, GDU, GDPRES, &
                                    GDERADS, GDLAMS, &
@@ -41,7 +41,6 @@ contains
                     gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
 
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
 #endif
     
@@ -60,13 +59,9 @@ contains
     integer  lg_l1, lg_h1
 #endif
 
-#ifdef RADIATION    
-    double precision    qm(qpd_l1:qpd_h1, QRADVAR)
-    double precision    qp(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision    qm(qpd_l1:qpd_h1, QVAR)
-    double precision    qp(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision    qm(qpd_l1:qpd_h1, NQ)
+    double precision    qp(qpd_l1:qpd_h1, NQ)
+
     double precision   flx(flx_l1:flx_h1, NVAR)
     double precision  qint( qg_l1: qg_h1, NGDNV)
     double precision  gamc( qd_l1: qd_h1)
@@ -675,7 +670,7 @@ contains
 
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+    use meth_params_module, only : qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif
@@ -695,13 +690,9 @@ contains
     integer   lg_l1,   lg_h1    
 #endif
 
-#ifdef RADIATION    
-    double precision ql(qpd_l1:qpd_h1, QRADVAR)
-    double precision qr(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision ql(qpd_l1:qpd_h1, QVAR)
-    double precision qr(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision ql(qpd_l1:qpd_h1, NQ)
+    double precision qr(qpd_l1:qpd_h1, NQ)
+
     double precision   cav(ilo:ihi+1), smallc(ilo:ihi+1)
     double precision gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
     double precision  uflx(uflx_l1:uflx_h1, NVAR)

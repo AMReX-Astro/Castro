@@ -37,8 +37,7 @@ contains
                          q1, q1_l1, q1_h1, &
                          dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : NVAR, ppm_type, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
-    use radhydro_params_module, only : QRADVAR
+    use meth_params_module, only : NVAR, ppm_type, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV, QRADVAR
     use rad_params_module, only : ngroups
     use riemann_module, only : cmpflx
     use trace_ppm_rad_module, only : trace_ppm_rad
@@ -124,9 +123,9 @@ contains
                         nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, &
-                                   NGDNV, GDU, GDPRES, GDLAMS, GDERADS
+                                   NGDNV, GDU, GDPRES, GDLAMS, GDERADS, &
+                                   fspace_type, comoving
     use rad_params_module, only : ngroups, nugroup, dlognu
-    use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use advection_util_1d_module, only : normalize_species_fluxes

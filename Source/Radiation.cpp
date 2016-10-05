@@ -818,8 +818,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
       do_inelastic_scattering = 0;
   }
 
-  BL_FORT_PROC_CALL(CA_INIT_RADHYDRO_PARS, ca_init_radhydro_pars)
-      (fspace_advection_type, do_inelastic_scattering, comoving, flatten_pp_threshold);
+  ca_init_radhydro_pars(fspace_advection_type, do_inelastic_scattering, 
+			comoving, flatten_pp_threshold);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids)
