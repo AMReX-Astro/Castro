@@ -5,6 +5,10 @@ module transverse_module
   use network, only : nspec, naux
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
+#ifdef RADIATION
+                                 QRADVAR, qrad, qradhi, qptot, qreitot, &
+                                 fspace_type, comoving, &
+#endif
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, GDERADS, GDLAMS, &
                                  small_pres, small_temp, &
@@ -12,8 +16,6 @@ module transverse_module
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
-                                     fspace_type, comoving
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif

@@ -7,6 +7,9 @@ module riemann_module
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UEDEN, UEINT, &
+#ifdef RADIATION
+                                 QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type, &
+#endif
                                  GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
@@ -15,7 +18,6 @@ module riemann_module
                                  allow_negative_energy
 
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif

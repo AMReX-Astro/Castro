@@ -47,13 +47,13 @@ contains
                          pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann, &
+                                   QRADVAR, &
                                    GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, &
                                    ppm_trace_sources, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
 
     use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
     use transverse_module
     use ppm_module
-    use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
     use riemann_module, only : cmpflx, shock
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -697,10 +697,10 @@ contains
                         lo,hi, dx, dt, nstep_fsp)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+                                   fspace_type, comoving, &
                                    UEDEN, UEINT, UTEMP, &
                                    GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, ngdnv
     use rad_params_module, only : ngroups, nugroup, dlognu
-    use radhydro_params_module, only : fspace_type, comoving
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use advection_util_3d_module, only : normalize_species_fluxes

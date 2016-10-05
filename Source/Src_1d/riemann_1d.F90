@@ -41,7 +41,7 @@ contains
                     gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
 
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
+    use meth_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
 #endif
     
@@ -675,7 +675,7 @@ contains
 
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+    use meth_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif

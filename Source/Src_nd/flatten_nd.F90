@@ -165,8 +165,7 @@ contains
 #ifdef RADIATION
   subroutine rad_flaten(lo, hi, p, ptot, u, v, w, flatn, q_lo, q_hi)
 
-    use meth_params_module, only : QPRES, QU, QV, QW
-    use radhydro_params_module, only : flatten_pp_threshold, QPTOT
+    use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT
 
     implicit none
 

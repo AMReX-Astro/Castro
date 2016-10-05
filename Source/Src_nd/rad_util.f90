@@ -11,8 +11,7 @@ contains
 
   subroutine compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
 
-    use meth_params_module, only : QPRES, QRHO
-    use radhydro_params_module, only: comoving, QRAD, QPTOT, QRADVAR
+    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, QRADVAR
     use fluxlimiter_module, only : Edd_factor
 
     real (kind=dp_t), intent(in) :: lam(0:ngroups-1)

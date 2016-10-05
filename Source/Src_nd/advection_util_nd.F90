@@ -419,6 +419,7 @@ contains
                                    QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
                                    QCG, QGAMCG, &
+                                   QRADVAR, QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
@@ -431,7 +432,6 @@ contains
 #endif
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use radhydro_params_module, only : QRADVAR, QPTOT, QRAD, QRADHI, QREITOT
     use rad_util_module, only : compute_ptot_ctot
 #endif
 
@@ -605,13 +605,14 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, &
+#ifdef RADIATION
+                                   QRADVAR, &
+#endif
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
-#ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
-#endif
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)

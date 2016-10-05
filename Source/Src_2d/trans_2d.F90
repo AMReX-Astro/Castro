@@ -5,6 +5,10 @@ module transverse_module
   use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
+#ifdef RADIATION
+                                 QRADVAR, qrad, qradhi, qptot, qreitot, &
+                                 fspace_type, comoving, &
+#endif
                                  small_pres, small_temp, &
                                  npassive, qpass_map, upass_map, &
                                  transverse_use_eos, ppm_type, ppm_trace_sources, &
@@ -12,8 +16,6 @@ module transverse_module
                                  ppm_predict_gammae
   use prob_params_module, only : coord_type
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
-                                     fspace_type, comoving
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif

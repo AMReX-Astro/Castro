@@ -8,13 +8,15 @@ module riemann_module
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
+#ifdef RADIATION
+                                 QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type, &
+#endif
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                  allow_negative_energy
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
   use rad_params_module, only : ngroups

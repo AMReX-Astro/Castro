@@ -7,6 +7,8 @@
 
 module meth_params_module
 
+  use bl_error_module
+
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
@@ -27,6 +29,15 @@ module meth_params_module
   integer         , save :: QFA, QFS, QFX
 
   integer         , save :: nadv
+
+#ifdef RADIATION
+  integer, save :: QRADVAR, QRAD, QRADHI, QPTOT, QREITOT
+  integer, save :: fspace_type
+  logical, save :: do_inelastic_scattering
+  logical, save :: comoving
+
+  double precision, save :: flatten_pp_threshold = -1.d0
+#endif
 
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
@@ -50,6 +61,7 @@ module meth_params_module
   character(len=:), allocatable :: gravity_type
 
   ! Create versions of these variables on the GPU
+  ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
   !$acc create(NTHERM, NVAR) &
@@ -60,6 +72,8 @@ module meth_params_module
   !$acc create(QGAMC, QGAME) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG) &
+  !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+  !$acc create(fspace_type, do_inelastic_scattering, comoving)
 #endif
   !$acc create(QFA, QFS, QFX)
 
@@ -88,5 +102,56 @@ contains
     call parmparse_destroy(pp)
 
   end subroutine set_castro_method_params
+
+#ifdef RADIATION
+  subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
+
+    implicit none
+
+    integer, intent(inout) :: qradvar_in
+
+    qradvar_in = QRADVAR
+
+  end subroutine get_qradvar
+
+  subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
+       bind(C, name="ca_init_radhydro_pars")
+
+    use rad_params_module, only : ngroups
+
+    integer, intent(in) :: fsp_type_in, do_is_in, com_in
+    double precision, intent(in) :: fppt
+
+    QPTOT  = QVAR+1
+    QREITOT = QVAR+2
+    QRAD = QVAR+3
+    QRADHI = qrad+ngroups-1
+  
+    QRADVAR = QVAR + 2 + ngroups
+  
+    if (ngroups .eq. 1) then
+       fspace_type = 1
+    else
+       fspace_type = fsp_type_in
+    end if
+    
+    if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
+       call bl_error("Unknown fspace_type", fspace_type)
+    end if
+    
+    do_inelastic_scattering = (do_is_in .ne. 0)
+    
+    if (com_in .eq. 1) then
+       comoving = .true.
+    else if (com_in .eq. 0) then
+       comoving = .false.
+    else
+       call bl_error("Wrong value for comoving", fspace_type)
+    end if
+    
+    flatten_pp_threshold = fppt
+    
+  end subroutine ca_init_radhydro_pars
+#endif
 
 end module meth_params_module
