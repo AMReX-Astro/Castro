@@ -4,11 +4,11 @@ module riemann_module
   use bl_constants_module
   use riemann_util_module
 
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UEDEN, UEINT, &
 #ifdef RADIATION
-                                 QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type, &
+                                 qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
                                  small_dens, small_pres, small_temp, &
@@ -969,13 +969,8 @@ contains
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
-#ifdef RADIATION
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-#else
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-#endif
+    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
 
     double precision :: gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: gamcr(gd_l1:gd_h1,gd_l2:gd_h2)

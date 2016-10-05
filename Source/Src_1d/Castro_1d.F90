@@ -30,7 +30,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   use meth_params_module, only : QVAR, QU, QV, QW, QPRES, &
 #ifdef RADIATION
-                                 QRADVAR, QPTOT, &
+                                 QPTOT, &
 #endif
                                  NQAUX, NVAR, NHYP, use_flattening, &
                                  NGDNV, GDU, GDPRES, first_order_hydro

@@ -3,13 +3,13 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
 #ifdef RADIATION
-                                 QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type, &
+                                 qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
@@ -72,13 +72,8 @@ contains
     ! comes in dimensioned as the full box.  We index the flux with
     ! kflux -- this will be set correctly for the different cases.
 
-#ifdef RADIATION
-    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-#else
-    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-#endif
+    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
 
     double precision, intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
     double precision, intent(inout) ::   qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
@@ -1080,13 +1075,9 @@ contains
     integer rflx_lo(3),rflx_hi(3)
 #endif
 
-#ifdef RADIATION
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-#else
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-#endif
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+
     double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
