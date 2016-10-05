@@ -400,7 +400,7 @@ contains
     QRADVAR = QVAR + 2 + ngroups
   
     ! update NQ -- it was already initialized in the hydro
-    NQ = NQ + QRADVAR
+    NQ = QRADVAR
 
     if (ngroups .eq. 1) then
        fspace_type = 1
