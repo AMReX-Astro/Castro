@@ -1566,11 +1566,11 @@ Castro::post_timestep (int iteration)
     // this level and the one immediately below it. If we're using gravity it
     // will also do the sync solve associated with the reflux.
 
-    if (do_reflux && level > 0) {
+    if (do_reflux) {
 	if (reflux_strategy == 1 && level == parent->finestLevel())
 	    reflux(0, level);
-	else if (reflux_strategy == 2)
-	    reflux(level-1, level);
+	else if (reflux_strategy == 2 && level < parent->finestLevel())
+	    reflux(level, level+1);
     }
 
     // Ensure consistency with finer grids.
@@ -1654,7 +1654,7 @@ Castro::post_timestep (int iteration)
     // If we're keeping sources until the end of the coarse timestep,
     // then delete them only if we're only level 0.
 
-    if (keep_sources_until_end) {
+    if (keep_sources_until_end || (do_reflux && update_sources_after_reflux)) {
 
 	if (level == 0) {
 	    for (int lev = 0; lev <= finest_level; ++lev) {
@@ -1662,19 +1662,6 @@ Castro::post_timestep (int iteration)
 		getLevel(lev).new_sources.clear();
 		getLevel(lev).hydro_source.clear();
 	    }
-	}
-
-    }
-    else {
-
-	// If we were updating the sources after the reflux,
-	// then we kept the sources until now, and so they
-	// need to be cleared.
-
-	if (do_reflux && update_sources_after_reflux) {
-	    old_sources.clear();
-	    new_sources.clear();
-	    hydro_source.clear();
 	}
 
     }
