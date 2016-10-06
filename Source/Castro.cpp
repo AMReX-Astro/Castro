@@ -489,6 +489,21 @@ Castro::Castro (Amr&            papa,
 
     }
 
+    if (keep_sources_until_end || (do_reflux && update_sources_after_reflux)) {
+
+	// These arrays hold all source terms that update the state.
+
+	for (int n = 0; n < num_src; ++n) {
+	    old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+	    new_sources.set(n, new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	}
+
+	// This array holds the hydrodynamics update.
+
+	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+
+    }
+
 #ifdef GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
@@ -1661,21 +1676,6 @@ Castro::post_timestep (int iteration)
     if (level == 0)
       do_energy_diagnostics();
 #endif
-
-    // If we're keeping sources until the end of the coarse timestep,
-    // then delete them only if we're only level 0.
-
-    if (keep_sources_until_end || (do_reflux && update_sources_after_reflux)) {
-
-	if (level == 0) {
-	    for (int lev = 0; lev <= finest_level; ++lev) {
-		getLevel(lev).old_sources.clear();
-		getLevel(lev).new_sources.clear();
-		getLevel(lev).hydro_source.clear();
-	    }
-	}
-
-    }
 
 #ifdef PARTICLES
     if (TracerPC)

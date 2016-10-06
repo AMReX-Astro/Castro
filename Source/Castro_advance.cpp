@@ -450,16 +450,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    // These arrays hold all source terms that update the state.
+    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-    for (int n = 0; n < num_src; ++n) {
-        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-        new_sources.set(n, new MultiFab(grids, NUM_STATE, S_new.nGrow()));
+	// These arrays hold all source terms that update the state.
+
+	for (int n = 0; n < num_src; ++n) {
+	    old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+	    new_sources.set(n, new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	}
+
+	// This array holds the hydrodynamics update.
+
+	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+
     }
-
-    // This array holds the hydrodynamics update.
-
-    hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
@@ -506,21 +510,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
-    sources_for_hydro.clear();
+    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-    // Optionally, retain the sources until the end of the coarse timestep.
-    // Otherwise, delete them, unless we're updating the sources after the
-    // next reflux.
-
-    if (!keep_sources_until_end) {
-
-	if (!(do_reflux && update_sources_after_reflux)) {
-		old_sources.clear();
-		new_sources.clear();
-		hydro_source.clear();
-	}
+	old_sources.clear();
+	new_sources.clear();
+	hydro_source.clear();
 
     }
+
+    sources_for_hydro.clear();
 
     prev_state.clear();
 
