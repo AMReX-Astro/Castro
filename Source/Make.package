@@ -9,18 +9,6 @@ CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
-CEXE_headers += castro_params.H
-CEXE_headers += castro_queries.H
-CEXE_headers += castro_defaults.H
-
-CEXE_headers += gravity_params.H
-CEXE_headers += gravity_queries.H
-CEXE_headers += gravity_defaults.H
-
-CEXE_headers += diffusion_params.H
-CEXE_headers += diffusion_queries.H
-CEXE_headers += diffusion_defaults.H
-
 CEXE_headers += Castro.H
 CEXE_headers += Castro_io.H
 CEXE_headers += Problem.H

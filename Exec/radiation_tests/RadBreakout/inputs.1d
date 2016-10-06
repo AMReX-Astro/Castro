@@ -111,7 +111,7 @@ radiation.filter_prim_int = 1  # filter primitives every ? steps
 radiation.filter_prim_T = 4
 radiation.filter_prim_S = 3
 
-radiation.first_order_hydro = 1   # default is 0 (i.e., high-order hydro)
+castro.first_order_hydro = 1   # default is 0 (i.e., high-order hydro)
 
 # RADIATION TOLERANCES
 radiation.reltol  = 1.e-14 # relative tolerance for implicit update loop

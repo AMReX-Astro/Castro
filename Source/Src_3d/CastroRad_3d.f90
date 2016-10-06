@@ -1,277 +1,9 @@
-subroutine ca_umdrv_rad(is_finest_level,time,lo,hi,domlo,domhi, &
-                        uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                        uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                        Erin,Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3, &
-                        lam,lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3, &
-                        Erout,Erout_l1,Erout_l2,Erout_l3,Erout_h1,Erout_h2,Erout_h3, &
-                        src,src_l1,src_l2,src_l3,src_h1,src_h2,src_h3, &
-                        delta,dt, &
-                        flux1,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                        flux2,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                        flux3,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                        radflux1,radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3, &
-                        radflux2,radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3, &
-                        radflux3,radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3, &
-                        area1,area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3, &
-                        area2,area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3, &
-                        area3,area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3, &
-                        vol,vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3, &
-                        courno,verbose, nstep_fsp) bind(C)
-  
-
-  use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, NVAR, NHYP, GDU, GDV, GDW, ngdnv
-  use rad_params_module, only : ngroups
-  use radhydro_params_module, only : QRADVAR
-  use advection_util_3d_module, only : divu
-  use rad_advection_module, only : umeth3d_rad, ctoprim_rad, consup_rad
-  
-  implicit none
-
-  integer nstep_fsp
-  integer is_finest_level
-  integer lo(3),hi(3),verbose
-  integer domlo(3),domhi(3)
-  integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-  integer uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3
-  integer Erin_l1,Erin_l2,Erin_l3,Erin_h1,Erin_h2,Erin_h3
-  integer Erout_l1,Erout_l2,Erout_l3,Erout_h1,Erout_h2,Erout_h3
-  integer lam_l1,lam_l2,lam_l3,lam_h1,lam_h2,lam_h3
-  integer flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-  integer flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-  integer flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-  integer radflux1_l1,radflux1_l2,radflux1_l3,radflux1_h1,radflux1_h2,radflux1_h3
-  integer radflux2_l1,radflux2_l2,radflux2_l3,radflux2_h1,radflux2_h2,radflux2_h3
-  integer radflux3_l1,radflux3_l2,radflux3_l3,radflux3_h1,radflux3_h2,radflux3_h3
-  integer area1_l1,area1_l2,area1_l3,area1_h1,area1_h2,area1_h3
-  integer area2_l1,area2_l2,area2_l3,area2_h1,area2_h2,area2_h3
-  integer area3_l1,area3_l2,area3_l3,area3_h1,area3_h2,area3_h3
-  integer vol_l1,vol_l2,vol_l3,vol_h1,vol_h2,vol_h3
-  integer src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-  double precision   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,     uin_l3:uin_h3,  NVAR)
-  double precision  uout( uout_l1:uout_h1,  uout_l2:uout_h2,   uout_l3:uout_h3, NVAR)
-  double precision Erin ( Erin_l1: Erin_h1, Erin_l2: Erin_h2, Erin_l3: Erin_h3,0:ngroups-1)
-  double precision Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,Erout_l3:Erout_h3,0:ngroups-1)
-  double precision lam  (  lam_l1:  lam_h1,  lam_l2:  lam_h2,  lam_l3:  lam_h3,0:ngroups-1)
-  double precision   src(  src_l1:src_h1,    src_l2:src_h2,     src_l3:src_h3,  NVAR)
-  double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2, flux1_l3:flux1_h3,NVAR)
-  double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2, flux2_l3:flux2_h3,NVAR)
-  double precision flux3(flux3_l1:flux3_h1,flux3_l2:flux3_h2, flux3_l3:flux3_h3,NVAR)
-  double precision radflux1(radflux1_l1:radflux1_h1,radflux1_l2:radflux1_h2, &
-                            radflux1_l3:radflux1_h3,0:ngroups-1)  
-  double precision radflux2(radflux2_l1:radflux2_h1,radflux2_l2:radflux2_h2, &
-                            radflux2_l3:radflux2_h3,0:ngroups-1)  
-  double precision radflux3(radflux3_l1:radflux3_h1,radflux3_l2:radflux3_h2, &
-                            radflux3_l3:radflux3_h3,0:ngroups-1)  
-  double precision area1(area1_l1:area1_h1,area1_l2:area1_h2, area1_l3:area1_h3)
-  double precision area2(area2_l1:area2_h1,area2_l2:area2_h2, area2_l3:area2_h3)
-  double precision area3(area3_l1:area3_h1,area3_l2:area3_h2, area3_l3:area3_h3)
-  double precision vol(vol_l1:vol_h1,vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision delta(3),dt,time,courno
-  
-  ! Automatic arrays for workspace
-  double precision, pointer :: q(:,:,:,:)
-  double precision, pointer :: gamc(:,:,:)
-  double precision, pointer :: gamcg(:,:,:)
-  double precision, pointer :: flatn(:,:,:)
-  double precision, pointer :: c(:,:,:)
-  double precision, pointer :: cg(:,:,:)
-  double precision, pointer :: csml(:,:,:)
-  double precision, pointer :: div(:,:,:)
-  double precision, pointer :: pdivu(:,:,:)
-  double precision, pointer :: srcQ(:,:,:,:)
-
-  double precision, pointer :: q1(:,:,:,:)
-  double precision, pointer :: q2(:,:,:,:)
-  double precision, pointer :: q3(:,:,:,:)
-  
-  integer ngq,ngf
-  double precision dx,dy,dz
-
-  integer :: q_lo(3), q_hi(3)
-  integer :: uin_lo(3), uin_hi(3)
-  integer :: uout_lo(3), uout_hi(3)
-  integer :: Erin_lo(3), Erin_hi(3)
-  integer :: Erout_lo(3), Erout_hi(3)
-  integer :: lam_lo(3), lam_hi(3)
-  integer :: flux1_lo(3), flux1_hi(3)
-  integer :: flux2_lo(3), flux2_hi(3)
-  integer :: flux3_lo(3), flux3_hi(3)  
-  integer :: radflux1_lo(3), radflux1_hi(3)
-  integer :: radflux2_lo(3), radflux2_hi(3)
-  integer :: radflux3_lo(3), radflux3_hi(3)  
-  integer :: q1_lo(3), q1_hi(3)
-  integer :: q2_lo(3), q2_hi(3)
-  integer :: q3_lo(3), q3_hi(3)
-  integer :: area1_lo(3), area1_hi(3)
-  integer :: area2_lo(3), area2_hi(3)
-  integer :: area3_lo(3), area3_hi(3)
-  integer :: vol_lo(3), vol_hi(3)
-  integer :: src_lo(3), src_hi(3)
-  
-  q_lo(:) = lo(:) - NHYP
-  q_hi(:) = hi(:) + NHYP
-
-  lam_lo(:) = [lam_l1, lam_l2, lam_l3]
-  lam_hi(:) = [lam_h1, lam_h2, lam_h3]
-
-  uin_lo = [uin_l1, uin_l2, uin_l3]
-  uin_hi = [uin_h1, uin_h2, uin_h3]
-  
-  uout_lo = [uout_l1, uout_l2, uout_l3]
-  uout_hi = [uout_h1, uout_h2, uout_h3]
-
-  Erin_lo = [Erin_l1, Erin_l2, Erin_l3]
-  Erin_hi = [Erin_h1, Erin_h2, Erin_h3]
-
-  Erout_lo = [Erout_l1, Erout_l2, Erout_l3]
-  Erout_hi = [Erout_h1, Erout_h2, Erout_h3]
-
-  flux1_lo = [flux1_l1, flux1_l2, flux1_l3]
-  flux1_hi = [flux1_h1, flux1_h2, flux1_h3]
-
-  flux2_lo = [flux2_l1, flux2_l2, flux2_l3]
-  flux2_hi = [flux2_h1, flux2_h2, flux2_h3]
-
-  flux3_lo = [flux3_l1, flux3_l2, flux3_l3]
-  flux3_hi = [flux3_h1, flux3_h2, flux3_h3]
-
-  radflux1_lo = [radflux1_l1, radflux1_l2, radflux1_l3]
-  radflux1_hi = [radflux1_h1, radflux1_h2, radflux1_h3]
-
-  radflux2_lo = [radflux2_l1, radflux2_l2, radflux2_l3]
-  radflux2_hi = [radflux2_h1, radflux2_h2, radflux2_h3]
-
-  radflux3_lo = [radflux3_l1, radflux3_l2, radflux3_l3]
-  radflux3_hi = [radflux3_h1, radflux3_h2, radflux3_h3]
-
-  area1_lo = [area1_l1, area1_l2, area1_l3]
-  area1_hi = [area1_h1, area1_h2, area1_h3]
-
-  area2_lo = [area2_l1, area2_l2, area2_l3]
-  area2_hi = [area2_h1, area2_h2, area2_h3]
-
-  area3_lo = [area3_l1, area3_l2, area3_l3]
-  area3_hi = [area3_h1, area3_h2, area3_h3]
-
-  vol_lo = [vol_l1, vol_l2, vol_l3]
-  vol_hi = [vol_h1, vol_h2, vol_h3]
-
-  src_lo = [src_l1, src_l2, src_l3]
-  src_hi = [src_h1, src_h2, src_h3]
-  
-  ngq = NHYP
-  ngf = 1
-
-  call bl_allocate(     q, q_lo, q_hi, QRADVAR)
-  call bl_allocate(  gamc, q_lo, q_hi)
-  call bl_allocate( gamcg, q_lo, q_hi)
-  call bl_allocate( flatn, q_lo, q_hi)
-  call bl_allocate(     c, q_lo, q_hi)
-  call bl_allocate(    cg, q_lo, q_hi)
-  call bl_allocate(  csml, q_lo, q_hi)
-
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3))
-
-  call bl_allocate(  srcQ, q_lo, q_hi, QVAR)
-
-  q1_lo = flux1_lo-1
-  q1_hi = flux1_hi+1
-  q2_lo = flux2_lo-1
-  q2_hi = flux2_hi+1
-  q3_lo = flux3_lo-1
-  q3_hi = flux3_hi+1
-
-  call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
-  call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
-  call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
- 
-  dx = delta(1)
-  dy = delta(2)
-  dz = delta(3)
-
-  ! Translate to primitive variables, compute sound speeds
-  ! Note that (q,c,gamc,csml,flatn) are all dimensioned the same
-  ! and set to correspond to coordinates of (lo:hi)
-  call ctoprim_rad(lo,hi,uin,uin_lo,uin_hi, &
-                   Erin,Erin_lo,Erin_hi, &
-                   lam,lam_lo,lam_hi, &
-                   q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
-                   src,src_lo,src_hi, &
-                   srcQ,q_lo,q_hi, &
-                   courno,dx,dy,dz,dt,ngq,ngf)
-
-  ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth3d_rad(q,c,cg,gamc,gamcg,csml,flatn,q_lo,q_hi, &
-                   lam, lam_lo, lam_hi, &
-                   srcQ, q_lo, q_hi, &
-                   lo, hi, dx, dy, dz, dt, &
-                   flux1, flux1_lo, flux1_hi, &
-                   flux2, flux2_lo, flux2_hi, &
-                   flux3, flux3_lo, flux3_hi, &
-                   radflux1, radflux1_lo, radflux1_hi, &
-                   radflux2, radflux2_lo, radflux2_hi, &
-                   radflux3, radflux3_lo, radflux3_hi, &
-                   q1, q1_lo, q1_hi, &
-                   q2, q2_lo, q2_hi, &
-                   q3, q3_lo, q3_hi, &
-                   pdivu, domlo, domhi)
-  
-  !     Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,q_lo,q_hi,(/ dx, dy, dz /),div,lo,hi+1)
-
-  !     Conservative update
-  call consup_rad(uin, uin_lo, uin_hi, &
-                  uout, uout_lo, uout_hi, &
-                  Erin, Erin_lo, Erin_hi, &
-                  Erout, Erout_lo, Erout_hi, &
-                  src, src_lo, src_hi, &
-                  flux1, flux1_lo, flux1_hi, &
-                  flux2, flux2_lo, flux2_hi, &
-                  flux3, flux3_lo, flux3_hi, &
-                  radflux1, radflux1_lo, radflux1_hi, &
-                  radflux2, radflux2_lo, radflux2_hi, &
-                  radflux3, radflux3_lo, radflux3_hi, &
-                  q1, q1_lo, q1_hi, &
-                  q2, q2_lo, q2_hi, &
-                  q3, q3_lo, q3_hi, &
-                  area1, area1_lo, area1_hi, &
-                  area2, area2_lo, area2_hi, &
-                  area3, area3_lo, area3_hi, &
-                  vol, vol_lo, vol_hi, &
-                  div, pdivu, &
-                  lo,hi,dx,dy,dz,dt, nstep_fsp)
-
-  call bl_deallocate(q)
-  call bl_deallocate(gamc)
-  call bl_deallocate(gamcg)
-  call bl_deallocate(flatn)
-  call bl_deallocate(c)
-  call bl_deallocate(cg)
-  call bl_deallocate(csml)
-  
-  call bl_deallocate(div)
-  call bl_deallocate(pdivu)
-
-  call bl_deallocate(srcQ)
-
-  call bl_deallocate(q1)
-  call bl_deallocate(q2)
-  call bl_deallocate(q3)
-
-end subroutine ca_umdrv_rad
-
-! ::: 
-! ::: ------------------------------------------------------------------
-! ::: 
-
 ! This subroutine cannot be tiled
 subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
                                 kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
                                 lam, lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &
                                 dx, ngrow, limiter, filter_T, S)
-  
+
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda
   use filter_module
@@ -314,7 +46,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
            if (Er(i,j,k,g) .eq. -1.d0) then
               cycle
            end if
-           
+
            if (Er(i-1,j,k,g) .eq. -1.d0) then
               r1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx(1))
            else if (Er(i+1,j,k,g) .eq. -1.d0) then
@@ -460,7 +192,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
               i = reg_h1 - 1
               lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i-2:i+1,j,k,g))
 
-              i = reg_h1 
+              i = reg_h1
               lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i-2:i,j,k,g))
            end if
         end do
@@ -588,7 +320,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
               i = reg_h1 - 1
               lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i-3:i+1,j,k,g))
 
-              i = reg_h1 
+              i = reg_h1
               lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i-3:i,j,k,g))
            end if
         end do
@@ -742,7 +474,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
            end if
 
            if (Er(reg_h1+1,j,k,g) .eq. -1.d0) then
-              i = reg_h1 - 3 
+              i = reg_h1 - 3
               lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i-4:i+3,j,k,g))
 
               i = reg_h1 - 2
@@ -751,7 +483,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
               i = reg_h1 - 1
               lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i-4:i+1,j,k,g))
 
-              i = reg_h1 
+              i = reg_h1
               lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i-4:i,j,k,g))
            end if
         end do
@@ -928,7 +660,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   ! hi-x lo-y lo-z
   do k=lam_l3,reg_l3-1
      do j=lam_l2,reg_l2-1
-        do i=reg_h1+1,lam_h1 
+        do i=reg_h1+1,lam_h1
            if (Er(i,j,k,g).eq.-1.d0) then
               lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_l3,g)
            end if
@@ -959,7 +691,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   ! hi-x reg-y lo-z
   do k=lam_l3,reg_l3-1
      do j=reg_l2,reg_h2
-        do i=reg_h1+1,lam_h1 
+        do i=reg_h1+1,lam_h1
            lam(i,j,k,g) = lam(reg_h1,j,reg_l3,g)
         end do
      end do
@@ -990,7 +722,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   ! hi-x hi-y lo-z
   do k=lam_l3,reg_l3-1
      do j=reg_h2+1,lam_h2
-        do i=reg_h1+1,lam_h1 
+        do i=reg_h1+1,lam_h1
            if (Er(i,j,k,g).eq.-1.d0) then
               lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_l3,g)
            end if
@@ -1055,7 +787,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
 
   ! lo-x hi-y reg-z
   do k=reg_l3,reg_h3
-     do j=reg_h2+1,lam_h2 
+     do j=reg_h2+1,lam_h2
         do i=lam_l1,reg_l1-1
            if (Er(i,j,k,g).eq.-1.d0) then
               lam(i,j,k,g) = lam(reg_l1,reg_h2,k,g)
@@ -1111,7 +843,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   ! hi-x lo-y hi-z
   do k=reg_h3+1,lam_h3
      do j=lam_l2,reg_l2-1
-        do i=reg_h1+1,lam_h1 
+        do i=reg_h1+1,lam_h1
            if (Er(i,j,k,g).eq.-1.d0) then
               lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_h3,g)
            end if
@@ -1120,7 +852,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   end do
 
   ! lo-x reg-y hi-z
-  do k=reg_h3+1,lam_h3 
+  do k=reg_h3+1,lam_h3
      do j=reg_l2,reg_h2
         do i=lam_l1,reg_l1-1
            lam(i,j,k,g) = lam(reg_l1,j,reg_h3,g)
@@ -1128,7 +860,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
      end do
   end do
 
-  ! reg-x reg-y hi-z 
+  ! reg-x reg-y hi-z
   do k=reg_h3+1,lam_h3
      do j=reg_l2,reg_h2
         do i=reg_l1,reg_h1
@@ -1140,7 +872,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   end do
 
   ! hi-x reg-y hi-z
-  do k=reg_h3+1,lam_h3 
+  do k=reg_h3+1,lam_h3
      do j=reg_l2,reg_h2
         do i=reg_h1+1,lam_h1
            lam(i,j,k,g) = lam(reg_h1,j,reg_h3,g)
@@ -1149,7 +881,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   end do
 
   ! lo-x hi-y hi-z
-  do k=reg_h3+1,lam_h3 
+  do k=reg_h3+1,lam_h3
      do j=reg_h2+1,lam_h2
         do i=lam_l1,reg_l1-1
            if (Er(i,j,k,g).eq.-1.d0) then
@@ -1171,9 +903,9 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   end do
 
   ! hi-x hi-y hi-z
-  do k=reg_h3+1,lam_h3 
+  do k=reg_h3+1,lam_h3
      do j=reg_h2+1,lam_h2
-        do i=reg_h1+1,lam_h1 
+        do i=reg_h1+1,lam_h1
            if (Er(i,j,k,g).eq.-1.d0) then
               lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_h3,g)
            end if
@@ -1202,7 +934,7 @@ subroutine ca_get_v_dcf(lo, hi, &
                         dtemp, dtime, sigma, c, &
                         v  ,   v_l1,   v_l2,   v_l3,   v_h1,   v_h2,   v_h3, &
                         dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3)
-  
+
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
 
   implicit none
@@ -1240,14 +972,14 @@ subroutine ca_get_v_dcf(lo, hi, &
            v(i,j,k,1) = s(i,j,k,UMX)/s(i,j,k,URHO)
            v(i,j,k,2) = s(i,j,k,UMY)/s(i,j,k,URHO)
            v(i,j,k,3) = s(i,j,k,UMZ)/s(i,j,k,URHO)
-           
+
            alpha = fac0 * (kp2(i,j,k) * (T(i,j,k) + dtemp) ** 4    &
                 -          kp (i,j,k) * (T(i,j,k)        ) ** 4)   &
                 -  fac2 * (kp2(i,j,k) - kp(i,j,k)) * er(i,j,k)
-           
+
            frc = s(i,j,k,URHO) * c_v(i,j,k) + 1.0d-50
            etainv = frc / (alpha + frc)
-           
+
            dcf(i,j,k) = 2.d0 * etainv * (kp(i,j,k) / kr(i,j,k))
         end do
      end do
@@ -1332,7 +1064,7 @@ subroutine ca_update_dcf(lo, hi, &
                          etainv, eti_l1, eti_l2, eti_l3, eti_h1, eti_h2, eti_h3, &
                          kp, kp_l1, kp_l2, kp_l3, kp_h1, kp_h2, kp_h3, &
                          kr, kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3)
-  
+
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1363,7 +1095,7 @@ subroutine ca_set_dterm_face(lo, hi, &
                              dc, dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
                              dtf, dtf_l1, dtf_l2, dtf_l3, dtf_h1, dtf_h2, dtf_h3, dx, idir)
   implicit none
-  
+
   integer, intent(in) :: Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
        dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
        dtf_l1, dtf_l2, dtf_l3, dtf_h1, dtf_h2, dtf_h3, idir
@@ -1439,7 +1171,7 @@ subroutine ca_face2center(lo, hi, &
 end subroutine ca_face2center
 
 
-subroutine ca_correct_dterm(  & 
+subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_l3, dfx_h1, dfx_h2, dfx_h3, &
                             dfy, dfy_l1, dfy_l2, dfy_l3, dfy_h1, dfy_h2, dfy_h3, &
                             dfz, dfz_l1, dfz_l2, dfz_l3, dfz_h1, dfz_h2, dfz_h3, &
@@ -1466,16 +1198,16 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, &
        UFX, allow_negative_energy
-  
+
   implicit none
-  
+
   integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
   integer          :: gpr_l1,gpr_l2,gpr_l3,gpr_h1,gpr_h2,gpr_h3
   integer          :: lo(3), hi(3)
   double precision :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
   double precision :: gpr(gpr_l1:gpr_h1,gpr_l2:gpr_h2,gpr_l3:gpr_h3)
   double precision :: dx(3), dt
-  
+
   double precision :: rhoInv,ux,uy,uz,dt1,dt2,dt3,c
   integer          :: i,j,k
   type(eos_t) :: eos_state
@@ -1484,7 +1216,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
   do k = lo(3),hi(3)
      do j = lo(2),hi(2)
         do i = lo(1),hi(1)
-           
+
            rhoInv = 1.d0/u(i,j,k,URHO)
 
            eos_state % rho = u(i,j,k,URHO)
@@ -1500,7 +1232,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
            else
               c = 0.d0
            end if
-           
+
            c = sqrt(c**2 + gpr(i,j,k)*rhoInv)
 
            ux = u(i,j,k,UMX)*rhoInv
@@ -1511,11 +1243,11 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
            dt2 = dx(2)/(c + abs(uy))
            dt3 = dx(3)/(c + abs(uz))
            dt = min(dt,dt1,dt2,dt3)
-           
+
         enddo
      enddo
   enddo
-  
+
 end subroutine ca_estdt_rad
 
 
@@ -1577,7 +1309,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
 
   integer :: i, j, k, g
   double precision :: gE(gPr_l1:gPr_h1,gPr_l2:gPr_h2,gPr_l3:gPr_h3)
-  double precision :: lam, gE1, gE2, gE3, r, f, gamr 
+  double precision :: lam, gE1, gE2, gE3, r, f, gamr
   integer :: im, ip, jm, jp, km, kp
   double precision :: xm, xp, ym, yp, zm, zp
 
@@ -1596,7 +1328,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      ip = 0
      xp = 1.d0
   end if
-  
+
   if (gPr_l2-1 .ge. vlo(2)) then
      jm = 1
      ym = 2.d0
@@ -1643,7 +1375,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            end do
         end do
      end do
-     
+
      ! lo-x lo-y lo-z
      i = gPr_l1
      j = gPr_l2
@@ -1652,7 +1384,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
      gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      ! med-x lo-y lo-z
      j = gPr_l2
      k = gPr_l3
@@ -1662,7 +1394,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! hi-x lo-y lo-z
      i = gPr_h1
      j = gPr_l2
@@ -1671,7 +1403,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
      gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      ! lo-x med-y lo-z
      i = gPr_l1
      k = gPr_l3
@@ -1681,7 +1413,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! med-x med-y lo-z side
      k = gPr_l3
      do j = gPr_l2+1, gPr_h2-1
@@ -1692,7 +1424,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! hi-x med-y lo-z
      i = gPr_h1
      k = gPr_l3
@@ -1702,7 +1434,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! lo-x hi-y lo-z
      i = gPr_l1
      j = gPr_h2
@@ -1711,7 +1443,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
      gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      ! med-x hi-y lo-z
      j = gPr_h2
      k = gPr_l3
@@ -1721,7 +1453,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-km,g)) / (zm*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! hi-x hi-y lo-z
      i = gPr_h1
      j = gPr_h2
@@ -1740,7 +1472,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! med-x lo-y med-z
      j = gPr_l2
      do k = gPr_l3+1, gPr_h3-1
@@ -1751,7 +1483,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! hi-x lo-y med-z
      i = gPr_h1
      j = gPr_l2
@@ -1761,7 +1493,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! lo-x med-y med-z
      i = gPr_l1
      do k = gPr_l3+1, gPr_h3-1
@@ -1772,7 +1504,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! hi-x med-y med-z
      i = gPr_h1
      do k = gPr_l3+1, gPr_h3-1
@@ -1783,7 +1515,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! lo-x hi-y med-z
      i = gPr_l1
      j = gPr_h2
@@ -1793,7 +1525,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! med-x hi-y med-z
      j = gPr_h2
      do k = gPr_l3+1, gPr_h3-1
@@ -1804,7 +1536,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! hi-x hi-y med-z
      i = gPr_h1
      j = gPr_h2
@@ -1814,7 +1546,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.d0*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! lo-x lo-y hi-z
      i = gPr_l1
      j = gPr_l2
@@ -1833,7 +1565,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! hi-x lo-y hi-z
      i = gPr_h1
      j = gPr_l2
@@ -1842,7 +1574,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+1,k,g) - Er(i,j-jm,k,g)) / (ym*dx(2))
      gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      ! lo-x med-y hi-z
      i = gPr_l1
      k = gPr_h3
@@ -1852,8 +1584,8 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
-     ! med-x med-y hi-z 
+
+     ! med-x med-y hi-z
      k = gPr_h3
      do j = gPr_l2+1, gPr_h2-1
         do i = gPr_l1+1, gPr_h1-1
@@ -1863,7 +1595,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
         end do
      end do
-     
+
      ! hi-x med-y hi-z
      i = gPr_h1
      k = gPr_h3
@@ -1873,7 +1605,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! lo-x hi-y hi-z
      i = gPr_l1
      j = gPr_h2
@@ -1882,7 +1614,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
      gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      ! med-x hi-y hi-z
      j = gPr_h2
      k = gPr_h3
@@ -1892,7 +1624,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
         gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
         gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
      end do
-     
+
      ! hi-x hi-y hi-z
      i = gPr_h1
      j = gPr_h2
@@ -1901,7 +1633,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
      gE2 = (Er(i,j+jp,k,g) - Er(i,j-1,k,g)) / (yp*dx(2))
      gE3 = (Er(i,j,k+kp,g) - Er(i,j,k-1,g)) / (zp*dx(3))
      gE(i,j,k) = sqrt(gE1**2 + gE2**2 + gE3**2)
-     
+
      do k = gPr_l3, gPr_h3
         do j = gPr_l2, gPr_h2
            do i = gPr_l1, gPr_h1
@@ -1917,8 +1649,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
            end do
         end do
      end do
-     
+
   end do
 
 end subroutine ca_est_gpr2
-

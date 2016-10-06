@@ -14,7 +14,6 @@
 
 #ifdef PARTICLES
 #include "AmrParticles.H"
-typedef AmrParticleContainer<BL_SPACEDIM> TracerParticleContainer; // to save original position
 #endif
 
 #include <iostream>
@@ -245,7 +244,9 @@ public:
 
     void check_for_nan(MultiFab& state);
 
+#ifdef SDC
     void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
+#endif
 
     void do_old_sources(Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
@@ -506,7 +507,7 @@ public:
 #endif
 
 #ifdef PARTICLES
-    static TracerParticleContainer* theTracerPC () { return TracerPC; }
+    static AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
     static int       NUM_STATE;
@@ -518,7 +519,10 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
+    static int       QRADVAR;
     static int       NQAUX;
+    static int       NQ;
+
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
@@ -714,7 +718,7 @@ protected:
 #endif
 
 #ifdef PARTICLES
-    static TracerParticleContainer* TracerPC;
+    static AmrTracerParticleContainer* TracerPC;
 #endif
 
     // Name of the probin file and its length.

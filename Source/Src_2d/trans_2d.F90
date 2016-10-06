@@ -2,9 +2,13 @@ module transverse_module
 
   use bl_constants_module
   use network, only : nspec
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
+#ifdef RADIATION
+                                 qrad, qradhi, qptot, qreitot, &
+                                 fspace_type, comoving, &
+#endif
                                  small_pres, small_temp, &
                                  npassive, qpass_map, upass_map, &
                                  transverse_use_eos, ppm_type, ppm_trace_sources, &
@@ -12,8 +16,6 @@ module transverse_module
                                  ppm_predict_gammae
   use prob_params_module, only : coord_type
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
-                                     fspace_type, comoving
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif
@@ -61,16 +63,12 @@ contains
 #ifdef RADIATION
     double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision rfx(rfx_l1:rfx_h1,rfx_l2:rfx_h2,0:ngroups-1)
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-#else
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
 #endif
+
+    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
     double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,ngdnv)
@@ -515,16 +513,13 @@ contains
 #ifdef RADIATION
     double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-#else
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
 #endif
+
+    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
     double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,ngdnv)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)

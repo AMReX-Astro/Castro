@@ -50,6 +50,7 @@ pp.query("time_center_sponge", time_center_sponge);
 pp.query("update_state_between_sources", update_state_between_sources);
 pp.query("keep_sources_until_end", keep_sources_until_end);
 pp.query("source_term_predictor", source_term_predictor);
+pp.query("first_order_hydro", first_order_hydro);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);

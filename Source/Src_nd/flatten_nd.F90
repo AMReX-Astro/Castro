@@ -1,30 +1,39 @@
 module flatten_module
 
+  use mempool_module, only : bl_allocate, bl_deallocate
+  use bl_constants_module, only : ZERO
+
   implicit none
+
+  private
+
+  public :: uflaten
+#ifdef RADIATION
+  public :: rad_flaten
+#endif
 
 contains
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
-  subroutine uflaten(lo,hi,p,u,v,w,flatn,q_lo,q_hi)
+  subroutine uflaten(lo, hi, p, u, v, w, flatn, q_lo, q_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : small_pres
     use prob_params_module, only : dg
     use bl_constants_module
 
     implicit none
 
-    integer :: lo(3), hi(3)
-    integer :: q_lo(3), q_hi(3)
-    
-    double precision :: p(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: u(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: v(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: w(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+
+    double precision, intent(in) :: p(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: u(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: v(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: w(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i, j, k, ishft
 
@@ -32,7 +41,7 @@ contains
 
     ! Local arrays
     double precision, pointer :: dp(:,:,:), z(:,:,:), chi(:,:,:)
-    
+
     ! Knobs for detection of strong shock
     double precision, parameter :: shktst = 0.33d0, zcut1 = 0.75d0, zcut2 = 0.85d0, dzcut = ONE/(zcut2-zcut1)
 
@@ -42,7 +51,7 @@ contains
 
     ! x-direction flattening coef
     do k = lo(3),hi(3)
-       do j = lo(2),hi(2) 
+       do j = lo(2),hi(2)
           !dir$ ivdep
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              dp(i,j,k) = p(i+1*dg(1),j,k) - p(i-1*dg(1),j,k)
@@ -111,7 +120,7 @@ contains
 
     ! z-direction flattening coef
     do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
-       do j = lo(2),hi(2) 
+       do j = lo(2),hi(2)
           !dir$ ivdep
           do i = lo(1),hi(1)
              dp(i,j,k) = p(i,j,k+1*dg(3)) - p(i,j,k-1*dg(3))
@@ -146,11 +155,63 @@ contains
           enddo
        enddo
     enddo
-    
+
     call bl_deallocate(dp )
     call bl_deallocate(z  )
     call bl_deallocate(chi)
 
   end subroutine uflaten
+
+#ifdef RADIATION
+  subroutine rad_flaten(lo, hi, p, ptot, u, v, w, flatn, q_lo, q_hi)
+
+    use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+
+    double precision, intent(in) :: p(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: ptot(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: u(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: v(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(in) :: w(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+
+    integer :: i, j, k
+
+    double precision, pointer :: flatg(:,:,:)
+
+    call uflaten(lo, hi, ptot, u, v, w, flatn, q_lo, q_hi)
+
+    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
+    call uflaten(lo, hi, p, u, v, w, flatg, q_lo, q_hi)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
+
+             if (flatten_pp_threshold > ZERO) then
+                if ( u(i-1,j,k) + v(i,j-1,k) + w(i,j,k-1) > &
+                     u(i+1,j,k) + v(i,j+1,k) + w(i,j,k+1) ) then
+
+                   if (p(i,j,k) < flatten_pp_threshold * ptot(i,j,k)) then
+                      flatn(i,j,k) = ZERO
+                   end if
+
+                end if
+             endif
+
+          end do
+       end do
+    end do
+
+    call bl_deallocate(flatg)
+
+  end subroutine rad_flaten
+#endif
 
 end module flatten_module

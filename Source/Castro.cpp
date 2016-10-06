@@ -88,7 +88,9 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
+int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
+int          Castro::NQ            = -1;
 
 #include <castro_defaults.H>
 
@@ -597,6 +599,15 @@ Castro::Castro (Amr&            papa,
 #else
     init_godunov_indices();
 #endif
+
+#ifdef RADIATION
+    get_qradvar(&QRADVAR);
+#endif
+
+    // NQ will be used to dimension the primitive variable state
+    // vector it will include the "pure" hydrodynamical variables +
+    // any radiation variables
+    NQ = QVAR + QRADVAR;
 
 #ifdef LEVELSET
     // Build level set narrowband helpers
@@ -3235,7 +3246,7 @@ Castro::check_for_nan(MultiFab& state)
 }
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-
+#ifdef SDC
 void
 Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 {
@@ -3261,6 +3272,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
     }
 
 }
+#endif
 
 
 // Given State_Type state data, perform a number of cleaning steps to make

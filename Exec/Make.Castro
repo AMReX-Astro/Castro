@@ -60,10 +60,6 @@ ifeq ($(USE_SHOCK_VAR), TRUE)
   DEFINES += -DSHOCK_VAR
 endif
 
-ifeq ($(USE_PARTICLES), TRUE)
-  DEFINES += -DPARTICLES
-endif
-
 ifeq ($(USE_LEVELSET), TRUE)
   DEFINES += -DLEVELSET
 endif
@@ -237,10 +233,14 @@ VPATH_LOCATIONS   += $(TOP)/Util/plot1d
 endif
 
 
-Bdirs 	:= Source Source/Src_$(DIM)d Source/Src_nd
+Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd
 
 
 Pdirs 	:= C_BaseLib C_AMRLib C_BoundaryLib 
+
+ifeq ($(USE_PARTICLES), TRUE)
+  Pdirs += C_ParticleLib
+endif
 
 ifeq ($(USE_RAD), TRUE)
    Pdirs += LinearSolvers/C_CellMG
@@ -288,17 +288,10 @@ endif
    
 ifeq ($(USE_MG), TRUE)
   include $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
-  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
-
   include $(BOXLIB_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
-  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
 endif
 
 include $(BOXLIB_HOME)/Src/F_BaseLib/FParallelMG.mak
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/F_BaseLib
-VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/F_BaseLib
 
 # runtime parameter support for extern/ routines
 f90EXE_sources += extern.f90
@@ -356,17 +349,6 @@ else
 endif
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) buildInfo.cpp -o $(objEXETempDir)/buildInfo.o
 	$(SILENT) $(RM) buildInfo.cpp
-
-
-vpath %.c   . $(VPATH_LOCATIONS)
-vpath %.cpp . $(VPATH_LOCATIONS)
-vpath %.h   . $(VPATH_LOCATIONS)
-vpath %.H   . $(VPATH_LOCATIONS)
-vpath %.F   . $(VPATH_LOCATIONS)
-vpath %.f90 . $(VPATH_LOCATIONS) 
-vpath %.F90 . $(VPATH_LOCATIONS)
-vpath %.f   . $(VPATH_LOCATIONS)
-vpath %.fi  . $(VPATH_LOCATIONS)
 
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules

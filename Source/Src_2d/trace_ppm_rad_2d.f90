@@ -23,12 +23,12 @@ contains
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
          QGAME, &
+         QRADVAR, qrad, qradhi, qptot, qreitot, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 

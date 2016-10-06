@@ -78,7 +78,6 @@ public:
   static std::string current_group_name;
 
   static Real flatten_pp_threshold;
-  static int first_order_hydro;
   static int pure_hydro;
 
   static int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))

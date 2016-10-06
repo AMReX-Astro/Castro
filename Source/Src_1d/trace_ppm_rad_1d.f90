@@ -20,13 +20,13 @@ contains
 
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
+         QRADVAR, qrad, qradhi, qptot, qreitot, &
          QGAME, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_predict_gammae, ppm_reference_eigenvectors, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 

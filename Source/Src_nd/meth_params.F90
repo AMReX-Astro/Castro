@@ -12,23 +12,40 @@
 
 module meth_params_module
 
+  use bl_error_module
+
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
   ! NTHERM: number of thermodynamic variables
-  integer         , save :: NTHERM, NVAR
-  integer         , save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  integer         , save :: USHK
+  integer, save :: NTHERM, NVAR
+  integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
+  integer, save :: USHK
 
   ! QTHERM: number of primitive variables
-  integer         , save :: QTHERM, QVAR
-  integer         , save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer         , save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
-  integer         , save :: QFA, QFS, QFX
+  integer, save :: QTHERM, QVAR
+  integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+  integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
+#ifdef RADIATION
+  integer, save :: QGAMCG, QCG
+#endif
+  integer, save :: QFA, QFS, QFX
 
-  integer         , save :: nadv
+  integer, save :: nadv
+
+  ! NQ will be the total number of primitive variables, hydro + radiation
+  integer, save :: NQ         
+
+#ifdef RADIATION
+  integer, save :: QRADVAR, QRAD, QRADHI, QPTOT, QREITOT
+  integer, save :: fspace_type
+  logical, save :: do_inelastic_scattering
+  logical, save :: comoving
+
+  double precision, save :: flatten_pp_threshold = -1.d0
+#endif
 
   integer, save :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
@@ -52,6 +69,7 @@ module meth_params_module
   character(len=:), allocatable :: gravity_type
 
   ! Create versions of these variables on the GPU
+  ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
   !$acc create(NTHERM, NVAR) &
@@ -60,6 +78,12 @@ module meth_params_module
   !$acc create(QTHERM, QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
   !$acc create(QGAMC, QGAME) &
+  !$acc create(NQ) &
+#ifdef RADIATION
+  !$acc create(QGAMCG, QCG) &
+  !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+  !$acc create(fspace_type, do_inelastic_scattering, comoving)
+#endif
   !$acc create(QFA, QFS, QFX)
 
   ! Begin the declarations of the ParmParse parameters
@@ -98,6 +122,7 @@ module meth_params_module
   integer         , save :: allow_small_energy
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
+  integer         , save :: first_order_hydro
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -140,16 +165,17 @@ module meth_params_module
   !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
   !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
   !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
-  !$acc create(sponge_implicit, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_mode, dxnuc) &
-  !$acc create(do_react, react_T_min, react_T_max) &
-  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
+  !$acc create(sponge_implicit, first_order_hydro, cfl) &
+  !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
+  !$acc create(dxnuc, do_react, react_T_min) &
+  !$acc create(react_T_max, react_rho_min, react_rho_max) &
+  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
+  !$acc create(do_rotation, rot_period, rot_period_dot) &
+  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, track_grid_losses, const_grav) &
+  !$acc create(get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -201,6 +227,7 @@ contains
     allow_small_energy = 1;
     do_sponge = 0;
     sponge_implicit = 1;
+    first_order_hydro = 0;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -265,6 +292,7 @@ contains
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
+    call pp%query("first_order_hydro", first_order_hydro)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
@@ -329,19 +357,82 @@ contains
     !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
     !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
     !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_mode, dxnuc) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(sponge_implicit, first_order_hydro, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
+    !$acc device(dxnuc, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
     call parmparse_destroy(pp)
 
   end subroutine set_castro_method_params
+
+#ifdef RADIATION
+  subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
+
+    implicit none
+
+    integer, intent(inout) :: qradvar_in
+
+    qradvar_in = QRADVAR
+
+  end subroutine get_qradvar
+
+  subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
+       bind(C, name="ca_init_radhydro_pars")
+
+    use rad_params_module, only : ngroups
+
+    integer, intent(in) :: fsp_type_in, do_is_in, com_in
+    double precision, intent(in) :: fppt
+
+    QPTOT  = QVAR+1
+    QREITOT = QVAR+2
+    QRAD = QVAR+3
+    QRADHI = qrad+ngroups-1
+  
+    QRADVAR = QVAR + 2 + ngroups
+  
+    ! update NQ -- it was already initialized in the hydro
+    NQ = QRADVAR
+
+    if (ngroups .eq. 1) then
+       fspace_type = 1
+    else
+       fspace_type = fsp_type_in
+    end if
+    
+    if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
+       call bl_error("Unknown fspace_type", fspace_type)
+    end if
+    
+    do_inelastic_scattering = (do_is_in .ne. 0)
+    
+    if (com_in .eq. 1) then
+       comoving = .true.
+    else if (com_in .eq. 0) then
+       comoving = .false.
+    else
+       call bl_error("Wrong value for comoving", fspace_type)
+    end if
+    
+    flatten_pp_threshold = fppt
+    
+    !$acc update &
+    !$acc device(NQ) &
+    !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+    !$acc device(fspace_type) &
+    !$acc device(do_inelastic_scattering) &
+    !$acc device(comoving)
+    !$acc device(flatten_pp_threshold = -1.d0)
+
+  end subroutine ca_init_radhydro_pars
+#endif
 
 end module meth_params_module

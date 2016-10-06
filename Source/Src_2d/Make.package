@@ -4,8 +4,8 @@ F90EXE_sources += trans_$(DIM)d.F90
 f90EXE_sources += slope_$(DIM)d.f90
 f90EXE_sources += ppm_$(DIM)d.f90
 
+F90EXE_sources += Castro_$(DIM)d.F90 
 ifneq ($(USE_RAD), TRUE)
-f90EXE_sources += Castro_$(DIM)d.f90 
 F90EXE_sources += Castro_advection_$(DIM)d.F90
 endif
 

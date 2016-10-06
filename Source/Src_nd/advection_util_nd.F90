@@ -308,19 +308,22 @@ contains
 
 
 
-  subroutine compute_cfl(q, q_lo, q_hi, lo, hi, dt, dx, courno) &
+  subroutine compute_cfl(q, q_lo, q_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         lo, hi, dt, dx, courno) &
                          bind(C, name = "compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC
+    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC, NQAUX
     use prob_params_module, only: dim
 
     implicit none
 
     integer :: lo(3), hi(3)
-    integer :: q_lo(3), q_hi(3)
+    integer :: q_lo(3), q_hi(3), qa_lo(3), qa_hi(3)
 
     double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision :: dt, dx(3), courno
 
     double precision :: courx, coury, courz, courmx, courmy, courmz
@@ -351,9 +354,9 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             courx = ( q(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( q(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( q(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
+             courx = ( qaux(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
+             coury = ( qaux(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
+             courz = ( qaux(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
 
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
@@ -364,7 +367,7 @@ contains
                 call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... u, c                ', q(i,j,k,QU), q(i,j,k,QC)
+                print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 
@@ -373,7 +376,7 @@ contains
                 call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                 print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                print *,'>>> ... v, c                ', q(i,j,k,QV), q(i,j,k,QC)
+                print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 
@@ -382,7 +385,7 @@ contains
                 call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
                 print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                 print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... w, c                ', q(i,j,k,QW), q(i,j,k,QC)
+                print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
                 print *,'>>> ... density             ', q(i,j,k,QRHO)
              end if
 
@@ -398,6 +401,10 @@ contains
 
   subroutine ctoprim(lo, hi, &
                      uin, uin_lo, uin_hi, &
+#ifdef RADIATION
+                     Erin, Erin_lo, Erin_hi, &
+                     lam, lam_lo, lam_hi, &
+#endif
                      q,     q_lo,   q_hi, &
                      qaux, qa_lo,  qa_hi) bind(C, name = "ctoprim")
 
@@ -410,6 +417,10 @@ contains
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
+#ifdef RADIATION
+                                   QCG, QGAMCG, &
+                                   QRADVAR, QPTOT, QRAD, QRADHI, QREITOT, &
+#endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
     use bl_constants_module, only: ZERO, HALF, ONE
@@ -419,16 +430,33 @@ contains
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use rad_util_module, only : compute_ptot_ctot
+#endif
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: lam_lo(3), lam_hi(3)
+#endif
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
     double precision, intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+#ifdef RADIATION
+    double precision, intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    double precision, intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+#endif
+
+#ifdef RADIATION
+    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
+#else
     double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+#endif
     double precision, intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     double precision, parameter :: small = 1.d-8
@@ -436,9 +464,13 @@ contains
     integer          :: i, j, k
     integer          :: n, nq, ipassive
     double precision :: kineng, rhoinv
-    double precision :: loc(3), vel(3)
+    double precision :: vel(3)
 
     type (eos_t) :: eos_state
+
+#ifdef RADIATION
+    double precision :: ptot, ctot, gamc_tot
+#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -458,8 +490,6 @@ contains
           end do
 
           do i = lo(1), hi(1)
-
-             loc = position(i,j,k)
 
              q(i,j,k,QRHO) = uin(i,j,k,URHO)
              rhoinv = ONE/q(i,j,k,QRHO)
@@ -494,6 +524,9 @@ contains
 #endif
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
+#ifdef RADIATION
+             q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
+#endif
 
           enddo
        enddo
@@ -512,6 +545,7 @@ contains
        enddo
     enddo
 
+    ! get gamc, p, T, c, csml using q state
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -529,12 +563,28 @@ contains
              q(i,j,k,QPRES)  = eos_state % p
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
 
-             qaux(i,j,k,QGAMC)  = eos_state % gam1
-             qaux(i,j,k,QC   )  = eos_state % cs
-             qaux(i,j,k,QCSML)  = max(small, small * q(i,j,k,QC))
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
 
+#ifdef RADIATION
+             qaux(i,j,k,QGAMCG)   = eos_state % gam1
+             qaux(i,j,k,QCG)      = eos_state % cs
+
+             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
+                                    ptot, ctot, gamc_tot)
+
+             q(i,j,k,QPTOT) = ptot
+
+             qaux(i,j,k,QC)    = ctot
+             qaux(i,j,k,QGAMC) = gamc_tot
+
+             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
+#else
+             qaux(i,j,k,QGAMC)  = eos_state % gam1
+             qaux(i,j,k,QC   )  = eos_state % cs
+#endif
+
+             qaux(i,j,k,QCSML)  = max(small, small * qaux(i,j,k,QC))
           enddo
        enddo
     enddo
@@ -555,6 +605,9 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
                                    QVAR, QRHO, QU, QV, QW, &
+#ifdef RADIATION
+                                   QRADVAR, &
+#endif
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module, only: ZERO, HALF, ONE
@@ -568,7 +621,11 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
+#ifdef RADIATION
+    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
+#else
     double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+#endif
     double precision, intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)

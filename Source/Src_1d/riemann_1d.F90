@@ -3,6 +3,18 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
+    use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+                                   QFS, QFX, &
+                                   NGDNV, GDU, GDPRES, &
+                                   GDERADS, GDLAMS, &
+                                   URHO, UMX, UEDEN, UEINT, &
+                                   small_temp, small_dens, small_pres, &
+                                   npassive, upass_map, qpass_map, &
+                                   cg_maxiter, cg_tol, cg_blend, &
+                                   fix_mass_flux, &
+                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
+                                   allow_negative_energy
+
   implicit none
 
   private
@@ -24,16 +36,11 @@ contains
 #ifdef RADIATION
                     lam, lam_l1, lam_h1, &
                     rflx,rflx_l1,rflx_h1, &
-                    ergdnv,erg_l1,erg_h1, &
-                    lamgdnv,lg_l1,lg_h1, &
                     gamcg, &
 #endif
                     gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
 
-    use meth_params_module, only : QVAR, NVAR, NGDNV, &
-                                   riemann_solver
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
 #endif
     
@@ -52,13 +59,9 @@ contains
     integer  lg_l1, lg_h1
 #endif
 
-#ifdef RADIATION    
-    double precision    qm(qpd_l1:qpd_h1, QRADVAR)
-    double precision    qp(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision    qm(qpd_l1:qpd_h1, QVAR)
-    double precision    qp(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision    qm(qpd_l1:qpd_h1, NQ)
+    double precision    qp(qpd_l1:qpd_h1, NQ)
+
     double precision   flx(flx_l1:flx_h1, NVAR)
     double precision  qint( qg_l1: qg_h1, NGDNV)
     double precision  gamc( qd_l1: qd_h1)
@@ -68,8 +71,6 @@ contains
 #ifdef RADIATION    
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
-    double precision ergdnv(erg_l1:erg_h1, 0:ngroups-1)
-    double precision lamgdnv( lg_l1: lg_h1, 0:ngroups-1)
     double precision gamcg( qd_l1: qd_h1)
 #endif
     
@@ -112,8 +113,6 @@ contains
                       lam, lam_l1, lam_h1, &
                       gamcgm, gamcgp, &
                       rflx, rflx_l1, rflx_h1, &
-                      ergdnv,erg_l1,erg_h1, &
-                      lamgdnv, lg_l1, lg_h1, &
 #endif
                       ilo, ihi, domlo, domhi )
 
@@ -147,12 +146,6 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QFS, &
-                                   NGDNV, GDU, GDPRES, &
-                                   QFX, URHO, UMX, UEDEN, UEINT, &
-                                   npassive, upass_map, qpass_map, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol, cg_blend
     use riemann_util_module
 
     double precision, parameter :: small = 1.d-8
@@ -672,19 +665,12 @@ contains
                        lam, lam_l1, lam_h1, &
                        gamcgl, gamcgr, &
                        rflx,rflx_l1,rflx_h1, &
-                       ergdnv,erg_l1,erg_h1,  &
-                       lamgdnv,lg_l1,lg_h1,  &
 #endif                       
                        ilo,ihi,domlo,domhi)
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   NGDNV, GDU, GDPRES, &
-                                   URHO, UMX, UEDEN, UEINT, small_dens, small_pres, &
-                                   npassive, upass_map, qpass_map, &
-                                   fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+    use meth_params_module, only : qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif
@@ -704,13 +690,9 @@ contains
     integer   lg_l1,   lg_h1    
 #endif
 
-#ifdef RADIATION    
-    double precision ql(qpd_l1:qpd_h1, QRADVAR)
-    double precision qr(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision ql(qpd_l1:qpd_h1, QVAR)
-    double precision qr(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision ql(qpd_l1:qpd_h1, NQ)
+    double precision qr(qpd_l1:qpd_h1, NQ)
+
     double precision   cav(ilo:ihi+1), smallc(ilo:ihi+1)
     double precision gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
     double precision  uflx(uflx_l1:uflx_h1, NVAR)
@@ -720,8 +702,6 @@ contains
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
     double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
-    double precision ergdnv(erg_l1:erg_h1, 0:ngroups-1)
-    double precision lamgdnv( lg_l1: lg_h1, 0:ngroups-1)    
 
     double precision, dimension(0:ngroups-1) :: erl, err
     double precision :: regdnv_g, pgdnv_g, pgdnv_t
@@ -981,12 +961,12 @@ contains
 
 #ifdef RADIATION
        do g=0, ngroups-1
-          ergdnv(k,g) = max(regdnv_r(g), 0.d0)
+          qint(k,GDERADS+g) = max(regdnv_r(g), ZERO)
        end do
        
        qint(k,GDPRES) = pgdnv_g
        
-       lamgdnv(k,:) = lambda
+       qint(k,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
 #endif       
        
        ! Compute fluxes, order as conserved state (not q)
@@ -1005,11 +985,11 @@ contains
           do g = 0, ngroups-1
              eddf = Edd_factor(lambda(g))
              f1 = 0.5d0*(1.d0-eddf)
-             rflx(k,g) = (1.d0+f1) * ergdnv(k,g) * qint(k,GDU)
+             rflx(k,g) = (1.d0+f1) * qint(k,GDERADS+g) * qint(k,GDU)
           end do
        else ! type 2
           do g = 0, ngroups-1
-             rflx(k,g) = ergdnv(k,g) * qint(k,GDU)
+             rflx(k,g) = qint(k,GDERADS+g) * qint(k,GDU)
           end do
        end if
 #else       

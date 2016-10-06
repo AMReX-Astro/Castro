@@ -25,6 +25,10 @@ extern "C"
 
   void get_qvar(int* qvar);
 
+#ifdef RADIATION
+  void get_qradvar(int* qradvar);
+#endif
+
   void get_nqaux(int* nqaux);
 
   void ca_set_special_tagging_flag(const Real& max_den, const int* flag);
@@ -110,6 +114,10 @@ extern "C"
 
   void ctoprim(const int* lo, const int* hi,
 	       const Real* u, const int* u_lo, const int* u_hi,
+#ifdef RADIATION
+	       const Real* Er, const int* Er_lo, const int* Er_hi,
+	       const Real* lam, const int* lam_lo, const int* lam_hi,
+#endif
 	       const Real* q, const int* q_lo, const int* q_hi,
                const Real* qaux, const int* qa_lo, const int* qa_hi);
 
@@ -458,6 +466,11 @@ extern "C"
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
      BL_FORT_FAB_ARG(stateout),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG(Er), 
+     BL_FORT_FAB_ARG(lam),
+     BL_FORT_FAB_ARG(Erout),
+#endif
      BL_FORT_FAB_ARG(q),
      BL_FORT_FAB_ARG(qaux),
      BL_FORT_FAB_ARG(src_q),
@@ -466,6 +479,11 @@ extern "C"
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
             BL_FORT_FAB_ARG(zflux)),
+#ifdef RADIATION
+     D_DECL(BL_FORT_FAB_ARG(rxflux),
+            BL_FORT_FAB_ARG(ryflux),
+            BL_FORT_FAB_ARG(rzflux)),
+#endif
 #if (BL_SPACEDIM < 3)
      BL_FORT_FAB_ARG(pradial),
 #endif
@@ -478,6 +496,9 @@ extern "C"
      const BL_FORT_FAB_ARG(volume),
      Real* cflLoc,
      const int&  verbose,
+#ifdef RADIATION
+     const int* priv_nstep_fsp,
+#endif
      Real& mass_added_flux,
      Real& xmom_added_flux,
      Real& ymom_added_flux,
@@ -492,39 +513,8 @@ extern "C"
      Real& yang_lost,
      Real& zang_lost);
 
-#ifdef RADIATION
-  void ca_umdrv_rad
-    (const int* is_finest_level,
-     const Real* time, 
-     const int    lo[], const int    hi[],
-     const int domlo[], const int domhi[],
-     const BL_FORT_FAB_ARG(state),
-     BL_FORT_FAB_ARG(stateout),
-     const BL_FORT_FAB_ARG(Er),
-     const BL_FORT_FAB_ARG(lam),
-     BL_FORT_FAB_ARG(Erout),
-     const BL_FORT_FAB_ARG(src),
-     const Real dx[], const Real* dt,
-     D_DECL(BL_FORT_FAB_ARG(xflux),
-            BL_FORT_FAB_ARG(yflux),
-            BL_FORT_FAB_ARG(zflux)),
-     D_DECL(BL_FORT_FAB_ARG(xradflux),
-            BL_FORT_FAB_ARG(yradflux),
-            BL_FORT_FAB_ARG(zradflux)),
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG(pradial),
-#endif
-     D_DECL(const BL_FORT_FAB_ARG(xarea),
-            const BL_FORT_FAB_ARG(yarea),
-            const BL_FORT_FAB_ARG(zarea)),
-#if (BL_SPACEDIM < 3)
-     const BL_FORT_FAB_ARG(dloga),
-#endif
-     const BL_FORT_FAB_ARG(volume),
-     Real* cflLoc,
-     const int& verbose,
-     int* nstep_fsp);
 
+#ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(stateout),
