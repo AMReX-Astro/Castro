@@ -253,7 +253,8 @@ Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 ifeq ($(USE_RAD), TRUE)
-RadDirs := Source/_interpbndry
+RadDirs := Source/Radiation
+RadDirs += Source/Radiation/_interpbndry
 
 Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
 Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
