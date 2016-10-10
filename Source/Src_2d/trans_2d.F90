@@ -79,7 +79,7 @@ contains
     double precision hdt, cdtdx
 
     integer          :: i, j, g
-    integer          :: n, nq, ipassive
+    integer          :: n, nqp, ipassive
 
     double precision :: rr, rrnew, compo, compn
     double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
@@ -113,7 +113,7 @@ contains
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
 
        do j = jlo, jhi
           do i = ilo, ihi
@@ -125,16 +125,16 @@ contains
                 rr = qp(i,j,  QRHO)
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
-                compo = rr*qp(i,j,nq) - compn
-                qpo(i,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qp(i,j,nqp) - compn
+                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
 
              if (j <= jhi-1) then
                 rr = qm(i,j+1,QRHO)
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
-                compo = rr*qm(i,j+1,nq) - compn
-                qmo(i,j+1,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qm(i,j+1,nqp) - compn
+                qmo(i,j+1,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
           enddo
        enddo
@@ -527,7 +527,7 @@ contains
     double precision hdt, cdtdy
 
     integer          :: i, j, g
-    integer          :: n, nq, ipassive
+    integer          :: n, nqp, ipassive
 
     double precision :: rr,rrnew
     double precision :: pggp, pggm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
@@ -558,7 +558,7 @@ contains
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
 
        do j = jlo, jhi
           do i = ilo, ihi
@@ -568,15 +568,15 @@ contains
              if (i >= ilo+1) then
                 rr = qp(i,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
-                compo = rr*qp(i,j,nq) - compn
-                qpo(i,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qp(i,j,nqp) - compn
+                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
 
              if (i <= ihi-1) then
                 rr = qm(i+1,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
-                compo = rr*qm(i+1,j,nq) - compn
-                qmo(i+1,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qm(i+1,j,nqp) - compn
+                qmo(i+1,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
           enddo
        enddo

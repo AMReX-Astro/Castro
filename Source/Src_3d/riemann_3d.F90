@@ -455,7 +455,7 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
@@ -1018,15 +1018,15 @@ contains
        ! advected quantities -- only the contact matters
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           do i = ilo, ihi
              if (us1d(i) .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
              else if (us1d(i) .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1100,7 +1100,7 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
@@ -1480,18 +1480,18 @@ contains
        ! passively advected quantities
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           !dir$ ivdep
           do i = ilo, ihi
              if (us1d(i) > ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
 
              else if (us1d(i) < ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
 
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo

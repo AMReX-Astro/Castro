@@ -439,7 +439,7 @@ contains
     double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
-    integer :: n, nq
+    integer :: n, nqp
 
     double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, v2l, pl, rel
@@ -918,14 +918,14 @@ contains
           ! note: this includes the z-velocity flux
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -986,7 +986,7 @@ contains
 #endif
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
+    integer :: n, nqp
     integer :: i, j, ipassive
 
 #ifdef RADIATION
@@ -1349,14 +1349,14 @@ contains
 
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -1402,7 +1402,7 @@ contains
     double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
+    integer :: n, nqp
     integer :: i, j
     integer :: bnd_fac
     

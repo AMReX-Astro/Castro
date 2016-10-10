@@ -164,7 +164,7 @@ contains
     double precision ::  qint(qg_l1:qg_h1, NGDNV)
 
     integer :: ilo,ihi
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: rgdnv,ustar,gamgdnv,v1gdnv,v2gdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
@@ -632,14 +632,14 @@ contains
        ! note: this also includes the y- and z-velocity flux
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           if (ustar > ZERO) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
+             uflx(k,n) = uflx(k,URHO)*ql(k,nqp)
           else if (ustar < ZERO) then
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
+             uflx(k,n) = uflx(k,URHO)*qr(k,nqp)
           else
-             qavg = HALF * (ql(k,nq) + qr(k,nq))
+             qavg = HALF * (ql(k,nqp) + qr(k,nqp))
              uflx(k,n) = uflx(k,URHO)*qavg
           endif
 
@@ -722,7 +722,7 @@ contains
     double precision sgnm, spin, spout, ushock, frac
 
     double precision wsmall, csmall
-    integer ipassive, n, nq
+    integer ipassive, n, nqp
     integer k
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -1002,12 +1002,12 @@ contains
        ! note: this includes the y,z-velocity flux       
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           if (ustar >= ZERO) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
+             uflx(k,n) = uflx(k,URHO)*ql(k,nqp)
           else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
+             uflx(k,n) = uflx(k,URHO)*qr(k,nqp)
           endif
 
        enddo

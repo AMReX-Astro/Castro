@@ -131,7 +131,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -169,7 +169,7 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -178,15 +178,15 @@ contains
              if (j >= jlo+1) then
                 rr = qyp(i,j,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-                compu = rr*qyp(i,j,kc,nq) - compn
-                qypo(i,j,kc,nq) = compu/rrnew
+                compu = rr*qyp(i,j,kc,nqp) - compn
+                qypo(i,j,kc,nqp) = compu/rrnew
              end if
 
              if (j <= jhi-1) then
                 rr = qym(i,j+1,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-                compu = rr*qym(i,j+1,kc,nq) - compn
-                qymo(i,j+1,kc,nq) = compu/rrnew
+                compu = rr*qym(i,j+1,kc,nqp) - compn
+                qymo(i,j+1,kc,nqp) = compu/rrnew
              end if
 
           enddo
@@ -486,7 +486,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -523,7 +523,7 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -531,15 +531,15 @@ contains
 
              rr = qzp(i,j,kc,QRHO)
              rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-             compu = rr*qzp(i,j,kc,nq) - compn
-             qzpo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzp(i,j,kc,nqp) - compn
+             qzpo(i,j,kc,nqp) = compu/rrnew
 
              compn = cdtdx*(fx(i+1,j,km,n) - fx(i,j,km,n))
 
              rr = qzm(i,j,kc,QRHO)
              rrnew = rr - cdtdx*(fx(i+1,j,km,URHO) - fx(i,j,km,URHO))
-             compu = rr*qzm(i,j,kc,nq) - compn
-             qzmo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzm(i,j,kc,nqp) - compn
+             qzmo(i,j,kc,nqp) = compu/rrnew
 
           enddo
        enddo
@@ -878,7 +878,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -915,7 +915,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
@@ -923,15 +923,15 @@ contains
              if (i >= ilo+1) then
                 rr = qxp(i,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-                compu = rr*qxp(i,j,kc,nq) - compn
-                qxpo(i,j,kc,nq) = compu/rrnew
+                compu = rr*qxp(i,j,kc,nqp) - compn
+                qxpo(i,j,kc,nqp) = compu/rrnew
              end if
 
              if (i <= ihi-1) then
                 rr = qxm(i+1,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-                compu = rr*qxm(i+1,j,kc,nq) - compn
-                qxmo(i+1,j,kc,nq) = compu/rrnew
+                compu = rr*qxm(i+1,j,kc,nqp) - compn
+                qxmo(i+1,j,kc,nqp) = compu/rrnew
              end if
 
           enddo
@@ -1229,7 +1229,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -1266,7 +1266,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -1274,15 +1274,15 @@ contains
 
              rr = qzp(i,j,kc,QRHO)
              rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-             compu = rr*qzp(i,j,kc,nq) - compn
-             qzpo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzp(i,j,kc,nqp) - compn
+             qzpo(i,j,kc,nqp) = compu/rrnew
 
              compn = cdtdy*(fy(i,j+1,km,n) - fy(i,j,km,n))
 
              rr = qzm(i,j,kc,QRHO)
              rrnew = rr - cdtdy*(fy(i,j+1,km,URHO) - fy(i,j,km,URHO))
-             compu = rr*qzm(i,j,kc,nq) - compn
-             qzmo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzm(i,j,kc,nqp) - compn
+             qzmo(i,j,kc,nqp) = compu/rrnew
 
           enddo
        enddo
@@ -1623,7 +1623,7 @@ contains
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
 
-    integer n, nq, i, j, ipassive
+    integer n, nqp, i, j, ipassive
 
     double precision rrnew, rr
     double precision compn, compu
@@ -1659,7 +1659,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -1668,29 +1668,29 @@ contains
              if (i >= ilo+1) then
                 rr = qxp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qxp(i,j,km,nq) - compn
-                qxpo(i,j,km,nq) = compu/rrnew
+                compu = rr*qxp(i,j,km,nqp) - compn
+                qxpo(i,j,km,nqp) = compu/rrnew
              end if
 
              if (j >= jlo+1) then
                 rr = qyp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qyp(i,j,km,nq) - compn
-                qypo(i,j,km,nq) = compu/rrnew
+                compu = rr*qyp(i,j,km,nqp) - compn
+                qypo(i,j,km,nqp) = compu/rrnew
              end if
 
              if (i <= ihi-1) then
                 rr = qxm(i+1,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qxm(i+1,j,km,nq) - compn
-                qxmo(i+1,j,km,nq) = compu/rrnew
+                compu = rr*qxm(i+1,j,km,nqp) - compn
+                qxmo(i+1,j,km,nqp) = compu/rrnew
              end if
 
              if (j <= jhi-1) then
                 rr = qym(i,j+1,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qym(i,j+1,km,nq) - compn
-                qymo(i,j+1,km,nq) = compu/rrnew
+                compu = rr*qym(i,j+1,km,nqp) - compn
+                qymo(i,j+1,km,nqp) = compu/rrnew
              end if
 
           enddo
@@ -2178,7 +2178,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2210,15 +2210,15 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
              rrr = qp(i,j,kc,QRHO)
              rrl = qm(i,j,kc,QRHO)
 
-             compr = rrr*qp(i,j,kc,nq)
-             compl = rrl*qm(i,j,kc,nq)
+             compr = rrr*qp(i,j,kc,nqp)
+             compl = rrl*qm(i,j,kc,nqp)
 
              rrnewr = rrr - cdtdx*(fxy(i+1,j,kc,URHO) - fxy(i,j,kc,URHO)) &
                           - cdtdy*(fyx(i,j+1,kc,URHO) - fyx(i,j,kc,URHO))
@@ -2230,8 +2230,8 @@ contains
              compnl = compl - cdtdx*(fxy(i+1,j,km,n) - fxy(i,j,km,n)) &
                             - cdtdy*(fyx(i,j+1,km,n) - fyx(i,j,km,n))
 
-             qpo(i,j,kc,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nq)
-             qmo(i,j,kc,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nq)
+             qpo(i,j,kc,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nqp)
+             qmo(i,j,kc,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nqp)
 
           enddo
        enddo
@@ -2648,7 +2648,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2677,7 +2677,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -2688,22 +2688,22 @@ contains
 
              if (j >= jlo+1) then
                 rrr = qp(i,j,km,QRHO)
-                compr = rrr*qp(i,j,km,nq)
+                compr = rrr*qp(i,j,km,nqp)
 
                 rrnewr = rrr + drr
                 compnr = compr + dcompn
 
-                qpo(i,j  ,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+                qpo(i,j  ,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
              end if
 
              if (j <= jhi-1) then
                 rrl = qm(i,j+1,km,QRHO)
-                compl = rrl*qm(i,j+1,km,nq)
+                compl = rrl*qm(i,j+1,km,nqp)
 
                 rrnewl = rrl + drr
                 compnl = compl + dcompn
 
-                qmo(i,j+1,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+                qmo(i,j+1,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
              end if
 
           enddo
@@ -3061,7 +3061,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -3091,7 +3091,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -3102,22 +3102,22 @@ contains
 
              if (i >= ilo+1) then
                 rrr = qp(i,j,km,QRHO)
-                compr = rrr*qp(i,j,km,nq)
+                compr = rrr*qp(i,j,km,nqp)
 
                 rrnewr = rrr +drr
                 compnr = compr +dcompn
 
-                qpo(i  ,j,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+                qpo(i  ,j,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
              end if
 
              if (i <= ihi-1) then
                 rrl = qm(i+1,j,km,QRHO)
-                compl = rrl*qm(i+1,j,km,nq)
+                compl = rrl*qm(i+1,j,km,nqp)
 
                 rrnewl = rrl + drr
                 compnl = compl +dcompn
 
-                qmo(i+1,j,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+                qmo(i+1,j,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
              end if
           enddo
        enddo
