@@ -21,7 +21,6 @@
 #include <VisMF.H>
 #include <TagBox.H>
 #include <ParmParse.H>
-#include <FluxRegister.H>
 #include <Castro_error_F.H>
 
 #ifdef RADIATION
@@ -465,6 +464,30 @@ Castro::Castro (Amr&            papa,
     // (this is equivalent to having a FluxRegister on that level).
 
     if (do_reflux && level > 0) {
+
+	flux_reg.define(grids, crse_ratio, level, NUM_STATE);
+	flux_reg.setVal(0.0);
+
+#if (BL_SPACEDIM < 3)
+	if (!Geometry::IsCartesian()) {
+	    pres_reg.define(grids, crse_ratio, level, 1);
+	    pres_reg.setVal(0.0);
+	}
+#endif
+
+#ifdef RADIATION
+	if (Radiation::rad_hydro_combined) {
+	    rad_flux_reg.define(grids, crse_ratio, level, Radiation::nGroups);
+	    rad_flux_reg.setVal(0.0);
+	}
+#endif
+
+#ifdef GRAVITY
+	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+	    phi_reg.define(grids, crse_ratio, level, 1);
+	    phi_reg.setVal(0.0);
+	}
+#endif
 
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
 	    total_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
@@ -2238,47 +2261,11 @@ Castro::reflux(int crse_level, int fine_level)
 
     FluxRegister* reg;
 
-    // Define the flux registers. We'll use the fine-grid fluxes on this level
-
-    PArray<FluxRegister> flux_reg(nlevs - 1);
-#if (BL_SPACEDIM <= 2)
-    PArray<FluxRegister> pres_reg(nlevs - 1);
-#endif
-#ifdef RADIATION
-    PArray<FluxRegister> rad_flux_reg(nlevs - 1);
-#endif
-#ifdef GRAVITY
-    PArray<FluxRegister> phi_reg(nlevs - 1);
-#endif
-
     for (int lev = fine_level; lev > crse_level; --lev) {
 
 	int ilev = lev - crse_level - 1;
 
-	flux_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, NUM_STATE));
-
-#if (BL_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian())
-	    pres_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
-#endif
-
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined)
-	    rad_flux_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, Radiation::nGroups));
-#endif
-
-#ifdef GRAVITY
-	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    phi_reg.set(ilev, new FluxRegister(getLevel(lev).grids, getLevel(lev).crse_ratio, lev, 1));
-#endif
-
-    }
-
-    for (int lev = fine_level; lev > crse_level; --lev) {
-
-	int ilev = lev - crse_level - 1;
-
-	reg = &flux_reg[ilev];
+	reg = &getLevel(lev).flux_reg;
 	reg->setVal(0.0);
 
 	Castro& crse_lev = getLevel(lev-1);
@@ -2346,7 +2333,7 @@ Castro::reflux(int crse_level, int fine_level)
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 
-	    reg = &pres_reg[ilev];
+	    reg = &getLevel(lev).pres_reg;
 	    reg->setVal(0.0);
 
 	    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
@@ -2390,7 +2377,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	if (Radiation::rad_hydro_combined) {
 
-	    reg = &rad_flux_reg[ilev];
+	    reg = &getLevel(lev).rad_flux_reg;
 	    reg->setVal(0.0);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
@@ -2428,7 +2415,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
-	    reg = &phi_reg[ilev];
+	    reg = &getLevel(lev).phi_reg;
 	    reg->setVal(0.0);
 
 	    // Note that the scaling by the area here is corrected for by dividing by the

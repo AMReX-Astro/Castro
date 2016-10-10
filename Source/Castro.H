@@ -6,6 +6,7 @@
 #include <AmrLevel.H>
 #include <iMultiFab.H>
 #include <ErrorList.H>
+#include <FluxRegister.H>
 #include <BL_CXX11.H>
 
 #ifdef BL_LAZY
@@ -588,6 +589,17 @@ protected:
 #endif
 #ifdef RADIATION
     PArray<MultiFab> total_rad_fluxes;
+#endif
+
+    FluxRegister flux_reg;
+#if (BL_SPACEDIM <= 2)
+    FluxRegister pres_reg;
+#endif
+#ifdef RADIATION
+    FluxRegister rad_flux_reg;
+#endif
+#ifdef GRAVITY
+    FluxRegister phi_reg;
 #endif
 
     // Scalings for the flux registers.
