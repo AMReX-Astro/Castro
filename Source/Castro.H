@@ -590,6 +590,13 @@ protected:
     PArray<MultiFab> total_rad_fluxes;
 #endif
 
+    // Scalings for the flux registers.
+    Real flux_crse_scale;
+    Real flux_fine_scale;
+
+    Real pres_crse_scale;
+    Real pres_fine_scale;
+
     //
     // Non-hydro source terms.
     //
