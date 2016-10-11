@@ -344,31 +344,10 @@ Castro::construct_hydro_source(Real time, Real dt)
       }
 #endif
 
-
     if (courno > 1.0) {
 	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
 	if (hard_cfl_limit == 1)
 	  BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
-    }
-
-    // Sum up the fluxes from this timestep.
-
-    if (do_reflux && level > 0) {
-
-	for (int n = 0; n < BL_SPACEDIM; ++n)
-	    MultiFab::Add(total_fluxes[n], fluxes[n], 0, 0, NUM_STATE, 0);
-
-#if (BL_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian())
-	    MultiFab::Add(total_P_radial, P_radial, 0, 0, 1, 0);
-#endif
-
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined)
-	    for (int n =0; n < BL_SPACEDIM; ++n)
-		MultiFab::Add(total_rad_fluxes[n], rad_fluxes[n], 0, 0, Radiation::nGroups, 0);
-#endif
-
     }
 
     if (verbose && ParallelDescriptor::IOProcessor())

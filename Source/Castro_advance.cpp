@@ -507,6 +507,62 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     }
 
+    // Store the fluxes in the flux registers. In the old method,
+    // we just store the current level's fluxes; in the new method,
+    // we need to add the contribution from all coarser levels.
+
+    if (do_reflux && level > 0) {
+
+	int fine_level = level;
+	int crse_level = level - 1;
+
+	if (reflux_strategy == 1)
+	    crse_level = 0;
+
+	FluxRegister* reg;
+
+	for (int lev = fine_level; lev > crse_level; --lev) {
+
+	    reg = &getLevel(lev).flux_reg;
+
+	    Castro& crse_lev = getLevel(lev-1);
+	    Castro& fine_lev = getLevel(lev);
+
+	    for (int i = 0; i < BL_SPACEDIM; ++i) {
+		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
+		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
+	    }
+
+#if (BL_SPACEDIM <= 2)
+	    if (!Geometry::IsCartesian()) {
+
+		reg = &getLevel(lev).pres_reg;
+
+		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
+		reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_fine_scale);
+
+	    }
+#endif
+
+#ifdef RADIATION
+	    if (Radiation::rad_hydro_combined) {
+
+		reg = &getLevel(lev).rad_flux_reg;
+
+		for (int i = 0; i < BL_SPACEDIM; ++i) {
+		    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
+		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
+		}
+
+	    }
+#endif
+
+	}
+
+    }
+
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 

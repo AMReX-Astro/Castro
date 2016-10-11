@@ -580,17 +580,6 @@ protected:
     PArray<MultiFab> rad_fluxes;
 #endif
 
-    //
-    // Sum of the above over iterations.
-    //
-    PArray<MultiFab> total_fluxes;
-#if (BL_SPACEDIM <= 2)
-    MultiFab         total_P_radial;
-#endif
-#ifdef RADIATION
-    PArray<MultiFab> total_rad_fluxes;
-#endif
-
     FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
     FluxRegister pres_reg;
