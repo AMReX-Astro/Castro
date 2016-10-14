@@ -80,6 +80,9 @@ CWARNING = """
 // mk_params.sh\n
 """
 
+param_include_dir = "param_includes/"
+
+
 class Param(object):
     """ the basic parameter class.  For each parameter, we hold the name,
         type, and default.  For some parameters, we also take a second
@@ -449,7 +452,7 @@ def parse_params(infile, meth_template):
         params_nm = [q for q in params if q.namespace == nm]
 
         # write name_defaults.H
-        try: cd = open("{}_defaults.H".format(nm), "w")
+        try: cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
@@ -461,7 +464,7 @@ def parse_params(infile, meth_template):
         cd.close()
 
         # write name_params.H
-        try: cp = open("{}_params.H".format(nm), "w")
+        try: cp = open("{}/{}_params.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
@@ -473,7 +476,7 @@ def parse_params(infile, meth_template):
         cp.close()
 
         # write castro_queries.H
-        try: cq = open("{}_queries.H".format(nm), "w")
+        try: cq = open("{}/{}_queries.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_queries.H for writing".format(nm))
 
