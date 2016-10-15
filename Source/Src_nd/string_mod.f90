@@ -7,7 +7,7 @@ module string_module
 
   private
 
-  public :: string_f_to_c
+  public :: string_f_to_c, string_c_to_f
 
 contains
 
@@ -21,5 +21,15 @@ contains
     end do
     cstr(n+1) = c_null_char
   end function string_f_to_c
+
+  function string_c_to_f (cstr) result(fstr)
+    character(c_char), dimension(:), intent(in) :: cstr
+    character(len=size(cstr)-1) :: fstr
+    integer :: i, n
+    n = size(cstr)-1   ! skip the null character
+    do i = 1, n
+       fstr(i:i) = cstr(i)
+    enddo
+  end function string_c_to_f
 
 end module string_module
