@@ -53,4 +53,11 @@ extern "C"
 	pp->query(name, b);
 	*v = b;
     }
+
+    void fi_parmparse_query_string (ParmParse* pp, const char* name, char* v, int* len)
+    {
+      std::string b;
+      pp->query(name, b);
+      std::strncpy(v, b.c_str(), *len);
+    }
 }

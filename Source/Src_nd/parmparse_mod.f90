@@ -13,7 +13,7 @@ module parmparse_module
      type(c_ptr) :: p = c_null_ptr
    contains
      generic :: get      => get_int, get_double, get_logical, get_string
-     generic :: query    => query_int, query_double, query_logical
+     generic :: query    => query_int, query_double, query_logical, query_string
      procedure, private :: get_int
      procedure, private :: get_double
      procedure, private :: get_logical
@@ -21,6 +21,7 @@ module parmparse_module
      procedure, private :: query_int
      procedure, private :: query_double
      procedure, private :: query_logical
+     procedure, private :: query_string
   end type ParmParse
 
   ! interfaces to cpp functions
@@ -95,6 +96,15 @@ module parmparse_module
        character(c_char), intent(in) :: name(*)
        integer(c_int) :: v
      end subroutine fi_parmparse_query_bool
+
+     subroutine fi_parmparse_query_string (pp, name, v, len) bind(c)
+       use iso_c_binding
+       implicit none
+       type(c_ptr), value :: pp
+       character(c_char), intent(in) :: name(*)
+       character(c_char), intent(inout) :: v(*)
+       integer :: len
+     end subroutine fi_parmparse_query_string
   end interface
 
 contains
@@ -143,6 +153,7 @@ contains
 
     ! temporary string for passing back and forth to C -- include NULL
     character(c_char), dimension(len(v)+1) :: v_pass
+
     call fi_parmparse_get_string (this%p, string_f_to_c(name), v_pass, len(v)+1)
 
     ! convert to Fortran string
@@ -171,5 +182,19 @@ contains
     call fi_parmparse_query_bool (this%p, string_f_to_c(name), i)
     v = i.eq.1
   end subroutine query_logical
+
+  subroutine query_string (this, name, v)
+    class(ParmParse), intent(in) :: this
+    character(*), intent(in) :: name
+    character(*), intent(inout) :: v
+
+    ! temporary string for passing back and forth to C -- include NULL
+    character(c_char), dimension(len(v)+1) :: v_pass
+
+    call fi_parmparse_query_string (this%p, string_f_to_c(name), v_pass, len(v)+1)
+
+    ! convert to Fortran string
+    v = string_c_to_f(v_pass)
+  end subroutine query_string
 
 end module parmparse_module
