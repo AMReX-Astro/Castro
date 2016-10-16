@@ -1,4 +1,4 @@
-
+#include <cstring>
 #include <ParmParse.H>
 
 extern "C"
@@ -28,6 +28,13 @@ extern "C"
 	bool b;
 	pp->get(name, b);
 	*v = b;
+    }
+
+    void fi_parmparse_get_string (ParmParse* pp, const char* name, char* v, int* len)
+    {
+      std::string b;
+      pp->get(name, b);
+      std::strncpy(v, b.c_str(), *len);
     }
 
     void fi_parmparse_query_int (ParmParse* pp, const char* name, int* v)

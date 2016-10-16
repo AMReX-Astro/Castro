@@ -23,12 +23,14 @@ contains
   end function string_f_to_c
 
   function string_c_to_f (cstr) result(fstr)
-    character(c_char), dimension(:), intent(in) :: cstr
+    character(c_char), intent(in) :: cstr(:)
     character(len=size(cstr)-1) :: fstr
     integer :: i, n
     n = size(cstr)-1   ! skip the null character
+    fstr = ""
     do i = 1, n
-       fstr(i:i) = cstr(i)
+       if (cstr(i) == c_null_char) exit
+       fstr(i:i) = transfer(cstr(i), fstr)
     enddo
   end function string_c_to_f
 
