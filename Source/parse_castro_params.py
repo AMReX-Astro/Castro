@@ -264,6 +264,8 @@ class Param(object):
             tstr = "double precision, save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "logical":
             tstr = "logical         , save :: {}\n".format(self.f90_name)
+        elif self.f90_dtype == "string":
+            tstr = "character (len=128), save :: {}\n".format(self.f90_name)
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
 

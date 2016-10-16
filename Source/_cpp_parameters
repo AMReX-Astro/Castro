@@ -199,22 +199,22 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        ""
+xl_ext_bc_type               string        ""                 y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        ""
+xr_ext_bc_type               string        ""                 y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        ""
+yl_ext_bc_type               string        ""                 y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        ""
+yr_ext_bc_type               string        ""                 y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        ""
+zl_ext_bc_type               string        ""                 y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        ""
+zr_ext_bc_type               string        ""                 y
 
 
 #-----------------------------------------------------------------------------
