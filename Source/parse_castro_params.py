@@ -307,9 +307,11 @@ def write_meth_module(plist, meth_template):
             mo.write("  !$acc declare &\n")
             mo.write("  !$acc create(")
 
-            params = [p for p in plist if p.in_fortran == 1]
-
             for n, p in enumerate(params):
+                if p.f90_dtype == "string": 
+                    print("string parameter {} will not be available on the GPU".format(p.name))
+                    continue
+
                 mo.write("{}".format(p.f90_name))
 
                 if n == len(params)-1:
@@ -336,6 +338,7 @@ def write_meth_module(plist, meth_template):
             mo.write("    !$acc device(")
 
             for n, p in enumerate(params):
+                if p.f90_dtype == "string": continue
                 mo.write("{}".format(p.f90_name))
 
                 if n == len(params)-1:

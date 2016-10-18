@@ -171,9 +171,7 @@ module meth_params_module
   !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
   !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
   !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
-  !$acc create(sponge_implicit, first_order_hydro, xl_ext_bc_type) &
-  !$acc create(xr_ext_bc_type, yl_ext_bc_type, yr_ext_bc_type) &
-  !$acc create(zl_ext_bc_type, zr_ext_bc_type, cfl) &
+  !$acc create(sponge_implicit, first_order_hydro, cfl) &
   !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
   !$acc create(dxnuc, do_react, react_T_min) &
   !$acc create(react_T_max, react_rho_min, react_rho_max) &
@@ -377,9 +375,7 @@ contains
     !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
     !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
     !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, xl_ext_bc_type) &
-    !$acc device(xr_ext_bc_type, yl_ext_bc_type, yr_ext_bc_type) &
-    !$acc device(zl_ext_bc_type, zr_ext_bc_type, cfl) &
+    !$acc device(sponge_implicit, first_order_hydro, cfl) &
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
     !$acc device(dxnuc, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
