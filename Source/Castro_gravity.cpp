@@ -48,6 +48,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	int is_new = 0;
 
+	// If we are doing composite solves, then this is a placeholder solve
+	// to get the difference between the composite and level solutions. If
+	// we are only doing level solves, then this is the main result.
+
 	gravity->solve_for_phi(level,
 			       phi_old,
 			       gravity->get_grad_phi_prev(level),
@@ -55,15 +59,21 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 
+	    // Subtract the level solve from the composite solution.
+
 	    gravity->create_comp_minus_level_grad_phi(level,
 						      comp_phi,
 						      comp_gphi,
 						      comp_minus_level_phi,
 						      comp_minus_level_grad_phi);
 
-	    // Copy the composite data back.
+	    // Copy the composite data back. This way the forcing
+	    // uses the most accurate data we have.
 
 	    MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
+
+	    for (int n = 0; n < BL_SPACEDIM; ++n)
+		gravity->get_grad_phi_prev(level)[n].copy(comp_gphi[n], 0, 0, 1);
 
         }
 
