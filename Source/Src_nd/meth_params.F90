@@ -68,6 +68,12 @@ module meth_params_module
 
   character(len=:), allocatable :: gravity_type
 
+  ! these flags are for interpreting the EXT_DIR BCs
+  integer, parameter :: EXT_UNDEFINED = -1
+  integer, parameter :: EXT_HSE = 1
+  
+  integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
+
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 
@@ -82,9 +88,10 @@ module meth_params_module
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG) &
   !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
-  !$acc create(fspace_type, do_inelastic_scattering, comoving)
+  !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
-  !$acc create(QFA, QFS, QFX)
+  !$acc create(QFA, QFS, QFX) &
+  !$acc create(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
   ! Begin the declarations of the ParmParse parameters
 
@@ -386,6 +393,52 @@ contains
     !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
     !$acc device(do_acc, track_grid_losses, const_grav) &
     !$acc device(get_g_from_phi)
+
+
+    ! now set the external BC flags
+    select case (xl_ext_bc_type)
+    case ("hse", "HSE")
+       xl_ext = EXT_HSE
+    case default
+       xl_ext = EXT_UNDEFINED
+    end select
+
+    select case (yl_ext_bc_type)
+    case ("hse", "HSE")
+       yl_ext = EXT_HSE
+    case default
+       yl_ext = EXT_UNDEFINED
+    end select
+
+    select case (zl_ext_bc_type)
+    case ("hse", "HSE")
+       zl_ext = EXT_HSE
+    case default
+       zl_ext = EXT_UNDEFINED
+    end select
+
+    select case (xr_ext_bc_type)
+    case ("hse", "HSE")
+       xr_ext = EXT_HSE
+    case default
+       xr_ext = EXT_UNDEFINED
+    end select
+
+    select case (yr_ext_bc_type)
+    case ("hse", "HSE")
+       yr_ext = EXT_HSE
+    case default
+       yr_ext = EXT_UNDEFINED
+    end select
+
+    select case (zr_ext_bc_type)
+    case ("hse", "HSE")
+       zr_ext = EXT_HSE
+    case default
+       zr_ext = EXT_UNDEFINED
+    end select
+
+    !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     call parmparse_destroy(pp)
 
