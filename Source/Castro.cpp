@@ -900,7 +900,6 @@ Castro::initData ()
     }
 #endif
 
-#ifdef SELF_GRAVITY
     MultiFab& G_new = get_new_data(Gravity_Type);
     G_new.setVal(0.);
 

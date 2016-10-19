@@ -28,8 +28,8 @@ Castro::sum_integrated_quantities ()
     Real rho_e       = 0.0;
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
-    Real rho_phi     = 0.0;
 #ifdef SELF_GRAVITY
+    Real rho_phi     = 0.0;
     Real total_energy = 0.0;
 #endif
 
@@ -74,15 +74,28 @@ Castro::sum_integrated_quantities ()
     {
 
 #ifdef HYBRID_MOMENTUM
-	const int nfoo = 14;
+#ifdef SELF_GRAVITY
+       const int nfoo = 14;
 #else
-	const int nfoo = 11;
+       const int nfoo = 13;
 #endif
+#else
+#ifdef SELF_GRAVITY
+       const int nfoo = 11;
+#else
+       const int nfoo = 10;
+#endif
+#endif
+
 	Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
 #ifdef HYBRID_MOMENTUM
 			  hyb_mom[0], hyb_mom[1], hyb_mom[2],
 #endif
+#ifdef SELF_GRAVITY
 			  rho_e, rho_K, rho_E, rho_phi};
+#else
+			  rho_e, rho_K, rho_E);
+#endif
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -111,9 +124,9 @@ Castro::sum_integrated_quantities ()
 	    rho_e      = foo[i++];
 	    rho_K      = foo[i++];
             rho_E      = foo[i++];
+#ifdef SELF_GRAVITY
 	    rho_phi    = foo[i++];
 
-#ifdef SELF_GRAVITY
 	    // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
 	    // and -rho * phi + rho * E for externally-supplied gravity.
 	    std::string gravity_type = gravity->get_gravity_type();
