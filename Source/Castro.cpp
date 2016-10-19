@@ -413,7 +413,9 @@ Castro::read_params ()
 
 Castro::Castro ()
     :
+#ifdef SELF_GRAVITY
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+#endif
     fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
@@ -431,7 +433,9 @@ Castro::Castro (Amr&            papa,
                 Real            time)
     :
     AmrLevel(papa,lev,level_geom,bl,time),
+#ifdef SELF_GRAVITY
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+#endif
     fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),

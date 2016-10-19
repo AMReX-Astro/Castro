@@ -557,11 +557,13 @@ protected:
 
     int get_numpts();
 
+#ifdef SELF_GRAVITY
     //
     // Difference between composite and level solve for phi.
     //
     MultiFab comp_minus_level_phi;
     PArray<MultiFab> comp_minus_level_grad_phi;
+#endif
 
     //
     // A state array with ghost zones.
