@@ -27,7 +27,7 @@ enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
 #endif
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
@@ -267,6 +267,7 @@ public:
     void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
 
 #ifdef GRAVITY
+#ifdef SELF_GRAVITY
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
@@ -274,7 +275,7 @@ public:
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
-
+#endif
     void construct_old_gravity_source(Real time, Real dt);
 
     void construct_new_gravity_source(Real time, Real dt);
@@ -633,7 +634,7 @@ protected:
 
     void write_info ();
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     void define_new_center (MultiFab& S, Real time);
     void write_center ();
 #endif

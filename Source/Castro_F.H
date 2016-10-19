@@ -227,7 +227,7 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_phigravfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
@@ -354,7 +354,7 @@ extern "C"
      const Real* time, const int bc[]);
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_phigravfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
@@ -555,7 +555,6 @@ extern "C"
 #endif
 
 #ifdef GRAVITY
-
   void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
@@ -584,6 +583,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
+#ifdef SELF_GRAVITY
   void ca_syncgsrc
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(gPhi),
@@ -592,6 +592,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(dS),
      BL_FORT_FAB_ARG_3D(src), const int* ncomp,
      const Real& dt);
+#endif
 
 #endif
 

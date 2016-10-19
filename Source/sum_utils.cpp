@@ -3,7 +3,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 #include <Gravity.H>
 #include <Gravity_F.H>
 #endif

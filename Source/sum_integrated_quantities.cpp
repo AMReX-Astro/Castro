@@ -3,7 +3,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 #include <Gravity.H>
 #endif
 
@@ -29,7 +29,7 @@ Castro::sum_integrated_quantities ()
     Real rho_K       = 0.0;
     Real rho_E       = 0.0;
     Real rho_phi     = 0.0;
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     Real total_energy = 0.0;
 #endif
 
@@ -64,7 +64,7 @@ Castro::sum_integrated_quantities ()
        rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
        rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
        rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
 #endif
 
@@ -113,7 +113,7 @@ Castro::sum_integrated_quantities ()
             rho_E      = foo[i++];
 	    rho_phi    = foo[i++];
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	    // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
 	    // and -rho * phi + rho * E for externally-supplied gravity.
 	    std::string gravity_type = gravity->get_gravity_type();
@@ -139,7 +139,7 @@ Castro::sum_integrated_quantities ()
 	    std::cout << "TIME= " << time << " RHO*e       = "   << rho_e     << '\n';
 	    std::cout << "TIME= " << time << " RHO*K       = "   << rho_K     << '\n';
 	    std::cout << "TIME= " << time << " RHO*E       = "   << rho_E     << '\n';
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	    std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
 	    std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';	    
 #endif
@@ -166,7 +166,7 @@ Castro::sum_integrated_quantities ()
 		      data_log1 << std::setw(datwidth) <<  "         rho_K";
 		      data_log1 << std::setw(datwidth) <<  "         rho_e";
 		      data_log1 << std::setw(datwidth) <<  "         rho_E";
-#ifdef GRAVITY		      
+#ifdef SELF_GRAVITY		      
 		      data_log1 << std::setw(datwidth) <<  "       rho_phi";
 		      data_log1 << std::setw(datwidth) <<  "  total energy";
 #endif
@@ -190,7 +190,7 @@ Castro::sum_integrated_quantities ()
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_K;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_e;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_E;
-#ifdef GRAVITY		  
+#ifdef SELF_GRAVITY		  
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
 		  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
 #endif

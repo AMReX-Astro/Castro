@@ -54,7 +54,9 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
+#ifdef SELF_GRAVITY
 	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+#endif
 	construct_old_gravity_source(time, dt);
 	break;
 #endif
@@ -103,7 +105,9 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
+#ifdef SELF_GRAVITY
 	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
+#endif
 	construct_new_gravity_source(time, dt);
 	break;
 #endif
