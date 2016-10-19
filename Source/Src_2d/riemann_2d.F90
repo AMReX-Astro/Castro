@@ -14,7 +14,7 @@ module riemann_module
 #ifdef RADIATION
                                  GDERADS, GDLAMS, &
 #endif
-                                 ngdnv, small_dens, small_pres, small_temp, &
+                                 NGDNV, small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
@@ -73,7 +73,7 @@ contains
     double precision, intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
     double precision, intent(in) :: gamcg(qd_l1:qd_h1,qd_l2:qd_h2)
 #endif
-    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
@@ -439,7 +439,7 @@ contains
     double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nqp
@@ -980,7 +980,7 @@ contains
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 #ifdef RADIATION
     double precision :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision :: gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
@@ -1402,7 +1402,7 @@ contains
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: ilo,ihi,jlo,jhi
     integer :: n, nqp

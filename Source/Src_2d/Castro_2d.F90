@@ -31,7 +31,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDPRES, &
+  use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif
@@ -160,8 +160,8 @@ subroutine ca_umdrv(is_finest_level, time, &
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
-  allocate(q1(flux1_l1-1:flux1_h1+1,flux1_l2-1:flux1_h2+1,ngdnv))
-  allocate(q2(flux2_l1-1:flux2_h1+1,flux2_l2-1:flux2_h2+1,ngdnv))
+  allocate(q1(flux1_l1-1:flux1_h1+1,flux1_l2-1:flux1_h2+1,NGDNV))
+  allocate(q2(flux2_l1-1:flux2_h1+1,flux2_l2-1:flux2_h2+1,NGDNV))
 
   dx = delta(1)
   dy = delta(2)

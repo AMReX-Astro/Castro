@@ -8,7 +8,7 @@ module transverse_module
 #ifdef RADIATION
                                  GDERADS, &
 #endif
-                                 ngdnv, &
+                                 NGDNV, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
@@ -75,7 +75,7 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
-    double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,ngdnv)
+    double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -525,7 +525,7 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
-    double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,ngdnv)
+    double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision hdt, cdtdy

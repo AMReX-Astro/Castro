@@ -613,12 +613,12 @@ end subroutine set_method_params
 
 subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
 
-  use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
+  use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
        QU, QV, QW
 
   implicit none
 
-  ngdnv = 6
+  NGDNV = 6
   GDRHO = 1
   GDU = 2
   GDV = 3
