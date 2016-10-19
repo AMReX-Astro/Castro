@@ -28,6 +28,7 @@ endif
 
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
+  DEFINES += -DSELF_GRAVITY
 endif
 
 ifeq ($(USE_GR), TRUE)
