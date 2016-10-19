@@ -74,6 +74,7 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
+  integer, parameter :: EXT_INTERP = 1
   
   integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
@@ -130,10 +131,8 @@ module meth_params_module
   integer         , save :: density_reset_method
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
-#ifdef SPONGE
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
-#endif
   integer         , save :: first_order_hydro
   character (len=128), save :: xl_ext_bc_type
   character (len=128), save :: xr_ext_bc_type
@@ -152,15 +151,8 @@ module meth_params_module
   double precision, save :: react_rho_min
   double precision, save :: react_rho_max
   integer         , save :: disable_shock_burning
-
-#ifdef GRAVITY
   integer         , save :: do_grav
   integer         , save :: grav_source_type
-  double precision, save :: const_grav
-  integer         , save :: get_g_from_phi
-#endif
-
-#ifdef ROTATION
   integer         , save :: do_rotation
   double precision, save :: rot_period
   double precision, save :: rot_period_dot
@@ -171,15 +163,12 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
-#endif
-
-#ifdef POINTMASS
   double precision, save :: point_mass
   integer         , save :: point_mass_fix_solution
-#endif
-
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
+  double precision, save :: const_grav
+  integer         , save :: get_g_from_phi
 
   !$acc declare &
   !$acc create(difmag, small_dens, small_temp) &
@@ -192,27 +181,18 @@ module meth_params_module
   !$acc create(transverse_reset_rhoe, dual_energy_update_E_from_e, dual_energy_eta1) &
   !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
   !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
-  !$acc create(allow_negative_energy, allow_small_energy) &
-#ifdef SPONGE
-  !$acc create(do_sponge, sponge_implicit) &
-#endif
-  !$acc create(first_order_hydro, cfl) &
+  !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
+  !$acc create(sponge_implicit, first_order_hydro, cfl) &
   !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
   !$acc create(dxnuc, do_react, react_T_min) &
   !$acc create(react_T_max, react_rho_min, react_rho_max) &
-#ifdef GRAVITY
-  !$acc create(do_grav, grav_source_type, const_grav, get_g_from_phi) &
-#endif
-#ifdef ROTATION
+  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
   !$acc create(do_rotation, rot_period, rot_period_dot) &
   !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
   !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis) &
-#endif
-#ifdef POINTMASS
-  !$acc create(point_mass, point_mass_fix_solution) &
-#endif
-  !$acc create(do_acc, track_grid_losses)
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, track_grid_losses, const_grav) &
+  !$acc create(get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -262,10 +242,8 @@ contains
     density_reset_method = 1;
     allow_negative_energy = 0;
     allow_small_energy = 1;
-#ifdef SPONGE
     do_sponge = 0;
     sponge_implicit = 1;
-#endif
     first_order_hydro = 0;
     xl_ext_bc_type = "";
     xr_ext_bc_type = "";
@@ -284,13 +262,8 @@ contains
     react_rho_min = 0.0d0;
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
-#ifdef GRAVITY
     do_grav = -1;
     grav_source_type = 4;
-    const_grav = 0.0d0;
-    get_g_from_phi = 0;
-#endif
-#ifdef ROTATION
     do_rotation = -1;
     rot_period = -1.d200;
     rot_period_dot = 0.0d0;
@@ -301,13 +274,12 @@ contains
     rot_source_type = 4;
     implicit_rotation_update = 1;
     rot_axis = 3;
-#endif
-#ifdef POINTMASS
     point_mass = 0.0d0;
     point_mass_fix_solution = 0;
-#endif
     do_acc = -1;
     track_grid_losses = 0;
+    const_grav = 0.0d0;
+    get_g_from_phi = 0;
 
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -341,10 +313,8 @@ contains
     call pp%query("density_reset_method", density_reset_method)
     call pp%query("allow_negative_energy", allow_negative_energy)
     call pp%query("allow_small_energy", allow_small_energy)
-#ifdef SPONGE
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
-#endif
     call pp%query("first_order_hydro", first_order_hydro)
     call pp%query("xl_ext_bc_type", xl_ext_bc_type)
     call pp%query("xr_ext_bc_type", xr_ext_bc_type)
@@ -363,20 +333,34 @@ contains
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
-#ifdef GRAVITY
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
+    call pp%query("do_rotation", do_rotation)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
 #endif
 #ifdef ROTATION
-    call pp%query("do_rotation", do_rotation)
-    call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
+#endif
+#ifdef ROTATION
     call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+#endif
+#ifdef ROTATION
     call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+#endif
+#ifdef ROTATION
     call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+#endif
+#ifdef ROTATION
     call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+#endif
+#ifdef ROTATION
     call pp%query("rot_source_type", rot_source_type)
+#endif
+#ifdef ROTATION
     call pp%query("implicit_rotation_update", implicit_rotation_update)
+#endif
+#ifdef ROTATION
     call pp%query("rot_axis", rot_axis)
 #endif
 #ifdef POINTMASS
@@ -387,10 +371,8 @@ contains
 #endif
     call pp%query("do_acc", do_acc)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef GRAVITY
     call pp%query("const_grav", const_grav)
     call pp%query("get_g_from_phi", get_g_from_phi)
-#endif
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -403,28 +385,19 @@ contains
     !$acc device(transverse_reset_rhoe, dual_energy_update_E_from_e, dual_energy_eta1) &
     !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
     !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
-    !$acc device(allow_negative_energy, allow_small_energy) &
-    !$acc device(first_order_hydro, cfl) &
-#ifdef GRAVITY
-    !$acc device(const_grav, get_g_from_phi) &
-#endif
-#ifdef SPONGE
-    !$acc device(do_sponge, sponge_implicit) &
-#endif
+    !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
+    !$acc device(sponge_implicit, first_order_hydro, cfl) &
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
     !$acc device(dxnuc, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
     !$acc device(disable_shock_burning, do_grav, grav_source_type) &
-#ifdef ROTATION
     !$acc device(do_rotation, rot_period, rot_period_dot) &
     !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
     !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis) &
-#endif
-#ifdef POINTMASS
-    !$acc device(point_mass, point_mass_fix_solution) &
-#endif
-    !$acc device(do_acc, track_grid_losses)
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
+
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
