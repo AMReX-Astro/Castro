@@ -53,7 +53,10 @@ module meth_params_module
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save :: ngdnv, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, GDLAMS, GDERADS
+  integer, save :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+#ifdef RADIATION
+  integer, save :: GDLAMS, GDERADS
+#endif
 
   integer         , save :: numpts_1d
 
