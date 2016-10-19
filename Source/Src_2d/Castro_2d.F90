@@ -31,7 +31,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDU, GDV, GDPRES, &
+  use meth_params_module, only : QVAR, NVAR, NHYP, ngdnv, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif

@@ -10,7 +10,10 @@ module transverse_module
                                  fspace_type, comoving, &
 #endif
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, GDERADS, GDLAMS, &
+                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+#endif
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &

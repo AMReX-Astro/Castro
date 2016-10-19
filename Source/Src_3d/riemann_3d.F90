@@ -7,8 +7,9 @@ module riemann_module
                                  QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
+                                 NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
+                                 GDERADS, GDLAMS, &
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  small_dens, small_pres, small_temp, &
@@ -460,12 +461,12 @@ contains
     double precision :: ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, rhoetot
+   !double precision :: scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
     double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
@@ -1106,11 +1107,10 @@ contains
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar, ustar, v1g, v2g
+    double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho, drho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
 #ifdef RADIATION
     double precision, dimension(0:ngroups-1) :: erl, err
@@ -1559,7 +1559,7 @@ contains
     double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall,qavg
+    double precision :: wsmall, csmall
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x

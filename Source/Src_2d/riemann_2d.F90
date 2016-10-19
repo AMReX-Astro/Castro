@@ -10,8 +10,11 @@ module riemann_module
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
-                                 GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
-                                 small_dens, small_pres, small_temp, &
+                                 GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+#endif
+                                 ngdnv, small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &

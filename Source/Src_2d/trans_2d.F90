@@ -4,7 +4,11 @@ module transverse_module
   use network, only : nspec
   use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
-                                 GDU, GDV, GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
+                                 GDU, GDV, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, &
+#endif
+                                 ngdnv, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
@@ -78,7 +82,7 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision hdt, cdtdx
 
-    integer          :: i, j, g
+    integer          :: i, j
     integer          :: n, nqp, ipassive
 
     double precision :: rr, rrnew, compo, compn
@@ -526,7 +530,7 @@ contains
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision hdt, cdtdy
 
-    integer          :: i, j, g
+    integer          :: i, j
     integer          :: n, nqp, ipassive
 
     double precision :: rr,rrnew
