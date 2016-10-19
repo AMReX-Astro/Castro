@@ -1588,7 +1588,7 @@ Castro::post_timestep (int iteration)
 	if (verbose)
 	  flush_output();
 
-#ifdef SELF_GRAVITY2
+#ifdef SELF_GRAVITY
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
 	    MultiFab::Add(drho_and_drhoU, S_new_crse, Density, 0, 3+1, 0);
