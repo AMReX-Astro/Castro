@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 
 # This script parses the list of C++ runtime parameters and writes the
 # necessary header files and Fortran routines to make them available
@@ -309,7 +310,8 @@ def write_meth_module(plist, meth_template):
 
             for n, p in enumerate(params):
                 if p.f90_dtype == "string": 
-                    print("string parameter {} will not be available on the GPU".format(p.name))
+                    print("warning: string parameter {} will not be available on the GPU".format(p.name),
+                          file=sys.stderr)
                     continue
 
                 mo.write("{}".format(p.f90_name))
