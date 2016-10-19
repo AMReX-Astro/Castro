@@ -469,7 +469,7 @@ contains
     double precision :: pstar_old
     double precision :: taul, taur, tauo
     double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    double precision :: pstar_lo, pstar_c, pstar_hi, f_lo, f_c, f_hi
+    double precision :: pstar_lo, pstar_hi
 
     double precision, parameter :: weakwv = 1.d-3
 
@@ -1405,18 +1405,18 @@ contains
     double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nqp
     integer :: i, j
     integer :: bnd_fac
     
-    double precision :: rgd, vgd, regd, ustar
+    !double precision :: regd
+    double precision :: ustar
     double precision :: rl, ul, pl, rel
     double precision :: rr, ur, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall, qavg
+    double precision :: wsmall, csmall
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c
