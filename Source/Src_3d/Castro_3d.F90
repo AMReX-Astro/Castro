@@ -37,7 +37,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
                                  QRADVAR, QPTOT, &
 #endif
-                                 GDU, GDV, GDW, use_flattening, &
+                                 use_flattening, &
                                  first_order_hydro
   use advection_util_3d_module, only : divu
   use advection_util_module, only : compute_cfl
