@@ -130,8 +130,10 @@ module meth_params_module
   integer         , save :: density_reset_method
   integer         , save :: allow_negative_energy
   integer         , save :: allow_small_energy
+#ifdef SPONGE
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
+#endif
   integer         , save :: first_order_hydro
   character (len=128), save :: xl_ext_bc_type
   character (len=128), save :: xr_ext_bc_type
