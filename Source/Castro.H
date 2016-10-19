@@ -500,7 +500,9 @@ public:
 
     void expand_state(MultiFab& S, Real time, int ng);
 
+#ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
+#endif
 
 #ifdef AUX_UPDATE
     void advance_aux(Real time, Real dt);
@@ -555,9 +557,9 @@ protected:
     PArray<iMultiFab> ib_mask;
     iMultiFab& build_interior_boundary_mask (int ng);
 
+#ifdef SELF_GRAVITY
     int get_numpts();
 
-#ifdef SELF_GRAVITY
     //
     // Difference between composite and level solve for phi.
     //

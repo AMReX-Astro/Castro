@@ -380,6 +380,7 @@ Castro::restart (Amr&     papa,
     if (grown_factor > 1 && level == 1)
         getLevel(0).avgDown();
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
@@ -391,7 +392,6 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
-#ifdef SELF_GRAVITY
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == 0);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);

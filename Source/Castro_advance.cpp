@@ -106,6 +106,7 @@ Castro::advance (Real time,
     advance_aux(time, dt);
 #endif
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
@@ -113,10 +114,10 @@ Castro::advance (Real time,
        make_radial_data(is_new);
     }
 #endif
-
-    // Update the point mass.
+#endif
 
 #ifdef POINTMASS
+    // Update the point mass.
     pointmass_update(time, dt);
 #endif
 
@@ -214,14 +215,14 @@ Castro::do_advance (Real time,
     hybrid_sync(S_new);
 #endif
 
+#ifdef SELF_GRAVITY
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
-
-#ifdef SELF_GRAVITY
     if (moving_center == 1)
         define_new_center(S_new, time);
 #endif
 
+#ifdef SELF_GRAVITY
     // We need to make the new radial data now so that we can use it when we
     // FillPatch in creating the new source.
 
@@ -230,6 +231,7 @@ Castro::do_advance (Real time,
         int is_new = 1;
 	make_radial_data(is_new);
     }
+#endif
 #endif
 
     // For the new-time source terms, we have an option for how to proceed.
@@ -336,7 +338,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #ifdef SELF_GRAVITY
     if (moving_center == 1)
         define_new_center(get_old_data(State_Type), time);
-#endif
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
@@ -344,6 +345,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
        int is_new = 0;
        make_radial_data(is_new);
     }
+#endif
 #endif
 
     for (int j = 0; j < 3; j++) {

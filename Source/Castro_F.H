@@ -38,6 +38,7 @@ extern "C"
 
   void get_method_params(int* HYP_GROW);
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
   void get_numpts_1d(int* numpts_1d);
   void set_numpts_1d(int* numpts_1d);
@@ -47,6 +48,7 @@ extern "C"
   void set_new_outflow_data(Real* radial, Real* time,
 			    int* numpts, int* nc);
   void swap_outflow_data();
+#endif
 #endif
 
   void set_method_params
@@ -91,6 +93,7 @@ extern "C"
   void get_sponge_params(const int* name, const int* namlen);
 #endif
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
     (const int* lo, const int* hi, 
@@ -98,6 +101,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(S  ), const Real* avgden,
      const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
+#endif
 #endif
 
 #ifdef HYBRID_MOMENTUM

@@ -889,6 +889,7 @@ Castro::initData ()
 
     set_special_tagging_flag(cur_time);
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        int nc = S_new.nComp();
@@ -2709,6 +2710,7 @@ Castro::set_special_tagging_flag(Real time)
    }
 }
 
+#ifdef SELF_GRAVITY
 int
 Castro::get_numpts ()
 {
@@ -2735,7 +2737,6 @@ Castro::get_numpts ()
 
      return numpts_1d;
 }
-
 
 void
 Castro::make_radial_data(int is_new)
@@ -2839,7 +2840,6 @@ Castro::make_radial_data(int is_new)
 #endif
 }
 
-#ifdef SELF_GRAVITY
 void
 Castro::define_new_center(MultiFab& S, Real time)
 {
@@ -2906,9 +2906,7 @@ Castro::write_center ()
            data_logc << std::endl;
     }
 }
-
 #endif
-
 
 Real
 Castro::getCPUTime()
