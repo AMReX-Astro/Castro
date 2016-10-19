@@ -82,7 +82,7 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision hdt, cdtdx
 
-    integer          :: i, j
+    integer          :: i, j, g
     integer          :: n, nqp, ipassive
 
     double precision :: rr, rrnew, compo, compn
@@ -530,7 +530,7 @@ contains
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision hdt, cdtdy
 
-    integer          :: i, j
+    integer          :: i, j, g
     integer          :: n, nqp, ipassive
 
     double precision :: rr,rrnew
