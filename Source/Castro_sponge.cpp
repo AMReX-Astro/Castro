@@ -1,3 +1,4 @@
+#ifdef SPONGE
 #include "Castro.H"
 #include "Castro_F.H"
 
@@ -139,3 +140,4 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 #endif
     }
 }
+#endif

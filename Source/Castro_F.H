@@ -87,7 +87,9 @@ extern "C"
      const int* blocking_factor);
 
   void get_tagging_params(const int* name, const int* namlen);
+#ifdef SPONGE
   void get_sponge_params(const int* name, const int* namlen);
+#endif
 
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
@@ -523,6 +525,7 @@ extern "C"
      const Real& dt);
 #endif
 
+#ifdef SPONGE
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
@@ -532,6 +535,7 @@ extern "C"
      const Real& E_added, const Real* mom_added);
 
   void update_sponge_params(const Real* time);
+#endif
 
   void flush_output();
 

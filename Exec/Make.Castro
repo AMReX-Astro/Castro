@@ -22,6 +22,9 @@ include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
 
+# The default is to include the sponge functionality
+DEFINES += -DSPONGE
+
 ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif

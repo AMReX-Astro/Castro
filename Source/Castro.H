@@ -49,8 +49,12 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
+#ifdef SPONGE
 enum sources { sponge_src = 0,
                ext_src,
+#else
+enum sources { ext_src = 0,
+#endif
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -256,9 +260,11 @@ public:
 				   MultiFab& src_new,
 				   Real dt = 1.0);
 
+#ifdef SPONGE
     void construct_old_sponge_source(Real time, Real dt);
 
     void construct_new_sponge_source(Real time, Real dt);
+#endif
 
     void construct_old_ext_source(Real time, Real dt);
 

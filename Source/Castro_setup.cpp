@@ -287,10 +287,12 @@ Castro::variableSetUp ()
   
   get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
   
+#ifdef SPONGE
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
   
   get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);    
+#endif
 
   Interpolater* interp;
 
