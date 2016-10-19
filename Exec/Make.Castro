@@ -275,12 +275,10 @@ EXTERN_CORE += $(TOP)/constants
 INCLUDE_LOCATIONS += $(TOP)/constants
 VPATH_LOCATIONS   += $(TOP)/constants
 
-ifeq ($(USE_MODELPARSER), TRUE)
-  include $(TOP)/Util/model_parser/Make.package
-  EXTERN_CORE += $(TOP)/Util/model_parser
-  INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
-  VPATH_LOCATIONS   += $(TOP)/Util/model_parser
-endif
+include $(TOP)/Util/model_parser/Make.package
+EXTERN_CORE += $(TOP)/Util/model_parser
+INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
+VPATH_LOCATIONS   += $(TOP)/Util/model_parser
 
 USE_MG = FALSE
 

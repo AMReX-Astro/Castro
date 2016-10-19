@@ -11,7 +11,8 @@ contains
                         bind(C, name="ca_hypfill")
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UFS, UTEMP, const_grav
     use interpolate_module
     use eos_module
     use network, only: nspec
