@@ -216,6 +216,8 @@ zl_ext_bc_type               string        ""                 y
 # if we are doing an external +z boundary condition, who do we interpret it?
 zr_ext_bc_type               string        ""                 y
 
+# if we are doing HSE boundary conditions, do we zero the velocity?
+hse_zero_vels                int           0                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control

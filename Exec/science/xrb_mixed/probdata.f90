@@ -12,7 +12,4 @@ module probdata_module
 
   double precision, allocatable, save :: xloc_vortices(:)
 
-  ! lower boundary
-  logical         , save :: interp_BC, zero_vels
-
 end module probdata_module

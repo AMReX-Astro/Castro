@@ -1,6 +1,10 @@
 module bc_fill_module
 
+  use bc_ext_fill_module
+
   implicit none
+
+  include 'bc_types.fi'
 
   public
 
@@ -11,10 +15,6 @@ contains
                         bind(C, name="ca_hypfill")
 
     use meth_params_module, only: NVAR
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
@@ -29,6 +29,10 @@ contains
             domlo,domhi,delta,xlo,bc(:,:,n))
     enddo
 
+    ! process the external BCs here
+    call ext_fill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                  domlo,domhi,delta,xlo,time,bc)
+
   end subroutine ca_hypfill
 
 
@@ -36,10 +40,6 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                         domlo,domhi,delta,xlo,time,bc) &
                         bind(C, name="ca_denfill")
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
@@ -49,6 +49,10 @@ contains
 
     call filcc(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,bc)
 
+    ! process the external BCs here
+    call ext_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
+                     domlo,domhi,delta,xlo,time,bc)
+
   end subroutine ca_denfill
 
 
@@ -57,10 +61,6 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
@@ -79,10 +79,6 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravxfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: grav_l1,grav_l2,grav_h1,grav_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -99,10 +95,6 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravyfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: grav_l1,grav_l2,grav_h1,grav_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -118,10 +110,6 @@ contains
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravzfill")
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer          :: grav_l1,grav_l2,grav_h1,grav_h2
     integer          :: bc(2,2,*)
@@ -141,10 +129,6 @@ contains
                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -162,10 +146,6 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotxfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: rot_l1,rot_l2,rot_h1,rot_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -182,10 +162,6 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotyfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: rot_l1,rot_l2,rot_h1,rot_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -201,10 +177,6 @@ contains
   subroutine ca_rotzfill(rot,rot_l1,rot_l2,rot_h1,rot_h2, &
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotzfill")
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer          :: rot_l1,rot_l2,rot_h1,rot_h2
     integer          :: bc(2,2,*)
@@ -224,10 +196,6 @@ contains
                           react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_reactfill")
 
-    implicit none
-
-    include 'bc_types.fi'
-
     integer          :: react_l1,react_l2,react_h1,react_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
@@ -245,10 +213,6 @@ contains
 #ifdef RADIATION
   subroutine ca_radfill(rad,rad_l1,rad_l2, &
        rad_h1,rad_h2,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
-
-    implicit none
-
-    include 'bc_types.fi'
 
     integer :: rad_l1,rad_l2,rad_h1,rad_h2
     integer :: bc(2,2,*)

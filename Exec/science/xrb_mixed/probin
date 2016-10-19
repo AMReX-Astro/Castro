@@ -8,7 +8,6 @@
  velpert_amplitude = 1.d5
  num_vortices = 16
 
- zero_vels = F
  interp_BC = F
 
 /

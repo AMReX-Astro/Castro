@@ -55,6 +55,7 @@ std::string Castro::yl_ext_bc_type = "";
 std::string Castro::yr_ext_bc_type = "";
 std::string Castro::zl_ext_bc_type = "";
 std::string Castro::zr_ext_bc_type = "";
+int         Castro::hse_zero_vels = 0;
 Real        Castro::fixed_dt = -1.0;
 Real        Castro::initial_dt = -1.0;
 Real        Castro::dt_cutoff = 0.0;
