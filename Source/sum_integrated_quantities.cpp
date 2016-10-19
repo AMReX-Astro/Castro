@@ -94,7 +94,7 @@ Castro::sum_integrated_quantities ()
 #ifdef SELF_GRAVITY
 			  rho_e, rho_K, rho_E, rho_phi};
 #else
-			  rho_e, rho_K, rho_E);
+			  rho_e, rho_K, rho_E};
 #endif
 
 #ifdef BL_LAZY
