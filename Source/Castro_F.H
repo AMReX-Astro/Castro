@@ -559,6 +559,7 @@ extern "C"
 #endif
 
 #ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
@@ -587,7 +588,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
-#ifdef SELF_GRAVITY
   void ca_syncgsrc
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(gPhi),
@@ -596,6 +596,26 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(dS),
      BL_FORT_FAB_ARG_3D(src), const int* ncomp,
      const Real& dt);
+#else
+  void ca_gsrc
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(s_old),
+     BL_FORT_FAB_ARG_3D(source),
+     const BL_FORT_FAB_ARG_3D(vol),
+     const Real* dx, const Real& dt, const Real* time);
+
+  void ca_corrgsrc
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(S_old),
+     const BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(source),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     const Real* dx, const Real& dt, const Real* time,
+     const BL_FORT_FAB_ARG_3D(volume)); 
 #endif
 
 #endif
