@@ -861,8 +861,7 @@ subroutine get_tagging_params(name, namlen) &
 
 end subroutine get_tagging_params
 
-
-
+#ifdef SPONGE
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -936,7 +935,9 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
   endif
 
 end subroutine get_sponge_params
+#endif
 
+#ifdef POINTMASS
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -952,3 +953,4 @@ subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
   point_mass = pointmass_in
 
 end subroutine set_pointmass
+#endif
