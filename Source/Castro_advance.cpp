@@ -554,7 +554,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 		reg = &getLevel(lev).rad_flux_reg;
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
+		    if (!(reflux_strategy == 2 && amr_iteration > 1))
+			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
 		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
 		}
 
