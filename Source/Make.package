@@ -57,20 +57,3 @@ endif
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
 CEXE_sources += Castro_hybrid.cpp
 endif
-
-ifeq ($(USE_RAD), TRUE)
-CEXE_sources += HypreExtMultiABec.cpp HypreMultiABec.cpp HypreABec.cpp \
-                Radiation.cpp RadSolve.cpp RadBndry.cpp \
-                RadMultiGroup.cpp MGRadBndry.cpp \
-                SGRadSolver.cpp SGFLD.cpp RadPlotvar.cpp \
-                MGFLD.cpp MGFLDRadSolver.cpp Castro_radiation.cpp \
-                energy_diagnostics.cpp
-
-CEXE_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
-                Radiation.H RadSolve.H RadBndry.H \
-                RadTypes.H LHH.H MGRadBndry.H
-
-FEXE_headers += RAD_F.H HABEC_F.H
-
-endif
-

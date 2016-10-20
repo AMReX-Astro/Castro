@@ -7,18 +7,18 @@ module bc_fill_module
 contains
 
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_hypfill")
 
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
     use interpolate_module
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
 
     implicit none
-
+    
     include 'bc_types.fi'
     
     integer adv_l1,adv_l2,adv_h1,adv_h2
@@ -41,7 +41,7 @@ contains
 
     do n = 1,NVAR
        call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
-            domlo,domhi,delta,xlo,bc(1,1,n))
+                  domlo,domhi,delta,xlo,bc(1,1,n))
     enddo
 
     do n = 1, NVAR
@@ -74,7 +74,6 @@ contains
                 ! set all the variables even though we're testing on URHO
                 if (n .eq. URHO) then
 
-
                    if (interp_BC) then
 
                       dens_zone = interpolate(y,npts_model,model_r, &
@@ -106,7 +105,7 @@ contains
 
                       call eos(eos_input_rt, eos_state)
 
-                      eint = eos_state%e                    
+                      eint = eos_state%e
                       pres_above = eos_state%p
 
 
@@ -145,9 +144,7 @@ contains
 
                       enddo
 
-                      if (.not. converged_hse) then
-                         call bl_error("ERROR: failure to converge in -Y BC")
-                      endif
+                      if (.not. converged_hse) call bl_error("ERROR: failure to converge in -Y BC")
 
                    endif
 
@@ -160,11 +157,13 @@ contains
 
                       ! zero transverse momentum
                       adv(i,j,UMX) = 0.d0
+                      adv(i,j,UMZ) = 0.d0
                    else
 
                       ! zero gradient velocity
                       adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
                       adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
+                      adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
                    endif
 
                    eos_state%rho = dens_zone
@@ -179,7 +178,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eint
                    adv(i,j,UEDEN) = dens_zone*eint + & 
-                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
+                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -211,11 +210,13 @@ contains
                            model_state(:,ispec_model-1+q))
                    enddo
 
+
                    ! extrap normal momentum
                    adv(i,j,UMY) = max(0.d0,adv(i,domhi(2),UMY))
 
                    ! zero transverse momentum
                    adv(i,j,UMX) = 0.d0
+                   adv(i,j,UMZ) = 0.d0
 
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
@@ -229,7 +230,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eint
                    adv(i,j,UEDEN) = dens_zone*eint + &
-                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
+                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -246,7 +247,8 @@ contains
 
 
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C)
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_denfill")
 
     use probdata_module
     use interpolate_module
@@ -308,10 +310,10 @@ contains
   end subroutine ca_denfill
 
 
-
-#ifdef GRAVITY  
+  
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravxfill")
 
     use probdata_module
     
@@ -332,12 +334,13 @@ contains
 
 
   subroutine ca_gravyfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravyfill")
 
     use probdata_module
-
+    
     implicit none
-
+    
     include 'bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
@@ -353,7 +356,8 @@ contains
 
 
   subroutine ca_gravzfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C)
+                          domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravzfill")
 
     use probdata_module
     
@@ -372,32 +376,10 @@ contains
   end subroutine ca_gravzfill
 
 
-  
-  subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
-                            domlo,domhi,delta,xlo,time,bc) bind(C)
 
-    use probdata_module
-    
-    implicit none
-    
-    include 'bc_types.fi'
-
-    integer :: phi_l1,phi_l2,phi_h1,phi_h2
-    integer :: bc(2,2,*)
-    integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision phi(phi_l1:phi_h1,phi_l2:phi_h2)
-
-    call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2,domlo,domhi,delta,xlo,bc)
-
-  end subroutine ca_phigravfill  
-#endif
-
-
-
-#ifdef REACTIONS
   subroutine ca_reactfill(react,react_l1,react_l2, &
-                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
+                          react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
 
     use probdata_module
     
@@ -414,6 +396,26 @@ contains
     call filcc(react,react_l1,react_l2,react_h1,react_h2,domlo,domhi,delta,xlo,bc)
 
   end subroutine ca_reactfill
-#endif
+
+  
+
+  subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
+                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
+
+    implicit none
+
+    include 'bc_types.fi'
+
+    integer          :: phi_l1,phi_l2,phi_h1,phi_h2
+    integer          :: bc(2,2,*)
+    integer          :: domlo(2), domhi(2)
+    double precision :: delta(2), xlo(2), time
+    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+
+    call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
+               domlo,domhi,delta,xlo,bc)
+
+  end subroutine ca_phigravfill
 
 end module bc_fill_module

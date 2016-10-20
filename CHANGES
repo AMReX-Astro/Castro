@@ -1,5 +1,9 @@
 * changes since the last release:
 
+  -- we now distinguish between gravity (which can include a 
+     constant gravitational acceleration) and self-gravity,
+     with the GRAVITY and SELF_GRAVITY preprocessor directives
+
 previous changes:
 
 * 16.10

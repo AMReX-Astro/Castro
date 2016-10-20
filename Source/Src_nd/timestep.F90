@@ -12,8 +12,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, &
-                                  allow_negative_energy
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX
     use prob_params_module, only: dim
     use bl_constants_module
 #ifdef ROTATION

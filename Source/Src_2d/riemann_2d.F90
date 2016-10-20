@@ -10,8 +10,11 @@ module riemann_module
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
-                                 GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
-                                 small_dens, small_pres, small_temp, &
+                                 GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+#endif
+                                 NGDNV, small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
@@ -70,7 +73,7 @@ contains
     double precision, intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
     double precision, intent(in) :: gamcg(qd_l1:qd_h1,qd_l2:qd_h2)
 #endif
-    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
@@ -436,10 +439,10 @@ contains
     double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
-    integer :: n, nq
+    integer :: n, nqp
 
     double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, v2l, pl, rel
@@ -466,7 +469,7 @@ contains
     double precision :: pstar_old
     double precision :: taul, taur, tauo
     double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    double precision :: pstar_lo, pstar_c, pstar_hi, f_lo, f_c, f_hi
+    double precision :: pstar_lo, pstar_hi
 
     double precision, parameter :: weakwv = 1.d-3
 
@@ -918,14 +921,14 @@ contains
           ! note: this includes the z-velocity flux
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -977,7 +980,7 @@ contains
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 #ifdef RADIATION
     double precision :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision :: gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
@@ -986,7 +989,7 @@ contains
 #endif
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
+    integer :: n, nqp
     integer :: i, j, ipassive
 
 #ifdef RADIATION
@@ -1349,14 +1352,14 @@ contains
 
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -1399,21 +1402,21 @@ contains
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
     integer :: i, j
     integer :: bnd_fac
     
-    double precision :: rgd, vgd, regd, ustar
+    !double precision :: regd
+    double precision :: ustar
     double precision :: rl, ul, pl, rel
     double precision :: rr, ur, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall, qavg
+    double precision :: wsmall, csmall
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c

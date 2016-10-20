@@ -38,6 +38,7 @@ extern "C"
 
   void get_method_params(int* HYP_GROW);
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
   void get_numpts_1d(int* numpts_1d);
   void set_numpts_1d(int* numpts_1d);
@@ -47,6 +48,7 @@ extern "C"
   void set_new_outflow_data(Real* radial, Real* time,
 			    int* numpts, int* nc);
   void swap_outflow_data();
+#endif
 #endif
 
   void set_method_params
@@ -87,8 +89,11 @@ extern "C"
      const int* blocking_factor);
 
   void get_tagging_params(const int* name, const int* namlen);
+#ifdef SPONGE
   void get_sponge_params(const int* name, const int* namlen);
+#endif
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
     (const int* lo, const int* hi, 
@@ -96,6 +101,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(S  ), const Real* avgden,
      const BL_FORT_FAB_ARG_3D(Vol), const Real* avgvol,
      const Real* problo, const int* numpts_1d);
+#endif
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -227,7 +233,7 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_phigravfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
@@ -354,7 +360,7 @@ extern "C"
      const Real* time, const int bc[]);
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_phigravfill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
@@ -523,6 +529,7 @@ extern "C"
      const Real& dt);
 #endif
 
+#ifdef SPONGE
   void ca_sponge
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
@@ -532,6 +539,7 @@ extern "C"
      const Real& E_added, const Real* mom_added);
 
   void update_sponge_params(const Real* time);
+#endif
 
   void flush_output();
 
@@ -555,7 +563,7 @@ extern "C"
 #endif
 
 #ifdef GRAVITY
-
+#ifdef SELF_GRAVITY
   void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
@@ -584,6 +592,28 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
+#else
+
+  void ca_gsrc
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(s_old),
+     BL_FORT_FAB_ARG_3D(source),
+     const BL_FORT_FAB_ARG_3D(vol),
+     const Real* dx, const Real& dt, const Real* time);
+
+  void ca_corrgsrc
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(S_old),
+     const BL_FORT_FAB_ARG_3D(S_new),
+     BL_FORT_FAB_ARG_3D(source),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     const Real* dx, const Real& dt, const Real* time,
+     const BL_FORT_FAB_ARG_3D(volume)); 
+#endif
 #endif
 
 #ifdef ROTATION

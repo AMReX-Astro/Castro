@@ -27,7 +27,7 @@ enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
 #endif
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
@@ -49,8 +49,12 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
+#ifdef SPONGE
 enum sources { sponge_src = 0,
                ext_src,
+#else
+enum sources { ext_src = 0,
+#endif
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -264,9 +268,11 @@ public:
 				   MultiFab& src_new,
 				   Real dt = 1.0);
 
+#ifdef SPONGE
     void construct_old_sponge_source(Real time, Real dt);
 
     void construct_new_sponge_source(Real time, Real dt);
+#endif
 
     void construct_old_ext_source(Real time, Real dt);
 
@@ -275,6 +281,7 @@ public:
     void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
 
 #ifdef GRAVITY
+#ifdef SELF_GRAVITY
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
@@ -282,7 +289,7 @@ public:
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       int sub_iteration, int sub_ncycle,
 			       Real time);
-
+#endif
     void construct_old_gravity_source(Real time, Real dt);
 
     void construct_new_gravity_source(Real time, Real dt);
@@ -501,7 +508,9 @@ public:
 
     void expand_state(MultiFab& S, Real time, int ng);
 
+#ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
+#endif
 
 #ifdef AUX_UPDATE
     void advance_aux(Real time, Real dt);
@@ -546,6 +555,7 @@ protected:
     PArray<iMultiFab> ib_mask;
     iMultiFab& build_interior_boundary_mask (int ng);
 
+#ifdef SELF_GRAVITY
     int get_numpts();
 
     //
@@ -553,6 +563,7 @@ protected:
     //
     MultiFab comp_minus_level_phi;
     PArray<MultiFab> comp_minus_level_grad_phi;
+#endif
 
     //
     // A state array with ghost zones.
@@ -646,7 +657,7 @@ protected:
 
     void write_info ();
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     void define_new_center (MultiFab& S, Real time);
     void write_center ();
 #endif

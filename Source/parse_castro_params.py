@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 
 # This script parses the list of C++ runtime parameters and writes the
 # necessary header files and Fortran routines to make them available
@@ -79,6 +80,9 @@ CWARNING = """
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh\n
 """
+
+param_include_dir = "param_includes/"
+
 
 class Param(object):
     """ the basic parameter class.  For each parameter, we hold the name,
@@ -261,6 +265,8 @@ class Param(object):
             tstr = "double precision, save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "logical":
             tstr = "logical         , save :: {}\n".format(self.f90_name)
+        elif self.f90_dtype == "string":
+            tstr = "character (len=128), save :: {}\n".format(self.f90_name)
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
 
@@ -302,9 +308,12 @@ def write_meth_module(plist, meth_template):
             mo.write("  !$acc declare &\n")
             mo.write("  !$acc create(")
 
-            params = [p for p in plist if p.in_fortran == 1]
-
             for n, p in enumerate(params):
+                if p.f90_dtype == "string": 
+                    print("warning: string parameter {} will not be available on the GPU".format(p.name),
+                          file=sys.stderr)
+                    continue
+
                 mo.write("{}".format(p.f90_name))
 
                 if n == len(params)-1:
@@ -331,6 +340,7 @@ def write_meth_module(plist, meth_template):
             mo.write("    !$acc device(")
 
             for n, p in enumerate(params):
+                if p.f90_dtype == "string": continue
                 mo.write("{}".format(p.f90_name))
 
                 if n == len(params)-1:
@@ -449,7 +459,7 @@ def parse_params(infile, meth_template):
         params_nm = [q for q in params if q.namespace == nm]
 
         # write name_defaults.H
-        try: cd = open("{}_defaults.H".format(nm), "w")
+        try: cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
@@ -461,7 +471,7 @@ def parse_params(infile, meth_template):
         cd.close()
 
         # write name_params.H
-        try: cp = open("{}_params.H".format(nm), "w")
+        try: cp = open("{}/{}_params.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
@@ -473,7 +483,7 @@ def parse_params(infile, meth_template):
         cp.close()
 
         # write castro_queries.H
-        try: cq = open("{}_queries.H".format(nm), "w")
+        try: cq = open("{}/{}_queries.H".format(param_include_dir, nm), "w")
         except:
             sys.exit("unable to open {}_queries.H for writing".format(nm))
 

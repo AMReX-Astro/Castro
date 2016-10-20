@@ -79,7 +79,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
+    double precision :: cc, csq, Clag
     double precision :: rho, u, v, p, rhoe_g, h_g
     double precision :: gam_g, game
 

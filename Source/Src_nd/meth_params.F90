@@ -53,7 +53,10 @@ module meth_params_module
   ! These are used for the Godunov state
   ! Note that the velocity indices here are picked to be the same value
   ! as in the primitive variable array
-  integer, save :: ngdnv, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, GDLAMS, GDERADS
+  integer, save :: NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
+#ifdef RADIATION
+  integer, save :: GDLAMS, GDERADS
+#endif
 
   integer         , save :: numpts_1d
 
@@ -67,6 +70,13 @@ module meth_params_module
   double precision, save :: diffuse_cutoff_density
 
   character(len=:), allocatable :: gravity_type
+
+  ! these flags are for interpreting the EXT_DIR BCs
+  integer, parameter :: EXT_UNDEFINED = -1
+  integer, parameter :: EXT_HSE = 1
+  integer, parameter :: EXT_INTERP = 2 
+  
+  integer, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
@@ -82,9 +92,10 @@ module meth_params_module
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG) &
   !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
-  !$acc create(fspace_type, do_inelastic_scattering, comoving)
+  !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
-  !$acc create(QFA, QFS, QFX)
+  !$acc create(QFA, QFS, QFX) &
+  !$acc create(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
   ! Begin the declarations of the ParmParse parameters
 
@@ -123,6 +134,13 @@ module meth_params_module
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
   integer         , save :: first_order_hydro
+  character (len=128), save :: xl_ext_bc_type
+  character (len=128), save :: xr_ext_bc_type
+  character (len=128), save :: yl_ext_bc_type
+  character (len=128), save :: yr_ext_bc_type
+  character (len=128), save :: zl_ext_bc_type
+  character (len=128), save :: zr_ext_bc_type
+  integer         , save :: hse_zero_vels
   double precision, save :: cfl
   double precision, save :: dtnuc_e
   double precision, save :: dtnuc_X
@@ -165,17 +183,17 @@ module meth_params_module
   !$acc create(dual_energy_eta2, dual_energy_eta3, use_pslope) &
   !$acc create(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
   !$acc create(allow_negative_energy, allow_small_energy, do_sponge) &
-  !$acc create(sponge_implicit, first_order_hydro, cfl) &
-  !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
-  !$acc create(dxnuc, do_react, react_T_min) &
-  !$acc create(react_T_max, react_rho_min, react_rho_max) &
-  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
-  !$acc create(do_acc, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(sponge_implicit, first_order_hydro, hse_zero_vels) &
+  !$acc create(cfl, dtnuc_e, dtnuc_X) &
+  !$acc create(dtnuc_mode, dxnuc, do_react) &
+  !$acc create(react_T_min, react_T_max, react_rho_min) &
+  !$acc create(react_rho_max, disable_shock_burning, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -228,6 +246,13 @@ contains
     do_sponge = 0;
     sponge_implicit = 1;
     first_order_hydro = 0;
+    xl_ext_bc_type = "";
+    xr_ext_bc_type = "";
+    yl_ext_bc_type = "";
+    yr_ext_bc_type = "";
+    zl_ext_bc_type = "";
+    zr_ext_bc_type = "";
+    hse_zero_vels = 0;
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
@@ -293,6 +318,13 @@ contains
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
     call pp%query("first_order_hydro", first_order_hydro)
+    call pp%query("xl_ext_bc_type", xl_ext_bc_type)
+    call pp%query("xr_ext_bc_type", xr_ext_bc_type)
+    call pp%query("yl_ext_bc_type", yl_ext_bc_type)
+    call pp%query("yr_ext_bc_type", yr_ext_bc_type)
+    call pp%query("zl_ext_bc_type", zl_ext_bc_type)
+    call pp%query("zr_ext_bc_type", zr_ext_bc_type)
+    call pp%query("hse_zero_vels", hse_zero_vels)
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
@@ -357,17 +389,75 @@ contains
     !$acc device(dual_energy_eta2, dual_energy_eta3, use_pslope) &
     !$acc device(fix_mass_flux, limit_fluxes_on_small_dens, density_reset_method) &
     !$acc device(allow_negative_energy, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
-    !$acc device(dxnuc, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_mode, dxnuc, do_react) &
+    !$acc device(react_T_min, react_T_max, react_rho_min) &
+    !$acc device(react_rho_max, disable_shock_burning, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
+
+
+    ! now set the external BC flags
+    select case (xl_ext_bc_type)
+    case ("hse", "HSE")
+       xl_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       xl_ext = EXT_INTERP
+    case default
+       xl_ext = EXT_UNDEFINED
+    end select
+
+    select case (yl_ext_bc_type)
+    case ("hse", "HSE")
+       yl_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       yl_ext = EXT_INTERP
+    case default
+       yl_ext = EXT_UNDEFINED
+    end select
+
+    select case (zl_ext_bc_type)
+    case ("hse", "HSE")
+       zl_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       zl_ext = EXT_INTERP
+    case default
+       zl_ext = EXT_UNDEFINED
+    end select
+
+    select case (xr_ext_bc_type)
+    case ("hse", "HSE")
+       xr_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       xr_ext = EXT_INTERP
+    case default
+       xr_ext = EXT_UNDEFINED
+    end select
+
+    select case (yr_ext_bc_type)
+    case ("hse", "HSE")
+       yr_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       yr_ext = EXT_INTERP
+    case default
+       yr_ext = EXT_UNDEFINED
+    end select
+
+    select case (zr_ext_bc_type)
+    case ("hse", "HSE")
+       zr_ext = EXT_HSE
+    case ("interp", "INTERP")       
+       zr_ext = EXT_INTERP
+    case default
+       zr_ext = EXT_UNDEFINED
+    end select
+
+    !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     call parmparse_destroy(pp)
 

@@ -4,7 +4,11 @@ module transverse_module
   use network, only : nspec
   use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
-                                 GDU, GDV, GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
+                                 GDU, GDV, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, &
+#endif
+                                 NGDNV, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
@@ -71,7 +75,7 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
-    double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,ngdnv)
+    double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
@@ -79,7 +83,7 @@ contains
     double precision hdt, cdtdx
 
     integer          :: i, j, g
-    integer          :: n, nq, ipassive
+    integer          :: n, nqp, ipassive
 
     double precision :: rr, rrnew, compo, compn
     double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
@@ -113,7 +117,7 @@ contains
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
 
        do j = jlo, jhi
           do i = ilo, ihi
@@ -125,16 +129,16 @@ contains
                 rr = qp(i,j,  QRHO)
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
-                compo = rr*qp(i,j,nq) - compn
-                qpo(i,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qp(i,j,nqp) - compn
+                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
 
              if (j <= jhi-1) then
                 rr = qm(i,j+1,QRHO)
                 rrnew = rr - hdt*(area1(i+1,j)*fx(i+1,j,URHO) -  &
                                   area1(i  ,j)*fx(i  ,j,URHO))/vol(i,j)
-                compo = rr*qm(i,j+1,nq) - compn
-                qmo(i,j+1,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qm(i,j+1,nqp) - compn
+                qmo(i,j+1,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
           enddo
        enddo
@@ -521,13 +525,13 @@ contains
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
-    double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,ngdnv)
+    double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
     double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision hdt, cdtdy
 
     integer          :: i, j, g
-    integer          :: n, nq, ipassive
+    integer          :: n, nqp, ipassive
 
     double precision :: rr,rrnew
     double precision :: pggp, pggm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
@@ -558,7 +562,7 @@ contains
     ! update all of the passively-advected quantities in a single loop
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
 
        do j = jlo, jhi
           do i = ilo, ihi
@@ -568,15 +572,15 @@ contains
              if (i >= ilo+1) then
                 rr = qp(i,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
-                compo = rr*qp(i,j,nq) - compn
-                qpo(i,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qp(i,j,nqp) - compn
+                qpo(i,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
 
              if (i <= ihi-1) then
                 rr = qm(i+1,j,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,URHO)-fy(i,j,URHO))
-                compo = rr*qm(i+1,j,nq) - compn
-                qmo(i+1,j,nq) = compo/rrnew + hdt*srcQ(i,j,nq)
+                compo = rr*qm(i+1,j,nqp) - compn
+                qmo(i+1,j,nqp) = compo/rrnew + hdt*srcQ(i,j,nqp)
              end if
           enddo
        enddo

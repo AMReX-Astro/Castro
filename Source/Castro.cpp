@@ -31,7 +31,7 @@
 #include <Particles_F.H>
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -93,7 +93,7 @@ int          Castro::NQ            = -1;
 
 #include <castro_defaults.H>
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
 #endif
@@ -141,7 +141,7 @@ int          Castro::num_state_type = 0;
 void
 Castro::variableCleanUp ()
 {
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   if (gravity != 0) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
@@ -405,7 +405,9 @@ Castro::read_params ()
 
 Castro::Castro ()
     :
+#ifdef SELF_GRAVITY
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+#endif
     fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
@@ -423,7 +425,9 @@ Castro::Castro (Amr&            papa,
                 Real            time)
     :
     AmrLevel(papa,lev,level_geom,bl,time),
+#ifdef SELF_GRAVITY
     comp_minus_level_grad_phi(BL_SPACEDIM, PArrayManage),
+#endif
     fluxes(3, PArrayManage),
 #ifdef RADIATION
     rad_fluxes(BL_SPACEDIM, PArrayManage),
@@ -617,7 +621,7 @@ Castro::Castro (Amr&            papa,
 
     }
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
@@ -1037,6 +1041,7 @@ Castro::initData ()
 
     set_special_tagging_flag(cur_time);
 
+#ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        int nc = S_new.nComp();
@@ -1047,7 +1052,6 @@ Castro::initData ()
     }
 #endif
 
-#ifdef GRAVITY
     MultiFab& G_new = get_new_data(Gravity_Type);
     G_new.setVal(0.);
 
@@ -1126,7 +1130,7 @@ Castro::init (AmrLevel &old)
     }
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav) {
 	MultiFab& phi_new = get_new_data(PhiGrav_Type);
 	FillPatch(old,phi_new,0,cur_time,PhiGrav_Type,0,1);
@@ -1243,7 +1247,7 @@ Castro::init ()
     }
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav) {
 	MultiFab& phi_new = get_new_data(PhiGrav_Type);
 	FillCoarsePatch(phi_new, 0, cur_time, PhiGrav_Type, 0, 1);
@@ -1771,7 +1775,7 @@ Castro::post_timestep (int iteration)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
         if (moving_center) write_center();
 #endif
     }
@@ -1821,7 +1825,7 @@ Castro::post_restart ()
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav)
     {
         if (level == 0)
@@ -1917,7 +1921,7 @@ Castro::postCoarseTimeStep (Real cumtime)
     //
     // postCoarseTimeStep() is only called by level 0.
     //
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav)
         gravity->set_mass_offset(cumtime, 0);
 #endif
@@ -1935,7 +1939,7 @@ Castro::post_regrid (int lbase,
     }
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav)
     {
        const Real cur_time = state[State_Type].curTime();
@@ -1973,7 +1977,7 @@ Castro::post_init (Real stop_time)
     for (int k = finest_level-1; k>= 0; k--)
         getLevel(k).avgDown();
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 
     Real cur_time = state[State_Type].curTime();
 
@@ -2074,7 +2078,7 @@ Castro::post_init (Real stop_time)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (level == 0 && moving_center == 1)
        write_center();
 #endif
@@ -2086,7 +2090,7 @@ Castro::post_grown_restart ()
     if (level > 0)
         return;
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav) {
 	int finest_level = parent->finestLevel();
 	Real cur_time = state[State_Type].curTime();
@@ -2213,7 +2217,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     int nlevs = fine_level - crse_level + 1;
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     PArray<MultiFab> drho(nlevs, PArrayManage);
     PArray<MultiFab> dphi(nlevs, PArrayManage);
 
@@ -2256,7 +2260,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	// Store the density change, for the gravity sync.
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    reg->Reflux(drho[ilev], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
 	    BoxLib::average_down(drho[ilev + 1], drho[ilev], 0, 1, getLevel(lev).crse_ratio);
@@ -2369,7 +2373,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #endif	
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
 	    reg = &getLevel(lev).phi_reg;
@@ -2398,7 +2402,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     // Do the sync solve across all levels.
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
 	    gravity->gravity_sync(crse_level, fine_level, drho, dphi);
 #endif
@@ -2467,7 +2471,7 @@ Castro::avgDown ()
 
   avgDown(State_Type);
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   avgDown(Gravity_Type);
   avgDown(PhiGrav_Type);
 #endif
@@ -2937,6 +2941,7 @@ Castro::set_special_tagging_flag(Real time)
    }
 }
 
+#ifdef SELF_GRAVITY
 int
 Castro::get_numpts ()
 {
@@ -2963,7 +2968,6 @@ Castro::get_numpts ()
 
      return numpts_1d;
 }
-
 
 void
 Castro::make_radial_data(int is_new)
@@ -3067,7 +3071,6 @@ Castro::make_radial_data(int is_new)
 #endif
 }
 
-#ifdef GRAVITY
 void
 Castro::define_new_center(MultiFab& S, Real time)
 {
@@ -3134,9 +3137,7 @@ Castro::write_center ()
            data_logc << std::endl;
     }
 }
-
 #endif
-
 
 Real
 Castro::getCPUTime()

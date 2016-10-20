@@ -44,7 +44,7 @@ contains
                      domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
-                                   GDU, GDV, GDPRES, ngdnv, &
+                                   GDU, GDV, GDPRES, NGDNV, &
                                    QC, QCSML, QGAMC, NQAUX
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
@@ -78,8 +78,8 @@ contains
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
-    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
     double precision  uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
     double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
@@ -103,7 +103,7 @@ contains
     double precision :: hdtdx, hdt, hdtdy
     integer          :: i,j
 
-    allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv))
+    allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV))
 
     allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
     allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
@@ -279,7 +279,7 @@ contains
                      verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, ngdnv, GDPRES, track_grid_losses, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, GDPRES, track_grid_losses, &
                                    limit_fluxes_on_small_dens, QVAR
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
@@ -310,8 +310,8 @@ contains
     double precision q(q_l1:q_h1,q_l2:q_h2,QVAR)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
-    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,ngdnv)
-    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,ngdnv)
+    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
+    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
     double precision flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
     double precision flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)

@@ -207,6 +207,26 @@ source_term_predictor        int           0
 # to be flat, resulting in a first-order method
 first_order_hydro            int           0                  y
 
+# if we are doing an external -x boundary condition, who do we interpret it?
+xl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +x boundary condition, who do we interpret it?
+xr_ext_bc_type               string        ""                 y
+
+# if we are doing an external -y boundary condition, who do we interpret it?
+yl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +y boundary condition, who do we interpret it?
+yr_ext_bc_type               string        ""                 y
+
+# if we are doing an external -z boundary condition, who do we interpret it?
+zl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +z boundary condition, who do we interpret it?
+zr_ext_bc_type               string        ""                 y
+
+# if we are doing HSE boundary conditions, do we zero the velocity?
+hse_zero_vels                int           0                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control

@@ -22,12 +22,16 @@ include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
 
+# The default is to include the sponge functionality
+DEFINES += -DSPONGE
+
 ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
+  DEFINES += -DSELF_GRAVITY
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -253,7 +257,9 @@ Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 ifeq ($(USE_RAD), TRUE)
-RadDirs := Source/_interpbndry
+RadDirs := Source/Radiation
+RadDirs += Source/Radiation/_interpbndry
+RadDirs	+= Source/Radiation/RadSrc_$(DIM)d Source/Radiation/RadSrc_nd
 
 Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
 Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
@@ -269,12 +275,10 @@ EXTERN_CORE += $(TOP)/constants
 INCLUDE_LOCATIONS += $(TOP)/constants
 VPATH_LOCATIONS   += $(TOP)/constants
 
-ifeq ($(USE_MODELPARSER), TRUE)
-  include $(TOP)/Util/model_parser/Make.package
-  EXTERN_CORE += $(TOP)/Util/model_parser
-  INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
-  VPATH_LOCATIONS   += $(TOP)/Util/model_parser
-endif
+include $(TOP)/Util/model_parser/Make.package
+EXTERN_CORE += $(TOP)/Util/model_parser
+INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
+VPATH_LOCATIONS   += $(TOP)/Util/model_parser
 
 USE_MG = FALSE
 
@@ -373,4 +377,6 @@ clean::
 # for debugging.  To see the value of a Makefile variable,
 # e.g. Fmlocs, simply do "make print-Fmlocs".  This will
 # print out the value.
-print-%: ; @echo $* is $($*) ; $(SILENT) $(RM) buildInfo.cpp
+print-%::
+	@echo "$* is $($*)"
+	$(SILENT) $(RM) buildInfo.cpp

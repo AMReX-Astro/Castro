@@ -14,6 +14,7 @@ f90EXE_sources += advection_util_$(DIM)d.f90
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
 F90EXE_sources += bc_fill_$(DIM)d.F90
+F90EXE_sources += bc_ext_fill_$(DIM)d.F90
 f90EXE_sources += ext_src_$(DIM)d.f90
 f90EXE_sources += Prob_$(DIM)d.f90
 f90EXE_sources += problem_tagging_$(DIM)d.f90
@@ -29,21 +30,4 @@ endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
 f90EXE_sources += MGutils_2d.f90
-endif
-
-ifeq ($(USE_RAD), TRUE)
-
-F90EXE_sources += RAD_$(DIM)D.F90 HABEC_$(DIM)D.F90
-
-f90EXE_sources += RadHydro_$(DIM)d.f90 \
-                         trace_ppm_rad_$(DIM)d.f90 \
-                         MGFLD_$(DIM)d.f90 \
-                         RadEOS_$(DIM)d.f90 \
-                         filt_prim_$(DIM)d.f90 CastroRad_$(DIM)d.f90 \
-                         RadBndry_$(DIM)d.f90 RadPlotvar_$(DIM)d.f90
-
-ifeq ($(USE_NEUTRINO), TRUE)
-  f90EXE_sources += MGFLDneut_$(DIM)d.f90
-endif
-
 endif

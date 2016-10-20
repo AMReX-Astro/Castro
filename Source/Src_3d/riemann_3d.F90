@@ -7,8 +7,9 @@ module riemann_module
                                  QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
+                                 NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
+                                 GDERADS, GDLAMS, &
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  small_dens, small_pres, small_temp, &
@@ -455,17 +456,17 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, rhoetot
+   !double precision :: scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
     double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
@@ -1018,15 +1019,15 @@ contains
        ! advected quantities -- only the contact matters
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           do i = ilo, ihi
              if (us1d(i) .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
              else if (us1d(i) .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1100,17 +1101,16 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar, ustar, v1g, v2g
+    double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho, drho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
 #ifdef RADIATION
     double precision, dimension(0:ngroups-1) :: erl, err
@@ -1480,18 +1480,18 @@ contains
        ! passively advected quantities
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           !dir$ ivdep
           do i = ilo, ihi
              if (us1d(i) > ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
 
              else if (us1d(i) < ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
 
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1559,7 +1559,7 @@ contains
     double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall,qavg
+    double precision :: wsmall, csmall
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x

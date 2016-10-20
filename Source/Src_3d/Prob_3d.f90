@@ -47,7 +47,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
                             state_l3:state_h3,nvar)
 
   ! Remove this call if you're defining your own problem; it is here to 
-  ! ensure that you cannot run CASTRO if you haven't got your own copy of this function.
+  ! ensure that you cannot run Castro if you haven't got your own copy of this function.
 
   call bl_error("Prob_3d.f90 has not been defined for this problem!")
 
