@@ -8,4 +8,5 @@ module probdata_module
   
   double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
 
+  logical         , save :: is_3d_fullstar
 end module probdata_module
