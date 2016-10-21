@@ -151,7 +151,6 @@ contains
                    else
                       
                       if (hse_reflect_vels == 1) then
-                         ! zero gradient velocity
                          adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
                          adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
                          adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
