@@ -253,6 +253,8 @@ public:
     void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
 #endif
 
+    bool source_flag(int src);
+
     void do_old_sources(Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
     void construct_old_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);

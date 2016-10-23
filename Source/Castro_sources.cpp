@@ -24,6 +24,57 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& src_old, MultiFab &s
   MultiFab::Saxpy(S_new, 0.5*dt,src_new,0,0,S_new.nComp(),0);
 }
 
+bool
+Castro::source_flag(int src)
+{
+    switch(src) {
+
+#ifdef SPONGE
+    case sponge_src:
+	if (do_sponge)
+	    return true;
+	else
+	    return false;
+#endif
+
+    case ext_src:
+	if (add_ext_src)
+	    return true;
+	else
+	    return false;
+
+#ifdef DIFFUSION
+    case diff_src:
+	return true;
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    case hybrid_src:
+	return true;
+#endif
+
+#ifdef GRAVITY
+    case grav_src:
+	if (do_grav)
+	    return true;
+	else
+	    return false;
+#endif
+
+#ifdef ROTATION
+    case rot_src:
+	if (do_rotation)
+	    return true;
+	else
+	    return false;
+#endif
+
+    default:
+	return false;
+
+    } // end switch
+}
+
 void
 Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
 {
@@ -42,7 +93,8 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     MultiFab& S_new = get_new_data(State_Type);
 
     for (int n = 0; n < num_src; ++n)
-        apply_source_to_state(S_new, old_sources[n], dt);
+	if (source_flag(n))
+	    apply_source_to_state(S_new, old_sources[n], dt);
 }
 
 void
@@ -59,12 +111,14 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     if (update_state_between_sources) {
 
 	for (int n = 0; n < num_src; ++n) {
-            construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-	    apply_source_to_state(S_new, new_sources[n], dt);
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+	    if (source_flag(n)) {
+		apply_source_to_state(S_new, new_sources[n], dt);
 #ifdef HYBRID_MOMENTUM
-	    hybrid_sync(S_new);
+		hybrid_sync(S_new);
 #endif
-	    computeTemp(S_new);
+		computeTemp(S_new);
+	    }
 	}
 
     } else {
@@ -72,12 +126,13 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	// Construct the new-time source terms.
 
 	for (int n = 0; n < num_src; ++n)
-            construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
 	// Apply the new-time sources to the state.
 
 	for (int n = 0; n < num_src; ++n)
-	    apply_source_to_state(S_new, new_sources[n], dt);
+	    if (source_flag(n))
+		apply_source_to_state(S_new, new_sources[n], dt);
 
 	// Sync up linear and hybrid momenta.
 
