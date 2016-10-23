@@ -3,7 +3,7 @@ module bc_ext_fill_module
   use bl_constants_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
-                                 hse_zero_vels, &
+                                 hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
   use interpolate_module
 
@@ -82,13 +82,19 @@ contains
                       dens_zone = adv(i,j+1,URHO)
                       
                       ! temperature and species held constant in BCs
-                      temp_zone = adv(i,j+1,UTEMP)
+                      if (hse_interp_temp == 1) then
+                         temp_zone = interpolate(y,npts_model,model_r, &
+                                                 model_state(:,itemp_model))
+                      else
+                         temp_zone = adv(i,j+1,UTEMP)
+                      endif
+
                       X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
                       
                       ! get pressure in zone above
-                      eos_state%rho = adv(i,j+1,URHO)
-                      eos_state%T = adv(i,j+1,UTEMP)
-                      eos_state%xn(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
+                      eos_state%rho = dens_zone
+                      eos_state%T = temp_zone
+                      eos_state%xn(:) = X_zone(:)
                       
                       call eos(eos_input_rt, eos_state)
                       
@@ -106,7 +112,7 @@ contains
                          ! pressure from EOS
                          eos_state%rho = dens_zone
                          eos_state%T = temp_zone
-                         eos_state%xn(:) = X_zone
+                         eos_state%xn(:) = X_zone(:)
                          
                          call eos(eos_input_rt, eos_state)
                          
@@ -144,10 +150,15 @@ contains
                       adv(i,j,UMZ) = ZERO
                    else
                       
-                      ! zero gradient velocity
-                      adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
-                      adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
-                      adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
+                      if (hse_reflect_vels == 1) then
+                         adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
+                         adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
+                         adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
+                      else
+                         adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
+                         adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
+                         adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
+                      endif
                    endif
                    
                    eos_state%rho = dens_zone
@@ -162,7 +173,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eint
                    adv(i,j,UEDEN) = dens_zone*eint + & 
-                        HALF*(adv(i,j,UMX)**2 + adv(i,j,UMY)**2 + adv(i,j,UMZ)**2)/dens_zone
+                        HALF*sum(adv(i,j,UMX:UMZ)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                    

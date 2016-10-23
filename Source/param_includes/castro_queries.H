@@ -58,6 +58,8 @@ pp.query("yr_ext_bc_type", yr_ext_bc_type);
 pp.query("zl_ext_bc_type", zl_ext_bc_type);
 pp.query("zr_ext_bc_type", zr_ext_bc_type);
 pp.query("hse_zero_vels", hse_zero_vels);
+pp.query("hse_interp_temp", hse_interp_temp);
+pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);

@@ -58,6 +58,8 @@ static std::string yr_ext_bc_type;
 static std::string zl_ext_bc_type;
 static std::string zr_ext_bc_type;
 static int hse_zero_vels;
+static int hse_interp_temp;
+static int hse_reflect_vels;
 static Real fixed_dt;
 static Real initial_dt;
 static Real dt_cutoff;

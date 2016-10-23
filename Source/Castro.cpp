@@ -1918,9 +1918,9 @@ Castro::post_restart ()
 void
 Castro::postCoarseTimeStep (Real cumtime)
 {
-    //
     // postCoarseTimeStep() is only called by level 0.
-    //
+    BL_ASSERT(level == 0);
+    AmrLevel::postCoarseTimeStep(cumtime);
 #ifdef SELF_GRAVITY
     if (do_grav)
         gravity->set_mass_offset(cumtime, 0);

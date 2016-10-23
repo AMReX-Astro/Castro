@@ -17,6 +17,10 @@ amr.n_cell           = 64          32
 castro.lo_bc       =  3   1 
 castro.hi_bc       =  2   2
 
+castro.yl_ext_bc_type = "hse"
+castro.hse_interp_temp = 1
+castro.hse_reflect_vels = 1
+
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
