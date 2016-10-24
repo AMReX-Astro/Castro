@@ -270,7 +270,7 @@ contains
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:,1)
 
-    if ( bc(2,1,1) == EXT_DIR .and. grav_l2 < domlo(2)) then
+    if ( bc(2,1,1) == EXT_DIR .and. react_l2 < domlo(2)) then
        bc_temp(2,1) = FOEXTRAP
     endif
 
