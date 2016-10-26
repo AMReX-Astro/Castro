@@ -13,7 +13,8 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     // Always set phi to zero initially since some gravity modes
     // don't use it and we want to have valid data.
 
-    phi_old.setVal(0.0);
+    if (gravity->get_gravity_type() != "PoissonGrav")
+	phi_old.setVal(0.0);
 
     if (!do_grav) {
 
@@ -110,7 +111,8 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     // Always set phi to zero initially since some gravity modes
     // don't use it and we want to have valid data.
 
-    phi_new.setVal(0.0);
+    if (gravity->get_gravity_type() != "PoissonGrav")
+	phi_new.setVal(0.0);
 
     if (!do_grav) {
 
