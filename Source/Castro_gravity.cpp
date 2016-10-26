@@ -10,10 +10,14 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
+    // Always set phi to zero initially since some gravity modes
+    // don't use it and we want to have valid data.
+
+    phi_old.setVal(0.0);
+
     if (!do_grav) {
 
 	grav_old.setVal(0.0);
-	phi_old.setVal(0.0);
 
 	return;
 
@@ -103,10 +107,14 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     MultiFab& grav_new = get_new_data(Gravity_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
+    // Always set phi to zero initially since some gravity modes
+    // don't use it and we want to have valid data.
+
+    phi_new.setVal(0.0);
+
     if (!do_grav) {
 
 	grav_new.setVal(0.0);
-	phi_new.setVal(0.0);
 
 	return;
 

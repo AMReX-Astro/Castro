@@ -945,13 +945,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 {
     BL_PROFILE("Gravity::get_old_grav_vector()");
 
-    // Always set phi to zero initially since some gravity modes
-    // don't use it and we want to have valid data.
-
-    MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
-
-    phi.setVal(0.0);
-
     int ng = grav_vector.nGrow();
 
     // Fill data from the level below if we're not doing a solve on this level.
@@ -986,6 +979,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
+	MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
       make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
@@ -1019,6 +1013,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
+    MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
     add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
@@ -1027,10 +1022,6 @@ void
 Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 {
     BL_PROFILE("Gravity::get_new_grav_vector()");
-
-    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
-
-    phi.setVal(0.0);
 
     int ng = grav_vector.nGrow();
 
@@ -1066,7 +1057,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-        make_prescribed_grav(level,time,grav,phi);
+    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
+    make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
 
@@ -1099,6 +1091,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     Real point_mass = cs->get_point_mass();
+    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
     add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
 #endif
 }
