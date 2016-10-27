@@ -979,7 +979,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-      MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
+	MultiFab& phi = LevelData[level].get_old_data(PhiGrav_Type);
       make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
@@ -1057,8 +1057,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-        MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
-        make_prescribed_grav(level,time,grav,phi);
+    MultiFab& phi = LevelData[level].get_new_data(PhiGrav_Type);
+    make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
 

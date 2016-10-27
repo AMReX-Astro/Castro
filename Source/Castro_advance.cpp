@@ -183,7 +183,7 @@ Castro::do_advance (Real time,
 
     // Construct and apply the old-time source terms to S_new.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time);
 #endif
 
@@ -231,7 +231,7 @@ Castro::do_advance (Real time,
 
     // Construct and apply new-time source terms.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
 #endif
 
