@@ -44,8 +44,11 @@
 \runparamNS{do\_reflux}{castro} &  do we do the hyperbolic reflux at coarse-fine interfaces? & 1 \\
 \runparamNS{lin\_limit\_state\_interp}{castro} &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
 \rowcolor{tableShade}
+\runparamNS{reflux\_strategy}{castro} &  refluxing strategy. Ordered in descending level of accuracy and descending computational expense. 1 = reflux during every finest level timestep 2 = reflux at the end of every timestep on every level & 2 \\
 \runparamNS{state\_interp\_order}{castro} &  highest order used in interpolation & 1 \\
+\rowcolor{tableShade}
 \runparamNS{state\_nghost}{castro} &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
+\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
 \rowcolor{tableShade}
 \runparamNS{use\_custom\_knapsack\_weights}{castro} &  should we have state data for custom load-balancing weighting? & 0 \\
 
@@ -602,14 +605,12 @@
 \runparamNS{get\_g\_from\_phi}{gravity} &  For non-Poisson gravity, do we want to construct the gravitational acceleration by taking the gradient of the potential, rather than constructing it directly? & 0 \\
 \rowcolor{tableShade}
 \runparamNS{gravity\_type}{gravity} &  what type & "fillme" \\
-\runparamNS{max\_multipole\_moment\_level}{gravity} &  For multipole gravity calculations, this is the maximum level used for constructing the multipole moments. & 0 \\
-\rowcolor{tableShade}
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
+\rowcolor{tableShade}
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
-\rowcolor{tableShade}
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
-\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

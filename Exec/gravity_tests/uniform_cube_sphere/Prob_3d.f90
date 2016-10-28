@@ -1,5 +1,5 @@
    subroutine PROBINIT (init,name,namlen,problo,probhi)
-     
+
      use probdata_module
      use bl_constants_module
      use fundamental_constants_module
@@ -39,7 +39,7 @@
 
      ! Read namelists -- override the defaults
 
-     untin = 9 
+     untin = 9
      open(untin,file=probin(1:namlen),form='formatted',status='old')
      read(untin,fortin)
      close(unit=untin)
@@ -49,16 +49,16 @@
 
    ! ::: -----------------------------------------------------------
    ! ::: This routine is called at problem setup time and is used
-   ! ::: to initialize data on each grid.  
-   ! ::: 
+   ! ::: to initialize data on each grid.
+   ! :::
    ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
    ! :::        the grid interior.  Values in these cells need not
    ! :::        be set here.
-   ! ::: 
+   ! :::
    ! ::: INPUTS/OUTPUTS:
-   ! ::: 
+   ! :::
    ! ::: level     => amr level of grid
-   ! ::: time      => time at which to init data             
+   ! ::: time      => time at which to init data
    ! ::: lo,hi     => index limits of grid interior (cell centered)
    ! ::: nstate    => number of state components.  You should know
    ! :::		   this already!
@@ -78,7 +78,7 @@
      use network, only : nspec
      use bl_constants_module
      use prob_params_module, only: problo, probhi, center
-     
+
      implicit none
 
      integer :: level, nscal
@@ -87,50 +87,19 @@
      double precision :: xlo(3), xhi(3), time, delta(3)
      double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
-     double precision :: xx,yy,zz
+     double precision :: xx, yy, zz
 
-     integer :: i,j,k
+     integer :: i, j, k
 
-     integer :: ncell(3), nz
-     double precision :: actual_mass, intended_mass
-     
-     if (problem .eq. 2) then
-
-        ! Calculate the total amount of mass that will be on the grid.
-        ! This involves a loop over the entire domain.
-        ! Then later we will correct the density so that we get the intended_mass.
-
-        nz = 0
-        
-        ncell = int((probhi - problo) / delta)
-
-        do k = 0, ncell(3)-1
-           zz = problo(3) + delta(3) * (k + HALF) - center(3)
-           do j = 0, ncell(2)-1
-              yy = problo(2) + delta(2) * (j + HALF) - center(2)
-              do i = 0, ncell(1)-1
-                 xx = problo(1) + delta(1) * (i + HALF) - center(1)
-                 if ((xx**2 + yy**2 + zz**2) < diameter / 2) then
-                    nz = nz + 1
-                 endif
-              enddo
-           enddo
-        enddo
-        
-        actual_mass = nz * density * delta(1) * delta(2) * delta(3)
-        intended_mass = FOUR3RD * M_PI * density * (diameter / 2)**3
-        
-     endif
-     
      !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz)
-     do k = lo(3), hi(3)   
-        zz = xlo(3) + delta(3)*dble(k-lo(3)+HALF) - center(3)
+     do k = lo(3), hi(3)
+        zz = xlo(3) + delta(3) * (dble(k-lo(3))+HALF) - center(3)
 
-        do j = lo(2), hi(2)     
-           yy = xlo(2) + delta(2)*dble(j-lo(2)+HALF) - center(2)
+        do j = lo(2), hi(2)
+           yy = xlo(2) + delta(2) * (dble(j-lo(2))+HALF) - center(2)
 
-           do i = lo(1), hi(1)   
-              xx = xlo(1) + delta(1)*dble(i-lo(1)+HALF) - center(1)
+           do i = lo(1), hi(1)
+              xx = xlo(1) + delta(1) * (dble(i-lo(1))+HALF) - center(1)
 
               ! Establish the cube or sphere
 
@@ -138,15 +107,10 @@
 
                  if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
                     state(i,j,k,URHO) = density
-
-                    if (problem .eq. 2) then
-                       state(i,j,k,URHO) = state(i,j,k,URHO) * (intended_mass / actual_mass)
-                    endif
                  else
                     state(i,j,k,URHO) = ambient_dens
                  endif
 
-                 
               else if (problem .eq. 3) then
 
                  if (abs(xx) < diameter/2 .and. abs(yy) < diameter/2 .and. abs(zz) < diameter/2) then
@@ -158,7 +122,7 @@
               else
 
                  call bl_error("Problem not defined.")
-                
+
               endif
 
               ! Establish the thermodynamic quantities. They don't have to be
@@ -167,7 +131,7 @@
               state(i,j,k,UTEMP) = 1.0d0
               state(i,j,k,UEINT) = 1.0d0
               state(i,j,k,UEDEN) = 1.0d0
-              
+
               state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO) / nspec
 
            enddo
@@ -176,4 +140,3 @@
      !$OMP END PARALLEL DO
 
    end subroutine ca_initdata
-

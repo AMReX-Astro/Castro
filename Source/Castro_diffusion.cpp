@@ -12,13 +12,18 @@ Castro::construct_old_diff_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[diff_src].setVal(0.0);
+    old_sources[diff_src].setVal(0.0);    
 
-    add_temp_diffusion_to_source(old_sources[diff_src],OldTempDiffTerm,time, 1);
+    MultiFab TempDiffTerm(grids, 1, 1);
+    MultiFab SpecDiffTerm(grids, NumSpec, 1);
+    MultiFab ViscousTermforMomentum(grids, BL_SPACEDIM, 1);
+    MultiFab ViscousTermforEnergy(grids, 1, 1);
+
+    add_temp_diffusion_to_source(old_sources[diff_src], TempDiffTerm, time, 1);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src],OldSpecDiffTerm,time, 1);
-    add_viscous_term_to_source(old_sources[diff_src],OldViscousTermforMomentum,OldViscousTermforEnergy,time);
+    add_spec_diffusion_to_source(old_sources[diff_src], SpecDiffTerm, time, 1);
+    add_viscous_term_to_source(old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
 
     old_sources[diff_src].FillBoundary(geom.periodicity());
@@ -31,18 +36,23 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     new_sources[diff_src].setVal(0.0);
 
-    add_temp_diffusion_to_source(new_sources[diff_src],*NewTempDiffTerm,time, 0);
+    MultiFab TempDiffTerm(grids, 1, 1);
+    MultiFab SpecDiffTerm(grids, NumSpec, 1);
+    MultiFab ViscousTermforMomentum(grids, BL_SPACEDIM, 1);
+    MultiFab ViscousTermforEnergy(grids, 1, 1);
+
+    add_temp_diffusion_to_source(new_sources[diff_src], TempDiffTerm, time, 0);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(new_sources[diff_src],*NewSpecDiffTerm,time, 0);
-    add_viscous_term_to_source(new_sources[diff_src],*NewViscousTermforMomentum,*NewViscousTermforEnergy,time);
+    add_spec_diffusion_to_source(new_sources[diff_src], SpecDiffTerm, time, 0);
+    add_viscous_term_to_source(new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
 
     // Time center the source term.
 
     new_sources[diff_src].mult(0.5);
 
-    MultiFab::Saxpy(new_sources[diff_src],-0.5,old_sources[diff_src],0,0,NUM_STATE,ng);
+    MultiFab::Saxpy(new_sources[diff_src], -0.5, old_sources[diff_src], 0, 0, NUM_STATE, ng);
 
 }
 

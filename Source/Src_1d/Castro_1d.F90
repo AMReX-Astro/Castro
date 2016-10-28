@@ -243,7 +243,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #endif
 
   if (coord_type .gt. 0) then
-     pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES)
+     pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES) * dt
   end if
 
   deallocate(flatn,div,pdivu,q1)

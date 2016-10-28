@@ -12,6 +12,8 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
+    hydro_source.setVal(0.0);
+
     // Set up the source terms to go into the hydro.
 
     sources_for_hydro.setVal(0.0);
@@ -55,38 +57,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     int finest_level = parent->finestLevel();
 
-    //
-    // Get pointers to Flux registers, or set pointer to zero if not there.
-    //
-    FluxRegister *fine    = 0;
-    FluxRegister *current = 0;
-
-    if (do_reflux && level < finest_level)
-      fine = &getFluxReg(level+1);
-    if (do_reflux && level > 0)
-      current = &getFluxReg(level);
-
-    FluxRegister *pres_fine    = 0;
-    FluxRegister *pres_current = 0;
-    
-    if (!Geometry::IsCartesian() && do_reflux) {
-	if (level < finest_level) {
-	    pres_fine = &getPresReg(level+1);
-	}
-	if (level > 0) {
-	    pres_current = &getPresReg(level);
-	}
-    }
-
-#ifdef RADIATION
-    FluxRegister *rad_fine    = 0;
-    FluxRegister *rad_current = 0;
-    if (Radiation::rad_hydro_combined && do_reflux && level < finest_level)
-      rad_fine = &getRADFluxReg(level+1);
-    if (Radiation::rad_hydro_combined && do_reflux && level > 0)
-      rad_current = &getRADFluxReg(level);
-#endif
-
     const Real *dx = geom.CellSize();
     Real courno    = -1.0e+200;
 
@@ -98,7 +68,6 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (!Radiation::rad_hydro_combined) {
       BoxLib::Abort("Castro::advance -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
     }
-
 
     FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
     MultiFab& Erborder = fpi_rad.get_mf();
@@ -142,13 +111,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 #endif
     {
-      FArrayBox flux[BL_SPACEDIM];
 
+      FArrayBox flux[BL_SPACEDIM];
+#if (BL_SPACEDIM <= 2)
+      FArrayBox pradial(Box::TheUnitBox(),1);
+#endif
 #ifdef RADIATION
       FArrayBox rad_flux[BL_SPACEDIM];
 #endif
-
-      FArrayBox pradial(Box::TheUnitBox(),1);
       FArrayBox q, qaux, src_q;
 
       int priv_nstep_fsp = -1;
@@ -159,7 +129,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       const int*  domain_hi = geom.Domain().hiVect();
 
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
-	{
+      {
 	  const Box& bx    = mfi.tilebox();
 	  const Box& qbx = BoxLib::grow(bx, NUM_GROW);
 
@@ -204,6 +174,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		    src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
 #ifndef RADIATION
+
 	  // Add in the reactions source term; only done in SDC.
 
 #ifdef SDC
@@ -222,9 +193,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	  }
 
+#if (BL_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
 	    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 	  }
+#endif
 
 	  ca_umdrv
 	    (&is_finest_level, &time,
@@ -271,20 +244,19 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 	     eden_lost, xang_lost, yang_lost, zang_lost);
 
-	  // Since we may need the fluxes later on, we'll copy them
-	  // to the fluxes MultiFAB even if we aren't on a fine grid.
-
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i));
+	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i));
+	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 	  }
 
+#if (BL_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
-	    P_radial[mfi].copy(pradial, mfi.nodaltilebox(0));
+	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
 	  }
-	} // MFIter loop
+#endif
+      } // MFIter loop
 
 #ifdef _OPENMP
 #pragma omp critical (hydro_courno)
@@ -326,7 +298,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       flush_output();
 
     if (track_grid_losses)
-      {
+    {
 	material_lost_through_boundary_temp[0] += mass_lost;
 	material_lost_through_boundary_temp[1] += xmom_lost;
 	material_lost_through_boundary_temp[2] += ymom_lost;
@@ -335,10 +307,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 	material_lost_through_boundary_temp[5] += xang_lost;
 	material_lost_through_boundary_temp[6] += yang_lost;
 	material_lost_through_boundary_temp[7] += zang_lost;
-      }
+    }
 
     if (print_energy_diagnostics)
-      {
+    {
 	Real foo[5] = {E_added_flux, xmom_added_flux, ymom_added_flux,
 		       zmom_added_flux, mass_added_flux};
 
@@ -371,40 +343,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
       }
 #endif
-
-
-    // Save the fluxes.
-
-    if (do_reflux) {
-	if (current) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-	        current->FineAdd(fluxes[i],i,0,0,NUM_STATE,1.);
-	}
-	if (fine) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                fine->CrseInit(fluxes[i],i,0,0,NUM_STATE,-1.,FluxRegister::ADD);
-	}
-	if (pres_current) {
-	    Real scale = 1.0;
-#if (BL_SPACEDIM == 2)
-	    scale /= crse_ratio[1];
-#endif	    
-	    pres_current->FineAdd(P_radial,0,0,0,1,dt*scale);
-	}
-	if (pres_fine) {
-	    pres_fine->CrseInit(P_radial,0,0,0,1,-dt,FluxRegister::ADD);
-	}
-#ifdef RADIATION
-	if (rad_current) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_current->FineAdd(rad_fluxes[i],i,0,0,Radiation::nGroups,1.);
-	}
-	if (rad_fine) {
-	    for (int i = 0; i < BL_SPACEDIM ; i++)
-                rad_fine->CrseInit(rad_fluxes[i],i,0,0,Radiation::nGroups,-1.,FluxRegister::ADD);
-        }
-#endif
-    }
 
     if (courno > 1.0) {
 	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';

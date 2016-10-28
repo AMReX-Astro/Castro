@@ -181,19 +181,14 @@ Castro::do_advance (Real time,
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Construct the old-time sources. 
+    // Construct and apply the old-time source terms to S_new.
 
-    for (int n = 0; n < num_src; ++n)
-       construct_old_source(n, prev_time, dt, amr_iteration, amr_ncycle, 
-			    sub_iteration, sub_ncycle);
+#ifdef GRAVITY
+    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time);
+#endif
 
-    // Apply the old-time sources directly to the new-time state,
-    // S_new -- note that this addition is for full dt, since we
-    // will do a predictor-corrector on the sources to allow for
-    // state-dependent sources.
-
-    for (int n = 0; n < num_src; ++n)
-        apply_source_to_state(S_new, old_sources[n], dt);
+    do_old_sources(prev_time, dt, amr_iteration, amr_ncycle,
+		   sub_iteration, sub_ncycle);
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn 
@@ -202,18 +197,15 @@ Castro::do_advance (Real time,
     {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
-	frac_change = clean_state(S_new, Sborder);
     }
+
+    // Sync up state after old sources and hydro source.
+
+    frac_change = clean_state(S_new, Sborder);
 
     // Check for NaN's.
 
     check_for_nan(S_new);
-
-    // Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-    hybrid_sync(S_new);
-#endif
 
 #ifdef SELF_GRAVITY
     // Must define new value of "center" before we call new gravity
@@ -234,45 +226,14 @@ Castro::do_advance (Real time,
 #endif
 #endif
 
-    // For the new-time source terms, we have an option for how to proceed.
-    // We can either construct all of the old-time sources using the same
-    // state that comes out of the hydro update, or we can evaluate the sources
-    // one by one and apply them as we go.
+    // Construct and apply new-time source terms.
 
-    if (update_state_between_sources) {
-
-	for (int n = 0; n < num_src; ++n) {
-            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-	    apply_source_to_state(S_new, new_sources[n], dt);
-#ifdef HYBRID_MOMENTUM
-	    hybrid_sync(S_new);
-#endif
-	    computeTemp(S_new);
-	}
-
-    } else {
-
-	// Construct the new-time source terms.
-
-	for (int n = 0; n < num_src; ++n)
-            construct_new_source(n, cur_time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
-
-	// Apply the new-time sources to the state.
-
-	for (int n = 0; n < num_src; ++n)
-	    apply_source_to_state(S_new, new_sources[n], dt);
-
-	// Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-	hybrid_sync(S_new);
+#ifdef GRAVITY
+    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
 #endif
 
-	// Sync up the temperature now that all sources have been applied.
-
-	computeTemp(S_new);
-
-    }
+    do_new_sources(cur_time, dt, amr_iteration, amr_ncycle,
+		   sub_iteration, sub_ncycle);
 
     // Do the second half of the reactions.
 
@@ -299,21 +260,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     frac_change = 1.e0;
 
     int finest_level = parent->finestLevel();
-
-    if (do_reflux && level < finest_level && sub_iteration < 2) {
-        //
-        // Set reflux registers to zero.
-        //
-        getFluxReg(level+1).setVal(0.0);
-	if (!Geometry::IsCartesian()) {
-	    getPresReg(level+1).setVal(0.0);
-	}
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	  getRADFluxReg(level+1).setVal(0.0);
-	}
-#endif
-    }
 
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
@@ -347,24 +293,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     }
 #endif
 #endif
-
-    for (int j = 0; j < 3; j++) {
-        fluxes[j].setVal(0.0);
-    }
-
-    if (!Geometry::IsCartesian()) {
-	P_radial.setVal(0.0);
-    }
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-	for (int i = 0; i < BL_SPACEDIM; ++i) {
-	    rad_fluxes[i].setVal(0.0);
-	}
-    }
-#endif
-
-    hydro_source.setVal(0.0);
 
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
@@ -493,15 +421,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         }
     }
 
-    // Sync the linear and hybrid momenta. This is as precautionary step
-    // that addresses the fact that we may have new data on this level
-    // that was interpolated from a coarser level, and the interpolation
-    // in general cannot be trusted to respect the consistency between
-    // the hybrid and linear momenta.
+    // Ensure data is valid before beginning advance. This addresses
+    // the fact that we may have new data on this level that was interpolated
+    // from a coarser level, and the interpolation in general cannot be
+    // trusted to respect the consistency between certain state variables
+    // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-#ifdef HYBRID_MOMENTUM
-    hybrid_sync(get_old_data(State_Type));
-#endif
+    clean_state(get_old_data(State_Type));
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
@@ -521,16 +447,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    // These arrays hold all source terms that update the state.
+    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-    for (int n = 0; n < num_src; ++n) {
-        old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-        new_sources.set(n, new MultiFab(grids, NUM_STATE, S_new.nGrow()));
+	// These arrays hold all source terms that update the state.
+
+	for (int n = 0; n < num_src; ++n) {
+	    old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
+	    new_sources.set(n, new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	}
+
+	// This array holds the hydrodynamics update.
+
+	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+
     }
-
-    // This array holds the hydrodynamics update.
-
-    hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
 
     // This array holds the sum of all source terms that affect the hydrodynamics.
     // If we are doing the source term predictor, we'll also use this after the
@@ -539,35 +469,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
 
-    for (int j = 0; j < BL_SPACEDIM; j++)
-    {
-        fluxes.set(j, new MultiFab(getEdgeBoxArray(j), NUM_STATE, 0, Fab_allocate));
-    }
+    // Zero out the current fluxes.
 
-    for (int j = BL_SPACEDIM; j < 3; j++)
-    {
-        BoxArray ba = get_new_data(State_Type).boxArray();
-	fluxes.set(j, new MultiFab(ba, NUM_STATE, 0, Fab_allocate));
-    }
+    for (int dir = 0; dir < 3; ++dir)
+	fluxes[dir].setVal(0.0);
 
-    if (!Geometry::IsCartesian()) {
-	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
-    }
-
-#ifdef RADIATION
-    MultiFab& Er_new = get_new_data(Rad_Type);
-    if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
-	    rad_fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0, Fab_allocate));
-	}
-    }
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	P_radial.setVal(0.0);
 #endif
 
-#ifdef DIFFUSION
-    OldTempDiffTerm.define(grids, 1, 1, Fab_allocate);
-    OldSpecDiffTerm.define(grids, NumSpec, 1, Fab_allocate);
-    OldViscousTermforMomentum.define(grids, BL_SPACEDIM, 1, Fab_allocate);
-    OldViscousTermforEnergy.define(grids, 1, 1, Fab_allocate);
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+	    rad_fluxes[dir].setVal(0.0);
 #endif
 
 }
@@ -589,34 +504,77 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     }
 
+    // Store the fluxes in the flux registers. In the old method,
+    // we just store the current level's fluxes; in the new method,
+    // we need to add the contribution from all coarser levels.
+
+    if (do_reflux && level > 0) {
+
+	int fine_level = level;
+	int crse_level = level - 1;
+
+	if (reflux_strategy == 1)
+	    crse_level = 0;
+
+	FluxRegister* reg;
+
+	for (int lev = fine_level; lev > crse_level; --lev) {
+
+	    reg = &getLevel(lev).flux_reg;
+
+	    Castro& crse_lev = getLevel(lev-1);
+	    Castro& fine_lev = getLevel(lev);
+
+	    for (int i = 0; i < BL_SPACEDIM; ++i) {
+		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
+		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
+	    }
+
+#if (BL_SPACEDIM <= 2)
+	    if (!Geometry::IsCartesian()) {
+
+		reg = &getLevel(lev).pres_reg;
+
+		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
+		reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_fine_scale);
+
+	    }
+#endif
+
+#ifdef RADIATION
+	    if (Radiation::rad_hydro_combined) {
+
+		reg = &getLevel(lev).rad_flux_reg;
+
+		for (int i = 0; i < BL_SPACEDIM; ++i) {
+		    if (!(reflux_strategy == 2 && amr_iteration > 1))
+			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
+		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
+		}
+
+	    }
+#endif
+
+	}
+
+    }
+
     Real cur_time = state[State_Type].curTime();
     set_special_tagging_flag(cur_time);
 
-    if (!keep_sources_until_end) {
-	hydro_source.clear();
-	sources_for_hydro.clear();
+    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
 	old_sources.clear();
 	new_sources.clear();
+	hydro_source.clear();
 
-	fluxes.clear();
-
-	P_radial.clear();
-
-#ifdef RADIATION
-	rad_fluxes.clear();
-#endif
     }
 
+    sources_for_hydro.clear();
 
     prev_state.clear();
-
-#ifdef DIFFUSION
-    OldTempDiffTerm.clear();
-    OldSpecDiffTerm.clear();
-    OldViscousTermforMomentum.clear();
-    OldViscousTermforEnergy.clear();
-#endif
 
 }
 

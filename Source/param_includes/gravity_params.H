@@ -12,5 +12,4 @@ static int verbose;
 static int no_sync;
 static int no_composite;
 static int max_solve_level;
-static int max_multipole_moment_level;
 static int get_g_from_phi;

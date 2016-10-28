@@ -592,15 +592,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume), 
      const Real& E_added, const Real* mom_added);
 
-  void ca_syncgsrc
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(gPhi),
-     const BL_FORT_FAB_ARG_3D(gdPhi),
-     const BL_FORT_FAB_ARG_3D(S),
-     const BL_FORT_FAB_ARG_3D(dS),
-     BL_FORT_FAB_ARG_3D(src), const int* ncomp,
-     const Real& dt);
 #else
+
   void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
@@ -621,7 +614,6 @@ extern "C"
      const Real* dx, const Real& dt, const Real* time,
      const BL_FORT_FAB_ARG_3D(volume)); 
 #endif
-
 #endif
 
 #ifdef ROTATION

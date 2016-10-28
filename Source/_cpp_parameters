@@ -26,6 +26,15 @@ state_nghost                 int           0
 # do we do the hyperbolic reflux at coarse-fine interfaces?
 do_reflux                    int           1
 
+# refluxing strategy. Ordered in descending level of accuracy
+# and descending computational expense.
+# 1 = reflux during every finest level timestep
+# 2 = reflux at the end of every timestep on every level
+reflux_strategy              int           2
+
+# whether to re-compute new-time source terms after a reflux
+update_sources_after_reflux  int           1
+
 # should we have state data for custom load-balancing weighting?
 use_custom_knapsack_weights  int           0
 
@@ -473,11 +482,6 @@ no_composite                int            0
 #  calculating the gravity and associated potential. Above that level,
 #  we interpolate from coarser levels.
 max_solve_level             int            MAX_LEV-1
-
-
-# For multipole gravity calculations, this is the maximum level used
-# for constructing the multipole moments.  
-max_multipole_moment_level  int            0
 
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than

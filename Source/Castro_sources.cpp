@@ -5,7 +5,6 @@
 #include "Radiation.H"
 #endif
 
-
 void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
@@ -23,6 +22,119 @@ Castro::time_center_source_terms(MultiFab& S_new, MultiFab& src_old, MultiFab &s
 
   MultiFab::Saxpy(S_new,-0.5*dt,src_old,0,0,S_new.nComp(),0);
   MultiFab::Saxpy(S_new, 0.5*dt,src_new,0,0,S_new.nComp(),0);
+}
+
+bool
+Castro::source_flag(int src)
+{
+    switch(src) {
+
+#ifdef SPONGE
+    case sponge_src:
+	if (do_sponge)
+	    return true;
+	else
+	    return false;
+#endif
+
+    case ext_src:
+	if (add_ext_src)
+	    return true;
+	else
+	    return false;
+
+#ifdef DIFFUSION
+    case diff_src:
+	return true;
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    case hybrid_src:
+	return true;
+#endif
+
+#ifdef GRAVITY
+    case grav_src:
+	if (do_grav)
+	    return true;
+	else
+	    return false;
+#endif
+
+#ifdef ROTATION
+    case rot_src:
+	if (do_rotation)
+	    return true;
+	else
+	    return false;
+#endif
+
+    default:
+	return false;
+
+    } // end switch
+}
+
+void
+Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+{
+
+    // Construct the old-time sources.
+
+    for (int n = 0; n < num_src; ++n)
+	construct_old_source(n, time, dt, amr_iteration, amr_ncycle,
+			     sub_iteration, sub_ncycle);
+
+    // Apply the old-time sources directly to the new-time state,
+    // S_new -- note that this addition is for full dt, since we
+    // will do a predictor-corrector on the sources to allow for
+    // state-dependent sources.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    for (int n = 0; n < num_src; ++n)
+	if (source_flag(n))
+	    apply_source_to_state(S_new, old_sources[n], dt);
+}
+
+void
+Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+{
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    // For the new-time source terms, we have an option for how to proceed.
+    // We can either construct all of the old-time sources using the same
+    // state that comes out of the hydro update, or we can evaluate the sources
+    // one by one and apply them as we go.
+
+    if (update_state_between_sources) {
+
+	for (int n = 0; n < num_src; ++n) {
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+	    if (source_flag(n)) {
+		apply_source_to_state(S_new, new_sources[n], dt);
+		clean_state(S_new);
+	    }
+	}
+
+    } else {
+
+	// Construct the new-time source terms.
+
+	for (int n = 0; n < num_src; ++n)
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+
+	// Apply the new-time sources to the state.
+
+	for (int n = 0; n < num_src; ++n)
+	    if (source_flag(n))
+		apply_source_to_state(S_new, new_sources[n], dt);
+
+	clean_state(S_new);
+
+    }
+
 }
 
 void
@@ -56,19 +168,18 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
-#ifdef SELF_GRAVITY
-	construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-#endif
 	construct_old_gravity_source(time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_old_rotation_source(time, dt);
 	break;
 #endif
+
+    default:
+	break;
 
     } // end switch
 }
@@ -92,11 +203,6 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef DIFFUSION
     case diff_src:
-	NewTempDiffTerm = &OldTempDiffTerm;
-	NewSpecDiffTerm = &OldSpecDiffTerm;
-	NewViscousTermforMomentum = &OldViscousTermforMomentum;
-	NewViscousTermforEnergy   = &OldViscousTermforEnergy;
-
 	construct_new_diff_source(time, dt);
 	break;
 #endif
@@ -109,19 +215,18 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef GRAVITY
     case grav_src:
-#ifdef SELF_GRAVITY
-	construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
-#endif
 	construct_new_gravity_source(time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_new_rotation(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, time);
 	construct_new_rotation_source(time, dt);
 	break;
 #endif
+
+    default:
+	break;
 
     } // end switch
 }

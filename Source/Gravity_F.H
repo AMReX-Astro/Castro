@@ -127,22 +127,23 @@ extern "C"
      const int* npts, const int* boundary_only); 
 
   void ca_compute_direct_sum_bc
-    (const int lo[], const int hi[],
-     const int domlo[], const int domhi[],
-     const int* symmetry_type, const int lo_bc[], const int hi_bc[],
-     const Real* dx, const BL_FORT_FAB_ARG(rho),
+    (const int* lo, const int* hi, const Real* dx,
+     const int* symmetry_type, const int* lo_bc, const int* hi_bc,
+     const Real* rho, const int* r_lo, const int* r_hi,
+     const Real* vol, const int* v_lo, const int* v_hi,
      const Real* problo, const Real* probhi,
      Real* bcXYLo, Real* bcXYHi,
      Real* bcXZLo, Real* bcXZHi,
-     Real* bcYZLo, Real* bcYZHi);
+     Real* bcYZLo, Real* bcYZHi,
+     const int* bclo, const int* bchi, const Real* bcdx);
 
   void ca_put_direct_sum_bc
-    (const int lo[], const int hi[], 
-     const int domlo[], const int domhi[],
-     const BL_FORT_FAB_ARG(rho),
-     Real* bcXYLo, Real* bcXYHi,
-     Real* bcXZLo, Real* bcXZHi,
-     Real* bcYZLo, Real* bcYZHi);
+    (const int* lo, const int* hi, 
+     Real* phi, const int* p_lo, const int* p_hi,
+     const Real* bcXYLo, const Real* bcXYHi,
+     const Real* bcXZLo, const Real* bcXZHi,
+     const Real* bcYZLo, const Real* bcYZHi,
+     const int* bclo, const int* bchi);
 
 #ifdef POINTMASS
   void pm_add_to_grav

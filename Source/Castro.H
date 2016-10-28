@@ -199,6 +199,10 @@ public:
     //
     MultiFab& Volume ();
     //
+    // Return the n'th fluxes MultiFab.
+    //
+    MultiFab& Fluxes (int dir);
+    //
     // Set time levels of state data.
     //
     virtual void setTimeLevel (Real time,
@@ -249,7 +253,13 @@ public:
     void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
 #endif
 
+    bool source_flag(int src);
+
+    void do_old_sources(Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+
     void construct_old_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+
+    void do_new_sources(Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
     void construct_new_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
@@ -529,16 +539,6 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    FluxRegister     flux_reg;
-
-    FluxRegister& getFluxReg ();
-    FluxRegister& getFluxReg (int lev);
-
-    FluxRegister     pres_reg;
-
-    FluxRegister& getPresReg ();
-    FluxRegister& getPresReg (int lev);
-
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
     // to mask out the finer level.  We only build this when it is needed.
@@ -586,10 +586,30 @@ protected:
     // Hydrodynamic (and radiation) fluxes.
     //
     PArray<MultiFab> fluxes;
+#if (BL_SPACEDIM <= 2)
     MultiFab         P_radial;
+#endif
 #ifdef RADIATION
     PArray<MultiFab> rad_fluxes;
 #endif
+
+    FluxRegister flux_reg;
+#if (BL_SPACEDIM <= 2)
+    FluxRegister pres_reg;
+#endif
+#ifdef RADIATION
+    FluxRegister rad_flux_reg;
+#endif
+#ifdef GRAVITY
+    FluxRegister phi_reg;
+#endif
+
+    // Scalings for the flux registers.
+    Real flux_crse_scale;
+    Real flux_fine_scale;
+
+    Real pres_crse_scale;
+    Real pres_fine_scale;
 
     //
     // Non-hydro source terms.
@@ -613,12 +633,7 @@ protected:
 
     Castro& getLevel (int lev);
 
-#ifdef RADIATION
-    FluxRegister& getRADFluxReg ();
-    FluxRegister& getRADFluxReg (int lev);
-#endif
-
-    void reflux ();
+    void reflux (int crse_level, int fine_level);
 
     void normalize_species (MultiFab& S_new);
 
@@ -635,6 +650,8 @@ protected:
     void avgDown (int state_indx);
 
     void buildMetrics ();
+
+    void initMFs ();
 
     // integrate derived quantities over domain
 
@@ -662,9 +679,6 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
-#ifdef RADIATION
-    FluxRegister         rad_flux_reg;
-#endif
 
     //
     // Static data members.
@@ -701,16 +715,6 @@ protected:
     static int       diffuse_spec;
     static int       diffuse_vel;
     static Real      diffuse_cutoff_density;
-
-    MultiFab OldTempDiffTerm;
-    MultiFab OldSpecDiffTerm;
-    MultiFab OldViscousTermforMomentum;
-    MultiFab OldViscousTermforEnergy;
-
-    MultiFab* NewTempDiffTerm;
-    MultiFab* NewSpecDiffTerm;
-    MultiFab* NewViscousTermforMomentum;
-    MultiFab* NewViscousTermforEnergy;
 #endif
 
 
@@ -798,53 +802,6 @@ Castro::stopJob()
 {
   signalStopJob = true;
 }
-
-inline
-FluxRegister&
-Castro::getFluxReg ()
-{
-    BL_ASSERT(flux_reg.size()>0);
-    return flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getFluxReg (int lev)
-{
-    return getLevel(lev).getFluxReg();
-}
-
-inline
-FluxRegister&
-Castro::getPresReg ()
-{
-    BL_ASSERT(pres_reg.size()>0);
-    return pres_reg;
-}
-
-inline
-FluxRegister&
-Castro::getPresReg (int lev)
-{
-    return getLevel(lev).getPresReg();
-}
-
-#ifdef RADIATION
-inline
-FluxRegister&
-Castro::getRADFluxReg ()
-{
-    BL_ASSERT(rad_flux_reg.size()>0);
-    return rad_flux_reg;
-}
-
-inline
-FluxRegister&
-Castro::getRADFluxReg (int lev)
-{
-    return getLevel(lev).getRADFluxReg();
-}
-#endif
 
 #ifdef POINTMASS
 inline

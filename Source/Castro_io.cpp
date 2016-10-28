@@ -217,6 +217,8 @@ Castro::restart (Amr&     papa,
 
     buildMetrics();
 
+    initMFs();
+
     // get the elapsed CPU time to now;
     if (level == 0 && ParallelDescriptor::IOProcessor())
     {
@@ -242,13 +244,14 @@ Castro::restart (Amr&     papa,
       FullPathDiagFile += "/Diagnostics";
       DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
 
-      for (int i = 0; i < n_lost; i++)
+      for (int i = 0; i < n_lost; i++) {
 	DiagFile >> material_lost_through_boundary_cumulative[i];
+	material_lost_through_boundary_temp[i] = 0.0;
+      }
 
       DiagFile.close();
 
     }
-
 
     if (level == 0)
     {
@@ -270,20 +273,6 @@ Castro::restart (Amr&     papa,
 
 	delete [] dir_for_pass;
 
-    }
-
-    if (level > 0 && do_reflux) {
-        flux_reg.define(grids,crse_ratio,level,NUM_STATE);
-
-	if (!Geometry::IsCartesian()) {
-	    pres_reg.define(grids,crse_ratio,level,1);
-	}
-
-#ifdef RADIATION
-	if (Radiation::rad_hydro_combined) {
-	    rad_flux_reg.define(grids,crse_ratio,level,Radiation::nGroups);
-	}
-#endif
     }
 
     const Real* dx  = geom.CellSize();
