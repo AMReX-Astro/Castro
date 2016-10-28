@@ -114,10 +114,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 	    if (source_flag(n)) {
 		apply_source_to_state(S_new, new_sources[n], dt);
-#ifdef HYBRID_MOMENTUM
-		hybrid_sync(S_new);
-#endif
-		computeTemp(S_new);
+		clean_state(S_new);
 	    }
 	}
 
@@ -134,15 +131,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	    if (source_flag(n))
 		apply_source_to_state(S_new, new_sources[n], dt);
 
-	// Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-	hybrid_sync(S_new);
-#endif
-
-	// Sync up the temperature now that all sources have been applied.
-
-	computeTemp(S_new);
+	clean_state(S_new);
 
     }
 

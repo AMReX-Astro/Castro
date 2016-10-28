@@ -197,18 +197,15 @@ Castro::do_advance (Real time,
     {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
-	frac_change = clean_state(S_new, Sborder);
     }
+
+    // Sync up state after old sources and hydro source.
+
+    frac_change = clean_state(S_new, Sborder);
 
     // Check for NaN's.
 
     check_for_nan(S_new);
-
-    // Sync up linear and hybrid momenta.
-
-#ifdef HYBRID_MOMENTUM
-    hybrid_sync(S_new);
-#endif
 
 #ifdef SELF_GRAVITY
     // Must define new value of "center" before we call new gravity
@@ -424,15 +421,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         }
     }
 
-    // Sync the linear and hybrid momenta. This is as precautionary step
-    // that addresses the fact that we may have new data on this level
-    // that was interpolated from a coarser level, and the interpolation
-    // in general cannot be trusted to respect the consistency between
-    // the hybrid and linear momenta.
+    // Ensure data is valid before beginning advance. This addresses
+    // the fact that we may have new data on this level that was interpolated
+    // from a coarser level, and the interpolation in general cannot be
+    // trusted to respect the consistency between certain state variables
+    // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-#ifdef HYBRID_MOMENTUM
-    hybrid_sync(get_old_data(State_Type));
-#endif
+    clean_state(get_old_data(State_Type));
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
 
