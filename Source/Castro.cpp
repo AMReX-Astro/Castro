@@ -438,10 +438,216 @@ Castro::Castro (Amr&            papa,
 {
     buildMetrics();
 
+    initMFs();
+
     for (int i = 0; i < n_lost; i++) {
       material_lost_through_boundary_cumulative[i] = 0.0;
-      material_lost_through_boundary_temp[i] = 0.;
+      material_lost_through_boundary_temp[i] = 0.0;
     }
+
+#ifdef SELF_GRAVITY
+
+   // Initialize to zero here in case we run with do_grav = false.
+   MultiFab& new_grav_mf = get_new_data(Gravity_Type);
+   new_grav_mf.setVal(0.0);
+
+   if (do_grav) {
+      // gravity is a static object, only alloc if not already there
+      if (gravity == 0)
+	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
+
+      // Passing numpts_1d at level 0
+      if (!Geometry::isAllPeriodic() && gravity != 0)
+      {
+         int numpts_1d = get_numpts();
+
+	 // For 1D, we need to add ghost cells to the numpts
+	 // given to us by Castro.
+
+#if (BL_SPACEDIM == 1)
+	 numpts_1d += 2 * NUM_GROW;
+#endif
+
+         gravity->set_numpts_in_gravity(numpts_1d);
+      }
+
+      gravity->install_level(level,this,volume,area);
+
+      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
+         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+
+       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
+       // ghost cells because they are only multiplying them by a zero coefficient.
+       MultiFab& phi_new = get_new_data(PhiGrav_Type);
+       phi_new.setVal(0.0,phi_new.nGrow());
+
+   } else {
+       MultiFab& phi_new = get_new_data(PhiGrav_Type);
+       phi_new.setVal(0.0);
+   }
+
+#endif
+
+#ifdef ROTATION
+
+   // Initialize rotation data to zero.
+
+   MultiFab& phirot_new = get_new_data(PhiRot_Type);
+   phirot_new.setVal(0.0);
+
+   MultiFab& rot_new = get_new_data(Rotation_Type);
+   rot_new.setVal(0.0);
+
+#endif
+
+   // Initialize source term data to zero.
+
+   MultiFab& dSdt_new = get_new_data(Source_Type);
+   dSdt_new.setVal(0.0);
+
+#ifdef REACTIONS
+
+   // Initialize reaction data to zero.
+
+   MultiFab& reactions_new = get_new_data(Reactions_Type);
+   reactions_new.setVal(0.0);
+
+#endif
+
+#ifdef SDC
+   // Initialize old and new source terms to zero.
+
+   MultiFab& sources_new = get_new_data(SDC_Source_Type);
+   sources_new.setVal(0.0);
+
+   // Initialize reactions source term to zero.
+
+#ifdef REACTIONS
+   MultiFab& react_src_new = get_new_data(SDC_React_Type);
+   react_src_new.setVal(0.0);
+#endif
+#endif
+
+#ifdef DIFFUSION
+      // diffusion is a static object, only alloc if not already there
+      if (diffusion == 0)
+	diffusion = new Diffusion(parent,&phys_bc);
+
+      diffusion->install_level(level,this,volume,area);
+#endif
+
+#ifdef RADIATION
+    if (do_radiation) {
+      if (radiation == 0) {
+	// radiation is a static object, only alloc if not already there
+	radiation = new Radiation(parent, this);
+      }
+      radiation->regrid(level, grids);
+    }
+#endif
+
+
+    // initialize the Godunov state array used in hydro -- we wait
+    // until here so that ngroups is defined (if needed) in
+    // rad_params_module
+#ifdef RADIATION
+    init_godunov_indices_rad();
+#else
+    init_godunov_indices();
+#endif
+
+#ifdef RADIATION
+    get_qradvar(&QRADVAR);
+#endif
+
+    // NQ will be used to dimension the primitive variable state
+    // vector it will include the "pure" hydrodynamical variables +
+    // any radiation variables
+    NQ = QVAR + QRADVAR;
+
+#ifdef LEVELSET
+    // Build level set narrowband helpers
+    LStype.define(bl,1,1,Fab_allocate);
+    LSnband.define(bl,BL_SPACEDIM,1,Fab_allocate);
+    LSmine.define(bl,BL_SPACEDIM,1,Fab_allocate);
+#endif
+
+}
+
+Castro::~Castro ()
+{
+#ifdef RADIATION
+    if (radiation != 0) {
+      //radiation->cleanup(level);
+      radiation->close(level);
+    }
+#endif
+}
+
+void
+Castro::buildMetrics ()
+{
+    const int ngrd = grids.size();
+
+    radius.resize(ngrd);
+
+    const Real* dx = geom.CellSize();
+
+    for (int i = 0; i < ngrd; i++)
+    {
+        const Box& b = grids[i];
+        int ilo      = b.smallEnd(0)-radius_grow;
+        int ihi      = b.bigEnd(0)+radius_grow;
+        int len      = ihi - ilo + 1;
+
+        radius[i].resize(len);
+
+        Real* rad = radius[i].dataPtr();
+
+        if (Geometry::IsCartesian())
+        {
+            for (int j = 0; j < len; j++)
+            {
+                rad[j] = 1.0;
+            }
+        }
+        else
+        {
+            RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
+
+            const Real xlo = gridloc.lo(0) + (0.5 - radius_grow)*dx[0];
+
+            for (int j = 0; j < len; j++)
+            {
+                rad[j] = xlo + j*dx[0];
+            }
+        }
+    }
+
+    volume.clear();
+    volume.define(grids,1,NUM_GROW,Fab_allocate);
+    geom.GetVolume(volume);
+
+    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    {
+        area[dir].clear();
+	area[dir].define(getEdgeBoxArray(dir),1,NUM_GROW,Fab_allocate);
+        geom.GetFaceArea(area[dir],dir);
+    }
+
+    dLogArea[0].clear();
+#if (BL_SPACEDIM <= 2)
+    geom.GetDLogA(dLogArea[0],grids,0,NUM_GROW);
+#endif
+
+    if (level == 0) setGridInfo();
+}
+
+// Initialize the MultiFabs and flux registers that live as class members.
+
+void
+Castro::initMFs()
+{
 
     for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	fluxes.set(dir, new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
@@ -621,203 +827,6 @@ Castro::Castro (Amr&            papa,
 
     }
 
-#ifdef SELF_GRAVITY
-
-   // Initialize to zero here in case we run with do_grav = false.
-   MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-   new_grav_mf.setVal(0.0);
-
-   if (do_grav) {
-      // gravity is a static object, only alloc if not already there
-      if (gravity == 0)
-	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
-
-      // Passing numpts_1d at level 0
-      if (!Geometry::isAllPeriodic() && gravity != 0)
-      {
-         int numpts_1d = get_numpts();
-
-	 // For 1D, we need to add ghost cells to the numpts
-	 // given to us by Castro.
-
-#if (BL_SPACEDIM == 1)
-	 numpts_1d += 2 * NUM_GROW;
-#endif
-
-         gravity->set_numpts_in_gravity(numpts_1d);
-      }
-
-      gravity->install_level(level,this,volume,area);
-
-      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
-         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
-
-       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
-       // ghost cells because they are only multiplying them by a zero coefficient.
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0,phi_new.nGrow());
-
-   } else {
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0);
-   }
-
-#endif
-
-#ifdef ROTATION
-
-   // Initialize rotation data to zero.
-
-   MultiFab& phirot_new = get_new_data(PhiRot_Type);
-   phirot_new.setVal(0.0);
-
-   MultiFab& rot_new = get_new_data(Rotation_Type);
-   rot_new.setVal(0.0);
-
-#endif
-
-   // Initialize source term data to zero.
-
-   MultiFab& dSdt_new = get_new_data(Source_Type);
-   dSdt_new.setVal(0.0);
-
-#ifdef REACTIONS
-
-   // Initialize reaction data to zero.
-
-   MultiFab& reactions_new = get_new_data(Reactions_Type);
-   reactions_new.setVal(0.0);
-
-#endif
-
-#ifdef SDC
-   // Initialize old and new source terms to zero.
-
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0);
-
-   // Initialize reactions source term to zero.
-
-#ifdef REACTIONS
-   MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0);
-#endif
-#endif
-
-#ifdef DIFFUSION
-      // diffusion is a static object, only alloc if not already there
-      if (diffusion == 0)
-	diffusion = new Diffusion(parent,&phys_bc);
-
-      diffusion->install_level(level,this,volume,area);
-#endif
-
-#ifdef RADIATION
-    if (do_radiation) {
-      if (radiation == 0) {
-	// radiation is a static object, only alloc if not already there
-	radiation = new Radiation(parent, this);
-      }
-      radiation->regrid(level, grids);
-    }
-#endif
-
-
-    // initialize the Godunov state array used in hydro -- we wait
-    // until here so that ngroups is defined (if needed) in
-    // rad_params_module
-#ifdef RADIATION
-    init_godunov_indices_rad();
-#else
-    init_godunov_indices();
-#endif
-
-#ifdef RADIATION
-    get_qradvar(&QRADVAR);
-#endif
-
-    // NQ will be used to dimension the primitive variable state
-    // vector it will include the "pure" hydrodynamical variables +
-    // any radiation variables
-    NQ = QVAR + QRADVAR;
-
-#ifdef LEVELSET
-    // Build level set narrowband helpers
-    LStype.define(bl,1,1,Fab_allocate);
-    LSnband.define(bl,BL_SPACEDIM,1,Fab_allocate);
-    LSmine.define(bl,BL_SPACEDIM,1,Fab_allocate);
-#endif
-
-}
-
-Castro::~Castro ()
-{
-#ifdef RADIATION
-    if (radiation != 0) {
-      //radiation->cleanup(level);
-      radiation->close(level);
-    }
-#endif
-}
-
-
-void
-Castro::buildMetrics ()
-{
-    const int ngrd = grids.size();
-
-    radius.resize(ngrd);
-
-    const Real* dx = geom.CellSize();
-
-    for (int i = 0; i < ngrd; i++)
-    {
-        const Box& b = grids[i];
-        int ilo      = b.smallEnd(0)-radius_grow;
-        int ihi      = b.bigEnd(0)+radius_grow;
-        int len      = ihi - ilo + 1;
-
-        radius[i].resize(len);
-
-        Real* rad = radius[i].dataPtr();
-
-        if (Geometry::IsCartesian())
-        {
-            for (int j = 0; j < len; j++)
-            {
-                rad[j] = 1.0;
-            }
-        }
-        else
-        {
-            RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-
-            const Real xlo = gridloc.lo(0) + (0.5 - radius_grow)*dx[0];
-
-            for (int j = 0; j < len; j++)
-            {
-                rad[j] = xlo + j*dx[0];
-            }
-        }
-    }
-
-    volume.clear();
-    volume.define(grids,1,NUM_GROW,Fab_allocate);
-    geom.GetVolume(volume);
-
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-        area[dir].clear();
-	area[dir].define(getEdgeBoxArray(dir),1,NUM_GROW,Fab_allocate);
-        geom.GetFaceArea(area[dir],dir);
-    }
-
-    dLogArea[0].clear();
-#if (BL_SPACEDIM <= 2)
-    geom.GetDLogA(dLogArea[0],grids,0,NUM_GROW);
-#endif
-
-    if (level == 0) setGridInfo();
 }
 
 void

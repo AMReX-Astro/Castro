@@ -217,6 +217,8 @@ Castro::restart (Amr&     papa,
 
     buildMetrics();
 
+    initMFs();
+
     // get the elapsed CPU time to now;
     if (level == 0 && ParallelDescriptor::IOProcessor())
     {
@@ -242,13 +244,14 @@ Castro::restart (Amr&     papa,
       FullPathDiagFile += "/Diagnostics";
       DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
 
-      for (int i = 0; i < n_lost; i++)
+      for (int i = 0; i < n_lost; i++) {
 	DiagFile >> material_lost_through_boundary_cumulative[i];
+	material_lost_through_boundary_temp[i] = 0.0;
+      }
 
       DiagFile.close();
 
     }
-
 
     if (level == 0)
     {

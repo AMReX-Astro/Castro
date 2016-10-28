@@ -651,6 +651,8 @@ protected:
 
     void buildMetrics ();
 
+    void initMFs ();
+
     // integrate derived quantities over domain
 
     Real sumDerive (const std::string& name, Real time, bool local=false);
