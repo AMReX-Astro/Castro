@@ -1006,6 +1006,13 @@ Castro::initData ()
           ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_new[mfi]));
        }
        enforce_consistent_e(S_new);
+
+       // Do a FillPatch so that we can get the ghost zones filled.
+
+       int ng = S_new.nGrow();
+
+       if (ng > 0)
+	   AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
     }
 
 #ifdef RADIATION
@@ -2223,9 +2230,9 @@ Castro::reflux(int crse_level, int fine_level)
 
     const Real strt = ParallelDescriptor::second();
 
+#ifdef SELF_GRAVITY
     int nlevs = fine_level - crse_level + 1;
 
-#ifdef SELF_GRAVITY
     PArray<MultiFab> drho(nlevs, PArrayManage);
     PArray<MultiFab> dphi(nlevs, PArrayManage);
 
@@ -2248,8 +2255,6 @@ Castro::reflux(int crse_level, int fine_level)
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
-	int ilev = lev - crse_level - 1;
-
 	reg = &getLevel(lev).flux_reg;
 
 	Castro& crse_lev = getLevel(lev-1);
@@ -2269,6 +2274,8 @@ Castro::reflux(int crse_level, int fine_level)
 	// Store the density change, for the gravity sync.
 
 #ifdef SELF_GRAVITY
+	int ilev = lev - crse_level - 1;
+
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    reg->Reflux(drho[ilev], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
 	    BoxLib::average_down(drho[ilev + 1], drho[ilev], 0, 1, getLevel(lev).crse_ratio);
