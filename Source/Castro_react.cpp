@@ -12,15 +12,20 @@ using std::string;
 void
 Castro::strang_react_first_half(Real time, Real dt)
 {
+
+    // Get the reactions MultiFab to fill in.
+
+    MultiFab& reactions = get_old_data(Reactions_Type);
+
+    reactions.setVal(0.0);
+
+    if (do_react != 1) return;
+
     // Get the current state data.
 
     MultiFab& state = Sborder;
 
     const int ng = state.nGrow();
-
-    // Get the reactions MultiFab to fill in.
-
-    MultiFab& reactions = get_old_data(Reactions_Type);
 
     // Reactions are expensive and we would usually rather do a
     // communication step than burn on the ghost zones. So what we
@@ -136,6 +141,10 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
+    reactions.setVal(0.0);
+
+    if (do_react != 1) return;
+
     MultiFab& state = get_new_data(State_Type);
 
     // To be consistent with other source term types,
@@ -222,47 +231,38 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     const Real strt_time = ParallelDescriptor::second();
 
-    // Initialize reactions data to zero.
-
-    r.setVal(0.0);
-
     // Initialize the weights to the default value (everything is weighted equally).
 
     w.setVal(1.0);
 
-    if (do_react == 1)
-    {
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
-	{
+    for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
+    {
 
-	  const Box& bx = mfi.growntilebox(ngrow);
+	const Box& bx = mfi.growntilebox(ngrow);
 
-	  // Note that box is *not* necessarily just the valid region!
-	  ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			 BL_TO_FORTRAN_3D(s[mfi]),
-			 BL_TO_FORTRAN_3D(r[mfi]),
-			 BL_TO_FORTRAN_3D(w[mfi]),
-			 BL_TO_FORTRAN_3D(mask[mfi]),
-			 time, dt_react);
-
-	}
-
-	if (verbose) {
-
-	  Real e_added = r.sum(NumSpec + 1);
-
-	  if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
-	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
-
-	}
+	// Note that box is *not* necessarily just the valid region!
+	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		       BL_TO_FORTRAN_3D(s[mfi]),
+		       BL_TO_FORTRAN_3D(r[mfi]),
+		       BL_TO_FORTRAN_3D(w[mfi]),
+		       BL_TO_FORTRAN_3D(mask[mfi]),
+		       time, dt_react);
 
     }
 
-    if (verbose > 0 && do_react)
+    if (verbose) {
+
+	Real e_added = r.sum(NumSpec + 1);
+
+	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
+	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
+
+    }
+
+    if (verbose > 0)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;

@@ -379,4 +379,4 @@ clean::
 # print out the value.
 print-%::
 	@echo "$* is $($*)"
-	$(SILENT) $(RM) buildInfo.cpp
+	@$(RM) buildInfo.cpp

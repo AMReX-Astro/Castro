@@ -165,7 +165,7 @@ radiation.kappa_r_exp_n = 3.5
 # 1002  PCG   using ParCSR ObjectType
 # 1003  PCG   using SStruct ObjectType
 
-radsolve.level_solver_flag = 104  # can be any supported hypre solver flag
+radsolve.level_solver_flag = 100  # can be any supported hypre solver flag
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
