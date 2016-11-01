@@ -87,6 +87,7 @@ Castro::advance (Real time,
     }
 
 #else
+    // no SDC
 
     int sub_iteration = 0;
     int sub_ncycle = 0;
