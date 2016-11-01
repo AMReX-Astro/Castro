@@ -1,10 +1,21 @@
 * changes since the last release:
 
+previous changes:
+
+* 16.11
+
   -- we now distinguish between gravity (which can include a 
      constant gravitational acceleration) and self-gravity,
      with the GRAVITY and SELF_GRAVITY preprocessor directives
 
-previous changes:
+  -- some work on the sync between levels was done -- this will
+     be described in a forthcoming paper
+
+  -- the order of computing the temperature and reseting internal
+     energy was changed in a few spots
+
+  -- the radiation-specific source was moved into the Radiation/
+     subdirectory
 
 * 16.10
 
