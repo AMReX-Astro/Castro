@@ -9,10 +9,27 @@ previous changes:
      with the GRAVITY and SELF_GRAVITY preprocessor directives
 
   -- some work on the sync between levels was done -- this will
-     be described in a forthcoming paper
+     be described in a forthcoming paper. The main change by default
+     is that after a reflux, we recompute the value of the source terms
+     on the affected levels so that the new-time source term knows about
+     the updated state due to the flux. For gravity, this resembles
+     what the original Castro paper described for a sync source, but this
+     is now done in a consistent way for all source terms. This should be fairly
+     cheap which is why it is enabled by default, but you can disable it
+     (see castro.update_sources_after_reflux). An additional optional
+     change is a new strategy for refluxing (see castro.reflux_strategy).
+     In the existing standard method, we only reflux after all fine timesteps
+     over a coarse timestep have completed. In the new method, we do a
+     partial reflux at the end of each fine timestep. This means that
+     the coarse state used in time interpolation for the fine level
+     is slightly more accurate as we go for later fine timesteps. It
+     should also be needed for self-consistently conserving energy for gravity.
+     At present it is more expensive than the standard method when there
+     are gravity sync solves because there are more of them, but the tradeoff
+     is that the simulation is more accurate.
 
   -- the order of computing the temperature and reseting internal
-     energy was changed in a few spots
+     energy was changed in a few spots. This will change results by default.
 
   -- the radiation-specific source was moved into the Radiation/
      subdirectory
