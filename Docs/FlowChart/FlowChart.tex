@@ -414,3 +414,11 @@ step now proceeds as:
 
 
 \end{enumerate}
+
+
+Note that is it likely that some of the other updates (like any
+non-advective auxillary quantity updates) should be inside the SDC
+loop, but presently they are only done at the end.  Also note that the
+radiation implicit update is not done as part of the SDC iterations.
+
+
