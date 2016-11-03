@@ -94,8 +94,10 @@ of each step.
 
   If \runparam{castro.track\_grid\_losses} is set, then we also add up
   the mass that left through the boundary over this
-  step. \MarginPar{do this use masks to ensure no double counting if
-    multiple levels touch the boundary?}
+  step.\footnote{Note: this functionality assumes that only the
+    coarse grid touches the physical boundary.  It does not use any
+    use masks to prevent double counting if multiple levels touch
+    the boundary.}
 
 \end{enumerate}
 
