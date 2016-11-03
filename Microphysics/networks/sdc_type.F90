@@ -31,7 +31,7 @@ module sdc_type_module
      integer :: k
 
      integer :: n_rhs
-     integer :: n_fac
+     integer :: n_jac
 
   end type sdc_t
 
