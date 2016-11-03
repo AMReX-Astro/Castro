@@ -43,6 +43,7 @@ ifeq ($(USE_REACT), TRUE)
 endif
 
 ifeq ($(USE_SDC), TRUE)
+  optionsSuffix   = $(DIM)d.SDC.$(machineSuffix)
   DEFINES += -DSDC
 endif
 
