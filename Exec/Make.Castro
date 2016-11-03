@@ -43,7 +43,7 @@ ifeq ($(USE_REACT), TRUE)
 endif
 
 ifeq ($(USE_SDC), TRUE)
-  optionsSuffix   = $(DIM)d.SDC.$(machineSuffix)
+  USERSuffix   = .SDC
   DEFINES += -DSDC
 endif
 
@@ -83,7 +83,7 @@ ifeq ($(USE_RAD), TRUE)
 
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
-    optionsSuffix   = $(DIM)d.Neutrino.$(machineSuffix)
+    USERSuffix   = .Neutrino
     ifeq ($(USE_DUMPMODEL), TRUE)
       DEFINES += -DHAS_DUMPMODEL
     endif
