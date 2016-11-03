@@ -1,5 +1,6 @@
 
 \section{Overview of a single step (no SDC)}
+\label{flow:sec:nosdc}
 
 The main evolution for a single step is contained in
 \code{Castro\_advance.cpp}, as \code{Castro::advance()}.  This does
@@ -92,7 +93,9 @@ of each step.
   This cleans up the memory used during the step.  
 
   If \runparam{castro.track\_grid\_losses} is set, then we also add up
-  the mass that left through the boundary over this step. \MarginPar{do this use masks to ensure no double counting if multiple levels touch the boundary?}
+  the mass that left through the boundary over this
+  step. \MarginPar{do this use masks to ensure no double counting if
+    multiple levels touch the boundary?}
 
 \end{enumerate}
 
@@ -147,14 +150,14 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 {\tt S\_new}.  \MarginPar{Sborder?}
 
 \begin{enumerate}
-\item {\em Initialize}
+\item \label{strang:init} {\em Initialize} [\code{initialize\_do\_advance()}]
 
   This resets the flux registers and initializes a lot of intermediate
   storage arrays (like source term) to zero.
 
   We also check for NaNs in the initial state, {\tt S\_old}.
 
-\item {\em React $\Delta t/2$.}
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_first\_half()}]
 
   Update the solution due to the effect of reactions over half a time
   step.  The integration method and system of equations used here is
@@ -181,8 +184,24 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   Note that the density, $\rho$, does not change via reactions in the
   Strang-split formulation.
 
+  The reaction data needs to be valid in the ghost cells.  The logic
+  in this routine (accomplished throuh the use of a mask) will burn
+  only in the valid interior cells or in any ghost cells that are on a
+  coarse-fine interface or physical boundary\MarginPar{physical
+    boundary too?}  This allows us to just use a level {\tt
+    FillBoundary} call to fill all of the ghost cells on the same
+  level with valid data.
 
-\item {\em Construct time-level $n$ sources and apply}
+  An experimental option (enabled via
+  \runparam{use\_custom\_knapsack\_weights}) will create a custom
+  distribution map based on the work needed in burning a zone and
+  redistribute the boxes across processors before burning, to better
+  load balance..  \MarginPar{need to explain the logic here,
+    especially what the parallel copies are doing}
+
+
+\item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
+  [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
 
   The time level $n$ sources are applied to the state after the burn,
   $\Ub^\star$, with a full $\Delta t$ weighting (this will be
@@ -256,7 +275,7 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   Strang-splitting, since the hydro and sources takes place completely
   inside of the surrounding burn operations.
 
-\item {\em Construct the hydro update}
+\item \label{strang:hydro} {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
 
   The goal is to advance our system considering only the advective
   terms (which in Cartesian coordinates can be written as the
@@ -274,6 +293,7 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   \ref{Sec:Advection Step}.  Here is the summarized version:
   \begin{enumerate}
   \item Compute primitive variables.
+  \item Convert the source terms to those acting on primitive variables
   \item Predict primitive variables to time-centered edges.
   \item Solve the Riemann problem.
   \item Compute fluxes and update.
@@ -293,11 +313,11 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   nature of this method.
 
 
-\item {\em Update radial data and center of mass for monopole gravity}
+\item \label{strang:radial} {\em Update radial data and center of mass for monopole gravity}
  \MarginPar{is that right?}
 
 
-\item {\em Clean State}
+\item \label{strang:clean} {\em Clean State} [\code{clean\_state()}]
 
   There are many ways that the hydrodynamics state may become
   unphysical in the evolution.  The \code{clean\_state()} routine
@@ -312,7 +332,8 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   After these checks, we check the state for NaNs.
 
 
-\item {\em Correct the source terms with the $n+1$ contribution}
+\item \label{strang:newsource} {\em Correct the source terms with the $n+1$ contribution}
+  [\code{construct\_new\_gravity()}, \code{do\_new\_sources}]
 
   Previously we added $\Delta t\, \Sb(\Ub^\star)$ to the state, when
   we really want a time-centered approach, $(\Delta t/2)[\Sb(\Ub^\star
@@ -357,12 +378,15 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 %% \end{equation}
 
 
-\item {\em React $\Delta t/2$.}
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_second\_half()}]
 
   We do the final $\dt/2$ reacting on the state, begining with $\Ub^{n+1,(c)}$ to
   give us the final state on this level, $\Ub^{n+1}$.
 
-\item {\em Finalize}
+  This is largely the same as \code{strang\_react\_first\_half()}, but
+  it does not currently fill the reactions in the ghost cells. \MarginPar{confirm this}
+
+\item \label{strang:finalize} {\em Finalize} [\code{finalize\_do\_advance()}]
 
   Finalize does the following:
   \begin{enumerate}
@@ -375,4 +399,113 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   \end{enumerate}
 
 \end{enumerate}
+
+
+\section{Overview of a single step (with SDC)}
+
+The SDC version of the main advance loop looks similar to the no-SDC
+version, but includes an iteration loop over the hydro, gravity, and
+reaction update.  So the only difference happens in step 2 of the
+flowchart outlined in \S~\ref{flow:sec:nosdc}.  In particular this
+step now proceeds as:
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+
+\item {\em Advancement}
+
+  Loop from 0 to {\tt sdc\_iters}, doing:
+
+  \begin{itemize}
+    \item {\em hydrodynamics advance}: This is done through {\tt
+      do\_advance}---in SDC mode, this only updates the hydrodynamics,
+      including the non-reacting sources.  However, in predicting the
+      interface states, we use an iteratively-lagged approximation to the 
+      reaction source on the primitive variables (see below).
+
+    \item {\em react}: Reactions are integrated with the advective update
+      as a source---this way the reactions see the time-evolution due to
+      advection as we integrate.
+
+    \item {\em clean state}: This ensures that the thermodynamic state is
+      valid and consistent.
+
+    \item {\em construct reaction source terms}: Construct the change in
+      the primitive variables due only to reactions over the timestep.  This
+      will be used in the next iteration
+  \end{itemize}
+
+
+\end{enumerate}
+
+
+Note that is it likely that some of the other updates (like any
+non-advective auxillary quantity updates) should be inside the SDC
+loop, but presently they are only done at the end.  Also note that the
+radiation implicit update is not done as part of the SDC iterations.
+
+
+\subsection{Main Hydro and Gravity Advancement (SDC)}
+
+The evolution in {\tt do\_advance} is substantially different than the
+Strang case.  In particular, reactions are not evolved.  Here we
+summarize those differences.
+
+\begin{enumerate}
+\item {\em Initialize} [\code{initialize\_do\_advance()}]
+
+This is unchanged from step \ref{strang:init} in the Strang algorithm.
+
+
+\item {\em Construct time-level $n$ sources and apply} 
+  [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
+
+This corresponds to step \ref{strang:oldsource} in the Strang
+algorithm.  There are not differences compared to the Strang
+algorithm, although we note, this only needs to be done for the first
+SDC iteration in the advancement, since the old state does not change.\MarginPar{we need to fix the code to only do this once}
+
+\item {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
+
+This corresponds to step~\ref{strang:hydro} in the Strang
+algorithm.  There are a few major differences with the Strang case:
+\begin{itemize}
+\item There is no need to extrapolate source terms to the half-time
+  for the prediction (the \runparam{castro.source\_term\_predictor}
+  parameter), since SDC provides a natural way to approximate the
+  time-centered source---we simply use the iteratively-lagged new-time
+  source.
+
+\item The primitive variable source terms that are used for the
+  prediction include the contribution due to reactions (from the last
+  SDC iteration).  This addition is done in
+  \code{construct\_hydro\_source()} after the source terms are
+  converted to primitive variables.
+\end{itemize}
+
+\item {\em Update radial data and center of mass for monopole gravity}
+  
+  This is the same as the Strang step~\ref{strang:radial}
+
+
+\item {\em Clean State} [\code{clean\_state()}]
+
+  This is the same as the Strang step~\ref{strang:clean}
+
+\item \label{strang:newsource} {\em Correct the source terms with the $n+1$ contribution}
+  [\code{construct\_new\_gravity()}, \code{do\_new\_sources}]
+
+  This is the same as the Strang step~\ref{strang:newsource}
+
+\item {\em Finalize} [\code{finalize\_do\_advance()}]
+
+  This differs from Strang step~\ref{strang:finalize} in that we do not
+  construct $d\Sb/dt$, but instead store the total hydrodynamical source
+  term at the new time.  As discussed above, this will be used in the 
+  next iteration to approximate the time-centered source term.
+
+\end{enumerate}
+
+
+
 
