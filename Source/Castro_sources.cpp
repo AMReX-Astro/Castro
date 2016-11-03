@@ -322,7 +322,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Add(react_src, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
-    react_src.Fillboundary(geom.periodicity());
+    react_src.FillBoundary(geom.periodicity());
 }
 #endif
 #endif
