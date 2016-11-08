@@ -77,9 +77,9 @@ class RadBndryData : private BndryRegister
 public:
 //@ManMemo: fall-through functions
 //@ManDoc: return the array of Boxes
-    BndryRegister::boxes;
+    using BndryRegister::boxes;
 //@ManDoc: return the number of Boxes
-    BndryRegister::size;
+    using BndryRegister::size;
 
 //@ManMemo: class enumeration
 //@ManDoc: mask values enumeration
@@ -96,9 +96,9 @@ protected:
 //@ManDoc: Domain used for mask defintions
     Geometry geom;
 //@ManDoc: protect BndryRegister grids
-    BndryRegister::grids;
+    using BndryRegister::grids;
 //@ManDoc: protect BndryRegister FabSets
-    BndryRegister::bndry;
+    using BndryRegister::bndry;
 
 public:
 //@ManMemo: administrative functions
