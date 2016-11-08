@@ -33,9 +33,6 @@ module sdc_type_module
      integer :: n_rhs
      integer :: n_jac
 
-     ! this is not actually needed for SDC, but included for compatibility
-     ! with the non-SDC
-     logical :: self_heat
   end type sdc_t
 
 end module sdc_type_module
