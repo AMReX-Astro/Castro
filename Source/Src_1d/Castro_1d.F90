@@ -163,8 +163,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   else if (use_flattening == 1) then
 #ifdef RADIATION
-     print *, "QPRES = ", QPRES
-     print *, "QPTOT = ", QPTOT
      call rad_flaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
                       q(:,qpres), q(:,qptot), &
                       q(:,QU), q(:,QV), q(:,QW), &
