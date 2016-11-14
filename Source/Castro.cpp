@@ -1726,7 +1726,7 @@ Castro::post_timestep (int iteration)
     // will also do the sync solve associated with the reflux.
 
     if (do_reflux) {
-	if (reflux_strategy == 1 && level == parent->finestLevel())
+	if (reflux_strategy == 1 && level == parent->finestLevel() && level > 0)
 	    reflux(0, level);
 	else if (reflux_strategy == 2 && level < parent->finestLevel())
 	    reflux(level, level+1);
