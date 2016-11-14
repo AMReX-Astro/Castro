@@ -3239,16 +3239,22 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 
 
 void
-Castro::check_for_nan(MultiFab& state)
+Castro::check_for_nan(MultiFab& state, int check_ghost)
 {
-    if (state.contains_nan(Density,state.nComp(),0,true))
+
+  int ng = 0;
+  if (check_ghost == 1) {
+    ng = state.nComp();
+  }
+  
+  if (state.contains_nan(Density,state.nComp(),ng,true))
     {
-        for (int i = 0; i < state.nComp(); i++)
+      for (int i = 0; i < state.nComp(); i++)
         {
-	if (state.contains_nan(Density + i, 1, 0,true))
+	  if (state.contains_nan(Density + i, 1, ng, true))
             {
-                std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
-                BoxLib::Abort(abort_string.c_str());
+	      std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
+	      BoxLib::Abort(abort_string.c_str());
             }
         }
     }
