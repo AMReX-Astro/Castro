@@ -31,7 +31,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
-  use meth_params_module, only : QVAR, NVAR, NHYP, NGDNV, GDPRES, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NHYP, NGDNV, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif
@@ -88,7 +88,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(in) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
 #endif
-  double precision, intent(inout) :: q(q_l1:q_h1,q_l2:q_h2,QVAR)
+  double precision, intent(inout) :: q(q_l1:q_h1,q_l2:q_h2,NQ)
   double precision, intent(in) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   double precision, intent(in) :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision, intent(inout) :: update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
