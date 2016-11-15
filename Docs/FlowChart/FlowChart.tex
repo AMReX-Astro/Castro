@@ -125,7 +125,9 @@ update, in sequence, looks like:
 \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
 \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
 \end{align}
-
+Note that in the first step, we add a full $\Delta t$ of the old-time
+source to the state.  This prediction ensures consistency when it
+comes time to predicting the new-time source at the end of the update.
 The construction of the advective terms, ${\bf A(\Ub)}$ is purely
 explicit, and based on an unsplit second-order Godunov method.  We
 predict the standard primitive variables, as well as $\rho e$, at
@@ -205,9 +207,10 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 \item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
   [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
 
-  The time level $n$ sources are applied to the state after the burn,
-  $\Ub^\star$, with a full $\Delta t$ weighting (this will be
-  corrected later).  This produces the intermediate state,
+  The time level $n$ sources are computed, stored in the appropriate
+  \multifab\ in \variable{old\_sources}, and applied to the state
+  after the burn, $\Ub^\star$ with a full $\Delta t$ weighting (this
+  will be corrected later).  This produces the intermediate state,
   $\Ub^{n+1,(a)}$.
 
   The sources that we deal with here are:
@@ -284,9 +287,10 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   divergence of a flux).
 
   We do the hydro update in two parts---first we construct the
-  advective update and store it, then we do the conservative update in
-  a separate step.  This separation allows us to use the advective
-  update separately in more complex time-integration schemes.
+  advective update and store it in the \variable{hydro\_source}
+  \multifab, then we do the conservative update in a separate step.  This
+  separation allows us to use the advective update separately in more
+  complex time-integration schemes.
 
   In the Strang-split formulation, we start the reconstruction using
   the state after burning, $\Ub^\star$, and predict to the half-time
@@ -345,7 +349,8 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   using the updated state, $\Ub^{n+1,(b)}$.  We then compute the
   correction, $(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]$ to
   add to $\Ub^{n+1,(b)}$ to give us the properly time-centered source,
-  and the fully updated state, $\Ub^{n+1,(c)}$.
+  and the fully updated state, $\Ub^{n+1,(c)}$.  This correction is stored
+  in the \variable{new\_source} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
 
   We have a choice of how to do this correction.  We can first compute
   all the corrections using the same initial state, $U^{n+1,(b)}$,
