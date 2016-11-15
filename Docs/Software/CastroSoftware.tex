@@ -270,6 +270,8 @@ The current \statedata\ names  \castro\ carries are:
   the source terms, $d\Sb/dt$, for each of the {\tt NUM\_STATE} {\tt
     State\_Type} variables.
 
+  \MarginPar{SDC does differently}
+
   Note: we do not make use of the old-time quantity here. In fact, we
   never allocate the \farraybox s for the old-time in the {\tt Source\_Type}
   \statedata, so there is not wasted memory.
@@ -321,6 +323,34 @@ whether the objects are deleted or the pointers simply destructed.
 
 In \castro\, this will commonly be used with \multifab s.
 
+
+\subsection{Various source \multifab s}
+
+There are a number of different \multifab s (and arrays of \multifab s)
+that hold source term information.
+
+\begin{itemize}
+
+  \item {\tt hydro\_source} : this is a \multifab\ that holds
+    the update to the hydrodynamics (basically the divergence
+    of the fluxes).  This is filled in the conservative update
+    routine of the hydrodynamics.
+
+  \item {\tt old\_sources} : this is an array of \multifab s, with
+    each \multifab\ with {\tt NUM\_STATE} components (e.g., one for
+    each of our conservative state variables).  There are
+    \variable{num\_src} \multifab s in the array, corresponding to the
+    sponge, external sources, diffusion, hybrid momentum, gravity, and
+    rotation.  
+
+    Each of the different physical processes will store the
+    old-time-level source in its respective \multifab.  This makes it
+    easy to sum over all of the physical processes to get a single
+    source that affects a particular state variable.
+
+    \item {\tt new\_sources} : this is the new-time-level counterpart
+      to {\tt old\_sources}.
+\end{itemize}
 
 \section{\mfiter\ and interacting with Fortran}
 
