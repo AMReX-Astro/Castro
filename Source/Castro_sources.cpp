@@ -237,6 +237,11 @@ void
 Castro::sum_of_sources(MultiFab& source)
 {
 
+  // this computes advective_source + 1/2 (old source + new source)
+  //
+  // the time-centering is accomplished since new source is defined
+  // to be 1/2 (new source - old source) generally.
+
   int ng = source.nGrow();
 
   source.setVal(0.0);
