@@ -423,24 +423,30 @@ step now proceeds as:
 
   Loop from 0 to {\tt sdc\_iters}, doing:
 
-  \begin{itemize}
-    \item {\em hydrodynamics advance}: This is done through {\tt
+  \begin{enumerate}
+    \item {\em Hydrodynamics advance}: This is done through {\tt
       do\_advance}---in SDC mode, this only updates the hydrodynamics,
       including the non-reacting sources.  However, in predicting the
       interface states, we use an iteratively-lagged approximation to the 
       reaction source on the primitive variables (see below).
 
-    \item {\em react}: Reactions are integrated with the advective update
+    \item {\em React}: Reactions are integrated with the advective update
       as a source---this way the reactions see the time-evolution due to
       advection as we integrate.
 
-    \item {\em clean state}: This ensures that the thermodynamic state is
+      The advective source includes both the divergence of the fluxes
+      as well as the time-centered source terms.  This is computed by
+      \code{sum\_of\_sources()} by summing over all source components
+      \variable{hydro\_source}, \variable{old\_sources}, and
+      \variable{new\_sources}.  
+
+    \item {\em Clean state}: This ensures that the thermodynamic state is
       valid and consistent.
 
-    \item {\em construct reaction source terms}: Construct the change in
+    \item {\em Construct reaction source terms}: Construct the change in
       the primitive variables due only to reactions over the timestep.  This
       will be used in the next iteration
-  \end{itemize}
+  \end{enumerate}
 
 
 \end{enumerate}
