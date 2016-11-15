@@ -350,7 +350,7 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   correction, $(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]$ to
   add to $\Ub^{n+1,(b)}$ to give us the properly time-centered source,
   and the fully updated state, $\Ub^{n+1,(c)}$.  This correction is stored
-  in the \variable{new\_source} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
+  in the \variable{new\_sources} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
 
   We have a choice of how to do this correction.  We can first compute
   all the corrections using the same initial state, $U^{n+1,(b)}$,
