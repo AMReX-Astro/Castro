@@ -107,9 +107,9 @@ The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by \code{do\_advance()}.  Consider
 our system of equations as:
 \begin{equation}
-\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
+\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Rb(\Ub) + \Sb,
 \end{equation}
-where $\Fb$ is the flux vector, $\Sb_{\rm react}$ are the reaction
+where $\Fb$ is the flux vector, $\Rb$ are the reaction
 source terms, and $\Sb$ are the non-reaction source terms, which
 includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
@@ -119,11 +119,11 @@ step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little.  The actual
 update, in sequence, looks like:
 \begin{align}
-\Ub^\star &= \Ub^n + \frac{\dt}{2}\Sb_{\rm react}(\Ub^n) \\
+\Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
 \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
-\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
+\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})
 \end{align}
 Note that in the first step, we add a full $\Delta t$ of the old-time
 source to the state.  This prediction ensures consistency when it
@@ -410,6 +410,16 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 
 \section{Overview of a single step (with SDC)}
 
+We express our system as:
+\begin{equation}
+\Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)
+\end{equation}
+here $\mathcal{A}$ is the advective source, which includes both the 
+flux divergence and the hydrodynamic source terms (e.g.\ gravity):
+\begin{equation}
+\mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
+\end{equation}
+
 The SDC version of the main advance loop looks similar to the no-SDC
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update.  So the only difference happens in step 2 of the
@@ -421,20 +431,26 @@ step now proceeds as:
 
 \item {\em Advancement}
 
-  Loop from 0 to {\tt sdc\_iters}, doing:
+  Loop $k$ from 0 to {\tt sdc\_iters}, doing:
 
   \begin{enumerate}
     \item {\em Hydrodynamics advance}: This is done through {\tt
       do\_advance}---in SDC mode, this only updates the hydrodynamics,
       including the non-reacting sources.  However, in predicting the
       interface states, we use an iteratively-lagged approximation to the 
-      reaction source on the primitive variables (see below).
+      reaction source on the primitive variables, $\mathcal{I}_q^{k-1}$.  \MarginPar{first time through is this source 0?}
 
-    \item {\em React}: Reactions are integrated with the advective update
-      as a source---this way the reactions see the time-evolution due to
-      advection as we integrate.
+      The result of this is an approximation to $\mathcal{A}(\Ub)$,
+      stored in \variable{hydro\_sources} (the flux divergence)
+      and \variable{old\_sources} and \variable{new\_sources}.
 
-      The advective source includes both the divergence of the fluxes
+    \item {\em React}: Reactions are integrated with the advective
+      update as a source---this way the reactions see the
+      time-evolution due to advection as we integrate:
+      \begin{equation}
+        \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+      \end{equation}
+     The advective source includes both the divergence of the fluxes
       as well as the time-centered source terms.  This is computed by
       \code{sum\_of\_sources()} by summing over all source components
       \variable{hydro\_source}, \variable{old\_sources}, and
@@ -443,9 +459,10 @@ step now proceeds as:
     \item {\em Clean state}: This ensures that the thermodynamic state is
       valid and consistent.
 
-    \item {\em Construct reaction source terms}: Construct the change in
-      the primitive variables due only to reactions over the timestep.  This
-      will be used in the next iteration
+    \item {\em Construct reaction source terms}: Construct the change
+      in the primitive variables due only to reactions over the
+      timestep, $\mathcal{I}_q^{k}$.  This will be used in the next
+      iteration.
   \end{enumerate}
 
 
