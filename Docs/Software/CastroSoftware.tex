@@ -336,6 +336,15 @@ that hold source term information.
   fluxes).  This is filled in the conservative update routine of the
   hydrodynamics.
 
+  As this is expressed as a source term, what is actually stored is
+  \begin{equation}
+    \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
+  \end{equation}
+  So the update of the conserved state appears as:
+  \begin{equation}
+    \frac{\partial U}{\partial t} = \Sb_\mathrm{flux}
+  \end{equation}
+
 \item \variable{old\_sources} : this is an array of \multifab s, with
   each \multifab\ with {\tt NUM\_STATE} components (e.g., one for each
   of our conservative state variables).  There are \variable{num\_src}
