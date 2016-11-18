@@ -137,6 +137,11 @@ contains
 
              burn_state_in % e = ZERO
 
+             ! Ensure we start with no RHS or Jacobian calls registered.
+
+             burn_state_in % n_rhs = 0
+             burn_state_in % n_jac = 0
+
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
              ! Note that we want to update the total energy by taking the difference of the old
@@ -193,7 +198,7 @@ contains
                   j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
                   k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
 
-                weights(i,j,k) = burn_state_out % n_rhs
+                weights(i,j,k) = min(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
              endif
 
