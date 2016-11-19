@@ -209,6 +209,8 @@ contains
 
 #else
 
+  ! SDC version
+
   subroutine ca_react_state(lo,hi, &
                             uold,uo_lo,uo_hi, &
                             unew,un_lo,un_hi, &

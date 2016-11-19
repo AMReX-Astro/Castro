@@ -39,8 +39,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     }
 #else
-    // If we're doing SDC, time-center the source term (using the current iteration's old sources
-    // and the last iteration's new sources).
+    // If we're doing SDC, time-center the source term (using the
+    // current iteration's old sources and the last iteration's new
+    // sources).
 
     MultiFab& SDC_source = get_new_data(SDC_Source_Type);
 
@@ -66,7 +67,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     MultiFab& Er_new = get_new_data(Rad_Type);
 
     if (!Radiation::rad_hydro_combined) {
-      BoxLib::Abort("Castro::advance -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
+      BoxLib::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
     }
 
     FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);

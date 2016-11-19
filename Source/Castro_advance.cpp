@@ -332,7 +332,10 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 
     }
 #else
-    // For SDC, store the sum of the new_sources data in the state data.
+    // The new sources are broken into types (ext, diff, hybrid, grav,
+    // ...) via an enum.  For SDC, store the sum of the new_sources
+    // over these different physics types in the state data -- that's
+    // what hydro really cares about.
 
     MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
     SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
