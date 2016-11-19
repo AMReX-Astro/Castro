@@ -285,6 +285,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
 #else
 
+// SDC version
+
 void
 Castro::react_state(Real time, Real dt)
 {

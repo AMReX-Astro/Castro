@@ -136,7 +136,7 @@ and run this using the ``\texttt{--}castro'' option, e.g.,
 ``fboxinfo.Linux.gfortran.exe \texttt{--}castro pltxxxxx \texttt{|}
 tee gr0.maestro'', to generate the \castro-compatible grids file.  Note
 that the base grid structure is still controlled by {\bf
-  amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc., since in C++
+  amr.max\_grid\_size}, {\bf amr.blocking\_factor}, etc., since in \cpp\
 BoxLib, the grids file only indicates the refined grid structure,
 whereas in Fortran BoxLib the grids file contains the base grid and
 refined grid structures.
@@ -166,7 +166,7 @@ of refinement.  My recommended strategy is the following:
 \item Do a traditional \castro\ restart from {\tt chk00010}, but do not
   increase {\bf amr.max\_level}, and run for 10 more time steps.  This
   allows a new grid structure with the same effective resolution as
-  before settle in using the C++ BoxLib regridding algorithm.
+  before settle in using the \cpp\ \boxlib\ regridding algorithm.
 \item Do a traditional \castro\ restart from {\tt chk00020}, but increase
   {\bf amr.max\_level} by 1, and run for 10 time steps.
 \item Repeat the procedure from the previous step (using the most

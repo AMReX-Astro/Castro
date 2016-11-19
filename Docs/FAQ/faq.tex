@@ -67,11 +67,11 @@ other missing files need to be investigated.
 
   The best thing to do is to recompile the code with {\tt TEST=TRUE}
   set in the {\tt GNUmakefile}.  This will have \boxlib\ catch the
-  signals raised in both C++ and Fortran functions.  Behind the
+  signals raised in both \cpp\ and Fortran functions.  Behind the
   scenes, this defines the {\tt BL\_TESTING} preprocessor flag, which
   will initialize memory allocated in {\tt fab}s or {\tt multifab}s to
   signaling NaNs (sNaN), and use the {\tt BLBackTrace::handler()}
-  function to handle various signals raised in both C++ and Fortran
+  function to handle various signals raised in both \cpp\ and Fortran
   functions.  This is a Linux/UNIX capability.  This gives us a chance
   to print out backtrace information.  The signals include seg fault,
   floating point exceptions (NaNs, divided by zero and overflow), and
@@ -90,7 +90,7 @@ other missing files need to be investigated.
 
   For further capabilities, defining {\tt BACKTRACE=TRUE} enables you
   to get more information than the backtrace of the call stack info by
-  instrumenting the code.  (This is in C++ code only). Here is an
+  instrumenting the code.  (This is in \cpp\ code only). Here is an
   example.  You know the line ``{\tt Real rho = state(cell,0);}'' is
   causing a segfault.  You could add a print statement before that.
   But it might print out thousands (or even millions) of line before

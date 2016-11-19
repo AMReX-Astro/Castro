@@ -62,6 +62,7 @@ castro.v            = 0       # control verbosity in Castro.cpp
 amr.derive_plot_vars = ALL
 
 amr.probin_file = probin
+#amr.probin_file = probin.dens_sponge
 
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
 

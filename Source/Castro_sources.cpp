@@ -237,6 +237,13 @@ void
 Castro::sum_of_sources(MultiFab& source)
 {
 
+  // this computes advective_source + 1/2 (old source + new source)
+  // 
+  // Note: the advective source is defined as -div{F}
+  //
+  // the time-centering is accomplished since new source is defined
+  // to be 1/2 (new source - old source) generally.
+
   int ng = source.nGrow();
 
   source.setVal(0.0);
@@ -270,7 +277,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     sum_of_sources(A);
 
     // Compute the state that has effectively only been updated with advection.
-
+    // U* = U_old + dt A
+    // where A = -div U + S_hydro
     MultiFab S_noreact(grids, NUM_STATE, ng, Fab_allocate);
 
     MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
@@ -278,14 +286,14 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     clean_state(S_noreact);
 
-    // Compute its primitive counterpart.
+    // Compute its primitive counterpart, q*
 
     MultiFab q_noreact(grids, QVAR, ng, Fab_allocate);
     MultiFab qaux_noreact(grids, NQAUX, ng, Fab_allocate);
 
     cons_to_prim(S_noreact, q_noreact, qaux_noreact);
 
-    // Compute the primitive version of the old state.
+    // Compute the primitive version of the old state, q_old
 
     MultiFab q_old(grids, QVAR, ng, Fab_allocate);
     MultiFab qaux_old(grids, NQAUX, ng, Fab_allocate);
@@ -293,14 +301,15 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     cons_to_prim(S_old, q_old, qaux_old);
 
     // Compute the effective advective update on the primitive state.
+    // A(q) = (q* - q_old)/dt
 
     MultiFab A_prim(grids, QVAR, ng, Fab_allocate);
 
     A_prim.setVal(0.0);
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(A_prim, -1.0 / dt, q_noreact, 0, 0, QVAR, ng);
-	MultiFab::Saxpy(A_prim,  1.0 / dt, q_old,     0, 0, QVAR, ng);
+        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, QVAR, ng);
+	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, QVAR, ng);
     }
 
     // Compute the primitive version of the new state.
@@ -319,7 +328,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
         MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, ng);
     }
 
-    MultiFab::Add(react_src, A_prim, 0, 0, QVAR, ng);
+    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
     react_src.FillBoundary(geom.periodicity());
