@@ -450,6 +450,20 @@ contains
 
              ! CFL hydrodynamic stability criterion
 
+             ! If the timestep violated (v+c) * dt / dx > 1,
+             ! suggest a new timestep such that (v+c) * dt / dx <= CFL,
+             ! where CFL is the user's chosen timestep constraint.
+             ! We don't use the CFL choice in the test for violation
+             ! because if we did, then even a small increase in velocity
+             ! over the timestep would be enough to trigger a retry
+             ! (and empirically we have found that this can happen
+             ! basically every timestep, which can greatly increase
+             ! the cost of a simulation for not much benefit);
+             ! but these types of issues are exactly why a user picks a
+             ! safe buffer value like CFL = 0.8 or CFL = 0.5. We only
+             ! want to trigger a retry if the timestep strongly violated
+             ! the stability criterion.
+
              if (do_hydro .eq. 1) then
 
                 eos_state % rho = s_new(i,j,k,URHO )
@@ -466,7 +480,9 @@ contains
 
                 tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
 
-                dt_new = min(dt_new, cfl * tau_CFL)
+                if (dt_old > tau_CFL) then
+                   dt_new = min(dt_new, cfl * tau_CFL)
+                endif
 
              endif
 

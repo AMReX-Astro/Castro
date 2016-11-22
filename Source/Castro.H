@@ -246,7 +246,7 @@ public:
 
     void construct_hydro_source(Real time, Real dt);
 
-    void check_for_nan(MultiFab& state);
+    void check_for_nan(MultiFab& state, int check_ghost=0);
 
 #ifdef SDC
     void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);

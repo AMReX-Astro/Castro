@@ -107,9 +107,9 @@ The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by \code{do\_advance()}.  Consider
 our system of equations as:
 \begin{equation}
-\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Sb_{\rm react} + \Sb,
+\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Rb(\Ub) + \Sb,
 \end{equation}
-where $\Fb$ is the flux vector, $\Sb_{\rm react}$ are the reaction
+where $\Fb$ is the flux vector, $\Rb$ are the reaction
 source terms, and $\Sb$ are the non-reaction source terms, which
 includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
@@ -119,13 +119,15 @@ step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little.  The actual
 update, in sequence, looks like:
 \begin{align}
-\Ub^\star &= \Ub^n + \frac{\dt}{2}\Sb_{\rm react}(\Ub^n) \\
+\Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
 \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
-\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Sb_{\rm react}(\Ub^{n+1,(c)})
+\Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})
 \end{align}
-
+Note that in the first step, we add a full $\Delta t$ of the old-time
+source to the state.  This prediction ensures consistency when it
+comes time to predicting the new-time source at the end of the update.
 The construction of the advective terms, ${\bf A(\Ub)}$ is purely
 explicit, and based on an unsplit second-order Godunov method.  We
 predict the standard primitive variables, as well as $\rho e$, at
@@ -205,9 +207,10 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 \item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
   [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
 
-  The time level $n$ sources are applied to the state after the burn,
-  $\Ub^\star$, with a full $\Delta t$ weighting (this will be
-  corrected later).  This produces the intermediate state,
+  The time level $n$ sources are computed, stored in the appropriate
+  \multifab\ in \variable{old\_sources}, and applied to the state
+  after the burn, $\Ub^\star$ with a full $\Delta t$ weighting (this
+  will be corrected later).  This produces the intermediate state,
   $\Ub^{n+1,(a)}$.
 
   The sources that we deal with here are:
@@ -284,9 +287,10 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   divergence of a flux).
 
   We do the hydro update in two parts---first we construct the
-  advective update and store it, then we do the conservative update in
-  a separate step.  This separation allows us to use the advective
-  update separately in more complex time-integration schemes.
+  advective update and store it in the \variable{hydro\_source}
+  \multifab, then we do the conservative update in a separate step.  This
+  separation allows us to use the advective update separately in more
+  complex time-integration schemes.
 
   In the Strang-split formulation, we start the reconstruction using
   the state after burning, $\Ub^\star$, and predict to the half-time
@@ -345,7 +349,8 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   using the updated state, $\Ub^{n+1,(b)}$.  We then compute the
   correction, $(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]$ to
   add to $\Ub^{n+1,(b)}$ to give us the properly time-centered source,
-  and the fully updated state, $\Ub^{n+1,(c)}$.
+  and the fully updated state, $\Ub^{n+1,(c)}$.  This correction is stored
+  in the \variable{new\_sources} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
 
   We have a choice of how to do this correction.  We can first compute
   all the corrections using the same initial state, $U^{n+1,(b)}$,
@@ -405,6 +410,16 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
 
 \section{Overview of a single step (with SDC)}
 
+We express our system as:
+\begin{equation}
+\Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)
+\end{equation}
+here $\mathcal{A}$ is the advective source, which includes both the 
+flux divergence and the hydrodynamic source terms (e.g.\ gravity):
+\begin{equation}
+\mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
+\end{equation}
+
 The SDC version of the main advance loop looks similar to the no-SDC
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update.  So the only difference happens in step 2 of the
@@ -416,26 +431,39 @@ step now proceeds as:
 
 \item {\em Advancement}
 
-  Loop from 0 to {\tt sdc\_iters}, doing:
+  Loop $k$ from 0 to {\tt sdc\_iters}, doing:
 
-  \begin{itemize}
-    \item {\em hydrodynamics advance}: This is done through {\tt
+  \begin{enumerate}
+    \item {\em Hydrodynamics advance}: This is done through {\tt
       do\_advance}---in SDC mode, this only updates the hydrodynamics,
       including the non-reacting sources.  However, in predicting the
       interface states, we use an iteratively-lagged approximation to the 
-      reaction source on the primitive variables (see below).
+      reaction source on the primitive variables, $\mathcal{I}_q^{k-1}$.  \MarginPar{first time through is this source 0?}
 
-    \item {\em react}: Reactions are integrated with the advective update
-      as a source---this way the reactions see the time-evolution due to
-      advection as we integrate.
+      The result of this is an approximation to $\mathcal{A}(\Ub)$,
+      stored in \variable{hydro\_sources} (the flux divergence)
+      and \variable{old\_sources} and \variable{new\_sources}.
 
-    \item {\em clean state}: This ensures that the thermodynamic state is
+    \item {\em React}: Reactions are integrated with the advective
+      update as a source---this way the reactions see the
+      time-evolution due to advection as we integrate:
+      \begin{equation}
+        \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+      \end{equation}
+     The advective source includes both the divergence of the fluxes
+      as well as the time-centered source terms.  This is computed by
+      \code{sum\_of\_sources()} by summing over all source components
+      \variable{hydro\_source}, \variable{old\_sources}, and
+      \variable{new\_sources}.  
+
+    \item {\em Clean state}: This ensures that the thermodynamic state is
       valid and consistent.
 
-    \item {\em construct reaction source terms}: Construct the change in
-      the primitive variables due only to reactions over the timestep.  This
-      will be used in the next iteration
-  \end{itemize}
+    \item {\em Construct reaction source terms}: Construct the change
+      in the primitive variables due only to reactions over the
+      timestep, $\mathcal{I}_q^{k}$.  This will be used in the next
+      iteration.
+  \end{enumerate}
 
 
 \end{enumerate}

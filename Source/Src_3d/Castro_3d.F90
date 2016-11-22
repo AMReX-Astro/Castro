@@ -33,7 +33,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
+  use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
 #ifdef RADIATION
                                  QRADVAR, QPTOT, &
 #endif
@@ -90,7 +90,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3, 0:ngroups-1)
   double precision, intent(in) :: lam(lam_l1:lam_h1, lam_l2:lam_h2, lam_l3:lam_h3, 0:ngroups-1)
 #endif
-  double precision, intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, QVAR)
+  double precision, intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQ)
   double precision, intent(in) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
   double precision, intent(in) :: srcQ(srQ_l1:srQ_h1, srQ_l2:srQ_h2, srQ_l3:srQ_h3, QVAR)
   double precision, intent(inout) :: update(updt_l1:updt_h1, updt_l2:updt_h2, updt_l3:updt_h3, NVAR)

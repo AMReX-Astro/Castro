@@ -231,9 +231,10 @@ The current \statedata\ names  \castro\ carries are:
   will simply be advected, but we will allow rotation (in particular,
   the Coriolis force) to affect them.
 
-  {\tt State\_Type} \multifab s have no ghost cells by default
-  (although, there is an option to force them to have ghost cells by
-  setting the parameter \runparam{castro.state\_nghost} at runtime).
+  {\tt State\_Type} \multifab s have no ghost cells by default for
+  pure hydro and a single ghost cell by default when {\tt RADIATION}
+  is enabled.  There is an option to force them to have ghost cells by
+  setting the parameter \runparam{castro.state\_nghost} at runtime.
 
   Note that the prediction of the hydrodynamic state to the interface
   will require 4 ghost cells.  This accomodated by creating a separate
@@ -268,6 +269,8 @@ The current \statedata\ names  \castro\ carries are:
 \item \variable{Source\_Type} : this holds the time-rate of change of
   the source terms, $d\Sb/dt$, for each of the {\tt NUM\_STATE} {\tt
     State\_Type} variables.
+
+  \MarginPar{SDC does differently}
 
   Note: we do not make use of the old-time quantity here. In fact, we
   never allocate the \farraybox s for the old-time in the {\tt Source\_Type}
@@ -320,6 +323,53 @@ whether the objects are deleted or the pointers simply destructed.
 
 In \castro\, this will commonly be used with \multifab s.
 
+
+\subsection{Various source \multifab s}
+
+There are a number of different \multifab s (and arrays of \multifab s)
+that hold source term information.
+
+\begin{itemize}
+
+\item \variable{hydro\_source} : this is a \multifab\ that holds the
+  update to the hydrodynamics (basically the divergence of the
+  fluxes).  This is filled in the conservative update routine of the
+  hydrodynamics.
+
+  As this is expressed as a source term, what is actually stored is
+  \begin{equation}
+    \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
+  \end{equation}
+  So the update of the conserved state appears as:
+  \begin{equation}
+    \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
+  \end{equation}
+
+\item \variable{old\_sources} : this is an array of \multifab s, with
+  each \multifab\ with {\tt NUM\_STATE} components (e.g., one for each
+  of our conservative state variables).  There are \variable{num\_src}
+  \multifab s in the array, corresponding to the sponge, external
+  sources, diffusion, hybrid momentum, gravity, and rotation.
+
+  Each of the different physical processes will store the
+  old-time-level source in its respective \multifab.  This makes it
+  easy to sum over all of the physical processes to get a single
+  source that affects a particular state variable.
+
+\item \variable{new\_sources} : the correction to the sources to
+  time-center the source update.  This is the counterpart to
+  {\tt old\_sources}.
+
+  The general idea is that for a source component {\tt k}, then {\tt
+    old\_source[k]} + {\tt new\_source[k]} should give an approximation
+  to $S_k^{n+1/2}$.
+
+  Generally this is accomplished by setting {\tt new\_source[k]} to
+  $(S_k^{n+1} - S_k^{n})/2$.  For gravity, since we adopt a conservative
+  formulation using the time-centered fluxes the form is slightly
+  different.
+
+\end{itemize}
 
 \section{\mfiter\ and interacting with Fortran}
 

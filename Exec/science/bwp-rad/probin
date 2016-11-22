@@ -35,8 +35,8 @@
 
 &sponge
 
-  sponge_upper_density = 1.d4
-  sponge_lower_density = 1.d2
-  sponge_timescale     = 1.d-3
+  sponge_upper_density = 1.0d-3
+  sponge_lower_density = 1.0d-6
+  sponge_timescale     = 2.0d1
 
 /
