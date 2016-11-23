@@ -56,7 +56,7 @@ Diffusion::install_level (int                   level,
     volume.clear(level);
     volume.set(level, &_volume);
 
-    area.set(level, _area);
+    area[level] = _area;
 
     BoxArray ba(LevelData[level].boxArray());
     grids[level] = ba;
