@@ -3315,9 +3315,10 @@ Castro::clean_state(MultiFab& state) {
     hybrid_sync(state);
 #endif
 
-    // Reset the internal energy and temperature to be consistent with the total energy.
+    // Compute the temperature (note that this will also reset
+    // the internal energy for consistency with the total energy).
 
-    reset_internal_energy(state);
+    computeTemp(state);
 
     return frac_change;
 
