@@ -1847,6 +1847,11 @@ Castro::post_restart ()
         {
             // Passing numpts_1d at level 0
             int numpts_1d = get_numpts ();
+
+#if (BL_SPACEDIM == 1)
+	    numpts_1d += 2 * NUM_GROW;
+#endif
+
             gravity->set_numpts_in_gravity(numpts_1d);
 
             for (int lev = 0; lev <= parent->finestLevel(); lev++)
