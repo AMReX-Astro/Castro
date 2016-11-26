@@ -1,5 +1,12 @@
 * changes since the last release:
 
+  -- BoxLib now requires a C++ 11 compiler by default.  As part of
+     this transition, PArrays are replaced by C++ Arrays.
+     Additionally, changes to the BoxLib build system mean that we
+     only need to supple COMP for the compiler.  FCOMP is now
+     ignored.
+
+
 previous changes:
 
 * 16.11
