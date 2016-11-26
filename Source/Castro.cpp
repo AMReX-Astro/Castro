@@ -2925,7 +2925,7 @@ Castro::computeTemp(MultiFab& State)
 #endif
     for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     {
-      const Box& bx = mfi.tilebox();
+      const Box& bx = mfi.growntilebox();
       compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
     }
 
