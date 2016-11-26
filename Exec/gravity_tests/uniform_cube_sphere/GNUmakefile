@@ -16,7 +16,6 @@ DEBUG       ?= FALSE
 DIM         ?= 3
 
 COMP	    ?= gcc
-FCOMP	    ?= gfortran
 
 USE_MPI     ?= FALSE
 USE_OMP     ?= FALSE

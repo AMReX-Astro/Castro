@@ -5,8 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 3
 
-COMP	   = gcc
-FCOMP	   = gfortran
+COMP	   = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE

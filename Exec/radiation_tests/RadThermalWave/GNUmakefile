@@ -1,5 +1,4 @@
-COMP	   = g++
-FCOMP	   = gfortran
+COMP	   = gnu
 
 DIM        = 2
 

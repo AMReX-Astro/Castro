@@ -8,7 +8,6 @@ DEBUG      = TRUE
 DIM        = 2
 
 COMP	   = Intel
-FCOMP	   = Intel
 
 USE_MPI    = TRUE
 

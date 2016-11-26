@@ -16,8 +16,7 @@ DEBUG      = FALSE
 DIM        = 3
 DIMENSION_AGNOSTIC = TRUE
 
-COMP	   = gcc
-FCOMP	   = gfortran
+COMP	   = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE

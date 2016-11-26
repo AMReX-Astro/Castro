@@ -4,8 +4,8 @@ PRECISION        = DOUBLE
 PROFILE          = FALSE
 DEBUG            = FALSE
 DIM              = 2
-COMP	         = g++
-FCOMP	         = gfortran
+
+COMP	         = gnu
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE

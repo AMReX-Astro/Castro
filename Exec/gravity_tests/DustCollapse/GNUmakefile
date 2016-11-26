@@ -7,8 +7,7 @@ DIM        = 1
 #DIM        = 2
 DIM        = 3
 
-COMP	   = gcc
-FCOMP	   = gfortran
+COMP	   = gnu
 
 USE_MPI    = TRUE
 
