@@ -94,14 +94,13 @@ Castro::advance (Real time,
 
     dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 
-#endif
-
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
 
     if (use_retry)
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
+#endif
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
