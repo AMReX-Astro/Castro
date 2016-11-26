@@ -245,16 +245,31 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 	     eden_lost, xang_lost, yang_lost, zang_lost);
 
+	  // Store the fluxes from this advance.
+	  // For normal integration we want to add the fluxes from this advance
+	  // since we may be subcycling the timestep. But for SDC integration
+	  // we want to copy the fluxes since we expect that there will not be
+	  // subcycling and we only want the last iteration's fluxes.
+
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
+#ifndef SDC
 	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
 	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+#endif
+#else
+	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 	  }
 
 #if (BL_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
+#ifndef SDC
 	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
+#else
+	    P_radial[mfi].copy(pradial,mfi.nodaltilebox(0),0,0,1);
+#endif
 	  }
 #endif
       } // MFIter loop
