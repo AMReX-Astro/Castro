@@ -1,11 +1,19 @@
+Castro requires both a \cpp\ compiler (with support for \cpp\ 11) and
+a Fortran compiler with 2003+ support.
 
-\section{Linux boxes}
+\section{General Compilers}
 
+\subsection{GCC}
 The GCC compilers are the preferred compilers on Linux machines.
 \castro\ runs without issue with GCC 5.3 and GCC 6.1.
 
-The PGI compilers (16.4--16.9) are also tested with \castro\ and have
-no known issues.
+\subsection{PGI}
+
+The PGI compilers (16.4--16.10) are also tested with \castro\ and have
+no known issues.  Since PGI uses the GCC header files, a compatible
+version of GCC is needed.  This is particularly problematic with \cpp~11
+support.  At the moment, with PGI 16.10 compilers the latest GCC compiler
+that has compatible \cpp~11 support is GCC 4.9.4.
 
 \section{Working at OLCF (ORNL)}
 
