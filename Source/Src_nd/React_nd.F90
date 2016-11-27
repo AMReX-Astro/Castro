@@ -165,17 +165,6 @@ contains
              enddo
 #endif
 
-             ! Do an EOS call to get a temperature consistent with the new energy.
-             ! Note that the burn state only contains the energy released during the burn,
-             ! so we need to add to it the initial zone energy.
-
-             call burn_to_eos(burn_state_out, eos_state_out)
-             eos_state_out % e = eos_state_in % e + delta_e
-             call eos(eos_input_re, eos_state_out)
-             call eos_to_burn(eos_state_out, burn_state_out)
-
-             state(i,j,k,UTEMP) = burn_state_out % T
-
              ! Add burning rates to reactions MultiFab, but be
              ! careful because the reactions and state MFs may
              ! not have the same number of ghost cells.
