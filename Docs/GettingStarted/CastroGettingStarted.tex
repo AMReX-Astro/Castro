@@ -113,34 +113,42 @@ This will put you into a directory in which you can run the Sedov
 problem in 1-d, 2-d or 3-d.
 
 \item In {\tt Sedov/}, edit the {\tt GNUmakefile}, and set
+  \begin{itemize}
+    \item {\tt DIM = 2} 
 
-{\tt DIM = 2} (for example)
+      This is the dimensionality---here we pick 2-d.
 
-{\tt COMP = gcc} (or your favorite \cpp\ compiler)
+    \item {\tt COMP = gnu}
 
-{\tt FCOMP = gfortran} (or your favorite Fortran 90 compiler)
+      This is the set of compilers.  {\tt gnu} are a good default
+      choice (this will use {\tt g++} and {\tt gfortran}.  You can
+      also choose {\tt pgi} and {\tt intel} for example.
 
-{\tt DEBUG = FALSE}
+      If you want to try other compilers than the GNU suite and they
+      don't work, please let us know.
 
-If you want to try other compilers than the GNU suite and they don't
-work, please let us know.
+    \item {\tt DEBUG = FALSE}
 
-To build a serial (single-processor) code, set {\tt USE\_MPI = FALSE}.
-This will compile the code without the MPI library.  If you want to do
-a parallel run, then you would set {\tt USE\_MPI = TRUE}.  In this
-case, the build system will need to know about your MPI installation.
-This can be done by editing the makefiles in the \boxlib\ tree, but a
-simple method is to set the shell environment variable {\tt
-  BOXLIB\_USE\_MPI\_WRAPPERS=1}.  If this is set, then the build
-system will fall back to using the local MPI compiler wrappers
-(e.g.\ {\tt mpic++} and {\tt mpif90}) to do the build.
+      This disabled debugging checks and results in a more
+      optimized executable.
+
+    \item {\tt USE\_MPI = FALSE}
+
+      This turns off parallelization via MPI.  Set it to {\tt TRUE} to
+      build with MPI---this requires that you have the MPI library
+      installed on your machine.  In this case, the build system will
+      need to know about your MPI installation.  This can be done by
+      editing the makefiles in the \boxlib\ tree, but the default
+      fallback is to look for the standard MPI wrappers (e.g.\ {\tt
+        mpic++} and {\tt mpif90}) to do the build.
+
+  \end{itemize}
 
 \item Now type {\tt make}.
 
   The resulting executable will look something like {\tt
-    Castro2d.Linux.gcc.gfortran.ex}, which means this is a 2-d version
-  of the code, made on a Linux machine, with {\tt COMP = gcc} and {\tt
-    FCOMP = gfortran}.
+    Castro2d.Linux.gnu.ex}, which means this is a 2-d version
+  of the code, made on a Linux machine, with {\tt COMP = gnu}.
 
 \end{enumerate}
 
@@ -183,7 +191,7 @@ git clone https://ccse.lbl.gov/pub/Downloads/Amrvis.git
 \end{verbatim}
 
 Then cd into {\tt Amrvis/}, edit the {\tt GNUmakefile} there
-to set {\tt DIM = 2}, and again set {\tt COMP} and {\tt FCOMP} to compilers that
+to set {\tt DIM = 2}, and again set {\tt COMP} to compilers that
 you have. Leave {\tt DEBUG = FALSE}.
 
 Type {\tt make} to build, resulting in an executable that

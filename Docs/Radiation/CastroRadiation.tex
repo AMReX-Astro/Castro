@@ -58,8 +58,7 @@ Now go to a ``run'' directory, say
 {\tt\seqsplit{Castro/Exec/radiation\_tests/RadThermalWave}},
 edit the file {\tt GNUmakefile}, and set
 \begin{itemize}
-\item {\tt COMP} = your favorite \cpp compiler (e.g., {\tt g++})
-\item {\tt FCOMP} = your favorite Fortran compiler (e.g., gfortran)
+\item {\tt COMP} = your favorite compiler suite (e.g., {\tt gnu}, {\tt pgi}, {\tt intel})
 \item {\tt DIM}   = 1 or 2 or 3
 \item \makevar{USE\_RAD} {\tt = 1}---this is important.  This tells the build system to
   compile in, and link the the radiation code.
