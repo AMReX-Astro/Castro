@@ -371,12 +371,6 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif    
 
-#ifdef LEVELSET
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(LS_State_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,0,1,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
-#endif
 
 #ifdef REACTIONS
   // Components 0:Numspec-1         are      omegadot_i
@@ -531,10 +525,6 @@ Castro::variableSetUp ()
     sources_name[i] = name[i] + "_source";
 
   desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));       
-
-#ifdef LEVELSET
-  desc_lst.setComponent(LS_State_Type,0,"LSphi",bc, BndryFunc(ca_phifill));
-#endif
 
 #ifdef REACTIONS
   std::string name_react;

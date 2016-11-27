@@ -39,10 +39,6 @@
 #include "Diffusion.H"
 #endif
 
-#ifdef LEVELSET
-#include "LevelSet_F.H"
-#endif
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -565,13 +561,6 @@ Castro::Castro (Amr&            papa,
     // any radiation variables
     NQ = QVAR + QRADVAR;
 
-#ifdef LEVELSET
-    // Build level set narrowband helpers
-    LStype.define(bl,1,1,Fab_allocate);
-    LSnband.define(bl,BL_SPACEDIM,1,Fab_allocate);
-    LSmine.define(bl,BL_SPACEDIM,1,Fab_allocate);
-#endif
-
 }
 
 Castro::~Castro ()
@@ -1086,26 +1075,6 @@ Castro::initData ()
     phirot_new.setVal(0.);
 #endif
 
-#ifdef LEVELSET
-    MultiFab& LS_new = get_new_data(LS_State_Type);
-    LS_new.setVal(0.);
-
-    for (MFIter mfi(LS_new); mfi.isValid(); ++mfi)
-      {
-        RealBox    gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-	IntFab& type       = LStype[mfi];
-	const Box& box     = mfi.validbox();
-        const int* lo      = box.loVect();
-        const int* hi      = box.hiVect();
-
-        BL_FORT_PROC_CALL(CA_INITPHI,ca_initphi)
-	  (level, cur_time, lo, hi, 1,
-	   BL_TO_FORTRAN(LS_new[mfi]),
-	   BL_TO_FORTRAN(type),
-	   dx,gridloc.lo(),gridloc.hi());
-      }
-#endif
-
 #ifdef PARTICLES
     if (level == 0)
 	init_particles();
@@ -1135,32 +1104,6 @@ Castro::init (AmrLevel &old)
 	MultiFab& state_MF = get_new_data(s);
 	FillPatch(old, state_MF, state_MF.nGrow(), cur_time, s, 0, state_MF.nComp());
     }
-
-#ifdef LEVELSET
-    // FIXME: Assumes that interpolated coarse data should rather just be setvald
-    LStype.setVal(3); // This means we don't care about these points
-    LStype.copy(oldlev->LStype);
-
-    // Reinitialize to allow narrowband to push into new cell area
-    // ...need to build narrowband structure prior to using it though
-    for (MFIter mfi(LStype); mfi.isValid(); ++mfi)
-      {
-	IntFab& type = LStype[mfi];
-	IntFab& nband = LSnband[mfi];
-	IntFab& mine = LSmine[mfi];
-	const Box& box = mfi.validbox();
-	int nbandsize = nband.box().numPts();
-	int minesize = mine.box().numPts();
-
-	// Set nband data based on type
-	BL_FORT_PROC_CALL(LS_NARROWBAND,ls_narrowband)
-	     (BL_TO_FORTRAN(type),
-	      nband.dataPtr(), &nbandsize,
-	      mine.dataPtr(), &minesize,
-	      box.loVect(), box.hiVect());
-      }
-    reinit_phi(cur_time);
-#endif
 
 }
 
@@ -2403,10 +2346,6 @@ Castro::avgDown ()
 #ifdef REACTIONS
   avgDown(SDC_React_Type);
 #endif
-#endif
-
-#ifdef LEVELSET
-  avgDown(LS_State_Type);
 #endif
 
 #ifdef RADIATION

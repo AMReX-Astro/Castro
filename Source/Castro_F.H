@@ -217,14 +217,6 @@ extern "C"
      const Real* time, const int* bc);
 #endif
 
-#ifdef LEVELSET
-  void ca_phifill
-    (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const Real* dx, const Real* glo,
-     const Real* time, const int* bc);
-#endif
-
 #ifdef REACTIONS
   void ca_reactfill
     (BL_FORT_FAB_ARG_3D(state),
@@ -338,14 +330,6 @@ extern "C"
 
 #ifdef RADIATION
   void ca_radfill
-    (BL_FORT_FAB_ARG(state),
-     const int dlo[], const int dhi[],
-     const Real dx[], const Real glo[],
-     const Real* time, const int bc[]);
-#endif
-
-#ifdef LEVELSET
-  void ca_phifill
     (BL_FORT_FAB_ARG(state),
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[],
@@ -808,16 +792,6 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
    const Real model[], const int& model_size, const int& MAESTRO_npts_model,
    const Real dx[], const Real& dr, const Real xlo[], const Real xhi[],
    const int& r_model_start);
-#endif
-
-#ifdef LEVELSET
-BL_FORT_PROC_DECL(CA_INITPHI,ca_initphi)
-    (const int& level, const Real& time,
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG(state),
-     int* type, ARLIM_P(type_lo), ARLIM_P(type_hi),
-     const Real dx[], const Real xlo[], const Real xhi[]);
 #endif
 
 #ifdef RADIATION

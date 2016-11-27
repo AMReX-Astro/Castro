@@ -46,7 +46,4 @@ Castro::ErrorSetUp ()
     }
 #endif
 
-#ifdef LEVELSET
-    err_list.add("LSphi",1,ErrorRec::Special,ca_lserror);
-#endif
 }

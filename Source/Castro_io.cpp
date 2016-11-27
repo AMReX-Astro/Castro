@@ -27,10 +27,6 @@
 #include "Diffusion.H"
 #endif
 
-#ifdef LEVELSET
-#include "LevelSet_F.H"
-#endif
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
