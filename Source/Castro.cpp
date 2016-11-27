@@ -1131,75 +1131,12 @@ Castro::init (AmrLevel &old)
     Real dt_old    = cur_time - prev_time;
     setTimeLevel(cur_time,dt_old,dt_new);
 
-    MultiFab& S_new = get_new_data(State_Type);
-    FillPatch(old,S_new,0,cur_time,State_Type,0,NUM_STATE);
-
-    // Set E in terms of e + kinetic energy
-    // enforce_consistent_e(S_new);
-
-#ifdef RADIATION
-    if (do_radiation) {
-      MultiFab& Er_new = get_new_data(Rad_Type);
-      int ncomp = Er_new.nComp();
-
-      FillPatch(old,Er_new,0,cur_time,Rad_Type,0,ncomp);
+    for (int s = 0; s < num_state_type; ++s) {
+	MultiFab& state_MF = get_new_data(s);
+	FillPatch(old, state_MF, state_MF.nGrow(), cur_time, s, 0, state_MF.nComp());
     }
-#endif
-
-#ifdef SELF_GRAVITY
-    if (do_grav) {
-	MultiFab& phi_new = get_new_data(PhiGrav_Type);
-	FillPatch(old,phi_new,0,cur_time,PhiGrav_Type,0,1);
-    }
-#endif
-
-#ifdef ROTATION
-    if (do_rotation) {
-	MultiFab& phirot_new = get_new_data(PhiRot_Type);
-	FillPatch(old,phirot_new,0,cur_time,PhiRot_Type,0,1);
-    }
-#endif
-
-    {
-	MultiFab& dSdt_new = get_new_data(Source_Type);
-	FillPatch(old,dSdt_new,0,cur_time,Source_Type,0,NUM_STATE);
-    }
-
-#ifdef REACTIONS
-    {
-	MultiFab& React_new = get_new_data(Reactions_Type);
-	int ncomp = React_new.nComp();
-
-        FillPatch(old,React_new,0,cur_time,Reactions_Type,0,ncomp);
-    }
-#endif
-
-
-#ifdef SDC
-    {
-	MultiFab& sources_new = get_new_data(SDC_Source_Type);
-	int ncomp = sources_new.nComp();
-
-	FillPatch(old,sources_new,0,cur_time,SDC_Source_Type,0,ncomp);
-
-    }
-#ifdef REACTIONS
-    {
-	MultiFab& react_src_new = get_new_data(SDC_React_Type);
-	int ncomp = react_src_new.nComp();
-
-	FillPatch(old,react_src_new,0,cur_time,SDC_React_Type,0,ncomp);
-    }
-#endif
-#endif
-
 
 #ifdef LEVELSET
-    MultiFab& LS_new = get_new_data(LS_State_Type);
-    int nGrowRegrid = 0;
-
-    FillPatch(old,LS_new,nGrowRegrid,cur_time,LS_State_Type,0,1);
-
     // FIXME: Assumes that interpolated coarse data should rather just be setvald
     LStype.setVal(3); // This means we don't care about these points
     LStype.copy(oldlev->LStype);
@@ -1225,12 +1162,6 @@ Castro::init (AmrLevel &old)
     reinit_phi(cur_time);
 #endif
 
-    if (Knapsack_Weight_Type > 0) {
-	MultiFab& knapsack_weight_new = get_new_data(Knapsack_Weight_Type);
-	int ncomp = knapsack_weight_new.nComp();
-
-	FillPatch(old,knapsack_weight_new,0,cur_time,Knapsack_Weight_Type,0,ncomp);
-    }
 }
 
 //
