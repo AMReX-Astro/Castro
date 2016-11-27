@@ -252,7 +252,6 @@ ifeq ($(USE_RAD), TRUE)
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir)/Make.package)
-Blocs	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir))
 
 Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
