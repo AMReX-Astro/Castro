@@ -56,6 +56,17 @@ the {\tt vpath}.  Some of these are to be expected (like {\tt extern.f90}
 and {\tt buildInfo.cpp}---these are written at compiletime.  But any
 other missing files need to be investigated.
 
+\item {\em I'm still having trouble compiling.  How can I find out what
+  all of the make variables are set to?}
+
+  Use:
+\begin{verbatim}
+make help
+\end{verbatim}
+  This will tell you the value of all the compilers and their options.
+
+
+
 \end{enumerate}
 
 \section{Debugging}
