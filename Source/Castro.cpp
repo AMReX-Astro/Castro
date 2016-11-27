@@ -1180,45 +1180,10 @@ Castro::init ()
     Real dt_old = (cur_time - prev_time)/(Real)parent->MaxRefRatio(level-1);
 
     setTimeLevel(cur_time,dt_old,dt);
-    MultiFab& S_new = get_new_data(State_Type);
-    FillCoarsePatch(S_new, 0, cur_time, State_Type, 0, NUM_STATE);
 
-    // Set E in terms of e + kinetic energy
-    // enforce_consistent_e(S_new);
-
-#ifdef RADIATION
-    if (do_radiation) {
-      MultiFab& Er_new = get_new_data(Rad_Type);
-      int ncomp = Er_new.nComp();
-      FillCoarsePatch(Er_new, 0, cur_time, Rad_Type, 0, ncomp);
-    }
-#endif
-
-#ifdef SELF_GRAVITY
-    if (do_grav) {
-	MultiFab& phi_new = get_new_data(PhiGrav_Type);
-	FillCoarsePatch(phi_new, 0, cur_time, PhiGrav_Type, 0, 1);
-    }
-#endif
-
-    MultiFab& dSdt_new = get_new_data(Source_Type);
-    FillCoarsePatch(dSdt_new, 0, cur_time, Source_Type, 0, NUM_STATE);
-
-#ifdef ROTATION
-    if (do_rotation) {
-      MultiFab& phirot_new = get_new_data(PhiRot_Type);
-      FillCoarsePatch(phirot_new, 0, cur_time, PhiRot_Type, 0, 1);
-    }
-#endif
-
-#ifdef LEVELSET
-    FillCoarsePatch(get_new_data(LS_State_Type),0,cur_time,LS_State_Type,0,1);
-#endif
-
-    if (Knapsack_Weight_Type > 0) {
-	MultiFab& knapsack_weight_new = get_new_data(Knapsack_Weight_Type);
-	int ncomp = knapsack_weight_new.nComp();
-	FillCoarsePatch(knapsack_weight_new, 0, cur_time, Knapsack_Weight_Type, 0, ncomp);
+    for (int s = 0; s < num_state_type; ++s) {
+	MultiFab& state_MF = get_new_data(s);
+	FillCoarsePatch(state_MF, 0, cur_time, s, 0, state_MF.nComp());
     }
 }
 
