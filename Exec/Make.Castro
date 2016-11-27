@@ -65,10 +65,6 @@ ifeq ($(USE_SHOCK_VAR), TRUE)
   DEFINES += -DSHOCK_VAR
 endif
 
-ifeq ($(USE_LEVELSET), TRUE)
-  DEFINES += -DLEVELSET
-endif
-
 ifeq ($(USE_AUX_UPDATE), TRUE)
   DEFINES += -DAUX_UPDATE
 endif
