@@ -115,12 +115,37 @@ make help
       #endif
 
       Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
-    \end{verbatim}
+\end{verbatim}          
 
     The ``print'' prints to a stack of string, not stdout.  When it
     hits the segfault, you will only see the last print out.
 
 
+
+\end{enumerate}
+
+
+\section{Profiling}
+
+\begin{enumerate}
+
+\item {\em How can I get line-by-line profiling information?}
+
+  With the GNU compliers, you can enabling profiling with {\tt gprof}
+  by compiling with
+\begin{verbatim}
+  USE_GPROF=TRUE
+\end{verbatim}
+  in your {\tt GNUmakefile}.
+
+  When you run, a file named {\tt gmon.out} will be produced.  This can
+  be processed with {\tt gprof} by running:
+\begin{verbatim}
+  gprof exec-name
+\end{verbatim}
+  where {\em exec-name} is the name of the executable.  More detailed
+  line-by-line information can be obtained by passing the {\tt -l}
+  argument to {\tt gprof}.
 
 \end{enumerate}
 
