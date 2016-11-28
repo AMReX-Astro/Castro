@@ -258,9 +258,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 #else
-	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox,0,Radiation::nGroups);
 #endif	    
 #endif
 	  }
@@ -270,7 +270,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #ifndef SDC
 	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
 #else
-	    P_radial[mfi].copy(pradial,mfi.nodaltilebox(0),0,0,1);
+	    P_radial[mfi].copy(pradial,mfi.nodaltilebox(0),0,mfi.nodaltilebox(0),0,1);
 #endif
 	  }
 #endif
