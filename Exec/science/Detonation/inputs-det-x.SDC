@@ -57,7 +57,7 @@ amr.check_int       = 100         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 1.e-7
+amr.plot_per = 5.e-6
 amr.derive_plot_vars = all
 
 #PROBIN FILENAME
