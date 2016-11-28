@@ -28,5 +28,6 @@
 /
 
 &extern
-  do_constant_volume_burn = T
+!  jacobian = 2
+!  centered_diff_jac = T
 /
