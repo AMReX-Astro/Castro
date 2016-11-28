@@ -259,7 +259,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 #else
 	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+#ifdef RADIATION
 	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+#endif	    
 #endif
 	  }
 
