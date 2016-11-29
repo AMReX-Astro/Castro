@@ -157,7 +157,7 @@ contains
     !$acc routine seq
 
     use bl_constants_module, only: ONE
-    use network, only: aion, zion
+    use network, only: aion, aion_inv, zion
 
     implicit none
 
@@ -169,10 +169,10 @@ contains
     ! mu_e, the mean number of nucleons per electron, and
     ! y_e, the electron fraction.
 
-    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))
+    state % mu_e = ONE / (sum(state % xn(:) * zion(:) * aion_inv(:)))
     state % y_e = ONE / state % mu_e
 
-    state % abar = ONE / (sum(state % xn(:) / aion(:)))
+    state % abar = ONE / (sum(state % xn(:) * aion_inv(:)))
     state % zbar = state % abar / state % mu_e
 
   end subroutine composition
@@ -184,20 +184,20 @@ contains
     !$acc routine seq
 
     use bl_constants_module, only: ZERO
-    use network, only: aion, zion
+    use network, only: aion, aion_inv, zion
 
     implicit none
 
     type (eos_t), intent(inout) :: state
 
-    state % dpdX(:) = state % dpdA * (state % abar/aion(:))   &
+    state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
-                    + state % dpdZ * (state % abar/aion(:))   &
+                    + state % dpdZ * (state % abar * aion_inv(:))   &
                                    * (zion(:) - state % zbar)
 
-    state % dEdX(:) = state % dedA * (state % abar/aion(:))   &
+    state % dEdX(:) = state % dedA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
-                    + state % dedZ * (state % abar/aion(:))   &
+                    + state % dedZ * (state % abar * aion_inv(:))   &
                                    * (zion(:) - state % zbar)
 
     if (state % dPdr .ne. ZERO) then
