@@ -1,13 +1,13 @@
 # ------------------  INPUTSg TO MAIN PROGRAM  -------------------
 max_step = 10000
-stop_time =  0.2
+stop_time =  10
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 8.e4   250   250
-amr.n_cell           = 512   16 16
+geometry.prob_hi     = 16.e4   250   250
+amr.n_cell           = 1024   16 16
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -32,7 +32,7 @@ castro.use_flattening = 1
 castro.riemann_solver = 0
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.cfl            = 0.75     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
@@ -57,7 +57,7 @@ amr.check_int       = 100         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 5.e-6
+amr.plot_per = 1.e-7
 amr.derive_plot_vars = all
 
 #PROBIN FILENAME
