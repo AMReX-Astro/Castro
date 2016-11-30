@@ -51,6 +51,7 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
+    use network, only: nspec, naux
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)

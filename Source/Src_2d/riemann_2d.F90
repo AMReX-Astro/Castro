@@ -53,6 +53,7 @@ contains
 
     use eos_type_module
     use eos_module
+    use network, only: nspec, naux
 
 #ifdef RADIATION
     integer, intent(in) :: lam_l1,lam_l2,lam_h1,lam_h2

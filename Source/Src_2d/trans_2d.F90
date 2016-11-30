@@ -1,7 +1,7 @@
 module transverse_module
 
   use bl_constants_module
-  use network, only : nspec
+  use network, only : nspec, naux
   use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, &

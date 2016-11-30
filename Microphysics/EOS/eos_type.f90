@@ -5,6 +5,8 @@ module eos_type_module
 
   implicit none
 
+  private :: dp_t, nspec, naux
+
   integer, parameter :: eos_input_rt = 1  ! rho, T are inputs
   integer, parameter :: eos_input_rh = 2  ! rho, h are inputs
   integer, parameter :: eos_input_tp = 3  ! T, p are inputs
