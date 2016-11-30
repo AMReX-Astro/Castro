@@ -3177,9 +3177,16 @@ Castro::clean_state(MultiFab& state, MultiFab& state_old) {
 
     normalize_species(state);
 
-    // Reset the internal energy and temperature to be consistent with the total energy.
+    // Sync the linear and hybrid momenta.
 
-    reset_internal_energy(state);
+#ifdef HYBRID_MOMENTUM
+    hybrid_sync(state);
+#endif
+
+    // Compute the temperature (note that this will also reset
+    // the internal energy for consistency with the total energy).
+
+    computeTemp(state);
 
     return frac_change;
 
