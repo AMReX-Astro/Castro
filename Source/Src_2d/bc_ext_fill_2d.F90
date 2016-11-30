@@ -136,10 +136,15 @@ contains
                       enddo
 
                       if (.not. converged_hse) then
+                         print *, "i, j, domlo(2): ", i, j, domlo(2)
                          print *, "p_want:    ", p_want
                          print *, "dens_zone: ", dens_zone
                          print *, "temp_zone: ", temp_zone
                          print *, "drho:      ", drho
+                         print *, " "
+                         print *, "column info: "
+                         print *, "   dens: ", adv(i,j:domlo(2),URHO)
+                         print *, "   temp: ", adv(i,j:domlo(2),UTEMP)
                          call bl_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
                       endif
 
