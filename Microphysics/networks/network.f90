@@ -19,12 +19,12 @@
 
 module network
 
-  use bl_types
-  use bl_constants_module, only : ONE
+  use bl_types, only : dp_t
   use actual_network
-  use bl_error_module
 
   implicit none
+
+  private :: dp_t
 
   logical :: network_initialized = .false.
 
@@ -36,6 +36,9 @@ module network
 contains
 
   subroutine network_init
+
+    use bl_error_module, only : bl_error
+    use bl_constants_module, only : ONE
 
     implicit none
 
