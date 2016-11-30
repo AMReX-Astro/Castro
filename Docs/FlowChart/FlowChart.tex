@@ -331,8 +331,9 @@ evolve the state from the old time, {\tt S\_old}, to the new time,
   \begin{enumerate}
   \item enforces that the density is above \runparam{castro.small\_dens}
   \item normalizes the species so that the mass fractions sum to 1
-  \item resets the internal energy and temperature to 
-    make them consistent with the total energy
+  \item resets the internal energy if necessary (too small or negative)
+    and computes the temperature for all zones to be thermodynamically 
+    consistent with the state.
   \end{enumerate}
 
   After these checks, we check the state for NaNs.
