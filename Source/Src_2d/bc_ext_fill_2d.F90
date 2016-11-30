@@ -38,7 +38,7 @@ contains
     double precision delta(2), xlo(2), time
     double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer i, j, q, n, iter, MAX_ITER
+    integer i, j, q, n, iter, MAX_ITER, m
     double precision y
     double precision pres_above, p_want, pres_zone, A
     double precision drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
@@ -90,6 +90,23 @@ contains
                       endif
 
                       X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
+
+                      ! sometimes, we might be working in a corner
+                      ! where the ghost cells above us have not yet
+                      ! been initialized.  In that case, take the info
+                      ! from the initial model
+                      if (dens_zone == ZERO .and. j == domlo(2)-1) then
+                         dens_zone = interpolate(y,npts_model,model_r, &
+                                                 model_state(:,idens_model))
+
+                         temp_zone = interpolate(y,npts_model,model_r, &
+                                                 model_state(:,itemp_model))
+
+                         do m = 1, nspec
+                            X_zone(m) = interpolate(y,npts_model,model_r, &
+                                                    model_state(:,ispec_model-1+m))
+                         enddo
+                      endif
 
                       ! get pressure in zone above
                       eos_state%rho = dens_zone
