@@ -6,6 +6,8 @@
      only need to supple COMP for the compiler.  FCOMP is now
      ignored.
 
+  -- The User's Guide has been updated to reflect the current flow of
+     the algorithm.
 
 previous changes:
 
