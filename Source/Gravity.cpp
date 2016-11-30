@@ -525,7 +525,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 
     Real rel_eps = 0.0;
     Real abs_eps = level_solver_resnorm[crse_level];
-    for (int lev = crse_level+1; lev < fine_level; lev++)
+    for (int lev = crse_level+1; lev <= fine_level; lev++)
 	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
 
     int need_grad_phi = 1;
