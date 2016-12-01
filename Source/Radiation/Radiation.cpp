@@ -1426,7 +1426,7 @@ void Radiation::state_update(MultiFab& state,
 
 	    temp[si].copy(frhoes[si],reg);
 	    
-	    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
+	    ca_compute_temp_given_cv
 		(reg.loVect(), reg.hiVect(), 
 		 BL_TO_FORTRAN(temp[si]), 
 		 BL_TO_FORTRAN(state[si]),
@@ -1630,9 +1630,9 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
                         const Box& reg)
 {
     if (do_real_eos == 1) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
-	    (reg.loVect(), reg.hiVect(),
-	     BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+      ca_compute_c_v
+	(reg.loVect(), reg.hiVect(),
+	 BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
     }
     else if (do_real_eos == 0) {
 	if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
@@ -1663,8 +1663,8 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
     const Box& sbox = state.box();
 
     if (do_real_eos > 0) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-	    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+      ca_compute_temp_given_rhoe
+	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
     }
     else if (do_real_eos == 0) {
 	gtemp(dimlist(reg),
@@ -1712,7 +1712,7 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
   const Box& tbox = temp.box();
 
   if (do_real_eos > 0) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
+    ca_compute_temp_given_rhoe
       (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
   }
   else if (do_real_eos == 0) {
@@ -2433,8 +2433,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    get_frhoe(temp, S[mfi], reg);
 	    
 	    if (do_real_eos > 0) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
+	      ca_compute_temp_given_rhoe
+		(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
 	    }
 	    else if (do_real_eos == 0) {
 		gtemp(dimlist(reg),
@@ -2652,11 +2652,11 @@ void Radiation::computeTemp(MultiFab& State, int resetEint)
 		temp.resize(bx);
 		temp.copy(State[mfi],bx,Eint,bx,0,1);
 		
-		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-		    (bx.loVect(), bx.hiVect(), 
-		     BL_TO_FORTRAN(temp), 
-		     BL_TO_FORTRAN(State[mfi]),
-		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		ca_compute_temp_given_cv
+		  (bx.loVect(), bx.hiVect(), 
+		   BL_TO_FORTRAN(temp), 
+		   BL_TO_FORTRAN(State[mfi]),
+		   &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 		
 		State[mfi].copy(temp,bx,0,bx,Temp,1);
 	    }

@@ -656,30 +656,33 @@ extern "C"
 // </ MGFLD>
 
 // RadEOS
-BL_FORT_PROC_DECL(CA_COMPUTE_C_V,ca_compute_c_v)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(cv),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(state));
+extern "C" 
+{
+  void ca_compute_c_v
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(cv),
+     const BL_FORT_FAB_ARG(temp),
+     const BL_FORT_FAB_ARG(state));
 
-BL_FORT_PROC_DECL(CA_GET_RHOE,ca_get_rhoe)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(rhoe),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(state));
+  void ca_get_rhoe
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(rhoe),
+     const BL_FORT_FAB_ARG(temp),
+     const BL_FORT_FAB_ARG(state));
 
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_RHOE,ca_compute_temp_given_rhoe)
-     (const int lo[], const int hi[],
+  void ca_compute_temp_given_rhoe
+    (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(temp),
      const BL_FORT_FAB_ARG(state));
 
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_CV,ca_compute_temp_given_cv)
-     (const int lo[], const int hi[],
-      BL_FORT_FAB_ARG(temp), 
-      const BL_FORT_FAB_ARG(state),
-      const Real* const_c_v,
-      const Real* c_v_exp_m,
-      const Real* c_v_exp_n);
+  void ca_compute_temp_given_cv
+    (const int lo[], const int hi[],
+     BL_FORT_FAB_ARG(temp), 
+     const BL_FORT_FAB_ARG(state),
+     const Real* const_c_v,
+     const Real* c_v_exp_m,
+     const Real* c_v_exp_n);
+}
 
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)

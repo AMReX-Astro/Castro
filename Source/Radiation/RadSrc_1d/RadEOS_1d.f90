@@ -1,8 +1,8 @@
 
 subroutine ca_compute_c_v(lo, hi, &
-     cv, cv_l1, cv_h1, &
-     temp, temp_l1, temp_h1, &
-     state, state_l1, state_h1)
+                          cv, cv_l1, cv_h1, &
+                          temp, temp_l1, temp_h1, &
+                          state, state_l1, state_h1) bind(C, name="ca_compute_c_v")
   
   use eos_module
   use network, only : nspec, naux
@@ -39,9 +39,9 @@ end subroutine ca_compute_c_v
 
 
 subroutine ca_get_rhoe(lo, hi, &
-     rhoe, rhoe_l1, rhoe_h1, &
-     temp, temp_l1, temp_h1, &
-     state, state_l1, state_h1)
+                       rhoe, rhoe_l1, rhoe_h1, &
+                       temp, temp_l1, temp_h1, &
+                       state, state_l1, state_h1) bind(C, name="ca_get_rhoe")
   
   use eos_module
   use network, only : nspec, naux
@@ -77,8 +77,8 @@ end subroutine ca_get_rhoe
 
 
 subroutine ca_compute_temp_given_rhoe(lo,hi,  &
-     temp,  temp_l1, temp_h1, &
-     state,state_l1,state_h1)
+                                      temp,  temp_l1, temp_h1, &
+                                      state,state_l1,state_h1) bind(C, name="ca_compute_temp_given_rhoe")
 
   use network, only : nspec, naux
   use eos_module
@@ -114,9 +114,9 @@ end subroutine ca_compute_temp_given_rhoe
 
 
 subroutine ca_compute_temp_given_cv(lo,hi,  &
-     temp,  temp_l1, temp_h1, &
-     state,state_l1,state_h1, &
-     const_c_v, c_v_exp_m, c_v_exp_n)
+                                    temp,  temp_l1, temp_h1, &
+                                    state,state_l1,state_h1, &
+                                    const_c_v, c_v_exp_m, c_v_exp_n) bind(C, name="ca_compute_temp_given_cv")
 
   use meth_params_module, only : NVAR, URHO
 

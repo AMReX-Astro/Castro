@@ -1,8 +1,9 @@
 
 subroutine ca_compute_c_v(lo, hi, &
-     cv, cv_l1, cv_l2, cv_l3, cv_h1, cv_h2, cv_h3, &
-     temp, temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
-     state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3)
+                          cv, cv_l1, cv_l2, cv_l3, cv_h1, cv_h2, cv_h3, &
+                          temp, temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
+                          state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3) &
+                          bind(C, name="ca_compute_c_v")
 
   use eos_module
   use network, only : nspec, naux
@@ -43,9 +44,10 @@ end subroutine ca_compute_c_v
 
 
 subroutine ca_get_rhoe(lo, hi, &
-     rhoe, rhoe_l1, rhoe_l2, rhoe_l3, rhoe_h1, rhoe_h2, rhoe_h3, &
-     temp, temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
-     state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3)
+                       rhoe, rhoe_l1, rhoe_l2, rhoe_l3, rhoe_h1, rhoe_h2, rhoe_h3, &
+                       temp, temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
+                       state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3) &
+                       bind(C, name="ca_get_rhoe")
 
   use eos_module
   use network, only : nspec, naux
@@ -86,8 +88,10 @@ end subroutine ca_get_rhoe
 
 
 subroutine ca_compute_temp_given_rhoe(lo,hi,  &
-     temp,  temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
-     state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3)
+                                      temp,  temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
+                                      state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3) &
+                                      bind(C, name="ca_compute_temp_given_rhoe")
+
 
   use network, only : nspec, naux
   use eos_module
@@ -129,9 +133,10 @@ end subroutine ca_compute_temp_given_rhoe
 
 
 subroutine ca_compute_temp_given_cv(lo,hi,  &
-     temp,  temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
-     state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-     const_c_v, c_v_exp_m, c_v_exp_n)
+                                    temp,  temp_l1, temp_l2, temp_l3, temp_h1, temp_h2, temp_h3, &
+                                    state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
+                                    const_c_v, c_v_exp_m, c_v_exp_n) &
+                                    bind(C, name="ca_compute_temp_given_cv")
 
   use meth_params_module, only : NVAR, URHO
 

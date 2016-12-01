@@ -335,9 +335,9 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	  dedY[mfi].setVal(0.0,box,0);
 #endif
 	  if (do_real_eos == 1) {
-	      BL_FORT_PROC_CALL(CA_COMPUTE_C_V,ca_compute_c_v)
-		  (box.loVect(), box.hiVect(),
-		   BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
+	    ca_compute_c_v
+	      (box.loVect(), box.hiVect(),
+	       BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
 	  }
 	  else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
 	      dedT[mfi].setVal(const_c_v[0],box,0);
@@ -842,17 +842,17 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		temp_new[mfi].copy(rhoe_new[mfi],bx);
 		
 		if (do_real_eos > 0) {
-		    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-			(bx.loVect(), bx.hiVect(), 
-			 BL_TO_FORTRAN(temp_new[mfi]), 
-			 BL_TO_FORTRAN(S_new[mfi]));
+		  ca_compute_temp_given_rhoe
+		    (bx.loVect(), bx.hiVect(), 
+		     BL_TO_FORTRAN(temp_new[mfi]), 
+		     BL_TO_FORTRAN(S_new[mfi]));
 		}
 		else if (do_real_eos == 0) {
-		    BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-			(bx.loVect(), bx.hiVect(), 
-			 BL_TO_FORTRAN(temp_new[mfi]), 
-			 BL_TO_FORTRAN(S_new[mfi]),
-			 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		  ca_compute_temp_given_cv
+		    (bx.loVect(), bx.hiVect(), 
+		     BL_TO_FORTRAN(temp_new[mfi]), 
+		     BL_TO_FORTRAN(S_new[mfi]),
+		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 		}
 		else {
 		    BoxLib::Error("ERROR Radiation::do_real_eos < 0");
@@ -904,17 +904,17 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	    temp_new[mfi].copy(rhoe_new[mfi],bx);
 
 	    if (do_real_eos > 0) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_RHOE, ca_compute_temp_given_rhoe)
-		    (bx.loVect(), bx.hiVect(), 
-		     BL_TO_FORTRAN(temp_new[mfi]), 
-		     BL_TO_FORTRAN(S_new[mfi]));
+	      ca_compute_temp_given_rhoe
+		(bx.loVect(), bx.hiVect(), 
+		 BL_TO_FORTRAN(temp_new[mfi]), 
+		 BL_TO_FORTRAN(S_new[mfi]));
 	    }
 	    else if (do_real_eos == 0) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_CV, ca_compute_temp_given_cv)
-		    (bx.loVect(), bx.hiVect(), 
-		     BL_TO_FORTRAN(temp_new[mfi]), 
-		     BL_TO_FORTRAN(S_new[mfi]),
-		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+	      ca_compute_temp_given_cv
+		(bx.loVect(), bx.hiVect(), 
+		 BL_TO_FORTRAN(temp_new[mfi]), 
+		 BL_TO_FORTRAN(S_new[mfi]),
+		 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
 	    }
 	    else {
 		BoxLib::Error("ERROR Radiation::do_real_eos < 0");
@@ -932,11 +932,11 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		 BL_TO_FORTRAN(jg[mfi]),
 		 &delta_t);
 	    
-	    BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(rhoe_new[mfi]),
-		 BL_TO_FORTRAN(temp_new[mfi]), 
-		 BL_TO_FORTRAN(S_new[mfi]));
+	    ca_get_rhoe
+	      (bx.loVect(), bx.hiVect(),
+	       BL_TO_FORTRAN(rhoe_new[mfi]),
+	       BL_TO_FORTRAN(temp_new[mfi]), 
+	       BL_TO_FORTRAN(S_new[mfi]));
 	}
 #endif
     }  
@@ -1175,11 +1175,11 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	   BL_TO_FORTRAN(S_new[mfi]));
 #else
       if (do_real_eos > 0) {
-	  BL_FORT_PROC_CALL(CA_GET_RHOE,ca_get_rhoe)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(rhoe_new[mfi]),
-	       BL_TO_FORTRAN(temp_new[mfi]), 
-	       BL_TO_FORTRAN(S_new[mfi]));
+	ca_get_rhoe
+	  (bx.loVect(), bx.hiVect(),
+	   BL_TO_FORTRAN(rhoe_new[mfi]),
+	   BL_TO_FORTRAN(temp_new[mfi]), 
+	   BL_TO_FORTRAN(S_new[mfi]));
       }
       else {
 	  BoxLib::Abort("do_real_eos == 0 not supported in bisect_matter");
