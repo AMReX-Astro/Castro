@@ -1,5 +1,10 @@
 * changes since the last release:
 
+
+previous changes:
+
+* 16.12
+
   -- BoxLib now requires a C++ 11 compiler by default.  As part of
      this transition, PArrays are replaced by C++ Arrays.
      Additionally, changes to the BoxLib build system mean that we
@@ -8,8 +13,6 @@
 
   -- The User's Guide has been updated to reflect the current flow of
      the algorithm.
-
-previous changes:
 
 * 16.11
 
