@@ -60,7 +60,7 @@ def doit(plotfile):
     # the 2:1 is 2*pi in phi and pi in theta
     cam = sc.add_camera(ds, lens_type="spherical")
     #cam.resolution = (8192, 4096)
-    cam.resolution = (2048, 1024)
+    cam.resolution = (4096, 2048)
 
     # look toward the +x initially
     cam.focus = ds.arr(np.array([ds.domain_left_edge[0], 0.0, 0.0]), 'cm')
@@ -69,10 +69,15 @@ def doit(plotfile):
     # center of mass
     cam.position = ds.arr(np.array([0.0, 0.0, 0.0]), 'cm')
 
-
     # define up
     cam.north_vector = np.array([0., 0., 1.])
 
+    normal = (cam.focus - cam.position)
+    normal /= np.sqrt(normal.dot(normal))
+
+    cam.switch_orientation(normal_vector=normal,
+                           north_vector=[0., 0., 1.])
+    
     # there is no such thing as a camera width -- the entire volume is rendered
     #cam.set_width(ds.domain_width)
 
