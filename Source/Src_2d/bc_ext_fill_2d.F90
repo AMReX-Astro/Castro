@@ -28,6 +28,7 @@ contains
                       bind(C, name="ext_fill")
 
     use probdata_module
+    use prob_params_module, only : problo
     use eos_module
     use network, only: nspec
     use model_parser_module
@@ -38,17 +39,17 @@ contains
     double precision delta(2), xlo(2), time
     double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer i, j, q, n, iter, MAX_ITER, m
+    integer i, j, q, n, iter, m
     double precision y
-    double precision pres_above, p_want, pres_zone, A
-    double precision drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
-    double precision TOL
-    logical converged_hse
+    double precision :: dens_above, dens_base, temp_above
+    double precision :: pres_above, p_want, pres_zone, A
+    double precision :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
+
+    integer, parameter :: MAX_ITER = 100
+    double precision, parameter :: TOL = 1.d-8
+    logical :: converged_hse
 
     type (eos_t) :: eos_state
-
-    MAX_ITER = 100
-    TOL = 1.d-8
 
     do n = 1, NVAR
 
@@ -67,64 +68,76 @@ contains
 
           if (yl_ext == EXT_HSE) then
 
-             ! this do loop counts backwards since we want to work downward
-             do j = domlo(2)-1, adv_l2, -1
-                y = xlo(2) + delta(2)*(dble(j-adv_l2) + HALF)
+             ! we will fill all the variables when we consider URHO
+             if (n == URHO) then
 
                 do i = adv_l1, adv_h1
+                   
+                   ! we are integrating along a column at constant i.
+                   ! Make sure that our starting state is well-defined
+                   dens_above = adv(i,domlo(2),URHO)
 
-                   ! set all the variables even though we're testing on URHO
-                   if (n == URHO) then
+                   ! sometimes, we might be working in a corner
+                   ! where the ghost cells above us have not yet
+                   ! been initialized.  In that case, take the info
+                   ! from the initial model
+                   if (dens_above == ZERO) then
+                      y = problo(2) + delta(2)*(dble(domlo(2)) + HALF)
+
+                      dens_above = interpolate(y,npts_model,model_r, &
+                                               model_state(:,idens_model))
+
+                      temp_above = interpolate(y,npts_model,model_r, &
+                                              model_state(:,itemp_model))
+
+                      do m = 1, nspec
+                         X_zone(m) = interpolate(y,npts_model,model_r, &
+                                                 model_state(:,ispec_model-1+m))
+                      enddo
+
+                   else
+                      temp_above = adv(i,domlo(2),UTEMP)
+                      X_zone(:) = adv(i,domlo(2),UFS:UFS-1+nspec)/dens_above
+                   endif
+
+                   ! keep track of the density at the base of the domain
+                   dens_base = dens_above
+
+                   ! get pressure in this zone (the initial above zone)
+                   eos_state%rho = dens_above
+                   eos_state%T = temp_above
+                   eos_state%xn(:) = X_zone(:)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   eint = eos_state%e
+                   pres_above = eos_state%p
+
+                   ! integrate downward
+                   do j = domlo(2)-1, adv_l2, -1
+                      y = problo(2) + delta(2)*(dble(j) + HALF)
 
                       ! HSE integration to get density, pressure
 
                       ! initial guesses
-                      dens_zone = adv(i,j+1,URHO)
+                      dens_zone = dens_above
 
                       ! temperature and species held constant in BCs
                       if (hse_interp_temp == 1) then
                          temp_zone = interpolate(y,npts_model,model_r, &
                                                  model_state(:,itemp_model))
                       else
-                         temp_zone = adv(i,j+1,UTEMP)
+                         temp_zone = temp_above
                       endif
-
-                      X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
-
-                      ! sometimes, we might be working in a corner
-                      ! where the ghost cells above us have not yet
-                      ! been initialized.  In that case, take the info
-                      ! from the initial model
-                      if (dens_zone == ZERO .and. j == domlo(2)-1) then
-                         dens_zone = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,idens_model))
-
-                         temp_zone = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,itemp_model))
-
-                         do m = 1, nspec
-                            X_zone(m) = interpolate(y,npts_model,model_r, &
-                                                    model_state(:,ispec_model-1+m))
-                         enddo
-                      endif
-
-                      ! get pressure in zone above
-                      eos_state%rho = dens_zone
-                      eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone(:)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      eint = eos_state%e
-                      pres_above = eos_state%p
 
                       converged_hse = .FALSE.
+
 
                       do iter = 1, MAX_ITER
 
                          ! pressure needed from HSE
                          p_want = pres_above - &
-                              delta(2)*HALF*(dens_zone + adv(i,j+1,URHO))*const_grav
+                              delta(2)*HALF*(dens_zone + dens_above)*const_grav
 
                          ! pressure from EOS
                          eos_state%rho = dens_zone
@@ -165,53 +178,59 @@ contains
                          call bl_error("ERROR in bc_ext_fill_2d: failure to converge in -Y BC")
                       endif
 
-                   endif
 
-                   ! velocity
-                   if (hse_zero_vels == 1) then
+                      ! velocity
+                      if (hse_zero_vels == 1) then
 
-                      ! zero normal momentum causes pi waves to pass through
-                      adv(i,j,UMY) = ZERO
+                         ! zero normal momentum causes pi waves to pass through
+                         adv(i,j,UMY) = ZERO
 
-                      ! zero transverse momentum
-                      adv(i,j,UMX) = ZERO
-                      adv(i,j,UMZ) = ZERO
-                   else
-
-                      if (hse_reflect_vels == 1) then
-                         adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
-                         adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
-                         adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
+                         ! zero transverse momentum
+                         adv(i,j,UMX) = ZERO
+                         adv(i,j,UMZ) = ZERO
                       else
-                         adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/adv(i,domlo(2),URHO))
-                         adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/adv(i,domlo(2),URHO))
-                         adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/adv(i,domlo(2),URHO))
+
+                         if (hse_reflect_vels == 1) then
+                            adv(i,j,UMX) = -dens_zone*(adv(i,domlo(2),UMX)/dens_base)
+                            adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2),UMY)/dens_base)
+                            adv(i,j,UMZ) = -dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
+                         else
+                            adv(i,j,UMX) = dens_zone*(adv(i,domlo(2),UMX)/dens_base)
+                            adv(i,j,UMY) = dens_zone*(adv(i,domlo(2),UMY)/dens_base)
+                            adv(i,j,UMZ) = dens_zone*(adv(i,domlo(2),UMZ)/dens_base)
+                         endif
                       endif
-                   endif
 
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
+                      eos_state%rho = dens_zone
+                      eos_state%T = temp_zone
+                      eos_state%xn(:) = X_zone
+                      
+                      call eos(eos_input_rt, eos_state)
 
-                   call eos(eos_input_rt, eos_state)
+                      pres_zone = eos_state%p
+                      eint = eos_state%e
 
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
+                      ! store the final state
+                      adv(i,j,URHO) = dens_zone
+                      adv(i,j,UEINT) = dens_zone*eint
+                      adv(i,j,UEDEN) = dens_zone*eint + &
+                           HALF*sum(adv(i,j,UMX:UMZ)**2)/dens_zone
+                      adv(i,j,UTEMP) = temp_zone
+                      adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
-                   adv(i,j,URHO) = dens_zone
-                   adv(i,j,UEINT) = dens_zone*eint
-                   adv(i,j,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,UTEMP) = temp_zone
-                   adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                      ! for the next zone
+                      dens_above = dens_zone
+                      pres_above = pres_zone
 
+                   enddo
                 enddo
-             enddo
+
+             endif  ! n == URHO
 
           elseif (yl_ext == EXT_INTERP) then
 
              do j = domlo(2)-1, adv_l2, -1
-                y = xlo(2) + delta(2)*(dble(j-adv_l2) + HALF)
+                y = problo(2) + delta(2)*(dble(j) + HALF)
 
                 do i = adv_l1, adv_h1
 
@@ -271,7 +290,7 @@ contains
              ! interpolate thermodynamics from initial model
 
              do j = domhi(2)+1, adv_h2
-                y = xlo(2) + delta(2)*(dble(j-adv_l2) + HALF)
+                y = problo(2) + delta(2)*(dble(j) + HALF)
 
                 do i = adv_l1, adv_h1
 
@@ -331,6 +350,7 @@ contains
                          bind(C, name="ext_denfill")
 
     use probdata_module
+    use prob_params_module, only : problo
     use interpolate_module
     use model_parser_module
     use bl_error_module
@@ -365,7 +385,7 @@ contains
     ! YLO
     if ( bc(2,1,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
        do j = adv_l2, domlo(2)-1
-          y = xlo(2) + delta(2)*(dble(j-adv_l2) + HALF)
+          y = problo(2) + delta(2)*(dble(j) + HALF)
           do i = adv_l1, adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
           end do
@@ -375,7 +395,7 @@ contains
     ! YHI
     if ( bc(2,2,1) == EXT_DIR .and. adv_h2 > domhi(2)) then
        do j = domhi(2)+1, adv_h2
-          y = xlo(2) + delta(2)*(dble(j-adv_l2)+ HALF)
+          y = problo(2) + delta(2)*(dble(j)+ HALF)
           do i = adv_l1, adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
           end do
