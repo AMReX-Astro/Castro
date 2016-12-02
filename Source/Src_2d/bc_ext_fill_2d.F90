@@ -27,7 +27,6 @@ contains
                       domlo, domhi, delta, xlo, time, bc) &
                       bind(C, name="ext_fill")
 
-    use probdata_module
     use prob_params_module, only : problo
     use eos_module
     use network, only: nspec
@@ -349,7 +348,6 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ext_denfill")
 
-    use probdata_module
     use prob_params_module, only : problo
     use interpolate_module
     use model_parser_module
