@@ -103,6 +103,16 @@ contains
                    ! keep track of the density at the base of the domain
                    dens_base = dens_above
 
+                   ! get pressure in this zone (the initial above zone)
+                   eos_state%rho = dens_above
+                   eos_state%T = temp_above
+                   eos_state%xn(:) = X_zone(:)
+
+                   call eos(eos_input_rt, eos_state)
+
+                   eint = eos_state%e
+                   pres_above = eos_state%p
+
                    ! integrate downward
                    do j = domlo(2)-1, adv_l2, -1
                       y = problo(2) + delta(2)*(dble(j) + HALF)
@@ -120,21 +130,8 @@ contains
                          temp_zone = temp_above
                       endif
 
-
-                      ! get pressure in zone above
-                      eos_state%rho = dens_zone
-                      eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone(:)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      eint = eos_state%e
-                      pres_above = eos_state%p
-
                       converged_hse = .FALSE.
 
-                      ! initial guess for the density
-                      dens_zone = dens_above
 
                       do iter = 1, MAX_ITER
 
@@ -223,6 +220,7 @@ contains
 
                       ! for the next zone
                       dens_above = dens_zone
+                      pres_above = pres_zone
 
                    enddo
                 enddo
