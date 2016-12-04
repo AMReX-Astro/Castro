@@ -23,8 +23,9 @@ script=$3
 for count in `seq 1 1 $2`
 do
   echo starting job $count to depend on $oldjob
-  aout=`sbatch -d afterany:${oldjob} ${script}`
+  aout=`sbatch --parsable -d afterany:${oldjob} ${script}`
   echo "   " jobid: $aout
   echo " "
   oldjob=$aout
+  sleep 3
 done
