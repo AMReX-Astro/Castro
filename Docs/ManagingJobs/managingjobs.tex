@@ -124,8 +124,15 @@ automatically add the correct restart options to the run to continue a
 simulation from the last checkpoint file in the submission directory.
 
 To chain jobs, such that one queues up after the previous job finished,         
-use the {\tt chainslurm.sh} script in that same directory. You can view         
-the job dependency using:                                                       
+use the {\tt chainslurm.sh} script in that same directory:
+\begin{verbatim}
+chainslurm.sh jobid number script
+\end{verbatim}
+where {\tt jobid} is the existing job you want to start you chain
+from, {\tt number} is the number of new jobs to chain from this
+starting job, and {\tt script} is the job submission script to use
+(the same one you used originally most likely).  You can view the job
+dependency using:
 \begin{verbatim}                                                                
 squeue -l -j job-id                                                             
 \end{verbatim}                                                                  
