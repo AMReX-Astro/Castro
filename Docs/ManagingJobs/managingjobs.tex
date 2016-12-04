@@ -38,33 +38,45 @@ See the \maestro\ User's Guide
 
 \subsection{General issues}
 
-\begin{itemize}
+%%\begin{itemize}
 
-\item 3/1/16: The default version loaded of Python on Edison and Cori
-  (2.6.9) is not recent enough to support the Python scripts in our
-  build system. At the terminal, do {\tt module load python} to fix
-  this.
+%% \item 3/1/16: The default version loaded of Python on Edison and Cori
+%%   (2.6.9) is not recent enough to support the Python scripts in our
+%%   build system. At the terminal, do {\tt module load python} to fix
+%%   this.
 
-  Note: if you want to swap from the default Intel compilers to the 
-  Cray compiler, this will break the python installation.  The workaround
-  is to do:
-  \begin{verbatim}
-    $ module rm PrgEnv-intel
-    $ module load PrgEnv-cray
-  \end{verbatim}
+%%   Note: if you want to swap from the default Intel compilers to the 
+%%   Cray compiler, this will break the python installation.  The workaround
+%%   is to do:
+%%   \begin{verbatim}
+%%     $ module rm PrgEnv-intel
+%%     $ module load PrgEnv-cray
+%%   \end{verbatim}
 
-\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
-  cannot compile BoxLib. To fix this, switch to an earlier version
-  (e.g., at the terminal, do {\tt module swap intel
-    intel/15.0.1.133}).
+%%\item 3/1/16: The default Intel Compiler loaded on Cori (16.0.0.109)
+%  cannot compile BoxLib. To fix this, switch to an earlier version
+%  (e.g., at the terminal, do {\tt module swap intel
+%    intel/15.0.1.133}).
 
-
-\end{itemize}
+%\end{itemize}
 
 \subsection{Edison compilers}
 
 The default compilers on edison are the Intel compilers.  Intel version 15.0
 works well with \castro.
+
+\begin{itemize}
+\item Intel compilers later than 16.0.2 have a bug that causes segfaults when using the 
+  {\tt F\_MG} multigrid (e.g., self-gravity)
+
+\item To compile the code with Intel compilers, you need to explicitly load GCC 4.9.3,
+e.g. as:
+\begin{verbatim}
+module load gcc/4.9.3
+\end{verbatim}
+Otherwise you will get compilation errors due to incompatibilities in the header files.
+\end{itemize}
+
 
 
 \subsection{Hypre and radiation}
