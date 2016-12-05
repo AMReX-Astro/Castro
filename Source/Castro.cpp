@@ -25,6 +25,7 @@
 
 #ifdef RADIATION
 #include "Radiation.H"
+#include "RAD_F.H"
 #endif
 
 #ifdef PARTICLES
@@ -2752,24 +2753,42 @@ Castro::reset_internal_energy(MultiFab& S_new)
 void
 Castro::computeTemp(MultiFab& State)
 {
+
+  reset_internal_energy(State);
+
 #ifdef RADIATION
-
-  int resetEint = 1;
-  radiation->computeTemp(State, resetEint);
-
-#else
-    reset_internal_energy(State);
+  FArrayBox temp;
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
     {
       const Box& bx = mfi.growntilebox();
-      compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
-    }
-
+      
+#ifdef RADIATION
+      if (Radiation::do_real_eos == 0) {
+	temp.resize(bx);
+	temp.copy(State[mfi],bx,Eint,bx,0,1);
+	
+	double cv = Radiation::const_c_v[0];
+	double cv_exp_m = Radiation::c_v_exp_m[0];
+	double cv_exp_n = Radiation::c_v_exp_n[0];
+	ca_compute_temp_given_cv
+	  (bx.loVect(), bx.hiVect(), 
+	   BL_TO_FORTRAN(temp), 
+	   BL_TO_FORTRAN(State[mfi]),
+	   &c_v, &cv_exp_m, &cv_exp_n);
+	
+	State[mfi].copy(temp,bx,0,bx,Temp,1);
+      } else {
 #endif
+	compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
+#ifdef RADIATION
+      }
+#endif
+    }
 }
 
 void

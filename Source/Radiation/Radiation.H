@@ -174,8 +174,6 @@ public:
 
   void EstTimeStep(Real& estdt, int level);
 
-  void computeTemp(MultiFab& State, int resetEint);
-
   void filter_prim(int level, MultiFab& State);
 
 protected:

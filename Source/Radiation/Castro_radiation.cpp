@@ -14,12 +14,12 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
     if (do_radiation) {
 
 	if (Radiation::pure_hydro) {
-	    radiation->computeTemp(S_new, 0);
-	    return;
+	  Castro::computeTemp(S_new);
+	  return;
 	}
 	
 	if (radiation->do_real_eos > 0) {
-	    radiation->computeTemp(S_new, 1);
+	  Castro::computeTemp(S_new);
 	} 
 	
 	if (Radiation::filter_prim_int > 0 && Radiation::filter_prim_T>0 
@@ -57,7 +57,7 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
 	// Recompute temperatures after radiation update
 	if (Radiation::SolverType != Radiation::MGFLDSolver) {
 	    if (radiation->do_real_eos > 0) {
-		radiation->computeTemp(S_new, 0);
+	      Castro::computeTemp(S_new);
 	    }
 	}
     }
