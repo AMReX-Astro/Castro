@@ -1,0 +1,29 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 500
+stop_time = 0.1
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic =  0 0
+geometry.coord_sys   =  0       # 0 => cart
+geometry.prob_lo     =  0    0 
+geometry.prob_hi     =  1    1 
+amr.n_cell           = 32   32
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  2   2
+castro.hi_bc       =  2   2
+
+
+castro.small_temp = 1.e3                                                        
+castro.small_dens = 1.e-6                                                       
+castro.small_pres = 1.e0  
+
+
+amr.max_level = 0
+
+# PROBIN FILENAME
+amr.probin_file = probin

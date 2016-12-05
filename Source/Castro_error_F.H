@@ -75,18 +75,6 @@ extern "C"
      const Real* dx, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
 
-#ifdef LEVELSET
-  void ca_lserror
-    (int* tag, const int* tag_lo, const int* tag_hi,
-     const int* tagval, const int* clearval,
-     BL_FORT_FAB_ARG_3D(ls),
-     const int* lo, const int* hi,
-     const int* ncomp,
-     const int* domlo, const int* domhi,
-     const Real* dx, const Real* xlo, const Real* problo,
-     const Real* time, const int* level);
-#endif
-
   void ca_mfracerror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,
@@ -109,7 +97,7 @@ extern "C"
      const Real* time, const int* level);
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
   void ca_graverror
     (int* tag, const int* tag_lo, const int* tag_hi,
      const int* tagval, const int* clearval,

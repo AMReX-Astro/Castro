@@ -44,11 +44,16 @@ main (int   argc,
     //
     BoxLib::Initialize(argc,argv);
 
-    // save the inputs file name for later
-    if (argc > 1) {
-      if (!strchr(argv[1], '=')) {
+    // Refuse to continue if we did not provide an inputs file.
+
+    if (argc <= 1) {
+	BoxLib::Abort("Error: no inputs file provided on command line.");
+    }
+
+    // Save the inputs file name for later.
+
+    if (!strchr(argv[1], '=')) {
 	inputs_name = argv[1];
-      }
     }
 
     BL_PROFILE_VAR("main()", pmain);
@@ -60,15 +65,18 @@ main (int   argc,
     int  max_step;
     Real strt_time;
     Real stop_time;
+    int  output_at_completion;
     ParmParse pp; 
 
     max_step  = -1;
     strt_time =  0.0;
     stop_time = -1.0;
+    output_at_completion = 1;
 
     pp.query("max_step",max_step);
     pp.query("strt_time",strt_time);
     pp.query("stop_time",stop_time);
+    pp.query("output_at_completion",output_at_completion);
 
     if (strt_time < 0.0)
     {
@@ -153,10 +161,6 @@ main (int   argc,
 
     }
 
-    if (!amrptr->okToContinue() && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Stopping simulation because we are not OK to continue." << std::endl;
-    }
-
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);
     delete dumpmodelptr;
@@ -171,12 +175,17 @@ main (int   argc,
 #endif
 
     // Write final checkpoint and plotfile
-    if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
-        amrptr->checkPoint();
-    }
 
-    if (amrptr->stepOfLastPlotFile() < amrptr->levelSteps(0)) {
-        amrptr->writePlotFile();
+    if (output_at_completion) {
+
+	if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
+	    amrptr->checkPoint();
+	}
+
+	if (amrptr->stepOfLastPlotFile() < amrptr->levelSteps(0)) {
+	    amrptr->writePlotFile();
+	}
+
     }
 
     time(&time_type);

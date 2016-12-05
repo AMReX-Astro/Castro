@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import string
 import getopt
 
 Header="""
@@ -19,7 +18,7 @@ Header="""
 #=============================================================================
 # the species class holds the properties of a single species
 #=============================================================================
-class species(object):
+class Species(object):
 
     def __init__(self):
         self.name = ""
@@ -30,22 +29,22 @@ class species(object):
 #=============================================================================
 # convenience class for an auxilliary variable
 #=============================================================================
-class auxvar(object):
+class AuxVar(object):
     
     def __init__(self):
         self.name = ""
 
 
 #=============================================================================
-# getNextLine returns the next, non-blank line, with comments stripped
+# get_next_line returns the next, non-blank line, with comments stripped
 #=============================================================================
-def getNextLine(fin):
+def get_next_line(fin):
 
     line = fin.readline()
 
     pos = str.find(line, "#")
 
-    while ((pos == 0) or (str.strip(line) == "") and line):
+    while (pos == 0 or str.strip(line) == "") and line:
 
         line = fin.readline()
         pos = str.find(line, "#")
@@ -57,66 +56,61 @@ def getNextLine(fin):
 
 
 #=============================================================================
-# getObjectIndex looks through the list and returns the index corresponding to
+# get_object_index looks through the list and returns the index corresponding to
 # the network object (species or auxvar) specified by name
 #=============================================================================
-def getObjectIndex(objList, name):
+def get_object_index(objs, name):
 
     index = -1
 
-    n = 0
-    while (n < len(objList)):
-        
-        if (objList[n].name == name):
+    for n in range(len(objs)):
+        if objs[n].name == name:
             index = n
             break
-
-        n += 1
 
     return index
 
 
-
 #=============================================================================
-# parseNetFile read all the species listed in a given network inputs file
+# parse_net_file read all the species listed in a given network inputs file
 # and adds the valid species to the species list
 #=============================================================================
-def parseNetFile(speciesList, auxvarsList, netFile):
+def parse_net_file(species, aux_vars, net_file):
 
     err = 0
 
-    try: f = open(netFile, "r")
+    try: f = open(net_file, "r")
     except IOError:
 
-        print("write_network.py: ERROR: file "+str(netFile)+" does not exist")
+        print("write_network.py: ERROR: file "+str(net_file)+" does not exist")
         sys.exit(2)
         
-    print("write_network.py: working on network file "+str(netFile)+"...")
+    print("write_network.py: working on network file "+str(net_file)+"...")
 
-    line = getNextLine(f)
+    line = get_next_line(f)
 
-    while (line and not err):
+    while line and not err:
 
         fields = line.split()
 
         # read the species or auxiliary variable from the line
-        netObj, err = parseNetworkObject(fields)
-        if netObj is None: return err
+        net_obj, err = parse_network_object(fields)
+        if net_obj is None: return err
 
-        objList = speciesList
-        if type(netObj).__name__ is "auxvar": objList = auxvarsList
+        objs = species
+        if type(net_obj).__name__ is "AuxVar": objs = aux_vars
 
         # check to see if this species/auxvar is defined in the current list
-        index = getObjectIndex(objList, netObj.name)
+        index = get_object_index(objs, net_obj.name)
 
-        if (index >= 0):
+        if index >= 0:
             print("write_network.py: ERROR: %s %s already defined." % 
-                  (type(netObj).__name__,netObj.name))
+                  (type(net_obj).__name__,net_obj.name))
             err = 1                
         # add the species or auxvar to the appropriate list    
-        objList.append(netObj)
+        objs.append(net_obj)
 
-        line = getNextLine(f)
+        line = get_next_line(f)
 
     return err
 
@@ -127,29 +121,29 @@ def parseNetFile(speciesList, auxvarsList, netFile):
 # auxiliary variables.  Aux variables are prefixed by '__aux_' in the network
 # file
 #=============================================================================
-def parseNetworkObject(fields):
+def parse_network_object(fields):
     err = 0
 
     # check for aux variables first
     if fields[0].startswith("__aux_"):
-        ret = auxvar()
+        ret = AuxVar()
         ret.name = fields[0][6:]
+
     # check for missing fields in species definition
-    elif not (len(fields) == 4):
+    elif not len(fields) == 4:
         print(" ".join(fields))
         print("write_network.py: ERROR: missing one or more fields in species definition.")
         ret = None
         err = 1
     else:
-        ret = species()
+        ret = Species()
             
         ret.name      = fields[0]
         ret.shortName = fields[1]
         ret.A         = fields[2]
         ret.Z         = fields[3]
 
-    return ret,err
-
+    return ret, err
 
     
 
@@ -168,134 +162,107 @@ def abort(outfile):
 
 #=============================================================================
 # write_network will read through the list of species and output the 
-# new outFile
+# new out_file
 #=============================================================================
-def write_network(networkTemplate, netFile, outFile):
+def write_network(network_template, net_file, out_file):
 
-    speciesList = []
-    auxvarsList = []
+    species = []
+    aux_vars = []
 
     print(" ")
-    print("write_network.py: creating %s" % (outFile))
+    print("write_network.py: creating %s" % (out_file))
 
 
     #-------------------------------------------------------------------------
-    # read the species defined in the netFile
+    # read the species defined in the net_file
     #-------------------------------------------------------------------------
-    err = parseNetFile(speciesList, auxvarsList, netFile)
+    err = parse_net_file(species, aux_vars, net_file)
         
-    if (err):
-        abort(outFile)
+    if err:
+        abort(out_file)
 
 
     #-------------------------------------------------------------------------
     # open up the template
     #-------------------------------------------------------------------------
-    try: ftemplate = open(networkTemplate, "r")
+    try: ftemplate = open(network_template, "r")
     except IOError:
-        print("write_network.py: ERROR: file "+str(networkTemplate)+" does not exist")
+        print("write_network.py: ERROR: file "+str(network_template)+" does not exist")
         sys.exit(2)
     else:
         ftemplate.close()
 
-    ftemplate = open(networkTemplate, "r")
+    ftemplate = open(network_template, "r")
 
-    templateLines = []
+    template_lines = []
     line = ftemplate.readline()
-    while (line):
-        templateLines.append(line)
+    while line:
+        template_lines.append(line)
         line = ftemplate.readline()
 
 
     #-------------------------------------------------------------------------
     # output the template, inserting the species info in between the @@...@@
     #-------------------------------------------------------------------------
-    fout = open(outFile, "w")
+    fout = open(out_file, "w")
 
     fout.write(Header)
 
-    for line in templateLines:
+    for line in template_lines:
 
         index = line.find("@@")
 
-        if (index >= 0):
+        if index >= 0:
             index2 = line.rfind("@@")
 
             keyword = line[index+len("@@"):index2]
             indent = index*" "
 
-            if (keyword == "NSPEC"):
+            if keyword == "NSPEC":
 
-                fout.write(string.replace(line,"@@NSPEC@@", str(len(speciesList))))
+                fout.write(line.replace("@@NSPEC@@", str(len(species))))
             
-            elif (keyword == "NAUX"):
+            elif keyword == "NAUX":
 
-                fout.write(string.replace(line,"@@NAUX@@", str(len(auxvarsList))))
+                fout.write(line.replace("@@NAUX@@", str(len(aux_vars))))
 
-            elif (keyword == "SPEC_NAMES"):
+            elif keyword == "SPEC_NAMES":
 
-                n = 0
-                while (n < len(speciesList)):
-
+                for n in range(len(species)):
                     fout.write("%sspec_names(%d) = \"%s\"\n" % 
-                               (indent, n+1, speciesList[n].name))
+                               (indent, n+1, species[n].name))
 
-                    n += 1
+            elif keyword == "SHORT_SPEC_NAMES":
 
-
-            elif (keyword == "SHORT_SPEC_NAMES"):
-
-                n = 0
-                while (n < len(speciesList)):
-
+                for n in range(len(species)):
                     fout.write("%sshort_spec_names(%d) = \"%s\"\n" % 
-                               (indent, n+1, speciesList[n].shortName))
+                               (indent, n+1, species[n].shortName))
 
-                    n += 1
+            elif keyword == "AION":
 
-
-            elif (keyword == "AION"):
-
-                n = 0
-                while (n < len(speciesList)):
-
+                for n in range(len(species)):
                     fout.write("%saion(%d) = %s\n" % 
-                               (indent, n+1, speciesList[n].A))
+                               (indent, n+1, species[n].A))
 
-                    n += 1
+            elif keyword == "ZION":
 
-
-            elif (keyword == "ZION"):
-
-                n = 0
-                while (n < len(speciesList)):
-
+                for n in range(len(species)):
                     fout.write("%szion(%d) = %s\n" % 
-                               (indent, n+1, speciesList[n].Z))
+                               (indent, n+1, species[n].Z))
 
-                    n += 1
-
-            elif (keyword == "AUX_NAMES"):
+            elif keyword == "AUX_NAMES":
                 
-                n = 0
-                while (n < len(auxvarsList)):
-                    
+                for n in range(len(aux_vars)):
                     fout.write("%saux_names(%d) = \"%s\"\n" % 
-                               (indent, n+1, auxvarsList[n].name))
+                               (indent, n+1, aux_vars[n].name))
                     fout.write("%sshort_aux_names(%d) = \"%s\"\n" % 
-                               (indent, n+1, auxvarsList[n].name))
-
-                    n += 1 
+                               (indent, n+1, aux_vars[n].name))
 
         else:
             fout.write(line)
-
-
     
     print(" ")
     fout.close()
-
-
 
 
 if __name__ == "__main__":
@@ -306,27 +273,25 @@ if __name__ == "__main__":
         print("write_network.py: invalid calling sequence")
         sys.exit(2)
 
-    networkTemplate = ""
-    outFile = ""
-    netFile = ""
+    network_template = ""
+    out_file = ""
+    net_file = ""
 
     for o, a in opts:
 
         if o == "-t":
-            networkTemplate = a
+            network_template = a
 
         if o == "-o":
-            outFile = a
+            out_file = a
 
         if o == "-s":
-            netFile = a
+            net_file = a
 
 
-    if (networkTemplate == "" or outFile == ""):
+    if network_template == "" or out_file == "":
         print("write_probin.py: ERROR: invalid calling sequence")
         sys.exit(2)
 
-    write_network(networkTemplate, netFile, outFile)
-
-
+    write_network(network_template, net_file, out_file)
 

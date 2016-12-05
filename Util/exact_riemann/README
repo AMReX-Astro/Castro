@@ -9,3 +9,9 @@ This solver is used in Zingale & Katz (2014), and more details are
 given there.
 
 To build the solver, simply type 'make' in this directory.
+
+
+Note: at the moment, we compile in a network from Microphysics, but
+we don't use an integrator.  This is not needed since the GPackage.mak
+in the network has the network dependent code blocked out with an
+`ifneq ($(USE_REACT), FALSE)`

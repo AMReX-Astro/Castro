@@ -71,94 +71,14 @@ contains
 
 
 
-  subroutine ca_compute_avgden (lo,hi,dx,dr,&
-       rho,r_l1,r_l2,r_h1,r_h2, &
-       radial_den,radial_vol,problo, &
-       n1d,drdxfac,level) bind(C, name="ca_compute_avgden")
-
-    use prob_params_module, only: center
-    use bl_constants_module
-
-    implicit none
-
-    integer          :: lo(2),hi(2)
-    double precision :: dx(2),dr
-    double precision :: problo(2)
-
-    integer          :: n1d,drdxfac,level
-    double precision :: radial_vol(0:n1d-1)
-    double precision :: radial_den(0:n1d-1)
-
-    integer          :: r_l1,r_l2,r_h1,r_h2
-    double precision :: rho(r_l1:r_h1,r_l2:r_h2)
-
-    integer          :: i,j,index
-    integer          :: ii,jj
-    double precision :: xc,yc,r
-    double precision :: fac,xx,yy,dx_frac,dy_frac,vol_frac
-    double precision :: lo_i,lo_j,rlo,rhi
-
-    fac  = dble(drdxfac)
-    dx_frac = dx(1) / fac
-    dy_frac = dx(2) / fac
-
-    do j = lo(2), hi(2)
-       yc = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
-
-       do i = lo(1), hi(1)
-          xc = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
-
-          r = sqrt(xc**2  + yc**2)
-          index = int(r/dr)
-
-          if (index .gt. n1d-1) then
-
-             if (level .eq. 0) then
-                print *,'   '
-                print *,'>>> Error: Gravity_2d::ca_compute_avgden ',i,j
-                print *,'>>> ... index too big: ', index,' > ',n1d-1
-                print *,'>>> ... at (i,j)     : ',i,j
-                print *,'    '
-                call bl_error("Error:: Gravity_2d.f90 :: ca_compute_avgden")
-             end if
-
-          else
-
-             ! Note that we assume we are in r-z coordinates in 2d or we wouldn't be 
-             !      doing monopole gravity
-             lo_i = problo(1) + dble(i)*dx(1) - center(1)
-             lo_j = problo(2) + dble(j)*dx(2) - center(2)
-             do ii = 0,drdxfac-1
-                xx  = lo_i + (dble(ii  )+HALF)*dx_frac
-                rlo = lo_i +  dble(ii  )      *dx_frac
-                rhi = lo_i +  dble(ii+1)      *dx_frac
-                vol_frac = TWO * M_PI * xx * dx_frac * dy_frac
-                do jj = 0,drdxfac-1
-                   yy = lo_j + (dble(jj)+HALF)*dy_frac
-                   r = sqrt(xx**2  + yy**2)
-                   index = int(r/dr)
-                   if (index .le. n1d-1) then
-                      radial_vol(index) = radial_vol(index) + vol_frac
-                      radial_den(index) = radial_den(index) + vol_frac*rho(i,j)
-                   end if
-                end do
-             end do
-
-          end if
-       enddo
-    enddo
-
-  end subroutine ca_compute_avgden
-
-
-
   subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
-       rho,r_l1,r_l2,r_h1,r_h2, &
+       state,r_l1,r_l2,r_h1,r_h2, &
        radial_mass,radial_vol,problo, &
        n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
     
     use bl_constants_module
     use prob_params_module, only: center
+    use meth_params_module, only: NVAR, URHO
 
     implicit none
 
@@ -171,7 +91,7 @@ contains
     double precision :: radial_vol (0:n1d-1)
 
     integer          :: r_l1,r_l2,r_h1,r_h2
-    double precision :: rho(r_l1:r_h1,r_l2:r_h2)
+    double precision :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
 
     integer          :: i,j,index
     integer          :: ii,jj
@@ -227,7 +147,7 @@ contains
                    r = sqrt(xx**2  + yy**2)
                    index = int(r/dr)
                    if (index .le. n1d-1) then
-                      radial_mass(index) = radial_mass(index) + vol_frac*rho(i,j)
+                      radial_mass(index) = radial_mass(index) + vol_frac*state(i,j,URHO)
                       radial_vol (index) = radial_vol (index) + vol_frac
                    end if
                 end do

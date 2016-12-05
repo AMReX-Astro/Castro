@@ -31,7 +31,8 @@ module actual_network
 
   double precision, save   :: aion(nspec), zion(nspec)
 
-  integer, parameter :: nrates = 0
+  integer, parameter :: nrates = 1
+  integer, parameter :: num_rate_groups = 1
 
 contains
   

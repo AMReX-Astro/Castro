@@ -1,13 +1,42 @@
-# name                      type          default     need in Fortran?    ifdef        fortran name             fortran type
+# name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+#
+# note, name can have two values, as (a, b).  a will be the name used
+# in the inputs file, b is the variable name in the C++ class.
+
+
+@namespace: castro Castro static
 
 #-----------------------------------------------------------------------------
 # category: AMR
 #-----------------------------------------------------------------------------
 
+# highest order used in interpolation
+state_interp_order           int           1
+
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables
 lin_limit_state_interp       int           0
+
+# Number of ghost zones for state data to have. Note that
+# if you are using radiation, choosing this to be zero will
+# be overridden since radiation needs at least one ghost zone.
+state_nghost                 int           0
+
+# do we do the hyperbolic reflux at coarse-fine interfaces?
+do_reflux                    int           1
+
+# refluxing strategy. Ordered in descending level of accuracy
+# and descending computational expense.
+# 1 = reflux during every finest level timestep
+# 2 = reflux at the end of every timestep on every level
+reflux_strategy              int           2
+
+# whether to re-compute new-time source terms after a reflux
+update_sources_after_reflux  int           1
+
+# should we have state data for custom load-balancing weighting?
+use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -19,7 +48,7 @@ difmag                       Real          0.1                y
 # the small density cutoff.  Densities below this value will be reset
 small_dens                   Real         -1.e200             y
 
-# the small temperature cutoff.  Temperatures below this value will 
+# the small temperature cutoff.  Temperatures below this value will
 # be reset
 small_temp                   Real         -1.e200             y
 
@@ -30,14 +59,10 @@ small_pres                   Real         -1.e200             y
 # value will be reset
 small_ener                   Real         -1.e200             y
 
-# the small mass fraction cutoff. Mass fractions below this value will
-# be reset
-small_x                      Real          1.e-30             y
-
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# if true, define an additional source term   
+# if true, define an additional source term
 add_ext_src                  int           0
 
 # whether to use the hybrid advection scheme that updates
@@ -45,48 +70,39 @@ add_ext_src                  int           0
 # momentum (3D only)
 hybrid_hydro                 int           0                  y
 
-# reconstruction type: 
-# 0: piecewise linear; 
+# reconstruction type:
+# 0: piecewise linear;
 # 1: classic Colella \& Woodward ppm;
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-# do we take the reference state for the characteristic projection
-# to be the cell centers (0) or the integral under the parabola
-# for the fastest moving wave toward the interface (1)
-ppm_reference                int           1                  y
-
 # to we reconstruct and trace under the parabolas of the source
 # terms to the velocity (gravity and rotation)
-ppm_trace_sources            int           0                  y
+ppm_trace_sources            int           1                  y
 
-# various methods of giving temperature a larger role in the 
+# various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
-
-# to we use $\tau = 1/rho$ or $\rho$ in the eigensystem?
-ppm_tau_in_tracing           int           0                  y
 
 # do we construct $\gamma_e = p/(\rho e) + 1$ and bring it
 # to the interfaces for additional thermodynamic information
 # (this is the Colella \& Glaz technique) or do we use $(\rho e)$
-# (the classic \castro\ behavior).
+# (the classic \castro\ behavior).  Note this also uses
+# $\tau = 1/\rho$ instead of $\rho$.
 ppm_predict_gammae           int           0                  y
-
-# do we take the reference state when no waves are moving toward
-# the interface to be the cell center (0) or the limit of the
-# reconstructed parabola at the interface (1)
-ppm_reference_edge_limit     int           1                  y
 
 # do we use the reference state in evaluating the eigenvectors?
 ppm_reference_eigenvectors   int           0                  y
+
+# for piecewise linear, reconstruction order to use
+plm_iorder                   int           2                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
 
 # this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           0                  y
+use_colglaz                  int           -1
 
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
@@ -98,7 +114,7 @@ riemann_solver               int           0                  y
 # of iterations to take when solving for the star state
 cg_maxiter                   int          12                  y
 
-# for the Colella \& Glaz Riemann solver, the tolerance to 
+# for the Colella \& Glaz Riemann solver, the tolerance to
 # demand in finding the star state
 cg_tol                       Real          1.0e-5             y
 
@@ -107,16 +123,11 @@ cg_tol                       Real          1.0e-5             y
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
 # 2 = do a bisection search for another 2 * cg\_maxiter iterations.
-cg_blend                     int           0                  y
+cg_blend                     int           2                  y
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1                  y
-
-# where do we apply the flattening?  after we've done the tracing of 
-# the states (0); or on the parabolic profiles before we've integrated
-# under them (1)
-ppm_flatten_before_integrals int           1                  y
 
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using $e$ and $\rho$).
@@ -135,7 +146,7 @@ transverse_reset_rhoe        int           0                  y
 # Allow internal energy resets and temperature flooring to change the
 # total energy variable UEDEN in addition to the internal energy variable
 # UEINT.
-dual_energy_update_E_from_e  int           1                  y        None            dual_energy_update_E_from_e    logical
+dual_energy_update_E_from_e  int           1                  y
 
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
 # pressure is derived from E - K; otherwise, we use the internal energy
@@ -157,19 +168,73 @@ use_pslope                   int           1                  y
 
 fix_mass_flux                int           0                  y
 
+# Should we limit the density fluxes so that we do not create small densities?
+limit_fluxes_on_small_dens   int           0                  y
+
+# Which method to use when resetting a negative/small density
+# 1 = Reset to characteristics of adjacent zone with largest density
+# 2 = Use average of all adjacent zones for all state variables
+# 3 = Reset to the original zone state before the hydro update
+density_reset_method         int           1                  y
+
 # Whether or not to allow internal energy to be less than zero
-allow_negative_energy        int           1                  y
+allow_negative_energy        int           0                  y
 
 # Whether or not to allow the internal energy to be less than the
 # internal energy corresponding to small\_temp
 allow_small_energy           int           1                  y
 
-# permits sponge to be turned on and off 
+# permits sponge to be turned on and off
 do_sponge                    int           0                  y
 
+# if we are using the sponge, whether to use the implicit solve for it
+sponge_implicit              int           1                  y
 
-sum_turb_src                 Real          0.0                n        SGS
+# should we time center the sponge?
+time_center_sponge           int           0
 
+# should we update the state in between evaluations of the new-time source terms
+update_state_between_sources int           1
+
+# retain source terms until end of timestep
+keep_sources_until_end       int           0
+
+# extrapolate the source terms (gravity and rotation) to $n+1/2$
+# timelevel for use in the interface state prediction
+source_term_predictor        int           0
+
+# set the flattening parameter to zero to force the reconstructed profiles
+# to be flat, resulting in a first-order method
+first_order_hydro            int           0                  y
+
+# if we are doing an external -x boundary condition, who do we interpret it?
+xl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +x boundary condition, who do we interpret it?
+xr_ext_bc_type               string        ""                 y
+
+# if we are doing an external -y boundary condition, who do we interpret it?
+yl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +y boundary condition, who do we interpret it?
+yr_ext_bc_type               string        ""                 y
+
+# if we are doing an external -z boundary condition, who do we interpret it?
+zl_ext_bc_type               string        ""                 y
+
+# if we are doing an external +z boundary condition, who do we interpret it?
+zr_ext_bc_type               string        ""                 y
+
+# if we are doing HSE boundary conditions, do we zero the velocity?
+hse_zero_vels                int           0                  y
+
+# if we are doing HSE boundary conditions, should we get the temperature
+# via interpolation (using model_parser) or hold it constant?
+hse_interp_temp              int           0                  y
+
+# if we are doing HSE boundary conditions, how do we treat the velocity?
+# reflect? or outflow?
+hse_reflect_vels             int           0                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -211,6 +276,9 @@ use_retry                    int           0
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
 
+# Number of iterations for the SDC advance.
+sdc_iters                    int           2
+
 #-----------------------------------------------------------------------------
 # category: reactions
 #-----------------------------------------------------------------------------
@@ -233,14 +301,14 @@ dtnuc_X                      Real          1.e200             y
 # 4 == use the change in the full state over the last timestep
 dtnuc_mode                   int           1                  y
 
-# limit the zone size based on how much the burning can change the internal 
+# limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
 
-# permits reactions to be turned on and off -- mostly for efficiency's sake 
+# permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 
 # minimum temperature for allowing reactions to occur in a zone
@@ -262,7 +330,7 @@ disable_shock_burning        int           0                  y
 # category: gravity and rotation
 #-----------------------------------------------------------------------------
 
-# permits gravity calculation to be turned on and off   
+# permits gravity calculation to be turned on and off
 do_grav                      int          -1                  y
 
 # to we recompute the center used for the multipole gravity solve each step?
@@ -270,13 +338,9 @@ moving_center                int           0
 
 # determines how the gravitational source term is added to the momentum and
 # energy state variables.
-grav_source_type             int           2                  y
+grav_source_type             int           4                  y
 
-# extrapolate the source terms (gravity and rotation) to $n+1/2$
-# timelevel for use in the interface state prediction
-source_term_predictor        int           0
-
-# permits rotation calculation to be turned on and off 
+# permits rotation calculation to be turned on and off
 do_rotation                  int          -1                  y
 
 # the rotation period for the corotating frame
@@ -295,13 +359,21 @@ rotation_include_coriolis    int           1                  y        ROTATION
 # permits the d(omega)/dt terms in the rotation to be turned on and off
 rotation_include_domegadt    int           1                  y        ROTATION
 
+# Which reference frame to measure the state variables with respect to.
+# The standard in the literature when using a rotating reference frame
+# is to measure the state variables with respect to an observer fixed
+# in that rotating frame. If this option is disabled by setting it to 0,
+# the state variables will be measured with respect to an observer fixed
+# in the inertial frame (but the frame will still rotate).
+state_in_rotating_frame      int           1                  y        ROTATION
+
 # determines how the rotation source terms are added to the momentum and
 # energy equations
-rot_source_type              int           1                  y        ROTATION
+rot_source_type              int           4                  y        ROTATION
 
 # we can do a implicit solution of the rotation update to allow
 # for better coupling of the Coriolis terms
-implicit_rotation_update     int           0                  y        ROTATION
+implicit_rotation_update     int           1                  y        ROTATION
 
 # the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
@@ -312,7 +384,7 @@ point_mass                   Real          0.0                y        POINTMASS
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           1                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        POINTMASS
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -342,7 +414,7 @@ star_at_center               int          -1
 
 do_special_tagging           int           0
 
-spherical_star               int           0  
+spherical_star               int           0
 
 
 #-----------------------------------------------------------------------------
@@ -352,7 +424,7 @@ spherical_star               int           0
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
-# display breakdown of energy sources 
+# display breakdown of energy sources
 print_energy_diagnostics     int           (0, 1)
 
 # calculate losses of material through physical grid boundaries
@@ -373,3 +445,55 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
+
+
+
+@namespace: gravity Gravity static
+
+# what type 
+gravity_type                 string        "fillme"
+
+
+# if doing constant gravity, what is the acceleration
+const_grav                   Real          0.0                y
+
+# Check if the user wants to compute the boundary conditions using the
+# brute force method.  Default is false, since this method is slow.
+direct_sum_bcs               int           0
+
+# ratio of dr for monopole gravity binning to grid resolution
+drdxfac                     int            1
+
+# the maximum mulitpole order to use for multipole BCs when doing
+# Poisson gravity
+(max_multipole_order, lnum) int            0
+
+# the level of verbosity for the gravity solve (higher number means more
+# output on the status of the solve / multigrid
+(v, verbose)                int            0
+
+# do we perform the synchronization at coarse-fine interfaces?
+no_sync                     int            0
+
+# do we do a composite solve?
+no_composite                int            0
+
+#  For all gravity types, we can choose a maximum level for explicitly
+#  calculating the gravity and associated potential. Above that level,
+#  we interpolate from coarser levels.
+max_solve_level             int            MAX_LEV-1
+
+# For non-Poisson gravity, do we want to construct the gravitational
+# acceleration by taking the gradient of the potential, rather than
+# constructing it directly?
+get_g_from_phi              int            0                  y
+
+
+
+
+@namespace: diffusion Diffusion static
+
+# the level of verbosity for the diffusion solve (higher number means
+# more output)
+(v, verbose)                int            0
+

@@ -2,7 +2,6 @@
 #define _Gravity_H_
 
 #include <AmrLevel.H>
-#include <FluxRegister.H>
 
 class Gravity {
 
@@ -36,6 +35,8 @@ public:
 
   void swapTimeLevels (int level);
 
+  void update_max_rhs();
+
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
                       PArray<MultiFab>& grad_phi,
@@ -44,13 +45,12 @@ public:
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
-                            MultiFab&                  CrseRhs,
+                            PArray<MultiFab>&          rhs,
                             PArray<MultiFab>&          delta_phi,
                             PArray<PArray<MultiFab> >& grad_delta_phi);
 
-  void gravity_sync (int crse_level, int fine_level, int iteration, int ncycle,
-                     const MultiFab& drho_and_drhoU, const MultiFab& dphi,
-                     PArray<MultiFab>& grad_delta_phi_cc);
+  void gravity_sync (int crse_level, int fine_level,
+		     const PArray<MultiFab>& drho, const PArray<MultiFab>& dphi);
 
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
@@ -61,8 +61,11 @@ public:
 
   Real computeAvg    (int level, MultiFab* mf, bool mask=true);
 
-  void create_comp_minus_level_grad_phi(int level, MultiFab& cmlp,
-                                        PArray<MultiFab>& cmlgp);
+  void create_comp_minus_level_grad_phi(int level,
+					MultiFab& comp_phi,
+					PArray<MultiFab>& comp_gphi,
+					MultiFab& cml_phi,
+                                        PArray<MultiFab>& cml_gphi);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,
@@ -71,8 +74,6 @@ public:
   void GetCrsePhi(int level, 
                   MultiFab& phi_crse,
                   Real time);
-
-  void zeroPhiFluxReg (int level);
 
   void get_old_grav_vector(int level, MultiFab& grav_vector, Real time);
   void get_new_grav_vector(int level, MultiFab& grav_vector, Real time);
@@ -83,27 +84,18 @@ public:
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
-  void add_to_fluxes(int level, int iteration, int ncycle);
-
-  void reflux_phi(int level, MultiFab& dphi);
-
-#if (BL_SPACEDIM == 1)
-  void make_one_d_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi);
-#else
   void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
-  void interpolate_monopole_grav(int level, 
-                                 Array<Real>& radial_grav, MultiFab& grav_vector);
-  void make_prescribed_grav(int level, Real time, MultiFab& grav);
-#endif
+  void interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector);
 
-  void make_radial_phi(int level, MultiFab& Rhs, MultiFab& phi, int fill_interior);
+  void make_prescribed_grav(int level, Real time, MultiFab& grav, MultiFab& phi);
+  void make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
-  void fill_direct_sum_BCs(int level, MultiFab& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
 #endif
 
   void make_mg_bc();
@@ -120,20 +112,26 @@ protected:
   Array< PArray<MultiFab> > grad_phi_curr;
   Array< PArray<MultiFab> > grad_phi_prev;
 
-  PArray<FluxRegister> phi_flux_reg;
   //
   // BoxArray at each level
   //
   Array<BoxArray> grids;
   //
+  // Absolute tolerance on each level
+  //
+  Array<Real> abs_tol;
+  //
+  // Relative tolerance on each level
+  //
+  Array<Real> rel_tol;
+  //
   // Resnorm at each level
   //
   Array<Real> level_solver_resnorm;
   //
-  // Error tolerance on each level
+  // Maximum value of the RHS (used for obtaining absolute tolerances)
   //
-  Array<Real> ml_tol;
-  Array<Real> delta_tol;
+  Real max_rhs;
   //
   // Volume and area fractions.
   //
@@ -150,16 +148,7 @@ protected:
 
   int   numpts_at_level;
 
-  static int   verbose;
   static int   test_solves;
-  static int   no_sync;
-  static int   no_composite;
-  static int   drdxfac;
-  static int   lnum;
-  static int   direct_sum_bcs;
-  static int   get_g_from_phi;
-  static int   max_solve_level;
-  static Real  const_grav;
   static Real  mass_offset;
   static Array< Array<Real> > radial_grav_old;
   static Array< Array<Real> > radial_grav_new;
@@ -168,10 +157,11 @@ protected:
 #ifdef GR_GRAV
   static Array< Array<Real> > radial_pres;
 #endif
-  static std::string gravity_type;
   static int   stencil_type;
 
   static Real max_radius_all_in_domain;
+
+#include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
   void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
@@ -195,6 +185,14 @@ private:
     void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
 
     void sanity_check (int level);
+};
+
+class GradPhiPhysBCFunct
+    : public PhysBCFunctBase
+{
+public:
+    GradPhiPhysBCFunct ();
+    virtual void FillBoundary (MultiFab& mf, int dcomp, int ncomp, Real time);
 };
 #endif
 

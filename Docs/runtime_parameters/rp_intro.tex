@@ -1,0 +1,67 @@
+\label{chapter:parameters}
+
+\section{Introduction to Runtime Parameters}
+
+Castro has 2 sets of runtime parameters---those controlled by
+\cpp\ and those controlled by Fortran.  The \cpp\ parameters are set
+in the {\tt inputs} file and managed by the \boxlib\ {\tt ParmParse}
+class.  For \castro-specific parameters, we list the runtime
+parameters in a file {\tt \_cpp\_parameters} and generate the
+\cpp\ code and headers using the {\tt mk\_params.sh} script---note
+this script needs to be run every time the {\tt \_cpp\_parameters}
+file is updated.
+
+The behavior of the network and EOS are controlled by many runtime
+parameters.  These parameters are defined in plain-text files {\tt
+  \_parameters} located in the different directories that hold the
+microphysics code.  At compile time, a script in the \boxlib\ bulid
+system, {\tt findparams.py}, locates all of the {\tt \_parameters}
+files that are needed for the given choice of network, integrator, and
+EOS, and assembles all of the runtime parameters into a module named
+{\tt extern\_probin\_module} (using the {\tt write\_probin.py}
+script).  The parameters are set in your {\tt probin} file in the {\tt
+  \&extern} namelist.
+
+Parameter definitions take the form of:
+\begin{verbatim}
+# comment describing the parameter
+name              data-type       default-value      priority
+\end{verbatim}
+Here, the {\tt priority} is simply an integer.  When two directories
+define the same parameter, but with different defaults, the version of
+the parameter with the highest priority takes precedence.  This allows
+specific implementations to override the general parameter defaults.
+
+The documentation below for the \castro\ \cpp\ parameters is
+automatically generated, using the comments in the {\tt \_cpp\_parameters}
+file.
+
+
+
+\section{Removed Runtime Parameters}
+
+The following runtime parameters have been removed for \castro.
+\begin{itemize}
+\item {\tt castro.ppm\_flatten\_before\_integrals} : this parameter
+  controlled whether we applied the flattening of the parabolic
+  profiles before we integrated under their profiles or afterwards.
+  The default was switched to flattening before the integration,
+  which is more consistent with the original PPM methodology.  This
+  parameter was removed since the variation enabled by this parameter
+  was not that great. 
+
+  (removed in commit: {\tt 9cab697268997714919de16db1ca7e77a95c4f98})
+
+
+\item {\tt castro.ppm\_reference} and {\tt
+  castro.ppm\_reference\_edge\_limit} : these parameters controlled
+  whether we use the integral under the parabola for the fastest wave
+  moving toward the interface for the reference state and whether in
+  the case that the wave is moving away from the interface we use the
+  cell-center value or the limit of the parabola on the interface.
+  These were removed because there is little reason to not use the
+  reference state.
+
+  (removed in commit: {\tt 213f4ffc53463141084551c7be4b37a2720229aa})
+\end{itemize}
+

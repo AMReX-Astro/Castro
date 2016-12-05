@@ -4,18 +4,23 @@ module riemann_module
   use bl_constants_module
   use riemann_util_module
 
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UEDEN, UEINT, &
-                                 GDPRES, GDGAME, GDERADS, GDLAMS, ngdnv, &
-                                 small_dens, small_pres, small_temp, &
+#ifdef RADIATION
+                                 qrad, qradhi, qptot, qreitot, fspace_type, &
+#endif
+                                 GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+#endif
+                                 NGDNV, small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
-                                 allow_negative_energy, use_colglaz
+                                 allow_negative_energy
 
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif
@@ -24,7 +29,7 @@ module riemann_module
 
   private
 
-  public cmpflx, shock
+  public cmpflx, shock, riemanncg
 
   real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
 
@@ -48,6 +53,7 @@ contains
 
     use eos_type_module
     use eos_module
+    use network, only: nspec, naux
 
 #ifdef RADIATION
     integer, intent(in) :: lam_l1,lam_l2,lam_h1,lam_h2
@@ -68,7 +74,7 @@ contains
     double precision, intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
     double precision, intent(in) :: gamcg(qd_l1:qd_h1,qd_l2:qd_h2)
 #endif
-    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision, intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     double precision, intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
     double precision, intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
@@ -105,10 +111,6 @@ contains
 #ifdef RADIATION
     if (hybrid_riemann == 1) then
        call bl_error("ERROR: hybrid Riemann not supported for radiation")
-    endif
-
-    if (use_colglaz == 1) then
-       call bl_error("ERROR: the Colella-Glaz Riemann solver is not supported for radiation")
     endif
 
     if (riemann_solver > 0) then
@@ -422,6 +424,7 @@ contains
     use prob_params_module, only : coord_type
 
     double precision, parameter:: small = 1.d-8
+    double precision, parameter :: small_u = 1.d-10
 
     integer :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer :: gd_l1,gd_l2,gd_h1,gd_h2
@@ -437,10 +440,10 @@ contains
     double precision ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
-    integer :: n, nq
+    integer :: n, nqp
 
     double precision :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
     double precision :: rl, ul, vl, v2l, pl, rel
@@ -453,7 +456,7 @@ contains
 
     double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    double precision :: zm, zp
+    double precision :: zl, zr
     double precision :: denom, dpditer, dpjmp
     double precision :: gamc_bar, game_bar
     double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
@@ -464,10 +467,10 @@ contains
 
     logical :: converged
 
-    double precision :: pstnm1
+    double precision :: pstar_old
     double precision :: taul, taur, tauo
-    double precision :: ustarm, ustarp, ustnm1, ustnp1
-    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    double precision :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
+    double precision :: pstar_lo, pstar_hi
 
     double precision, parameter :: weakwv = 1.d-3
 
@@ -508,7 +511,7 @@ contains
     endif
 
     allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(2*iter_max))
+    allocate (pstar_hist_extra(iter_max))
 
     do j = jlo, jhi
        do i = ilo, ihi
@@ -619,15 +622,15 @@ contains
           call wsqge(pr,taur,gamer,gdot,  &
                      gamstar,pstar,wrsq,clsqr,gmin,gmax)
 
-          pstnm1 = pstar
+          pstar_old = pstar
 
           wl = sqrt(wlsq)
           wr = sqrt(wrsq)
 
           ! R-H jump conditions give ustar across each wave -- these should
           ! be equal when we are done iterating
-          ustarp = ul - (pstar-pl)/wl
-          ustarm = ur + (pstar-pr)/wr
+          ustar_l = ul - (pstar-pl)/wl
+          ustar_r = ur + (pstar-pr)/wr
 
           ! revise our pstar guess
           !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
@@ -648,31 +651,40 @@ contains
              wl = ONE / sqrt(wlsq)
              wr = ONE / sqrt(wrsq)
 
-             ustnm1 = ustarm
-             ustnp1 = ustarp
+             ustar_l_old = ustar_l
+             ustar_r_old = ustar_r
 
-             ustarm = ur-(pr-pstar)*wr
-             ustarp = ul+(pl-pstar)*wl
+             ! note that wl, wr here are already inverses
+             ustar_l = ul - (pstar - pl)*wl
+             ustar_r = ur + (pstar - pr)*wr
 
-             dpditer=abs(pstnm1-pstar)
+             dpditer = pstar - pstar_old
 
-             zp=abs(ustarp-ustnp1)
-             if(zp-weakwv*cav(i,j) <= ZERO)then
-                zp = dpditer*wl
-             endif
+             zl = ustar_l - ustar_l_old
+             !if (zp-weakwv*cav(i,j) <= ZERO) then
+             !   zp = dpditer*wl
+             !endif
 
-             zm=abs(ustarm-ustnm1)
-             if(zm-weakwv*cav(i,j) <= ZERO)then
-                zm = dpditer*wr
-             endif
-
+             zr = ustar_r - ustar_r_old
+             !if (zm-weakwv*cav(i,j) <= ZERO) then
+             !   zm = dpditer*wr
+             !endif
+             
              ! the new pstar is found via CG Eq. 18
-             denom=dpditer/max(zp+zm,small*(cav(i,j)))
-             pstnm1 = pstar
-             pstar=pstar-denom*(ustarm-ustarp)
-             pstar=max(pstar,small_pres)
 
-             err = abs(pstar - pstnm1)
+             !denom = zp + zm
+             denom = zl - zr
+             denom = (ustar_l - ustar_r) - (ustar_l_old - ustar_r_old)
+
+             pstar_old = pstar
+
+             if (abs(denom) > small_u .and. abs(dpditer) > small_pres) then
+                pstar = pstar - (ustar_l - ustar_r)*dpditer/denom
+             endif
+
+             pstar = max(pstar, small_pres)
+
+             err = abs(pstar - pstar_old)
              if (err < tol*pstar) converged = .true.
 
              pstar_hist(iter) = pstar
@@ -698,7 +710,7 @@ contains
                 print *, ' '
                 print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                 print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
+                print *, 'cav, smallc:',  cav(i,j), csmall
                 call bl_error("ERROR: non-convergence in the Riemann solver")
 
              else if (cg_blend .eq. 1) then
@@ -707,77 +719,31 @@ contains
 
              else if (cg_blend .eq. 2) then
 
-                pstarl = minval(pstar_hist(iter_max-5:iter_max))
-                pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+                ! first try to find a reasonable bounds 
+                pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
+                pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
 
-                iter = 1
-
-                do while (iter <= 2 * iter_max .and. .not. converged)
-
-                   pstarc = HALF * (pstaru + pstarl)
-
-                   pstar_hist_extra(iter) = pstarc
-
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustarm = ur-(pr-pstar)*wr
-                   ustarp = ul+(pl-pstar)*wl
-
-                   pfuncc = ustarp - ustarm
-
-                   if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
-                      converged = .true.
-                   endif
-
-                   iter = iter + 1
-
-                   call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                   call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                   wl = ONE / sqrt(wlsq)
-                   wr = ONE / sqrt(wrsq)
-
-                   ustarm = ur-(pr-pstar)*wr
-                   ustarp = ul+(pl-pstar)*wl
-
-                   pfuncu = ustarp - ustarm
-
-                   if (pfuncc * pfuncu < ZERO) then
-
-                      pstarl = pstarc
-
-                   else
-
-                      pstaru = pstarc
-
-                   endif
-
-                enddo
+                call pstar_bisection(pstar_lo, pstar_hi, &
+                                     ul, pl, taul, gamel, clsql, &
+                                     ur, pr, taur, gamer, clsqr, &
+                                     gdot, gmin, gmax, &
+                                     pstar, gamstar, converged, pstar_hist_extra)
 
                 if (.not. converged) then
-
+                   ! abort -- doesn't seem solvable
                    print *, 'pstar history: '
                    do iter = 1, iter_max
                       print *, iter, pstar_hist(iter)
                    enddo
-                   do iter = 1, 2 * iter_max
-                      print *, iter + iter_max, pstar_hist_extra(iter)
+
+                   do iter = 1, iter_max
+                      print *, iter+iter_max, pstar_hist_extra(iter)
                    enddo
 
                    print *, ' '
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
+                   print *, 'cav, smallc:',  cav(i,j), csmall
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif
@@ -793,10 +759,10 @@ contains
 
           ! we converged!  construct the single ustar for the region
           ! between the left and right waves, using the updated wave speeds
-          ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-          ustarp = ul+(pl-pstar)*wl
+          ustar_r = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
+          ustar_l = ul+(pl-pstar)*wl
 
-          ustar = HALF* ( ustarp + ustarm )
+          ustar = HALF*(ustar_l + ustar_r)
 
           ! for symmetry preservation, if ustar is really small, then we
           ! set it to zero
@@ -956,14 +922,14 @@ contains
           ! note: this includes the z-velocity flux
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -1007,20 +973,15 @@ contains
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
-#ifdef RADIATION
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-#else
-    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-#endif
+    double precision :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    double precision :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
 
     double precision :: gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 #ifdef RADIATION
     double precision :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision :: gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
@@ -1029,7 +990,7 @@ contains
 #endif
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
+    integer :: n, nqp
     integer :: i, j, ipassive
 
 #ifdef RADIATION
@@ -1392,14 +1353,14 @@ contains
 
           do ipassive = 1, npassive
              n  = upass_map(ipassive)
-             nq = qpass_map(ipassive)
+             nqp = qpass_map(ipassive)
 
              if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
              else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nq)
+                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
              else
-                qavg = HALF * (ql(i,j,nq) + qr(i,j,nq))
+                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
                 uflx(i,j,n) = uflx(i,j,URHO)*qavg
              endif
           enddo
@@ -1442,21 +1403,21 @@ contains
     double precision :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,ngdnv)
+    double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 
     integer :: ilo,ihi,jlo,jhi
-    integer :: n, nq
     integer :: i, j
     integer :: bnd_fac
     
-    double precision :: rgd, vgd, regd, ustar
+    !double precision :: regd
+    double precision :: ustar
     double precision :: rl, ul, pl, rel
     double precision :: rr, ur, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall, qavg
+    double precision :: wsmall, csmall
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c

@@ -12,10 +12,14 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UESGS, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX
     use prob_params_module, only: dim
     use bl_constants_module
+#ifdef ROTATION
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_module, only: inertial_to_rotational_velocity
+    use amrinfo_module, only: amr_time
+#endif
 
     implicit none
 
@@ -25,14 +29,13 @@ contains
     double precision :: dx(3), dt
 
     double precision :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
-    double precision :: sqrtK, grid_scl, dt4
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
 
-    grid_scl = (dx(1)*dx(2)*dx(3))**THIRD
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
 
     ! Call EOS for the purpose of computing sound speed
 
@@ -55,9 +58,16 @@ contains
              uy = u(i,j,k,UMY) * rhoInv
              uz = u(i,j,k,UMZ) * rhoInv
 
-             if (UESGS .gt. -1) &
-                  sqrtK = dsqrt( rhoInv*u(i,j,k,UESGS) )
-
+#ifdef ROTATION
+             if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+                vel = [ux, uy, uz]
+                call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
+                ux = vel(1)
+                uy = vel(2)
+                uz = vel(3)
+             endif
+#endif
+             
              c = eos_state % cs
 
              dt1 = dx(1)/(c + abs(ux))
@@ -73,24 +83,6 @@ contains
              endif
 
              dt  = min(dt,dt1,dt2,dt3)
-
-             ! Now let's check the diffusion terms for the SGS equations
-             if (UESGS .gt. -1 .and. dim .eq. 3) then
-
-                ! First for the term in the momentum equation
-                ! This is actually dx^2 / ( 6 nu_sgs )
-                ! Actually redundant as it takes the same form as below with different coeff
-                ! dt4 = grid_scl / ( 0.42d0 * sqrtK )
-
-                ! Now for the term in the K equation itself
-                ! nu_sgs is 0.65
-                ! That gives us 0.65*6 = 3.9
-                ! Using 4.2 to be conservative (Mach1-256 broke during testing with 3.9)
-                !               dt4 = grid_scl / ( 3.9d0 * sqrtK )
-                dt4 = grid_scl / ( 4.2d0 * sqrtK )
-                dt = min(dt,dt4)
-
-             end if
 
           enddo
        enddo
@@ -110,13 +102,17 @@ contains
 
     use bl_constants_module, only: ONE
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX, dtnuc_e, dtnuc_X, dtnuc_mode, small_x
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_mode
     use prob_params_module, only : dim
+#if naux > 0
+    use meth_params_module, only : UFX
+#endif
     use actual_rhs_module, only: actual_rhs
     use eos_module
     use burner_module, only: ok_to_burn
     use burn_type_module
     use eos_type_module
+    use extern_probin_module, only: small_x
 
     implicit none
 
@@ -171,13 +167,17 @@ contains
              state_old % T   = sold(i,j,k,UTEMP)
              state_old % e   = sold(i,j,k,UEINT) * rhooinv
              state_old % xn  = sold(i,j,k,UFS:UFS+nspec-1) * rhooinv
+#if naux > 0
              state_old % aux = sold(i,j,k,UFX:UFX+naux-1) * rhooinv
+#endif
 
              state_new % rho = snew(i,j,k,URHO)
              state_new % T   = snew(i,j,k,UTEMP)
              state_new % e   = snew(i,j,k,UEINT) * rhoninv
              state_new % xn  = snew(i,j,k,UFS:UFS+nspec-1) * rhoninv
+#if naux > 0
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
+#endif
 
              if (.not. ok_to_burn(state_new)) cycle
 
@@ -189,6 +189,8 @@ contains
                 call burn_to_eos(state_new, eos_state)
                 call eos(eos_input_rt, eos_state)
                 call eos_to_burn(eos_state, state_new)
+
+                state_new % dx = minval(dx(1:dim))
 
                 call actual_rhs(state_new)
 
@@ -399,15 +401,14 @@ contains
                                bind(C, name="ca_check_timestep")
 
     use bl_constants_module, only: HALF, ONE
-#ifdef REACTIONS
-    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-                                  dtnuc_e, dtnuc_X, cfl, do_hydro, do_react, small_x
-#else
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
+#ifdef REACTIONS
+    use meth_params_module, only: dtnuc_e, dtnuc_X, do_react
 #endif
     use prob_params_module, only: dim
     use network, only: nspec, naux
+    use extern_probin_module, only: small_x
     use eos_module
 
     implicit none
@@ -449,6 +450,20 @@ contains
 
              ! CFL hydrodynamic stability criterion
 
+             ! If the timestep violated (v+c) * dt / dx > 1,
+             ! suggest a new timestep such that (v+c) * dt / dx <= CFL,
+             ! where CFL is the user's chosen timestep constraint.
+             ! We don't use the CFL choice in the test for violation
+             ! because if we did, then even a small increase in velocity
+             ! over the timestep would be enough to trigger a retry
+             ! (and empirically we have found that this can happen
+             ! basically every timestep, which can greatly increase
+             ! the cost of a simulation for not much benefit);
+             ! but these types of issues are exactly why a user picks a
+             ! safe buffer value like CFL = 0.8 or CFL = 0.5. We only
+             ! want to trigger a retry if the timestep strongly violated
+             ! the stability criterion.
+
              if (do_hydro .eq. 1) then
 
                 eos_state % rho = s_new(i,j,k,URHO )
@@ -465,7 +480,9 @@ contains
 
                 tau_CFL = minval(dx(1:dim) / (c + abs(v(1:dim))))
 
-                dt_new = min(dt_new, cfl * tau_CFL)
+                if (dt_old > tau_CFL) then
+                   dt_new = min(dt_new, cfl * tau_CFL)
+                endif
 
              endif
 

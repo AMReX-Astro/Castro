@@ -39,28 +39,28 @@
                 ! Note that grav may have more ghost zones than
                 ! phi, so we need to check that we're doing
                 ! valid indexing here.
-                
+
                 if ( i .ge. phi_lo(1) .and. i .le. phi_hi(1) .and. &
                      j .ge. phi_lo(2) .and. j .le. phi_hi(2) .and. &
                      k .ge. phi_lo(3) .and. k .le. phi_hi(3) ) then
-                   
-                   phi(i,j,k) = phi(i,j,k) + Gconst * point_mass * rinv
-                   
+
+                   phi(i,j,k) = phi(i,j,k) - Gconst * point_mass * rinv
+
                 endif
-                
+
                 grav(i,j,k,1) = grav(i,j,k,1) + radial_force * (x*rinv)
                 grav(i,j,k,2) = grav(i,j,k,2) + radial_force * (y*rinv)
                 grav(i,j,k,3) = grav(i,j,k,3) + radial_force * (z*rinv)
-                
+
              end do
           end do
        end do
 
        end subroutine pm_add_to_grav
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine pm_compute_delta_mass(delta_mass,lo,hi,&
                                        uin, uin_lo, uin_hi, &
@@ -89,16 +89,16 @@
       double precision   :: problo(3),dx(3),time,dt
 
       double precision   :: eps
-      integer            :: ii,icen,istart,iend 
-      integer            :: jj,jcen,jstart,jend 
-      integer            :: kk,kcen,kstart,kend 
+      integer            :: ii,icen,istart,iend
+      integer            :: jj,jcen,jstart,jend
+      integer            :: kk,kcen,kstart,kend
       integer, parameter :: box_size = 2
 
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
       eps = 1.d-8
 
-      ! This should be the cell whose lower left corner is at "center" 
+      ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)
       jcen = floor( (center(2)-problo(2))/dx(2) + eps)
       kcen = floor( (center(3)-problo(3))/dx(3) + eps)
@@ -122,9 +122,9 @@
 
       end subroutine pm_compute_delta_mass
 
-! ::: 
+! :::
 ! ::: ------------------------------------------------------------------
-! ::: 
+! :::
 
       subroutine pm_fix_solution(lo,hi, &
                                  uin,uin_lo,uin_hi, &
@@ -157,7 +157,7 @@
       !   icen,jcen,kcen one cell too low.
       eps = 1.d-8
 
-      ! This should be the cell whose lower left corner is at "center" 
+      ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)
       jcen = floor( (center(2)-problo(2))/dx(2) + eps)
       kcen = floor( (center(3)-problo(3))/dx(3) + eps)

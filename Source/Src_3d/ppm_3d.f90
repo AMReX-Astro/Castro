@@ -67,7 +67,7 @@ contains
   ! :::
   ! ::: ----------------------------------------------------------------
   ! :::
-  
+
   subroutine ppm_type1(s,s_lo,s_hi, &
                        u,cspd,qd_lo,qd_hi, &
                        flatn,f_lo,f_hi, &
@@ -75,9 +75,9 @@ contains
                        ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
     use bl_constants_module
-  
+
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -179,12 +179,10 @@ contains
           sm = sedge(i  ,j)
           sp = sedge(i+1,j)
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other                     
-             ! monotonization -- this is the method that Flash does       
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters -- note this version of the limiting comes
           ! from Colella and Sekora (2008), not the original PPM paper.
@@ -202,13 +200,6 @@ contains
           !     (sp - sm)**2/SIX) then
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
-
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
 
           ! compute x-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
@@ -230,7 +221,7 @@ contains
           endif
 
           if (u(i,j,k3d,1)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,1,1) = sm 
+             Im(i,j,kc,1,1) = sm
           else
              Im(i,j,kc,1,1) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -240,14 +231,14 @@ contains
           sigma = abs(u(i,j,k3d,1))*dtdx
 
           if (u(i,j,k3d,1) <= ZERO) then
-             Ip(i,j,kc,1,2) = sp 
+             Ip(i,j,kc,1,2) = sp
           else
              Ip(i,j,kc,1,2) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
-             
+
           if (u(i,j,k3d,1) >= ZERO) then
-             Im(i,j,kc,1,2) = sm 
+             Im(i,j,kc,1,2) = sm
           else
              Im(i,j,kc,1,2) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -257,14 +248,14 @@ contains
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,1,3) = sp 
+             Ip(i,j,kc,1,3) = sp
           else
              Ip(i,j,kc,1,3) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,1,3) = sm 
+             Im(i,j,kc,1,3) = sm
           else
              Im(i,j,kc,1,3) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -312,12 +303,10 @@ contains
           sm = sedge(i,j  )
           sp = sedge(i,j+1)
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other                     
-             ! monotonization -- this is the method that Flash does       
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters
           if ((sp-s(i,j,k3d))*(s(i,j,k3d)-sm) .le. ZERO) then
@@ -335,13 +324,6 @@ contains
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
 
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
-
           ! compute y-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
 
@@ -356,7 +338,7 @@ contains
           endif
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,1) = sm 
+             Im(i,j,kc,2,1) = sm
           else
              Im(i,j,kc,2,1) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -366,14 +348,14 @@ contains
           sigma = abs(u(i,j,k3d,2))*dtdy
 
           if (u(i,j,k3d,2) <= ZERO) then
-             Ip(i,j,kc,2,2) = sp 
+             Ip(i,j,kc,2,2) = sp
           else
              Ip(i,j,kc,2,2) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2) >= ZERO) then
-             Im(i,j,kc,2,2) = sm 
+             Im(i,j,kc,2,2) = sm
           else
              Im(i,j,kc,2,2) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -383,14 +365,14 @@ contains
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,2,3) = sp 
+             Ip(i,j,kc,2,3) = sp
           else
              Ip(i,j,kc,2,3) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,3) = sm 
+             Im(i,j,kc,2,3) = sm
           else
              Im(i,j,kc,2,3) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -458,13 +440,10 @@ contains
           sp = max(sp,min(s(i,j,k),s(i,j,k-1)))
           sp = min(sp,max(s(i,j,k),s(i,j,k-1)))
 
-          if (ppm_flatten_before_integrals == 1) then
-             ! flatten the parabola BEFORE doing the other                     
-             ! monotonization -- this is the method that Flash does       
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
-
+          ! flatten the parabola BEFORE doing the other
+          ! monotonization -- this is the method that Flash does
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           ! modify using quadratic limiters
           if ((sp-s(i,j,k3d))*(s(i,j,k3d)-sm) .le. ZERO) then
@@ -482,13 +461,6 @@ contains
              sm = THREE*s(i,j,k3d) - TWO*sp
           end if
 
-          if (ppm_flatten_before_integrals == 2) then
-             ! flatten the parabola AFTER doing the monotonization --
-             ! this is the method that Miller & Colella do
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
-
           ! compute z-component of Ip and Im
           s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
 
@@ -496,14 +468,14 @@ contains
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,1) = sp 
+             Ip(i,j,kc,3,1) = sp
           else
              Ip(i,j,kc,3,1) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,1) = sm 
+             Im(i,j,kc,3,1) = sm
           else
              Im(i,j,kc,3,1) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -513,14 +485,14 @@ contains
           sigma = abs(u(i,j,k3d,3))*dtdz
 
           if (u(i,j,k3d,3) <= ZERO) then
-             Ip(i,j,kc,3,2) = sp 
+             Ip(i,j,kc,3,2) = sp
           else
              Ip(i,j,kc,3,2) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3) >= ZERO) then
-             Im(i,j,kc,3,2) = sm 
+             Im(i,j,kc,3,2) = sm
           else
              Im(i,j,kc,3,2) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -530,14 +502,14 @@ contains
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,3) = sp 
+             Ip(i,j,kc,3,3) = sp
           else
              Ip(i,j,kc,3,3) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,3) = sm 
+             Im(i,j,kc,3,3) = sm
           else
              Im(i,j,kc,3,3) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -562,7 +534,7 @@ contains
                        ilo1,ilo2,ihi1,ihi2,dx,dt,k3d,kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
     use bl_constants_module
 
     implicit none
@@ -709,7 +681,7 @@ contains
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                   else 
+                   else
                       alphap = -TWO*alpham
                    endif
                 endif
@@ -731,11 +703,9 @@ contains
           sm = s(i,j,k3d) + alpham
           sp = s(i,j,k3d) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization 
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           !
           ! Compute x-component of Ip and Im.
@@ -780,14 +750,14 @@ contains
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,1,3) = sp 
+             Ip(i,j,kc,1,3) = sp
           else
              Ip(i,j,kc,1,3) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,1,3) = sm 
+             Im(i,j,kc,1,3) = sm
           else
              Im(i,j,kc,1,3) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -876,7 +846,7 @@ contains
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                   else 
+                   else
                       alphap = -TWO*alpham
                    endif
                 endif
@@ -898,11 +868,9 @@ contains
           sm = s(i,j,k3d) + alpham
           sp = s(i,j,k3d) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization 
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
 
           !
@@ -914,14 +882,14 @@ contains
           sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,2,1) = sp 
+             Ip(i,j,kc,2,1) = sp
           else
              Ip(i,j,kc,2,1) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,1) = sm 
+             Im(i,j,kc,2,1) = sm
           else
              Im(i,j,kc,2,1) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -931,14 +899,14 @@ contains
           sigma = abs(u(i,j,k3d,2))*dtdy
 
           if (u(i,j,k3d,2) <= ZERO) then
-             Ip(i,j,kc,2,2) = sp 
+             Ip(i,j,kc,2,2) = sp
           else
              Ip(i,j,kc,2,2) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2) >= ZERO) then
-             Im(i,j,kc,2,2) = sm 
+             Im(i,j,kc,2,2) = sm
           else
              Im(i,j,kc,2,2) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -948,14 +916,14 @@ contains
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,2,3) = sp 
+             Ip(i,j,kc,2,3) = sp
           else
              Ip(i,j,kc,2,3) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,3) = sm 
+             Im(i,j,kc,2,3) = sm
           else
              Im(i,j,kc,2,3) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -1048,7 +1016,7 @@ contains
                 if (sgn*amax .ge. sgn*delam) then
                    if (sgn*(delam - alpham).ge.1.d-10) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                   else 
+                   else
                       alphap = -TWO*alpham
                    endif
                 endif
@@ -1070,30 +1038,28 @@ contains
           sm = s(i,j,k) + alpham
           sp = s(i,j,k) + alphap
 
-          if (ppm_flatten_before_integrals > 0) then
-             ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
-             sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-             sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
-          endif
+          ! flatten the parabola AFTER doing the monotonization (note k = k3d here)
+          sm = flatn(i,j,k3d)*sm + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
+          sp = flatn(i,j,k3d)*sp + (ONE-flatn(i,j,k3d))*s(i,j,k3d)
 
           !
           ! Compute z-component of Ip and Im.
           !
           s6    = SIX*s(i,j,k3d) - THREE*(sm+sp)
 
-          
+
           ! w-c wave
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
-          
+
           if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,1) = sp 
+             Ip(i,j,kc,3,1) = sp
           else
              Ip(i,j,kc,3,1) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,1) = sm 
+             Im(i,j,kc,3,1) = sm
           else
              Im(i,j,kc,3,1) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -1120,14 +1086,14 @@ contains
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,3) = sp 
+             Ip(i,j,kc,3,3) = sp
           else
              Ip(i,j,kc,3,3) = sp - &
                   HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,3) = sm 
+             Im(i,j,kc,3,3) = sm
           else
              Im(i,j,kc,3,3) = sm + &
                   HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
@@ -1142,4 +1108,3 @@ contains
   end subroutine ppm_type2
 
 end module ppm_module
-

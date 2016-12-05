@@ -3,6 +3,20 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
+    use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+                                   QFS, QFX, &
+                                   NGDNV, GDU, GDPRES, &
+#ifdef RADIATION
+                                   GDERADS, GDLAMS, &
+#endif
+                                   URHO, UMX, UEDEN, UEINT, &
+                                   small_temp, small_dens, small_pres, &
+                                   npassive, upass_map, qpass_map, &
+                                   cg_maxiter, cg_tol, cg_blend, &
+                                   fix_mass_flux, &
+                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
+                                   allow_negative_energy
+
   implicit none
 
   private
@@ -20,21 +34,15 @@ contains
   subroutine cmpflx(lo,hi,domlo,domhi, &
                     qm,qp,qpd_l1,qpd_h1, &
                     flx,flx_l1,flx_h1, &
-                    pgdnv,pg_l1,pg_h1, &
-                    ugdnv,ug_l1,ug_h1, &
+                    qint,qg_l1,qg_h1, &
 #ifdef RADIATION
                     lam, lam_l1, lam_h1, &
                     rflx,rflx_l1,rflx_h1, &
-                    ergdnv,erg_l1,erg_h1, &
-                    lamgdnv,lg_l1,lg_h1, &
                     gamcg, &
 #endif
                     gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
 
-    use meth_params_module, only : QVAR, NVAR, &
-                                   riemann_solver
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR
     use rad_params_module, only : ngroups
 #endif
     
@@ -43,8 +51,7 @@ contains
     integer ilo,ihi
     integer qpd_l1,qpd_h1
     integer flx_l1, flx_h1
-    integer  pg_l1, pg_h1
-    integer  ug_l1, ug_h1
+    integer  qg_l1,  qg_h1
     integer  qd_l1,  qd_h1
 
 #ifdef RADIATION
@@ -54,16 +61,11 @@ contains
     integer  lg_l1, lg_h1
 #endif
 
-#ifdef RADIATION    
-    double precision    qm(qpd_l1:qpd_h1, QRADVAR)
-    double precision    qp(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision    qm(qpd_l1:qpd_h1, QVAR)
-    double precision    qp(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision    qm(qpd_l1:qpd_h1, NQ)
+    double precision    qp(qpd_l1:qpd_h1, NQ)
+
     double precision   flx(flx_l1:flx_h1, NVAR)
-    double precision pgdnv( pg_l1: pg_h1)
-    double precision ugdnv( ug_l1: ug_h1)
+    double precision  qint( qg_l1: qg_h1, NGDNV)
     double precision  gamc( qd_l1: qd_h1)
     double precision     c( qd_l1: qd_h1)
     double precision  csml( qd_l1: qd_h1)
@@ -71,8 +73,6 @@ contains
 #ifdef RADIATION    
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
-    double precision ergdnv(erg_l1:erg_h1, 0:ngroups-1)
-    double precision lamgdnv( lg_l1: lg_h1, 0:ngroups-1)
     double precision gamcg( qd_l1: qd_h1)
 #endif
     
@@ -110,14 +110,11 @@ contains
                       smallc, cavg, &
                       gamcm, gamcp, &
                       flx, flx_l1, flx_h1, &
-                      pgdnv, pg_l1, pg_h1, &
-                      ugdnv, ug_l1, ug_h1, &
+                      qint, qg_l1, qg_h1, &
 #ifdef RADIATION
                       lam, lam_l1, lam_h1, &
                       gamcgm, gamcgp, &
                       rflx, rflx_l1, rflx_h1, &
-                      ergdnv,erg_l1,erg_h1, &
-                      lamgdnv, lg_l1, lg_h1, &
 #endif
                       ilo, ihi, domlo, domhi )
 
@@ -125,8 +122,8 @@ contains
        ! Colella & Glaz
        call riemanncg(qm, qp,qpd_l1,qpd_h1, smallc, cavg, &
                       gamcm, gamcp, flx, flx_l1, flx_h1, &
-                      pgdnv, pg_l1, pg_h1, &
-                      ugdnv, ug_l1, ug_h1, ilo, ihi)
+                      qint, qg_l1, qg_h1, &
+                      ilo, ihi)
     else
        call bl_error("ERROR: HLLC not support in 1-d yet")
     endif
@@ -142,8 +139,8 @@ contains
 
   subroutine riemanncg(ql,qr,qpd_l1,qpd_h1,smallc,cav, &
                        gamcl,gamcr,uflx,uflx_l1,uflx_h1, &
-                       pgdnv, pg_l1, pg_h1, &
-                       ugdnv, ug_l1, ug_h1,ilo,ihi)
+                       qint,qg_l1,qg_h1, &
+                       ilo,ihi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -151,20 +148,13 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QFS, &
-                                   QFX, URHO, UMX, UEDEN, UEINT, &
-                                   npassive, upass_map, qpass_map, small_dens, small_pres, small_temp, &
-                                   cg_maxiter, cg_tol, cg_blend
     use riemann_util_module
 
     double precision, parameter :: small = 1.d-8
 
     integer :: qpd_l1, qpd_h1
     integer :: uflx_l1, uflx_h1
-    integer :: ug_l1, ug_h1
-    integer :: pg_l1, pg_h1
-
+    integer :: qg_l1, qg_h1
 
     double precision :: ql(qpd_l1:qpd_h1, QVAR+3)
     double precision :: qr(qpd_l1:qpd_h1, QVAR+3)
@@ -173,11 +163,10 @@ contains
     double precision ::    cav(ilo:ihi+1)
     double precision :: smallc(ilo:ihi+1)
     double precision :: uflx(uflx_l1:uflx_h1, NVAR)
-    double precision :: ugdnv(ug_l1:ug_h1)
-    double precision :: pgdnv(pg_l1:pg_h1)
+    double precision ::  qint(qg_l1:qg_h1, NGDNV)
 
     integer :: ilo,ihi
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: rgdnv,ustar,gamgdnv,v1gdnv,v2gdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
@@ -604,55 +593,55 @@ contains
        ! linearly interpolate between the star and normal state -- this covers the
        ! case where we are inside the rarefaction fan.
        rgdnv = frac*rstar + (ONE - frac)*ro
-       ugdnv(k) = frac*ustar + (ONE - frac)*uo
-       pgdnv(k) = frac*pstar + (ONE - frac)*po
+       qint(k,GDU) = frac*ustar + (ONE - frac)*uo
+       qint(k,GDPRES) = frac*pstar + (ONE - frac)*po
        gamgdnv =  frac*gamstar + (ONE-frac)*gameo
 
        ! now handle the cases where instead we are fully in the
        ! star or fully in the original (l/r) state
        if (spout < ZERO) then
           rgdnv = ro
-          ugdnv(k) = uo
-          pgdnv(k) = po
+          qint(k,GDU) = uo
+          qint(k,GDPRES) = po
           gamgdnv = gameo
        endif
 
        if (spin >= ZERO) then
           rgdnv = rstar
-          ugdnv(k) = ustar
-          pgdnv(k) = pstar
+          qint(k,GDU) = ustar
+          qint(k,GDPRES) = pstar
           gamgdnv = gamstar
        endif
 
-       pgdnv(k) = max(pgdnv(k),small_pres)
+       qint(k,GDPRES) = max(qint(k,GDPRES),small_pres)
 
        ! Compute fluxes, order as conserved state (not q)
-       uflx(k,URHO) = rgdnv*ugdnv(k)
+       uflx(k,URHO) = rgdnv*qint(k,GDU)
 
        ! note: here we do not include the pressure, since in 1-d,
        ! for some geometries, div{F} + grad{p} cannot be written
        ! in a flux difference form
-       uflx(k,UMX) = uflx(k,URHO)*ugdnv(k)
+       uflx(k,UMX) = uflx(k,URHO)*qint(k,GDU)
 
        ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-       rhoetot = pgdnv(k)/(gamgdnv - ONE) + &
-            HALF*rgdnv*(ugdnv(k)**2 + v1gdnv**2 + v2gdnv**2)
+       rhoetot = qint(k,GDPRES)/(gamgdnv - ONE) + &
+            HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
 
-       uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv(k))
-       uflx(k,UEINT) = ugdnv(k)*pgdnv(k)/(gamgdnv - ONE)
+       uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + qint(k,GDPRES))
+       uflx(k,UEINT) = qint(k,GDU)*qint(k,GDPRES)/(gamgdnv - ONE)
 
        ! passively advected quantities -- only the contact matters
        ! note: this also includes the y- and z-velocity flux
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           if (ustar > ZERO) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
+             uflx(k,n) = uflx(k,URHO)*ql(k,nqp)
           else if (ustar < ZERO) then
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
+             uflx(k,n) = uflx(k,URHO)*qr(k,nqp)
           else
-             qavg = HALF * (ql(k,nq) + qr(k,nq))
+             qavg = HALF * (ql(k,nqp) + qr(k,nqp))
              uflx(k,n) = uflx(k,URHO)*qavg
           endif
 
@@ -673,24 +662,17 @@ contains
                        smallc,cav, &
                        gamcl,gamcr, &
                        uflx,uflx_l1,uflx_h1,&
-                       pgdnv,pg_l1,pg_h1, &
-                       ugdnv,ug_l1,ug_h1, &
+                       qint,qg_l1,qg_h1, &
 #ifdef RADIATION
                        lam, lam_l1, lam_h1, &
                        gamcgl, gamcgr, &
                        rflx,rflx_l1,rflx_h1, &
-                       ergdnv,erg_l1,erg_h1,  &
-                       lamgdnv,lg_l1,lg_h1,  &
 #endif                       
                        ilo,ihi,domlo,domhi)
 
-    use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   URHO, UMX, UEDEN, UEINT, small_dens, small_pres, &
-                                   npassive, upass_map, qpass_map, &
-                                   fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 #ifdef RADIATION
-    use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
+    use meth_params_module, only : qrad, qradhi, qptot, qreitot, fspace_type
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor
 #endif
@@ -700,8 +682,7 @@ contains
     integer ilo,ihi
     integer domlo(1),domhi(1)
     integer  qpd_l1,  qpd_h1
-    integer   pg_l1,   pg_h1
-    integer   ug_l1,   ug_h1
+    integer   qg_l1,   qg_h1
     integer uflx_l1, uflx_h1
 
 #ifdef RADIATION
@@ -711,25 +692,18 @@ contains
     integer   lg_l1,   lg_h1    
 #endif
 
-#ifdef RADIATION    
-    double precision ql(qpd_l1:qpd_h1, QRADVAR)
-    double precision qr(qpd_l1:qpd_h1, QRADVAR)
-#else
-    double precision ql(qpd_l1:qpd_h1, QVAR)
-    double precision qr(qpd_l1:qpd_h1, QVAR)
-#endif
+    double precision ql(qpd_l1:qpd_h1, NQ)
+    double precision qr(qpd_l1:qpd_h1, NQ)
+
     double precision   cav(ilo:ihi+1), smallc(ilo:ihi+1)
     double precision gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
     double precision  uflx(uflx_l1:uflx_h1, NVAR)
-    double precision pgdnv( pg_l1: pg_h1)
-    double precision ugdnv( ug_l1: ug_h1)
+    double precision  qint( qg_l1: qg_h1, NGDNV)
 
 #ifdef RADIATION
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
     double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
-    double precision ergdnv(erg_l1:erg_h1, 0:ngroups-1)
-    double precision lamgdnv( lg_l1: lg_h1, 0:ngroups-1)    
 
     double precision, dimension(0:ngroups-1) :: erl, err
     double precision :: regdnv_g, pgdnv_g, pgdnv_t
@@ -750,7 +724,7 @@ contains
     double precision sgnm, spin, spout, ushock, frac
 
     double precision wsmall, csmall
-    integer ipassive, n, nq
+    integer ipassive, n, nqp
     integer k
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
@@ -924,50 +898,50 @@ contains
        endif
 
        rgdnv = frac*rstar + (ONE - frac)*ro
-       ugdnv(k) = frac*ustar + (ONE - frac)*uo
+       qint(k,GDU) = frac*ustar + (ONE - frac)*uo
 #ifdef RADIATION
        pgdnv_t = frac*pstar + (1.d0 - frac)*po
        pgdnv_g = frac*pstar_g + (1.d0 - frac)*po_g
        regdnv_g = frac*estar_g + (1.d0 - frac)*reo_g
        regdnv_r(:) = frac*estar_r(:) + (1.d0 - frac)*reo_r(:)
 #else
-       pgdnv(k) = frac*pstar + (ONE - frac)*po
+       qint(k,GDPRES) = frac*pstar + (ONE - frac)*po
        regdnv = frac*estar + (ONE - frac)*reo
 #endif
        
        if (spout < ZERO) then
           rgdnv = ro
-          ugdnv(k) = uo
+          qint(k,GDU) = uo
 #ifdef RADIATION
           pgdnv_t = po
           pgdnv_g = po_g
           regdnv_g = reo_g
           regdnv_r(:) = reo_r(:)
 #else
-          pgdnv(k) = po
+          qint(k,GDPRES) = po
           regdnv = reo
 #endif
        endif
 
        if (spin >= ZERO) then
           rgdnv = rstar
-          ugdnv(k) = ustar
+          qint(k,GDU) = ustar
 #ifdef RADIATION
           pgdnv_t = pstar
           pgdnv_g = pstar_g
           regdnv_g = estar_g
           regdnv_r(:) = estar_r(:)
 #else
-          pgdnv(k) = pstar
+          qint(k,GDPRES) = pstar
           regdnv = estar
 #endif
        endif
 
-       if (k == 0 .and. physbc_lo(1) == Symmetry) ugdnv(k) = ZERO
+       if (k == 0 .and. physbc_lo(1) == Symmetry) qint(k,GDU) = ZERO
 
-       if (fix_mass_flux_lo .and. k == domlo(1) .and. ugdnv(k) >= ZERO) then
+       if (fix_mass_flux_lo .and. k == domlo(1) .and. qint(k,GDU) >= ZERO) then
           rgdnv    = ql(k,QRHO)
-          ugdnv(k) = ql(k,QU)
+          qint(k,GDU) = ql(k,QU)
 #ifdef RADIATION
           regdnv_g = rel_g
           regdnv_r(:) = erl(:)
@@ -976,9 +950,9 @@ contains
 #endif
        end if
 
-       if (fix_mass_flux_hi .and. k == domhi(1)+1 .and. ugdnv(k) <= ZERO) then
+       if (fix_mass_flux_hi .and. k == domhi(1)+1 .and. qint(k,GDU) <= ZERO) then
           rgdnv    = qr(k,QRHO)
-          ugdnv(k) = qr(k,QU)
+          qint(k,GDU) = qr(k,QU)
 #ifdef RADIATION
           regdnv_g = rer_g
           regdnv_r(:) = err(:)
@@ -989,53 +963,53 @@ contains
 
 #ifdef RADIATION
        do g=0, ngroups-1
-          ergdnv(k,g) = max(regdnv_r(g), 0.d0)
+          qint(k,GDERADS+g) = max(regdnv_r(g), ZERO)
        end do
        
-       pgdnv(k) = pgdnv_g
+       qint(k,GDPRES) = pgdnv_g
        
-       lamgdnv(k,:) = lambda
+       qint(k,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
 #endif       
        
        ! Compute fluxes, order as conserved state (not q)
 
        ! Note: currently in 1-d, we do not include p in the momentum flux
        ! this is to allow for the spherical gradient
-       uflx(k,URHO) = rgdnv*ugdnv(k)
-       uflx(k,UMX) = uflx(k,URHO)*ugdnv(k)
+       uflx(k,URHO) = rgdnv*qint(k,GDU)
+       uflx(k,UMX) = uflx(k,URHO)*qint(k,GDU)
 
 #ifdef RADIATION
-       rhoetot = regdnv_g + HALF*rgdnv*(ugdnv(k)**2 + v1gdnv**2 + v2gdnv**2)
-       uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv_g)
-       uflx(k,UEINT) = ugdnv(k)*regdnv_g
+       rhoetot = regdnv_g + HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
+       uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + pgdnv_g)
+       uflx(k,UEINT) = qint(k,GDU)*regdnv_g
        
        if (fspace_type.eq.1) then
           do g = 0, ngroups-1
              eddf = Edd_factor(lambda(g))
              f1 = 0.5d0*(1.d0-eddf)
-             rflx(k,g) = (1.d0+f1) * ergdnv(k,g) * ugdnv(k)
+             rflx(k,g) = (1.d0+f1) * qint(k,GDERADS+g) * qint(k,GDU)
           end do
        else ! type 2
           do g = 0, ngroups-1
-             rflx(k,g) = ergdnv(k,g) * ugdnv(k)
+             rflx(k,g) = qint(k,GDERADS+g) * qint(k,GDU)
           end do
        end if
 #else       
-       rhoetot = regdnv + HALF*rgdnv*(ugdnv(k)**2 + v1gdnv**2 + v2gdnv**2)
-       uflx(k,UEDEN) = ugdnv(k)*(rhoetot + pgdnv(k))
-       uflx(k,UEINT) = ugdnv(k)*regdnv
+       rhoetot = regdnv + HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
+       uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + qint(k,GDPRES))
+       uflx(k,UEINT) = qint(k,GDU)*regdnv
 #endif
        
        ! advected quantities -- only the contact matters
        ! note: this includes the y,z-velocity flux       
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           if (ustar >= ZERO) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nq)
+             uflx(k,n) = uflx(k,URHO)*ql(k,nqp)
           else
-             uflx(k,n) = uflx(k,URHO)*qr(k,nq)
+             uflx(k,n) = uflx(k,URHO)*qr(k,nqp)
           endif
 
        enddo

@@ -7,9 +7,9 @@
 
 #ifdef PARTICLES
 
-TracerParticleContainer* Castro::TracerPC =  0;
-int Castro::do_tracer_particles           =  0;
-int Castro::particle_verbose              =  1;
+AmrTracerParticleContainer* Castro::TracerPC =  0;
+int Castro::do_tracer_particles              =  0;
+int Castro::particle_verbose                 =  1;
 
 namespace {
     std::string       particle_init_file;
@@ -82,7 +82,7 @@ Castro::init_particles ()
     {
 	BL_ASSERT(TracerPC == 0);
 	
-	TracerPC = new TracerParticleContainer(parent);
+	TracerPC = new AmrTracerParticleContainer(parent);
 	
 	TracerPC->SetVerbose(particle_verbose);
 	
@@ -112,7 +112,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
         {
             BL_ASSERT(TracerPC == 0);
 
-            TracerPC = new TracerParticleContainer(parent);
+            TracerPC = new AmrTracerParticleContainer(parent);
 
             TracerPC->SetVerbose(particle_verbose);
 	    //
@@ -276,3 +276,35 @@ Castro::TimestampParticles (int ngrow)
 }
 
 #endif
+
+void
+Castro::advance_particles(int iteration, Real time, Real dt)
+{
+    if (TracerPC)
+    {
+	int ng = iteration;
+	Real t = time + 0.5*dt;
+
+	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
+
+	{
+	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
+	    MultiFab& S = fpi.get_mf();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+	    for (MFIter mfi(Ucc,true); mfi.isValid(); ++mfi)
+	    {
+		const Box& bx = mfi.growntilebox();
+		S[mfi].invert(1.0, bx, 0, 1);
+		for (int dir=0; dir < BL_SPACEDIM; ++dir) {
+		    Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
+		    Ucc[mfi].mult(S[mfi], bx, 0, dir);
+		}
+	    }
+	}
+
+	TracerPC->AdvectWithUcc(Ucc, level, dt);
+    }
+}

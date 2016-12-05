@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/bash
 #SBATCH -J xrb-simplenet-3d
 #SBATCH -A m1938
 #SBATCH -N 11
@@ -7,58 +7,47 @@
 
 # -N = number of nodes = # of MPI * number of threads / 24 (cores / node)
 
+function find_chk_file {
+    # find_chk_file takes a single argument -- the wildcard pattern
+    # for checkpoint files to look through
+    chk=$1
+
+    # find the latest 2 restart files.  This way if the latest didn't
+    # complete we fall back to the previous one.
+    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    for f in ${temp_files}
+    do
+	# the Header is the last thing written -- check if it's there, otherwise,
+	# fall back to the second-to-last check file written
+	if [ ! -f ${f}/Header ]; then
+	    restartFile=""
+	else
+	    restartFile="${f}"
+	fi
+    done
+
+}
+
+
 export OMP_NUM_THREADS=1
 
 
 cd $SLURM_SUBMIT_DIR
 
-# find the latest restart file -- first look for one with 7 digits then fall
-# back to 6 and then 5
-restartFile=$(find . -type d -name "*chk???????" -print | sort | tail -1)
+# here, we'll rely on restartFile being global
 
-# the Header is the last thing written -- check if it's there, otherwise,
-# fall back to the second-to-last check file written
-if [ ! -f ${restartFile}/Header ]; then
+# look for 7-digit chk files
+find_chk_file "*chk???????"
 
-    # how many *chk?????? files are there? if only one, then skip
-    nl=$(find . -type d -name "*chk???????" -print | sort | wc -l)
-    if [ $nl -gt 1 ]; then
-	restartFile=$(find . -type d -name "*chk???????" -print | sort | tail -2 | head -1)    
-    else
-	restartFile=""
-    fi
-fi
-
-# if the above checks failed, then there are no valid 7-digit chk files, so
-# check the 6-digit ones
-restartFile=$(find . -type d -name "*chk??????" -print | sort | tail -1)
-
-# the Header is the last thing written -- check if it's there, otherwise,
-# fall back to the second-to-last check file written
-if [ ! -f ${restartFile}/Header ]; then
-
-    # how many *chk?????? files are there? if only one, then skip
-    nl=$(find . -type d -name "*chk??????" -print | sort | wc -l)
-    if [ $nl -gt 1 ]; then
-	restartFile=$(find . -type d -name "*chk??????" -print | sort | tail -2 | head -1)    
-    else
-	restartFile=""
-    fi
-fi
-
-
-# if the above checks failed, then there are no valid 6-digit chk files, so
-# check the 5-digit ones
 if [ "${restartFile}" = "" ]; then
-    restartFile=$(find . -type d -name "*chk?????" -print | sort | tail -1)
-
-    # make sure the Header was written, otherwise, check the second-to-last
-    # file
-    if [ ! -f ${restartFile}/Header ]; then
-	restartFile=$(find . -type d -name "*chk?????" -print | sort | tail -2 | head -1)    
-    fi
+    # look for 6-digit chk files
+    find_chk_file "*chk??????"
 fi
 
+if [ "${restartFile}" = "" ]; then
+    # look for 5-digit chk files
+    find_chk_file "*chk?????"
+fi
 
 # restartString will be empty if no chk files are found -- i.e. new run
 if [ "${restartFile}" = "" ]; then
@@ -66,6 +55,7 @@ if [ "${restartFile}" = "" ]; then
 else
     restartString="amr.restart=${restartFile}"
 fi
+
 
 # Edison has 2 Intel "IvyBridge" processors each with 12 cores.  Each processor
 # connects to 1/2 of the node's memory, and is called a NUMA node.  So there

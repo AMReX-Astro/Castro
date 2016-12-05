@@ -3,17 +3,22 @@ module transverse_module
   use bl_constants_module
 
   use network, only : nspec, naux
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QESGS, QFS, &
-                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UESGS, UFS, &
-                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, GDERADS, GDLAMS, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
+                                 QPRES, QREINT, QGAME, QFS, QFX, &
+#ifdef RADIATION
+                                 qrad, qradhi, qptot, qreitot, &
+                                 fspace_type, comoving, &
+#endif
+                                 URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
+                                 NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+#endif
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, &
-                                     fspace_type, comoving
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif
@@ -36,12 +41,6 @@ contains
     logical :: reset
     type (eos_t) :: eos_state
 
-    ! It is possible that in the trans routines, we'll call the EOS with states
-    ! that dip under the small density or small temperature; we don't want to
-    ! crash in that case, and instead we will allow the reset routines to deal
-    ! with that later.
-    eos_state % check_small = .false.
-
     reset = .false.
 
     if (transverse_reset_rhoe == 1) then
@@ -52,6 +51,7 @@ contains
           eos_state % rho = qedge(ii,jj,kk,QRHO)
           eos_state % T = small_temp
           eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
+          eos_state % aux(:) = qedge(ii,jj,kk,QFX:QFX-1+naux)
 
           call eos(eos_input_rt, eos_state)
 
@@ -68,6 +68,7 @@ contains
           eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
           eos_state % T   = small_temp
           eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
+          eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
 
           call eos(eos_input_re, eos_state)
 
@@ -121,22 +122,19 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -174,7 +172,7 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -183,15 +181,15 @@ contains
              if (j >= jlo+1) then
                 rr = qyp(i,j,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-                compu = rr*qyp(i,j,kc,nq) - compn
-                qypo(i,j,kc,nq) = compu/rrnew
+                compu = rr*qyp(i,j,kc,nqp) - compn
+                qypo(i,j,kc,nqp) = compu/rrnew
              end if
 
              if (j <= jhi-1) then
                 rr = qym(i,j+1,kc,QRHO)
                 rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-                compu = rr*qym(i,j+1,kc,nq) - compn
-                qymo(i,j+1,kc,nq) = compu/rrnew
+                compu = rr*qym(i,j+1,kc,nqp) - compn
+                qymo(i,j+1,kc,nqp) = compu/rrnew
              end if
 
           enddo
@@ -479,22 +477,19 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdx
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -531,7 +526,7 @@ contains
 
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -539,15 +534,15 @@ contains
 
              rr = qzp(i,j,kc,QRHO)
              rrnew = rr - cdtdx*(fx(i+1,j,kc,URHO) - fx(i,j,kc,URHO))
-             compu = rr*qzp(i,j,kc,nq) - compn
-             qzpo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzp(i,j,kc,nqp) - compn
+             qzpo(i,j,kc,nqp) = compu/rrnew
 
              compn = cdtdx*(fx(i+1,j,km,n) - fx(i,j,km,n))
 
              rr = qzm(i,j,kc,QRHO)
              rrnew = rr - cdtdx*(fx(i+1,j,km,URHO) - fx(i,j,km,URHO))
-             compu = rr*qzm(i,j,kc,nq) - compn
-             qzmo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzm(i,j,kc,nqp) - compn
+             qzmo(i,j,kc,nqp) = compu/rrnew
 
           enddo
        enddo
@@ -576,7 +571,7 @@ contains
           ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
-#endif          
+#endif
 
           ! we need to augment our conserved system with either a p
           ! equation or gammae (if we have ppm_predict_gammae = 1) to
@@ -874,22 +869,19 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -926,7 +918,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
              compn = cdtdy*(fy(i,j+1,kc,n) - fy(i,j,kc,n))
@@ -934,15 +926,15 @@ contains
              if (i >= ilo+1) then
                 rr = qxp(i,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-                compu = rr*qxp(i,j,kc,nq) - compn
-                qxpo(i,j,kc,nq) = compu/rrnew
+                compu = rr*qxp(i,j,kc,nqp) - compn
+                qxpo(i,j,kc,nqp) = compu/rrnew
              end if
 
              if (i <= ihi-1) then
                 rr = qxm(i+1,j,kc,QRHO)
                 rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-                compu = rr*qxm(i+1,j,kc,nq) - compn
-                qxmo(i+1,j,kc,nq) = compu/rrnew
+                compu = rr*qxm(i+1,j,kc,nqp) - compn
+                qxmo(i+1,j,kc,nqp) = compu/rrnew
              end if
 
           enddo
@@ -1228,23 +1220,19 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
     double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rhoinv
     double precision rrnew, rr
@@ -1281,7 +1269,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -1289,15 +1277,15 @@ contains
 
              rr = qzp(i,j,kc,QRHO)
              rrnew = rr - cdtdy*(fy(i,j+1,kc,URHO) - fy(i,j,kc,URHO))
-             compu = rr*qzp(i,j,kc,nq) - compn
-             qzpo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzp(i,j,kc,nqp) - compn
+             qzpo(i,j,kc,nqp) = compu/rrnew
 
              compn = cdtdy*(fy(i,j+1,km,n) - fy(i,j,km,n))
 
              rr = qzm(i,j,kc,QRHO)
              rrnew = rr - cdtdy*(fy(i,j+1,km,URHO) - fy(i,j,km,URHO))
-             compu = rr*qzm(i,j,kc,nq) - compn
-             qzmo(i,j,kc,nq) = compu/rrnew
+             compu = rr*qzm(i,j,kc,nqp) - compn
+             qzmo(i,j,kc,nqp) = compu/rrnew
 
           enddo
        enddo
@@ -1509,7 +1497,7 @@ contains
                + qzm(i,j,kc,QW)**2)
           relz = qzm(i,j,kc,QREINT) + ekenlz
 #ifdef RADIATION
-          erl  = qzm(i,j,kc,qrad:qradhi)                                                                          
+          erl  = qzm(i,j,kc,qrad:qradhi)
 #endif
 
           ! Add transverse predictor
@@ -1519,10 +1507,10 @@ contains
           rwnewlz = rwlz - cdtdy*(fy(i,j+1,km,UMZ) - fy(i,j,km,UMZ))
           renewlz = relz - cdtdy*(fy(i,j+1,km,UEDEN)- fy(i,j,km,UEDEN))
 #ifdef RADIATION
-          rvnewlz = rvnewlz + dmom                                                                                
+          rvnewlz = rvnewlz + dmom
           renewlz = renewlz + dre
-          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,km,:)- rfy(i,j,km,:)) &                                             
-               + der      
+          ernewl  = erl(:) - cdtdy*(rfy(i,j+1,km,:)- rfy(i,j,km,:)) &
+               + der
 #endif
 
           ! Reset to original value if adding transverse terms made density negative
@@ -1622,30 +1610,23 @@ contains
 #ifdef RADIATION
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
     double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
     double precision cdtdz
 
-    integer n, nq, i, j, ipassive
+    integer n, nqp, i, j, ipassive
 
     double precision rrnew, rr
     double precision compn, compu
@@ -1681,7 +1662,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -1690,29 +1671,29 @@ contains
              if (i >= ilo+1) then
                 rr = qxp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qxp(i,j,km,nq) - compn
-                qxpo(i,j,km,nq) = compu/rrnew
+                compu = rr*qxp(i,j,km,nqp) - compn
+                qxpo(i,j,km,nqp) = compu/rrnew
              end if
 
              if (j >= jlo+1) then
                 rr = qyp(i,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qyp(i,j,km,nq) - compn
-                qypo(i,j,km,nq) = compu/rrnew
+                compu = rr*qyp(i,j,km,nqp) - compn
+                qypo(i,j,km,nqp) = compu/rrnew
              end if
 
              if (i <= ihi-1) then
                 rr = qxm(i+1,j,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qxm(i+1,j,km,nq) - compn
-                qxmo(i+1,j,km,nq) = compu/rrnew
+                compu = rr*qxm(i+1,j,km,nqp) - compn
+                qxmo(i+1,j,km,nqp) = compu/rrnew
              end if
 
              if (j <= jhi-1) then
                 rr = qym(i,j+1,km,QRHO)
                 rrnew = rr - cdtdz*(fz(i,j,kc,URHO) - fz(i,j,km,URHO))
-                compu = rr*qym(i,j+1,km,nq) - compn
-                qymo(i,j+1,km,nq) = compu/rrnew
+                compu = rr*qym(i,j+1,km,nqp) - compn
+                qymo(i,j+1,km,nqp) = compu/rrnew
              end if
 
           enddo
@@ -2150,7 +2131,7 @@ contains
   !===========================================================================
   subroutine transxy( &
 #ifdef RADIATION
-                     lam, lam_lo, lam_hi, &       
+                     lam, lam_lo, lam_hi, &
 #endif
                      qm,qmo,qp,qpo,qd_lo,qd_hi, &
                      fxy, &
@@ -2185,16 +2166,13 @@ contains
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
     double precision rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
@@ -2203,7 +2181,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdy
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2235,15 +2213,15 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
              rrr = qp(i,j,kc,QRHO)
              rrl = qm(i,j,kc,QRHO)
 
-             compr = rrr*qp(i,j,kc,nq)
-             compl = rrl*qm(i,j,kc,nq)
+             compr = rrr*qp(i,j,kc,nqp)
+             compl = rrl*qm(i,j,kc,nqp)
 
              rrnewr = rrr - cdtdx*(fxy(i+1,j,kc,URHO) - fxy(i,j,kc,URHO)) &
                           - cdtdy*(fyx(i,j+1,kc,URHO) - fyx(i,j,kc,URHO))
@@ -2255,8 +2233,8 @@ contains
              compnl = compl - cdtdx*(fxy(i+1,j,km,n) - fxy(i,j,km,n)) &
                             - cdtdy*(fyx(i,j+1,km,n) - fyx(i,j,km,n))
 
-             qpo(i,j,kc,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nq)
-             qmo(i,j,kc,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nq)
+             qpo(i,j,kc,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d  ,nqp)
+             qmo(i,j,kc,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d-1,nqp)
 
           enddo
        enddo
@@ -2658,16 +2636,13 @@ contains
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
     double precision rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     double precision fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
@@ -2676,7 +2651,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdx,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -2705,7 +2680,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -2716,22 +2691,22 @@ contains
 
              if (j >= jlo+1) then
                 rrr = qp(i,j,km,QRHO)
-                compr = rrr*qp(i,j,km,nq)
+                compr = rrr*qp(i,j,km,nqp)
 
                 rrnewr = rrr + drr
                 compnr = compr + dcompn
 
-                qpo(i,j  ,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+                qpo(i,j  ,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
              end if
 
              if (j <= jhi-1) then
                 rrl = qm(i,j+1,km,QRHO)
-                compl = rrl*qm(i,j+1,km,nq)
+                compl = rrl*qm(i,j+1,km,nqp)
 
                 rrnewl = rrl + drr
                 compnl = compl + dcompn
 
-                qmo(i,j+1,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+                qmo(i,j+1,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
              end if
 
           enddo
@@ -3074,16 +3049,13 @@ contains
     double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
     double precision rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
-    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
-#else
-    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 #endif
+
+    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
     double precision fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     double precision fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
@@ -3092,7 +3064,7 @@ contains
     double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
     double precision hdt,cdtdy,cdtdz
 
-    integer i, j, n, nq, ipassive
+    integer i, j, n, nqp, ipassive
 
     double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
     double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
@@ -3122,7 +3094,7 @@ contains
 
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       nqp = qpass_map(ipassive)
        do j = jlo, jhi
           do i = ilo, ihi
 
@@ -3133,22 +3105,22 @@ contains
 
              if (i >= ilo+1) then
                 rrr = qp(i,j,km,QRHO)
-                compr = rrr*qp(i,j,km,nq)
+                compr = rrr*qp(i,j,km,nqp)
 
                 rrnewr = rrr +drr
                 compnr = compr +dcompn
 
-                qpo(i  ,j,km,nq) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nq)
+                qpo(i  ,j,km,nqp) = compnr/rrnewr + hdt*srcQ(i,j,k3d,nqp)
              end if
 
              if (i <= ihi-1) then
                 rrl = qm(i+1,j,km,QRHO)
-                compl = rrl*qm(i+1,j,km,nq)
+                compl = rrl*qm(i+1,j,km,nqp)
 
                 rrnewl = rrl + drr
                 compnl = compl +dcompn
 
-                qmo(i+1,j,km,nq) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nq)
+                qmo(i+1,j,km,nqp) = compnl/rrnewl + hdt*srcQ(i,j,k3d,nqp)
              end if
           enddo
        enddo
@@ -3214,7 +3186,7 @@ contains
           lugey = HALF*(ugyp+ugym) * lgey(:)
           lugez = HALF*(ugzp+ugzm) * lgez(:)
           dre = -cdtdy*sum(lugey) - cdtdz*sum(lugez)
-          
+
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
@@ -3328,7 +3300,7 @@ contains
                 qpo(i,j,km,QPRES) = qp(i,j,km,QPRES) + hdt*srcQ(i,j,k3d,QPRES)
                 qpo(i,j,km,QGAME) = qp(i,j,km,QGAME)
              endif
-             
+
              qpo(i,j,km,QPRES) = max(qpo(i,j,km,QPRES), small_pres)
 
              call reset_edge_state_thermo(qpo, qd_lo, qd_hi, i, j, km)

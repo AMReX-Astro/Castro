@@ -1,0 +1,177 @@
+\section{Compiling}
+
+\begin{enumerate}
+
+\item {\em Compiling fails giving me a cryptic message about a module not
+  being found, usually {\tt bl\_types} or {\tt bl\_error\_module}, like:
+\begin{verbatim}
+mpif90 -fno-range-check -fno-second-underscore
+ -Jo/3d.Linux.gcc.gfortran.MPI.EXE -I o/3d.Linux.gcc.gfortran.MPI.EXE
+ -ffixed-line-length-0 -g -O3
+ -I. -I/home/zingale/development/Microphysics/util
+ -I../../Microphysics/EOS -I../../Microphysics/EOS/gamma_law
+ -I../../Microphysics/networks
+ -I../../Microphysics/networks/general_null
+ -I. -I/home/zingale/development/BoxLib//Src/C_BaseLib
+ -I/home/zingale/development/BoxLib//Src/C_AMRLib
+ -I/home/zingale/development/BoxLib//Src/C_BoundaryLib -I../../Source
+ -I../../Source/Src_3d -I../../Source/Src_nd -I../../constants
+ -I/home/zingale/development/BoxLib//Src/F_BaseLib
+ -I/home/zingale/development/BoxLib//Tools/C_scripts -c
+ ../../Microphysics/EOS/eos.f90 -o
+ o/3d.Linux.gcc.gfortran.MPI.EXE/eos.o
+../../Microphysics/EOS/eos.f90:3:6:
+
+   use bl_types
+      1
+Fatal Error: Can't open module file ‘bl_types.mod’ for reading at (1):
+ No such file or directory compilation terminated.
+
+/home/zingale/development/BoxLib//Tools/C_mk/Make.rules:122: recipe
+ for target 'o/3d.Linux.gcc.gfortran.MPI.EXE/eos.o' failed
+\end{verbatim}
+}
+
+This usually indicates that the build system cannot find a source file
+(note: the problem above is not {\tt bl\_types}, that just seems to be
+the way the error manifests itself).  The source files are specified
+in the various {\tt Make.package} files throughout the
+\castro\ directory hierarchy.  {\tt make} will look through the
+directories in the {\tt VPATH\_LOCATIONS} to find the files.
+
+There are 2 things you can do to check what's happening.  First, inspect
+the directories in {\tt VPATH\_LOCATIONS}.  This can be done via:
+\begin{verbatim}
+make print-VPATH_LOCATIONS
+\end{verbatim}
+
+Next, ask {\tt make} to tell you where it is finding each of the source
+files.  This is done through a script {\tt find\_files\_vpath.py}
+ that is hooked into \castro's build system.  You can run this as:
+\begin{verbatim}
+make file_locations
+\end{verbatim}
+At the end of the report, it will list any files it cannot find in
+the {\tt vpath}.  Some of these are to be expected (like {\tt extern.f90}
+and {\tt buildInfo.cpp}---these are written at compiletime.  But any
+other missing files need to be investigated.
+
+\item {\em I'm still having trouble compiling.  How can I find out what
+  all of the make variables are set to?}
+
+  Use:
+\begin{verbatim}
+make help
+\end{verbatim}
+  This will tell you the value of all the compilers and their options.
+
+
+
+\end{enumerate}
+
+\section{Debugging}
+
+\begin{enumerate}
+
+\item {\em \castro\ crashes with a floating point exception---how can
+  I get more information?}
+
+  The best thing to do is to recompile the code with {\tt TEST=TRUE}
+  set in the {\tt GNUmakefile}.  This will have \boxlib\ catch the
+  signals raised in both \cpp\ and Fortran functions.  Behind the
+  scenes, this defines the {\tt BL\_TESTING} preprocessor flag, which
+  will initialize memory allocated in {\tt fab}s or {\tt multifab}s to
+  signaling NaNs (sNaN), and use the {\tt BLBackTrace::handler()}
+  function to handle various signals raised in both \cpp\ and Fortran
+  functions.  This is a Linux/UNIX capability.  This gives us a chance
+  to print out backtrace information.  The signals include seg fault,
+  floating point exceptions (NaNs, divided by zero and overflow), and
+  interruption by the user and system.  What signals are handed to
+  BoxLib are controlled by BoxLib.  (E.g., using interruption by the
+  user, this was once used to find an MPI deadlock.)  It also includes
+  the {\tt BL\_ASSERTION} statements if {\tt USE\_ASSERTION=TRUE} or
+  {\tt DEBUG=TRUE}. 
+
+  The BoxLib parameters that affect the behavior are:
+  \begin{itemize}
+    \item {\tt boxlib.fpe\_trap\_invalid}
+    \item {\tt boxlib.fpe\_trap\_zero}
+    \item {\tt boxlib.fpe\_trap\_overflow}
+  \end{itemize}
+
+  For further capabilities, defining {\tt BACKTRACE=TRUE} enables you
+  to get more information than the backtrace of the call stack info by
+  instrumenting the code.  (This is in \cpp\ code only). Here is an
+  example.  You know the line ``{\tt Real rho = state(cell,0);}'' is
+  causing a segfault.  You could add a print statement before that.
+  But it might print out thousands (or even millions) of line before
+  it hits the segfault.  With {\tt BACKTRACE}, you could do
+
+\begin{verbatim}
+      #ifdef BL_BACKTRACING
+         std::ostringstream ss;
+         ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+         BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
+      #endif
+
+      Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
+\end{verbatim}          
+
+    The ``print'' prints to a stack of string, not stdout.  When it
+    hits the segfault, you will only see the last print out.
+
+
+
+\end{enumerate}
+
+
+\section{Profiling}
+
+\begin{enumerate}
+
+\item {\em How can I get line-by-line profiling information?}
+
+  With the GNU compliers, you can enabling profiling with {\tt gprof}
+  by compiling with
+\begin{verbatim}
+  USE_GPROF=TRUE
+\end{verbatim}
+  in your {\tt GNUmakefile}.
+
+  When you run, a file named {\tt gmon.out} will be produced.  This can
+  be processed with {\tt gprof} by running:
+\begin{verbatim}
+  gprof exec-name
+\end{verbatim}
+  where {\em exec-name} is the name of the executable.  More detailed
+  line-by-line information can be obtained by passing the {\tt -l}
+  argument to {\tt gprof}.
+
+\end{enumerate}
+
+
+\section{Managing Runs}
+
+\begin{enumerate}
+
+\item {\em How can I force the running code to output, even it the plot or
+ checkpoint interval parameters don't require it?}
+
+Create a file called \code{dump\_and\_continue}, e.g., as:
+\begin{verbatim}
+touch dump_and_continue
+\end{verbatim}
+
+This will force the code to output a checkpoint file that can be used
+to restart.  Other options are \code{plot\_and\_continue} to output
+a plotfile, \code{dump\_and\_stop} to output a checkpoint file
+and halt the code, and \code{stop\_run} to simply stop the code.
+Note that the parameter \runparam{amr.message\_int} controls how often
+the existence of these files is checked; by default it is 10, so the
+check will be done at the end of every timestep that is a multiple of 10.
+Set that to 1 in your inputs file if you'd like it to check every timestep.
+
+
+
+
+\end{enumerate}

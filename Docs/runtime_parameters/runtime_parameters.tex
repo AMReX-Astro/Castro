@@ -1,0 +1,627 @@
+\section{ {\tt castro } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  AMR
+ parameters]{castro :  AMR
+ parameters} \label{table: castro :  AMR
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{do\_reflux}{castro} &  do we do the hyperbolic reflux at coarse-fine interfaces? & 1 \\
+\runparamNS{lin\_limit\_state\_interp}{castro} &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
+\rowcolor{tableShade}
+\runparamNS{reflux\_strategy}{castro} &  refluxing strategy. Ordered in descending level of accuracy and descending computational expense. 1 = reflux during every finest level timestep 2 = reflux at the end of every timestep on every level & 2 \\
+\runparamNS{state\_interp\_order}{castro} &  highest order used in interpolation & 1 \\
+\rowcolor{tableShade}
+\runparamNS{state\_nghost}{castro} &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
+\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
+\rowcolor{tableShade}
+\runparamNS{use\_custom\_knapsack\_weights}{castro} &  should we have state data for custom load-balancing weighting? & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  diagnostics
+ parameters]{castro :  diagnostics
+ parameters} \label{table: castro :  diagnostics
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{hard\_cfl\_limit}{castro} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
+\runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
+\rowcolor{tableShade}
+\runparamNS{print\_energy\_diagnostics}{castro} &  display breakdown of energy sources & (0, 1) \\
+\runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
+\rowcolor{tableShade}
+\runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
+\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
+\rowcolor{tableShade}
+\runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
+\runparamNS{track\_grid\_losses}{castro} &  calculate losses of material through physical grid boundaries & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  embiggening
+ parameters]{castro :  embiggening
+ parameters} \label{table: castro :  embiggening
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{grown\_factor}{castro} &  the factor by which to extend the domain upon restart for embiggening & 1 \\
+\runparamNS{star\_at\_center}{castro} &  used with the embiggening routines to determine how to extend the domain & -1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  gravity and rotation
+ parameters]{castro :  gravity and rotation
+ parameters} \label{table: castro :  gravity and rotation
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{do\_grav}{castro} &  permits gravity calculation to be turned on and off & -1 \\
+\runparamNS{do\_rotation}{castro} &  permits rotation calculation to be turned on and off & -1 \\
+\rowcolor{tableShade}
+\runparamNS{grav\_source\_type}{castro} &  determines how the gravitational source term is added to the momentum and energy state variables. & 4 \\
+\runparamNS{implicit\_rotation\_update}{castro} &  we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms & 1 \\
+\rowcolor{tableShade}
+\runparamNS{moving\_center}{castro} &  to we recompute the center used for the multipole gravity solve each step? & 0 \\
+\runparamNS{point\_mass}{castro} &  include a central point mass & 0.0 \\
+\rowcolor{tableShade}
+\runparamNS{point\_mass\_fix\_solution}{castro} &  if we have a central point mass, we can prevent mass from building up in the zones adjacent to it by keeping their density constant and adding their mass to the point mass object & 0 \\
+\runparamNS{rot\_axis}{castro} &  the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector & 3 \\
+\rowcolor{tableShade}
+\runparamNS{rot\_source\_type}{castro} &  determines how the rotation source terms are added to the momentum and energy equations & 4 \\
+\runparamNS{rotation\_include\_centrifugal}{castro} &  permits the centrifugal terms in the rotation to be turned on and off & 1 \\
+\rowcolor{tableShade}
+\runparamNS{rotation\_include\_coriolis}{castro} &  permits the Coriolis terms in the rotation to be turned on and off & 1 \\
+\runparamNS{rotation\_include\_domegadt}{castro} &  permits the d(omega)/dt terms in the rotation to be turned on and off & 1 \\
+\rowcolor{tableShade}
+\runparamNS{rotational\_dPdt}{castro} &  the rotation periods time evolution---this allows the rotation rate to change durning the simulation time & 0.0 \\
+\runparamNS{rotational\_period}{castro} &  the rotation period for the corotating frame & -1.e200 \\
+\rowcolor{tableShade}
+\runparamNS{state\_in\_rotating\_frame}{castro} &  Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate). & 1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  hydrodynamics
+ parameters]{castro :  hydrodynamics
+ parameters} \label{table: castro :  hydrodynamics
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{add\_ext\_src}{castro} &  if true, define an additional source term & 0 \\
+\runparamNS{allow\_negative\_energy}{castro} &  Whether or not to allow internal energy to be less than zero & 0 \\
+\rowcolor{tableShade}
+\runparamNS{allow\_small\_energy}{castro} &  Whether or not to allow the internal energy to be less than the internal energy corresponding to small\_temp & 1 \\
+\runparamNS{cg\_blend}{castro} &  for the Colella \& Glaz Riemann solver, what to do if we do not converge to a solution for the star state. 0 = do nothing; print iterations and exit 1 = revert to the original guess for p-star 2 = do a bisection search for another 2 * cg\_maxiter iterations. & 2 \\
+\rowcolor{tableShade}
+\runparamNS{cg\_maxiter}{castro} &  for the Colella \& Glaz Riemann solver, the maximum number of iterations to take when solving for the star state & 12 \\
+\runparamNS{cg\_tol}{castro} &  for the Colella \& Glaz Riemann solver, the tolerance to demand in finding the star state & 1.0e-5 \\
+\rowcolor{tableShade}
+\runparamNS{density\_reset\_method}{castro} &  Which method to use when resetting a negative/small density 1 = Reset to characteristics of adjacent zone with largest density 2 = Use average of all adjacent zones for all state variables 3 = Reset to the original zone state before the hydro update & 1 \\
+\runparamNS{difmag}{castro} &  the coefficient of the artificial viscosity & 0.1 \\
+\rowcolor{tableShade}
+\runparamNS{do\_hydro}{castro} &  permits hydro to be turned on and off for running pure rad problems & -1 \\
+\runparamNS{do\_sponge}{castro} &  permits sponge to be turned on and off & 0 \\
+\rowcolor{tableShade}
+\runparamNS{dual\_energy\_eta1}{castro} &  Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT. & 1.0e0 \\
+\runparamNS{dual\_energy\_eta2}{castro} &  Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged. & 1.0e-4 \\
+\rowcolor{tableShade}
+\runparamNS{dual\_energy\_eta3}{castro} &  Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT. & 1.0e0 \\
+\runparamNS{dual\_energy\_update\_E\_from\_e}{castro} &  Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT. & 1 \\
+\rowcolor{tableShade}
+\runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
+\runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
+\rowcolor{tableShade}
+\runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
+\runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{keep\_sources\_until\_end}{castro} &  retain source terms until end of timestep & 0 \\
+\runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
+\runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
+\rowcolor{tableShade}
+\runparamNS{ppm\_reference\_eigenvectors}{castro} &  do we use the reference state in evaluating the eigenvectors? & 0 \\
+\runparamNS{ppm\_temp\_fix}{castro} &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
+\rowcolor{tableShade}
+\runparamNS{ppm\_trace\_sources}{castro} &  to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation) & 1 \\
+\runparamNS{ppm\_type}{castro} &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
+\rowcolor{tableShade}
+\runparamNS{riemann\_solver}{castro} &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
+\runparamNS{small\_dens}{castro} &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
+\runparamNS{small\_ener}{castro} &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
+\runparamNS{small\_pres}{castro} &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
+\runparamNS{small\_temp}{castro} &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
+\runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
+\rowcolor{tableShade}
+\runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
+\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
+\runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
+\rowcolor{tableShade}
+\runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
+\runparamNS{update\_state\_between\_sources}{castro} &  should we update the state in between evaluations of the new-time source terms & 1 \\
+\rowcolor{tableShade}
+\runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
+\runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
+\rowcolor{tableShade}
+\runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  parallelization
+ parameters]{castro :  parallelization
+ parameters} \label{table: castro :  parallelization
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{bndry\_func\_thread\_safe}{castro} &  & 1 \\
+\runparamNS{do\_acc}{castro} &  determines whether we use accelerators for specific loops & -1 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  reactions
+ parameters]{castro :  reactions
+ parameters} \label{table: castro :  reactions
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{disable\_shock\_burning}{castro} &  disable burning inside hydrodynamic shock regions & 0 \\
+\runparamNS{do\_react}{castro} &  permits reactions to be turned on and off -- mostly for efficiency's sake & -1 \\
+\rowcolor{tableShade}
+\runparamNS{dtnuc\_X}{castro} &  Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(X / \dot{X})$. & 1.e200 \\
+\runparamNS{dtnuc\_e}{castro} &  Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$. & 1.e200 \\
+\rowcolor{tableShade}
+\runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
+\runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
+\rowcolor{tableShade}
+\runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
+\runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
+\rowcolor{tableShade}
+\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
+\runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  refinement
+ parameters]{castro :  refinement
+ parameters} \label{table: castro :  refinement
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{do\_special\_tagging}{castro} &  & 0 \\
+\runparamNS{spherical\_star}{castro} &  & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  timestep control
+ parameters]{castro :  timestep control
+ parameters} \label{table: castro :  timestep control
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{cfl}{castro} &  the effective Courant number to use---we will not allow the hydrodynamic waves to cross more than this fraction of a zone over a single timestep & 0.8 \\
+\runparamNS{change\_max}{castro} &  the maximum factor by which the timestep can increase from one step to the next. & 1.1 \\
+\rowcolor{tableShade}
+\runparamNS{dt\_cutoff}{castro} &  the smallest valid timestep---if we go below this, we abort & 0.0 \\
+\runparamNS{fixed\_dt}{castro} &  a fixed timestep to use for all steps (negative turns it off) & -1.0 \\
+\rowcolor{tableShade}
+\runparamNS{init\_shrink}{castro} &  a factor by which to reduce the first timestep from that requested by the timestep estimators & 1.0 \\
+\runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
+\rowcolor{tableShade}
+\runparamNS{max\_dt}{castro} &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
+\runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
+\rowcolor{tableShade}
+\runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
+\runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt diffusion } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[diffusion parameters]{diffusion parameters} \label{table: diffusion parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{v}{diffusion} &  the level of verbosity for the diffusion solve (higher number means more output) & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt gravity } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[gravity parameters]{gravity parameters} \label{table: gravity parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{const\_grav}{gravity} &  if doing constant gravity, what is the acceleration & 0.0 \\
+\runparamNS{direct\_sum\_bcs}{gravity} &  Check if the user wants to compute the boundary conditions using the brute force method.  Default is false, since this method is slow. & 0 \\
+\rowcolor{tableShade}
+\runparamNS{drdxfac}{gravity} &  ratio of dr for monopole gravity binning to grid resolution & 1 \\
+\runparamNS{get\_g\_from\_phi}{gravity} &  For non-Poisson gravity, do we want to construct the gravitational acceleration by taking the gradient of the potential, rather than constructing it directly? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{gravity\_type}{gravity} &  what type & "fillme" \\
+\runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
+\rowcolor{tableShade}
+\runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
+\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+

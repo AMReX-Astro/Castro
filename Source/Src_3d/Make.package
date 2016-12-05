@@ -4,8 +4,8 @@ f90EXE_sources += slope_$(DIM)d.f90
 F90EXE_sources += trans_$(DIM)d.F90
 f90EXE_sources += ppm_$(DIM)d.f90
 
+F90EXE_sources += Castro_$(DIM)d.F90 
 ifneq ($(USE_RAD), TRUE)
-f90EXE_sources += Castro_$(DIM)d.f90 
 F90EXE_sources += Castro_advection_$(DIM)d.F90
 endif
 
@@ -24,8 +24,4 @@ f90EXE_sources += Gravity_$(DIM)d.f90
 ifeq ($(USE_GR), TRUE)
 f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif
-endif
-
-ifeq ($(USE_LEVELSET), TRUE)
-f90EXE_sources += LevelSet_$(DIM)d.f90
 endif

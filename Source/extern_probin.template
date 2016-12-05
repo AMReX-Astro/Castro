@@ -61,6 +61,8 @@ subroutine runtime_init(name,namlen)
   endif
 
   close (unit=un)
-    
+
+  @@acc@@
+
 end subroutine runtime_init
 

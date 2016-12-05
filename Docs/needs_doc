@@ -1,0 +1,19 @@
+These are things that need to be better documented:
+
+-- The gravity solver options that Max put in, same with rotation options
+
+-- Retries
+
+-- Burning timestep limiters
+
+-- Checkpoint versioning
+
+-- problem tagging, problem specific files / includes
+
+-- problem_post_init
+
+-- density resetting -- see Max's thesis
+
+-- internal energy switches -- again from Max's thesis (2.1)
+
+-- hybrid advection

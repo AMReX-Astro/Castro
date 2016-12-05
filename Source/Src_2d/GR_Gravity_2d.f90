@@ -5,7 +5,7 @@
       subroutine ca_compute_avgpres (lo,hi,dx,dr,&
                                      var,r_l1,r_l2,r_h1,r_h2, &
                                      radial_pres,problo, &
-                                     n1d,drdxfac,level)
+                                     n1d,drdxfac,level) bind(C,name='ca_compute_avgpres')
       use prob_params_module, only : center
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module
@@ -59,10 +59,10 @@
             else
 
                eos_state % rho = var(i,j,URHO)
-               eos_state % e   = var(i,j,UEINT) / rho
+               eos_state % e   = var(i,j,UEINT) / eos_state % rho
                eos_state % T   = var(i,j,UTEMP)
-               eos_state % xn  = var(i,j,UFS:UFS+nspec-1) / rho 
-               eos_state % aux = var(i,j,UFX:UFX+naux-1) / rho
+               eos_state % xn  = var(i,j,UFS:UFS+nspec-1) / eos_state % rho 
+               eos_state % aux = var(i,j,UFX:UFX+naux-1) / eos_state % rho
 
                ! Compute pressure from the EOS
                call eos(eos_input_re, eos_state)
@@ -78,7 +78,7 @@
                   vol_frac = (rhi**2 - rlo**2)  *dy_frac
                   do jj = 0,drdxfac-1
                      yy = lo_j + (dble(jj)+HALF)*dy_frac
-                      r = sqrt(xx**2  + yy**2)
+                     r = sqrt(xx**2  + yy**2)
                      index = int(r/dr)
 
                      if (index .le. n1d-1) then

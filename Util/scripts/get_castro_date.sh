@@ -6,8 +6,7 @@
 
 
 server=https://github.com/BoxLib-Codes
-server2=ssh://mzingale@gamera.lbl.gov:/usr/local/gitroot
-
+branch=development
 
 #-----------------------------------------------------------------------------
 
@@ -15,14 +14,15 @@ date=$1
 
 pwd=`pwd`
 
-# MAESTRO
+# Castro
 echo "cloning Castro"
 git clone ${server}/Castro.git
 
 echo " "
 echo "resetting to before ${date}"
 cd Castro
-hash=`git rev-list -n 1 --before="$date" master`
+git checkout ${branch}
+hash=`git rev-list -n 1 --before="$date" $branch`
 git reset --hard ${hash}
 
 cd ..
@@ -35,21 +35,23 @@ git clone ${server}/BoxLib.git
 echo " "
 echo "resetting to before ${date}"
 cd BoxLib
-hash=`git rev-list -n 1 --before="$date" master`
+git checkout ${branch}
+hash=`git rev-list -n 1 --before="$date" $branch`
 git reset --hard ${hash}
 
 cd ..
 
 
-# Castro_Exec
+# Microphysics
 echo " "
-echo "cloning Castro_Exec"
-git clone ${server2}/Castro_Exec.git
+echo "cloning Microphysics"
+git checkout ${branch}
+git clone ${server}/Microphysics.git
 
 echo " "
 echo "resetting to before ${date}"
-cd Castro_Exec
-hash=`git rev-list -n 1 --before="$date" master`
+cd Microphysics
+hash=`git rev-list -n 1 --before="$date" $branch`
 git reset --hard ${hash}
 
 cd ..
@@ -63,7 +65,8 @@ if [ -f exports.sh ]; then
 fi
 
 cat >> exports.sh << EOF 
-export CASTRO_DIR="${pwd}/Castro"
+export CASTRO_HOME="${pwd}/Castro"
+export MICROPHYSICS_HOME="${pwd}/Microphysics"
 export BOXLIB_HOME="${pwd}/BoxLib"
 EOF
 

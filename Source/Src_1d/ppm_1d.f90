@@ -10,7 +10,7 @@ contains
                  flatn, &
                  Ip,Im,ilo,ihi,dx,dt)
        
-    use meth_params_module, only : ppm_type, ppm_flatten_before_integrals
+    use meth_params_module, only : ppm_type
     use bl_constants_module
 
     implicit none
@@ -87,14 +87,12 @@ contains
           sm(i) = sedge(i  )
        end do
 
-       if (ppm_flatten_before_integrals == 1) then
-          ! flatten the parabola BEFORE doing the other
-          ! monotonozation -- this is the method that Flash does
-          do i=ilo-1,ihi+1
-             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
-             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
-          enddo
-       endif
+       ! flatten the parabola BEFORE doing the other
+       ! monotonozation -- this is the method that Flash does
+       do i=ilo-1,ihi+1
+          sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
+          sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
+       enddo
 
        ! modify using quadratic limiters (CW 1.10) -- with a slightly
        ! different form from Colella & Sekora (Eqs. 14, 15)
@@ -109,14 +107,12 @@ contains
           end if
        end do
 
-       if (ppm_flatten_before_integrals == 2) then
-          ! flatten the parabola AFTER doing the monotonization --
-          ! this is the method that Miller & Colella do
-          do i=ilo-1,ihi+1
-             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
-             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
-          enddo
-       endif
+       ! flatten the parabola AFTER doing the monotonization --
+       ! this is the method that Miller & Colella do
+       !do i=ilo-1,ihi+1
+       !      sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
+       !      sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
+       !enddo
 
 
     else if (ppm_type .eq. 2) then
@@ -209,6 +205,13 @@ contains
           sp(i) = s(i) + alphap
 
        end do
+
+       ! flatten the parabola AFTER doing the monotonization --
+       ! this is the method that Miller & Colella do
+       do i=ilo-1,ihi+1
+             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
+             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
+       enddo
 
     end if
 

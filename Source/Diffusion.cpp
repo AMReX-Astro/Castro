@@ -7,14 +7,14 @@
 
 #define MAX_LEV 15
 
-int  Diffusion::verbose      = 0;
+#include "diffusion_defaults.H"
+
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
   : 
     parent(Parent),
     LevelData(MAX_LEV),
-    phi_flux_reg(MAX_LEV, PArrayManage),
     grids(MAX_LEV),
     volume(MAX_LEV),
     area(MAX_LEV),
@@ -35,7 +35,7 @@ Diffusion::read_params ()
     {
         ParmParse pp("diffusion");
 
-        pp.query("v", verbose);
+#include "diffusion_queries.H"
 
         done = true;
     }
@@ -56,22 +56,10 @@ Diffusion::install_level (int                   level,
     volume.clear(level);
     volume.set(level, &_volume);
 
-    area.set(level, _area);
+    area[level] = _area;
 
     BoxArray ba(LevelData[level].boxArray());
     grids[level] = ba;
-
-    if (level > 0) {
-       phi_flux_reg.clear(level);
-       IntVect crse_ratio = parent->refRatio(level-1);
-       phi_flux_reg.set(level,new FluxRegister(grids[level],crse_ratio,level,1));
-    }
-}
-
-void
-Diffusion::zeroPhiFluxReg (int level)
-{
-  phi_flux_reg[level].setVal(0.);
 }
 
 void
@@ -262,7 +250,6 @@ Diffusion::make_mg_bc ()
             if (phys_bc->hi(dir) == Symmetry   || 
                 phys_bc->hi(dir) == SlipWall   || 
                 phys_bc->hi(dir) == NoSlipWall || 
-                phys_bc->hi(dir) ==  Inflow    || 
                 phys_bc->hi(dir) == Outflow)   
             {
               mg_bc[2*dir + 1] = MGT_BC_NEU;

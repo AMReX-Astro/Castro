@@ -1,8 +1,11 @@
 module eos_type_module
 
+  use bl_types, only: dp_t
   use network, only: nspec, naux
 
   implicit none
+
+  private :: dp_t, nspec, naux
 
   integer, parameter :: eos_input_rt = 1  ! rho, T are inputs
   integer, parameter :: eos_input_rh = 2  ! rho, h are inputs
@@ -36,19 +39,28 @@ module eos_type_module
   integer, parameter :: ierr_out_of_bounds   = 11
   integer, parameter :: ierr_not_implemented = 12
 
-  ! Smallest possible temperature and density permitted by the user.
+  ! Minimum and maximum thermodynamic quantities permitted by the EOS.
 
-  double precision, save :: smallt = 1.d-200
-  double precision, save :: smalld = 1.d-200
+  real(dp_t), save :: mintemp = 1.d-200
+  real(dp_t), save :: maxtemp = 1.d200
+  real(dp_t), save :: mindens = 1.d-200
+  real(dp_t), save :: maxdens = 1.d200
+  real(dp_t), save :: minx    = 1.d-200
+  real(dp_t), save :: maxx    = 1.d0 + 1.d-12
+  real(dp_t), save :: minye   = 1.d-200
+  real(dp_t), save :: maxye   = 1.d0 + 1.d-12
+  real(dp_t), save :: mine    = 1.d-200
+  real(dp_t), save :: maxe    = 1.d200
+  real(dp_t), save :: minp    = 1.d-200
+  real(dp_t), save :: maxp    = 1.d200
+  real(dp_t), save :: mins    = 1.d-200
+  real(dp_t), save :: maxs    = 1.d200
+  real(dp_t), save :: minh    = 1.d-200
+  real(dp_t), save :: maxh    = 1.d200
 
-  ! Minimum and maximum temperature, density, and ye permitted by the EOS.
-
-  double precision, save :: mintemp = 1.d-200
-  double precision, save :: maxtemp = 1.d200
-  double precision, save :: mindens = 1.d-200
-  double precision, save :: maxdens = 1.d200
-  double precision, save :: minye   = 1.d-200
-  double precision, save :: maxye   = 1.d0 + 1.d-12
+  !$acc declare &
+  !$acc create(mintemp, maxtemp, mindens, maxdens, minx, maxx, minye, maxye) &
+  !$acc create(mine, maxe, minp, maxp, mins, maxs, minh, maxh)
 
   ! A generic structure holding thermodynamic quantities and their derivatives,
   ! plus some other quantities of interest.
@@ -89,63 +101,51 @@ module eos_type_module
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
 
-  ! Initialize the main quantities to an unphysical number
-  ! so that we know if the user forgot to initialize them
-  ! when calling the EOS in a particular mode.
-
-  double precision, parameter :: init_num  = -1.0d200
-  double precision, parameter :: init_test = -1.0d199
-
   type :: eos_t
 
-    double precision :: rho         = init_num
-    double precision :: T           = init_num
-    double precision :: p           = init_num
-    double precision :: e           = init_num
-    double precision :: h           = init_num
-    double precision :: s           = init_num
-    double precision :: dpdT        = init_num
-    double precision :: dpdr        = init_num
-    double precision :: dedT        = init_num
-    double precision :: dedr        = init_num
-    double precision :: dhdT        = init_num
-    double precision :: dhdr        = init_num
-    double precision :: dsdT        = init_num
-    double precision :: dsdr        = init_num
-    double precision :: dpde        = init_num
-    double precision :: dpdr_e      = init_num
+    real(dp_t) :: rho
+    real(dp_t) :: T
+    real(dp_t) :: p
+    real(dp_t) :: e
+    real(dp_t) :: h
+    real(dp_t) :: s
+    real(dp_t) :: xn(nspec)
+    real(dp_t) :: aux(naux)
 
-    double precision :: xn(nspec)   = init_num
-    double precision :: aux(naux)   = init_num
-    double precision :: cv          = init_num
-    double precision :: cp          = init_num
-    double precision :: xne         = init_num
-    double precision :: xnp         = init_num
-    double precision :: eta         = init_num
-    double precision :: pele        = init_num
-    double precision :: ppos        = init_num
-    double precision :: mu          = init_num
-    double precision :: mu_e        = init_num
-    double precision :: y_e         = init_num
-    double precision :: dedX(nspec) = init_num
-    double precision :: dpdX(nspec) = init_num
-    double precision :: dhdX(nspec) = init_num
-    double precision :: gam1        = init_num
-    double precision :: cs          = init_num
+    real(dp_t) :: dpdT
+    real(dp_t) :: dpdr
+    real(dp_t) :: dedT
+    real(dp_t) :: dedr
+    real(dp_t) :: dhdT
+    real(dp_t) :: dhdr
+    real(dp_t) :: dsdT
+    real(dp_t) :: dsdr
+    real(dp_t) :: dpde
+    real(dp_t) :: dpdr_e
 
-    double precision :: abar        = init_num
-    double precision :: zbar        = init_num
-    double precision :: dpdA        = init_num
+    real(dp_t) :: cv
+    real(dp_t) :: cp
+    real(dp_t) :: xne
+    real(dp_t) :: xnp
+    real(dp_t) :: eta
+    real(dp_t) :: pele
+    real(dp_t) :: ppos
+    real(dp_t) :: mu
+    real(dp_t) :: mu_e
+    real(dp_t) :: y_e
+    real(dp_t) :: dedX(nspec)
+    real(dp_t) :: dpdX(nspec)
+    real(dp_t) :: dhdX(nspec)
+    real(dp_t) :: gam1
+    real(dp_t) :: cs
 
-    double precision :: dpdZ        = init_num
-    double precision :: dedA        = init_num
-    double precision :: dedZ        = init_num
+    real(dp_t) :: abar
+    real(dp_t) :: zbar
+    real(dp_t) :: dpdA
 
-    double precision :: smallt
-    double precision :: smalld
-
-    logical :: reset                = .false.
-    logical :: check_small          = .true.
+    real(dp_t) :: dpdZ
+    real(dp_t) :: dedA
+    real(dp_t) :: dedZ
 
   end type eos_t
 
@@ -156,8 +156,10 @@ contains
 
   subroutine composition(state)
 
+    !$acc routine seq
+
     use bl_constants_module, only: ONE
-    use network, only: aion, zion
+    use network, only: aion, aion_inv, zion
 
     implicit none
 
@@ -169,10 +171,10 @@ contains
     ! mu_e, the mean number of nucleons per electron, and
     ! y_e, the electron fraction.
 
-    state % mu_e = ONE / (sum(state % xn(:) * zion(:) / aion(:)))
+    state % mu_e = ONE / (sum(state % xn(:) * zion(:) * aion_inv(:)))
     state % y_e = ONE / state % mu_e
 
-    state % abar = ONE / (sum(state % xn(:) / aion(:)))
+    state % abar = ONE / (sum(state % xn(:) * aion_inv(:)))
     state % zbar = state % abar / state % mu_e
 
   end subroutine composition
@@ -181,21 +183,23 @@ contains
 
   subroutine composition_derivatives(state)
 
+    !$acc routine seq
+
     use bl_constants_module, only: ZERO
-    use network, only: aion, zion
+    use network, only: aion, aion_inv, zion
 
     implicit none
 
     type (eos_t), intent(inout) :: state
 
-    state % dpdX(:) = state % dpdA * (state % abar/aion(:))   &
+    state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
-                    + state % dpdZ * (state % abar/aion(:))   &
+                    + state % dpdZ * (state % abar * aion_inv(:))   &
                                    * (zion(:) - state % zbar)
 
-    state % dEdX(:) = state % dedA * (state % abar/aion(:))   &
+    state % dEdX(:) = state % dedA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
-                    + state % dedZ * (state % abar/aion(:))   &
+                    + state % dedZ * (state % abar * aion_inv(:))   &
                                    * (zion(:) - state % zbar)
 
     if (state % dPdr .ne. ZERO) then
@@ -209,22 +213,115 @@ contains
   end subroutine composition_derivatives
 
 
+
   ! Normalize the mass fractions: they must be individually positive
   ! and less than one, and they must all sum to unity.
 
   subroutine normalize_abundances(state)
 
+    !$acc routine seq
+
     use bl_constants_module, only: ONE
-    use meth_params_module, only: small_x
+    use extern_probin_module, only: small_x
 
     implicit none
 
     type (eos_t), intent(inout) :: state
 
-    state % xn(:) = max(small_x, min(ONE, state % xn(:)))
+    state % xn = max(small_x, min(ONE, state % xn))
 
-    state % xn(:) = state % xn(:) / sum(state % xn(:))
+    state % xn = state % xn / sum(state % xn)
 
   end subroutine normalize_abundances
+
+
+
+  ! Ensure that inputs are within reasonable limits.
+
+  subroutine clean_state(state)
+
+    !$acc routine seq
+
+    implicit none
+
+    type (eos_t), intent(inout) :: state
+
+    state % T = min(maxtemp, max(mintemp, state % T))
+    state % rho = min(maxdens, max(mindens, state % rho))
+
+  end subroutine clean_state
+
+
+
+  ! Print out details of the state.
+
+  subroutine print_state(state)
+
+    implicit none
+
+    type (eos_t), intent(in) :: state
+
+    print *, 'DENS = ', state % rho
+    print *, 'TEMP = ', state % T
+    print *, 'X    = ', state % xn
+    print *, 'Y_E  = ', state % y_e
+
+  end subroutine print_state
+
+
+
+  subroutine eos_get_small_temp(small_temp_out)
+
+    !$acc routine seq
+
+    implicit none
+
+    real(dp_t), intent(out) :: small_temp_out
+
+    small_temp_out = mintemp
+
+  end subroutine eos_get_small_temp
+
+
+
+  subroutine eos_get_small_dens(small_dens_out)
+
+    !$acc routine seq
+
+    implicit none
+
+    real(dp_t), intent(out) :: small_dens_out
+
+    small_dens_out = mindens
+
+  end subroutine eos_get_small_dens
+
+
+
+  subroutine eos_get_max_temp(max_temp_out)
+
+    !$acc routine seq
+
+    implicit none
+
+    real(dp_t), intent(out) :: max_temp_out
+
+    max_temp_out = maxtemp
+
+  end subroutine eos_get_max_temp
+
+
+
+  subroutine eos_get_max_dens(max_dens_out)
+
+    !$acc routine seq
+
+    implicit none
+
+    real(dp_t), intent(out) :: max_dens_out
+
+    max_dens_out = maxdens
+
+  end subroutine eos_get_max_dens
 
 end module eos_type_module

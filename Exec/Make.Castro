@@ -1,7 +1,11 @@
 BOXLIB_HOME ?= /path/to/BoxLib
-CASTRO_DIR ?= /path/to/Castro
+CASTRO_HOME ?= /path/to/Castro
 
-TOP := $(CASTRO_DIR)
+# radiation needs hypre
+HYPRE_DIR ?= /path/to/Hypre
+HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
+
+TOP := $(CASTRO_HOME)
 
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
@@ -11,15 +15,23 @@ EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS, Networks and Util
 # this list will be searched for runtime parameters
-EXTERN_CORE :=
+EXTERN_CORE ?=
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
 
+# The default is to include the sponge functionality
+DEFINES += -DSPONGE
+
+ifeq ($(USE_ACC), TRUE)
+  DEFINES += -DACC
+endif
+
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
+  DEFINES += -DSELF_GRAVITY
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -30,8 +42,9 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 endif
 
-ifeq ($(USE_SGS), TRUE)
-  DEFINES += -DSGS
+ifeq ($(USE_SDC), TRUE)
+  USERSuffix   = .SDC
+  DEFINES += -DSDC
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -52,14 +65,6 @@ ifeq ($(USE_SHOCK_VAR), TRUE)
   DEFINES += -DSHOCK_VAR
 endif
 
-ifeq ($(USE_PARTICLES), TRUE)
-  DEFINES += -DPARTICLES
-endif
-
-ifeq ($(USE_LEVELSET), TRUE)
-  DEFINES += -DLEVELSET
-endif
-
 ifeq ($(USE_AUX_UPDATE), TRUE)
   DEFINES += -DAUX_UPDATE
 endif
@@ -70,12 +75,11 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
-  ifeq ($(RAD_INTERP), TRUE)
-    DEFINES += -DRAD_INTERP
-  endif
+  DEFINES += -DRAD_INTERP
+
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
-    optionsSuffix   = $(DIM)d.Neutrino.$(machineSuffix)
+    USERSuffix   = .Neutrino
     ifeq ($(USE_DUMPMODEL), TRUE)
       DEFINES += -DHAS_DUMPMODEL
     endif
@@ -93,6 +97,10 @@ endif
 
 ifeq ($(USE_ROTATION), TRUE)
   DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
 endif
 
 ifeq ($(USE_HYPRE), TRUE)
@@ -114,13 +122,19 @@ ifeq ($(USE_HDF5), TRUE)
 endif
 
 all: $(executable) 
-	$(SILENT) $(RM) buildInfo.cpp
 	@echo SUCCESS
 
+# for backward compatibility -- MICROPHYSICS_DIR is deprecated
+ifndef MICROPHYSICS_HOME
+  ifdef MICROPHYSICS_DIR
+    MICROPHYSICS_HOME := $(MICROPHYSICS_DIR)
+    $(info MICROPHYSICS_DIR is deprecated.  Please use MICROPHYSICS_HOME)
+  endif 
+endif
 
-ifdef MICROPHYSICS_DIR
-      EOS_PATH := $(MICROPHYSICS_DIR)/eos/$(strip $(EOS_dir))
-      NETWORK_PATH := $(MICROPHYSICS_DIR)/networks/$(strip $(Network_dir))
+ifdef MICROPHYSICS_HOME
+      EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
+      NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
 endif
 
 ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
@@ -134,18 +148,15 @@ ifeq ($(USE_DIFFUSION), TRUE)
   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  ifneq "$(wildcard $(RADIATION_DIR)/EOS/$(strip $(EOS_dir)) )" ""
-    EOS_PATH     := $(RADIATION_DIR)/EOS/$(strip $(EOS_dir))
-  endif
-  ifneq "$(wildcard $(RADIATION_DIR)/Networks/$(strip $(Network_dir)) )" ""
-    NETWORK_PATH := $(RADIATION_DIR)/Networks/$(strip $(Network_dir))
-  endif
-  # Check if the test directory has Network_inputs
-  ifneq "$(wildcard $(Network_inputs))" ""
-    GENERAL_NET_INPUTS := $(Network_inputs)
-  else 
-    GENERAL_NET_INPUTS := $(NETWORK_PATH)/$(strip $(Network_inputs))
+# Problems can specify the input file for general_null by 
+# setting GENERAL_NET_INPUTS directly (full path) or just
+# specifying the name of the inputs file as NETWORK_INPUTS
+# and let us sort it out
+ifndef GENERAL_NET_INPUTS
+  ifneq "$(wildcard $(NETWORK_INPUTS))" ""
+    GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
+  else
+    GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
   endif
 endif
 
@@ -171,9 +182,9 @@ EXTERN_CORE += $(NETWORK_PATH)
 # Note that this should be located after the include of the EOS and Network includes
 # since it has actions that depend on variables set there.
 
-ifdef MICROPHYSICS_DIR
-  include $(MICROPHYSICS_DIR)/eos/Make.package
-  include $(MICROPHYSICS_DIR)/networks/Make.package
+ifdef MICROPHYSICS_HOME
+  include $(MICROPHYSICS_HOME)/EOS/Make.package
+  include $(MICROPHYSICS_HOME)/networks/Make.package
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -182,8 +193,9 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif	      
 
 ifeq ($(USE_RAD), TRUE)
-  include $(RADIATION_DIR)/Opacity/$(Opacity_dir)/Make.package
-  EXTERN_CORE += $(RADIATION_DIR)/Opacity/$(Opacity_dir)  
+  OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
+  include $(OPAC_PATH)/Make.package
+  EXTERN_CORE += $(OPAC_PATH)
 endif
 
 INCLUDE_LOCATIONS += $(EOS_HOME)
@@ -202,22 +214,8 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_RAD), TRUE)
-  INCLUDE_LOCATIONS += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
-  VPATH_LOCATIONS   += $(RADIATION_DIR)/Opacity/$(Opacity_dir)/
-endif
-
-ifeq ($(USE_REACT), TRUE)
-VODE_dir    := $(TOP)/Util/VODE
-include $(VODE_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/VODE
-INCLUDE_LOCATIONS += $(VODE_dir) 
-VPATH_LOCATIONS   += $(VODE_dir) 
-
-BLAS_dir    := $(TOP)/Util/BLAS
-include $(BLAS_dir)/Make.package
-EXTERN_CORE += $(TOP)/Util/BLAS
-INCLUDE_LOCATIONS += $(BLAS_dir) 
-VPATH_LOCATIONS   += $(BLAS_dir) 
+  INCLUDE_LOCATIONS += $(OPAC_PATH)
+  VPATH_LOCATIONS   += $(OPAC_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -236,23 +234,31 @@ VPATH_LOCATIONS   += $(TOP)/Util/plot1d
 endif
 
 
-Bdirs 	:= Source Source/Src_$(DIM)d Source/Src_nd
+Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd
 
 
-Pdirs 	:= C_BaseLib C_AMRLib C_BoundaryLib 
+Pdirs 	:= C_BaseLib C_AmrCoreLib C_AMRLib C_BoundaryLib 
+
+ifeq ($(USE_PARTICLES), TRUE)
+  Pdirs += C_ParticleLib
+endif
 
 ifeq ($(USE_RAD), TRUE)
    Pdirs += LinearSolvers/C_CellMG
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir)/Make.package)
-Blocs	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir))
 
 Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 ifeq ($(USE_RAD), TRUE)
-include $(RADIATION_DIR)/Exec/Make.Radiation
+RadDirs := Source/Radiation
+RadDirs += Source/Radiation/_interpbndry
+RadDirs	+= Source/Radiation/RadSrc_$(DIM)d Source/Radiation/RadSrc_nd
+
+Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
+Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
 endif
 
 include $(Bpack)
@@ -265,12 +271,10 @@ EXTERN_CORE += $(TOP)/constants
 INCLUDE_LOCATIONS += $(TOP)/constants
 VPATH_LOCATIONS   += $(TOP)/constants
 
-ifeq ($(USE_MODELPARSER), TRUE)
-  include $(TOP)/Util/model_parser/Make.package
-  EXTERN_CORE += $(TOP)/Util/model_parser
-  INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
-  VPATH_LOCATIONS   += $(TOP)/Util/model_parser
-endif
+include $(TOP)/Util/model_parser/Make.package
+EXTERN_CORE += $(TOP)/Util/model_parser
+INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
+VPATH_LOCATIONS   += $(TOP)/Util/model_parser
 
 USE_MG = FALSE
 
@@ -284,17 +288,10 @@ endif
    
 ifeq ($(USE_MG), TRUE)
   include $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
-  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG
-
   include $(BOXLIB_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
-  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/LinearSolvers/F_MG
 endif
 
 include $(BOXLIB_HOME)/Src/F_BaseLib/FParallelMG.mak
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/F_BaseLib
-VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/F_BaseLib
 
 # runtime parameter support for extern/ routines
 f90EXE_sources += extern.f90
@@ -309,19 +306,37 @@ extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            --pa "$(EXTERN_PARAMETERS)" 
 
 # job_info support
-CEXE_sources += buildInfo.cpp
+#CEXE_sources += buildInfo.cpp
 CEXE_headers += $(BOXLIB_HOME)/Tools/C_scripts/buildInfo.H
 INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
 
 
-buildInfo.cpp:
+MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
+ifeq ($(USE_DIFFUSION), TRUE)
+  MNAMES += CONDUCTIVITY=$(COND_PATH)
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  MNAMES += OPACITY=$(OPAC_PATH)
+endif
+
+# we make buildInfo.cpp as we make the .o file, so we can delete it
+# immediately.  this way if the build is interrupted, we are guaranteed
+# to remake it
+
+objForExecs += $(objEXETempDir)/buildInfo.o
+
+.FORCE:
+.PHONE: .FORCE
+
+$(objEXETempDir)/buildInfo.o: .FORCE
 ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
-          --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)" \
+          --MODULES "$(MNAMES)" \
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
 	  --build_git_dir "$(BUILD_GIT_DIR)"
 else
@@ -329,19 +344,11 @@ else
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
-          --AUX "$(EOS_PATH) $(NETWORK_PATH)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_DIR)"
+          --MODULES "$(MNAMES)" \
+          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)"
 endif
-
-vpath %.c   . $(VPATH_LOCATIONS)
-vpath %.cpp . $(VPATH_LOCATIONS)
-vpath %.h   . $(VPATH_LOCATIONS)
-vpath %.H   . $(VPATH_LOCATIONS)
-vpath %.F   . $(VPATH_LOCATIONS)
-vpath %.f90 . $(VPATH_LOCATIONS) 
-vpath %.F90 . $(VPATH_LOCATIONS)
-vpath %.f   . $(VPATH_LOCATIONS)
-vpath %.fi  . $(VPATH_LOCATIONS)
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) buildInfo.cpp -o $(objEXETempDir)/buildInfo.o
+	$(SILENT) $(RM) buildInfo.cpp
 
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
@@ -366,5 +373,6 @@ clean::
 # for debugging.  To see the value of a Makefile variable,
 # e.g. Fmlocs, simply do "make print-Fmlocs".  This will
 # print out the value.
-print-%: ; @echo $* is $($*) ; $(SILENT) $(RM) buildInfo.cpp
-
+print-%::
+	@echo "$* is $($*)"
+	@$(RM) buildInfo.cpp

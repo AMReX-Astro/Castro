@@ -45,7 +45,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   double precision :: state(state_l1:state_h1,nvar)
 
   ! Remove this call if you're defining your own problem; it is here to 
-  ! ensure that you cannot run CASTRO if you haven't got your own copy of this function.
+  ! ensure that you cannot run Castro if you haven't got your own copy of this function.
 
   call bl_error("Prob_1d.f90 has not been defined for this problem!")
 

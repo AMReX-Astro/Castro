@@ -1,10 +1,12 @@
 ! the network module provides the information about the species we are
-! advecting: 
+! advecting:
 !
 ! nspec      -- the number of species
 !
 ! aion       -- atomic number
 ! zion       -- proton number
+!
+! aion_inv   -- 1/aion
 !
 ! spec_names -- the name of the isotope
 ! short_spec_names -- the abbreviated name of the isotope
@@ -17,26 +19,36 @@
 
 module network
 
-  use bl_types
+  use bl_types, only : dp_t
   use actual_network
-  
+
   implicit none
+
+  private :: dp_t
 
   logical :: network_initialized = .false.
 
+  ! this will be computed here, not in the actual network
+  real(kind=dp_t) :: aion_inv(nspec)
+
+  !$acc declare create(aion_inv)
+
 contains
-  
+
   subroutine network_init
 
+    use bl_error_module, only : bl_error
+    use bl_constants_module, only : ONE
+
     implicit none
-    
+
     ! First, we call the specific network initialization.
     ! This should set the number of species and number of
     ! aux variables, and the components of the species.
     ! Note that the network MUST define nspec and naux
     ! as parameters, or else the compiler will throw an error.
-    
-    call actual_network_init
+
+    call actual_network_init()
 
     ! Check to make sure, and if not, throw an error.
 
@@ -47,6 +59,10 @@ contains
     if ( naux .lt. 0 ) then
        call bl_error("Network cannot have a negative number of auxiliary variables.")
     endif
+
+    aion_inv(:) = ONE/aion(:)
+
+    !$acc update device(aion_inv)
 
     network_initialized = .true.
 

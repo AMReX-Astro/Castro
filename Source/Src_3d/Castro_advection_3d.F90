@@ -4,7 +4,7 @@ module advection_module
 
   private
 
-  public umeth3d, ctoprim, consup
+  public umeth3d, consup
 
 contains
 
@@ -14,9 +14,6 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: c           => (const)  sound speed
-! ::: :: gamc        => (const)  cound speed gamma
-! ::: :: csml        => (const)  local small c val
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
@@ -31,7 +28,8 @@ contains
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth3d(q, c, gamc, csml, flatn, qd_lo, qd_hi, &
+  subroutine umeth3d(q, flatn, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      srcQ, src_lo, src_hi, &
                      lo, hi, dx, dt, &
                      uout, uout_lo, uout_hi, &
@@ -44,25 +42,31 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
+                                   QC, QCSML, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
-                                   hybrid_riemann, USHK
+                                   hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
-    use transverse_module
+    use transverse_module, only : transx1, transx2, transy1, transy2, transz, &
+                                  transxy, transxz, transyz
     use ppm_module, only : ppm
     use slope_module, only : uslope, pslope
-    use network
-    use eos_module
+    use actual_network, only : nspec, naux
+    use eos_module, only : eos_t, eos_input_rt, eos
     use riemann_module, only: cmpflx, shock
     use bl_constants_module
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -75,9 +79,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
 
     double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    double precision, intent(in) ::     c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) ::  gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) ::  csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    double precision, intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
@@ -263,7 +265,11 @@ contains
     pdivu(:,:,:) = ZERO
 
 #ifdef SHOCK_VAR
+    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
+
     call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+
+    ! Store the shock data for future use in the burning step.
 
     do k3d = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -272,6 +278,8 @@ contains
           enddo
        enddo
     enddo
+
+    ! Discard it locally if we don't need it in the hydro update.
 
     if (hybrid_riemann /= 1) then
        shk(:,:,:) = ZERO
@@ -315,7 +323,7 @@ contains
 
           do n=1,QVAR
              call ppm(q(:,:,:,n  ),  qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+                      q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n),It_lo,It_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -324,7 +332,7 @@ contains
           if (ppm_trace_sources .eq. 1) then
              do n=1,QVAR
                 call ppm(srcQ(:,:,:,n),src_lo,src_hi, &
-                         q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+                         q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          flatn,qd_lo,qd_hi, &
                          Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n),It_lo,It_hi, &
                          lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -332,8 +340,8 @@ contains
           endif
 
           if (ppm_temp_fix /= 1) then
-             call ppm(gamc(:,:,:),qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),c,qd_lo,qd_hi, &
+             call ppm(qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
+                      q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
                       Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1),It_lo,It_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
@@ -380,10 +388,10 @@ contains
           endif
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy_ppm(q,c,flatn,qd_lo,qd_hi, &
+          call tracexy_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
                            Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                            qxm,qxp,qym,qyp,qt_lo,qt_hi, &
-                           gamc,qd_lo,qd_hi, &
+                           qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                            lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 
        else
@@ -402,7 +410,7 @@ contains
                            lo(1),lo(2),hi(1),hi(2),kc,k3d,dx)
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy(q,c,qd_lo,qd_hi, &
+          call tracexy(q,qaux(:,:,:,QC),qd_lo,qd_hi, &
                        dqx,dqy,qt_lo,qt_hi, &
                        qxm,qxp,qym,qyp,qt_lo,qt_hi, &
                        lo(1),lo(2),hi(1),hi(2),dx,dt,kc,k3d)
@@ -413,7 +421,7 @@ contains
        call cmpflx(qxm,qxp,qt_lo,qt_hi, &
                    fx,fx_lo,fx_hi, &
                    qgdnvx,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -421,7 +429,7 @@ contains
        call cmpflx(qym,qyp,qt_lo,qt_hi, &
                    fy,fy_lo,fy_hi, &
                    qgdnvy,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -429,21 +437,21 @@ contains
        call transy1(qxm,qmxy,qxp,qpxy,qt_lo,qt_hi, &
                     fy,fy_lo,fy_hi, &
                     qgdnvy,qt_lo,qt_hi, &
-                    gamc,qd_lo,qd_hi, &
+                    qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                     cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,k3d)
 
        ! Compute U'^x_y at kc (k3d)
        call transx1(qym,qmyx,qyp,qpyx,qt_lo,qt_hi, &
                     fx,fx_lo,fx_hi, &
                     qgdnvx,qt_lo,qt_hi, &
-                    gamc,qd_lo,qd_hi, &
+                    qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                     cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy,qpxy,qt_lo,qt_hi, &
                    fxy,fx_lo,fx_hi, &
                    qgdnvtmpx,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    1,lo(1),hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
 
@@ -451,7 +459,7 @@ contains
        call cmpflx(qmyx,qpyx,qt_lo,qt_hi, &
                    fyx,fy_lo,fy_hi, &
                    qgdnvtmpy,qt_lo,qt_hi, &
-                   gamc,csml,c,qd_lo,qd_hi, &
+                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                    shk,shk_lo,shk_hi, &
                    2,lo(1),hi(1),lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -459,13 +467,13 @@ contains
 
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
-             call tracez_ppm(q,c,flatn,qd_lo,qd_hi, &
+             call tracez_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
                              Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                              qzm,qzp,qt_lo,qt_hi, &
-                             gamc,qd_lo,qd_hi, &
+                             qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                              lo(1),lo(2),hi(1),hi(2),dt,km,kc,k3d)
           else
-             call tracez(q,c,qd_lo,qd_hi, &
+             call tracez(q,qaux(:,:,:,QC),qd_lo,qd_hi, &
                          dqz,qt_lo,qt_hi, &
                          qzm,qzp,qt_lo,qt_hi, &
                          lo(1),lo(2),hi(1),hi(2),dx,dt,km,kc,k3d)
@@ -475,7 +483,7 @@ contains
           call cmpflx(qzm,qzp,qt_lo,qt_hi, &
                       fz,fz_lo,fz_hi, &
                       qgdnvz,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -483,21 +491,21 @@ contains
           call transy2(qzm,qmzy,qzp,qpzy,qt_lo,qt_hi, &
                        fy,fy_lo,fy_hi, &
                        qgdnvy,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                        cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,km,k3d)
 
           ! Compute U'^x_z at kc (k3d)
           call transx2(qzm,qmzx,qzp,qpzx,qt_lo,qt_hi, &
                        fx,fx_lo,fx_hi, &
                        qgdnvx,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                        cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,km,k3d)
 
           ! Compute F^{z|x} at kc (k3d)
           call cmpflx(qmzx,qpzx,qt_lo,qt_hi, &
                       fzx,fz_lo,fz_hi, &
                       qgdnvtmpz1,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
 
@@ -505,7 +513,7 @@ contains
           call cmpflx(qmzy,qpzy,qt_lo,qt_hi, &
                       fzy,fz_lo,fz_hi, &
                       qgdnvtmpz2,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
 
@@ -515,7 +523,7 @@ contains
                        fyx,fy_lo,fy_hi, &
                        qgdnvtmpx,qt_lo,qt_hi, &
                        qgdnvtmpy,qt_lo,qt_hi, &
-                       gamc,qd_lo,qd_hi, &
+                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                        srcQ,src_lo,src_hi,&
                        hdt,hdtdx,hdtdy,lo(1),hi(1),lo(2),hi(2),kc,km,k3d)
 
@@ -523,7 +531,7 @@ contains
           call cmpflx(qzl,qzr,qt_lo,qt_hi, &
                       flux3,fd3_lo,fd3_hi, &
                       qgdnvzf,qt_lo,qt_hi, &
-                      gamc,csml,c,qd_lo,qd_hi, &
+                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
 
@@ -549,14 +557,14 @@ contains
              call transz(qxm,qmxz,qxp,qpxz,qym,qmyz,qyp,qpyz,qt_lo,qt_hi, &
                          fz,fz_lo,fz_hi, &
                          qgdnvz,qt_lo,qt_hi, &
-                         gamc,qd_lo,qd_hi, &
+                         qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                          cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
 
              ! Compute F^{x|z} at km (k3d-1)
              call cmpflx(qmxz,qpxz,qt_lo,qt_hi, &
                          fxz,fx_lo,fx_hi, &
                          qgdnvx,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
 
@@ -564,7 +572,7 @@ contains
              call cmpflx(qmyz,qpyz,qt_lo,qt_hi, &
                          fyz,fy_lo,fy_hi, &
                          qgdnvy,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
 
@@ -574,7 +582,7 @@ contains
                           fzy,fz_lo,fz_hi, &
                           qgdnvy,qt_lo,qt_hi, &
                           qgdnvtmpz2,qt_lo,qt_hi, &
-                          gamc,qd_lo,qd_hi, &
+                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                           srcQ,src_lo,src_hi, &
                           hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
 
@@ -584,7 +592,7 @@ contains
                           fzx,fz_lo,fz_hi, &
                           qgdnvx,qt_lo,qt_hi, &
                           qgdnvtmpz1,qt_lo,qt_hi, &
-                          gamc,qd_lo,qd_hi, &
+                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                           srcQ,src_lo,src_hi, &
                           hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
 
@@ -592,7 +600,7 @@ contains
              call cmpflx(qxl,qxr,qt_lo,qt_hi, &
                          flux1,fd1_lo,fd1_hi, &
                          qgdnvxf,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
 
@@ -606,7 +614,7 @@ contains
              call cmpflx(qyl,qyr,qt_lo,qt_hi, &
                          flux2,fd2_lo,fd2_hi, &
                          qgdnvyf,qt_lo,qt_hi, &
-                         gamc,csml,c,qd_lo,qd_hi, &
+                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
                          shk,shk_lo,shk_hi, &
                          2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
 
@@ -714,303 +722,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine ctoprim(lo,hi,          uin,uin_lo,uin_hi, &
-                     q,c,gamc,csml,flatn,  q_lo,  q_hi, &
-                     src,                src_lo,src_hi, &
-                     srcQ,               srQ_lo,srQ_hi, &
-                     courno,dx,dt,ngp,ngf)
-    !
-    !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
-    !     if use_flattening=1.  Declared dimensions of q,c,gamc,csml,flatn are given
-    !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
-    !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-    !     routine that computes flatn).
-    !
-    use mempool_module, only : bl_allocate, bl_deallocate
-    use network, only : nspec, naux
-    use eos_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UMR, UMP, &
-                                   UEDEN, UEINT, UESGS, UTEMP, &
-                                   QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QESGS, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   use_flattening, &
-                                   npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   allow_negative_energy
-    use flatten_module
-    use bl_constants_module
-    use castro_util_module, only: position
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: uin_lo(3), uin_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
-
-    integer, intent(in) :: ngp, ngf
-
-    double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision, intent(in) ::  src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-
-    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision, intent(inout) :: c(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: gamc(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: csml(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
-
-    double precision, intent(in) :: dx(3), dt
-    double precision, intent(inout) :: courno
-
-    double precision, parameter:: small = 1.d-8
-
-
-    double precision, pointer:: dpdrho(:,:,:)
-    double precision, pointer:: dpde(:,:,:)
-!    double precision, pointer:: dpdX_er(:,:,:,:)
-
-    integer          :: i, j, k
-    integer          :: loq(3), hiq(3)
-    integer          :: n, nq, ipassive
-    double precision :: courx, coury, courz, courmx, courmy, courmz
-    double precision :: kineng, rhoinv
-    double precision :: dtdx, dtdy, dtdz
-    double precision :: loc(3), vel(3)
-
-    type (eos_t) :: eos_state
-
-    dtdx = dt/dx(1)
-    dtdy = dt/dx(2)
-    dtdz = dt/dx(3)
-
-    do i=1,3
-       loq(i) = lo(i)-ngp
-       hiq(i) = hi(i)+ngp
-    enddo
-
-    call bl_allocate( dpdrho, q_lo, q_hi)
-    call bl_allocate(   dpde, q_lo, q_hi)
-!    call bl_allocate(dpdX_er, q_lo(1),q_hi(1),q_lo(2),q_hi(2),q_lo(3),q_hi(3),1,nspec)
-
-    !
-    ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
-    ! The temperature is used as an initial guess for the eos call and will be overwritten.
-    !
-    do k = loq(3),hiq(3)
-       do j = loq(2),hiq(2)
-          do i = loq(1),hiq(1)
-             if (uin(i,j,k,URHO) .le. ZERO) then
-                print *,'   '
-                print *,'>>> Error: Castro_advection_3d::ctoprim ',i,j,k
-                print *,'>>> ... negative density ',uin(i,j,k,URHO)
-                call bl_error("Error:: Castro_advection_3d.f90 :: ctoprim")
-             end if
-          end do
-
-          do i = loq(1),hiq(1)
-
-             loc = position(i,j,k)
-
-             q(i,j,k,QRHO) = uin(i,j,k,URHO)
-             rhoinv = ONE/q(i,j,k,QRHO)
-
-             vel = uin(i,j,k,UMX:UMZ) * rhoinv
-
-             q(i,j,k,QU:QW) = vel
-
-             ! Get the internal energy, which we'll use for determining the pressure.
-             ! We use a dual energy formalism. If (E - K) < eta1 and eta1 is suitably small,
-             ! then we risk serious numerical truncation error in the internal energy.
-             ! Therefore we'll use the result of the separately updated internal energy equation.
-             ! Otherwise, we'll set e = E - K.
-
-             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
-
-             if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
-                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
-             else
-                q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
-             endif
-
-             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
-
-             ! convert "rho K" to "K"
-             if (QESGS .gt. -1) &
-                  q(i,j,k,QESGS) = uin(i,j,k,UESGS)*rhoinv
-
-          enddo
-       enddo
-    enddo
-
-    ! Load passively advected quatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-       do k = loq(3),hiq(3)
-          do j = loq(2),hiq(2)
-             do i = loq(1),hiq(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-    enddo
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
-
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
-             eos_state % T   = q(i,j,k,QTEMP )
-             eos_state % rho = q(i,j,k,QRHO  )
-             eos_state % e   = q(i,j,k,QREINT)
-             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
-
-             call eos(eos_input_re, eos_state)
-
-             q(i,j,k,QTEMP)  = eos_state % T
-             q(i,j,k,QREINT) = eos_state % e
-             q(i,j,k,QPRES)  = eos_state % p
-
-             dpdrho(i,j,k)   = eos_state % dpdr_e
-             dpde(i,j,k)     = eos_state % dpde
-             c(i,j,k)        = eos_state % cs
-             gamc(i,j,k)     = eos_state % gam1
-
-             csml(i,j,k)     = max(small, small * c(i,j,k))
-
-             q(i,j,k,QREINT) = q(i,j,k,QREINT) * q(i,j,k,QRHO)
-
-             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
-
-          enddo
-       enddo
-    enddo
-
-    srcQ = ZERO
-
-    ! compute srcQ terms
-    do k = loq(3), hiq(3)
-       do j = loq(2), hiq(2)
-          do i = loq(1), hiq(1)
-             rhoinv = ONE/q(i,j,k,QRHO)
-             srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
-             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QREINT) = src(i,j,k,UEDEN) - q(i,j,k,QU)*src(i,j,k,UMX) &
-                                                   - q(i,j,k,QV)*src(i,j,k,UMY) &
-                                                   - q(i,j,k,QW)*src(i,j,k,UMZ) &
-                                    + HALF * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2) * srcQ(i,j,k,QRHO)
-
-             srcQ(i,j,k,QPRES ) = dpde(i,j,k)*(srcQ(i,j,k,QREINT) - &
-                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
-                  dpdrho(i,j,k)*srcQ(i,j,k,QRHO)! + &
-!                                    sum(dpdX_er(i,j,k,:)*(src(i,j,k,UFS:UFS+nspec-1) - &
-!                                                          q(i,j,k,QFS:QFS+nspec-1)*srcQ(i,j,k,QRHO))) &
-!                                    /q(i,j,k,QRHO)
-
-             if (QESGS .gt. -1) &
-                  srcQ(i,j,k,QESGS) = src(i,j,k,UESGS)*rhoinv - q(i,j,k,QESGS) * srcQ(i,j,k,QRHO)
-
-          enddo
-       enddo
-    enddo
-
-    do ipassive = 1, npassive
-       n = upass_map(ipassive)
-       nq = qpass_map(ipassive)
-
-       do k = loq(3), hiq(3)
-          do j = loq(2), hiq(2)
-             do i = loq(1), hiq(1)
-                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
-             enddo
-          enddo
-       enddo
-
-    enddo
-
-    ! Compute running max of Courant number over grids
-    courmx = courno
-    courmy = courno
-    courmz = courno
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             courx = ( c(i,j,k)+abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( c(i,j,k)+abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( c(i,j,k)+abs(q(i,j,k,QW)) ) * dtdz
-
-             courmx = max( courmx, courx )
-             courmy = max( courmy, coury )
-             courmz = max( courmz, courz )
-
-             if (courx .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... u, c                ',q(i,j,k,QU), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (coury .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... v, c                ',q(i,j,k,QV), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-             if (courz .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: Castro_advection_3d.f90 :: CFL violation in ctoprim")
-                print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                print *,'>>> ... at cell (i,j,k)   : ',i,j,k
-                print *,'>>> ... w, c                ',q(i,j,k,QW), c(i,j,k)
-                print *,'>>> ... density             ',q(i,j,k,QRHO)
-             end if
-
-          enddo
-       enddo
-    enddo
-
-    courno = max( courmx, courmy, courmz )
-
-    ! Compute flattening coef for slope calculations
-    if (use_flattening == 1) then
-       do n=1,3
-          loq(n)=lo(n)-ngf
-          hiq(n)=hi(n)+ngf
-       enddo
-       call uflaten(loq,hiq, &
-                    q(q_lo(1),q_lo(2),q_lo(3),QPRES), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QU), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QV), &
-                    q(q_lo(1),q_lo(2),q_lo(3),QW), &
-                    flatn,q_lo,q_hi)
-    else
-       flatn = ONE
-    endif
-
-    call bl_deallocate( dpdrho)
-    call bl_deallocate(   dpde)
-!    call bl_deallocate(dpdX_er)
-
-  end subroutine ctoprim
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
   subroutine consup(uin,uin_lo,uin_hi, &
+                    q,q_lo,q_hi, &
                     uout,uout_lo,uout_hi, &
-                    src,src_lo,src_hi, &
+                    update,updt_lo,updt_hi, &
                     flux1,flux1_lo,flux1_hi, &
                     flux2,flux2_lo,flux2_hi, &
                     flux3,flux3_lo,flux3_hi, &
@@ -1028,22 +743,26 @@ contains
                     verbose)
 
     use network, only : nspec, naux
-    use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-         UEDEN, UEINT, UTEMP, QVAR, NGDNV, track_grid_losses
-    use bl_constants_module
-    use advection_util_module, only : normalize_species_fluxes
+                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, track_grid_losses, limit_fluxes_on_small_dens
+    use bl_constants_module, only : ZERO, FOURTH, ONE
+    use advection_util_3d_module, only : normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
     use amrinfo_module, only : amr_level
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
+    integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer, intent(in) ::  uout_lo(3),  uout_hi(3)
-    integer, intent(in) ::   src_lo(3),   src_hi(3)
+    integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
@@ -1058,9 +777,9 @@ contains
     integer, intent(in) :: verbose
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-
-    double precision, intent(in) ::   src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    double precision, intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
     double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
     double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
@@ -1086,11 +805,19 @@ contains
 
     do n = 1, NVAR
 
-       if ( n.eq.UTEMP ) then
+       if ( n == UTEMP ) then
 
-          flux1(:,:,:,n) = ZERO
-          flux2(:,:,:,n) = ZERO
-          flux3(:,:,:,n) = ZERO
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+
+#ifdef SHOCK_VAR
+       else if ( n == USHK ) then
+
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+#endif
 
        else
 
@@ -1101,7 +828,6 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
-                   flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -1113,7 +839,6 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
-                   flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -1125,7 +850,6 @@ contains
                    div1 = difmag*min(ZERO,div1)
 
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3) * div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
-                   flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -1133,81 +857,115 @@ contains
        endif
 
     enddo
+
+    if (limit_fluxes_on_small_dens == 1) then
+       call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
+                                             q,q_lo,q_hi, &
+                                             vol,vol_lo,vol_hi, &
+                                             flux1,flux1_lo,flux1_hi, &
+                                             area1,area1_lo,area1_hi, &
+                                             flux2,flux2_lo,flux2_hi, &
+                                             area2,area2_lo,area2_hi, &
+                                             flux3,flux3_lo,flux3_hi, &
+                                             area3,area3_lo,area3_hi, &
+                                             lo,hi,dt,dx)
+
+    endif
 
     call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
                                   flux2,flux2_lo,flux2_hi, &
                                   flux3,flux3_lo,flux3_hi, &
                                   lo,hi)
 
+    ! Fill the update array.
+
     do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-       ! pass temperature through
-       if (n .eq. UTEMP) then
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   uout(i,j,k,n) = uin(i,j,k,n)
-                enddo
+                volinv = ONE / vol(i,j,k)
+
+                update(i,j,k,n) = update(i,j,k,n) + ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
+                                                      flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                                                      flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) * volinv
+
+                ! Add the p div(u) source term to (rho e).
+
+                if (n .eq. UEINT) then
+
+                   update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
+
+                endif
+
              enddo
           enddo
-       else
-          ! update everything else with fluxes
-          do k = lo(3),hi(3)
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-
-                   volinv = ONE/vol(i,j,k)
-
-                   uout(i,j,k,n) = uin(i,j,k,n) &
-                          + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                          +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                          +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) * volinv
-
-                   !
-                   ! Add the p div(u) source term to (rho e)
-                   !
-                   if (n .eq. UEINT) then
-                      uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
-                   endif
-
-                enddo
-             enddo
-          enddo
-       endif
-
+       enddo
     enddo
 
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
-                                     uout, uout_lo, uout_hi, &
+                                     update, uout_lo, uout_hi, &
                                      qx, qx_lo, qx_hi, &
                                      qy, qy_lo, qy_hi, &
                                      qz, qz_lo, qz_hi)
 #endif
 
-    ! Add up some diagnostic quantities. Note that these are volumetric sums
-    ! so we are not dividing by the cell volume.
+
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1) + 1
+                flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2) + 1
+             do i = lo(1), hi(1)
+                flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) &
-                                                  +   flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) &
-                                                  +   flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
-                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) &
-                                                  +   flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) &
-                                                  +   flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
-                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) &
-                                                  +   flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) &
-                                                  +   flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
-                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) &
-                                                  +   flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) &
-                                                  +   flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
-                E_added_flux = E_added_flux + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) &
-                                            +   flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) &
-                                            +   flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN))
+                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) + &
+                                                      flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) + &
+                                                      flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
+                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) + &
+                                                      flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) + &
+                                                      flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
+                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) + &
+                                                      flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) + &
+                                                      flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
+                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) + &
+                                                      flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) + &
+                                                      flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
+                E_added_flux    = E_added_flux    + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) + &
+                                                      flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) + &
+                                                      flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
              enddo
           enddo
        enddo

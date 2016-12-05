@@ -49,7 +49,7 @@ contains
       call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
       call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
-      if(iorder.eq.1) then
+      if(plm_iorder.eq.1) then
 
          do n = 1, nv
             do j = ilo2-1, ihi2+1
@@ -223,7 +223,7 @@ contains
         call bl_allocate (  df, ilo-2,ihi+2,ilo-2,ihi+2)
         call bl_allocate (dcen, ilo-2,ihi+2,ilo-2,ihi+2)
 
-        if(iorder.eq.1) then
+        if(plm_iorder.eq.1) then
 
            do j = ilo2-1, ihi2+1
               do i = ilo1-1, ihi1+1

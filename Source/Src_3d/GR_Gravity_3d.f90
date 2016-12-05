@@ -5,7 +5,7 @@
       subroutine ca_compute_avgpres (lo,hi,dx,dr,&
                                     var,r_l1,r_l2,r_l3,r_h1,r_h2,r_h3,&
                                     radial_pres,problo,&
-                                    n1d,drdxfac,level)
+                                    n1d,drdxfac,level) bind(C,name='ca_compute_avgpres')
       use prob_params_module, only : center
       use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, UFX
       use eos_module

@@ -14,8 +14,8 @@ contains
                    src,src_l1,src_l2,src_h1,src_h2, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
-    use meth_params_module, only : iorder, QVAR, QRHO, QU, QV, &
-                                   QREINT, QPRES, QFS, QFX, &
+    use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QV, &
+                                   QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
@@ -51,13 +51,12 @@ contains
     
     double precision enth, alpham, alphap, alpha0r, alpha0e
     double precision alpha0u, alpha0v
-    double precision spminus, spplus, spzero
+    double precision spzero
     double precision apright, amright, azrright, azeright
     double precision azu1rght, azv1rght
     double precision apleft, amleft, azrleft, azeleft
     double precision azu1left, azv1left
     double precision acmprght, acmpleft, acmpbot, acmptop
-    double precision ascmprght, ascmpleft, ascmpbot, ascmptop
     double precision sourcr,sourcp,source,courn,eta,dlogatmp
     
     double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
@@ -65,7 +64,7 @@ contains
 
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in trace with ppm_type != 0'
-       call bl_error("Error:: Castro_2d.f90 :: trace")
+       call bl_error("Error:: trace_2d.f90")
     end if
     
     dtdx = dt/dx
@@ -75,11 +74,11 @@ contains
     allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
 
     ! Compute slopes
-    if (iorder == 1) then
+    if (plm_iorder == 1) then
        dqx(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
        dqy(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:QVAR) = ZERO
 
-    elseif (iorder == 2) then
+    elseif (plm_iorder == 2) then
        ! these are piecewise linear slopes.  The limiter is a 4th order
        ! limiter, but the overall method will be second order.
        call uslope(q, &
@@ -105,7 +104,7 @@ contains
                       ilo1,ilo2,ihi1,ihi2,dx,dy,2)
        endif
 
-    elseif (iorder == -2) then
+    elseif (plm_iorder == -2) then
        ! these are also piecewise linear, but it uses a multidimensional
        ! reconstruction based on the BDS advection method to construct
        ! the x- and y-slopes together

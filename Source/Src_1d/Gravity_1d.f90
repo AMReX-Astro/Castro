@@ -27,7 +27,7 @@ contains
     double precision :: rlo,rhi,rcen
     integer          :: i
 
-    ! Cartesian 
+    ! Cartesian
     if (coord_type .eq. 0) then
 
        do i=lo(1),hi(1)
@@ -57,7 +57,7 @@ contains
           rhs(i) = rhs(i) - lapphi
        enddo
 
-    else 
+    else
        print *,'Bogus coord_type in test_residual ' ,coord_type
        call bl_error("Error:: Gravity_1d.f90 :: ca_test_residual")
     end if
@@ -66,139 +66,267 @@ contains
 
 
 
-  subroutine ca_compute_1d_grav(rho, r_l1, r_h1, lo, hi, grav, phi, dx, problo) &
-       bind(C, name="ca_compute_1d_grav")
+  subroutine ca_compute_radial_mass (lo,hi,dx,dr,&
+                                     state,r_l1,r_h1, &
+                                     radial_mass,radial_vol,problo, &
+                                     n1d,drdxfac,level) bind(C, name="ca_compute_radial_mass")
 
-    use fundamental_constants_module, only : Gconst
-    use bl_constants_module
-    use meth_params_module, only : get_g_from_phi
+    use bl_constants_module, only: HALF, FOUR3RD, M_PI
+    use prob_params_module, only: center, Symmetry, physbc_lo, coord_type
+    use meth_params_module, only: NVAR, URHO
 
     implicit none
 
-    integer         , intent(in   ) :: r_l1, r_h1
-    integer         , intent(in   ) :: lo,   hi
-    double precision, intent(in   ) ::  rho(r_l1:r_h1)
-    double precision, intent(  out) :: grav(r_l1:r_h1)
-    double precision, intent(  out) ::  phi(r_l1:r_h1)
-    double precision, intent(in   ) :: dx, problo(1)
+    integer          :: lo(1), hi(1)
+    double precision :: dx(1), dr
+    double precision :: problo(1)
 
-    ! We need a temporary arrays to do edge-based indexing for phi.
-    ! Note that we come into this routine with the full 1D density
-    ! array, so we can compute the gravity in one pass.
-    
-    double precision :: phi_temp(r_l1-1:r_h1+1) ! Cell-centered
-    double precision :: phi_edge(r_l1-2:r_h1+2) ! Edge-centered
+    integer          :: n1d, drdxfac, level
+    double precision :: radial_mass(0:n1d-1)
+    double precision :: radial_vol (0:n1d-1)
 
-    double precision, parameter ::  fourthirdspi = FOUR3RD * M_PI
-    double precision :: rc,rlo,mass_encl,halfdx,dm,rloj,rcj,rhij
-    integer          :: i,j
+    integer          :: r_l1, r_h1
+    double precision :: state(r_l1:r_h1,NVAR)
 
-    halfdx = HALF * dx
+    integer          :: i, index
+    integer          :: ii
+    double precision :: r
+    double precision :: dx_frac, fac, vol
+    double precision :: lo_i, rlo, rhi
 
-    if (get_g_from_phi) then
-
-       phi_edge = ZERO
-       phi_temp = ZERO
-       grav = ZERO
-
-       ! First do all the zones in the physical domain and in the
-       ! upper ghost cells, using the standard approach of integrating
-       ! the Green's function for the potential.
-
-       do i = lo, r_h1+2
-
-          rc = problo(1) + dble(i) * dx
-
-          mass_encl = ZERO                  
-
-          do j = lo, hi
-
-             rloj = problo(1) + dble(j) * dx
-             rcj = rloj + halfdx
-             rhij = rcj + halfdx
-
-             dm = fourthirdspi * (rhij**3 - rloj**3) * rho(j)
-
-             mass_encl = mass_encl + dm
-
-             ! If the mass shell is interior to us, the shell theorem
-             ! (or an expansion in in the potential) tells us
-             ! that its contribution to the potential is given by
-             ! a point mass located at the origin.
-
-             if (j .lt. i) then
-
-                phi_edge(i) = phi_edge(i) + Gconst * dm / rc
-
-                ! If the mass shell is exterior, the potential is G * M / R where
-                ! R is the radius of the shell for a point mass. More generally for
-                ! a thick spherical shell of inner radius a and outer radius b, the
-                ! potential inside is given by G * M * 3 * (a + b) / (2 * (a^2 + a* b + b^2)).
-
-             else
-
-                phi_edge(i) = phi_edge(i) + Gconst * dm * (THREE / TWO) * (rloj + rhij) / (rloj**2 + rloj * rhij + rhij**2)
-
-             endif
-
-          enddo
-
-       enddo
-
-       ! Average from cell edges to cell centers.
-
-       do i = lo, r_h1+1
-
-          phi_temp(i) = HALF * (phi_edge(i) + phi_edge(i+1))
-
-       enddo
-
-       ! We want to do even reflection of phi for the lower ghost cells on a
-       ! symmetry axis, to ensure that the gradient at r == 0 vanishes.
-
-       if (problo(1) .eq. ZERO) then
-          do i = r_l1-1, lo-1
-             phi_temp(i) = phi_temp(-i-1)
-          enddo
-       endif
-
-       ! Now that we have phi, construct g by taking the gradient.
-       ! We use simple second-order centered differencing.
-
-       do i = r_l1, r_h1
-
-          grav(i) = (phi_temp(i+1) - phi_temp(i-1)) / (TWO * dx)
-
-       enddo
-
-       phi = phi_temp(r_l1:r_h1)
-
-    else
-
-       mass_encl = ZERO      
-
-       do i = 0, r_h1
-          rlo = problo(1) + dble(i) * dx
-          rc  = rlo + halfdx
-          if (i .gt. 0) then
-             dm = fourthirdspi * halfdx * (rlo**2 + rlo*(rlo-halfdx) + (rlo-halfdx)**2) * rho(i-1) + &
-                  fourthirdspi * halfdx * ( rc**2 +  rc* rlo         +  rlo**2        ) * rho(i  )
-          else
-             dm = fourthirdspi * halfdx * (rc**2 + rc*rlo +  rlo**2) * rho(i)
-          endif
-          mass_encl = mass_encl + dm
-          grav(i) = -Gconst * mass_encl / rc**2
-
-       enddo
-
-       if (problo(1) .eq. ZERO) then
-          do i = r_l1,-1
-             grav(i) = -grav(-i-1)
-          enddo
-       endif
-
+    if (physbc_lo(1) .ne. Symmetry) then
+       call bl_error("Error: Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
     endif
 
-  end subroutine ca_compute_1d_grav
+    if (coord_type .ne. 2) then
+       call bl_error("Error: Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
+    endif
+
+    fac = dble(drdxfac)
+    dx_frac = dx(1) / fac
+
+    do i = lo(1), hi(1)
+
+       r = abs(problo(1) + (dble(i) + HALF) * dx(1) - center(1))
+
+       index = int(r / dr)
+
+       if (index .gt. n1d-1) then
+
+          if (level .eq. 0) then
+             print *,'   '
+             print *,'>>> Error: Gravity_1d::ca_compute_radial_mass ', i
+             print *,'>>> ... index too big: ', index,' > ',n1d-1
+             print *,'>>> ... at i     : ', i
+             print *,'    '
+             call bl_error("Error:: Gravity_1d.f90 :: ca_compute_radial_mass")
+          end if
+
+       else
+
+          ! Note that we assume we are in spherical coordinates in 1D or we wouldn't be
+          ! doing monopole gravity.
+
+          lo_i = problo(1) + dble(i) * dx(1) - center(1)
+
+          do ii = 0, drdxfac-1
+
+             r   = abs(lo_i + (dble(ii  ) + HALF) * dx_frac)
+             rlo = abs(lo_i +  dble(ii  )         * dx_frac)
+             rhi = abs(lo_i +  dble(ii+1)         * dx_frac)
+
+             vol = FOUR3RD * M_PI * (rhi**3 - rlo**3)
+
+             index = int(r / dr)
+
+             if (index .le. n1d-1) then
+                radial_mass(index) = radial_mass(index) + vol * state(i,URHO)
+                radial_vol (index) = radial_vol (index) + vol
+             end if
+
+          enddo
+
+       endif
+
+    enddo
+
+  end subroutine ca_compute_radial_mass
+
+
+
+  subroutine ca_put_radial_grav(lo,hi,dx,dr,&
+                                grav,g_l1,g_h1, &
+                                radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
+
+    use prob_params_module, only: center
+    use bl_constants_module, only: HALF, TWO
+
+    implicit none
+
+    integer          :: lo(1), hi(1)
+    double precision :: dx(1), dr
+    double precision :: problo(1)
+
+    integer          :: n1d, level
+    double precision :: radial_grav(0:n1d-1)
+
+    integer          :: g_l1, g_h1
+    double precision :: grav(g_l1:g_h1)
+
+    integer          :: i, index
+    double precision :: r, mag_grav
+    double precision :: cen, xi, slope, glo, gmd, ghi, minvar, maxvar
+
+    ! Note that we are interpolating onto the entire range of grav,
+    ! including the ghost cells. Taking the absolute value of r ensures
+    ! that we will get the correct behavior even for the ghost zones with
+    ! negative indices, which have a reflecting boundary condition.
+
+    do i = lo(1), hi(1)
+
+       r = abs(problo(1) + (dble(i) + HALF) * dx(1) - center(1))
+
+       index = int(r / dr)
+
+       cen = (dble(index) + HALF) * dr
+       xi = r - cen
+
+       if (index == 0) then
+
+          ! Linear interpolation or extrapolation
+          slope = ( radial_grav(index+1) - radial_grav(index) ) / dr
+          mag_grav = radial_grav(index) + slope * xi
+
+       else if (index == n1d-1) then
+
+          ! Linear interpolation or extrapolation
+          slope = ( radial_grav(index) - radial_grav(index-1) ) / dr
+          mag_grav = radial_grav(index) + slope * xi
+
+       else if (index .gt. n1d-1) then
+
+          if (level .eq. 0) then
+             print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ', index, ' > ', n1d-1
+             print *,'AT i ', i
+             print *,'R / DR IS ', r, dr
+             call bl_error("Error:: Gravity_1d.f90 :: ca_put_radial_grav")
+          else
+             ! NOTE: we don't do anything to this point if it's outside the
+             !       radial grid and level > 0
+          end if
+
+       else
+
+          ! Quadratic interpolation
+          ghi = radial_grav(index+1)
+          gmd = radial_grav(index  )
+          glo = radial_grav(index-1)
+          mag_grav = ( ghi -  TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
+                     ( ghi       - glo     )*xi   /(TWO*dr   ) + &
+                     (-ghi + 26.d0*gmd - glo)/24.d0
+
+          minvar = min(gmd, min(glo,ghi))
+          maxvar = max(gmd, max(glo,ghi))
+          mag_grav = max(mag_grav,minvar)
+          mag_grav = min(mag_grav,maxvar)
+
+       end if
+
+       if (index .le. n1d-1) then
+
+          grav(i) = mag_grav
+
+       end if
+
+    enddo
+
+  end subroutine ca_put_radial_grav
+
+
+
+  subroutine ca_put_radial_phi (lo,hi,domlo,domhi,dx,dr,&
+                                phi,p_l1,p_h1, &
+                                radial_phi,problo, &
+                                numpts_1d,fill_interior) bind(C, name="ca_put_radial_phi")
+
+    use prob_params_module, only: center
+    use bl_constants_module, only: HALF, TWO
+
+    implicit none
+    integer          :: lo(1), hi(1)
+    integer          :: domlo(1), domhi(1)
+    double precision :: dx(1), dr
+    double precision :: problo(1)
+
+    integer          :: numpts_1d
+    double precision :: radial_phi(0:numpts_1d-1)
+    integer          :: fill_interior
+
+    integer          :: p_l1, p_h1
+    double precision :: phi(p_l1:p_h1)
+
+    integer          :: i, index
+    double precision :: r
+    double precision :: cen, xi, slope, p_lo, p_md, p_hi, minvar, maxvar
+
+    ! Note that when we interpolate into the ghost cells we use the
+    ! location of the edge, not the cell center.
+
+    do i = lo(1), hi(1)
+       if (i .gt. domhi(1)) then
+          r = problo(1) + (dble(i  )     ) * dx(1) - center(1)
+       else if (i .lt. domlo(1)) then
+          r = problo(1) + (dble(i+1)     ) * dx(1) - center(1)
+       else
+          r = problo(1) + (dble(i  )+HALF) * dx(1) - center(1)
+       end if
+
+       index = int(r / dr)
+
+       if (index .gt. numpts_1d-1) then
+          print *,'PUT_RADIAL_PHI: INDEX TOO BIG ', index, ' > ', numpts_1d-1
+          print *,'AT (i) ',i
+          print *,'R / DR IS ', r, dr
+          call bl_error("Error:: Gravity_1d.f90 :: ca_put_radial_phi")
+       end if
+
+       if ( (fill_interior .eq. 1) .or. (i .lt. domlo(1) .or. i.gt.domhi(1)) ) then
+
+          cen = (dble(index) + HALF) * dr
+          xi = r - cen
+
+          if (index == 0) then
+
+             ! Linear interpolation or extrapolation
+             slope = ( radial_phi(index+1) - radial_phi(index) ) / dr
+             phi(i) = radial_phi(index) + slope * xi
+
+          else if (index == numpts_1d-1) then
+
+             ! Linear interpolation or extrapolation
+             slope = ( radial_phi(index) - radial_phi(index-1) ) / dr
+             phi(i) = radial_phi(index) + slope * xi
+
+          else
+
+             ! Quadratic interpolation
+             p_hi = radial_phi(index+1)
+             p_md = radial_phi(index  )
+             p_lo = radial_phi(index-1)
+             phi(i) = ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
+                      ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
+                      (-p_hi + 26.d0*p_md - p_lo)/24.d0
+             minvar = min(p_md, min(p_lo,p_hi))
+             maxvar = max(p_md, max(p_lo,p_hi))
+             phi(i) = max(phi(i),minvar)
+             phi(i) = min(phi(i),maxvar)
+
+          end if
+
+       end if
+
+    enddo
+
+  end subroutine ca_put_radial_phi
 
 end module gravity_1D_module

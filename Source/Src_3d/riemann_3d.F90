@@ -3,18 +3,21 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
-  use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, &
-                                 QPRES, QGAME, QREINT, QESGS, QFS, &
+  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
+                                 QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                 UESGS, UFS, UFX, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, GDERADS, GDLAMS, &
+                                 UFS, UFX, &
+                                 NGDNV, GDRHO, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 GDERADS, GDLAMS, &
+                                 qrad, qradhi, qptot, qreitot, fspace_type, &
+#endif
                                  small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
                                  npassive, upass_map, qpass_map, &
                                  riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                  allow_negative_energy
 #ifdef RADIATION
-  use radhydro_params_module, only : QRADVAR, qrad, qradhi, qptot, qreitot, fspace_type
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
   use rad_params_module, only : ngroups
@@ -48,6 +51,7 @@ contains
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
+    use network, only: nspec, naux
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
@@ -70,13 +74,8 @@ contains
     ! comes in dimensioned as the full box.  We index the flux with
     ! kflux -- this will be set correctly for the different cases.
 
-#ifdef RADIATION
-    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-#else
-    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-#endif
+    double precision, intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision, intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
 
     double precision, intent(inout) ::    flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
     double precision, intent(inout) ::   qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
@@ -111,7 +110,7 @@ contains
 
     gd_lo = (/ ilo, jlo /)
     gd_hi = (/ ihi, jhi /)
-    
+
     call bl_allocate ( smallc, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate (   cavg, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate (  gamcm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
@@ -183,7 +182,7 @@ contains
              ! minus state
              eos_state % rho = qm(i,j,kc,QRHO)
              eos_state % p   = qm(i,j,kc,QPRES)
-             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO) 
+             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
              eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
              eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
 
@@ -458,17 +457,17 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: ustar,gamgdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
-    double precision :: wl, wr, rhoetot, scr
+    double precision :: wl, wr, rhoetot
+   !double precision :: scr
     double precision :: rstar, cstar, pstar
     double precision :: ro, uo, po, co, gamco
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
     double precision :: gcl, gcr
     double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
@@ -495,6 +494,12 @@ contains
     type (eos_t) :: eos_state
 
     double precision, pointer :: us1d(:)
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
+
+    double precision :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -980,6 +985,8 @@ contains
 
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 
+          u_adv = qint(i,j,kc,iu)
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
                special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
@@ -987,10 +994,10 @@ contains
           else
              bnd_fac_x = ONE
           end if
-          qint(i,j,kc,iu) = qint(i,j,kc,iu) * bnd_fac_x*bnd_fac_y*bnd_fac_z
+          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*qint(i,j,kc,iu)
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
@@ -1004,31 +1011,8 @@ contains
           rhoetot = qint(i,j,kc,GDPRES)/(gamgdnv - ONE) + &
                HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + qint(i,j,kc,GDPRES))
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
-
-
-          ! Treat K as a passively advected quantity but allow it to
-          ! affect fluxes of (rho E) and momenta.
-          if (UESGS .gt. -1) then
-             n  = UESGS
-             nq = QESGS
-             if (ustar .gt. ZERO) then
-                qavg = ql(i,j,kc,nq)
-             else if (ustar .lt. ZERO) then
-                qavg = qr(i,j,kc,nq)
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-             endif
-
-             uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-
-             rho_K_contrib =  TWO3RD * qint(i,j,kc,GDRHO) * qavg
-
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
-
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + qint(i,j,kc,iu) * rho_K_contrib
-          end if
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
 
           us1d(i) = ustar
        end do
@@ -1036,15 +1020,15 @@ contains
        ! advected quantities -- only the contact matters
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           do i = ilo, ihi
              if (us1d(i) .gt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
              else if (us1d(i) .lt. ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -1093,13 +1077,9 @@ contains
     integer rflx_lo(3),rflx_hi(3)
 #endif
 
-#ifdef RADIATION
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QRADVAR)
-#else
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-#endif
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+
     double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
@@ -1122,17 +1102,16 @@ contains
     !             cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, kflux = kc,
     !             but in later calls, when uflx = {flux1,flux2,flux3}  , kflux = k3d
     integer :: i,j,kc,kflux,k3d
-    integer :: n, nq, ipassive
+    integer :: n, nqp, ipassive
 
     double precision :: regdnv
     double precision :: rl, ul, v1l, v2l, pl, rel
     double precision :: rr, ur, v1r, v2r, pr, rer
     double precision :: wl, wr, rhoetot, scr
-    double precision :: rstar, cstar, estar, pstar, ustar, v1g, v2g
+    double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho, drho
     double precision :: sgnm, spin, spout, ushock, frac
     double precision :: wsmall, csmall,qavg
-    double precision :: rho_K_contrib
 
 #ifdef RADIATION
     double precision, dimension(0:ngroups-1) :: erl, err
@@ -1146,6 +1125,12 @@ contains
 #endif
 
     double precision, pointer :: us1d(:)
+
+#ifdef ROTATION
+    double precision :: vel(3)
+#endif
+
+    double precision :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -1395,7 +1380,7 @@ contains
           qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
           regdnv = frac*estar + (ONE - frac)*reo
 #endif
-          
+
           if (spout < ZERO) then
              qint(i,j,kc,GDRHO) = ro
              qint(i,j,kc,iu  ) = uo
@@ -1429,8 +1414,8 @@ contains
           do g=0, ngroups-1
              qint(i,j,kc,GDERADS+g) = max(regdnv_r(g), 0.d0)
           end do
-          
-          qint(i,j,kc,GDPRES) = pgdnv_g          
+
+          qint(i,j,kc,GDPRES) = pgdnv_g
           qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
 
           qint(i,j,kc,GDGAME) = pgdnv_g/regdnv_g + ONE
@@ -1439,6 +1424,8 @@ contains
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 #endif
 
+          u_adv = qint(i,j,kc,iu)
+
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
           if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
                special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
@@ -1446,11 +1433,11 @@ contains
           else
              bnd_fac_x = ONE
           end if
-          qint(i,j,kc,iu) = qint(i,j,kc,iu) * bnd_fac_x*bnd_fac_y*bnd_fac_z
+          u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*qint(i,j,kc,iu)
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu ) + qint(i,j,kc,GDPRES)
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
@@ -1462,41 +1449,16 @@ contains
 
 #ifdef RADIATION
           rhoetot = regdnv_g + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
-          
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + pgdnv_g)
-          
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*regdnv_g
+
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + pgdnv_g)
+
+          uflx(i,j,kflux,UEINT) = u_adv*regdnv_g
 #else
           rhoetot = regdnv + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = qint(i,j,kc,iu)*(rhoetot + qint(i,j,kc,GDPRES))
-          uflx(i,j,kflux,UEINT) = qint(i,j,kc,iu)*regdnv
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*regdnv
 #endif
-
-          ! Treat K as a passively advected quantity but allow it to
-          ! affect fluxes of (rho E) and momenta.
-          if (UESGS > -1) then
-             n  = UESGS
-             nq = QESGS
-
-             if (ustar > ZERO) then
-                qavg = ql(i,j,kc,nq)
-
-             else if (ustar < ZERO) then
-                qavg = qr(i,j,kc,nq)
-
-             else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
-             endif
-
-             uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
-
-             rho_K_contrib =  TWO3RD * qint(i,j,kc,GDRHO) * qavg
-
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + rho_K_contrib
-
-             uflx(i,j,kflux,UEDEN) = uflx(i,j,kflux,UEDEN) + qint(i,j,kc,iu) * rho_K_contrib
-          end if
 
           ! store this for vectorization
           us1d(i) = ustar
@@ -1506,11 +1468,11 @@ contains
              do g=0,ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = 0.5d0*(1.d0-eddf)
-                rflx(i,j,kflux,g) = (1.d0+f1) * qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = (1.d0+f1) * qint(i,j,kc,GDERADS+g) * u_adv
              end do
           else ! type 2
              do g=0,ngroups-1
-                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * qint(i,j,kc,iu)
+                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * u_adv
              end do
           end if
 #endif
@@ -1519,22 +1481,22 @@ contains
        ! passively advected quantities
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
-          nq = qpass_map(ipassive)
+          nqp = qpass_map(ipassive)
 
           !dir$ ivdep
           do i = ilo, ihi
              if (us1d(i) > ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
 
              else if (us1d(i) < ZERO) then
-                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nq)
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
 
              else
-                qavg = HALF * (ql(i,j,kc,nq) + qr(i,j,kc,nq))
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
-          
+
        enddo
     enddo
 
@@ -1598,7 +1560,7 @@ contains
     double precision :: rstar, cstar, estar, pstar, ustar
     double precision :: ro, uo, po, reo, co, gamco, entho
     double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall,qavg
+    double precision :: wsmall, csmall
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
@@ -1607,10 +1569,6 @@ contains
 
     double precision :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
     double precision :: S_l, S_r, S_c
-
-    if (UESGS > 0) then
-       call bl_error("ERROR: HLLC doesn't support SGS")
-    endif
 
     if (idir .eq. 1) then
        iu = QU
@@ -1741,7 +1699,7 @@ contains
 
           entho = (reo + po)*co2inv/ro
           estar = reo + (pstar - po)*entho
-          
+
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar,csmall)
 
@@ -1782,7 +1740,7 @@ contains
           end if
 
           bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
-          
+
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
@@ -1800,7 +1758,7 @@ contains
              ! R* region
              call cons_state(qr(i,j,kc,:), U_state)
              call compute_flux(idir, 3, bnd_fac, U_state, pr, F_state)
-             
+
              call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
 
              ! correct the flux

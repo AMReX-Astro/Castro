@@ -1,0 +1,73 @@
+\label{ch:diffusion}
+
+\section{Introduction}
+
+Castro incorporates explicit thermal diffusion into the energy equation.  
+In terms of the specific internal energy, $e$, this appears as:
+\begin{equation}
+\rho \frac{De}{Dt} + p \nabla \cdot U = \nabla \cdot k_\mathrm{th} \nabla T
+\end{equation}
+where $k_\mathrm{th}$ is the thermal conductivity, with units
+$\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}$.
+
+To see the similarity to the thermal diffusion equation, consider the special
+case of constant conductivity, $k_\mathrm{th}$, and density, and assume an
+ideal gas, so $e = c_v T$, where $c_v$ is the specific heat at constant volume.
+Finally, ignore hydrodynamics, so $U = 0$.  This gives:
+\begin{equation}
+\frac{\partial T}{\partial t} = D \nabla^2 T
+\end{equation}
+where $D \equiv k_\mathrm{th}/(\rho c_v)$.  Solving this equation
+explicitly requires a timestep limiter of
+\begin{equation}
+\Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
+\end{equation}
+(this is implemented in {\tt Castro/Source/Src\_nd/timestep.F90}).
+
+Support for diffusion must be compiled into the code by setting
+{\tt USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.
+
+
+The following parameter affects diffusion:
+\begin{itemize}
+\item {\tt castro.diffuse\_temp}:  enable thermal diffusion (0 or 1; default 0)
+\end{itemize}
+
+A pure diffusion problem (with no hydrodynamics) can be run by setting
+\begin{verbatim}
+castro.diffuse_temp = 1
+castro.do_hydro = 0
+\end{verbatim}
+
+To complete the setup, a thermal conductivity must be specified.
+A simple constant conductivity is provided in {\tt Conductivity/constant/}
+and can be selected by setting
+\begin{verbatim}
+Conductivity_dir := constant
+\end{verbatim}
+in your GNUmakefile.  To set the value of the conductivity (e.g., to
+$100$), you add to your {\tt probin} file's {\tt \&extern} namelist:
+\begin{verbatim}
+const_conductivity = 100.0
+\end{verbatim}
+
+
+The diffusion approximation breaks down at the surface of stars,
+where the density rapidly drops and the mean free path becomes 
+large.  In those instances, you should use the flux limited diffusion
+module in Castro to evolve a radiation field.  However, if your
+interest is only on the diffusion in the interior, you can use
+the {\tt castro.diff\_cutoff\_density} parameter to specify a density,
+below which, diffusion is not modeled.  This is implemented in the
+code by zeroing out the conductivity and skipping the estimation
+of the timestep limit in these zones.
+
+
+The interface for the conductivity routine takes
+the thermodynamic state through an {\tt eos\_t} type (you can assume
+that $\rho$, $T$, and $X_k$ are set).  More complicated conductivities
+can be created by modifying this simple version.
+
+A simple test problem that sets up a Gaussian temperature profile 
+and does pure diffusion is provided as {\tt diffusion\_test}.
+

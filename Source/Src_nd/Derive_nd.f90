@@ -99,8 +99,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -119,8 +118,6 @@ contains
     double precision :: rhoInv
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -151,8 +148,7 @@ contains
 
     use network, only : nspec, naux
     use eos_module
-    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -182,8 +178,6 @@ contains
              eos_state % rho = dat(i,j,k,URHO)
              eos_state % xn  = dat(i,j,k,UFS:UFS+nspec-1) * rhoInv
              eos_state % aux = dat(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
 
              call eos(eos_input_re, eos_state)
 
@@ -480,9 +474,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
-
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -500,8 +492,6 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -606,8 +596,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -625,8 +614,6 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -657,8 +644,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -676,8 +662,6 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -708,8 +692,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX, &
-         allow_negative_energy
+    use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
     implicit none
@@ -727,8 +710,6 @@ contains
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
-
-    if (allow_negative_energy .eq. 0) eos_state % reset = .true.      
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
