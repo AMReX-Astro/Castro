@@ -22,5 +22,5 @@ Opacity_dir := null
 Bpack   := ./Make.package
 Blocs   := .
 
-include $(CASTRO_HOME)/Exec./Make.Castro
+include $(CASTRO_HOME)/Exec/Make.Castro
 
