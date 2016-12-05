@@ -12,21 +12,19 @@ function find_chk_file {
     # for checkpoint files to look through
     chk=$1
 
-    # find the latest restart file
-    restartFile=$(find . -type d -name "${chk}" -print | sort | tail -1)
-
-    # the Header is the last thing written -- check if it's there, otherwise,
-    # fall back to the second-to-last check file written
-    if [ ! -f ${restartFile}/Header ]; then
-
-	# how many *chk?????? files are there? if only one, then skip
-	nl=$(find . -type d -name "${chk}" -print | sort | wc -l)
-	if [ $nl -gt 1 ]; then
-	    restartFile=$(find . -type d -name "${chk}" -print | sort | tail -2 | head -1)    
-	else
+    # find the latest 2 restart files.  This way if the latest didn't
+    # complete we fall back to the previous one.
+    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    for f in ${temp_files}
+    do
+	# the Header is the last thing written -- check if it's there, otherwise,
+	# fall back to the second-to-last check file written
+	if [ ! -f ${f}/Header ]; then
 	    restartFile=""
+	else
+	    restartFile="${f}"
 	fi
-    fi
+    done
 
 }
 
