@@ -933,7 +933,7 @@ subroutine ca_get_v_dcf(lo, hi, &
                         kp2, kp2_l1, kp2_l2, kp2_l3, kp2_h1, kp2_h2, kp2_h3, &
                         dtemp, dtime, sigma, c, &
                         v  ,   v_l1,   v_l2,   v_l3,   v_h1,   v_h2,   v_h3, &
-                        dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3)
+                        dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3) bind(C, name="ca_get_v_dcf")
 
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
 
@@ -1063,7 +1063,7 @@ subroutine ca_update_dcf(lo, hi, &
                          dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3, &
                          etainv, eti_l1, eti_l2, eti_l3, eti_h1, eti_h2, eti_h3, &
                          kp, kp_l1, kp_l2, kp_l3, kp_h1, kp_h2, kp_h3, &
-                         kr, kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3)
+                         kr, kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3) bind(C, name="ca_update_dcf")
 
   implicit none
 

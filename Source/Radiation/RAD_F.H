@@ -26,15 +26,18 @@ extern "C"
 void ca_init_radhydro_pars
     (const int & fspace_advection_type, const int & do_inelastic_scattering,
      const int & comoving, const Real & flatten_pp_threshold);
-}
 
-BL_FORT_PROC_DECL(CA_INITRADCONSTANTS,ca_initradconstants)
+void ca_initradconstants
   (const Real& pi, Real& clight, Real& hplanck,
    Real& kboltz, Real& stefbol, Real& avogadro,
    Real& mev2erg, int& J_is_used);
 
-BL_FORT_PROC_DECL(CA_INITSINGLEGROUP,ca_initsinglegroup)
-(const int& ngroups);
+void ca_initsinglegroup
+  (const int& ngroups);
+
+}
+
+
 
 BL_FORT_PROC_DECL(CA_INITGROUPS,ca_initgroups)
   (const Real* nugroup, const Real* dnugroup,
@@ -119,7 +122,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
     BL_FORT_FAB_ARG(lam),  const Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
 
-BL_FORT_PROC_DECL(CA_GET_V_DCF, ca_get_v_dcf)
+extern "C" {
+  void ca_get_v_dcf
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(er), 
     const BL_FORT_FAB_ARG(state), 
@@ -132,6 +136,15 @@ BL_FORT_PROC_DECL(CA_GET_V_DCF, ca_get_v_dcf)
     BL_FORT_FAB_ARG(v),
     BL_FORT_FAB_ARG(dcf));
 
+  void ca_update_dcf
+   (const int lo[], const int hi[],
+    BL_FORT_FAB_ARG(dcf),
+    const BL_FORT_FAB_ARG(etainv),
+    const BL_FORT_FAB_ARG(kp),
+    const BL_FORT_FAB_ARG(kr));
+
+}
+
 BL_FORT_PROC_DECL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(d), 
@@ -139,13 +152,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
     const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
     const Real* r, const int* idir);
  
-BL_FORT_PROC_DECL(CA_UPDATE_DCF, ca_update_dcf)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(dcf),
-    const BL_FORT_FAB_ARG(etainv),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kr));
-
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
     BL_FORT_FAB_ARG(gPr));
@@ -179,8 +185,10 @@ BL_FORT_PROC_DECL(CA_CORRECT_DTERM, ca_correct_dterm)
      const Real* re, const Real* rc);
 
 // <MGFLD>
-BL_FORT_PROC_DECL(CA_INITFLUXLIMITER, ca_initfluxlimiter)
+extern "C" {
+void ca_initfluxlimiter
    (const int* limiter, const int* closure);
+}
 
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
@@ -510,10 +518,13 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
 
 #endif
 
-BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
+extern "C" {
+  void ca_compute_rosseland
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
+}
+
 BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
    (const int * lo, const int* hi,
     BL_FORT_FAB_ARG_3D(kps),
@@ -525,12 +536,14 @@ BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
     const Real* k0_p, const Real* m_p, const Real* n_p,
     const Real* k0_r, const Real* m_r, const Real* n_r,
     const Real* Tfloor, const Real* kfloor);
-BL_FORT_PROC_DECL(CA_COMPUTE_PLANCK, ca_compute_planck)
+
+extern "C" {
+  void ca_compute_planck
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpp),
     const BL_FORT_FAB_ARG(state));
 
-BL_FORT_PROC_DECL(CA_FILT_PRIM, ca_filt_prim)
+  void ca_filt_prim
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(Stmp),
      BL_FORT_FAB_ARG(Snew),
@@ -539,6 +552,7 @@ BL_FORT_PROC_DECL(CA_FILT_PRIM, ca_filt_prim)
      const int* domlo, const int* domhi,
      const Real* delta, const Real* xlo, const Real* problo,
      const Real* time, const int* level);
+}
 
 // photon problems solved by the neutrino solver need these
 BL_FORT_PROC_DECL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)

@@ -1026,7 +1026,7 @@ end subroutine ca_opacs
 
 subroutine ca_compute_rosseland( lo, hi,   &
      kpr , kpr_l1, kpr_l2, kpr_l3, kpr_h1, kpr_h2, kpr_h3, &
-     stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 )
+     stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 ) bind(C, name="ca_compute_rosseland")
 
   use rad_params_module, only : ngroups, nugroup
   use opacity_table_module, only : get_opacities
@@ -1076,7 +1076,7 @@ end subroutine ca_compute_rosseland
 
 subroutine ca_compute_planck( lo, hi,  &
      kpp , kpp_l1, kpp_l2, kpp_l3, kpp_h1, kpp_h2, kpp_h3, &
-     stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 )
+     stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 ) bind(C, name="ca_compute_planck")
 
   use rad_params_module, only : ngroups, nugroup
   use opacity_table_module, only : get_opacities

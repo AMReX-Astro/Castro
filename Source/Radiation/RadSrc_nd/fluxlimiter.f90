@@ -134,7 +134,7 @@ module fluxlimiter_module
 
 end module fluxlimiter_module
 
-subroutine ca_initfluxlimiter(limiter, closure)
+subroutine ca_initfluxlimiter(limiter, closure)  bind(C, name="ca_initfluxlimiter")
   use fluxlimiter_module, only : init_fluxlimiter_module
   implicit none
   integer, intent(in) :: limiter, closure

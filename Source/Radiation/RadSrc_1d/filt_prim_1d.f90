@@ -3,7 +3,7 @@ subroutine ca_filt_prim(lo, hi, &
      Snew, Snew_l1, Snew_h1, &
      mask, mask_l1, mask_h1, &
      filt_T, S, domlo,domhi, &
-     delta,xlo,problo,time,level)
+     delta,xlo,problo,time,level) bind(C, name="ca_filt_prim")
 
   use network, only : naux, nspec
   use eos_module

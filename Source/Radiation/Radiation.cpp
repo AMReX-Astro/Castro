@@ -440,9 +440,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     int J_is_used = 0;
 
-    BL_FORT_PROC_CALL(CA_INITRADCONSTANTS,ca_initradconstants)
-      (M_PI, clight, hPlanck, kBoltz, stefbol, Avogadro, convert_MeV_erg,
-       J_is_used);
+    ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol, 
+			Avogadro, convert_MeV_erg, J_is_used);
 
     aRad = 4.*stefbol/clight;
 
@@ -486,8 +485,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   closure = 3;
   pp.query("closure", closure);
 
-  BL_FORT_PROC_CALL(CA_INITFLUXLIMITER, ca_initfluxlimiter)
-    (&limiter, &closure);
+  ca_initfluxlimiter(&limiter, &closure);
 
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
@@ -727,7 +725,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 #endif
   }
   else {
-    BL_FORT_PROC_CALL(CA_INITSINGLEGROUP, ca_initsinglegroup)(nGroups);
+    ca_initsinglegroup(nGroups);
 
     // xnu is a dummy for single group
     xnu.resize(2, 1.0);
@@ -1644,8 +1642,8 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
     }
     
     if (use_opacity_table_module) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-	    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+      ca_compute_planck(reg.loVect(), reg.hiVect(), 
+			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
     }
     else {
 	fkpn( dimlist(reg),
@@ -1693,8 +1691,8 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
   state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+    ca_compute_rosseland(reg.loVect(), reg.hiVect(), 
+			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering > 0.0) {
     rosse1s(dimlist(reg),
@@ -1726,8 +1724,8 @@ void Radiation::get_planck_from_temp(Fab& fkp, Fab& temp,
 				     int igroup)
 {
   if (use_opacity_table_module) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_PLANCK, ca_compute_planck)
-	  (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+      ca_compute_planck(reg.loVect(), reg.hiVect(), 
+			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
   }
   else {
       const Box& fbox = fkp.box();
@@ -1759,8 +1757,8 @@ void Radiation::get_rosseland_from_temp(Fab& kappa_r,
   state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
-    BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+    ca_compute_rosseland(reg.loVect(), reg.hiVect(), 
+			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering > 0.0) {
       rosse1s(dimlist(reg),
@@ -2408,8 +2406,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    
 	    // compute rosseland
 	    if (use_opacity_table_module) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_ROSSELAND, ca_compute_rosseland)
-		    (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
+	      ca_compute_rosseland(reg.loVect(), reg.hiVect(), 
+				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
 	    }
 	    else if (const_scattering > 0.0) {
 	      rosse1s(dimlist(reg),
@@ -2460,18 +2458,17 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		  S[mfi].dataPtr(), dimlist(S[mfi].box()));
 	    temp.plus(-dT, 0, 1);
 	    
-	    BL_FORT_PROC_CALL(CA_GET_V_DCF, ca_get_v_dcf)
-		(reg.loVect(), reg.hiVect(),
-		 BL_TO_FORTRAN(Er[mfi]),
-		 BL_TO_FORTRAN(S[mfi]),
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(c_v),
-		 BL_TO_FORTRAN(kappa_r[mfi]),
-		 BL_TO_FORTRAN(kp),
-		 BL_TO_FORTRAN(kp2),
-		 &dT, &delta_t, &sigma, &c,
-		 BL_TO_FORTRAN(v[mfi]),
-		 BL_TO_FORTRAN(dcf[mfi]));
+	    ca_get_v_dcf(reg.loVect(), reg.hiVect(),
+			 BL_TO_FORTRAN(Er[mfi]),
+			 BL_TO_FORTRAN(S[mfi]),
+			 BL_TO_FORTRAN(temp),
+			 BL_TO_FORTRAN(c_v),
+			 BL_TO_FORTRAN(kappa_r[mfi]),
+			 BL_TO_FORTRAN(kp),
+			 BL_TO_FORTRAN(kp2),
+			 &dT, &delta_t, &sigma, &c,
+			 BL_TO_FORTRAN(v[mfi]),
+			 BL_TO_FORTRAN(dcf[mfi]));
 	}
     }
 }
@@ -2484,12 +2481,11 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 #endif
     for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.growntilebox();
-	BL_FORT_PROC_CALL(CA_UPDATE_DCF, ca_update_dcf)
-	    (bx.loVect(), bx.hiVect(),
-	     BL_TO_FORTRAN(dcf[mfi]),
-	     BL_TO_FORTRAN(etainv[mfi]),
-	     BL_TO_FORTRAN(kp[mfi]),
-	     BL_TO_FORTRAN(kr[mfi]));
+	ca_update_dcf(bx.loVect(), bx.hiVect(),
+		      BL_TO_FORTRAN(dcf[mfi]),
+		      BL_TO_FORTRAN(etainv[mfi]),
+		      BL_TO_FORTRAN(kp[mfi]),
+		      BL_TO_FORTRAN(kr[mfi]));
     }
     
     dcf.FillBoundary(geom.periodicity());
@@ -2639,15 +2635,14 @@ void Radiation::filter_prim(int level, MultiFab& State)
       const RealBox& gridloc = RealBox(bx, dx, prob_lo);
       const Real* xlo = gridloc.lo();
       
-      BL_FORT_PROC_CALL(CA_FILT_PRIM, ca_filt_prim)
-	  (bx.loVect(), bx.hiVect(), 
-	   BL_TO_FORTRAN( S_fp[mfi]),
-	   BL_TO_FORTRAN(State[mfi]),
-	   BL_TO_FORTRAN( mask[mfi]),
-	   &filter_prim_T, &filter_prim_S,
-	   domain_lo, domain_hi,
-	   dx, xlo, prob_lo, 
-	   &time, &level);
+      ca_filt_prim(bx.loVect(), bx.hiVect(), 
+		   BL_TO_FORTRAN( S_fp[mfi]),
+		   BL_TO_FORTRAN(State[mfi]),
+		   BL_TO_FORTRAN( mask[mfi]),
+		   &filter_prim_T, &filter_prim_S,
+		   domain_lo, domain_hi,
+		   dx, xlo, prob_lo, 
+		   &time, &level);
   }
 }
 

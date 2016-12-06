@@ -472,7 +472,7 @@ subroutine ca_get_v_dcf(lo, hi, &
                         kp2, kp2_l1, kp2_l2, kp2_h1, kp2_h2, &
                         dtemp, dtime, sigma, c, &
                         v  ,   v_l1,   v_l2,   v_h1,   v_h2, &
-                        dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2)
+                        dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2) bind(C, name="ca_get_v_dcf")
 
   use meth_params_module, only : NVAR, URHO, UMX, UMY
 
@@ -578,7 +578,7 @@ end subroutine ca_compute_dcoefs
 subroutine ca_update_dcf(lo, hi, &
                          dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
                          etainv, eti_l1, eti_l2, eti_h1, eti_h2, &
-                         kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2)
+                         kp, kp_l1, kp_l2, kp_h1, kp_h2, kr, kr_l1, kr_l2, kr_h1, kr_h2) bind(C, name="ca_update_dcf")
 
   implicit none
 
