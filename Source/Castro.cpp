@@ -2772,15 +2772,11 @@ Castro::computeTemp(MultiFab& State)
 	temp.resize(bx);
 	temp.copy(State[mfi],bx,Eint,bx,0,1);
 	
-	double cv = radiation->const_c_v[0];
-	double cv_exp_m = radiation->c_v_exp_m[0];
-	double cv_exp_n = radiation->c_v_exp_n[0];
-
 	ca_compute_temp_given_cv
 	  (bx.loVect(), bx.hiVect(), 
 	   BL_TO_FORTRAN(temp), 
 	   BL_TO_FORTRAN(State[mfi]),
-	   &cv, &cv_exp_m, &cv_exp_n);
+	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
 	
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
