@@ -1,5 +1,9 @@
 * changes since the last release:
 
+  -- the radiation-specific version of computeTemp has been removed
+     and instead everything goes through the main Castro computeTemp.
+     This affects, in particular, how we treated small internal
+     energies in radiation.
 
 previous changes:
 

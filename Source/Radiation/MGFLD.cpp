@@ -432,8 +432,8 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       
 	  Array<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
 #ifdef MG_SU_OLSON
-	  PFcoef.set(0, 0.5);
-	  PFcoef.set(1, 0.5);
+	  PFcoef[0] = 0.5;
+	  PFcoef[1] = 0.5;
 #endif
 	  BL_FORT_PROC_CALL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
 	      (reg.loVect(), reg.hiVect(),
@@ -1239,7 +1239,7 @@ void Radiation::inelastic_scattering(int level)
 	}
 
 	if (do_real_eos > 0) {
-	    computeTemp(S_new, 0);
+	  castro->computeTemp(S_new);
 	}
     }
 }
