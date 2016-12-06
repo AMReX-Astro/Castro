@@ -339,15 +339,15 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	      (box.loVect(), box.hiVect(),
 	       BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
 	  }
-	  else if (c_v_exp_m[0] == 0.0 && c_v_exp_n[0] == 0.0) {
-	      dedT[mfi].setVal(const_c_v[0],box,0);
+	  else if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
+	      dedT[mfi].setVal(const_c_v,box,0);
 	  }
-	  else if (const_c_v[0] > 0.0) {
+	  else if (const_c_v > 0.0) {
 	      gcv(dimlist(box),
 		  dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
 		  temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
-		  const_c_v.dataPtr(), c_v_exp_m.dataPtr(), c_v_exp_n.dataPtr(),
-		  prop_temp_floor.dataPtr(),
+		  &const_c_v, &c_v_exp_m, &c_v_exp_n,
+		  &prop_temp_floor,
 		  S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
 	  }
 	  else {
@@ -418,13 +418,13 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 		   BL_TO_FORTRAN(kappa_r[mfi]),
 		   BL_TO_FORTRAN(dkdT[mfi]), 
 		   &do_kappa_stm_emission, &use_dkdT,
-		   &const_kappa_p[0], &kappa_p_exp_m[0], 
-		   &kappa_p_exp_n[0], &kappa_p_exp_p[0],
-		   &const_kappa_r[0], &kappa_r_exp_m[0], 
-		   &kappa_r_exp_n[0], &kappa_r_exp_p[0],
-		   &const_scattering[0], &scattering_exp_m[0], 
-		   &scattering_exp_n[0], &scattering_exp_p[0],
-		   &prop_temp_floor[0]);
+		   &const_kappa_p, &kappa_p_exp_m, 
+		   &kappa_p_exp_n, &kappa_p_exp_p,
+		   &const_kappa_r, &kappa_r_exp_m, 
+		   &kappa_r_exp_n, &kappa_r_exp_p,
+		   &const_scattering, &scattering_exp_m, 
+		   &scattering_exp_n, &scattering_exp_p,
+		   &prop_temp_floor);
 	      
 	  }
 
@@ -852,7 +852,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		    (bx.loVect(), bx.hiVect(), 
 		     BL_TO_FORTRAN(temp_new[mfi]), 
 		     BL_TO_FORTRAN(S_new[mfi]),
-		     &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		     &const_c_v, &c_v_exp_m, &c_v_exp_n);
 		}
 		else {
 		    BoxLib::Error("ERROR Radiation::do_real_eos < 0");
@@ -914,7 +914,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		(bx.loVect(), bx.hiVect(), 
 		 BL_TO_FORTRAN(temp_new[mfi]), 
 		 BL_TO_FORTRAN(S_new[mfi]),
-		 &const_c_v[0], &c_v_exp_m[0], &c_v_exp_n[0]);
+		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
 	    }
 	    else {
 		BoxLib::Error("ERROR Radiation::do_real_eos < 0");
@@ -1047,20 +1047,20 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 	  (kbox.loVect(), kbox.hiVect(),
 	   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
     }
-    else if (const_kappa_r[0] < 0.0) {
+    else if (const_kappa_r < 0.0) {
       BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
 	  (kbox.loVect(), kbox.hiVect(),
 	   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-	   &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
-	   &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
-	   &prop_temp_floor[0], &kappa_r_floor);	 
+	   &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
+	   &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+	   &prop_temp_floor, &kappa_r_floor);	 
     }
     else {
       BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
 	  (kbox.loVect(), kbox.hiVect(),
 	   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-	   &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
-	   &prop_temp_floor[0], &kappa_r_floor);	       
+	   &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
+	   &prop_temp_floor, &kappa_r_floor);	       
     }
 #ifdef NEUTRINO
   }
@@ -1090,20 +1090,20 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 		    (bx.loVect(), bx.hiVect(),
 		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
 	    }
-	    else if (const_kappa_r[0] < 0.0) {
+	    else if (const_kappa_r < 0.0) {
 		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
 		    (bx.loVect(), bx.hiVect(),
 		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], &kappa_p_exp_p[0], 
-		     &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
-		     &prop_temp_floor[0], &kappa_r_floor);	 
+		     &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
+		     &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+		     &prop_temp_floor, &kappa_r_floor);	 
 	    }
 	    else {
 		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
 		    (bx.loVect(), bx.hiVect(),
 		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0], &kappa_r_exp_p[0], 
-		     &prop_temp_floor[0], &kappa_r_floor);	 
+		     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
+		     &prop_temp_floor, &kappa_r_floor);	 
 	    }
 #ifdef NEUTRINO
 	}
@@ -1126,21 +1126,21 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 		 BL_TO_FORTRAN_3D(kappa_s), 
 		 BL_TO_FORTRAN_3D(state));
     } else {
-	BL_ASSERT(kappa_r_exp_p[0] == 0.0 && kappa_p_exp_p[0] == 0.0 && scattering_exp_p[0] == 0.0);
-	if (const_kappa_r[0] < 0.0) {
+	BL_ASSERT(kappa_r_exp_p == 0.0 && kappa_p_exp_p == 0.0 && scattering_exp_p == 0.0);
+	if (const_kappa_r < 0.0) {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
 		(kbox.loVect(), kbox.hiVect(),
 		 BL_TO_FORTRAN(kappa_s), BL_TO_FORTRAN(state),
-		 &const_scattering[0], &scattering_exp_m[0], &scattering_exp_n[0], &scattering_exp_p[0], 
-		 &prop_temp_floor[0], &kappa_r_floor);	 
+		 &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+		 &prop_temp_floor, &kappa_r_floor);	 
 	    
 	} else {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
 		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
 		 BL_TO_FORTRAN_3D(kappa_s), BL_TO_FORTRAN_3D(state),
-		 &const_kappa_p[0], &kappa_p_exp_m[0], &kappa_p_exp_n[0], 
-		 &const_kappa_r[0], &kappa_r_exp_m[0], &kappa_r_exp_n[0],
-		 &prop_temp_floor[0], &kappa_r_floor);	 
+		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, 
+		 &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
+		 &prop_temp_floor, &kappa_r_floor);	 
 	}
     }
 #endif
