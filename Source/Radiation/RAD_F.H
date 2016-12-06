@@ -609,10 +609,7 @@ BL_FORT_PROC_DECL(CA_FLUX_FACE2CENTER, ca_flux_face2center)
     const BL_FORT_FAB_ARG(flx),
     const Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* iflx);
-BL_FORT_PROC_DECL(RESET_EINT_COMPUTE_TEMP, reset_eint_compute_temp)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(State),
-    int* resetEint, Real* relative, Real* absolute);
+
 BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG(SPa),

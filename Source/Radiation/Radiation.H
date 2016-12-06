@@ -82,6 +82,8 @@ public:
 
   static int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
 
+  Array<Real> const_c_v, c_v_exp_m, c_v_exp_n;
+
   PArray<MultiFab> plotvar;
 
   Radiation(Amr* Parent, class Castro* castro, int restart = 0);
@@ -173,8 +175,6 @@ public:
 		       FArrayBox& gPr, const Real* dx, const Box& box);
 
   void EstTimeStep(Real& estdt, int level);
-
-  void computeTemp(MultiFab& State, int resetEint);
 
   void filter_prim(int level, MultiFab& State);
 
@@ -467,8 +467,7 @@ protected:
   int use_opacity_table_module;  // Use opacity_table_module?
 
   int do_kappa_stm_emission;
-  Array<Real> const_c_v, const_kappa_p, const_kappa_r, const_scattering;
-  Array<Real> c_v_exp_m, c_v_exp_n;
+  Array<Real> const_kappa_p, const_kappa_r, const_scattering;
   Array<Real> kappa_p_exp_m, kappa_p_exp_n;
   Array<Real> kappa_r_exp_m, kappa_r_exp_n;
   Array<Real> scattering_exp_m, scattering_exp_n;
