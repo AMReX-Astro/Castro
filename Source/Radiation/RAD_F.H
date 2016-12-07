@@ -100,20 +100,22 @@ extern "C"
      const int* level, const int* grid_no);
 }
 #endif
-  
-BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
+
+extern "C" {
+  void ca_compute_powerlaw_kappa
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
       const Real* kappa0, const Real* m, const Real* n,  const Real* p, 
       const Real* Tfloor, const Real* kfloor);
 
-BL_FORT_PROC_DECL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
+  void ca_compute_powerlaw_kappa_s
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
       const Real* kappa0, const Real* m, const Real* n, const Real* p, 
       const Real* s0, const Real* sm, const Real* sn, const Real* sp, 
       const Real* Tfloor, const Real* kfloor);
- 
+}
+
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 

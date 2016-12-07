@@ -1047,19 +1047,17 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 			   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
     }
     else if (const_kappa_r < 0.0) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
-	  (kbox.loVect(), kbox.hiVect(),
-	   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-	   &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
-	   &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-	   &prop_temp_floor, &kappa_r_floor);	 
+      ca_compute_powerlaw_kappa_s(kbox.loVect(), kbox.hiVect(),
+				  BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
+				  &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
+				  &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+				  &prop_temp_floor, &kappa_r_floor);	 
     }
     else {
-      BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-	  (kbox.loVect(), kbox.hiVect(),
-	   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-	   &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
-	   &prop_temp_floor, &kappa_r_floor);	       
+      ca_compute_powerlaw_kappa(kbox.loVect(), kbox.hiVect(),
+				BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
+				&const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
+				&prop_temp_floor, &kappa_r_floor);
     }
 #ifdef NEUTRINO
   }
@@ -1089,19 +1087,17 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
 	    }
 	    else if (const_kappa_r < 0.0) {
-		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA_S, ca_compute_powerlaw_kappa_s)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
-		     &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-		     &prop_temp_floor, &kappa_r_floor);	 
+	      ca_compute_powerlaw_kappa_s(bx.loVect(), bx.hiVect(),
+					  BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+					  &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
+					  &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+					  &prop_temp_floor, &kappa_r_floor);	 
 	    }
 	    else {
-		BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-		     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
-		     &prop_temp_floor, &kappa_r_floor);	 
+	      ca_compute_powerlaw_kappa(bx.loVect(), bx.hiVect(),
+					BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+					&const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
+					&prop_temp_floor, &kappa_r_floor);	 
 	    }
 #ifdef NEUTRINO
 	}
@@ -1126,11 +1122,10 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     } else {
 	BL_ASSERT(kappa_r_exp_p == 0.0 && kappa_p_exp_p == 0.0 && scattering_exp_p == 0.0);
 	if (const_kappa_r < 0.0) {
-	    BL_FORT_PROC_CALL(CA_COMPUTE_POWERLAW_KAPPA, ca_compute_powerlaw_kappa)
-		(kbox.loVect(), kbox.hiVect(),
-		 BL_TO_FORTRAN(kappa_s), BL_TO_FORTRAN(state),
-		 &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-		 &prop_temp_floor, &kappa_r_floor);	 
+	  ca_compute_powerlaw_kappa(kbox.loVect(), kbox.hiVect(),
+				    BL_TO_FORTRAN(kappa_s), BL_TO_FORTRAN(state),
+				    &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
+				    &prop_temp_floor, &kappa_r_floor);	 
 	    
 	} else {
 	    BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)

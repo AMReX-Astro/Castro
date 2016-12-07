@@ -1259,7 +1259,7 @@ subroutine ca_compute_powerlaw_kappa_s( lo, hi,  &
      & kappa, k_l1, k_l2, k_l3, k_h1, k_h2, k_h3, &
      &     u, u_l1, u_l2, u_l3, u_h1, u_h2, u_h3, &
      & kappa0, m, n, p, s0, sm, sn, sp, &
-     & Tfloor, kfloor)
+     & Tfloor, kfloor) bind(C, name="ca_compute_powerlaw_kappa_s")
 
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
@@ -1305,7 +1305,7 @@ end subroutine ca_compute_powerlaw_kappa_s
 subroutine ca_compute_powerlaw_kappa( lo, hi,  &
      kappa, k_l1, k_l2, k_l3, k_h1, k_h2, k_h3, &
      u    , u_l1, u_l2, u_l3, u_h1, u_h2, u_h3, &
-     kappa0, m, n, p, Tfloor, kfloor)
+     kappa0, m, n, p, Tfloor, kfloor) bind(C, name="ca_compute_powerlaw_kappa")
 
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
