@@ -29,14 +29,20 @@ contains
                      qaux,qa_l1,qa_h1, &
                      srcQ,src_l1,src_h1, &
                      ilo,ihi,dx,dt, &
+                     uout, uout_l1, uout_h1, &
                      flux ,   fd_l1,   fd_h1, &
                      q1, q1_l1, q1_h1, &
                      dloga,dloga_l1,dloga_h1)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX, NGDNV
-    use riemann_module, only : cmpflx
+    use meth_params_module, only : QVAR, NVAR, ppm_type, QC, QCSML, QGAMC, NQAUX, NGDNV, &
+                                   hybrid_riemann
+    use riemann_module, only : cmpflx, shock
     use trace_module, only : trace
     use trace_ppm_module, only : trace_ppm
+    use bl_constants_module
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     implicit none
 
@@ -46,6 +52,7 @@ contains
     integer qd_l1,qd_h1
     integer qa_l1,qa_h1
     integer src_l1,src_h1
+    integer uout_l1, uout_h1
     integer fd_l1,fd_h1
     integer q1_l1,q1_h1
     integer ilo,ihi
@@ -53,13 +60,47 @@ contains
     double precision     q(   qd_l1:qd_h1,QVAR)
     double precision  qaux(   qa_l1:qa_h1,NQAUX)
     double precision flatn(   qd_l1:qd_h1)
+    double precision  uout(uout_l1:uout_h1,NVAR)
     double precision  flux(fd_l1   :fd_h1,NVAR)
     double precision  srcQ(src_l1  :src_h1,QVAR)
     double precision    q1(q1_l1:q1_h1,NGDNV)
     double precision dloga(dloga_l1:dloga_h1)
-    
+    double precision, allocatable :: shk(:)
+
+    integer :: i
+
     ! Left and right state arrays (edge centered, cell centered)
     double precision, allocatable:: dq(:,:),  qm(:,:),   qp(:,:)
+
+
+
+    allocate (shk(ilo-1:ihi+1))
+
+#ifdef SHOCK_VAR
+    uout(ilo:ihi,USHK) = ZERO
+
+    call shock(q,qd_l1,qd_h1,shk,ilo-1,ihi+1,ilo,ihi,dx)
+
+    ! Store the shock data for future use in the burning step.
+    do i = ilo, ihi
+       uout(i,USHK) = shk(i)
+    enddo
+
+    ! Discard it locally if we don't need it in the hydro update.
+    if (hybrid_riemann /= 1) then
+       shk(:) = ZERO
+    endif
+#else
+    ! multidimensional shock detection -- this will be used to do the
+    ! hybrid Riemann solver
+    if (hybrid_riemann == 1) then
+       call shock(q,qd_l1,qd_h1,shk,ilo-1,ihi+1,ilo,ihi,dx)
+    else
+       shk(:) = ZERO
+    endif
+#endif
+
+
 
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
     allocate ( qm(ilo-1:ihi+1,QVAR))
@@ -124,6 +165,9 @@ contains
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     integer lo(1), hi(1)
     integer   uin_l1,  uin_h1
@@ -159,6 +203,10 @@ contains
     do n = 1, NVAR
        if ( n == UTEMP ) then
           flux(lo(1):hi(1)+1,n) = ZERO
+#ifdef SHOCK_VAR
+       else if ( n == USHK) then
+          flux(lo(1):hi(1)+1,n) = ZERO
+#endif
        else if ( n == UMY ) then
           flux(lo(1):hi(1)+1,n) = ZERO
        else if ( n == UMZ ) then
