@@ -549,12 +549,9 @@ Castro::Castro (Amr&            papa,
     // rad_params_module
 #ifdef RADIATION
     init_godunov_indices_rad();
+    get_qradvar(&QRADVAR);
 #else
     init_godunov_indices();
-#endif
-
-#ifdef RADIATION
-    get_qradvar(&QRADVAR);
 #endif
 
     // NQ will be used to dimension the primitive variable state
@@ -1765,9 +1762,15 @@ Castro::post_restart ()
     // rad_params_module
 #ifdef RADIATION
     init_godunov_indices_rad();
+    get_qradvar(&QRADVAR);
 #else
     init_godunov_indices();
 #endif
+
+    // NQ will be used to dimension the primitive variable state
+    // vector it will include the "pure" hydrodynamical variables +
+    // any radiation variables
+    NQ = QVAR + QRADVAR;
 
 #ifdef DO_PROBLEM_POST_RESTART
     problem_post_restart();
