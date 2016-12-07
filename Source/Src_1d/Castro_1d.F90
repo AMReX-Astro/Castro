@@ -194,6 +194,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                qaux,qa_l1,qa_h1, &
                srcQ,srQ_l1,srQ_h1, &
                lo(1),hi(1),dx,dt, &
+               uout, uout_l1, uout_h1, &
                flux,flux_l1,flux_h1, &
                q1,flux_l1-1,flux_h1+1, &
                dloga,dloga_l1,dloga_h1)
