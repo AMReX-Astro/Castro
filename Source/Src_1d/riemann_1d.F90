@@ -21,7 +21,7 @@ module riemann_module
 
   private
 
-  public cmpflx
+  public cmpflx, shock
 
   real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
 
@@ -45,7 +45,7 @@ contains
 #ifdef RADIATION
     use rad_params_module, only : ngroups
 #endif
-    
+
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer ilo,ihi
@@ -70,19 +70,19 @@ contains
     double precision     c( qd_l1: qd_h1)
     double precision  csml( qd_l1: qd_h1)
 
-#ifdef RADIATION    
+#ifdef RADIATION
     double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
     double precision gamcg( qd_l1: qd_h1)
 #endif
-    
+
     ! Local variables
     integer i
     double precision, allocatable :: smallc(:),cavg(:),gamcp(:), gamcm(:)
 #ifdef RADIATION
     double precision, allocatable :: gamcgp(:), gamcgm(:)
 #endif
-    
+
     allocate ( smallc(ilo:ihi+1) )
     allocate ( cavg(ilo:ihi+1) )
     allocate ( gamcp(ilo:ihi+1) )
@@ -91,13 +91,13 @@ contains
     allocate (gamcgp(ilo:ihi+1) )
     allocate (gamcgm(ilo:ihi+1) )
 #endif
-    
+
     do i = ilo, ihi+1
        smallc(i) = max( csml(i), csml(i-1) )
        cavg(i) = HALF*( c(i) + c(i-1) )
        gamcm(i) = gamc(i-1)
        gamcp(i) = gamc(i)
-#ifdef RADIATION       
+#ifdef RADIATION
        gamcgm (i) = gamcg(i-1)
        gamcgp (i) = gamcg(i)
 #endif
@@ -131,6 +131,95 @@ contains
     deallocate (smallc,cavg,gamcm,gamcp)
 
   end subroutine cmpflx
+
+
+  subroutine shock(q,qd_l1,qd_h1, &
+                   shk,s_l1,s_h1, &
+                   ilo1,ihi1,dx)
+
+    use prob_params_module, only : coord_type
+
+    integer, intent(in) :: qd_l1, qd_h1
+    integer, intent(in) :: s_l1, s_h1
+    integer, intent(in) :: ilo1, ihi1
+    double precision, intent(in) :: dx
+    double precision, intent(in) :: q(qd_l1:qd_h1,QVAR)
+    double precision, intent(inout) :: shk(s_l1:s_h1)
+
+    integer :: i
+
+    double precision :: divU
+    double precision :: px_pre, px_post
+    double precision :: e_x, d
+    double precision :: p_pre, p_post, pjump
+
+    double precision :: rc, rm, rp
+
+    double precision, parameter :: small = 1.d-10
+    double precision, parameter :: eps = 0.33d0
+
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+
+    do i = ilo1-1, ihi1+1
+
+       ! construct div{U}
+       if (coord_type == 0) then
+          divU = HALF*(q(i+1,QU) - q(i-1,QU))/dx
+
+       else if (coord_type == 1) then
+          ! cylindrical r
+          rc = dble(i + HALF)*dx
+          rm = dble(i - 1 + HALF)*dx
+          rp = dble(i + 1 + HALF)*dx
+
+          divU = HALF*(rp*q(i+1,QU) - rm*q(i-1,QU))/(rc*dx)
+       else if (coord_type == 2) then
+          rc = dble(i + HALF)*dx
+          rm = dble(i - 1 + HALF)*dx
+          rp = dble(i + 1 + HALF)*dx
+
+          divU = HALF*(rp**2*q(i+1,QU) - rm**2*q(i-1,QU))/(rc**2*dx)
+       else
+          call bl_error("ERROR: invalid coord_type in shock")
+       endif
+
+       ! find the pre- and post-shock pressures in each direction
+       if (q(i+1,QPRES) - q(i-1,QPRES) < ZERO) then
+          px_pre  = q(i+1,QPRES)
+          px_post = q(i-1,QPRES)
+       else
+          px_pre  = q(i-1,QPRES)
+          px_post = q(i+1,QPRES)
+       endif
+
+       ! project the pressures onto the shock direction (trivial in 1-d)
+       p_pre  = px_pre
+       p_post = px_post
+
+       ! test for compression + pressure jump to flag a shock
+       if (p_pre == ZERO) then
+          ! this can arise if e_x = e_y = 0 (U = 0)
+          pjump = ZERO
+       else
+          pjump = eps - (p_post - p_pre)/p_pre
+       endif
+
+       if (pjump < ZERO .and. divU < ZERO) then
+          shk(i) = ONE
+       else
+          shk(i) = ZERO
+       endif
+
+    enddo
+
+  end subroutine shock
+
+
 
 
 ! :::
@@ -667,7 +756,7 @@ contains
                        lam, lam_l1, lam_h1, &
                        gamcgl, gamcgr, &
                        rflx,rflx_l1,rflx_h1, &
-#endif                       
+#endif
                        ilo,ihi,domlo,domhi)
 
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
@@ -689,7 +778,7 @@ contains
     integer rflx_l1, rflx_h1
     integer lam_l1, lam_h1
     integer  erg_l1,  erg_h1
-    integer   lg_l1,   lg_h1    
+    integer   lg_l1,   lg_h1
 #endif
 
     double precision ql(qpd_l1:qpd_h1, NQ)
@@ -708,13 +797,13 @@ contains
     double precision, dimension(0:ngroups-1) :: erl, err
     double precision :: regdnv_g, pgdnv_g, pgdnv_t
     double precision :: estar_g, pstar_g
-    double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r    
+    double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
     double precision :: eddf, f1
-    double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g    
+    double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
 
     integer :: g
 #endif
-    
+
     double precision rgdnv, regdnv, ustar, v1gdnv, v2gdnv
     double precision rl, ul, v1l, v2l, pl, rel
     double precision rr, ur, v1r, v2r, pr, rer
@@ -755,7 +844,7 @@ contains
        pl  = ql(k,QPRES)
        rel = ql(k,QREINT)
 #endif
-       
+
        rr  = qr(k,QRHO)
        ur  = qr(k,QU)
        v1r  = qr(k,QV)
@@ -767,12 +856,12 @@ contains
 
        err(:) = qr(k,qrad:qradhi)
        pr_g = qr(k,QPRES)
-       rer_g = qr(k,QREINT) 
+       rer_g = qr(k,QREINT)
 #else
        pr  = qr(k,QPRES)
        rer = qr(k,QREINT)
 #endif
-       
+
        csmall = smallc(k)
        wsmall = small_dens*csmall
        wl = max(wsmall,sqrt(abs(gamcl(k)*pl*rl)))
@@ -803,7 +892,7 @@ contains
           reo_g = rel_g
           gamco_g = gamcgl(k)
 #endif
-          
+
        else if (ustar < ZERO) then
           ro = rr
           uo = ur
@@ -819,7 +908,7 @@ contains
           reo_g = rer_g
           gamco_g = gamcgr(k)
 #endif
-          
+
        else
           ro = HALF*(rl+rr)
           uo = HALF*(ul+ur)
@@ -843,7 +932,7 @@ contains
 
        co = sqrt(abs(gamco*po/ro))
        co = max(csmall,co)
-       
+
        drho = (pstar - po)/co**2
        rstar = ro + drho
        rstar = max(small_dens,rstar)
@@ -858,11 +947,11 @@ contains
        pstar_g = max(pstar_g,small_pres)
 
        estar_r(:) = reo_r(:) + drho*(reo_r(:) + po_r(:))/ro
-#else       
-       entho = (reo/ro + po/ro)/co**2       
+#else
+       entho = (reo/ro + po/ro)/co**2
        estar = reo + (pstar - po)*entho
 #endif
-       
+
        cstar = sqrt(abs(gamco*pstar/rstar))
        cstar = max(cstar,csmall)
 
@@ -908,7 +997,7 @@ contains
        qint(k,GDPRES) = frac*pstar + (ONE - frac)*po
        regdnv = frac*estar + (ONE - frac)*reo
 #endif
-       
+
        if (spout < ZERO) then
           rgdnv = ro
           qint(k,GDU) = uo
@@ -965,12 +1054,12 @@ contains
        do g=0, ngroups-1
           qint(k,GDERADS+g) = max(regdnv_r(g), ZERO)
        end do
-       
+
        qint(k,GDPRES) = pgdnv_g
-       
+
        qint(k,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
-#endif       
-       
+#endif
+
        ! Compute fluxes, order as conserved state (not q)
 
        ! Note: currently in 1-d, we do not include p in the momentum flux
@@ -982,7 +1071,7 @@ contains
        rhoetot = regdnv_g + HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
        uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + pgdnv_g)
        uflx(k,UEINT) = qint(k,GDU)*regdnv_g
-       
+
        if (fspace_type.eq.1) then
           do g = 0, ngroups-1
              eddf = Edd_factor(lambda(g))
@@ -994,14 +1083,14 @@ contains
              rflx(k,g) = qint(k,GDERADS+g) * qint(k,GDU)
           end do
        end if
-#else       
+#else
        rhoetot = regdnv + HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
        uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + qint(k,GDPRES))
        uflx(k,UEINT) = qint(k,GDU)*regdnv
 #endif
-       
+
        ! advected quantities -- only the contact matters
-       ! note: this includes the y,z-velocity flux       
+       ! note: this includes the y,z-velocity flux
        do ipassive = 1, npassive
           n  = upass_map(ipassive)
           nqp = qpass_map(ipassive)
