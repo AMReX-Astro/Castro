@@ -116,7 +116,6 @@ contains
                         q1,q1_l1,q1_h1, &
                         flux, flux_l1, flux_h1, &
                         rflux,rflux_l1,rflux_h1, &
-                        flat, flat_l1, flat_h1, &
                         area,area_l1,area_h1, &
                         vol,vol_l1,vol_h1, &
                         div,pdivu,lo,hi,dx,dt, &
@@ -176,58 +175,88 @@ contains
        end if
     end if
 
-    ! Normalize the species fluxes
-    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
-
     do n = 1, NVAR
        if ( n == UTEMP ) then
           flux(:,n) = ZERO
+#ifdef SHOCK_VAR
+       else if ( n == USHK) then
+          flux(lo(1):hi(1)+1,n) = ZERO
+#endif
+       else if ( n == UMY ) then
+          flux(lo(1):hi(1)+1,n) = ZERO
+       else if ( n == UMZ ) then
+          flux(lo(1):hi(1)+1,n) = ZERO
        else
+          ! add the artifical viscosity
           do i = lo(1),hi(1)+1
              div1 = difmag*min(ZERO,div(i))
-             flux(i,n) = flux(i,n) &
-                  + dx*div1*(uin(i,n) - uin(i-1,n))
-             flux(i,n) = area(i) * flux(i,n) * dt
+             flux(i,n) = flux(i,n) + dx*div1*(uin(i,n) - uin(i-1,n))
           enddo
        endif
     enddo
 
+    ! Limit the fluxes to avoid negative/small densities
+
+    if (limit_fluxes_on_small_dens .eq. 1) then
+       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, 0, 0], [uin_h1, 0, 0], &
+                                             q, [q_l1, 0, 0], [q_h1, 0, 0], &
+                                             vol, [vol_l1, 0, 0], [vol_h1, 0, 0], &
+                                             flux, [flux_l1, 0, 0], [flux_h1, 0, 0], &
+                                             area, [area_l1, 0, 0], [area_h1, 0, 0], &
+                                             [lo(1), 0, 0], [hi(1), 0, 0], dt, [dx, ZERO, ZERO])
+    endif
+
+    ! Normalize the species fluxes
+    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
+
+    ! now do the radiation energy groups parts
     do g=0, ngroups-1
        do i = lo(1),hi(1)+1
           div1 = difmag*min(ZERO,div(i))
-          rflux(i,g) = rflux(i,g) &
-               + dx*div1*(Erin(i,g) - Erin(i-1,g))
-          rflux(i,g) = area(i) * rflux(i,g) * dt
+          rflux(i,g) = rflux(i,g) + dx*div1*(Erin(i,g) - Erin(i-1,g))
        enddo
     end do
+
+
+    ! For hydro, we will create an update source term that is
+    ! essentially the flux divergence.  This can be added with dt to
+    ! get the update
 
     do n = 1, NVAR
        do i = lo(1),hi(1)
-          uout(i,n) = uout(i,n) + ( flux(i,n) - flux(i+1,n) ) / vol(i)
+          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
+
+          ! Add p div(u) source term to (rho e)
+          if (n == UEINT)
+             update(i,n) = update(i,n) - pdivu(i)
+          endif
+
        enddo
     enddo
 
+    ! radiation energy update.  For the moment, we actually update things
+    ! fully here, instead of creating a source term for the update
     do g=0, ngroups-1
        do i = lo(1),hi(1)
-          Erout(i,g) = Erin(i,g) + (rflux(i,g) - rflux(i+1,g) ) / vol(i)
+          Erout(i,g) = Erin(i,g) + dt * (rflux(i,g) * area(i) - rflux(i+1,g) * area(i+1) ) / vol(i)
        enddo
     end do
 
-    ! Add source term to (rho e)
-    do i = lo(1),hi(1)
-       uout(i,UEINT) = uout(i,UEINT) - dt * pdivu(i)
-    enddo
 
-    ! Add gradp term to momentum equation
+    ! Add gradp term to momentum equation -- this includes hydro and radiation terms
     do i = lo(1),hi(1)
+
+       ! hydrodynamics contribution
        dpdx  = (  q1(i+1,GDPRES)- q1(i,GDPRES) ) / dx
 
+       ! radiation contribution -- this is sum{lambda E_r} 
        dprdx = ZERO
        do g=0,ngroups-1
           lamc = HALF*(q1(i,GDLAMS+g) + q1(i+1,GDLAMS+g))
           dprdx = dprdx + lamc*(q1(i+1,GDERADS+g) - q1(i,GDERADS+g))/dx
        end do
 
+       ! we now want to compute the change in kinetic energy
        uout(i,UMX) = uout(i,UMX) - dt * dpdx
        ek1 = uout(i,UMX)**2/(2.d0*uout(i,URHO))
 

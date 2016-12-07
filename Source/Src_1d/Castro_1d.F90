@@ -222,21 +222,20 @@ subroutine ca_umdrv(is_finest_level, time, &
                   q1,flux_l1-1,flux_h1+1, &
                   flux,flux_l1,flux_h1, &
                   radflux,radflux_l1,radflux_h1, &
-                  flatn,uin_l1,uin_h1, &
                   area,area_l1,area_h1, &
                   vol , vol_l1, vol_h1, &
                   div ,pdivu,lo,hi,dx,dt, &
                   nstep_fsp)
 #else
   call consup(uin,uin_l1,uin_h1, &
-              uout,uout_l1,uout_h1, &
               update,updt_l1,updt_h1, &
               q,q_l1,q_h1, &
               flux,flux_l1,flux_h1, &
               q1,flux_l1-1,flux_h1+1, &
               area,area_l1,area_h1, &
               vol , vol_l1, vol_h1, &
-              div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
+              div ,pdivu,lo,hi,dx,dt, &
+              mass_added_flux,E_added_flux, &
               xmom_added_flux,ymom_added_flux,zmom_added_flux, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
