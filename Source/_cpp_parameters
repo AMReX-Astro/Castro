@@ -229,7 +229,7 @@ zr_ext_bc_type               string        ""                 y
 hse_zero_vels                int           0                  y
 
 # if we are doing HSE boundary conditions, should we get the temperature
-# via interpolation (using model_parser) or hold it constant?
+# via interpolation (using model\_parser) or hold it constant?
 hse_interp_temp              int           0                  y
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
