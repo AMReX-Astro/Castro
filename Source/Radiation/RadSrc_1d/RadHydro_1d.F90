@@ -293,6 +293,8 @@ contains
        umx_new1 = uout(i,UMX) + dt * update(i,UMX)
        ek1 = umx_new1**2/(2.d0*urho_new)
 
+       ! now add the radiation pressure gradient
+       update(i,UMX) = update(i,UMX) - dprdx
        umx_new2 = umx_new1 - dt * dprdx
        ek2 = umx_new2**2/(2.d0*urho_new)
 
