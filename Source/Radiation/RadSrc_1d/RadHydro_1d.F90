@@ -363,6 +363,12 @@ contains
     enddo
 
 
+    do g = 0, ngroups-1
+       do i = lo(1), hi(1)+1
+          rflux(i,g) = dt * area(i) * rflux(i,g) 
+       enddo
+    enddo
+
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 
     if (verbose .eq. 1) then
