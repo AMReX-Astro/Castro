@@ -202,7 +202,7 @@ contains
 
     do n = 1, NVAR
        if ( n == UTEMP ) then
-          flux(:,n) = ZERO
+          flux(lo(1):hi(1)+1,n) = ZERO
 #ifdef SHOCK_VAR
        else if ( n == USHK) then
           flux(lo(1):hi(1)+1,n) = ZERO
