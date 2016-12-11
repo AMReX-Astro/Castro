@@ -248,7 +248,8 @@ contains
        enddo
     enddo
 
-    ! Add gradp term to momentum equation.
+    ! Add gradp term to momentum equation -- in 1-d this is not included in the
+    ! flux
     do i = lo(1),hi(1)
        update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx
     enddo

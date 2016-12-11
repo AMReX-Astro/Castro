@@ -217,6 +217,8 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   call consup_rad(uin,uin_l1,uin_h1, &
                   uout,uout_l1,uout_h1, &
+                  update,updt_l1,updt_h1, &
+                  q,q_l1,q_h1, &
                   Erin,Erin_l1,Erin_h1, &
                   Erout,Erout_l1,Erout_h1, &
                   q1,flux_l1-1,flux_h1+1, &
@@ -225,7 +227,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                   area,area_l1,area_h1, &
                   vol , vol_l1, vol_h1, &
                   div ,pdivu,lo,hi,dx,dt, &
-                  nstep_fsp)
+                  nstep_fsp,verbose)
 #else
   call consup(uin,uin_l1,uin_h1, &
               update,updt_l1,updt_h1, &

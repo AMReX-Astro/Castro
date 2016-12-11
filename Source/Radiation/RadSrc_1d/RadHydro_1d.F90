@@ -135,6 +135,7 @@ contains
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use advection_util_1d_module, only : normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
