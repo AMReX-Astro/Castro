@@ -91,7 +91,7 @@ public:
 
   void close(int level);
 
-  void restart(int level,
+  void restart(int level, const BoxArray& grids,
                const std::string& dir,
                std::istream& is);
 
