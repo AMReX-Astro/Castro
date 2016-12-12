@@ -3,6 +3,11 @@
 
 previous changes:
 
+* 16.12a
+
+  -- fix a restart bug with radiation that was introduced after 16.10
+     (this was cherry-picked from development)
+
 * 16.12
 
   -- BoxLib now requires a C++ 11 compiler by default.  As part of
