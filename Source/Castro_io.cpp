@@ -668,8 +668,6 @@ Castro::writeJobInfo (const std::string& dir)
 
   jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
-  jobInfoFile << "FCOMP:         " << buildInfoGetFcomp() << "\n";
-  jobInfoFile << "FCOMP version: " << buildInfoGetFcompVersion() << "\n";
 
   jobInfoFile << "\n";
 

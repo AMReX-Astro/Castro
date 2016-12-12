@@ -334,7 +334,6 @@ ifdef BUILD_GIT_NAME
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
@@ -343,7 +342,6 @@ else
 	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --boxlib_home "$(BOXLIB_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --FCOMP "$(FCOMP)" --FCOMP_VERSION "$(FCOMP_VERSION)" \
           --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)"
 endif
