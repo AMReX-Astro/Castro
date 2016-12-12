@@ -398,7 +398,7 @@ Castro::restart (Amr&     papa,
         radiation = new Radiation(parent, this, rad_restart);
       }
       radiation->regrid(level, grids);
-      radiation->restart(level, parent->theRestartFile(), is);
+      radiation->restart(level, grids, parent->theRestartFile(), is);
     }
 #endif
 }
