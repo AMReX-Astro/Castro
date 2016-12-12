@@ -883,7 +883,7 @@ void Radiation::close(int level)
   }
 }
 
-void Radiation::restart(int level,
+void Radiation::restart(int level, const BoxArray& grids,
                         const std::string& dir,
                         std::istream& is)
 {
@@ -934,7 +934,6 @@ void Radiation::restart(int level,
     FluxRegister flux_in;
     flux_in.read(FullPathName, is);
 
-    const BoxArray& grids = parent->boxArray(level);
     const IntVect& crse_ratio = parent->refRatio(level-1);
     flux_cons_old.set(level, new FluxRegister(grids, crse_ratio, level, nGroups));
     

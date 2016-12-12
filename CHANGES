@@ -5,6 +5,9 @@
      This affects, in particular, how we treated small internal
      energies in radiation.
 
+  -- fixed some restart crashes with radiation hydrodynamics that was
+     introduced after 16.10
+
 previous changes:
 
 * 16.12
