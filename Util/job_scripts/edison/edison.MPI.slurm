@@ -7,6 +7,11 @@
 
 # -N = number of nodes = # of MPI * number of threads / 24 (cores / node)
 
+export OMP_NUM_THREADS=1
+
+cd $SLURM_SUBMIT_DIR
+
+
 function find_chk_file {
     # find_chk_file takes a single argument -- the wildcard pattern
     # for checkpoint files to look through
@@ -28,11 +33,6 @@ function find_chk_file {
 
 }
 
-
-export OMP_NUM_THREADS=1
-
-
-cd $SLURM_SUBMIT_DIR
 
 # here, we'll rely on restartFile being global
 
@@ -63,7 +63,7 @@ fi
 
 # -n is the number of MPI tasks
 # -c sets the number of OMP threads per MPI -- this should be the same as OMP_NUM_THREADS
-srun -n 264 -c ${OMP_NUM_THREADS} ./Castro2d.Linux.Intel.Intel.MPI.ex inputs_2d ${restartString}
+srun -n 264 -c ${OMP_NUM_THREADS} ./Castro2d.intel.MPI.ex inputs_2d ${restartString}
 
 
 
