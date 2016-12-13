@@ -280,7 +280,7 @@ contains
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, GDPRES, track_grid_losses, &
-                                   limit_fluxes_on_small_dens, QVAR
+                                   limit_fluxes_on_small_dens, QVAR, NQ
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
     use advection_util_2d_module, only : normalize_species_fluxes
@@ -319,7 +319,8 @@ contains
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
     double precision div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     double precision pdivu(lo(1):hi(1),lo(2):hi(2))
-    double precision dx, dy, dt, E_added_flux, mass_added_flux
+    double precision dx, dy, dt
+    double precision E_added_flux, mass_added_flux
     double precision xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision mass_lost, xmom_lost, ymom_lost, zmom_lost
     double precision eden_lost, xang_lost, yang_lost, zang_lost
