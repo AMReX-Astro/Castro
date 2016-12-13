@@ -416,10 +416,10 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
                                    QCG, QGAMCG, &
-                                   QRADVAR, QPTOT, QRAD, QRADHI, QREITOT, &
+                                   QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
@@ -452,17 +452,13 @@ contains
     double precision, intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-#ifdef RADIATION
-    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
-#else
-    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-#endif
+    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     double precision, intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     double precision, parameter :: small = 1.d-8
 
     integer          :: i, j, k
-    integer          :: n, nq, ipassive
+    integer          :: n, iq, ipassive
     double precision :: kineng, rhoinv
     double precision :: vel(3)
 
@@ -535,11 +531,11 @@ contains
     ! Load passively advected quatities into q
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       iq = qpass_map(ipassive)
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
        enddo
@@ -604,10 +600,7 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-                                   QVAR, QRHO, QU, QV, QW, &
-#ifdef RADIATION
-                                   QRADVAR, &
-#endif
+                                   QVAR, QRHO, QU, QV, QW, NQ, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module, only: ZERO, HALF, ONE
@@ -621,17 +614,13 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
-#ifdef RADIATION
-    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
-#else
-    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-#endif
+    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     double precision, intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
     integer          :: i, j, k
-    integer          :: n, nq, ipassive
+    integer          :: n, iq, ipassive
     double precision :: rhoinv
 
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
@@ -658,12 +647,12 @@ contains
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       iq = qpass_map(ipassive)
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
+                srcQ(i,j,k,iq) = ( src(i,j,k,n) - q(i,j,k,iq) * srcQ(i,j,k,QRHO) ) / &
                                  q(i,j,k,QRHO)
              enddo
           enddo
