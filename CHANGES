@@ -3,14 +3,14 @@
   -- the radiation-specific version of computeTemp has been removed
      and instead everything goes through the main Castro computeTemp.
      This affects, in particular, how we treated small internal
-     energies in radiation.
+     energies in radiation. (issue #64)
 
 previous changes:
 
 * 16.12a
 
   -- fix a restart bug with radiation that was introduced after 16.10
-     (this was cherry-picked from development)
+     (this was cherry-picked from development) (issues #76, 78)
 
 * 16.12
 
