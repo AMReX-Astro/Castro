@@ -538,7 +538,7 @@ contains
 
           urho_new = uout(i,j,URHO) + dt * update(i,j,URHO)
 
-          ! this update includes the hydro fluxes and dpdr from hydro
+          ! this update includes the hydro fluxes and grad{p} from hydro
           umx_new1 = uout(i,j,UMX) + dt * update(i,j,UMX)
           umy_new1 = uout(i,j,UMY) + dt * update(i,j,UMY)
           umz_new1 = uout(i,j,UMZ) + dt * update(i,j,UMZ)
