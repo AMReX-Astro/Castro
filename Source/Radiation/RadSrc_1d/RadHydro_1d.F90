@@ -128,7 +128,7 @@ contains
                         verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-                                   NGDNV, GDU, GDPRES, GDLAMS, GDERADS, &
+                                   NGDNV, GDU, GDPRES, GDLAMS, GDERADS, NQ, &
                                    limit_fluxes_on_small_dens, track_grid_losses, &
                                    fspace_type, comoving, QVAR
     use rad_params_module, only : ngroups, nugroup, dlognu
