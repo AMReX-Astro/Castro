@@ -162,7 +162,7 @@ contains
     double precision   uin(uin_l1:uin_h1,NVAR)
     double precision  uout(uout_l1:uout_h1,NVAR)
     double precision update(updt_l1:updt_h1,NVAR)
-    double precision     q(q_l1:q_h1,QVAR)
+    double precision     q(q_l1:q_h1,NQ)
     double precision  Erin( Erin_l1: Erin_h1, 0:ngroups-1)
     double precision Erout(Erout_l1:Erout_h1, 0:ngroups-1)
     double precision    q1(q1_l1:q1_h1, NGDNV)
@@ -263,7 +263,8 @@ contains
     ! fully here, instead of creating a source term for the update
     do g=0, ngroups-1
        do i = lo(1),hi(1)
-          Erout(i,g) = Erin(i,g) + dt * (rflux(i,g) * area(i) - rflux(i+1,g) * area(i+1) ) / vol(i)
+          Erout(i,g) = Erin(i,g) + dt * (rflux(i,g) * area(i) - &
+                                         rflux(i+1,g) * area(i+1) ) / vol(i)
        enddo
     end do
 

@@ -180,7 +180,7 @@ contains
     double precision   uin(uin_l1:uin_h1,NVAR)
     double precision update(updt_l1:updt_h1,NVAR)
     double precision     q1(q1_l1:q1_h1,NGDNV)
-    double precision     q(q_l1:q_h1,QVAR)
+    double precision     q(q_l1:q_h1,NQ)
     double precision  flux( flux_l1: flux_h1,NVAR)
     double precision  area( area_l1: area_h1)
     double precision    vol(vol_l1:vol_h1)

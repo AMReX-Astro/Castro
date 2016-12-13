@@ -307,7 +307,7 @@ contains
     integer verbose
 
     double precision uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
-    double precision q(q_l1:q_h1,q_l2:q_h2,QVAR)
+    double precision q(q_l1:q_h1,q_l2:q_h2,NQ)
     double precision uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
     double precision update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
     double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
@@ -346,7 +346,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)+1
                 div1 = HALF*(div(i,j) + div(i,j+1))
-                div1 = difmag*min(ZERO,div1)
+                div1 = difmag*min(ZERO, div1)
 
                 flux1(i,j,n) = flux1(i,j,n) + &
                      dx*div1*(uin(i,j,n) - uin(i-1,j,n))
@@ -383,21 +383,22 @@ contains
                                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
                                   lo,hi)
 
-    ! Fill the update array.
+
+    ! For hydro, we will create an update source term that is 
+    ! essentially the flux divergence.  This can be added with dt to
+    ! get the update
 
     do n = 1, NVAR
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             update(i,j,n) = update(i,j,n) + ( flux1(i,j,n) * area1(i,j) - flux1(i+1,j,n) * area1(i+1,j) + &
-                                               flux2(i,j,n) * area2(i,j) - flux2(i,j+1,n) * area2(i,j+1) ) / vol(i,j)
+             update(i,j,n) = update(i,j,n) + &
+                  ( flux1(i,j,n) * area1(i,j) - flux1(i+1,j,n) * area1(i+1,j) + &
+                    flux2(i,j,n) * area2(i,j) - flux2(i,j+1,n) * area2(i,j+1) ) / vol(i,j)
 
              if (n == UEINT) then
-
                 ! Add p div(u) source term to (rho e)
-
                 update(i,j,n) = update(i,j,n) - pdivu(i,j)
-
              endif
 
           enddo
