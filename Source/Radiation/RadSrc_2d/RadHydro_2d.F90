@@ -301,7 +301,7 @@ contains
                                    ngdnv, GDPRES, GDU, GDV, GDERADS, GDLAMS, &
                                    fspace_type, comoving, NQ, &
                                    track_grid_losses, limit_fluxes_on_small_dens
-    use rad_params_module, only : ngroups, nugroup, dlognu
+    use rad_params_module, only : ngroups, nugroup, dlognu   
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
