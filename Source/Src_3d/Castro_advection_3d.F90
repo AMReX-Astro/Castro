@@ -42,7 +42,7 @@ contains
                      pdivu, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : QVAR, NVAR, QPRES, QRHO, QU, QW, &
+    use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QCSML, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
