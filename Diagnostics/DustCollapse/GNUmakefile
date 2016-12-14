@@ -1,4 +1,4 @@
-BOXLIB_HOME ?= /path/to/BoxLib
+AMREX_HOME ?= /path/to/amrex
 
 NDEBUG := t
 MPI    :=
@@ -7,14 +7,14 @@ MKVERBOSE :=t
 COMP   := gfortran
 
 # include the main Makefile stuff
-include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
 
 # define the packages to build these tools
 Fmdirs := Src/F_BaseLib 
 
-Fmpack := $(foreach dir, $(Fmdirs),     $(BOXLIB_HOME)/$(dir)/GPackage.mak)
-Fmlocs := $(foreach dir, $(Fmdirs),     $(BOXLIB_HOME)/$(dir))
-Fmincs := $(foreach dir, $(Fmdirs),     $(BOXLIB_HOME)/$(dir))
+Fmpack := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir)/GPackage.mak)
+Fmlocs := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir))
+Fmincs := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir))
 
 # include the necessary GPackage.mak files that define this setup
 include $(Fmpack)
@@ -31,7 +31,7 @@ programs += fdustcollapse3d
 
 all: $(pnames)
 
-include $(BOXLIB_HOME)/Tools/F_mk/GMakerules.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
 
 %.$(suf).exe:%.f90 $(objects)
 ifdef MKVERBOSE

@@ -7,14 +7,14 @@ COMP := gfortran
 
 
 # include the main Makefile stuff
-include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
 
 # core BoxLib directories
 BOXLIB_CORE := Src/F_BaseLib
 
 # BoxLib stuff
-Fmpack += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir)/GPackage.mak)
-Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir))
+Fmpack += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir))
 
 
 # include the necessary GPackage.mak files that define this setup
@@ -38,7 +38,7 @@ programs += fsedov3d_sph
 
 all: $(pnames)
 
-include $(BOXLIB_HOME)/Tools/F_mk/GMakerules.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
 
 %.$(suf).exe:%.f90 $(objects)
 ifdef MKVERBOSE

@@ -1,4 +1,4 @@
-BOXLIB_HOME ?= /path/to/BoxLib
+AMREX_HOME ?= /path/to/BoxLib
 CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
@@ -17,7 +17,7 @@ EBASE = Castro
 # this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
-include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
+include $(AMREX_HOME)/Tools/C_mk/Make.defs
 
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
@@ -91,8 +91,8 @@ ifeq ($(USE_MAESTRO_INIT), TRUE)
   CEXE_headers += DataServices.H AmrData.H AmrvisConstants.H
   CEXE_sources += DataServices.cpp AmrData.cpp
   FEXE_sources += FABUTIL_$(DIM)D.F
-  VPATH_LOCATIONS   += $(BOXLIB_HOME)/Src/Extern/amrdata
-  INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
+  VPATH_LOCATIONS   += $(AMREX_HOME)/Src/Extern/amrdata
+  INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 endif
 
 ifeq ($(USE_ROTATION), TRUE)
@@ -247,7 +247,7 @@ ifeq ($(USE_RAD), TRUE)
    Pdirs += LinearSolvers/C_CellMG
 endif
 
-Bpack	+= $(foreach dir, $(Pdirs), $(BOXLIB_HOME)/Src/$(dir)/Make.package)
+Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
 Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
@@ -287,28 +287,28 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
    
 ifeq ($(USE_MG), TRUE)
-  include $(BOXLIB_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-  include $(BOXLIB_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
+  include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
+  include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
 endif
 
-include $(BOXLIB_HOME)/Src/F_BaseLib/FParallelMG.mak
+include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 
 # runtime parameter support for extern/ routines
 f90EXE_sources += extern.f90
 
 EXTERN_TEMPLATE := $(TOP)/Source/extern_probin.template
 
-EXTERN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(EXTERN_CORE))
+EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_CORE))
 
 extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
-	$(BOXLIB_HOME)/Tools/F_scripts/write_probin.py \
+	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
            --pa "$(EXTERN_PARAMETERS)" 
 
 # job_info support
 #CEXE_sources += buildInfo.cpp
-CEXE_headers += $(BOXLIB_HOME)/Tools/C_scripts/buildInfo.H
-INCLUDE_LOCATIONS +=  $(BOXLIB_HOME)/Tools/C_scripts
+CEXE_headers += $(AMREX_HOME)/Tools/C_scripts/buildInfo.H
+INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
 
 
 MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
@@ -331,25 +331,25 @@ objForExecs += $(objEXETempDir)/buildInfo.o
 
 $(objEXETempDir)/buildInfo.o: .FORCE
 ifdef BUILD_GIT_NAME
-	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
-          --boxlib_home "$(BOXLIB_HOME)" \
+	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
+          --boxlib_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)" \
+          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
 	  --build_git_dir "$(BUILD_GIT_DIR)"
 else
-	$(BOXLIB_HOME)/Tools/C_scripts/makebuildinfo_C.py \
-          --boxlib_home "$(BOXLIB_HOME)" \
+	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
+          --boxlib_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(BOXLIB_HOME) $(MICROPHYSICS_HOME)"
+          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 endif
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) buildInfo.cpp -o $(objEXETempDir)/buildInfo.o
 	$(SILENT) $(RM) buildInfo.cpp
 
 
-include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+include $(AMREX_HOME)/Tools/C_mk/Make.rules
 
 clean::
 	$(SILENT) $(RM) extern.f90
