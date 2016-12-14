@@ -32,5 +32,8 @@ subroutine ca_filt_prim(lo, hi, &
   integer :: i,j
   double precision :: p, e, X(nspec+naux)
 
+  ! this is a stub -- a problem can override this in its own directory
+  ! to implement filtering
+
 end subroutine ca_filt_prim
 
