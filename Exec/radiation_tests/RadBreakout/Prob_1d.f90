@@ -3,6 +3,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
   use network, only : network_init
+  use bl_error_module
+
   implicit none
 
   integer init, namlen
@@ -13,7 +15,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   character(1) dummy
   
   namelist /fortin/ & 
-       rwind0, rwind1, rhowind1, Twind1, rbasefac, filter_rhomax, filter_timemax
+       rwind0, rwind1, rhowind1, Twind1, rbasefac, filter_rhomax, filter_timemax, model_file
   
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -25,8 +27,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   call network_init()
   
   if (namlen .gt. maxlen) then
-     write(6,*) 'probin file name too long'
-     stop
+     call bl_error('probin file name too long')
   end if
   
   do i = 1, namlen
@@ -47,26 +48,28 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xmin = problo(1)
   xmax = probhi(1)
 
+  model_file = "model.input"
+
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
-  open(unit=9,file="model.input")
+  open(newunit=untin, file=trim(model_file))
   print*,'reading model inputs'
-  read(9,*) dummy
-  read(9,*) npts_model
-  read(9,*) dummy
+  read(untin,*) dummy
+  read(untin,*) npts_model
+  read(untin,*) dummy
   if (npts_model > npts_max) then
-     write(6,*) 'npts_max in probdata.f90 is too small'
-     stop
+     call bl_error('npts_max in probdata.f90 is too small')
   end if
+
   do i = 1, npts_model
-     read(9,*)model_r(i), model_rho(i), model_v(i), &
+     read(untin,*)model_r(i), model_rho(i), model_v(i), &
           model_T(i), model_Ye(i), model_Abar(i)
   enddo
-  print*,'done reading model inputs'
+
+  print *,'done reading model inputs'
   
 end subroutine PROBINIT
 

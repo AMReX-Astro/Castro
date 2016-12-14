@@ -11,5 +11,7 @@ module probdata_module
 
   ! filter is used only when rho or time is below.
   double precision, save :: filter_rhomax, filter_timemax
-  
+
+  character (len=128), save :: model_file
+
 end module probdata_module
