@@ -78,7 +78,7 @@ contains
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     double precision, intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
@@ -742,9 +742,9 @@ contains
                     eden_lost,xang_lost,yang_lost,zang_lost, &
                     verbose)
 
-    use network, only : nspec, naux
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, track_grid_losses, limit_fluxes_on_small_dens
+                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, NQ, &
+                                   track_grid_losses, limit_fluxes_on_small_dens
     use bl_constants_module, only : ZERO, FOURTH, ONE
     use advection_util_3d_module, only : normalize_species_fluxes
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens
@@ -777,7 +777,7 @@ contains
     integer, intent(in) :: verbose
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     double precision, intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
     double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
@@ -877,7 +877,9 @@ contains
                                   flux3,flux3_lo,flux3_hi, &
                                   lo,hi)
 
-    ! Fill the update array.
+    ! For hydro, we will create an update source term that is
+    ! essentially the flux divergence.  This can be added with dt to
+    ! get the update
 
     do n = 1, NVAR
        do k = lo(3), hi(3)
@@ -891,11 +893,8 @@ contains
                                                       flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) * volinv
 
                 ! Add the p div(u) source term to (rho e).
-
                 if (n .eq. UEINT) then
-
                    update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
-
                 endif
 
              enddo
@@ -910,6 +909,7 @@ contains
                                      qy, qy_lo, qy_hi, &
                                      qz, qz_lo, qz_hi)
 #endif
+
 
 
     ! Scale the fluxes for the form we expect later in refluxing.

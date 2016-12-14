@@ -47,7 +47,7 @@ contains
                          pdivu, domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, QU, ppm_type, hybrid_riemann, &
-                                   QRADVAR, &
+                                   QRADVAR, NQ, &
                                    GDPRES, GDU, GDV, GDW, GDERADS, GDLAMS, &
                                    ppm_trace_sources, QC, QCG, QCSML, QGAMC, QGAMCG, NQAUX, NGDNV
 
@@ -57,6 +57,9 @@ contains
     use rad_params_module, only : ngroups
     use riemann_module, only : cmpflx, shock
     use mempool_module, only : bl_allocate, bl_deallocate
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     implicit none
 
@@ -77,7 +80,7 @@ contains
     integer :: fd2_lo(3), fd2_hi(3)
     integer :: fd3_lo(3), fd3_hi(3)
 
-    double precision     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QRADVAR)
+    double precision     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     double precision  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
@@ -101,7 +104,7 @@ contains
     ! Local variables
 
     integer km,kc,kt,k3d,n
-    integer i,j, g
+    integer i,j
 
     double precision dtdx, dtdy, dtdz, hdt
     double precision cdtdx, cdtdy, cdtdz
@@ -266,14 +269,35 @@ contains
     pdivu(:,:,:) = ZERO
 
 
+#ifdef SHOCK_VAR
+    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
+
+    call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+
+    ! Store the shock data for future use in the burning step.
+
+    do k3d = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             uout(i,j,k3d,USHK) = shk(i,j,k3d)
+          enddo
+       enddo
+    enddo
+
+    ! Discard it locally if we don't need it in the hydro update.
+
+    if (hybrid_riemann /= 1) then
+       shk(:,:,:) = ZERO
+    endif
+#else
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, qd_lo, qd_hi, shk, shk_lo, shk_hi, lo, hi, dx)
+       call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
     else
        shk(:,:,:) = ZERO
     endif
-
+#endif
 
     ! We come into this routine with a 3-d box of data, but we operate
     ! on it locally by considering 2 planes that encompass all of the
@@ -677,7 +701,9 @@ contains
   ! :::
 
   subroutine consup_rad(uin, uin_lo, uin_hi, &
+                        q,q_lo,q_hi, &
                         uout, uout_lo, uout_hi, &
+                        update,updt_lo,updt_hi, &
                         Erin, Erin_lo, Erin_hi, &
                         Erout, Erout_lo, Erout_hi, &
                         flux1, flux1_lo, flux1_hi, &
@@ -694,23 +720,37 @@ contains
                         area3, area3_lo, area3_hi, &
                         vol, vol_lo, vol_hi, &
                         div, pdivu, &
-                        lo,hi, dx, dt, nstep_fsp)
+                        lo,hi, dx, dt, nstep_fsp,verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, NQ, &
                                    fspace_type, comoving, &
-                                   UEDEN, UEINT, UTEMP, &
-                                   GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, ngdnv
+                                   GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &
+                                   track_grid_losses, limit_fluxes_on_small_dens
+    use bl_constants_module, only : ZERO, FOURTH, ONE
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor
     use advection_util_3d_module, only : normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
+    use castro_util_module, only : position, linear_to_angular_momentum
+    use prob_params_module, only : domlo_level, domhi_level, center
+    use amrinfo_module, only : amr_level
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : add_hybrid_advection_source
+#endif
+#ifdef SHOCK_VAR
+    use meth_params_module, only : USHK
+#endif
 
     implicit none
 
     integer nstep_fsp
     integer :: lo(3), hi(3)
     integer :: uin_lo(3), uin_hi(3)
+    integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer :: uout_lo(3), uout_hi(3)
+    integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer :: Erout_lo(3), Erout_hi(3)
     integer :: Erin_lo(3), Erin_hi(3)
     integer :: flux1_lo(3), flux1_hi(3)
@@ -726,10 +766,12 @@ contains
     integer :: area2_lo(3), area2_hi(3)
     integer :: area3_lo(3), area3_hi(3)
     integer :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: verbose
 
     double precision uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     double precision uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-
+    double precision, intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
     double precision  Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
     double precision Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
     double precision flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
@@ -754,8 +796,6 @@ contains
     ! Local variables
 
     double precision :: div1
-    double precision :: rho, Up, Vp, Wp
-    double precision :: SrU, SrV, SrW, SrE
     integer          :: i, j, k, n, g
 
     double precision, dimension(0:ngroups-1) :: Erscale
@@ -766,6 +806,17 @@ contains
     double precision :: ux, uy, uz, divu, lamc, Egdc
     double precision :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
     double precision :: dprdx, dprdy, dprdz, ek1, ek2, dek
+
+    double precision :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
+    double precision :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+    double precision :: eden_lost, xang_lost, yang_lost, zang_lost
+
+    integer          :: domlo(3), domhi(3)
+    double precision :: loc(3), ang_mom(3)
+
+    double precision :: urho_new
+    double precision :: umx_new1, umy_new1, umz_new1
+    double precision :: umx_new2, umy_new2, umz_new2
 
     if (ngroups .gt. 1) then
        if (fspace_type .eq. 1) then
@@ -779,19 +830,27 @@ contains
 
        if ( n == UTEMP ) then
 
-          flux1(:,:,:,n) = ZERO
-          flux2(:,:,:,n) = ZERO
-          flux3(:,:,:,n) = ZERO
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+
+#ifdef SHOCK_VAR
+       else if ( n == USHK ) then
+
+          flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+          flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+          flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+#endif
 
        else
 
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)+1
-                   div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
-                   div1 = difmag*min(ZERO,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
+                   div1 = difmag*min(ZERO, div1)
+
                    flux1(i,j,k,n) = flux1(i,j,k,n) + dx(1)*div1*(uin(i,j,k,n)-uin(i-1,j,k,n))
-                   flux1(i,j,k,n) = flux1(i,j,k,n) * area1(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -799,10 +858,10 @@ contains
           do k = lo(3),hi(3)
              do j = lo(2),hi(2)+1
                 do i = lo(1),hi(1)
-                   div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
-                   div1 = difmag*min(ZERO,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
+                   div1 = difmag*min(ZERO, div1)
+
                    flux2(i,j,k,n) = flux2(i,j,k,n) + dx(2)*div1*(uin(i,j,k,n)-uin(i,j-1,k,n))
-                   flux2(i,j,k,n) = flux2(i,j,k,n) * area2(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -810,10 +869,10 @@ contains
           do k = lo(3),hi(3)+1
              do j = lo(2),hi(2)
                 do i = lo(1),hi(1)
-                   div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
-                   div1 = difmag*min(ZERO,div1)
+                   div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
+                   div1 = difmag*min(ZERO, div1)
+
                    flux3(i,j,k,n) = flux3(i,j,k,n) + dx(3)*div1*(uin(i,j,k,n)-uin(i,j,k-1,n))
-                   flux3(i,j,k,n) = flux3(i,j,k,n) * area3(i,j,k) * dt
                 enddo
              enddo
           enddo
@@ -826,10 +885,10 @@ contains
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)+1
-                div1 = .25d0*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
-                div1 = difmag*min(ZERO,div1)
+                div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
+                div1 = difmag*min(ZERO, div1)
+
                 radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx(1)*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
-                radflux1(i,j,k,g) = radflux1(i,j,k,g) * area1(i,j,k) * dt
              enddo
           enddo
        enddo
@@ -839,10 +898,10 @@ contains
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)+1
              do i = lo(1),hi(1)
-                div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
-                div1 = difmag*min(ZERO,div1)
+                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
+                div1 = difmag*min(ZERO, div1)
+
                 radflux2(i,j,k,g) = radflux2(i,j,k,g) + dx(2)*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
-                radflux2(i,j,k,g) = radflux2(i,j,k,g) * area2(i,j,k) * dt
              enddo
           enddo
        enddo
@@ -852,57 +911,88 @@ contains
        do k = lo(3),hi(3)+1
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                div1 = .25d0*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
-                div1 = difmag*min(ZERO,div1)
+                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
+                div1 = difmag*min(ZERO, div1)
+
                 radflux3(i,j,k,g) = radflux3(i,j,k,g) + dx(3)*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
-                radflux3(i,j,k,g) = radflux3(i,j,k,g) * area3(i,j,k) * dt
              enddo
           enddo
        enddo
     enddo
+
+    if (limit_fluxes_on_small_dens == 1) then
+       call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
+                                             q,q_lo,q_hi, &
+                                             vol,vol_lo,vol_hi, &
+                                             flux1,flux1_lo,flux1_hi, &
+                                             area1,area1_lo,area1_hi, &
+                                             flux2,flux2_lo,flux2_hi, &
+                                             area2,area2_lo,area2_hi, &
+                                             flux3,flux3_lo,flux3_hi, &
+                                             area3,area3_lo,area3_hi, &
+                                             lo,hi,dt,dx)
+
+    endif
 
     call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
                                   flux2,flux2_lo,flux2_hi, &
                                   flux3,flux3_lo,flux3_hi, &
                                   lo,hi)
 
+    ! For hydro, we will create an update source term that is
+    ! essentially the flux divergence.  This can be added with dt to
+    ! get the update
+
     do n = 1, NVAR
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                uout(i,j,k,n) = uout(i,j,k,n) + ( flux1(i,j,k,n) - flux1(i+1,j,k,n) &
-                                              +   flux2(i,j,k,n) - flux2(i,j+1,k,n) &
-                                              +   flux3(i,j,k,n) - flux3(i,j,k+1,n)) / vol(i,j,k)
+                update(i,j,k,n) = update(i,j,k,n) + &
+                     ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
+                       flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                       flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 
-                !
-                ! Add the source term to (rho e)
-                !
+                ! Add the p div(u) source term to (rho e)
                 if (n .eq. UEINT) then
-                   uout(i,j,k,n) = uout(i,j,k,n) - dt * pdivu(i,j,k)
+                   update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
                 endif
+
              enddo
           enddo
        enddo
     enddo
 
-    ! update everything else with fluxes
+#ifdef HYBRID_MOMENTUM
+    call add_hybrid_advection_source(lo, hi, dt, &
+                                     update, uout_lo, uout_hi, &
+                                     qx, qx_lo, qx_hi, &
+                                     qy, qy_lo, qy_hi, &
+                                     qz, qz_lo, qz_hi)
+#endif
+
+
+    ! radiation energy update.  For the moment, we actually update things 
+    ! fully here, instead of creating a source term for the update
     do g=0,ngroups-1
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                Erout(i,j,k,g) = Erin(i,j,k,g) &
-                     + ( radflux1(i,j,k,g) - radflux1(i+1,j,k,g) &
-                     +   radflux2(i,j,k,g) - radflux2(i,j+1,k,g) &
-                     +   radflux3(i,j,k,g) - radflux3(i,j,k+1,g)) / vol(i,j,k)
+                Erout(i,j,k,g) = Erin(i,j,k,g) + dt * &
+                     ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k) + &
+                       radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) + &
+                       radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) ) / vol(i,j,k)
              enddo
           enddo
        enddo
     enddo
 
-    ! add radiation force terms
+    ! add radiation force terms (the hydro pressure gradient is always
+    ! included in the momentum flux in 3-d)
+
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
+
              dprdx = ZERO
              dprdy = ZERO
              dprdz = ZERO
@@ -915,17 +1005,36 @@ contains
                 dprdz = dprdz + lamc*(q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dx(3)
              end do
 
-             ek1 = (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
-                  / (2.d0*uout(i,j,k,URHO))
+             ! we now want to compute the change in the kinetic energy -- we
+             ! base this off of uout, since that has the source terms in it.
+             ! But note that this does not have the fluxes (since we are
+             ! using update)
 
-             uout(i,j,k,UMX) = uout(i,j,k,UMX) - dt * dprdx
-             uout(i,j,k,UMY) = uout(i,j,k,UMY) - dt * dprdy
-             uout(i,j,k,UMZ) = uout(i,j,k,UMZ) - dt * dprdz
-             ek2 = (uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2) &
-                  / (2.d0*uout(i,j,k,URHO))
+             urho_new = uout(i,j,k,URHO) + dt * update(i,j,k,URHO)
+
+             ! this update includes the hydro fluxes and grad{p} from hydro
+             umx_new1 = uout(i,j,k,UMX) + dt * update(i,j,k,UMX)
+             umy_new1 = uout(i,j,k,UMY) + dt * update(i,j,k,UMY)
+             umz_new1 = uout(i,j,k,UMZ) + dt * update(i,j,k,UMZ)
+
+             ek1 = (umx_new1**2 + umy_new1**2 + umz_new1**2) / (TWO*urho_new)
+
+             ! now add the radiation pressure gradient
+             update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx
+             update(i,j,k,UMY) = update(i,j,k,UMY) - dprdy
+             update(i,j,k,UMZ) = update(i,j,k,UMZ) - dprdz
+
+             umx_new2 = umx_new1 - dt * dprdx
+             umy_new2 = umy_new1 - dt * dprdy
+             umz_new2 = umz_new1 - dt * dprdz
+
+             ek2 = (umx_new2**2 + umy_new2**2 + umz_new2**2) / (TWO*urho_new)
+
              dek = ek2 - ek1
 
-             uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + dek
+             ! the update is a source / dt, so scale accordingly
+             update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek/dt
+
              if (.not. comoving) then ! mixed-frame (single group only)
                 Erout(i,j,k,0) = Erout(i,j,k,0) - dek
              end if
@@ -1017,6 +1126,249 @@ contains
           enddo
        enddo
     endif
+
+
+    ! Scale the fluxes for the form we expect later in refluxing.
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1) + 1
+                flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2) + 1
+             do i = lo(1), hi(1)
+                flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1) + 1
+                radflux1(i,j,k,g) = dt * radflux1(i,j,k,g) * area1(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2) + 1
+             do i = lo(1), hi(1)
+                radflux2(i,j,k,g) = dt * radflux2(i,j,k,g) * area2(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                radflux3(i,j,k,g) = dt * radflux3(i,j,k,g) * area3(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
+
+    if (verbose .eq. 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) + &
+                                                      flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) + &
+                                                      flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
+                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) + &
+                                                      flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) + &
+                                                      flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
+                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) + &
+                                                      flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) + &
+                                                      flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
+                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) + &
+                                                      flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) + &
+                                                      flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
+                E_added_flux    = E_added_flux    + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) + &
+                                                      flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) + &
+                                                      flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
+             enddo
+          enddo
+       enddo
+
+    endif
+
+    if (track_grid_losses .eq. 1) then
+
+       domlo = domlo_level(:,amr_level)
+       domhi = domhi_level(:,amr_level)
+
+       if (lo(3) .le. domlo(3) .and. hi(3) .ge. domlo(3)) then
+
+          k = domlo(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                loc = position(i,j,k,ccz=.false.)
+
+                mass_lost = mass_lost - flux3(i,j,k,URHO)
+                xmom_lost = xmom_lost - flux3(i,j,k,UMX)
+                ymom_lost = ymom_lost - flux3(i,j,k,UMY)
+                zmom_lost = zmom_lost - flux3(i,j,k,UMZ)
+                eden_lost = eden_lost - flux3(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost - ang_mom(1)
+                yang_lost = yang_lost - ang_mom(2)
+                zang_lost = zang_lost - ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+       if (lo(3) .le. domhi(3) .and. hi(3) .ge. domhi(3)) then
+
+          k = domhi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                loc = position(i,j,k,ccz=.false.)
+
+                mass_lost = mass_lost + flux3(i,j,k,URHO)
+                xmom_lost = xmom_lost + flux3(i,j,k,UMX)
+                ymom_lost = ymom_lost + flux3(i,j,k,UMY)
+                zmom_lost = zmom_lost + flux3(i,j,k,UMZ)
+                eden_lost = eden_lost + flux3(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux3(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost + ang_mom(1)
+                yang_lost = yang_lost + ang_mom(2)
+                zang_lost = zang_lost + ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+       if (lo(2) .le. domlo(2) .and. hi(2) .ge. domlo(2)) then
+
+          j = domlo(2)
+          do k = lo(3), hi(3)
+             do i = lo(1), hi(1)
+
+                loc = position(i,j,k,ccy=.false.)
+
+                mass_lost = mass_lost - flux2(i,j,k,URHO)
+                xmom_lost = xmom_lost - flux2(i,j,k,UMX)
+                ymom_lost = ymom_lost - flux2(i,j,k,UMY)
+                zmom_lost = zmom_lost - flux2(i,j,k,UMZ)
+                eden_lost = eden_lost - flux2(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost - ang_mom(1)
+                yang_lost = yang_lost - ang_mom(2)
+                zang_lost = zang_lost - ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+       if (lo(2) .le. domhi(2) .and. hi(2) .ge. domhi(2)) then
+
+          j = domhi(2) + 1
+          do k = lo(3), hi(3)
+             do i = lo(1), hi(1)
+
+                loc = position(i,j,k,ccy=.false.)
+
+                mass_lost = mass_lost + flux2(i,j,k,URHO)
+                xmom_lost = xmom_lost + flux2(i,j,k,UMX)
+                ymom_lost = ymom_lost + flux2(i,j,k,UMY)
+                zmom_lost = zmom_lost + flux2(i,j,k,UMZ)
+                eden_lost = eden_lost + flux2(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux2(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost + ang_mom(1)
+                yang_lost = yang_lost + ang_mom(2)
+                zang_lost = zang_lost + ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+       if (lo(1) .le. domlo(1) .and. hi(1) .ge. domlo(1)) then
+
+          i = domlo(1)
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+
+                loc = position(i,j,k,ccx=.false.)
+
+                mass_lost = mass_lost - flux1(i,j,k,URHO)
+                xmom_lost = xmom_lost - flux1(i,j,k,UMX)
+                ymom_lost = ymom_lost - flux1(i,j,k,UMY)
+                zmom_lost = zmom_lost - flux1(i,j,k,UMZ)
+                eden_lost = eden_lost - flux1(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost - ang_mom(1)
+                yang_lost = yang_lost - ang_mom(2)
+                zang_lost = zang_lost - ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+       if (lo(1) .le. domhi(1) .and. hi(1) .ge. domhi(1)) then
+
+          i = domhi(1) + 1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+
+                loc = position(i,j,k,ccx=.false.)
+
+                mass_lost = mass_lost + flux1(i,j,k,URHO)
+                xmom_lost = xmom_lost + flux1(i,j,k,UMX)
+                ymom_lost = ymom_lost + flux1(i,j,k,UMY)
+                zmom_lost = zmom_lost + flux1(i,j,k,UMZ)
+                eden_lost = eden_lost + flux1(i,j,k,UEDEN)
+
+                ang_mom   = linear_to_angular_momentum(loc - center, flux1(i,j,k,UMX:UMZ))
+                xang_lost = xang_lost + ang_mom(1)
+                yang_lost = yang_lost + ang_mom(2)
+                zang_lost = zang_lost + ang_mom(3)
+
+             enddo
+          enddo
+
+       endif
+
+    endif
+
 
   end subroutine consup_rad
 

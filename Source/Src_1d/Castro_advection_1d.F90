@@ -140,16 +140,15 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine consup( &
-                    uin,  uin_l1,  uin_h1, &
-                    uout, uout_l1 ,uout_h1, &
+  subroutine consup(uin,  uin_l1,  uin_h1, &
                     update,updt_l1,updt_h1, &
                     q, q_l1, q_h1, &
                     flux, flux_l1, flux_h1, &
                     q1, q1_l1, q1_h1, &
                     area,area_l1,area_h1, &
                     vol,vol_l1,vol_h1, &
-                    div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
+                    div,pdivu,lo,hi,dx,dt, &
+                    mass_added_flux,E_added_flux, &
                     xmom_added_flux,ymom_added_flux,zmom_added_flux, &
                     mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                     eden_lost,xang_lost,yang_lost,zang_lost, &
@@ -171,7 +170,6 @@ contains
 
     integer lo(1), hi(1)
     integer   uin_l1,  uin_h1
-    integer  uout_l1, uout_h1
     integer  updt_l1, updt_h1
     integer    q1_l1,   q1_h1
     integer     q_l1,    q_h1
@@ -180,10 +178,9 @@ contains
     integer   vol_l1,  vol_h1
     integer verbose
     double precision   uin(uin_l1:uin_h1,NVAR)
-    double precision  uout(uout_l1:uout_h1,NVAR)
     double precision update(updt_l1:updt_h1,NVAR)
     double precision     q1(q1_l1:q1_h1,NGDNV)
-    double precision     q(q_l1:q_h1,QVAR)
+    double precision     q(q_l1:q_h1,NQ)
     double precision  flux( flux_l1: flux_h1,NVAR)
     double precision  area( area_l1: area_h1)
     double precision    vol(vol_l1:vol_h1)
@@ -212,6 +209,7 @@ contains
        else if ( n == UMZ ) then
           flux(lo(1):hi(1)+1,n) = ZERO
        else
+          ! add the artifical viscosity
           do i = lo(1),hi(1)+1
              div1 = difmag*min(ZERO,div(i))
              flux(i,n) = flux(i,n) + dx*div1*(uin(i,n) - uin(i-1,n))
@@ -232,34 +230,30 @@ contains
     endif
 
     ! Normalize the species fluxes.
-
     call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
 
-    ! Fill the update array.
+    ! For hydro, we will create an update source term that is
+    ! essentially the flux divergence.  This can be added with dt to
+    ! get the update
 
     do n = 1, NVAR
        do i = lo(1), hi(1)
-
           update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
 
           ! Add p div(u) source term to (rho e).
-
           if (n == UEINT) then
-
              update(i,n) = update(i,n) - pdivu(i)
-
           endif
 
        enddo
     enddo
 
-    ! Add gradp term to momentum equation.
-
+    ! Add gradp term to momentum equation -- in 1-d this is not included in the
+    ! flux
     do i = lo(1),hi(1)
-
        update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx
-
     enddo
+
 
     ! Scale the fluxes for the form we expect later in refluxing.
 
