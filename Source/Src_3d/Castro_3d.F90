@@ -35,7 +35,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
 #ifdef RADIATION
-                                 QRADVAR, QPTOT, &
+                                 QPTOT, &
 #endif
                                  use_flattening, &
                                  first_order_hydro
