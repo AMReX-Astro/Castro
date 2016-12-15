@@ -39,23 +39,23 @@ public:
 
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
-                      Array<std::unique_ptr<MultiFab> >& grad_phi,
+                      const Array<MultiFab*>& grad_phi,
 		      int               is_new);
 
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
-                            PArray<MultiFab>&          rhs,
-                            PArray<MultiFab>&          delta_phi,
-                            PArray<PArray<MultiFab> >& grad_delta_phi);
+                            const Array<MultiFab*>&          rhs,
+                            const Array<MultiFab*>&          delta_phi,
+                            const Array<Array<MultiFab*> >&  grad_delta_phi);
 
   void gravity_sync (int crse_level, int fine_level,
-		     const PArray<MultiFab>& drho, const PArray<MultiFab>& dphi);
+		     const Array<MultiFab*>& drho, const Array<MultiFab*>& dphi);
 
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
   void actual_multilevel_solve      (int level, int finest_level, 
-                                     Array<PArray<MultiFab> >& grad_phi,
+                                     const Array<Array<MultiFab*> >& grad_phi,
 				     int is_new,
                                      int use_previous_phi_as_guess = 0);
 
@@ -63,13 +63,9 @@ public:
 
   void create_comp_minus_level_grad_phi(int level,
 					MultiFab& comp_phi,
-					PArray<MultiFab>& comp_gphi,
+					const Array<MultiFab*>& comp_gphi,
 					MultiFab& cml_phi,
-                                        std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM>& cml_gphi);
-
-  void GetCrseGradPhi(int level, 
-                      PArray<MultiFab>& grad_phi_crse,
-                      Real time);
+					Array<std::unique_ptr<MultiFab> >& cml_gphi);
 
   void GetCrsePhi(int level, 
                   MultiFab& phi_crse,
@@ -91,11 +87,11 @@ public:
   void make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
+  void fill_multipole_BCs(int crse_level, int fine_level, const Array<MultiFab*>& Rhs, MultiFab& phi);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
-  void fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFab>& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFab*>& Rhs, MultiFab& phi);
 #endif
 
   void make_mg_bc();
@@ -164,9 +160,9 @@ protected:
 #include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
-  void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
+  void applyMetricTerms(int level,MultiFab& Rhs, const Array<MultiFab*>& coeffs);
   void unweight_cc(int level,MultiFab& cc);
-  void unweight_edges(int level, PArray<MultiFab>& edges);
+  void unweight_edges(int level, const Array<MultiFab*>& edges);
 #endif
 
 #ifdef POINTMASS
@@ -176,10 +172,10 @@ protected:
 private:
 
     Real solve_phi_with_fmg (int crse_level, int fine_level,
-			     Array<MultiFab*>& phi,
-			     Array<MultiFab*>& rhs,
-			     Array<Array<MultiFab*> >& grad_phi,
-			     Array<MultiFab*>& res,
+			     const Array<MultiFab*>& phi,
+			     const Array<MultiFab*>& rhs,
+			     const Array<Array<MultiFab*> >& grad_phi,
+			     const Array<MultiFab*>& res,
 			     Real time);
 
     Array<std::unique_ptr<MultiFab> > get_rhs (int crse_level, int nlevs, int is_new);

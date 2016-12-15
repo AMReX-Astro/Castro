@@ -33,7 +33,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	// Create a copy of the current (composite) data on this level.
 
 	MultiFab comp_phi;
-	PArray<MultiFab> comp_gphi(BL_SPACEDIM, PArrayManage);
+	Array<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
 
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
 
@@ -41,8 +41,8 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
 	    for (int n = 0; n < BL_SPACEDIM; ++n) {
-		comp_gphi.set(n, new MultiFab(getEdgeBoxArray(n), 1, 0));
-		comp_gphi[n].copy(gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
+		comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), 1, 0));
+		comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
 	    }
 
 	}
@@ -60,7 +60,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	gravity->solve_for_phi(level,
 			       phi_old,
-			       gravity->get_grad_phi_prev(level),
+			       BoxLib::GetArrOfPtrs(gravity->get_grad_phi_prev(level)),
 			       is_new);
 
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
@@ -69,7 +69,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	    gravity->create_comp_minus_level_grad_phi(level,
 						      comp_phi,
-						      comp_gphi,
+						      BoxLib::GetArrOfPtrs(comp_gphi),
 						      comp_minus_level_phi,
 						      comp_minus_level_grad_phi);
 
@@ -79,7 +79,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
 	    for (int n = 0; n < BL_SPACEDIM; ++n)
-		gravity->get_grad_phi_prev(level)[n].copy(comp_gphi[n], 0, 0, 1);
+		gravity->get_grad_phi_prev(level)[n]->copy(*comp_gphi[n], 0, 0, 1);
 
         }
 
@@ -148,7 +148,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	gravity->solve_for_phi(level,
 			       phi_new,
-			       gravity->get_grad_phi_curr(level),
+			       BoxLib::GetArrOfPtrs(gravity->get_grad_phi_curr(level)),
 			       is_new);
 
 	if (level < parent->finestLevel() && gravity->NoComposite() != 1) {

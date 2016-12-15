@@ -16,7 +16,6 @@
 #include "AmrParticles.H"
 #endif
 
-#include <array>
 #include <memory>
 #include <iostream>
 
@@ -561,7 +560,7 @@ protected:
     // Difference between composite and level solve for phi.
     //
     MultiFab comp_minus_level_phi;
-    std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM> comp_minus_level_grad_phi;
+    Array<std::unique_ptr<MultiFab> > comp_minus_level_grad_phi;
 #endif
 
     //
@@ -582,12 +581,12 @@ protected:
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    std::array<std::unique_ptr<MultiFab>,3> fluxes;
+    Array<std::unique_ptr<MultiFab> > fluxes;
 #if (BL_SPACEDIM <= 2)
     MultiFab         P_radial;
 #endif
 #ifdef RADIATION
-    std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM> rad_fluxes;
+    Array<std::unique_ptr<MultiFab> > rad_fluxes;
 #endif
 
     FluxRegister flux_reg;

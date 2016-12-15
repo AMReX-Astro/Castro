@@ -99,7 +99,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 	fmg.set_bc(mg_bc, CrseTemp, Temperature);
     }
 
-    fmg.set_diffusion_coeffs(coeffs);
+    fmg.set_diffusion_coeffs(BoxLib::GetArrOfPtrs(coeffs));
 
     fmg.applyop(Temperature, DiffTerm);
 

@@ -621,6 +621,7 @@ Castro::buildMetrics ()
 void
 Castro::initMFs()
 {
+    fluxes.resize(3);
 
     for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
@@ -634,9 +635,12 @@ Castro::initMFs()
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+    if (Radiation::rad_hydro_combined) {
+	rad_fluxes.resize(BL_SPACEDIM);
+        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
 	    rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0));
+	}
+    }
 #endif
 
     if (do_reflux && level > 0) {
@@ -2234,8 +2238,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    // phi / cm**2, which makes it correct for the RHS of the Poisson equation.
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		reg->CrseInit(gravity->get_grad_phi_curr(lev-1)[i], crse_lev.area[i], i, 0, 0, 1, -1.0);
-		reg->FineAdd(gravity->get_grad_phi_curr(lev)[i], fine_lev.area[i], i, 0, 0, 1, 1.0);
+		reg->CrseInit(*(gravity->get_grad_phi_curr(lev-1)[i]), crse_lev.area[i], i, 0, 0, 1, -1.0);
+		reg->FineAdd(*(gravity->get_grad_phi_curr(lev)[i]), fine_lev.area[i], i, 0, 0, 1, 1.0);
 	    }
 
 	    reg->Reflux(*dphi[ilev], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
@@ -2253,7 +2257,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #ifdef SELF_GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	    gravity->gravity_sync(crse_level, fine_level, drho, dphi);
+	gravity->gravity_sync(crse_level, fine_level, BoxLib::GetArrOfPtrs(drho), BoxLib::GetArrOfPtrs(dphi));
 #endif
 
     // Now subtract the new-time updates to the state data,
