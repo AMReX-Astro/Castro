@@ -1331,7 +1331,7 @@ Gravity::test_composite_phi (int crse_level)
 		       Density,0,1,0);
 
 	res.set(ilev, new MultiFab(grids[amr_lev],1,0));
-	res[amr_lev].setVal(0.);
+	res[ilev].setVal(0.);
     }
 
     Array< PArray<MultiFab> > grad_phi_null;
