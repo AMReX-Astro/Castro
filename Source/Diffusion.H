@@ -17,10 +17,10 @@ public:
                       MultiFab*             area);
 
   void applyop(int level,MultiFab& Temperature,MultiFab& CrseTemp,
-               MultiFab& DiffTerm, PArray<MultiFab>& temp_cond_coef);
+               MultiFab& DiffTerm, Array<std::unique_ptr<MultiFab> >& temp_cond_coef);
 
   void applyViscOp(int level,MultiFab& Vel, MultiFab& CrseVel,
-                   MultiFab& ViscTerm, PArray<MultiFab>& visc_coeff);
+                   MultiFab& ViscTerm, Array<std::unique_ptr<MultiFab> >& visc_coeff);
 
   void make_mg_bc();
 
@@ -36,7 +36,7 @@ protected:
   // Pointers to amr,amrlevel.
   //
   Amr*             parent;
-  PArray<AmrLevel> LevelData;
+  Array<AmrLevel*> LevelData;
 
   //
   // BoxArray at each level
@@ -45,7 +45,7 @@ protected:
   //
   // Volume and area fractions.
   //
-  PArray<MultiFab> volume;
+  Array<MultiFab*> volume;
   Array<MultiFab*> area;
 
   int mg_bc[2*BL_SPACEDIM];
@@ -57,7 +57,7 @@ protected:
   static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)
-  void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
+  void applyMetricTerms(int level,MultiFab& Rhs, Array<std::unique_ptr<MultiFab> >& coeffs);
   void   weight_cc(int level,MultiFab& cc);
   void unweight_cc(int level,MultiFab& cc);
 #endif

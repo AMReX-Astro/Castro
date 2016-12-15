@@ -26,12 +26,12 @@ public:
   
   void set_mass_offset(Real time, bool multi_level=true);
 
-  PArray<MultiFab>& get_grad_phi_prev(int level);
-  PArray<MultiFab>& get_grad_phi_curr(int level);
+  Array<std::unique_ptr<MultiFab> >& get_grad_phi_prev(int level);
+  Array<std::unique_ptr<MultiFab> >& get_grad_phi_curr(int level);
 
   MultiFab* get_grad_phi_prev_comp(int level,int comp);
 
-  void plus_grad_phi_curr(int level, PArray<MultiFab>& addend);
+  void plus_grad_phi_curr(int level, Array<std::unique_ptr<MultiFab> >& addend);
 
   void swapTimeLevels (int level);
 
@@ -39,7 +39,7 @@ public:
 
   void solve_for_phi (int               level,
 		      MultiFab&         phi,
-                      PArray<MultiFab>& grad_phi,
+                      Array<std::unique_ptr<MultiFab> >& grad_phi,
 		      int               is_new);
 
 
@@ -65,7 +65,7 @@ public:
 					MultiFab& comp_phi,
 					PArray<MultiFab>& comp_gphi,
 					MultiFab& cml_phi,
-                                        PArray<MultiFab>& cml_gphi);
+                                        std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM>& cml_gphi);
 
   void GetCrseGradPhi(int level, 
                       PArray<MultiFab>& grad_phi_crse,
@@ -95,7 +95,7 @@ public:
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
-  void fill_direct_sum_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFab>& Rhs, MultiFab& phi);
 #endif
 
   void make_mg_bc();
@@ -105,12 +105,12 @@ protected:
   // Pointers to amr,amrlevel.
   //
   Amr*             parent;
-  PArray<AmrLevel> LevelData;
+  Array<AmrLevel*> LevelData;
   //
   // Pointers to grad_phi at previous and current time
   //
-  Array< PArray<MultiFab> > grad_phi_curr;
-  Array< PArray<MultiFab> > grad_phi_prev;
+  Array< Array<std::unique_ptr<MultiFab> > > grad_phi_curr;
+  Array< Array<std::unique_ptr<MultiFab> > > grad_phi_prev;
 
   //
   // BoxArray at each level
@@ -135,7 +135,7 @@ protected:
   //
   // Volume and area fractions.
   //
-  PArray<MultiFab> volume;
+  Array<MultiFab*> volume;
   Array<MultiFab*> area;
 
   int Density;
@@ -176,13 +176,13 @@ protected:
 private:
 
     Real solve_phi_with_fmg (int crse_level, int fine_level,
-			     PArray<MultiFab> & phi,
-			     PArray<MultiFab> & rhs,
-			     Array< PArray<MultiFab> >& grad_phi,
-			     PArray<MultiFab>& res,
+			     Array<MultiFab*>& phi,
+			     Array<MultiFab*>& rhs,
+			     Array<Array<MultiFab*> >& grad_phi,
+			     Array<MultiFab*>& res,
 			     Real time);
 
-    void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
+    Array<std::unique_ptr<MultiFab> > get_rhs (int crse_level, int nlevs, int is_new);
 
     void sanity_check (int level);
 };

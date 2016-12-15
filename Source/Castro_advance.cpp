@@ -324,7 +324,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	dSdt_new.setVal(0.0, NUM_GROW);
 
 	for (int n = 0; n < num_src; ++n) {
-	    MultiFab::Add(dSdt_new, new_sources[n], Xmom, Xmom, 3, 0);
+	    MultiFab::Add(dSdt_new, *new_sources[n], Xmom, Xmom, 3, 0);
 	}
 
 	dSdt_new.mult(2.0 / dt);
@@ -339,7 +339,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
     SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(SDC_source_new, new_sources[n], 0, 0, NUM_STATE, new_sources[n].nGrow());
+	MultiFab::Add(SDC_source_new, *new_sources[n], 0, 0, NUM_STATE, new_sources[n]->nGrow());
 #endif
 
 #ifdef RADIATION
@@ -440,9 +440,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       for (int k = 0; k < num_state_type; k++) {
 
-	prev_state.set(k, new StateData());
+	prev_state[k].reset(new StateData());
 
-	StateData::Initialize(prev_state[k], state[k]);
+	StateData::Initialize(*prev_state[k], state[k]);
 
       }
 
@@ -455,8 +455,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	// These arrays hold all source terms that update the state.
 
 	for (int n = 0; n < num_src; ++n) {
-	    old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-	    new_sources.set(n, new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	    old_sources[n].reset(new MultiFab(grids, NUM_STATE, NUM_GROW));
+	    new_sources[n].reset(new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
 	}
 
 	// This array holds the hydrodynamics update.
@@ -475,7 +475,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
-	fluxes[dir].setVal(0.0);
+	fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
@@ -485,7 +485,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined)
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	    rad_fluxes[dir].setVal(0.0);
+	    rad_fluxes[dir]->setVal(0.0);
 #endif
 
 }
@@ -530,8 +530,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		if (!(reflux_strategy == 2 && amr_iteration > 1))
-		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
-		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
+		    reg->CrseInit(*crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
+		reg->FineAdd(*fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
 	    }
 
 #if (BL_SPACEDIM <= 2)
@@ -553,8 +553,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
 		    if (!(reflux_strategy == 2 && amr_iteration > 1))
-			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
-		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
+			reg->CrseInit(*crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
+		    reg->FineAdd(*fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
 		}
 
 	    }
@@ -569,15 +569,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-	old_sources.clear();
-	new_sources.clear();
+	AMReX::FillNull(old_sources);
+	AMReX::FillNull(new_sources);
 	hydro_source.clear();
 
     }
 
     sources_for_hydro.clear();
 
-    prev_state.clear();
+    AMReX::FillNull(prev_state);
 
 }
 
@@ -656,11 +656,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int k = 0; k < num_state_type; k++) {
 
-	  if (prev_state[k].hasOldData())
-	      state[k].copyOld(prev_state[k]);
+	  if (prev_state[k]->hasOldData())
+	      state[k].copyOld(*prev_state[k]);
 
-	  if (prev_state[k].hasNewData())
-	      state[k].copyNew(prev_state[k]);
+	  if (prev_state[k]->hasNewData())
+	      state[k].copyNew(*prev_state[k]);
 
 	  // Anticipate the swapTimeLevels to come.
 
@@ -754,8 +754,8 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int k = 0; k < num_state_type; k++) {
 
-           if (prev_state[k].hasOldData())
-	      state[k].copyOld(prev_state[k]);
+           if (prev_state[k]->hasOldData())
+	      state[k].copyOld(*prev_state[k]);
 
 	   state[k].setTimeLevel(time + dt, dt, 0.0);
 

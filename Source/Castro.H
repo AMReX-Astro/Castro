@@ -16,6 +16,8 @@
 #include "AmrParticles.H"
 #endif
 
+#include <array>
+#include <memory>
 #include <iostream>
 
 using std::istream;
@@ -437,10 +439,6 @@ public:
 
     void computeTemp (MultiFab& State);
 
-    void update_point_mass (MultiFab& StateIn, MultiFab& StateOut, 
-                            PArray<FArrayBox>& flux, MultiFab& volume,
-                            Real dt);
-
 #ifdef DIFFUSION
     void construct_old_diff_source(Real time, Real dt);
     void construct_new_diff_source(Real time, Real dt);
@@ -553,7 +551,7 @@ protected:
     // Build a mask that ghost cells overlapping with interior cells in the same multifab
     // are set to 0, whereas others are set to 1.
     //
-    PArray<iMultiFab> ib_mask;
+    Array<std::unique_ptr<iMultiFab> > ib_mask;
     iMultiFab& build_interior_boundary_mask (int ng);
 
 #ifdef SELF_GRAVITY
@@ -563,7 +561,7 @@ protected:
     // Difference between composite and level solve for phi.
     //
     MultiFab comp_minus_level_phi;
-    PArray<MultiFab> comp_minus_level_grad_phi;
+    std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM> comp_minus_level_grad_phi;
 #endif
 
     //
@@ -584,12 +582,12 @@ protected:
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    PArray<MultiFab> fluxes;
+    std::array<std::unique_ptr<MultiFab>,3> fluxes;
 #if (BL_SPACEDIM <= 2)
     MultiFab         P_radial;
 #endif
 #ifdef RADIATION
-    PArray<MultiFab> rad_fluxes;
+    std::array<std::unique_ptr<MultiFab>,BL_SPACEDIM> rad_fluxes;
 #endif
 
     FluxRegister flux_reg;
@@ -613,13 +611,13 @@ protected:
     //
     // Non-hydro source terms.
     //
-    PArray<MultiFab> old_sources;
-    PArray<MultiFab> new_sources;
+    Array<std::unique_ptr<MultiFab> > old_sources;
+    Array<std::unique_ptr<MultiFab> > new_sources;
 
     //
     // State data to hold if we want to do a retry.
     //
-    PArray<StateData> prev_state;
+    Array<std::unique_ptr<StateData> > prev_state;
 
     //
     //  Call extern/networks/.../network.f90::network_init()

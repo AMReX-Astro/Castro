@@ -176,7 +176,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    // We can clear this memory, we no longer need it.
 
 	    comp_minus_level_phi.clear();
-	    comp_minus_level_grad_phi.clear();
+	    AMReX::FillNull(comp_minus_level_grad_phi);
 
 	    if (gravity->test_results_of_solves() == 1) {
 
@@ -205,7 +205,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
 
-    old_sources[grav_src].setVal(0.0);
+    old_sources[grav_src]->setVal(0.0);
 
     if (!do_grav) return;
 
@@ -234,7 +234,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(phi_old[mfi]),
 		BL_TO_FORTRAN_3D(grav_old[mfi]),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[grav_src])[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time,
 		E_added,mom_added);
@@ -283,7 +283,7 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
 
-    new_sources[grav_src].setVal(0.0);
+    new_sources[grav_src]->setVal(0.0);
 
     if (!do_grav) return;
 
@@ -314,10 +314,10 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(grav_new[mfi]),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
 			ZFILL(dx),dt,&time,
 			BL_TO_FORTRAN_3D(volume[mfi]),
 			E_added, mom_added);
@@ -359,7 +359,7 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 // This is the constant gravity version
 void Castro::construct_old_gravity_source(Real time, Real dt)
 {
-    old_sources[grav_src].setVal(0.0);
+    old_sources[grav_src]->setVal(0.0);
 
     if (!do_grav) return;
 
@@ -378,7 +378,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[grav_src])[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
     }
@@ -390,7 +390,7 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    new_sources[grav_src].setVal(0.0);
+    new_sources[grav_src]->setVal(0.0);
 
     if (!do_grav) return;
 
@@ -409,10 +409,10 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
 			ZFILL(dx),dt,&time,
 			BL_TO_FORTRAN_3D(volume[mfi]));
 	}

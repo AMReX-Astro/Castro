@@ -12,21 +12,21 @@ Castro::construct_old_diff_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[diff_src].setVal(0.0);    
+    old_sources[diff_src]->setVal(0.0);    
 
     MultiFab TempDiffTerm(grids, 1, 1);
     MultiFab SpecDiffTerm(grids, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, 1, 1);
 
-    add_temp_diffusion_to_source(old_sources[diff_src], TempDiffTerm, time, 1);
+    add_temp_diffusion_to_source(*old_sources[diff_src], TempDiffTerm, time, 1);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(old_sources[diff_src], SpecDiffTerm, time, 1);
-    add_viscous_term_to_source(old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
+    add_spec_diffusion_to_source(*old_sources[diff_src], SpecDiffTerm, time, 1);
+    add_viscous_term_to_source(*old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
 
-    old_sources[diff_src].FillBoundary(geom.periodicity());
+    old_sources[diff_src]->FillBoundary(geom.periodicity());
 }
 
 void
@@ -34,25 +34,25 @@ Castro::construct_new_diff_source(Real time, Real dt)
 {
     int ng = 0;
 
-    new_sources[diff_src].setVal(0.0);
+    new_sources[diff_src]->setVal(0.0);
 
     MultiFab TempDiffTerm(grids, 1, 1);
     MultiFab SpecDiffTerm(grids, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, 1, 1);
 
-    add_temp_diffusion_to_source(new_sources[diff_src], TempDiffTerm, time, 0);
+    add_temp_diffusion_to_source(*new_sources[diff_src], TempDiffTerm, time, 0);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(new_sources[diff_src], SpecDiffTerm, time, 0);
-    add_viscous_term_to_source(new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
+    add_spec_diffusion_to_source(*new_sources[diff_src], SpecDiffTerm, time, 0);
+    add_viscous_term_to_source(*new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
 
     // Time center the source term.
 
-    new_sources[diff_src].mult(0.5);
+    new_sources[diff_src]->mult(0.5);
 
-    MultiFab::Saxpy(new_sources[diff_src], -0.5, old_sources[diff_src], 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(*new_sources[diff_src], -0.5, *old_sources[diff_src], 0, 0, NUM_STATE, ng);
 
 }
 
@@ -134,14 +134,14 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
    // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   Array<std::unique_ptr<MultiFab> >coeffs(BL_SPACEDIM);
+   Array<std::unique_ptr<MultiFab> >coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 
@@ -160,9 +160,9 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
 
 	   ca_fill_temp_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     BL_TO_FORTRAN_3D(state[mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[0])[mfi]),
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[1])[mfi]),
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[2])[mfi]));
        }
    }
 
@@ -170,7 +170,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
    // correctly dimensioned coeffs array.
 
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
 
    MultiFab CrseTemp;
    if (level > 0) {
@@ -212,14 +212,14 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
    // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs.[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 
@@ -238,9 +238,9 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
 
 	   ca_fill_enth_cond(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			     BL_TO_FORTRAN_3D(state[mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-			     BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[0])[mfi]),
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[1])[mfi]),
+			     BL_TO_FORTRAN_3D((*coeffs_temporary[2])[mfi]));
        }
    }
 
@@ -248,7 +248,7 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
    // correctly dimensioned coeffs array.
 
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
 
    MultiFab CrseEnth, CrseState;
    if (level > 0) {
@@ -300,14 +300,14 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm, int is_old)
     std::cout << "Calculating species diffusion term at time " << time << std::endl;
 
   // Fill coefficients at this level.
-  PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-  PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+  Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+  Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 
@@ -320,15 +320,15 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm, int is_old)
 
        ca_fill_spec_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			  BL_TO_FORTRAN_3D(state[mfi]),
-			  BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-			  BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-			  BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
+			  BL_TO_FORTRAN_3D((*coeffs_temporary[0])[mfi]),
+			  BL_TO_FORTRAN_3D((*coeffs_temporary[1])[mfi]),
+			  BL_TO_FORTRAN_3D((*coeffs_temporary[2])[mfi]));
    }
 
    // Now copy the temporary array results back to the
    // correctly dimensioned coeffs array.
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
 
    // Create MultiFabs that only hold the data for one species at a time.
    MultiFab Species(grids,1,1,Fab_allocate);
@@ -400,14 +400,14 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 
@@ -427,15 +427,15 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
 
        ca_fill_first_visc_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				BL_TO_FORTRAN_3D(state_old[mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
+				BL_TO_FORTRAN_3D((*coeffs_temporary[0])[mfi]),
+				BL_TO_FORTRAN_3D((*coeffs_temporary[1])[mfi]),
+				BL_TO_FORTRAN_3D((*coeffs_temporary[2])[mfi]));
    }
 
    // Now copy the temporary array results back to the
    // correctly dimensioned coeffs array.
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
 
    MultiFab CrseVel, CrseDen;
    if (level > 0) {
@@ -466,14 +466,14 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 
@@ -493,15 +493,15 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
 
        ca_fill_secnd_visc_coeff(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				BL_TO_FORTRAN_3D(state_old[mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[0][mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[1][mfi]),
-				BL_TO_FORTRAN_3D(coeffs_temporary[2][mfi]));
+				BL_TO_FORTRAN_3D((*coeffs_temporary[0])[mfi]),
+				BL_TO_FORTRAN_3D((*coeffs_temporary[1])[mfi]),
+				BL_TO_FORTRAN_3D((*coeffs_temporary[2])[mfi]));
    }
 
    // Now copy the temporary array results back to the
    // correctly dimensioned coeffs array.
    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-     MultiFab::Copy(coeffs[dir], coeffs_temporary[dir], 0, 0, 1, 0);
+     MultiFab::Copy(*coeffs[dir], *coeffs_temporary[dir], 0, 0, 1, 0);
 
    MultiFab CrseVel, CrseDen;
    if (level > 0) {
@@ -532,14 +532,14 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   PArray<MultiFab> coeffs(BL_SPACEDIM,PArrayManage);
-   PArray<MultiFab> coeffs_temporary(3,PArrayManage); // This is what we pass to the dimension-agnostic Fortran
+   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
-	 coeffs_temporary.set(dir,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
-	 coeffs_temporary.set(dir,new MultiFab(grids, 1, 0, Fab_allocate));
+	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));
        }
    }
 

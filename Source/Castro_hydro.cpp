@@ -19,7 +19,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     sources_for_hydro.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
+	MultiFab::Add(sources_for_hydro, *old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
     sources_for_hydro.FillBoundary(geom.periodicity());
 
@@ -253,14 +253,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 #ifndef SDC
-	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	    (*fluxes    [i])[mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 #else
-	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
+	    (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
 	  }
