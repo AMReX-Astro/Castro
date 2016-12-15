@@ -1345,7 +1345,8 @@ Gravity::test_composite_phi (int crse_level)
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
     {
 	const IntVect& ratio = parent->refRatio(amr_lev);
-	BoxLib::average_down(res[amr_lev+1], res[amr_lev],
+	int ilev = amr_lev - crse_level;
+	BoxLib::average_down(res[ilev+1], res[ilev],
 			     0, 1, ratio);
     }
 
