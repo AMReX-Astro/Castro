@@ -176,7 +176,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    // We can clear this memory, we no longer need it.
 
 	    comp_minus_level_phi.clear();
-	    AMReX::FillNull(comp_minus_level_grad_phi);
+	    amrex::FillNull(comp_minus_level_grad_phi);
 
 	    if (gravity->test_results_of_solves() == 1) {
 

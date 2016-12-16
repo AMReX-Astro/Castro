@@ -569,15 +569,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-	AMReX::FillNull(old_sources);
-	AMReX::FillNull(new_sources);
+	amrex::FillNull(old_sources);
+	amrex::FillNull(new_sources);
 	hydro_source.clear();
 
     }
 
     sources_for_hydro.clear();
 
-    AMReX::FillNull(prev_state);
+    amrex::FillNull(prev_state);
 
 }
 
