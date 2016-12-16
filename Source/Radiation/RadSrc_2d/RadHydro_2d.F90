@@ -194,7 +194,8 @@ contains
          qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
          lam, lam_l1, lam_l2, lam_h1, lam_h2, &
          rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-         qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+         qaux(:,:,QGAMCG), &
+         qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
          qa_l1, qa_l2, qa_h1, qa_h2, &
          shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
          1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
@@ -204,52 +205,57 @@ contains
          q2, q2_l1, q2_l2, q2_h1, q2_h2, &
          lam,lam_l1,lam_l2,lam_h1,lam_h2, &
          rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-         qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+         qaux(:,:,QGAMCG), &
+         qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
          qa_l1, qa_l2, qa_h1, qa_h2, &
          shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
          2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
-    call transy(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-         qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-         fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-         rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-         q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-         qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
-         srcQ, src_l1, src_l2, src_h1, src_h2, &
-         hdt, hdtdy, &
-         ilo1-1, ihi1+1, ilo2, ihi2)
+    call transy(&
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+                fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+                rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
+                srcQ, src_l1, src_l2, src_h1, src_h2, &
+                hdt, hdtdy, &
+                ilo1-1, ihi1+1, ilo2, ihi2)
 
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-         flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
-         q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-         lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-         rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
-         qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-         qa_l1, qa_l2, qa_h1, qa_h2, &
-         shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-         1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                flux1,  fd1_l1,  fd1_l2,  fd1_h1,  fd1_h2, &
+                q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
+                qaux(:,:,QGAMCG), &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+                1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-    call transx(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-         qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-         fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-         rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-         qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-         qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
-         srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
-         hdt, hdtdx, &
-         area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-         vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-         ilo1, ihi1, ilo2-1, ihi2+1)
+    call transx(&
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                qym, qm,qyp,qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+                fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+                rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
+                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
+                srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
+                hdt, hdtdx, &
+                area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+                vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+                ilo1, ihi1, ilo2-1, ihi2+1)
 
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-         flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
-         q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-         lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-         rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
-         qaux(:,:,QGAMCG), qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-         qa_l1, qa_l2, qa_h1, qa_h2, &
-         shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-         2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                flux2,  fd2_l1,  fd2_l2,  fd2_h1,  fd2_h2, &
+                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+                qaux(:,:,QGAMCG), &
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
+                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
+                2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
 
     ! Construct p div{U} -- this will be used as a source to the internal
