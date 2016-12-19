@@ -44,16 +44,14 @@ subroutine ca_umdrv(is_finest_level, time, &
   use prob_params_module, only : coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use rad_advection_module, only : umeth2d_rad, consup_rad
   use flatten_module, only : rad_flaten
-#else
-  use advection_module, only : umeth2d, consup
 #endif
+  use advection_module, only : umeth2d, consup
 
   implicit none
 
 #ifdef RADIATION
-  integer, intent(in) :: nstep_fsp
+  integer, intent(inout) :: nstep_fsp
 #endif
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(2), hi(2), verbose
@@ -85,7 +83,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(inout) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
 #ifdef RADIATION
   double precision, intent(in) :: Erin(Erin_l1:Erin_h1,Erin_l2:Erin_h2,0:ngroups-1)
-  double precision, intent(in) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+  double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
 #endif
   double precision, intent(inout) :: q(q_l1:q_h1,q_l2:q_h2,NQ)
@@ -191,32 +189,19 @@ subroutine ca_umdrv(is_finest_level, time, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
+  call umeth2d(q, q_l1, q_l2, q_h1, q_h2, &
+               flatn, &
+               qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
+               srcQ, srQ_l1, srQ_l2, srQ_h1, srQ_h2, &
+               lo(1), lo(2), hi(1), hi(2), dx, dy, dt, &
+               uout, uout_l1, uout_l2, uout_h1, uout_h2, &
+               flux1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
+               flux2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
 #ifdef RADIATION
-  call umeth2d_rad(q,q_l1,q_l2,q_h1,q_h2, &
-                   qaux,q_l1,q_l2,q_h1,q_h2, &
-                   lam, lam_l1,lam_l2,lam_h1,lam_h2, &
-                   flatn, &
-                   srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-                   lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
-                   flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                   flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                   radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
-                   radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
-                   q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
-                   q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
-                   area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                   area2, area2_l1, area2_l2, area2_h1, area2_h2, &
-                   pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                   domlo, domhi)
-#else
-  call umeth2d(q,flatn,q_l1,q_l2,q_h1,q_h2, &
-               qaux,qa_l1,qa_l2,qa_h1,qa_h2, &
-               srcQ,srQ_l1,srQ_l2,srQ_h1,srQ_h2, &
-               lo(1),lo(2),hi(1),hi(2),dx,dy,dt, &
-               uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-               flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-               flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+               lam, lam_l1,lam_l2,lam_h1,lam_h2, &
+               radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
+               radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
+#endif               
                q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
                q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
                area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -224,7 +209,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                domlo, domhi)
-#endif
+
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   ! this is used for the artifical viscosity
@@ -232,43 +217,30 @@ subroutine ca_umdrv(is_finest_level, time, &
             delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
   ! Conservative update
-#ifdef RADIATION
-  call consup_rad(uin,  uin_l1,  uin_l2,  uin_h1,  uin_h2, &
-                  q, q_l1, q_l2, q_h1, q_h2, &
-                  uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
-                  update, updt_l1, updt_l2, updt_h1, updt_h2, &
-                  Erin,Erin_l1,Erin_l2,Erin_h1,Erin_h2, &
-                  Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
-                  q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
-                  q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
-                  flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-                  radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
-                  radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
-                  area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-                  area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-                  vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-                  div,pdivu, &
-                  lo,hi,dx,dy,dt, nstep_fsp, &
-                  verbose)
-#else
-  call consup(uin,    uin_l1,  uin_l2,  uin_h1,  uin_h2, &
+  call consup(uin,  uin_l1,  uin_l2,  uin_h1,  uin_h2, &
               q, q_l1, q_l2, q_h1, q_h2, &
               uout,  uout_l1, uout_l2, uout_h1, uout_h2, &
               update, updt_l1, updt_l2, updt_h1, updt_h2, &
               q1, flux1_l1-1, flux1_l2-1, flux1_h1+1, flux1_h2+1, &
               q2, flux2_l1-1, flux2_l2-1, flux2_h1+1, flux2_h2+1, &
-              flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-              flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
-              area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-              area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-              vol,    vol_l1,  vol_l2,  vol_h1,  vol_h2, &
-              div,pdivu,lo,hi,dx,dy,dt,mass_added_flux,E_added_flux, &
-              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
-              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-              eden_lost,xang_lost,yang_lost,zang_lost, &
-              verbose)
+              flux1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
+              flux2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
+#ifdef RADIATION
+              Erin, Erin_l1, Erin_l2, Erin_h1, Erin_h2, &
+              Erout, Erout_l1, Erout_l2, Erout_h1, Erout_h2, &
+              radflux1, radflux1_l1, radflux1_l2, radflux1_h1, radflux1_h2, &
+              radflux2, radflux2_l1, radflux2_l2, radflux2_h1, radflux2_h2, &
+              nstep_fsp, &
 #endif
+              area1, area1_l1, area1_l2, area1_h1, area1_h2, &
+              area2, area2_l1, area2_l2, area2_h1, area2_h2, &
+              vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+              div, pdivu, lo, hi, dx, dy, dt, &
+              mass_added_flux, E_added_flux, &
+              xmom_added_flux, ymom_added_flux, zmom_added_flux, &
+              mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+              eden_lost, xang_lost, yang_lost, zang_lost, &
+              verbose)
 
   if (coord_type .eq. 1) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
