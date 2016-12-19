@@ -24,7 +24,7 @@ contains
 ! ::: :: flux      <=  (modify) flux in X direction on X edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth1d(lo, hi,domlo, domhi, &
+  subroutine umeth1d(lo, hi, domlo, domhi, &
                      q, qd_l1, qd_h1, &
                      flatn, &
                      qaux, qa_l1, qa_h1, &
@@ -34,10 +34,10 @@ contains
                      flux, fd_l1, fd_h1, &
 #ifdef RADIATION                    
                      lam, lam_l1, lam_h1, &
-                     rflux,  rfd_l1,  rfd_h1, &
+                     rflux, rfd_l1, rfd_h1, &
 #endif
                      q1, q1_l1, q1_h1, &
-                     dloga,dloga_l1,dloga_h1)
+                     dloga, dloga_l1, dloga_h1)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QC, QCSML, QGAMC, NQAUX, NGDNV, &

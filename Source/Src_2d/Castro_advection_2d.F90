@@ -1,5 +1,7 @@
 module advection_module
 
+  use bl_constants_module, only : ZERO, HALF
+
   implicit none
 
   private
@@ -14,11 +16,9 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: c           => (const)  sound speed
-! ::: :: gamc        => (const)  cound speed gamma
-! ::: :: csml        => (const)  local small c val
+! ::: :: qaux        => (const)  auxillary hydro info
 ! ::: :: flatn       => (const)  flattening parameter
-! ::: :: src         => (const)  source
+! ::: :: srcQ        => (const)  primitive variable source
 ! ::: :: nx          => (const)  number of cells in X direction
 ! ::: :: ny          => (const)  number of cells in Y direction
 ! ::: :: dx          => (const)  grid spacing in X direction
@@ -28,13 +28,19 @@ contains
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth2d(q, flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine umeth2d(q, qd_l1, qd_l2, qd_h1, qd_h2, &
+                     flatn, &
                      qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                      srcQ, src_l1, src_l2, src_h1, src_h2, &
                      ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
                      uout, uout_l1, uout_l2, uout_h1, uout_h2, &
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
+#ifdef RADIATION
+                     lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                     rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
+                     rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+#endif
                      q1, q1_l1, q1_l2, q1_h1, q1_h2, &
                      q2, q2_l1, q2_l2, q2_h1, q2_h2, &
                      area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -45,48 +51,65 @@ contains
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, NGDNV, &
+#ifdef RADIATION
+                                   QGAMCG, QCG, &
+#endif
                                    QC, QCSML, QGAMC, NQAUX
     use trace_module, only : trace
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
     use trace_ppm_module, only : trace_ppm
+#else
+    use trace_ppm_rad_module, only : trace_ppm_rad
+#endif
     use transverse_module, only : transx, transy
     use riemann_module, only: cmpflx, shock
-    use bl_constants_module, only : ZERO, HALF
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
 
     implicit none
 
-    integer qd_l1, qd_l2, qd_h1, qd_h2
-    integer qa_l1, qa_l2, qa_h1, qa_h2
-    integer dloga_l1, dloga_l2, dloga_h1, dloga_h2
-    integer src_l1, src_l2, src_h1, src_h2
-    integer uout_l1, uout_l2, uout_h1, uout_h2
-    integer fd1_l1, fd1_l2, fd1_h1, fd1_h2
-    integer fd2_l1, fd2_l2, fd2_h1, fd2_h2
-    integer q1_l1, q1_l2, q1_h1, q1_h2
-    integer q2_l1, q2_l2, q2_h1, q2_h2
-    integer area1_l1, area1_l2, area1_h1, area1_h2
-    integer area2_l1, area2_l2, area2_h1, area2_h2
-    integer vol_l1, vol_l2, vol_h1, vol_h2
-    integer ilo1, ilo2, ihi1, ihi2
-    integer domlo(2), domhi(2)
+    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: qa_l1, qa_l2, qa_h1, qa_h2
+    integer, intent(in) :: dloga_l1, dloga_l2, dloga_h1, dloga_h2
+    integer, intent(in) :: src_l1, src_l2, src_h1, src_h2
+    integer, intent(in) :: uout_l1, uout_l2, uout_h1, uout_h2
+    integer, intent(in) :: fd1_l1, fd1_l2, fd1_h1, fd1_h2
+    integer, intent(in) :: fd2_l1, fd2_l2, fd2_h1, fd2_h2
+#ifdef RADIATION
+    integer, intent(in) :: rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2
+    integer, intent(in) :: rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2
+    integer, intent(in) :: lam_l1, lam_l2, lam_h2, lam_h2
+#endif
+    integer, intent(in) :: q1_l1, q1_l2, q1_h1, q1_h2
+    integer, intent(in) :: q2_l1, q2_l2, q2_h1, q2_h2
+    integer, intent(in) :: area1_l1, area1_l2, area1_h1, area1_h2
+    integer. intent(in) :: area2_l1, area2_l2, area2_h1, area2_h2
+    integer, intent(in) :: vol_l1, vol_l2, vol_h1, vol_h2
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: domlo(2), domhi(2)
 
-    double precision dx, dy, dt
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision  qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
-    double precision q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
-    double precision  uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    double precision flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
-    double precision flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
-    double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
-    double precision area2(area2_l1:area2_h1,area2_l2:area2_h2)
-    double precision pdivu(ilo1:ihi1,ilo2:ihi2)
-    double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
+    double precision, intent(in) :: dx, dy, dt
+    double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision, intent(in) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    double precision, intent(in) :: flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision, intent(in) :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    double precision, intent(in) :: dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    double precision, intent(inout) :: q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
+    double precision, intent(inout) :: q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
+    double precision, intent(inout) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
+    double precision, intent(inout) :: flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
+    double precision, intent(inout) :: flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
+#ifdef RADIATION
+    double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+    double precision, intent(inout) :: rflux1(rfd1_l1:rfd1_h1,rfd1_l2:rfd1_h2,0:ngroups-1)
+    double precision, intent(inout) :: rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,0:ngroups-1)
+#endif
+    double precision, intent(in) :: area1(area1_l1:area1_h1,area1_l2:area1_h2)
+    double precision, intent(in) :: area2(area2_l1:area2_h1,area2_l2:area2_h2)
+    double precision, intent(in) :: pdivu(ilo1:ihi1,ilo2:ihi2)
+    double precision, intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2)
 
     ! Left and right state arrays (edge centered, cell centered)
     double precision, allocatable::  qm(:,:,:),  qp(:,:,:)
@@ -94,7 +117,10 @@ contains
     double precision, allocatable:: qxp(:,:,:), qyp(:,:,:)
 
     ! Work arrays to hold riemann state and conservative fluxes
+#ifdef RADIATION
     double precision, allocatable ::  fx(:,:,:),  fy(:,:,:)
+#endif
+    double precision, allocatable ::  rfx(:,:,:),  rfy(:,:,:)
     double precision, allocatable ::  qgdxtmp(:,:,:)
     double precision, allocatable :: shk(:,:)
 
@@ -105,14 +131,14 @@ contains
 
     allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV))
 
-    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,QVAR) )
-    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NVAR))
-    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NVAR))
+    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NQ) )
+    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NQ) )
 
     allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
 
@@ -122,6 +148,8 @@ contains
     hdtdx = HALF*dtdx
     hdtdy = HALF*dt/dy
     hdt = HALF*dt
+
+    ! multidimensional shock detection
 
 #ifdef SHOCK_VAR
     uout(ilo1:ihi1,ilo2:ihi2,USHK) = ZERO
@@ -161,18 +189,33 @@ contains
     !      qxm and qxp will be the states on either side of the x interfaces
     ! and  qym and qyp will be the states on either side of the y interfaces
     if (ppm_type .eq. 0) then
+#ifdef RADIATION
+       call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
+#else
        call trace(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                   qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                   srcQ,src_l1,src_l2,src_h1,src_h2, &
                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+#endif
     else
+#ifdef RADIATION
+       call trace_ppm_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                          q,qaux(:,:,QC),qaux(:,:,QCG),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+                          dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
+                          qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
+                          srcQ,src_l1,src_l2,src_h1,src_h2, &
+                          qaux(:,:,QGAMC),qaux(:,:,QGAMCG),qa_l1,qa_l2,qa_h1,qa_h2, &
+                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+
+#else
        call trace_ppm(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                       qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                       srcQ,src_l1,src_l2,src_h1,src_h2, &
-                      qaux(:,:,QGAMC),qd_l1,qd_l2,qd_h1,qd_h2, &
+                      qaux(:,:,QGAMC),qa_l1,qa_l2,qa_h1,qa_h2, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+#endif
     end if
 
     ! Solve the Riemann problem in the x-direction using these first
@@ -180,7 +223,13 @@ contains
     call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+                qaux(:,:,QGAMCG), &
+#endif
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -189,17 +238,35 @@ contains
     call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                lam, lam_l1, lam_l2, lam_h1, lam_h2, &
+                rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+                qaux(:,:,QGAMCG), &
+#endif
+
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
-    call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+    call transy(&
+#ifdef RADIATION
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+#endif
+                qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+#ifdef RADIATION
+                rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+#endif
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                qaux(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
+#else
+                qaux(:,:,QGAMC), qa_l1, qa_l2, qa_h1, qa_h2, &
+#endif
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
@@ -210,17 +277,34 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
+                qaux(:,:,QGAMCG), &
+#endif
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
-    call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+    call transx(&
+#ifdef RADIATION
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+#endif
+                qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+#ifdef RADIATION
+                rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+#endif
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                qaux(:,:,QGAMC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
+#else
+                qaux(:,:,QGAMC), qa_l1, qa_l2, qa_h1, qa_h2, &
+#endif
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
@@ -233,7 +317,13 @@ contains
     call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+#ifdef RADIATION
+                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
+                rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+                qaux(:,:,QGAMCG), &
+#endif
+                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
+                qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -252,6 +342,9 @@ contains
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
+#ifdef RADIATION
+    deallocate(rfx,rfy)
+#endif
     deallocate(shk)
     deallocate(qgdxtmp)
 
