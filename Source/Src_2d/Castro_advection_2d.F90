@@ -481,6 +481,17 @@ contains
     double precision :: umx_new2, umy_new2, umz_new2
 #endif
 
+#ifdef RADIATION
+    if (ngroups .gt. 1) then
+       if (fspace_type .eq. 1) then
+          Erscale = dlognu
+       else
+          Erscale = nugroup*dlognu
+       end if
+    end if
+#endif
+
+
     ! Correct the fluxes to include the effects of the artificial viscosity.
 
     do n = 1, NVAR
