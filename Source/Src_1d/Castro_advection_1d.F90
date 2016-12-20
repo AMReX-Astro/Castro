@@ -81,7 +81,7 @@ contains
     double precision, intent(inout) :: uout(uout_l1:uout_h1,NVAR)
     double precision, intent(inout) :: flux(fd_l1:fd_h1,NVAR)
 #ifdef RADIATION
-    double precision, intent(inout) :: rflux(fd_l1:fd_h1,0:ngroups-1)
+    double precision, intent(inout) :: rflux(rfd_l1:rfd_h1,0:ngroups-1)
     double precision, intent(in) :: lam(lam_l1:lam_h1,0:ngroups-1)
 #endif
     double precision, intent(in) :: srcQ(src_l1  :src_h1,QVAR)
@@ -244,7 +244,7 @@ contains
     integer, intent(in) :: verbose
 
     double precision, intent(in) :: uin(uin_l1:uin_h1,NVAR)
-    double precision, intent(in) :: uout(uin_l1:uin_h1,NVAR)
+    double precision, intent(in) :: uout(uout_l1:uout_h1,NVAR)
     double precision, intent(inout) :: update(updt_l1:updt_h1,NVAR)
     double precision, intent(in) :: q1(q1_l1:q1_h1,NGDNV)
     double precision, intent(in) :: q(q_l1:q_h1,NQ)
