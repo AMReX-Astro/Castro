@@ -203,9 +203,9 @@ subroutine ca_umdrv(is_finest_level, time, &
               flux, flux_l1, flux_h1, &
               q1, flux_l1-1, flux_h1+1, &
 #ifdef RADIATION
-              Erin,Erin_l1,Erin_h1, &
-              Erout,Erout_l1,Erout_h1, &
-              radflux,radflux_l1,radflux_h1, &
+              Erin, Erin_l1, Erin_h1, &
+              Erout, Erout_l1, Erout_h1, &
+              radflux, radflux_l1, radflux_h1, &
               nstep_fsp, &
 #endif
               area, area_l1, area_h1, &

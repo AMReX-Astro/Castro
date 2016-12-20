@@ -13,7 +13,7 @@ contains
 ! ::: ---------------------------------------------------------------
 ! ::: :: UMETH1D     Compute hyperbolic fluxes using unsplit second
 ! ::: ::               order Godunov integrator.
-! ::: :: 
+! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
 ! ::: :: qaux        => (const)  auxillary hydro info
@@ -32,7 +32,7 @@ contains
                      ilo, ihi, dx, dt, &
                      uout, uout_l1, uout_h1, &
                      flux, fd_l1, fd_h1, &
-#ifdef RADIATION                    
+#ifdef RADIATION
                      lam, lam_l1, lam_h1, &
                      rflux, rfd_l1, rfd_h1, &
 #endif
@@ -69,7 +69,7 @@ contains
     integer, intent(in) :: fd_l1, fd_h1
 #ifdef RADIATION
     integer, intent(in) :: rfd_l1, rfd_h1
-    integer, intent(in) :: lam_l1, lam_h1    
+    integer, intent(in) :: lam_l1, lam_h1
 #endif
     integer, intent(in) :: q1_l1, q1_h1
     integer, intent(in) :: ilo, ihi
@@ -82,7 +82,7 @@ contains
     double precision, intent(inout) :: flux(fd_l1:fd_h1,NVAR)
 #ifdef RADIATION
     double precision, intent(inout) :: rflux(fd_l1:fd_h1,0:ngroups-1)
-    double precision, intent(in) :: lam(lam_l1:lam_h1,NVAR)    
+    double precision, intent(in) :: lam(lam_l1:lam_h1,0:ngroups-1)
 #endif
     double precision, intent(in) :: srcQ(src_l1  :src_h1,QVAR)
     double precision, intent(inout) :: q1(q1_l1:q1_h1,NGDNV)
@@ -132,12 +132,13 @@ contains
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
        call trace_ppm_rad(lam, lam_l1, lam_h1, &
-            q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG),flatn,qd_l1,qd_h1, &
-            dloga,dloga_l1,dloga_h1, &
-            srcQ,src_l1,src_h1, &
-            qm,qp,ilo-1,ihi+1, &
-            ilo,ihi,domlo,domhi,dx,dt)
-#else       
+                          q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG), &
+                          flatn,qd_l1,qd_h1, &
+                          dloga,dloga_l1,dloga_h1, &
+                          srcQ,src_l1,src_h1, &
+                          qm,qp,ilo-1,ihi+1, &
+                          ilo,ihi,domlo,domhi,dx,dt)
+#else
        call trace_ppm(q,qaux(:,QC),flatn,qaux(:,QGAMC),qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
                       srcQ,src_l1,src_h1, &
@@ -160,17 +161,18 @@ contains
 #endif
     end if
 
-    ! Solve Riemann problem, compute xflux from improved predicted states 
+    ! Solve Riemann problem, compute xflux from improved predicted states
     call cmpflx(lo, hi, domlo, domhi, &
-                qm, qp, ilo-1,ihi+1, &
-                flux ,  fd_l1, fd_h1, &
+                qm, qp, ilo-1, ihi+1, &
+                flux, fd_l1, fd_h1, &
                 q1, q1_l1, q1_h1, &
 #ifdef RADIATION
                 lam, lam_l1, lam_h1, &
                 rflux, rfd_l1,rfd_h1, &
                 qaux(:,QGAMCG), &
 #endif
-                qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC),qd_l1,qd_h1,ilo,ihi)
+                qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC), &
+                qd_l1,qd_h1,ilo,ihi)
 
     deallocate (qm,qp)
 
@@ -250,7 +252,7 @@ contains
 #ifdef RADIATION
     double precision, intent(in) :: Erin(Erin_l1:Erin_h1,0:ngroups-1)
     double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,0:ngroups-1)
-    double precision, intent(inout) :: rflux(flux_l1:flux_h1,0:ngroups-1)
+    double precision, intent(inout) :: rflux(rflux_l1:rflux_h1,0:ngroups-1)
 #endif
     double precision, intent(in) :: area( area_l1: area_h1)
     double precision, intent(in) :: vol(vol_l1:vol_h1)
@@ -327,7 +329,7 @@ contains
     ! now do the radiation energy groups parts
     do g=0, ngroups-1
        do i = lo(1),hi(1)+1
-          div1 = difmag*min(ZERO,div(i))
+          div1 = difmag*min(ZERO, div(i))
           rflux(i,g) = rflux(i,g) + dx*div1*(Erin(i,g) - Erin(i-1,g))
        enddo
     enddo
@@ -340,7 +342,8 @@ contains
 
     do n = 1, NVAR
        do i = lo(1), hi(1)
-          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - flux(i+1,n) * area(i+1) ) / vol(i)
+          update(i,n) = update(i,n) + ( flux(i,n) * area(i) - &
+                                        flux(i+1,n) * area(i+1) ) / vol(i)
 
           ! Add p div(u) source term to (rho e)
           if (n == UEINT) then
@@ -377,7 +380,7 @@ contains
        dpdx  = (  q1(i+1,GDPRES)- q1(i,GDPRES) ) / dx
        update(i,UMX) = update(i,UMX) - dpdx
 
-       ! radiation contribution -- this is sum{lambda E_r} 
+       ! radiation contribution -- this is sum{lambda E_r}
        dprdx = ZERO
        do g=0,ngroups-1
           lamc = HALF*(q1(i,GDLAMS+g) + q1(i+1,GDLAMS+g))
@@ -469,7 +472,7 @@ contains
 #ifdef RADIATION
     do g = 0, ngroups-1
        do i = lo(1), hi(1)+1
-          rflux(i,g) = dt * area(i) * rflux(i,g) 
+          rflux(i,g) = dt * area(i) * rflux(i,g)
        enddo
     enddo
 #endif
