@@ -17,7 +17,7 @@ EBASE = Castro
 # this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
-include $(AMREX_HOME)/Tools/C_mk/Make.defs
+include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
@@ -237,10 +237,10 @@ endif
 Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd
 
 
-Pdirs 	:= C_BaseLib C_AmrCoreLib C_AMRLib C_BoundaryLib 
+Pdirs 	:= Base AmrCore Amr Boundary 
 
 ifeq ($(USE_PARTICLES), TRUE)
-  Pdirs += C_ParticleLib
+  Pdirs += Particle
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -349,7 +349,7 @@ endif
 	$(SILENT) $(RM) buildInfo.cpp
 
 
-include $(AMREX_HOME)/Tools/C_mk/Make.rules
+include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
 clean::
 	$(SILENT) $(RM) extern.f90

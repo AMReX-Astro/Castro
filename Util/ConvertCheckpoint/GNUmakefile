@@ -13,21 +13,20 @@ USE_MPI     = TRUE
 USE_MPI     = FALSE
 
 COMP      = g++
-FCOMP     = gfortran
 
 EBASE = Embiggen
 
-include $(AMREX_HOME)/Tools/C_mk/Make.defs
+include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
-INCLUDE_LOCATIONS  = $(AMREX_HOME)/Src/C_BaseLib
-INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/C_AMRLib
-INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/C_BoundaryLib
+INCLUDE_LOCATIONS  = $(AMREX_HOME)/Src/Base
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Amr
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Boundary
 INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 PATHDIRS  = $(HERE)
-PATHDIRS += $(AMREX_HOME)/Src/C_BaseLib
-PATHDIRS += $(AMREX_HOME)/Src/C_AMRLib
-PATHDIRS += $(AMREX_HOME)/Src/C_BoundaryLib
+PATHDIRS += $(AMREX_HOME)/Src/Base
+PATHDIRS += $(AMREX_HOME)/Src/Amr
+PATHDIRS += $(AMREX_HOME)/Src/Boundary
 PATHDIRS += $(AMREX_HOME)/Src/Extern/amrdata
 
 
@@ -37,8 +36,8 @@ DEFINES += -DBL_USEOLDREADS
 CEXE_sources += $(EBASE).cpp
 
 include ./Make.package
-include $(AMREX_HOME)/Src/C_BaseLib/Make.package
-include $(AMREX_HOME)/Src/C_BoundaryLib/Make.package
+include $(AMREX_HOME)/Src/Base/Make.package
+include $(AMREX_HOME)/Src/Boundary/Make.package
 
 DEFINES += -DBL_PARALLEL_IO
 
@@ -53,5 +52,5 @@ vpath %.cpp $(PATHDIRS)
 
 all: $(executable)
 
-include $(AMREX_HOME)/Tools/C_mk/Make.rules
+include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
