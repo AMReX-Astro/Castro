@@ -536,7 +536,7 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
    Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
-	 coeffs[dir].reset(,new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
+	 coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
 	 coeffs_temporary[dir].reset(new MultiFab(getEdgeBoxArray(dir), 1, 0, Fab_allocate));
        } else {
 	 coeffs_temporary[dir].reset(new MultiFab(grids, 1, 0, Fab_allocate));

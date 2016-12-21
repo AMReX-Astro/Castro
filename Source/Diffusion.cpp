@@ -134,7 +134,7 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 
     // Here we DO NOT multiply the coefficients by (1/r^2) for spherical coefficients
     // because we are computing (1/r^2) d/dr (const * d/dr(r^2 u))
-    fmg.set_diffusion_coeffs(amrex::GetArrOfConstPtrs(visc_coeff));
+    fmg.set_diffusion_coeffs(amrex::GetArrOfPtrs(visc_coeff));
 
 #if (BL_SPACEDIM < 3)
     // Here we weight the Vel going into the FMG applyop
