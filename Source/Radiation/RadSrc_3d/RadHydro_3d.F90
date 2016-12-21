@@ -361,8 +361,8 @@ contains
                    qgdnvx, qt_lo, qt_hi, &
                    lam, lam_lo, lam_hi, &
                    rfx, fx_lo, fx_hi, &
-                   qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                   qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux(:,:,:,QGAMCG), &
+                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -372,35 +372,41 @@ contains
                    qgdnvy, qt_lo, qt_hi, &
                    lam, lam_lo, lam_hi, &
                    rfy, fy_lo, fy_hi, &
-                   qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                   qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux(:,:,:,QGAMCG), &
+                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
        ! Compute U'^y_x at kc (k3d)
-       call transy1(lam, lam_lo, lam_hi, &
+       call transy1(&
+                    lam, lam_lo, lam_hi, &
                     qxm, qmxy, qxp, qpxy, qt_lo, qt_hi, &
-                    fy, rfy, fy_lo, fy_hi, &
+                    fy, &
+                    rfy, &
+                    fy_lo, fy_hi, &
                     qgdnvy, qt_lo, qt_hi, &
                     qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                     cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, k3d)
 
        ! Compute U'^x_y at kc (k3d)
-       call transx1(lam, lam_lo, lam_hi, &
+       call transx1(&
+                    lam, lam_lo, lam_hi, &
                     qym, qmyx, qyp, qpyx, qt_lo, qt_hi, &
-                    fx, rfx, fx_lo, fx_hi, &
+                    fx, &
+                    rfx, &
+                    fx_lo, fx_hi, &
                     qgdnvx, qt_lo, qt_hi, &
                     qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                     cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, k3d)
-       
+
        ! Compute F^{x|y} at kc (k3d)
        call cmpflx(qmxy, qpxy, qt_lo, qt_hi, &
                    fxy, fx_lo, fx_hi, &
                    qgdnvtmpx, qt_lo, qt_hi, &
                    lam, lam_lo, lam_hi, &
                    rfxy, fx_lo, fx_hi, &
-                   qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                   qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux(:,:,:,QGAMCG), &
+                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    1, lo(1), hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
@@ -410,8 +416,8 @@ contains
                    qgdnvtmpy, qt_lo, qt_hi, &
                    lam, lam_lo, lam_hi, &
                    rfyx, fy_lo, fy_hi, &
-                   qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                   qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux(:,:,:,QGAMCG), &
+                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    2, lo(1), hi(1), lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -431,23 +437,29 @@ contains
                       qgdnvz, qt_lo, qt_hi, &
                       lam, lam_lo, lam_hi, &
                       rfz, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                      qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux(:,:,:,QGAMCG), &
+                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
           ! Compute U'^y_z at kc (k3d)
-          call transy2(lam, lam_lo, lam_hi, &
+          call transy2(&
+                       lam, lam_lo, lam_hi, &
                        qzm, qmzy, qzp, qpzy, qt_lo, qt_hi, &
-                       fy, rfy, fy_lo, fy_hi, &
+                       fy, &
+                       rfy, &
+                       fy_lo, fy_hi, &
                        qgdnvy, qt_lo, qt_hi, &
                        qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                        cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, km, k3d)
 
           ! Compute U'^x_z at kc (k3d)
-          call transx2(lam, lam_lo, lam_hi, &
+          call transx2(&
+                       lam, lam_lo, lam_hi, &
                        qzm, qmzx, qzp, qpzx, qt_lo, qt_hi, &
-                       fx, rfx, fx_lo, fx_hi, &
+                       fx, &
+                       rfx, &
+                       fx_lo, fx_hi, &
                        qgdnvx, qt_lo, qt_hi, &
                        qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                        cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, km, k3d)
@@ -458,8 +470,8 @@ contains
                       qgdnvtmpz1, qt_lo, qt_hi, &
                       lam, lam_lo, lam_hi, &
                       rfzx, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                      qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux(:,:,:,QGAMCG), &
+                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -469,16 +481,21 @@ contains
                       qgdnvtmpz2, qt_lo, qt_hi, &
                       lam, lam_lo, lam_hi, &
                       rfzy, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                      qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux(:,:,:,QGAMCG), &
+                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
           ! Compute U''_z at kc (k3d)
-          call transxy(lam, lam_lo, lam_hi, &
+          call transxy(&
+                       lam, lam_lo, lam_hi, &
                        qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
-                       fxy, rfxy, fx_lo, fx_hi, &
-                       fyx, rfyx, fy_lo, fy_hi, &
+                       fxy, &
+                       rfxy, &
+                       fx_lo, fx_hi, &
+                       fyx, &
+                       rfyx, &
+                       fy_lo, fy_hi, &
                        qgdnvtmpx, qt_lo, qt_hi, &
                        qgdnvtmpy, qt_lo, qt_hi, &
                        qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
@@ -491,8 +508,8 @@ contains
                       qgdnvzf, qt_lo, qt_hi, &
                       lam, lam_lo, lam_hi, &
                       rflux3, rfd3_lo, rfd3_hi, &
-                      qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                      qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux(:,:,:,QGAMCG), &
+                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
 
