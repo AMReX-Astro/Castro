@@ -1,6 +1,6 @@
 // functions specific for MGFLDSolver (SolverType 6)
 
-#include <LO_BCTYPES.H>
+#include <AMReX_LO_BCTYPES.H>
 
 #include "Radiation.H"
 #include "RadSolve.H"

@@ -18,7 +18,7 @@ contains
 
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
@@ -114,7 +114,7 @@ contains
     use probdata_module
 
     implicit none
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
@@ -158,7 +158,7 @@ contains
 
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
@@ -181,7 +181,7 @@ contains
     use probdata_module
 
     implicit none
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)

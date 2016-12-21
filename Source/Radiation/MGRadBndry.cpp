@@ -1,7 +1,7 @@
 // multigroup version of RadBndry.cpp
 
-#include <ParmParse.H>
-#include <LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
 #include "MGRadBndry.H"
 
 #include <iostream>

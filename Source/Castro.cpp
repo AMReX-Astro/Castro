@@ -1,4 +1,4 @@
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -13,14 +13,14 @@
 #include <string>
 #include <ctime>
 
-#include <Utility.H>
-#include <CONSTANTS.H>
+#include <AMReX_Utility.H>
+#include <AMReX_CONSTANTS.H>
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Derive_F.H>
-#include <VisMF.H>
-#include <TagBox.H>
-#include <ParmParse.H>
+#include <AMReX_VisMF.H>
+#include <AMReX_TagBox.H>
+#include <AMReX_ParmParse.H>
 #include <Castro_error_F.H>
 
 #ifdef RADIATION
@@ -29,7 +29,7 @@
 #endif
 
 #ifdef PARTICLES
-#include <Particles_F.H>
+#include <AMReX_Particles_F.H>
 #endif
 
 #ifdef SELF_GRAVITY

@@ -8,7 +8,7 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
   
   implicit none
   
-  include 'bc_types.fi'  
+  include 'AMReX_bc_types.fi'  
   
   integer          :: adv_lo(3),adv_hi(3)
   integer          :: bc(dim,2)

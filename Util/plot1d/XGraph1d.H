@@ -7,11 +7,11 @@
 using std::istream;
 using std::ostream;
 
-//#include <Box.H>
+//#include <AMReX_Box.H>
 //#include <PArray.H>
-#include <MultiFab.H>
-//#include <FArrayBox.H>
-//#include <BaseFab.H>
+#include <AMReX_MultiFab.H>
+//#include <AMReX_FArrayBox.H>
+//#include <AMReX_BaseFab.H>
 
 #ifdef _MEM_CHECK_
 #include "mem.H"

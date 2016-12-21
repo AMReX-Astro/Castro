@@ -13,7 +13,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
     
     integer :: adv_l1,adv_l2,adv_h1,adv_h2
     integer :: bc(2,2,*)
@@ -116,7 +116,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
     
     integer :: adv_l1,adv_l2,adv_h1,adv_h2
     integer :: bc(2,2,*)

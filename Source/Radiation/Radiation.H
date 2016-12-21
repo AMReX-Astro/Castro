@@ -1,7 +1,7 @@
 #ifndef _Radiation_H_
 #define _Radiation_H_
 
-#include <AmrLevel.H>
+#include <AMReX_AmrLevel.H>
 
 #include "LHH.H"
 
@@ -10,8 +10,8 @@
 #include "RadBndry.H"
 #include "MGRadBndry.H"
 #include "RadSolve.H"
-#include <FluxRegister.H>
-#include <Tuple.H>
+#include <AMReX_FluxRegister.H>
+#include <AMReX_Tuple.H>
 
 class Radiation {
 

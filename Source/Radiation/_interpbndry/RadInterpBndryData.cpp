@@ -1,6 +1,6 @@
 #include <limits.h>
 #include <math.h>
-#include <LO_BCTYPES.H>
+#include <AMReX_LO_BCTYPES.H>
 #include <RadInterpBndryData.H>
 #include <RADINTERPBNDRYDATA_F.H>
 

@@ -9,7 +9,7 @@ module bc_ext_fill_module
 
   implicit none
 
-  include 'bc_types.fi'
+  include 'AMReX_bc_types.fi'
 
   private
 

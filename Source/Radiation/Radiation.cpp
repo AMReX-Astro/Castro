@@ -1,6 +1,6 @@
 
-#include <LO_BCTYPES.H>
-#include <ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
 #include "Radiation.H"
 #include "RadSolve.H"
 
@@ -9,7 +9,7 @@
 #undef BL_USE_ARLIM
 
 #include "RAD_F.H"
-#include "PROB_AMR_F.H"
+#include "AMReX_PROB_AMR_F.H"
 
 #include <iostream>
 

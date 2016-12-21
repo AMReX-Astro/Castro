@@ -1,9 +1,9 @@
 #ifndef _RadSolve_H_
 #define _RadSolve_H_
 
-#include <Amr.H>
+#include <AMReX_Amr.H>
 
-#include <FluxRegister.H>
+#include <AMReX_FluxRegister.H>
 
 #include "LHH.H"
 #include "RadBndry.H"

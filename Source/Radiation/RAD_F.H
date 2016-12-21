@@ -1,7 +1,7 @@
 #ifndef _RAD_F_H_
 #define _RAD_F_H_
 
-#include <ArrayLim.H>
+#include <AMReX_ArrayLim.H>
 #include <LHH.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
@@ -19,7 +19,7 @@
 
 #endif
 
-#include <BLFort.H>
+#include <AMReX_BLFort.H>
 
 extern "C"
 {

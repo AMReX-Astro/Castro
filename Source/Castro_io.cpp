@@ -1,4 +1,4 @@
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -9,11 +9,11 @@
 #include <string>
 #include <ctime>
 
-#include <Utility.H>
+#include <AMReX_Utility.H>
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_io.H"
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
 #include "Radiation.H"

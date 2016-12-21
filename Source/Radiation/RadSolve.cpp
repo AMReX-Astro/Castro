@@ -1,8 +1,8 @@
 
-#include <ParmParse.H>
-#include <AmrLevel.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_AmrLevel.H>
 
-#include <LO_BCTYPES.H>
+#include <AMReX_LO_BCTYPES.H>
 //#include <CompSolver.H>
 
 #include "RadSolve.H"

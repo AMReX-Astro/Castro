@@ -1,9 +1,9 @@
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #include "Castro.H"
 #include "Castro_F.H"
 
-#include "DistributionMapping.H"
+#include "AMReX_DistributionMapping.H"
 
 using std::string;
 

@@ -4,7 +4,7 @@
 #include "Gravity.H"
 #include <Gravity_F.H>
 
-#include "ParmParse.H"
+#include "AMReX_ParmParse.H"
 
 #include "buildInfo.H"
 

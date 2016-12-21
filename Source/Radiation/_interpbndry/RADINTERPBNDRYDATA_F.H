@@ -55,7 +55,7 @@
 #  endif
 #endif
 
-#include <ArrayLim.H>
+#include <AMReX_ArrayLim.H>
 
 typedef void BDInterpFunc(Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* lo, const int* hi,
@@ -140,7 +140,7 @@ extern "C"
 #  endif
 #endif
 
-#include <ArrayLim.H>
+#include <AMReX_ArrayLim.H>
 
 typedef void BDInterpFunc(Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* lo, const int* hi,

@@ -1,10 +1,10 @@
 #include "Radiation.H"
 
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 
 #include "HypreMultiABec.H"
 #include "HABEC_F.H"
-#include "LO_BCTYPES.H"
+#include "AMReX_LO_BCTYPES.H"
 
 #include "_hypre_sstruct_mv.h"
 #include "HYPRE_krylov.h"

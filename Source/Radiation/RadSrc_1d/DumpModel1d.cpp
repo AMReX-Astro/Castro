@@ -28,7 +28,7 @@
 #include "Radiation.H"
 #include "DumpModel1d.H"
 
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 
 #include <iostream>
 

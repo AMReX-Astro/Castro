@@ -14,7 +14,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
@@ -54,7 +54,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
@@ -94,7 +94,7 @@ contains
     
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
@@ -125,7 +125,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
@@ -156,7 +156,7 @@ contains
     
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
@@ -185,7 +185,7 @@ contains
 
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
@@ -216,7 +216,7 @@ contains
     
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
@@ -247,7 +247,7 @@ contains
 
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
@@ -278,7 +278,7 @@ contains
     
     implicit none
     
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
@@ -307,7 +307,7 @@ contains
 
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
@@ -336,7 +336,7 @@ contains
 
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: react_l1,react_l2,react_h1,react_h2
     integer          :: bc(2,2,*)

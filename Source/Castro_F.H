@@ -1,8 +1,8 @@
 #ifndef _Castro_F_H_
 #define _Castro_F_H_
-#include <BLFort.H>
+#include <AMReX_BLFort.H>
 
-#include <BoxLib.H>
+#include <AMReX_BoxLib.H>
 
 extern "C"
 {

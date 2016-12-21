@@ -1,7 +1,7 @@
 #ifndef _Gravity_H_
 #define _Gravity_H_
 
-#include <AmrLevel.H>
+#include <AMReX_AmrLevel.H>
 
 class Gravity {
 

@@ -2,14 +2,14 @@
 
 #include "XGraph1d.H"
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 #include <vector>
 #include <map>
 
-#include <Amr.H>
-#include <AmrLevel.H>
-#include <ParmParse.H>
-#include <Array.H>
+#include <AMReX_Amr.H>
+#include <AMReX_AmrLevel.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_Array.H>
 #include <Misc.H>
 
 #include <iomanip>
