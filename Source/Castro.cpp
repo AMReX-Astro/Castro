@@ -2257,7 +2257,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #ifdef SELF_GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	gravity->gravity_sync(crse_level, fine_level, BoxLib::GetArrOfPtrs(drho), BoxLib::GetArrOfPtrs(dphi));
+	gravity->gravity_sync(crse_level, fine_level, amrex::GetArrOfPtrs(drho), amrex::GetArrOfPtrs(dphi));
 #endif
 
     // Now subtract the new-time updates to the state data,

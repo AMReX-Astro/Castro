@@ -423,7 +423,7 @@ Gravity::solve_for_phi (int               level,
 
       level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
 						       phi_p,
-						       BoxLib::GetArrOfPtrs(rhs),
+						       amrex::GetArrOfPtrs(rhs),
 						       grad_phi_p,
 						       res_null,
 						       time);
@@ -502,10 +502,10 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 		coeffs[ilev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(amr_lev, *rhs[ilev], BoxLib::GetArrOfPtrs(coeffs[ilev]));
+	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetArrOfPtrs(coeffs[ilev]));
 	}
 
-	fmg.set_gravity_coeffs(BoxLib::GetArrOfArrOfPtrs(coeffs));
+	fmg.set_gravity_coeffs(amrex::GetArrOfArrOfPtrs(coeffs));
     }
     else
 #endif
@@ -639,9 +639,9 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
     // Do multi-level solve for delta_phi.
 
     solve_for_delta_phi(crse_level, fine_level, 
-			BoxLib::GetArrOfPtrs(rhs),
-			BoxLib::GetArrOfPtrs(delta_phi),
-			BoxLib::GetArrOfArrOfPtrs(ec_gdPhi));
+			amrex::GetArrOfPtrs(rhs),
+			amrex::GetArrOfPtrs(delta_phi),
+			amrex::GetArrOfArrOfPtrs(ec_gdPhi));
 
     // In the all-periodic case we enforce that delta_phi averages to zero.
 
@@ -751,7 +751,7 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level,BoxLib::GetArrOfArrOfPtrs(grad_phi_curr),
+    actual_multilevel_solve(level,finest_level,amrex::GetArrOfArrOfPtrs(grad_phi_curr),
 			    is_new,use_previous_phi_as_guess);
 }
 
@@ -809,7 +809,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
       Array<MultiFab*> res_null;
       solve_phi_with_fmg(crse_level, fine_level,
-			 phi_p, BoxLib::GetArrOfPtrs(rhs), grad_phi_p, res_null,
+			 phi_p, amrex::GetArrOfPtrs(rhs), grad_phi_p, res_null,
 			 time);
 
       // Average phi from fine to coarse level
@@ -933,7 +933,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
-       BoxLib::average_face_to_cellcenter(grav, BoxLib::GetArrOfConstPtrs(grad_phi_prev[level]), geom);
+       BoxLib::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
@@ -1011,7 +1011,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
 	const Geometry& geom = parent->Geom(level);
-	BoxLib::average_face_to_cellcenter(grav, BoxLib::GetArrOfConstPtrs(grad_phi_curr[level]), geom);
+	BoxLib::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_curr[level]), geom);
 	grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
@@ -1240,8 +1240,8 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
 
-    BoxLib::average_down_faces(BoxLib::GetArrOfConstPtrs(grad_phi[level+1]),
-			       BoxLib::GetArrOfPtrs(crse_gphi_fine),
+    BoxLib::average_down_faces(amrex::GetArrOfConstPtrs(grad_phi[level+1]),
+			       amrex::GetArrOfPtrs(crse_gphi_fine),
 			       fine_ratio);
 
     const Geometry& cgeom = parent->Geom(level);
@@ -1290,10 +1290,10 @@ Gravity::test_composite_phi (int crse_level)
 
     Array< Array<MultiFab*> > grad_phi_null;
     solve_phi_with_fmg(crse_level, finest_level,
-		       BoxLib::GetArrOfPtrs(phi),
-		       BoxLib::GetArrOfPtrs(rhs),
+		       amrex::GetArrOfPtrs(phi),
+		       amrex::GetArrOfPtrs(rhs),
 		       grad_phi_null,
-		       BoxLib::GetArrOfPtrs(res),
+		       amrex::GetArrOfPtrs(res),
 		       time);
 
     // Average residual from fine to coarse level before printing the norm
@@ -2568,10 +2568,10 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 		coeffs[ilev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(amr_lev, *rhs[ilev], BoxLib::GetArrOfPtrs(coeffs[ilev]));
+	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetArrOfPtrs(coeffs[ilev]));
 	}
 
-	fmg.set_gravity_coeffs(BoxLib::GetArrOfArrOfPtrs(coeffs));
+	fmg.set_gravity_coeffs(amrex::GetArrOfArrOfPtrs(coeffs));
     }
     else
 #endif
@@ -2740,7 +2740,7 @@ Gravity::update_max_rhs()
 		coeffs[lev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(lev, *rhs[lev], BoxLib::GetArrOfPtrs(coeffs[lev]));
+	    applyMetricTerms(lev, *rhs[lev], amrex::GetArrOfPtrs(coeffs[lev]));
 	}
     }
 #endif

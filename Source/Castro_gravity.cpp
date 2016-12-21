@@ -60,7 +60,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	gravity->solve_for_phi(level,
 			       phi_old,
-			       BoxLib::GetArrOfPtrs(gravity->get_grad_phi_prev(level)),
+			       amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(level)),
 			       is_new);
 
         if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
@@ -69,7 +69,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	    gravity->create_comp_minus_level_grad_phi(level,
 						      comp_phi,
-						      BoxLib::GetArrOfPtrs(comp_gphi),
+						      amrex::GetArrOfPtrs(comp_gphi),
 						      comp_minus_level_phi,
 						      comp_minus_level_grad_phi);
 
@@ -148,7 +148,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	gravity->solve_for_phi(level,
 			       phi_new,
-			       BoxLib::GetArrOfPtrs(gravity->get_grad_phi_curr(level)),
+			       amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(level)),
 			       is_new);
 
 	if (level < parent->finestLevel() && gravity->NoComposite() != 1) {
