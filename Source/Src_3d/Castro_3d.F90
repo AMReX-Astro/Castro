@@ -276,14 +276,15 @@ subroutine ca_umdrv(is_finest_level, time, &
                    q3, q3_lo, q3_hi, &
                    pdivu, domlo, domhi)
 #else
-  call umeth3d(q,flatn,q_lo,q_hi, &
-               qaux,qa_lo,qa_hi, &
-               srcQ,srQ_lo,srQ_hi, &
-               lo,hi,delta,dt, &
-               uout,uout_lo,uout_hi, &
-               flux1,flux1_lo,flux1_hi, &
-               flux2,flux2_lo,flux2_hi, &
-               flux3,flux3_lo,flux3_hi, &
+  call umeth3d(q, q_lo, q_hi, &
+               flatn, &
+               qaux, qa_lo, qa_hi, &
+               srcQ, srQ_lo, srQ_hi, &
+               lo, hi, delta, dt, &
+               uout, uout_lo, uout_hi, &
+               flux1, flux1_lo, flux1_hi, &
+               flux2, flux2_lo, flux2_hi, &
+               flux3, flux3_lo, flux3_hi, &
                q1, q1_lo, q1_hi, &
                q2, q2_lo, q2_hi, &
                q3, q3_lo, q3_hi, &

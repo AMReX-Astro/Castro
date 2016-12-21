@@ -532,9 +532,12 @@ contains
           if (k3d .gt. lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
-             call transz(lam, lam_lo, lam_hi, &
+             call transz(&
+                         lam, lam_lo, lam_hi, &
                          qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
-                         fz, rfz, fz_lo, fz_hi, &
+                         fz, &
+                         rfz, &
+                         fz_lo, fz_hi, &
                          qgdnvz, qt_lo, qt_hi, &
                          qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                          cdtdz, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, km, kc, k3d)
@@ -545,8 +548,8 @@ contains
                          qgdnvx, qt_lo, qt_hi, &
                          lam, lam_lo, lam_hi, &
                          rfxz, fx_lo, fx_hi, &
-                         qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                         qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux(:,:,:,QGAMCG), &
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
 
@@ -556,16 +559,21 @@ contains
                          qgdnvy, qt_lo, qt_hi, &
                          lam, lam_lo, lam_hi, &
                          rfyz, fy_lo, fy_hi, &
-                         qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                         qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux(:,:,:,QGAMCG), &
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute U''_x at km (k3d-1)
-             call transyz(lam, lam_lo, lam_hi, &
+             call transyz(&
+                          lam, lam_lo, lam_hi, &
                           qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
-                          fyz, rfyz, fy_lo, fy_hi, &
-                          fzy, rfzy, fz_lo, fz_hi, &
+                          fyz, &
+                          rfyz, &
+                          fy_lo, fy_hi, &
+                          fzy, &
+                          rfzy, &
+                          fz_lo, fz_hi, &
                           qgdnvy, qt_lo, qt_hi, &
                           qgdnvtmpz2, qt_lo, qt_hi, &
                           qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
@@ -573,10 +581,15 @@ contains
                           hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
 
              ! Compute U''_y at km (k3d-1)
-             call transxz(lam, lam_lo, lam_hi, &
+             call transxz(&
+                          lam, lam_lo, lam_hi, &
                           qym, qyl, qyp, qyr, qt_lo, qt_hi, &
-                          fxz, rfxz, fx_lo, fx_hi, &
-                          fzx, rfzx, fz_lo, fz_hi, &
+                          fxz, &
+                          rfxz, &
+                          fx_lo, fx_hi, &
+                          fzx, &
+                          rfzx, &
+                          fz_lo, fz_hi, &
                           qgdnvx, qt_lo, qt_hi, &
                           qgdnvtmpz1, qt_lo, qt_hi, &
                           qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
@@ -589,8 +602,8 @@ contains
                          qgdnvxf, qt_lo, qt_hi, &
                          lam, lam_lo, lam_hi, &
                          rflux1, rfd1_lo, rfd1_hi, &
-                         qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                         qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux(:,:,:,QGAMCG), &
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
 
@@ -607,8 +620,8 @@ contains
                          qgdnvyf, qt_lo, qt_hi, &
                          lam, lam_lo, lam_hi, &
                          rflux2, rfd2_lo, rfd2_hi, &
-                         qaux(:,:,:,QGAMCG), qaux(:,:,:,QGAMC), &
-                         qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux(:,:,:,QGAMCG), &
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
 
