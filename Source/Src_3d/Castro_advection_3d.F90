@@ -1056,10 +1056,11 @@ contains
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
     integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
     integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
+    integer, intent(inout) :: nstep_fsp
 #endif
 
     integer, intent(in) :: verbose
-    integer, intent(inout) :: nstep_fsp
+
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
