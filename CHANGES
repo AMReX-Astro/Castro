@@ -5,6 +5,10 @@
      This affects, in particular, how we treated small internal
      energies in radiation. (issue #64)
 
+  -- the radiation-specific versions of umeth and consup have been
+     merged with the pure hydro routines.  This gives round-off level
+     differences.  This also now uses all velocity components in the
+     kinetic energy correction for radiation. (issues #66, 70)
 previous changes:
 
 * 16.12a
