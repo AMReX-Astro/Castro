@@ -488,9 +488,8 @@ contains
 #ifdef RADIATION
                    lam, lam_lo, lam_hi, &
                    rfx, fx_lo, fx_hi, &
-                   qaux(:,:,:,QGAMCG), &
 #endif
-                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux, qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -501,9 +500,8 @@ contains
 #ifdef RADIATION
                    lam, lam_lo, lam_hi, &
                    rfy, fy_lo, fy_hi, &
-                   qaux(:,:,:,QGAMCG), &
 #endif
-                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux, qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -552,9 +550,8 @@ contains
 #ifdef RADIATION
                    lam, lam_lo, lam_hi, &
                    rfxy, fx_lo, fx_hi, &
-                   qaux(:,:,:,QGAMCG), &
 #endif
-                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux, qa_lo, qa_hi, &
                    shk,shk_lo,shk_hi, &
                    1, lo(1), hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
@@ -565,9 +562,8 @@ contains
 #ifdef RADIATION
                    lam, lam_lo, lam_hi, &
                    rfyx, fy_lo, fy_hi, &
-                   qaux(:,:,:,QGAMCG), &
 #endif
-                   qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                   qaux, qa_lo, qa_hi, &
                    shk, shk_lo, shk_hi, &
                    2, lo(1), hi(1), lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -605,9 +601,8 @@ contains
 #ifdef RADIATION
                       lam, lam_lo, lam_hi, &
                       rfz, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), &
 #endif
-                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux, qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -656,9 +651,8 @@ contains
 #ifdef RADIATION
                       lam, lam_lo, lam_hi, &
                       rfzx, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), &
 #endif
-                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux, qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
@@ -669,9 +663,8 @@ contains
 #ifdef RADIATION
                       lam, lam_lo, lam_hi, &
                       rfzy, fz_lo, fz_hi, &
-                      qaux(:,:,:,QGAMCG), &
 #endif
-                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux, qa_lo, qa_hi, &
                       shk, shk_lo, shk_hi, &
                       3, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
@@ -708,9 +701,8 @@ contains
 #ifdef RADIATION
                       lam, lam_lo, lam_hi, &
                       rflux3, rfd3_lo, rfd3_hi, &
-                      qaux(:,:,:,QGAMCG), &
 #endif
-                      qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                      qaux, qa_lo, qa_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
 
@@ -759,9 +751,8 @@ contains
 #ifdef RADIATION
                          lam, lam_lo, lam_hi, &
                          rfxz, fx_lo, fx_hi, &
-                         qaux(:,:,:,QGAMCG), &
 #endif
-                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux, qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
 
@@ -772,9 +763,8 @@ contains
 #ifdef RADIATION
                          lam, lam_lo, lam_hi, &
                          rfyz, fy_lo, fy_hi, &
-                         qaux(:,:,:,QGAMCG), &
 #endif
-                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux, qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
 
@@ -837,9 +827,8 @@ contains
 #ifdef RADIATION
                          lam, lam_lo, lam_hi, &
                          rflux1, rfd1_lo, rfd1_hi, &
-                         qaux(:,:,:,QGAMCG), &
 #endif
-                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux, qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          1, lo(1), hi(1)+1, lo(2), hi(2), km, k3d-1, k3d-1, domlo, domhi)
 
@@ -856,9 +845,8 @@ contains
 #ifdef RADIATION
                          lam, lam_lo, lam_hi, &
                          rflux2, rfd2_lo, rfd2_hi, &
-                         qaux(:,:,:,QGAMCG), &
 #endif
-                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         qaux, qa_lo, qa_hi, &
                          shk, shk_lo, shk_hi, &
                          2, lo(1), hi(1), lo(2), hi(2)+1, km, k3d-1, k3d-1, domlo, domhi)
 
