@@ -731,60 +731,117 @@ contains
           end if
 
 
-!!! HERE
-
           if (k3d.gt.lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
-             call transz(qxm,qmxz,qxp,qpxz,qym,qmyz,qyp,qpyz,qt_lo,qt_hi, &
-                         fz,fz_lo,fz_hi, &
+             call transz(&
+#ifdef RADIATION
+                         lam, lam_lo, lam_hi, &
+#endif
+                         qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
+                         fz, &
+#ifdef RADIATION
+                         rfz, &
+#endif
+                         fz_lo, fz_hi, &
                          qgdnvz,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
+#ifdef RADIATION
+                         qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
+#else
+                         qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
+#endif
                          cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
 
              ! Compute F^{x|z} at km (k3d-1)
-             call cmpflx(qmxz,qpxz,qt_lo,qt_hi, &
-                         fxz,fx_lo,fx_hi, &
-                         qgdnvx,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
+             call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
+                         fxz, fx_lo, fx_hi, &
+                         qgdnvx, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         lam, lam_lo, lam_hi, &
+                         rfxz, fx_lo, fx_hi, &
+                         qaux(:,:,:,QGAMCG), &
+#endif
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute F^{y|z} at km (k3d-1)
-             call cmpflx(qmyz,qpyz,qt_lo,qt_hi, &
-                         fyz,fy_lo,fy_hi, &
-                         qgdnvy,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
+             call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
+                         fyz, fy_lo, fy_hi, &
+                         qgdnvy, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         lam, lam_lo, lam_hi, &
+                         rfyz, fy_lo, fy_hi, &
+                         qaux(:,:,:,QGAMCG), &
+#endif
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute U''_x at km (k3d-1)
-             call transyz(qxm,qxl,qxp,qxr,qt_lo,qt_hi, &
-                          fyz,fy_lo,fy_hi, &
-                          fzy,fz_lo,fz_hi, &
-                          qgdnvy,qt_lo,qt_hi, &
-                          qgdnvtmpz2,qt_lo,qt_hi, &
-                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                          srcQ,src_lo,src_hi, &
-                          hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
+             call transyz(&
+#ifdef RADIATION
+                          lam, lam_lo, lam_hi, &
+#endif
+                          qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
+                          fyz, &
+#ifdef RADIATION
+                          rfyz, &
+#endif
+                          fy_lo, fy_hi, &
+                          fzy, &
+#ifdef RADIATION
+                          rfzy, &
+#endif
+                          fz_lo, fz_hi, &
+                          qgdnvy, qt_lo, qt_hi, &
+                          qgdnvtmpz2, qt_lo, qt_hi, &
+#ifdef RADIATION
+                          qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
+#else
+                          qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
+#endif
+                          srcQ, src_lo, src_hi, &
+                          hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
 
              ! Compute U''_y at km (k3d-1)
-             call transxz(qym,qyl,qyp,qyr,qt_lo,qt_hi, &
-                          fxz,fx_lo,fx_hi, &
-                          fzx,fz_lo,fz_hi, &
-                          qgdnvx,qt_lo,qt_hi, &
-                          qgdnvtmpz1,qt_lo,qt_hi, &
-                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                          srcQ,src_lo,src_hi, &
-                          hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
+             call transxz(&
+#ifdef RADIATION
+                          lam, lam_lo, lam_hi, &
+#endif
+                          qym, qyl, qyp, qyr, qt_lo, qt_hi, &
+                          fxz, &
+#ifdef RADIATION
+                          rfxz, &
+#endif
+                          fx_lo, fx_hi, &
+                          fzx, &
+#ifdef RADIATION
+                          rfzx, &
+#endif
+                          fz_lo, fz_hi, &
+                          qgdnvx, qt_lo, qt_hi, &
+                          qgdnvtmpz1, qt_lo, qt_hi, &
+#ifdef RADIATION
+                          qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
+#else
+                          qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
+#endif
+                          srcQ, src_lo, src_hi, &
+                          hdt, hdtdx, hdtdz, lo(1), hi(1), lo(2)-1, hi(2)+1, km, kc, k3d-1)
 
              ! Compute F^x at km (k3d-1)
-             call cmpflx(qxl,qxr,qt_lo,qt_hi, &
-                         flux1,fd1_lo,fd1_hi, &
-                         qgdnvxf,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
+             call cmpflx(qxl, qxr, qt_lo, qt_hi, &
+                         flux1, fd1_lo, fd1_hi, &
+                         qgdnvxf, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         lam, lam_lo, lam_hi, &
+                         rflux1, rfd1_lo, rfd1_hi, &
+                         qaux(:,:,:,QGAMCG), &
+#endif
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         1, lo(1), hi(1)+1, lo(2), hi(2), km, k3d-1, k3d-1, domlo, domhi)
 
              do j=lo(2)-1,hi(2)+1
                 do i=lo(1)-1,hi(1)+2
@@ -793,12 +850,17 @@ contains
              end do
 
              ! Compute F^y at km (k3d-1)
-             call cmpflx(qyl,qyr,qt_lo,qt_hi, &
-                         flux2,fd2_lo,fd2_hi, &
-                         qgdnvyf,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
+             call cmpflx(qyl, qyr, qt_lo, qt_hi, &
+                         flux2, fd2_lo, fd2_hi, &
+                         qgdnvyf, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         lam, lam_lo, lam_hi, &
+                         rflux2, rfd2_lo, rfd2_hi, &
+                         qaux(:,:,:,QGAMCG), &
+#endif
+                         qaux(:,:,:,QGAMC), qaux(:,:,:,QCSML), qaux(:,:,:,QC), qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         2, lo(1), hi(1), lo(2), hi(2)+1, km, k3d-1, k3d-1, domlo, domhi)
 
              do j=lo(2)-1,hi(2)+2
                 do i=lo(1)-1,hi(1)+1
