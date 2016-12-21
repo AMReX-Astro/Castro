@@ -45,16 +45,14 @@ subroutine ca_umdrv(is_finest_level, time, &
   use flatten_module, only: uflaten
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use rad_advection_module, only : umeth3d_rad, consup_rad
   use flatten_module, only : rad_flaten
-#else
-  use advection_module, only : umeth3d, consup
 #endif
+  use advection_module, only : umeth3d, consup
 
   implicit none
 
 #ifdef RADIATION
-  integer, intent(in) :: nstep_fsp
+  integer, intent(inout) :: nstep_fsp
 #endif
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(3), hi(3), verbose
@@ -258,24 +256,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-#ifdef RADIATION
-  call umeth3d_rad(q,q_lo,q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lam, lam_lo, lam_hi, &
-                   flatn, &
-                   srcQ, srQ_lo, srQ_hi, &
-                   lo, hi, delta, dt, &
-                   flux1, flux1_lo, flux1_hi, &
-                   flux2, flux2_lo, flux2_hi, &
-                   flux3, flux3_lo, flux3_hi, &
-                   radflux1, radflux1_lo, radflux1_hi, &
-                   radflux2, radflux2_lo, radflux2_hi, &
-                   radflux3, radflux3_lo, radflux3_hi, &
-                   q1, q1_lo, q1_hi, &
-                   q2, q2_lo, q2_hi, &
-                   q3, q3_lo, q3_hi, &
-                   pdivu, domlo, domhi)
-#else
   call umeth3d(q, q_lo, q_hi, &
                flatn, &
                qaux, qa_lo, qa_hi, &
@@ -285,11 +265,17 @@ subroutine ca_umdrv(is_finest_level, time, &
                flux1, flux1_lo, flux1_hi, &
                flux2, flux2_lo, flux2_hi, &
                flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+               lam, lam_lo, lam_hi, &
+               radflux1, radflux1_lo, radflux1_hi, &
+               radflux2, radflux2_lo, radflux2_hi, &
+               radflux3, radflux3_lo, radflux3_hi, &
+#endif
                q1, q1_lo, q1_hi, &
                q2, q2_lo, q2_hi, &
                q3, q3_lo, q3_hi, &
                pdivu, domlo, domhi)
-#endif
+
 
   call bl_deallocate( flatn)
 
@@ -297,29 +283,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   call divu(lo,hi,q,q_lo,q_hi,delta,div,lo,hi+1)
 
   ! Conservative update
-#ifdef RADIATION
-  call consup_rad(uin, uin_lo, uin_hi, &
-                  q, q_lo, q_hi, &
-                  uout, uout_lo, uout_hi, &
-                  update, updt_lo, updt_hi, &
-                  Erin, Erin_lo, Erin_hi, &
-                  Erout, Erout_lo, Erout_hi, &
-                  flux1, flux1_lo, flux1_hi, &
-                  flux2, flux2_lo, flux2_hi, &
-                  flux3, flux3_lo, flux3_hi, &
-                  radflux1, radflux1_lo, radflux1_hi, &
-                  radflux2, radflux2_lo, radflux2_hi, &
-                  radflux3, radflux3_lo, radflux3_hi, &
-                  q1, q1_lo, q1_hi, &
-                  q2, q2_lo, q2_hi, &
-                  q3, q3_lo, q3_hi, &
-                  area1, area1_lo, area1_hi, &
-                  area2, area2_lo, area2_hi, &
-                  area3, area3_lo, area3_hi, &
-                  vol, vol_lo, vol_hi, &
-                  div, pdivu, &
-                  lo, hi, delta, dt, nstep_fsp, verbose)
-#else
   call consup(uin ,  uin_lo , uin_hi, &
               q, q_lo, q_hi, &
               uout, uout_lo, uout_hi, &
@@ -327,6 +290,14 @@ subroutine ca_umdrv(is_finest_level, time, &
               flux1, flux1_lo, flux1_hi, &
               flux2, flux2_lo, flux2_hi, &
               flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+              Erin, Erin_lo, Erin_hi, &
+              Erout, Erout_lo, Erout_hi, &
+              radflux1, radflux1_lo, radflux1_hi, &
+              radflux2, radflux2_lo, radflux2_hi, &
+              radflux3, radflux3_lo, radflux3_hi, &
+              nstep_fsp, &
+#endif
               q1, q1_lo, q1_hi, &
               q2, q2_lo, q2_hi, &
               q3, q3_lo, q3_hi, &
@@ -339,7 +310,6 @@ subroutine ca_umdrv(is_finest_level, time, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
-#endif
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)

@@ -1014,7 +1014,7 @@ contains
                                    UEDEN, UEINT, UTEMP, NGDNV, QVAR, NQ, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
-                                   GDPRES, GDU, GDV, GDLAMS, GDERADS, &
+                                   GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif                                   
                                    track_grid_losses, limit_fluxes_on_small_dens
     use advection_util_3d_module, only : normalize_species_fluxes
@@ -1059,6 +1059,7 @@ contains
 #endif
 
     integer, intent(in) :: verbose
+    integer, intent(inout) :: nstep_fsp
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -1091,7 +1092,7 @@ contains
     double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
     double precision :: div1, volinv
-    integer          :: i, j, k, n
+    integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
     double precision :: loc(3), ang_mom(3)
 
@@ -1296,12 +1297,12 @@ contains
              dprdy = ZERO
              dprdz = ZERO
              do g=0,ngroups-1
-                lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
-                        q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
-                        q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
-                dprdx = dprdx + lamc*(q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx(1)
-                dprdy = dprdy + lamc*(q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dx(2)
-                dprdz = dprdz + lamc*(q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dx(3)
+                lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                        qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                        qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.d0
+                dprdx = dprdx + lamc*(qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
+                dprdy = dprdy + lamc*(qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
+                dprdz = dprdz + lamc*(qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
              end do
 
              ! we now want to compute the change in the kinetic energy -- we
@@ -1348,30 +1349,30 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
 
-                ux = HALF*(q1(i,j,k,GDU) + q1(i+1,j,k,GDU))
-                uy = HALF*(q2(i,j,k,GDV) + q2(i,j+1,k,GDV))
-                uz = HALF*(q3(i,j,k,GDW) + q3(i,j,k+1,GDW))
+                ux = HALF*(qx(i,j,k,GDU) + qx(i+1,j,k,GDU))
+                uy = HALF*(qy(i,j,k,GDV) + qy(i,j+1,k,GDV))
+                uz = HALF*(qz(i,j,k,GDW) + qz(i,j,k+1,GDW))
 
-                dudx(1) = (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1)
-                dudx(2) = (q1(i+1,j,k,GDV) - q1(i,j,k,GDV))/dx(1)
-                dudx(3) = (q1(i+1,j,k,GDW) - q1(i,j,k,GDW))/dx(1)
+                dudx(1) = (qx(i+1,j,k,GDU) - qx(i,j,k,GDU))/dx(1)
+                dudx(2) = (qx(i+1,j,k,GDV) - qx(i,j,k,GDV))/dx(1)
+                dudx(3) = (qx(i+1,j,k,GDW) - qx(i,j,k,GDW))/dx(1)
 
-                dudy(1) = (q2(i,j+1,k,GDU) - q2(i,j,k,GDU))/dx(2)
-                dudy(2) = (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2)
-                dudy(3) = (q2(i,j+1,k,GDW) - q2(i,j,k,GDW))/dx(2)
+                dudy(1) = (qy(i,j+1,k,GDU) - qy(i,j,k,GDU))/dx(2)
+                dudy(2) = (qy(i,j+1,k,GDV) - qy(i,j,k,GDV))/dx(2)
+                dudy(3) = (qy(i,j+1,k,GDW) - qy(i,j,k,GDW))/dx(2)
 
-                dudz(1) = (q3(i,j,k+1,GDU) - q3(i,j,k,GDU))/dx(3)
-                dudz(2) = (q3(i,j,k+1,GDV) - q3(i,j,k,GDV))/dx(3)
-                dudz(3) = (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
+                dudz(1) = (qz(i,j,k+1,GDU) - qz(i,j,k,GDU))/dx(3)
+                dudz(2) = (qz(i,j,k+1,GDV) - qz(i,j,k,GDV))/dx(3)
+                dudz(3) = (qz(i,j,k+1,GDW) - qz(i,j,k,GDW))/dx(3)
 
                 divu = dudx(1) + dudy(2) + dudz(3)
 
                 ! Note that for single group, fspace_type is always 1
                 do g=0, ngroups-1
 
-                   nhat(1) = (q1(i+1,j,k,GDERADS+g) - q1(i,j,k,GDERADS+g))/dx(1)
-                   nhat(2) = (q2(i,j+1,k,GDERADS+g) - q2(i,j,k,GDERADS+g))/dx(2)
-                   nhat(3) = (q3(i,j,k+1,GDERADS+g) - q3(i,j,k,GDERADS+g))/dx(3)
+                   nhat(1) = (qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
+                   nhat(2) = (qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
+                   nhat(3) = (qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
 
                    GnDotu(1) = dot_product(nhat, dudx)
                    GnDotu(2) = dot_product(nhat, dudy)
@@ -1379,21 +1380,21 @@ contains
 
                    nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.d-50)
 
-                   lamc = (q1(i,j,k,GDLAMS+g) + q1(i+1,j,k,GDLAMS+g) + &
-                           q2(i,j,k,GDLAMS+g) + q2(i,j+1,k,GDLAMS+g) + &
-                           q3(i,j,k,GDLAMS+g) + q3(i,j,k+1,GDLAMS+g) ) / 6.d0
+                   lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                           qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                           qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.d0
                    Eddf = Edd_factor(lamc)
                    f1 = (ONE-Eddf)*HALF
                    f2 = (3.d0*Eddf-ONE)*HALF
                    af(g) = -(f1*divu + f2*nnColonDotGu)
 
                    if (fspace_type .eq. 1) then
-                      Eddfxp = Edd_factor(q1(i+1,j  ,k  ,GDLAMS+g))
-                      Eddfxm = Edd_factor(q1(i  ,j  ,k  ,GDLAMS+g))
-                      Eddfyp = Edd_factor(q2(i  ,j+1,k  ,GDLAMS+g))
-                      Eddfym = Edd_factor(q2(i  ,j  ,k  ,GDLAMS+g))
-                      Eddfzp = Edd_factor(q3(i  ,j  ,k+1,GDLAMS+g))
-                      Eddfzm = Edd_factor(q3(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfxp = Edd_factor(qx(i+1,j  ,k  ,GDLAMS+g))
+                      Eddfxm = Edd_factor(qx(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfyp = Edd_factor(qy(i  ,j+1,k  ,GDLAMS+g))
+                      Eddfym = Edd_factor(qy(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfzp = Edd_factor(qz(i  ,j  ,k+1,GDLAMS+g))
+                      Eddfzm = Edd_factor(qz(i  ,j  ,k  ,GDLAMS+g))
 
                       f1xp = HALF*(ONE-Eddfxp)
                       f1xm = HALF*(ONE-Eddfxm)
@@ -1402,13 +1403,13 @@ contains
                       f1zp = HALF*(ONE-Eddfzp)
                       f1zm = HALF*(ONE-Eddfzm)
 
-                      Gf1E(1) = (f1xp*q1(i+1,j,k,GDERADS+g) - f1xm*q1(i,j,k,GDERADS+g)) / dx(1)
-                      Gf1E(2) = (f1yp*q2(i,j+1,k,GDERADS+g) - f1ym*q2(i,j,k,GDERADS+g)) / dx(2)
-                      Gf1E(3) = (f1zp*q3(i,j,k+1,GDERADS+g) - f1zm*q3(i,j,k,GDERADS+g)) / dx(3)
+                      Gf1E(1) = (f1xp*qx(i+1,j,k,GDERADS+g) - f1xm*qx(i,j,k,GDERADS+g)) / dx(1)
+                      Gf1E(2) = (f1yp*qy(i,j+1,k,GDERADS+g) - f1ym*qy(i,j,k,GDERADS+g)) / dx(2)
+                      Gf1E(3) = (f1zp*qz(i,j,k+1,GDERADS+g) - f1zm*qz(i,j,k,GDERADS+g)) / dx(3)
 
-                      Egdc = (q1(i,j,k,GDERADS+g) + q1(i+1,j,k,GDERADS+g) &
-                           +  q2(i,j,k,GDERADS+g) + q2(i,j+1,k,GDERADS+g) &
-                           +  q3(i,j,k,GDERADS+g) + q3(i,j,k+1,GDERADS+g) ) / 6.d0
+                      Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) &
+                           +  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g) &
+                           +  qz(i,j,k,GDERADS+g) + qz(i,j,k+1,GDERADS+g) ) / 6.d0
 
                       Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)+uz*Gf1E(3)) &
                            - dt*f2*Egdc*nnColonDotGu
