@@ -32,23 +32,6 @@ RadBndryData::RadBndryData(const BoxArray& _grids, int _ncomp,
 
 RadBndryData::~RadBndryData()
 {
-      // masks was not allocated with PArrayManage, must manually dealloc
-    clear_masks();
-}
-
-void
-RadBndryData::clear_masks()
-{
-    for (int i = 0; i <2*BL_SPACEDIM; i++) {
-	int len = masks[i].size();
-	for (int k = 0; k <len; k++) {
-	    if (masks[i].defined(k)) {
-		Mask *m = masks[i].remove(k);
-		delete m;
-	    }
-
-	}
-    }
 }
 
 std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
@@ -62,7 +45,7 @@ std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 	    os << "::: face " << f << " of grid " << grds[grd] << "\n";
 	    os << "BC = " << mgb.bcond[f][grd]
 	       << " LOC = " << mgb.bcloc[f][grd] << "\n";
-	    os << mgb.masks[f][grd];
+	    os << *mgb.masks[f][grd];
 	    os << mgb.bndry[f][grd];
 	}
 	os << "--------------------------------------------------" << std::endl;
@@ -98,7 +81,8 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 		if (dir == coord_dir) continue;
 		face_box.grow(dir,1);
 	    }
-	    Mask *m = new Mask(face_box);
+	    masks[face][k].reset(new Mask(face_box));
+	    Mask *m = masks[face][k].get();
 	    m->setVal(outside_domain,0);
             Box dbox(geom.Domain());
             dbox &= face_box;
@@ -117,7 +101,6 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 		m->shift(-iv);
 	      }
 	    }
-	    masks[face].set(k,m);
 	      // turn mask off on intersection with grids at this level
 	    for (int g = 0; g < len; g++) {
 		Box ovlp(grids[g]);

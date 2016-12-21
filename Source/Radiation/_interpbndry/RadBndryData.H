@@ -9,7 +9,6 @@
 #include <Mask.H>
 #include <RadBoundCond.H>
 #include <Geometry.H>
-#include <PArray.H>
 
 #include <iostream>
 
@@ -92,7 +91,7 @@ protected:
 //@ManDoc: Array (on orientation) of boundary condition locations
     Array<Real>        bcloc[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
-    PArray<Mask>       masks[2*BL_SPACEDIM];
+    Array<std::unique_ptr<Mask> > masks[2*BL_SPACEDIM];
 //@ManDoc: Domain used for mask defintions
     Geometry geom;
 //@ManDoc: protect BndryRegister grids
@@ -132,9 +131,9 @@ public:
 	return bcond[_face];
     }
 //@ManDoc: return boundary mask on given face
-    const PArray<Mask>& bndryMasks(const Orientation& _face) const
+    const Mask& bndryMasks (const Orientation& _face, int i) const
     {
-	return masks[_face];
+	return *masks[_face][i];
     }
 //@ManDoc: return domain used to define masks
     const Box& getDomain() const
@@ -154,7 +153,7 @@ public:
 //@ManDoc: set mask values for given orientation on nth grid
     void setMaskValue(const Orientation& _face, int _n, int _val)
     {
-	masks[_face][_n].setVal(_val);
+	masks[_face][_n]->setVal(_val);
     }
 //@ManDoc: set boundary type specifier for given orientation on nth grid
     void setBoundCond(const Orientation& _face, int _n, const RadBoundCond& _bcn)
@@ -177,10 +176,6 @@ public:
     
 
 private:
-//@ManMemo: utility functions
-//@ManDoc: free memory taken by masks for this BndryData object
-    void clear_masks();
-
     //
     // Disabled!
     //

@@ -1018,7 +1018,7 @@ Castro::writePlotFile (const std::string& dir,
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {
-	MultiFab::Copy(plotMF,radiation->plotvar[level],0,cnt,Radiation::nplotvar,0);
+	MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
 	cnt += Radiation::nplotvar;
     }
 #endif

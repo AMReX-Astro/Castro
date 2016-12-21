@@ -39,16 +39,16 @@ class HypreExtMultiABec : public HypreMultiABec {
   void d2Coefficients(int level, const MultiFab &d2, int dir);
 
   const MultiFab& a2Coefficients(int level, int dir) {
-    return a2coefs[level][dir];
+      return (*a2coefs[level])[dir];
   }
   const MultiFab& cCoefficients( int level, int dir) {
-    return ccoefs[level][dir];
+      return (*ccoefs[level])[dir];
   }
   const MultiFab& d1Coefficients(int level, int dir) {
-    return d1coefs[level][dir];
+      return (*d1coefs[level])[dir];
   }
   const MultiFab& d2Coefficients(int level, int dir) {
-    return d2coefs[level][dir];
+      return (*d2coefs[level])[dir];
   }
 
   void loadLevelVectors(int level,
@@ -69,10 +69,10 @@ class HypreExtMultiABec : public HypreMultiABec {
 
  protected:
 
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > a2coefs; // face-based
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > ccoefs;  // face-based, 2 component
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > d1coefs; // cell-based but directional
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > d2coefs; // face-based
+  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > a2coefs; // face-based
+  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > ccoefs;  // face-based, 2 component
+  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > d1coefs; // cell-based but directional
+  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > d2coefs; // face-based
   Real alpha2, gamma, delta1, delta2; // multipliers for the above
 };
 

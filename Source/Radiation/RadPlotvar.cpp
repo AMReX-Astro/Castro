@@ -9,7 +9,7 @@ void Radiation::save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACED
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.tilebox();
 	int scomp = 0;
 	BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
@@ -18,7 +18,7 @@ void Radiation::save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACED
 	     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
 		    BL_TO_FORTRAN(lambda[1][mfi]),
 		    BL_TO_FORTRAN(lambda[2][mfi])),
-	     BL_TO_FORTRAN(plotvar[level][mfi]));
+	     BL_TO_FORTRAN((*plotvar[level])[mfi]));
     }
 }
 
@@ -29,14 +29,14 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.tilebox();
 	BL_FORT_PROC_CALL(CA_ER_COM2LAB, ca_er_com2lab)
 	    (bx.loVect(), bx.hiVect(),
 	     BL_TO_FORTRAN(Snew[mfi]),
 	     BL_TO_FORTRAN(Ecom[mfi]),
 	     BL_TO_FORTRAN(F[mfi]), iflx, nflx,
-	     BL_TO_FORTRAN(plotvar[level][mfi]), icomp_lab_Er, nplotvar);
+	     BL_TO_FORTRAN((*plotvar[level])[mfi]), icomp_lab_Er, nplotvar);
 			   
     }
 }
@@ -54,7 +54,7 @@ void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew,
 #endif
     {
 	FArrayBox f;
-	for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
+	for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
 	    const Box& bx = mfi.tilebox();
 
 	    f.resize(bx, nGroups);
@@ -72,7 +72,7 @@ void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew,
 		 BL_TO_FORTRAN(f),
 		 BL_TO_FORTRAN(Er[mfi]),
 		 BL_TO_FORTRAN(Fr[mfi]), iflx, nflx,
-		 BL_TO_FORTRAN(plotvar[level][mfi]), icomp_lab_Fr, nplotvar);
+		 BL_TO_FORTRAN((*plotvar[level])[mfi]), icomp_lab_Fr, nplotvar);
 	}
     }
 }
@@ -90,7 +90,7 @@ void Radiation::save_com_flux_in_plotvar(int level, const MultiFab& Snew,
 #endif
     {
 	FArrayBox f;
-	for (MFIter mfi(plotvar[level],true); mfi.isValid(); ++mfi) {
+	for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
 	    const Box& bx = mfi.tilebox();
 
 	    f.resize(bx, nGroups);
@@ -108,7 +108,7 @@ void Radiation::save_com_flux_in_plotvar(int level, const MultiFab& Snew,
 		 BL_TO_FORTRAN(f),
 		 BL_TO_FORTRAN(Er[mfi]),
 		 BL_TO_FORTRAN(Fr[mfi]), iflx, nflx,
-		 BL_TO_FORTRAN(plotvar[level][mfi]), icomp_com_Fr, nplotvar);
+		 BL_TO_FORTRAN((*plotvar[level])[mfi]), icomp_com_Fr, nplotvar);
 	}
     }
 }

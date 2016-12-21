@@ -3,7 +3,6 @@
 
 #include <Tuple.H>
 #include <MultiFab.H>
-#include <PArray.H>
 
 #include "NGBndry.H"
 
@@ -86,13 +85,13 @@ class HypreABec {
 
   const Geometry& geom;
 
-  MultiFab* acoefs;
-  Tuple<MultiFab*, BL_SPACEDIM> bcoefs;
+  std::unique_ptr<MultiFab> acoefs;
+  std::unique_ptr<MultiFab> bcoefs[BL_SPACEDIM];
   Real alpha, beta;
   Real dx[BL_SPACEDIM];
   Real reltol, abstol;
 
-  MultiFab* SPa; // LO_SANCHEZ_POMRANING alpha
+  std::unique_ptr<MultiFab> SPa; // LO_SANCHEZ_POMRANING alpha
 
   const NGBndry *bdp;
   int bdcomp; // component number used for bdp

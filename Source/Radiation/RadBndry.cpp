@@ -44,11 +44,11 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
         if (domain[face] == boxes()[igrid][face] &&
             !geom.isPeriodic(face.coordDir())) {
 	  const Box& face_box = bndry[face][bi].box();
-	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
+	  bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
           FORT_RADBNDRY2(bndry[face][bi].dataPtr(), dimlist(face_box),
-                         bctypearray[face][igrid].dataPtr(),
+                         bctypearray[face][igrid]->dataPtr(),
                          dimlist(domain), dx, xlo, time);
 #endif
         }
@@ -69,17 +69,6 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom, Real bv) :
 
 RadBndry::~RadBndry()
 {
-  for (OrientationIter fi; fi; ++fi) {
-    Orientation face = fi();
-    if (bcflag[face] == 2) {
-      int len = grids.size();
-      for (int igrid = 0; igrid < len; igrid++) {
-	if (bctypearray[face].defined(igrid)) {
-	  delete bctypearray[face].remove(igrid);
-	}
-      }
-    }
-  }
 }
 
 void RadBndry::init()

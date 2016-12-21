@@ -420,12 +420,7 @@ void Radiation::read_static_params()
 }
 
 Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
-  : parent(Parent),
-    flux_cons(PArrayManage),
-    flux_cons_old(PArrayManage), 
-    flux_trial(PArrayManage),
-    dflux(PArrayManage),
-    plotvar(PArrayManage)
+  : parent(Parent)
 {
   // castro is passed in, rather than obtained from parent, because this
   // routine will be called in some cases before any AmrLevels have
@@ -799,32 +794,22 @@ void Radiation::regrid(int level, const BoxArray& grids)
   if (level > 0) {
     IntVect crse_ratio = parent->refRatio(level-1);
 
-    if (flux_cons.defined(level))
-      delete flux_cons.remove(level);
-    flux_cons.set(level,
-                  new FluxRegister(grids, crse_ratio, level, nGroups));
-    flux_cons[level].setVal(0.0);
+    flux_cons[level].reset(new FluxRegister(grids, crse_ratio, level, nGroups));
+    flux_cons[level]->setVal(0.0);
 
     // For deferred sync, flux_cons_old does not need to be defined here.
     // It will be set in the deferred_sync_setup routine.
 
-    if (flux_trial.defined(level))
-      delete flux_trial.remove(level);
-    flux_trial.set(level,
-                   new FluxRegister(grids, crse_ratio, level, nGroups));
-    flux_trial[level].setVal(0.0);
+    flux_trial[level].reset(new FluxRegister(grids, crse_ratio, level, nGroups));
+    flux_trial[level]->setVal(0.0);
 
   }
 
-  if (dflux.defined(level))
-    delete dflux.remove(level);
-  dflux.set(level, new MultiFab(grids, 1, 0));
+  dflux[level].reset(new MultiFab(grids, 1, 0));
 
-  if (plotvar.defined(level))
-      delete plotvar.remove(level);
   if (nplotvar > 0) {
-      plotvar.set(level, new MultiFab(grids, nplotvar, 0));
-      plotvar[level].setVal(0.0);
+      plotvar[level].reset(new MultiFab(grids, nplotvar, 0));
+      plotvar[level]->setVal(0.0);
   }
 
   // This array will not be used on the finest level.  I create it here,
@@ -844,19 +829,15 @@ void Radiation::close(int level)
       std::cout << "Clearing radiation object at level " << level
             << "..." << std::endl;
     }
-    if (flux_cons.defined(level))
-      delete flux_cons.remove(level);
-    if (flux_trial.defined(level))
-      delete flux_trial.remove(level);
+    flux_cons[level].reset();
+    flux_trial[level].reset();
 
     // flux_cons_old is not deleted here because if it exists it still
     // has energy in it.  It will be deleted once it is finally used.
 
-    if (dflux.defined(level))
-      delete dflux.remove(level);
+    dflux[level].reset();
 
-    if (plotvar.defined(level))
-	delete plotvar.remove(level);
+    plotvar[level].reset();
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "                                       done" << std::endl;
@@ -935,15 +916,15 @@ void Radiation::restart(int level, const BoxArray& grids,
     flux_in.read(FullPathName, is);
 
     const IntVect& crse_ratio = parent->refRatio(level-1);
-    flux_cons_old.set(level, new FluxRegister(grids, crse_ratio, level, nGroups));
+    flux_cons_old[level].reset(new FluxRegister(grids, crse_ratio, level, nGroups));
     
-    BL_ASSERT(flux_cons_old[level].refRatio()  == flux_in.refRatio());
-    BL_ASSERT(flux_cons_old[level].fineLevel() == flux_in.fineLevel());
-    BL_ASSERT(flux_cons_old[level].crseLevel() == flux_in.crseLevel());
-    BL_ASSERT(flux_cons_old[level].nComp()     == flux_in.nComp());
-    BL_ASSERT(BoxLib::match(flux_cons_old[level].boxes(), flux_in.boxes()));
+    BL_ASSERT(flux_cons_old[level]->refRatio()  == flux_in.refRatio());
+    BL_ASSERT(flux_cons_old[level]->fineLevel() == flux_in.fineLevel());
+    BL_ASSERT(flux_cons_old[level]->crseLevel() == flux_in.crseLevel());
+    BL_ASSERT(flux_cons_old[level]->nComp()     == flux_in.nComp());
+    BL_ASSERT(BoxLib::match(flux_cons_old[level]->boxes(), flux_in.boxes()));
 
-    FluxRegister::Copy(flux_cons_old[level], flux_in);
+    FluxRegister::Copy(*flux_cons_old[level], flux_in);
   }
 }
 
@@ -991,7 +972,7 @@ void Radiation::checkPoint(int level,
     os << PathNameInHeader;
   }
 
-  if (flux_cons_old.defined(level)) {
+  if (flux_cons_old[level]) {
     //
     // Conservation flux register exists.
     //
@@ -1014,7 +995,7 @@ void Radiation::checkPoint(int level,
     //
     // Output conservation flux register.
     //
-    flux_cons_old[level].write(FullPathName, os /* , how */ );
+    flux_cons_old[level]->write(FullPathName, os /* , how */ );
   }
   else {
     //
@@ -1070,7 +1051,7 @@ void Radiation::analytic_solution(int level)
     }
 
     MultiFab& S_new = castro->get_new_data(State_Type);
-    MultiFab& T_new = plotvar[level];
+    MultiFab& T_new = *plotvar[level];
     
     MultiFab temp(grids,1,0);
     
@@ -1119,12 +1100,11 @@ void Radiation::pre_timestep(int level)
       // and not rebuilt flux_cons, so check for that here.
       
       int flevel = level + 1;
-      if (!flux_cons.defined(flevel)) {
+      if (!flux_cons[flevel]) {
 	  const BoxArray& grids = parent->getLevel(flevel).boxArray();
 	  const IntVect& crse_ratio = parent->refRatio(level);
-	  flux_cons.set(flevel,
-			new FluxRegister(grids, crse_ratio, flevel, nGroups));
-	  flux_cons[flevel].setVal(0.0);
+	  flux_cons[flevel].reset(new FluxRegister(grids, crse_ratio, flevel, nGroups));
+	  flux_cons[flevel]->setVal(0.0);
       }
   }
   
@@ -1151,10 +1131,10 @@ void Radiation::init_flux(int level, int ncycle)
 
   int fine_level = parent->finestLevel();
 
-  dflux[level].setVal(0.0);
+  dflux[level]->setVal(0.0);
 
   if (level < fine_level) {
-      flux_cons[level+1].setVal(0.0);
+      flux_cons[level+1]->setVal(0.0);
   }
 
   if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
@@ -1889,25 +1869,19 @@ void Radiation::deferred_sync_setup(int crse_level)
 
   const Orientation ori(0, Orientation::low);
 
-  int do_swap = (flux_cons_old.defined(level) &&
-                 (flux_cons_old[level].coarsenedBoxes() ==
-                  flux_cons[level].coarsenedBoxes()) &&
-                 (flux_cons_old[level][ori].DistributionMap() ==
-                  flux_cons[level][ori].DistributionMap()));
+  int do_swap = (flux_cons_old[level] &&
+                 (flux_cons_old[level]->coarsenedBoxes() ==
+                  flux_cons[level]->coarsenedBoxes()) &&
+                 ((*flux_cons_old[level])[ori].DistributionMap() ==
+                  (*flux_cons[level])[ori].DistributionMap()));
 
   if (do_swap) {
-    // flux_cons_old exists and is based on same grids as flux_cons
-
-    FluxRegister *tmp = flux_cons_old.remove(level);
-    flux_cons_old.set(level, flux_cons.remove(level));
-    flux_cons.set(level, tmp);
+      // flux_cons_old exists and is based on same grids as flux_cons
+      std::swap(flux_cons_old[level], flux_cons[level]);
   }
   else {
-    if (flux_cons_old.defined(level))
-      delete flux_cons_old.remove(level);
-    flux_cons_old.set(level, flux_cons.remove(level));
-
-    // leave flux_cons undefined because we may be about to regrid anyway
+      flux_cons_old[level] = std::move(flux_cons[level]);
+      // leave flux_cons undefined because we may be about to regrid anyway
   }
 
   delta_t_old[crse_level] = parent->dtLevel(crse_level);
@@ -1932,9 +1906,9 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
   Real delta_t = parent->dtLevel(level);
 
   if (level < parent->maxLevel() &&
-      flux_cons_old.defined(level+1)) {
+      flux_cons_old[level+1]) {
 
-    FluxRegister& sync_flux = flux_cons_old[level+1];
+    FluxRegister& sync_flux = *flux_cons_old[level+1];
 
     if (indx == 0) {
       // clean up fine-fine interfaces (does all groups at once)
@@ -1952,7 +1926,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
     // output if one is found.
 
     if (level+1 < parent->maxLevel() &&
-        flux_cons_old.defined(level+2)) {
+        flux_cons_old[level+2]) {
 
       BoxArray fgrids;
 
@@ -1987,14 +1961,14 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
           ref_rat *= parent->refRatio(flev-1);
 
-          if (flux_cons_old.defined(flev+1)) {
+          if (flux_cons_old[flev+1]) {
 
             if (flev > level+1) {
               fgrids.refine(parent->refRatio(flev-1));
               // fgrids is now at refinement level flev
             }
 
-            FluxRegister& ff_sync = flux_cons_old[flev+1];
+            FluxRegister& ff_sync = *flux_cons_old[flev+1];
             BoxArray ffgr = ff_sync.coarsenedBoxes();
             ffgr.grow(1); // these are the cells to reflux into
 
@@ -2127,10 +2101,10 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
     // the update routine where delta_t_old is zeroed out after
     // the data becomes stale.
 
-    if (flux_cons_old.defined(flev) &&
+    if (flux_cons_old[flev] &&
         delta_t_old[flev-1] > 0.0) {
 
-      FluxRegister& crse_sync_flux = flux_cons_old[flev];
+      FluxRegister& crse_sync_flux = *flux_cons_old[flev];
 
       const IntVect& rat = crse_sync_flux.refRatio();
       BoxArray old_boxes = crse_sync_flux.coarsenedBoxes();

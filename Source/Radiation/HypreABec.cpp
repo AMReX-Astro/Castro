@@ -208,27 +208,18 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
 
   int ncomp=1;
   int ngrow=0;
-  acoefs = new MultiFab(grids, ncomp, ngrow);
+  acoefs.reset(new MultiFab(grids, ncomp, ngrow));
   acoefs->setVal(0.0);
  
   for (i = 0; i < BL_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
-    bcoefs[i] = new MultiFab(edge_boxes, ncomp, ngrow);
+    bcoefs[i].reset(new MultiFab(edge_boxes, ncomp, ngrow));
   }
-
-  SPa = 0;
 }
 
 HypreABec::~HypreABec()
 {
-  delete acoefs;
-  for (int i = 0; i < BL_SPACEDIM; i++) {
-    delete bcoefs[i];
-  }
-
-  delete SPa;
-
   HYPRE_StructVectorDestroy(b);
   HYPRE_StructVectorDestroy(x);
 
@@ -263,7 +254,7 @@ void HypreABec::SPalpha(const MultiFab& a)
   BL_ASSERT( a.ok() );
   if (SPa == 0) {
     const BoxArray& grids = a.boxArray(); 
-    SPa = new MultiFab(grids,1,0);
+    SPa.reset(new MultiFab(grids,1,0));
   }
   MultiFab::Copy(*SPa, a, 0, 0, 1, 0);
 }
@@ -290,6 +281,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
   Real foo=1.e200;
 
   Real *mat, *vec;
+  FArrayBox fnew;
   for (MFIter vi(vector); vi.isValid(); ++vi) {
     i = vi.index();
     const Box &reg = grids[i];
@@ -303,17 +295,14 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       f->copy(vector[vi], icomp, 0, 1);
       fcomp = 0;
     }
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg),
 				   f->dataPtr(fcomp));
-
-    if (vector.nGrow() != 0) {
-      delete f;
-    }
 
     // initialize product (to temporarily hold the boundary contribution):
 
@@ -345,14 +334,14 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
       idim = oitr().coordDir();
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Mask      &msk = bd.bndryMasks(oitr())[i];
+      const Mask      &msk = bd.bndryMasks(oitr(),i);
       const Box &bbox = (*bcoefs[idim])[vi].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
         if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+          const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
           tfp = tf.dataPtr();
           bctype = -1;
         }
@@ -467,7 +456,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 		const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 		const Real      &bcl = bd.bndryLocs(oitr())[i];
 		const Fab       &fs  = bd.bndryValues(oitr())[si];
-		const Mask      &msk = bd.bndryMasks(oitr())[i];
+		const Mask      &msk = bd.bndryMasks(oitr(),i);
 		const Box &fbox = Flux[idim][si].box();
 		const Box &sbox = Soln[si].box();
 		const Box &fsb  =  fs.box();
@@ -477,7 +466,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 		    const int *tfp = NULL;
 		    int bctype = bct;
 		    if (bd.mixedBndry(oitr())) {
-			const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+			const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
 			tfp = tf.dataPtr();
 			bctype = -1;
 		    }
@@ -601,14 +590,14 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       idim = oitr().coordDir();
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Mask      &msk = bd.bndryMasks(oitr())[i];
+      const Mask      &msk = bd.bndryMasks(oitr(),i);
       const Box &bbox = (*bcoefs[idim])[ai].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
         if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+          const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
           tfp = tf.dataPtr();
           bctype = -1;
         }
@@ -855,6 +844,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
   Array<Real> r;
 
   Real *vec;
+  FArrayBox fnew;
   for (MFIter di(dest); di.isValid(); ++di) {
     i = di.index();
     const Box &reg = grids[i];
@@ -868,7 +858,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       f->copy(dest[di], icomp, 0, 1);
       fcomp = 0;
     }
@@ -889,7 +880,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 	const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 	const Real      &bcl = bd.bndryLocs(oitr())[i];
 	const Fab       &fs  = bd.bndryValues(oitr())[di];
-	const Mask      &msk = bd.bndryMasks(oitr())[i];
+	const Mask      &msk = bd.bndryMasks(oitr(),i);
 	const Box &bbox = (*bcoefs[idim])[di].box();
 	const Box &fsb  =  fs.box();
 	const Box &msb  = msk.box();
@@ -897,7 +888,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
           const int *tfp = NULL;
           int bctype = bct;
           if (bd.mixedBndry(oitr())) {
-            const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+            const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
             tfp = tf.dataPtr();
             bctype = -1;
           }
@@ -923,10 +914,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     // initialize rhs
 
     HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg), vec);
-
-    if (dest.nGrow() != 0) {
-      delete f;       // contains vec
-    }
   }
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
@@ -994,7 +981,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       fcomp = 0;
     }
 
@@ -1004,7 +992,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
     if (dest.nGrow() != 0) {
       dest[di].copy(*f, 0, icomp, 1);
-      delete f;
     }
   }
 

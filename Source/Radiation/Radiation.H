@@ -91,7 +91,7 @@ public:
   static Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
   static Real prop_temp_floor;
 
-  PArray<MultiFab> plotvar;
+  Array<std::unique_ptr<MultiFab> > plotvar;
 
   Radiation(Amr* Parent, class Castro* castro, int restart = 0);
   ~Radiation() { }
@@ -148,7 +148,7 @@ public:
   // access to conservation flux register for energy diagnostics:
 
   FluxRegister* consRegister(int level) {
-    return (flux_cons_old.defined(level) ? &flux_cons_old[level] : 0);
+      return flux_cons_old[level].get();
   }
 
   void analytic_solution(int level);
@@ -479,15 +479,15 @@ protected:
 
   // arrays of flux registers 
   // flux_cons[level] is a FluxRegister, which contains fluxes for all groups
-  PArray <FluxRegister> flux_cons;
-  PArray <FluxRegister> flux_cons_old;
-  PArray <FluxRegister> flux_trial;
+  Array <std::unique_ptr<FluxRegister> > flux_cons;
+  Array <std::unique_ptr<FluxRegister> > flux_cons_old;
+  Array <std::unique_ptr<FluxRegister> > flux_trial;
 
   // for deferred sync
   Array<Real> delta_t_old;
 
   // divergence of flux
-  PArray<MultiFab> dflux;
+  Array<std::unique_ptr<MultiFab> > dflux;
 
   Array<Real> xnu, nugroup, dnugroup;
   std::string group_units;

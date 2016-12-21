@@ -233,23 +233,23 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Real rel_FT, abs_FT, rel_FY, abs_FY;
 
   // point to flux_trial (or NULL) for appropriate levels
-  FluxRegister* flux_in = (level < fine_level) ? &flux_trial[level+1] : NULL;
-  FluxRegister* flux_out = (level > 0) ? &flux_trial[level] : NULL;
+  FluxRegister* flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
+  FluxRegister* flux_out = (level > 0) ? flux_trial[level].get() : nullptr;
 
   Tuple<MultiFab, BL_SPACEDIM> Flux;
   for (int n = 0; n < BL_SPACEDIM; n++) {
     Flux[n].define(castro->getEdgeBoxArray(n), 1, 0, Fab_allocate);
   }
 
-  PArray<MultiFab> flxsave(1, PArrayManage);
+  std::unique_ptr<MultiFab> flxsave;
   MultiFab* flxcc;
   int icomp_flux = -1;
   if (plot_com_flux) {
-      flxcc = &(plotvar[level]);
+      flxcc = plotvar[level].get();
       icomp_flux = icomp_com_Fr;
   } else if (plot_lab_Er || plot_lab_flux) {
-      flxsave.set(0, new MultiFab(grids, nGroups*BL_SPACEDIM, 0, Fab_allocate));
-      flxcc = &(flxsave[0]);
+      flxsave.reset(new MultiFab(grids, nGroups*BL_SPACEDIM, 0, Fab_allocate));
+      flxcc = flxsave.get();
       icomp_flux = 0;
   } 
 
@@ -645,21 +645,21 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   // update flux registers
 
-  flux_in = (level < fine_level) ? &flux_trial[level+1] : NULL;
+  flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
   if (flux_in) {
-    for (OrientationIter face; face; ++face) {
-      Orientation ori = face();
-      flux_cons[level+1][ori].linComb(1.0, -1.0,
-                                      (*flux_in)[ori], 0, 0, nGroups);
-    }
+      for (OrientationIter face; face; ++face) {
+	  Orientation ori = face();
+	  (*flux_cons[level+1])[ori].linComb(1.0, -1.0,
+					     (*flux_in)[ori], 0, 0, nGroups);
+      }
   }
 
-  flux_out = (level > 0) ? &flux_trial[level] : NULL;
+  flux_out = (level > 0) ? flux_trial[level].get() : nullptr;
   if (flux_out) {
-    for (OrientationIter face; face; ++face) {
-      Orientation ori = face();
-      flux_cons[level][ori].linComb(1.0, 1.0 / ncycle,
-                                    (*flux_out)[ori], 0, 0, nGroups);
+      for (OrientationIter face; face; ++face) {
+	  Orientation ori = face();
+	  (*flux_cons[level])[ori].linComb(1.0, 1.0 / ncycle,
+					(*flux_out)[ori], 0, 0, nGroups);
     }
   }
 
@@ -700,11 +700,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   if (plot_kappa_p) {
-      MultiFab::Copy(plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
+      MultiFab::Copy(*plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
+      MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
   if (plot_lab_Er) {

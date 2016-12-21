@@ -60,7 +60,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab temp(grids,1,0);
   MultiFab fkp(grids,1,0);
 
-  MultiFab& dflux_old = dflux[level];
+  MultiFab& dflux_old = *dflux[level];
   MultiFab dflux_new(grids,1,0);
 
   MultiFab Er_lim; // will only be allocated if needed
@@ -130,9 +130,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   FluxRegister* flux_in  =
-    (level < fine_level) ? &flux_trial[level+1] : NULL;
+      (level < fine_level) ? flux_trial[level+1].get() : nullptr;
   FluxRegister* flux_out =
-    (level > 0) ? &flux_trial[level]   : NULL;
+      (level > 0) ? flux_trial[level].get() : nullptr;
 
   RadSolve solver(parent);
   solver.levelInit(level);
@@ -315,16 +315,16 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   if (flux_in) {
     for (OrientationIter face; face; ++face) {
       Orientation ori = face();
-      flux_cons[level+1][ori].linComb(1.0, -1.0,
-                                      (*flux_in)[ori], group, group, 1);
+      (*flux_cons[level+1])[ori].linComb(1.0, -1.0,
+					 (*flux_in)[ori], group, group, 1);
     }
   }
 
   if (flux_out) {
     for (OrientationIter face; face; ++face) {
       Orientation ori = face();
-      flux_cons[level][ori].linComb(1.0, 1.0 / ncycle,
-                                    (*flux_out)[ori], group, group, 1);
+      (*flux_cons[level])[ori].linComb(1.0, 1.0 / ncycle,
+				       (*flux_out)[ori], group, group, 1);
     }
   }
 
@@ -344,9 +344,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     // recently been deleted.
 
     for (int flev = level+1; flev <= parent->maxLevel(); flev++) {
-      if (flux_cons_old.defined(flev)) {
-        delete flux_cons_old.remove(flev);
-      }
+	flux_cons_old[flev].reset();
     }
   }
 
@@ -372,11 +370,11 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (plot_kappa_p) {
-      MultiFab::Copy(plotvar[level], fkp, 0, icomp_kp, 1, 0);
+      MultiFab::Copy(*plotvar[level], fkp, 0, icomp_kp, 1, 0);
   }
 
   if (plot_kappa_r) {
-      MultiFab::Copy(plotvar[level], kappa_r, 0, icomp_kr, 1, 0);
+      MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, 1, 0);
   }
 
   if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
@@ -391,13 +389,13 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 	  if (comoving) {
 	      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
 	  } else {
-	      MultiFab::Copy(plotvar[level], flx, 0, icomp_lab_Fr, BL_SPACEDIM, 0);
+	      MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, BL_SPACEDIM, 0);
 	  }
       }
 
       if (plot_com_flux) {
 	  if (comoving) {
-	      MultiFab::Copy(plotvar[level], flx, 0, icomp_com_Fr, BL_SPACEDIM, 0);
+	      MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, BL_SPACEDIM, 0);
 	  } else {
 	      save_com_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
 	  }

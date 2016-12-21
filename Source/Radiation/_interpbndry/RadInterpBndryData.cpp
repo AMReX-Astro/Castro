@@ -154,7 +154,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
 	    if (fine_bx[face] != fine_domain[face] ||
                 geom.isPeriodic(dir)) {
 		  // internal or periodic edge, interpolate from crse data
-                const Mask& mask = masks[face][grd];
+                const Mask& mask = *masks[face][grd];
                 const int* mlo = mask.loVect();
                 const int* mhi = mask.hiVect();
                 const int* mdat = mask.dataPtr();

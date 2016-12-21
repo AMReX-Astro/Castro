@@ -158,16 +158,16 @@ class BndryAuxVar : public BndryAuxVarBase {
 
   BndryAuxVar(const BoxArray& _grids, Location loc);
 
-  //~BndryAuxVar(); destructor not needed, PArrayManage is used
+  //~BndryAuxVar(); destructor not needed
 
-  PArray<AuxVarBox>& operator()(const Orientation ori) {
-    return aux[ori];
+  AuxVarBox & operator() (const Orientation ori, int i) {
+    return *aux[ori][i];
   }
 
  protected:
 
   BoxArray            grids;
-  PArray<AuxVarBox>   aux[2*BL_SPACEDIM];
+  Array<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
 };
 
 // CrseBndryAuxVar is like a BndryAuxVar organized by coarse grid
@@ -206,18 +206,20 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
                     int destcomp,
                     int numcomp = 1);
 
-  //~CrseBndryAuxVar(); destructor not needed, PArrayManage is used
+  //~CrseBndryAuxVar(); destructor not needed
 
-  Array< PArray<AuxVarBox> >& operator()(const Orientation ori) {
-    return aux[ori];
+  int size (const Orientation ori, int i) const { return aux[ori][i].size(); }
+
+  AuxVarBox& operator() (const Orientation ori, int i, int j) {
+    return *aux[ori][i][j];
   }
 
-  Array< PArray<Mask> >& mask(const Orientation ori) {
-    return msk[ori];
+  Mask& mask (const Orientation ori, int i, int j) {
+    return *msk[ori][i][j];
   }
 
-  Array< PArray<FArrayBox> >& faceData(const Orientation ori) {
-    return face_data[ori];
+  FArrayBox& faceData (const Orientation ori, int i, int j) {
+    return *face_data[ori][i][j];
   }
 
  protected:
@@ -225,10 +227,10 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
   void initialize_slaves(Location loc);
 
   BoxArray                    cgrids, fgrids;
-  Array< PArray<AuxVarBox> >  aux[2*BL_SPACEDIM];
-  Array< PArray<Mask> >       msk[2*BL_SPACEDIM];
-  Array< Array<int> >         fine_index[2*BL_SPACEDIM];
-  Array< PArray<FArrayBox> >  face_data[2*BL_SPACEDIM];
+  Array< Array<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
+  Array< Array<std::unique_ptr<Mask> > >       msk[2*BL_SPACEDIM];
+  Array< Array<int> >                          fine_index[2*BL_SPACEDIM];
+  Array< Array<std::unique_ptr<FArrayBox> > >  face_data[2*BL_SPACEDIM];
 };
 
 class HypreMultiABec {
@@ -256,17 +258,11 @@ class HypreMultiABec {
   }
 
   void setBndry(int level, NGBndry& _bd, int _comp = 0) {
-    // clear must be done before set if already has value;
-    // will not deallocate previous value because policy is NoManage.
-    bd.clear(level);
-    bd.set(level, &_bd);
-    bdcomp = _comp;
+      bd[level] = &_bd;
+      bdcomp = _comp;
   }
   NGBndry& bndryData(int level) {
-    return bd[level];
-  }
-  void bndryClear(int level) {
-    delete bd.remove(level);
+    return *bd[level];
   }
   static Real& fluxFactor() {
     return flux_factor;
@@ -312,10 +308,10 @@ class HypreMultiABec {
   void SPalpha(int level, const MultiFab &Spa);
 
   const MultiFab& aCoefficients(int level) {
-    return acoefs[level];
+    return *acoefs[level];
   }
   const MultiFab& bCoefficients(int level, int dir) {
-    return bcoefs[level][dir];
+      return (*bcoefs[level])[dir];
   }
 
   virtual void loadMatrix(); // once all level coeffs and scalars have been set
@@ -392,20 +388,20 @@ class HypreMultiABec {
   Array<Geometry> geom;
   Array<BoxArray> grids;
   Array<IntVect> fine_ratio;
-  PArray<NGBndry> bd;
+  Array<NGBndry*> bd;
   int bdcomp; // component number used for bd
 
   Array< Array<BoxArray> > subgrids;
 
-  PArray<MultiFab> acoefs;
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > bcoefs;
+  Array<std::unique_ptr<MultiFab> > acoefs;
+  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > bcoefs;
   Real alpha, beta;
   Real reltol, abstol;
 
-  PArray<MultiFab> SPa; // LO_SANCHEZ_POMRANING alpha
+  Array<std::unique_ptr<MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
 
-  PArray<BndryAuxVar>     cintrp, ederiv;
-  PArray<CrseBndryAuxVar> c_cintrp, c_ederiv, c_entry;
+  Array<std::unique_ptr<BndryAuxVar> >    cintrp, ederiv;
+  Array<std::unique_ptr<CrseBndryAuxVar> > c_cintrp, c_ederiv, c_entry;
 
   int verbose, verbose_threshold, bho, use_subgrids;
 
