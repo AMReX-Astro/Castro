@@ -265,7 +265,7 @@ Castro::restart (Amr&     papa,
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
-	BL_FORT_PROC_CALL(PROBLEM_RESTART,problem_restart)(int_dir_name.dataPtr(), &len);      
+	problem_restart(int_dir_name.dataPtr(), &len);      
 
 	delete [] dir_for_pass;
 
@@ -509,7 +509,7 @@ Castro::checkPoint(const std::string& dir,
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
-	    BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT,problem_checkpoint)(int_dir_name.dataPtr(), &len);      
+	    problem_checkpoint(int_dir_name.dataPtr(), &len);      
 
 	    delete [] dir_for_pass;
 	}
