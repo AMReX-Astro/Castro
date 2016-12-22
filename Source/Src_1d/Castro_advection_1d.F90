@@ -276,7 +276,8 @@ contains
     double precision :: ux, divu, dudx, Egdc, lamc
     double precision :: dpdx, dprdx, ek1, ek2, dek
 
-    double precision :: urho_new, umx_new1, umx_new2
+    double precision :: urho_new, umx_new1, umy_new1, umz_new1
+    double precision :: umx_new2, umy_new2, umz_new2
 #endif
 
 #ifdef RADIATION
@@ -393,12 +394,16 @@ contains
 
        ! this update includes the hydro fluxes and dpdr from hydro
        umx_new1 = uout(i,UMX) + dt * update(i,UMX)
-       ek1 = umx_new1**2/(2.d0*urho_new)
+       umy_new1 = uout(i,UMY) + dt * update(i,UMY)
+       umz_new1 = uout(i,UMZ) + dt * update(i,UMZ)
+       ek1 = (umx_new1**2 + umy_new1**2 + umz_new1**2)/(2.d0*urho_new)
 
        ! now add the radiation pressure gradient
        update(i,UMX) = update(i,UMX) - dprdx
        umx_new2 = umx_new1 - dt * dprdx
-       ek2 = umx_new2**2/(2.d0*urho_new)
+       umy_new2 = umy_new1
+       umz_new2 = umz_new1
+       ek2 = (umx_new2**2 + umy_new2**2 + umz_new2**2)/(2.d0*urho_new)
 
        dek = ek2 - ek1
 
