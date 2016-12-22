@@ -169,10 +169,8 @@ contains
 #ifdef RADIATION
                 lam, lam_l1, lam_h1, &
                 rflux, rfd_l1,rfd_h1, &
-                qaux(:,QGAMCG), &
 #endif
-                qaux(:,QGAMC),qaux(:,QCSML),qaux(:,QC), &
-                qd_l1,qd_h1,ilo,ihi)
+                qaux, qa_l1, qa_h1, ilo, ihi)
 
     deallocate (qm,qp)
 

@@ -3,7 +3,7 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
-  use meth_params_module, only : NQ, NQAUX, QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &

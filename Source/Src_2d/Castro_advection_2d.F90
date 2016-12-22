@@ -235,10 +235,8 @@ contains
 #ifdef RADIATION
                 lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                 rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                qaux(:,:,QGAMCG), &
 #endif
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-                qa_l1, qa_l2, qa_h1, qa_h2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
 
@@ -250,11 +248,8 @@ contains
 #ifdef RADIATION
                 lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                 rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                qaux(:,:,QGAMCG), &
 #endif
-
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-                qa_l1, qa_l2, qa_h1, qa_h2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
 
@@ -289,10 +284,8 @@ contains
 #ifdef RADIATION
                 lam,lam_l1,lam_l2,lam_h1,lam_h2, &
                 rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
-                qaux(:,:,QGAMCG), &
 #endif
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-                qa_l1, qa_l2, qa_h1, qa_h2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -329,10 +322,8 @@ contains
 #ifdef RADIATION
                 lam,lam_l1,lam_l2,lam_h1,lam_h2, &
                 rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
-                qaux(:,:,QGAMCG), &
 #endif
-                qaux(:,:,QGAMC), qaux(:,:,QCSML), qaux(:,:,QC), &
-                qa_l1, qa_l2, qa_h1, qa_h2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
                 2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
