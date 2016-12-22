@@ -8,6 +8,7 @@
 #endif
 
 using std::string;
+using namespace amrex;
 
 typedef StateDescriptor::BndryFunc BndryFunc;
 

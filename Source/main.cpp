@@ -32,6 +32,8 @@
 
 #include "Castro_io.H"
 
+using namespace amrex;
+
 std::string inputs_name = "";
 
 int
@@ -42,12 +44,12 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    BoxLib::Initialize(argc,argv);
+    amrex::Initialize(argc,argv);
 
     // Refuse to continue if we did not provide an inputs file.
 
     if (argc <= 1) {
-	BoxLib::Abort("Error: no inputs file provided on command line.");
+	amrex::Abort("Error: no inputs file provided on command line.");
     }
 
     // Save the inputs file name for later.
@@ -80,11 +82,11 @@ main (int   argc,
 
     if (strt_time < 0.0)
     {
-        BoxLib::Abort("MUST SPECIFY a non-negative strt_time"); 
+        amrex::Abort("MUST SPECIFY a non-negative strt_time"); 
     }
 
     if (max_step < 0 && stop_time < 0.0) {
-      BoxLib::Abort(
+      amrex::Abort(
        "Exiting because neither max_step nor stop_time is non-negative.");
     }
 
@@ -221,7 +223,7 @@ main (int   argc,
         std::cout << "Run time w/o init = " << runtime_timestep << std::endl;
     }
 
-    if (CArena* arena = dynamic_cast<CArena*>(BoxLib::The_Arena()))
+    if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
     {
         //
         // A barrier to make sure our output follows that of RunStats.
@@ -247,7 +249,7 @@ main (int   argc,
     BL_PROFILE_VAR_STOP(pmain);
     BL_PROFILE_SET_RUN_TIME(dRunTime2);
 
-    BoxLib::Finalize();
+    amrex::Finalize();
 
     return 0;
 }

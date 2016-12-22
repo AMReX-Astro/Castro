@@ -13,6 +13,8 @@
 
 #include "_hypre_struct_mv.h"
 
+using namespace amrex;
+
 static int ispow2(int i)
 {
   return (i == 1) ? 1 : (((i <= 0) || (i & 1)) ? 0 : ispow2(i / 2));

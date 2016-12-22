@@ -49,7 +49,7 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    BoxLib::Initialize(argc,argv);
+    amrex::Initialize(argc,argv);
 
     // save the inputs file name for later
     if (argc > 1) {
@@ -60,7 +60,7 @@ main (int   argc,
 
     do_burn();
 
-    BoxLib::Finalize();
+    amrex::Finalize();
 
     return 0;
 }

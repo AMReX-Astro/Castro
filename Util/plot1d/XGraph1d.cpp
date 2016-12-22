@@ -17,8 +17,10 @@
 #include <cstdio>
 #include <cctype>
 #include <algorithm>
-//using std::setprecision;
-//using namespace std;
+
+
+using namespace amrex;
+
 int XGraph1d::verbose = false;
 
 
@@ -56,7 +58,7 @@ XGraph1d::XGraph1d(Amr& amrsys )
     ParmParse pp("xgraph");
     pp.query("v",verbose); pp.query("verbose",verbose);
     int n = pp.countname("graph");
-    if (n>XGPtMXGY) BoxLib::Error("xgraph hardwired max number of vars");
+    if (n>XGPtMXGY) amrex::Error("xgraph hardwired max number of vars");
     int k;
     int freq0 = -1, lev0 = -1, newinput = 0;
     std::string fname0;
@@ -199,7 +201,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
    if (frames.size()==0) return;
 
    if (frames.size() > XGPtMXGY) 
-       BoxLib::Error("xgraph hardwired max number of vars");
+       amrex::Error("xgraph hardwired max number of vars");
     
    if (format == "all" || format == "All" || format == "ALL") {
        draw_all(nstep, time, force_draw);

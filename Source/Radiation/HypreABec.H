@@ -16,7 +16,7 @@ class HypreABec {
   // solver_flag = 0 for SMG
   // solver_flag = 1 for PFMG
 
-  HypreABec(const BoxArray& grids, const Geometry& geom,
+  HypreABec(const amrex::BoxArray& grids, const amrex::Geometry& geom,
 	    int solver_flag = 0);
   ~HypreABec();
 
@@ -33,15 +33,15 @@ class HypreABec {
     return beta;
   }
 
-  void aCoefficients(const MultiFab &a);
-  void bCoefficients(const MultiFab &b, int dir);
+  void aCoefficients(const amrex::MultiFab &a);
+  void bCoefficients(const amrex::MultiFab &b, int dir);
 
-  void SPalpha(const MultiFab &Spa);
+  void SPalpha(const amrex::MultiFab &Spa);
 
-  const MultiFab& aCoefficients() {
+  const amrex::MultiFab& aCoefficients() {
     return *acoefs;
   }
-  const MultiFab& bCoefficients(int dir) {
+  const amrex::MultiFab& bCoefficients(int dir) {
     return *bcoefs[dir];
   }
 
@@ -56,10 +56,10 @@ class HypreABec {
     return flux_factor;
   }
 
-  static void getFaceMetric(Array<Real>& r,
-                            const Box& reg,
-                            const Orientation& ori,
-                            const Geometry& geom);
+  static void getFaceMetric(amrex::Array<Real>& r,
+                            const amrex::Box& reg,
+                            const amrex::Orientation& ori,
+                            const amrex::Geometry& geom);
 
   // The argument inhom in the following methods formerly defaulted
   // to 1.  For greater type safety (to avoid confusion with icomp) it
@@ -67,14 +67,14 @@ class HypreABec {
   // component number for the independent variable, whether it is
   // called Er, vector, or dest.
 
-  void boundaryFlux(MultiFab* Flux, MultiFab& Er, int icomp, BC_Mode inhom);
+  void boundaryFlux(amrex::MultiFab* Flux, amrex::MultiFab& Er, int icomp, BC_Mode inhom);
 
-  void apply(MultiFab& product, MultiFab& vector, int icomp, BC_Mode inhom);
+  void apply(amrex::MultiFab& product, amrex::MultiFab& vector, int icomp, BC_Mode inhom);
 
   // Three steps separated so that multiple calls to solve can be made
   void setupSolver(Real _reltol, Real _abstol, int maxiter);
 
-  void solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom);
+  void solve(amrex::MultiFab& dest, int icomp, amrex::MultiFab& rhs, BC_Mode inhom);
 
   // This is the 2-norm of the complete rhs, including b.c. contributions
   Real getAbsoluteResidual();
@@ -83,15 +83,15 @@ class HypreABec {
 
  protected:
 
-  const Geometry& geom;
+  const amrex::Geometry& geom;
 
-  std::unique_ptr<MultiFab> acoefs;
-  std::unique_ptr<MultiFab> bcoefs[BL_SPACEDIM];
+  std::unique_ptr<amrex::MultiFab> acoefs;
+  std::unique_ptr<amrex::MultiFab> bcoefs[BL_SPACEDIM];
   Real alpha, beta;
   Real dx[BL_SPACEDIM];
   Real reltol, abstol;
 
-  std::unique_ptr<MultiFab> SPa; // LO_SANCHEZ_POMRANING alpha
+  std::unique_ptr<amrex::MultiFab> SPa; // LO_SANCHEZ_POMRANING alpha
 
   const NGBndry *bdp;
   int bdcomp; // component number used for bdp

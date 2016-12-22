@@ -3,6 +3,8 @@
 
 #include <RAD_F.H>
 
+using namespace amrex;
+
 void Radiation::save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACEDIM>& lambda)
 {
     int nlambda = lambda[0].nComp();

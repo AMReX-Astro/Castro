@@ -3,11 +3,11 @@
 #include "Castro.H"
 #include "Castro_error_F.H"
 
-using std::string;
+using namespace amrex;
 
 static Box the_same_box (const Box& b) { return b; }
-static Box grow_box_by_one (const Box& b) { return BoxLib::grow(b,1); }
-static Box grow_box_by_two (const Box& b) { return BoxLib::grow(b,2); }
+static Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
+static Box grow_box_by_two (const Box& b) { return amrex::grow(b,2); }
 
 typedef StateDescriptor::BndryFunc BndryFunc;
 

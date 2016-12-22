@@ -18,6 +18,7 @@
 #include <cmath>
 
 using std::string;
+using namespace amrex;
 
 Real
 Castro::advance (Real time,

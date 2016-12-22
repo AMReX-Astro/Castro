@@ -2,6 +2,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {

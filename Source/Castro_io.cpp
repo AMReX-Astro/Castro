@@ -35,6 +35,7 @@
 #include "buildInfo.H"
 
 using std::string;
+using namespace amrex;
 
 // Castro maintains an internal checkpoint version numbering system.
 // This allows us to maintain backwards compatibility with checkpoints
@@ -277,7 +278,7 @@ Castro::restart (Amr&     papa,
     {
        std::cout << "grown_factor is " << grown_factor << std::endl;
        std::cout << "max_level is " << parent->maxLevel() << std::endl;
-       BoxLib::Error("Must have max_level > 0 if doing special restart with grown_factor");
+       amrex::Error("Must have max_level > 0 if doing special restart with grown_factor");
     }
 
     if (grown_factor > 1 && level == 0)
@@ -290,14 +291,14 @@ Castro::restart (Amr&     papa,
 
        Box orig_domain;
        if (star_at_center == 0) {
-          orig_domain = BoxLib::coarsen(geom.Domain(),grown_factor);
+          orig_domain = amrex::coarsen(geom.Domain(),grown_factor);
        } else if (star_at_center == 1) {
 
           Box domain(geom.Domain());
           int d,lo=0,hi=0;
           if (Geometry::IsRZ()) {
              if (grown_factor != 2) 
-                BoxLib::Abort("Must have grown_factor = 2");
+                amrex::Abort("Must have grown_factor = 2");
 
              d = 0;
              int dlen =  domain.size()[d];
@@ -324,7 +325,7 @@ Castro::restart (Amr&     papa,
                    lo =   (dlen)/3    ;
                    hi = 2*(dlen)/3 - 1;
                 } else { 
-                   BoxLib::Abort("Must have grown_factor = 2 or 3");
+                   amrex::Abort("Must have grown_factor = 2 or 3");
                 }
                 orig_domain.setSmall(d,lo);
                 orig_domain.setBig(d,hi);
@@ -333,7 +334,7 @@ Castro::restart (Amr&     papa,
        } else {
           if (ParallelDescriptor::IOProcessor())
              std::cout << "... invalid value of star_at_center: " << star_at_center << std::endl;
-          BoxLib::Abort();
+          amrex::Abort();
        }
 
        int ns = NUM_STATE;
@@ -864,7 +865,7 @@ Castro::writePlotFile (const std::string& dir,
         os << thePlotFileType() << '\n';
 
         if (n_data_items == 0)
-            BoxLib::Error("Must specify at least one valid data item to plot");
+            amrex::Error("Must specify at least one valid data item to plot");
 
         os << n_data_items << '\n';
 
@@ -951,8 +952,8 @@ Castro::writePlotFile (const std::string& dir,
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(FullPath, 0755))
-            BoxLib::CreateDirectoryFailed(FullPath);
+        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+            amrex::CreateDirectoryFailed(FullPath);
     //
     // Force other processors to wait till directory is built.
     //
@@ -1061,7 +1062,7 @@ Castro::writeSmallPlotFile (const std::string& dir,
         os << thePlotFileType() << '\n';
 
         if (n_data_items == 0)
-            BoxLib::Error("Must specify at least one valid data item to plot");
+            amrex::Error("Must specify at least one valid data item to plot");
 
         os << n_data_items << '\n';
 
@@ -1125,8 +1126,8 @@ Castro::writeSmallPlotFile (const std::string& dir,
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(FullPath, 0755))
-            BoxLib::CreateDirectoryFailed(FullPath);
+        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+            amrex::CreateDirectoryFailed(FullPath);
     //
     // Force other processors to wait till directory is built.
     //

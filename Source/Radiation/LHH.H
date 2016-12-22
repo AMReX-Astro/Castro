@@ -1,8 +1,8 @@
 #ifndef _LHH_H_
 #define _LHH_H_
 
-typedef IntVect   Iv;
-typedef FArrayBox Fab;
+typedef amrex::IntVect   Iv;
+typedef amrex::FArrayBox Fab;
 
 #if (BL_SPACEDIM == 1)
 #  define intS  const int&, const int&

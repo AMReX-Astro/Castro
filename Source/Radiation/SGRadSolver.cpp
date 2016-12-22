@@ -17,6 +17,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 void Radiation::single_group_update(int level, int iteration, int ncycle)
 {
   BL_PROFILE("Radiation::single_group_update");
@@ -252,7 +254,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
                                     Er_new, dflux_old, dflux_new,
                                     temp, fkp, S_new, delta_t);
       if (has_dcoefs) {
-	BoxLib::Error("Radiation::single_group_update: must do conservative energy update when has_dcoefs is true");
+	amrex::Error("Radiation::single_group_update: must do conservative energy update when has_dcoefs is true");
       }
     }
 
@@ -305,7 +307,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       (relative > reltol && absolute > abstol)) {
     if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Implicit Update Failed to Converge" << std::endl;
-      BoxLib::Abort("You Lose");
+      amrex::Abort("You Lose");
     }
   }
 

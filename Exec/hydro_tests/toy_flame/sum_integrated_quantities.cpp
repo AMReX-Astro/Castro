@@ -3,6 +3,8 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+using namespace amrex;
+
 void
 Castro::sum_integrated_quantities ()
 {

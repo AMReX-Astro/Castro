@@ -1,6 +1,8 @@
 #include <cstring>
 #include <AMReX_ParmParse.H>
 
+using namespace amrex;
+
 extern "C"
 {
     void fi_new_parmparse (ParmParse*& pp, const char* name)

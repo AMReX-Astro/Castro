@@ -23,7 +23,7 @@ class AuxVar {
       val   = r;
       other = p;
     }
-    Connex(int lev, const IntVect& iv, Real r) {
+    Connex(int lev, const amrex::IntVect& iv, Real r) {
       val   = r;
       index = iv;
       level = lev;
@@ -36,7 +36,7 @@ class AuxVar {
     }
 
     Real val;
-    IntVect index;
+    amrex::IntVect index;
     int level; //, grid; // may not need grid
     AuxVar *other;
   };
@@ -50,7 +50,7 @@ class AuxVar {
     a.push_back(Connex(p,r));
   }
 
-  void push(int lev, const IntVect& iv, Real r) {
+  void push(int lev, const amrex::IntVect& iv, Real r) {
     a.push_back(Connex(lev,iv,r));
   }
 
@@ -71,9 +71,9 @@ class AuxVar {
 
   void collapse();
 
-  int get_locations(Array<int>& levels, Array<IntVect>& cells);
+  int get_locations(amrex::Array<int>& levels, amrex::Array<amrex::IntVect>& cells);
 
-  int get_coeffs(Array<Real>& values);
+  int get_coeffs(amrex::Array<Real>& values);
 
   void clear();
 
@@ -93,7 +93,7 @@ class AuxVarBox {
 
  public:
 
-  AuxVarBox(const Box& bx) : domain(bx) {
+  AuxVarBox(const amrex::Box& bx) : domain(bx) {
     int numpts = domain.numPts();
     dptr = new AuxVar[numpts];
   }
@@ -102,18 +102,18 @@ class AuxVarBox {
     delete[] dptr;
   }
 
-  AuxVar& operator()(const IntVect& p) {
+  AuxVar& operator()(const amrex::IntVect& p) {
     BL_ASSERT(!(dptr == 0));
     BL_ASSERT(domain.contains(p));
     return dptr[domain.index(p)];
   }
 
-  const Box& box() const {
+  const amrex::Box& box() const {
     return domain;
   }
 
  protected:
-  Box domain;
+  amrex::Box domain;
   AuxVar *dptr;
 };
 
@@ -145,7 +145,7 @@ class BndryAuxVarBase {
 
  protected:
 
-  DistributionMapping        distributionMap;
+  amrex::DistributionMapping        distributionMap;
 };
 
 // BndryAuxVar is like a BndryRegister with AuxVars in it.  This too
@@ -156,18 +156,18 @@ class BndryAuxVar : public BndryAuxVarBase {
 
  public:
 
-  BndryAuxVar(const BoxArray& _grids, Location loc);
+  BndryAuxVar(const amrex::BoxArray& _grids, Location loc);
 
   //~BndryAuxVar(); destructor not needed
 
-  AuxVarBox & operator() (const Orientation ori, int i) {
+  AuxVarBox & operator() (const amrex::Orientation ori, int i) {
     return *aux[ori][i];
   }
 
  protected:
 
-  BoxArray            grids;
-  Array<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
+  amrex::BoxArray            grids;
+  amrex::Array<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
 };
 
 // CrseBndryAuxVar is like a BndryAuxVar organized by coarse grid
@@ -185,40 +185,40 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 
  public:
 
-  CrseBndryAuxVar(const BoxArray& _cgrids,
-                  const BoxArray& _fgrids, Location loc);
+  CrseBndryAuxVar(const amrex::BoxArray& _cgrids,
+                  const amrex::BoxArray& _fgrids, Location loc);
 
   CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc);
 
-  CrseBndryAuxVar(const BoxArray& _cgrids,
-                  const BoxArray& _fgrids,
+  CrseBndryAuxVar(const amrex::BoxArray& _cgrids,
+                  const amrex::BoxArray& _fgrids,
                   const CrseBndryAuxVar& other, Location loc);
 
   void reinitialize_connections(Location loc); // use for new discretization
 
-  void buildFaceData(IntVect& rat, int ncomp = 1);
+  void buildFaceData(amrex::IntVect& rat, int ncomp = 1);
 
-  void rebuildFaceData(IntVect& rat, int ncomp = 1); // use when ncomp changes
+  void rebuildFaceData(amrex::IntVect& rat, int ncomp = 1); // use when ncomp changes
 
-  void loadFaceData(const Orientation ori,
-                    MultiFab& src,
+  void loadFaceData(const amrex::Orientation ori,
+                    amrex::MultiFab& src,
                     int srccomp,
                     int destcomp,
                     int numcomp = 1);
 
   //~CrseBndryAuxVar(); destructor not needed
 
-  int size (const Orientation ori, int i) const { return aux[ori][i].size(); }
+  int size (const amrex::Orientation ori, int i) const { return aux[ori][i].size(); }
 
-  AuxVarBox& operator() (const Orientation ori, int i, int j) {
+  AuxVarBox& operator() (const amrex::Orientation ori, int i, int j) {
     return *aux[ori][i][j];
   }
 
-  Mask& mask (const Orientation ori, int i, int j) {
+  amrex::Mask& mask (const amrex::Orientation ori, int i, int j) {
     return *msk[ori][i][j];
   }
 
-  FArrayBox& faceData (const Orientation ori, int i, int j) {
+  amrex::FArrayBox& faceData (const amrex::Orientation ori, int i, int j) {
     return *face_data[ori][i][j];
   }
 
@@ -226,11 +226,11 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 
   void initialize_slaves(Location loc);
 
-  BoxArray                    cgrids, fgrids;
-  Array< Array<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
-  Array< Array<std::unique_ptr<Mask> > >       msk[2*BL_SPACEDIM];
-  Array< Array<int> >                          fine_index[2*BL_SPACEDIM];
-  Array< Array<std::unique_ptr<FArrayBox> > >  face_data[2*BL_SPACEDIM];
+  amrex::BoxArray                    cgrids, fgrids;
+  amrex::Array< amrex::Array<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
+  amrex::Array< amrex::Array<std::unique_ptr<amrex::Mask> > >       msk[2*BL_SPACEDIM];
+  amrex::Array< amrex::Array<int> >                          fine_index[2*BL_SPACEDIM];
+  amrex::Array< amrex::Array<std::unique_ptr<amrex::FArrayBox> > >  face_data[2*BL_SPACEDIM];
 };
 
 class HypreMultiABec {
@@ -246,9 +246,9 @@ class HypreMultiABec {
   virtual ~HypreMultiABec();
 
   void addLevel(int level,
-		const Geometry& _geom,
-		const BoxArray& _grids,
-		IntVect         _crse_ratio);
+		const amrex::Geometry& _geom,
+		const amrex::BoxArray& _grids,
+		amrex::IntVect         _crse_ratio);
 
   int crseLevel() {
     return crse_level;
@@ -268,10 +268,10 @@ class HypreMultiABec {
     return flux_factor;
   }
 
-  static void getFaceMetric(Array<Real>& r,
-                            const Box& reg,
-                            const Orientation& ori,
-                            const Geometry& geom) {
+  static void getFaceMetric(amrex::Array<Real>& r,
+                            const amrex::Box& reg,
+                            const amrex::Orientation& ori,
+                            const amrex::Geometry& geom) {
     HypreABec::getFaceMetric(r, reg, ori, geom);
   }
 
@@ -302,15 +302,15 @@ class HypreMultiABec {
     return beta;
   }
 
-  void aCoefficients(int level, const MultiFab &a);
-  void bCoefficients(int level, const MultiFab &b, int dir);
+  void aCoefficients(int level, const amrex::MultiFab &a);
+  void bCoefficients(int level, const amrex::MultiFab &b, int dir);
 
-  void SPalpha(int level, const MultiFab &Spa);
+  void SPalpha(int level, const amrex::MultiFab &Spa);
 
-  const MultiFab& aCoefficients(int level) {
+  const amrex::MultiFab& aCoefficients(int level) {
     return *acoefs[level];
   }
-  const MultiFab& bCoefficients(int level, int dir) {
+  const amrex::MultiFab& bCoefficients(int level, int dir) {
       return (*bcoefs[level])[dir];
   }
 
@@ -334,15 +334,15 @@ class HypreMultiABec {
   // can be initialized.  finalizeMatrix need not have been called yet.
 
   virtual void loadLevelVectors(int level,
-                                MultiFab& dest,
+                                amrex::MultiFab& dest,
                                 int icomp,
-                                MultiFab& rhs, // will not be altered
+                                amrex::MultiFab& rhs, // will not be altered
                                 BC_Mode inhom);
           void loadLevelVectorX(int level,
-                                MultiFab& dest,
+                                amrex::MultiFab& dest,
                                 int icomp);
   virtual void loadLevelVectorB(int level,
-                                MultiFab& rhs, // will be altered
+                                amrex::MultiFab& rhs, // will be altered
                                 BC_Mode inhom);
 
   void finalizeVectors(); // once all level values have been loaded
@@ -358,7 +358,7 @@ class HypreMultiABec {
 
   void setupSolver(Real _reltol, Real _abstol, int maxiter);
   void solve();
-  void getSolution(int level, MultiFab& dest, int icomp);
+  void getSolution(int level, amrex::MultiFab& dest, int icomp);
 
   // This is the 2-norm of the complete rhs, including b.c. contributions
   Real getAbsoluteResidual();
@@ -366,42 +366,42 @@ class HypreMultiABec {
   void clearSolver();
 
   void boundaryFlux(int level,
-		    MultiFab* Flux,
-		    MultiFab& Er,
+		    amrex::MultiFab* Flux,
+		    amrex::MultiFab& Er,
                     int icomp,
 		    BC_Mode inhom);
 
   // Matrix apply (matrix-vector multiply) only implemented for single level
 
   void initializeApplyLevel(int level,
-			    MultiFab& product,
-			    MultiFab& vector,
+			    amrex::MultiFab& product,
+			    amrex::MultiFab& vector,
                             int icomp,
 			    BC_Mode inhom);
   void apply();
-  void getProduct(int level, MultiFab& prod);
+  void getProduct(int level, amrex::MultiFab& prod);
 
  protected:
 
   int crse_level, fine_level, solver_flag;
 
-  Array<Geometry> geom;
-  Array<BoxArray> grids;
-  Array<IntVect> fine_ratio;
-  Array<NGBndry*> bd;
+  amrex::Array<amrex::Geometry> geom;
+  amrex::Array<amrex::BoxArray> grids;
+  amrex::Array<amrex::IntVect> fine_ratio;
+  amrex::Array<NGBndry*> bd;
   int bdcomp; // component number used for bd
 
-  Array< Array<BoxArray> > subgrids;
+  amrex::Array< amrex::Array<amrex::BoxArray> > subgrids;
 
-  Array<std::unique_ptr<MultiFab> > acoefs;
-  Array<std::unique_ptr<Tuple<MultiFab, BL_SPACEDIM> > > bcoefs;
+  amrex::Array<std::unique_ptr<amrex::MultiFab> > acoefs;
+  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
   Real alpha, beta;
   Real reltol, abstol;
 
-  Array<std::unique_ptr<MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
+  amrex::Array<std::unique_ptr<amrex::MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
 
-  Array<std::unique_ptr<BndryAuxVar> >    cintrp, ederiv;
-  Array<std::unique_ptr<CrseBndryAuxVar> > c_cintrp, c_ederiv, c_entry;
+  amrex::Array<std::unique_ptr<BndryAuxVar> >    cintrp, ederiv;
+  amrex::Array<std::unique_ptr<CrseBndryAuxVar> > c_cintrp, c_ederiv, c_entry;
 
   int verbose, verbose_threshold, bho, use_subgrids;
 
@@ -423,14 +423,14 @@ class HypreMultiABec {
 
   static void vectorSetBoxValues(HYPRE_SStructVector x,
                                  int part,
-                                 const Box& reg,
-                                 const BoxArray& sgr,
+                                 const amrex::Box& reg,
+                                 const amrex::BoxArray& sgr,
                                  Real *vec);
 
   static void vectorGetBoxValues(HYPRE_SStructVector x,
                                  int part,
-                                 const Box& reg,
-                                 const BoxArray& sgr,
+                                 const amrex::Box& reg,
+                                 const amrex::BoxArray& sgr,
                                  Fab& f, int fcomp);
 
 #if (BL_SPACEDIM == 1)
@@ -441,7 +441,7 @@ class HypreMultiABec {
 // The implicit assumption in the following is that vl[1], vh[1] are
 // never changed from 0:
 
-  static int* getV1(const IntVect& i) {
+  static int* getV1(const amrex::IntVect& i) {
 #if (BL_SPACEDIM == 1)
     vl[0] = i[0];
     return vl;
@@ -450,7 +450,7 @@ class HypreMultiABec {
 #endif
   }
 
-  static int* getV2(const IntVect& i) {
+  static int* getV2(const amrex::IntVect& i) {
 #if (BL_SPACEDIM == 1)
     vh[0] = i[0];
     return vh;
@@ -459,7 +459,7 @@ class HypreMultiABec {
 #endif
   }
 
-  static int* loV(const Box& b) {
+  static int* loV(const amrex::Box& b) {
 #if (BL_SPACEDIM == 1)
     vl[0] = b.smallEnd(0);
     return vl;
@@ -468,7 +468,7 @@ class HypreMultiABec {
 #endif
   }
 
-  static int* hiV(const Box& b) {
+  static int* hiV(const amrex::Box& b) {
 #if (BL_SPACEDIM == 1)
     vh[0] = b.bigEnd(0);
     return vh;

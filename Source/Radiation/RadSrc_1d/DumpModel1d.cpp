@@ -89,7 +89,7 @@ void DumpModel::dump(Amr* parent, int force_dump)
           // Increment and continue loop as reg not inserted yet
         }
         else { // *li < ln
-          Box bx(BoxLib::refine(*bi,rat[*li]));
+          Box bx(amrex::refine(*bi,rat[*li]));
           if (bx.bigEnd(0) >= reg.smallEnd(0)) {
             if (bx.smallEnd(0) < reg.smallEnd(0) &&
                 bx.bigEnd(0) <= reg.bigEnd(0)) {

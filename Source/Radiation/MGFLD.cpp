@@ -8,6 +8,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_er,
 				     const MultiFab& Er_new, const MultiFab& Er_pi, 
 				     const MultiFab& kappa_p,
@@ -351,7 +353,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 		  S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
 	  }
 	  else {
-	      BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
+	      amrex::Error("ERROR Radiation::eos_opacity_emissivity");
 	  }
 #ifdef NEUTRINO
       }
@@ -855,7 +857,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		     &const_c_v, &c_v_exp_m, &c_v_exp_n);
 		}
 		else {
-		    BoxLib::Error("ERROR Radiation::do_real_eos < 0");
+		    amrex::Error("ERROR Radiation::do_real_eos < 0");
 		}
 	    }
 	}
@@ -917,7 +919,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
 	    }
 	    else {
-		BoxLib::Error("ERROR Radiation::do_real_eos < 0");
+		amrex::Error("ERROR Radiation::do_real_eos < 0");
 	    }
 	}
 	else {
@@ -1112,7 +1114,7 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     const Box& kbox = kappa_s.box();
 
 #ifdef NEUTRINO
-    BoxLib::Abort("MGFLD_compute_scattering: not supposted to be here");
+    amrex::Abort("MGFLD_compute_scattering: not supposted to be here");
 #else
     if (use_opacity_table_module) {
 	BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
@@ -1175,7 +1177,7 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	   BL_TO_FORTRAN(S_new[mfi]));
       }
       else {
-	  BoxLib::Abort("do_real_eos == 0 not supported in bisect_matter");
+	  amrex::Abort("do_real_eos == 0 not supported in bisect_matter");
       }
 #endif
   }

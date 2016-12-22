@@ -9,6 +9,8 @@
 
 #include "diffusion_defaults.H"
 
+using namespace amrex;
+
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
@@ -242,7 +244,7 @@ Diffusion::make_mg_bc ()
             { 
               mg_bc[2*dir + 0] = MGT_BC_DIR;
             } else {
-              BoxLib::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
+              amrex::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
             }
 
             if (phys_bc->hi(dir) == Symmetry   || 
@@ -256,7 +258,7 @@ Diffusion::make_mg_bc ()
             { 
               mg_bc[2*dir + 0] = MGT_BC_DIR;
             } else {
-              BoxLib::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
+              amrex::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
             }
         }
     }

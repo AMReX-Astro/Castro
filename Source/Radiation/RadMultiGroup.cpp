@@ -15,6 +15,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 void Radiation::get_groups(int verbose)
 {
   group_print_factor   = 1.0;

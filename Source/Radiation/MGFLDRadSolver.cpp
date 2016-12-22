@@ -18,6 +18,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 { 
   BL_PROFILE("Radiation::MGFLD_implicit_update");
@@ -443,8 +445,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     
     if (innerIteration >= maxInIter &&
 	(relative_in > reltol_in && absolute_in > absInTol)) {
-      //      BoxLib::Warning("Er Equation Update Failed to Converge");
-      //      BoxLib::Abort("Er Equation Update Failed to Converge");
+      //      amrex::Warning("Er Equation Update Failed to Converge");
+      //      amrex::Abort("Er Equation Update Failed to Converge");
     }
 
     // update rhoe, rhoYe and T

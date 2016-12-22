@@ -4,6 +4,8 @@
 #ifdef SELF_GRAVITY
 #include "Gravity.H"
 
+using namespace amrex;
+
 void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
 {

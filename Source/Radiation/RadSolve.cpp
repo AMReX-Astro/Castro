@@ -20,6 +20,8 @@
 
 #include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?
 
+using namespace amrex;
+
 Array<Real> RadSolve::absres(0);
 
 RadSolve::RadSolve(Amr* Parent) : parent(Parent),
@@ -45,7 +47,7 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
     use_hypre_nonsymmetric_terms = 1;
 
     if (level_solver_flag < 100) {
-      BoxLib::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+      amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
     }
   }
 
@@ -54,7 +56,7 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
     use_hypre_nonsymmetric_terms = 1;
 
     if (level_solver_flag < 100) {
-      BoxLib::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+      amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
     }
   }
 
@@ -316,7 +318,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
     hd->SPalpha(spa);
   }
   else {
-    BoxLib::Abort("Should not be in RadSolve::levelSPas");    
+    amrex::Abort("Should not be in RadSolve::levelSPas");    
   }
 }
 
@@ -348,7 +350,7 @@ void RadSolve::levelBCoeffs(int level,
 	    const Box &ndbox  = mfi.tilebox();
 	    getEdgeMetric(idim, geom, ndbox, r, s);
 
-	    const Box& reg = BoxLib::enclosedCells(ndbox);
+	    const Box& reg = amrex::enclosedCells(ndbox);
 	    bclim(bcoefs[mfi].dataPtr(), lambda[idim][mfi].dataPtr(lamcomp),
 		  dimlist(bbox), dimlist(reg),
 		  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
@@ -518,7 +520,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDI
 	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
 	    {
 		const Box &ccbx  = mfi.tilebox();
-		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
+		const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
 
 		getEdgeMetric(idim, geom, ndbx, r, s);
 
@@ -761,7 +763,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 	  const Box &kbox = kappa_r[mfi].box();
 
 	  const Box &ndbx  = mfi.tilebox();
-	  const Box &reg   = BoxLib::enclosedCells(ndbx);
+	  const Box &reg   = amrex::enclosedCells(ndbx);
 
 	  getEdgeMetric(idim, geom, ndbx, r, s);
     
@@ -943,7 +945,7 @@ void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<R
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
 			     Array<Real>& r, Array<Real>& s)
 {
-    const Box& reg = BoxLib::enclosedCells(edgebox);
+    const Box& reg = amrex::enclosedCells(edgebox);
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
 	r.resize(reg.length(0)+1, 1);

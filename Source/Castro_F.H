@@ -282,7 +282,7 @@ extern "C"
      const int* dlo, const int* dhi,
      const Real* dx, const Real* glo, 
      const Real* time, const int* bc)
-  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
+  { amrex::Abort("Not supposed to call ca_nullfill"); }
 
 #else
 
@@ -401,7 +401,7 @@ extern "C"
      const int dlo[], const int dhi[],
      const Real dx[], const Real glo[],
      const Real* time, const int bc[])
-  { BoxLib::Abort("Not supposed to call ca_nullfill"); }
+  { amrex::Abort("Not supposed to call ca_nullfill"); }
 
 #endif
 

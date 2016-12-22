@@ -44,6 +44,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 bool         Castro::signalStopJob = false;
 
 bool         Castro::dump_old      = false;
@@ -225,14 +227,14 @@ Castro::read_params ()
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
                               << " but low BC is not Interior\n";
-                    BoxLib::Error();
+                    amrex::Error();
                 }
                 if (hi_bc[dir] != Interior)
                 {
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
                               << " but high BC is not Interior\n";
-                    BoxLib::Error();
+                    amrex::Error();
                 }
             }
         }
@@ -249,21 +251,21 @@ Castro::read_params ()
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
                           << " but not periodic\n";
-                BoxLib::Error();
+                amrex::Error();
             }
             if (hi_bc[dir] == Interior)
             {
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
                           << " but not periodic\n";
-                BoxLib::Error();
+                amrex::Error();
             }
         }
     }
 
     if ( Geometry::IsRZ() && (lo_bc[0] != Symmetry) ) {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for r-z\n";
-        BoxLib::Error();
+        amrex::Error();
     }
 
 #if (BL_SPACEDIM == 1)
@@ -272,22 +274,22 @@ Castro::read_params ()
       if ( (lo_bc[0] != Symmetry) && (Geometry::ProbLo(0) == 0.0) )
       {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for spherical\n";
-        BoxLib::Error();
+        amrex::Error();
       }
     }
 #elif (BL_SPACEDIM == 2)
     if ( Geometry::IsSPHERICAL() )
       {
-	BoxLib::Abort("We don't support spherical coordinate systems in 2D");
+	amrex::Abort("We don't support spherical coordinate systems in 2D");
       }
 #elif (BL_SPACEDIM == 3)
     if ( Geometry::IsRZ() )
       {
-	BoxLib::Abort("We don't support cylindrical coordinate systems in 3D");
+	amrex::Abort("We don't support cylindrical coordinate systems in 3D");
       }
     else if ( Geometry::IsSPHERICAL() )
       {
-	BoxLib::Abort("We don't support spherical coordinate systems in 3D");
+	amrex::Abort("We don't support spherical coordinate systems in 3D");
       }
 #endif
 
@@ -303,10 +305,10 @@ Castro::read_params ()
     // sanity checks
 
     if (grown_factor < 1)
-       BoxLib::Error("grown_factor must be integer >= 1");
+       amrex::Error("grown_factor must be integer >= 1");
 
     if (cfl <= 0.0 || cfl > 1.0)
-      BoxLib::Error("Invalid CFL factor; must be between zero and one.");
+      amrex::Error("Invalid CFL factor; must be between zero and one.");
 
     // for the moment, ppm_type = 0 does not support ppm_trace_sources --
     // we need to add the momentum sources to the states (and not
@@ -323,25 +325,25 @@ Castro::read_params ()
     if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
       {
         std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
-        BoxLib::Error();
+        amrex::Error();
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
-        BoxLib::Error();
+        amrex::Error();
       }
 
     if (hybrid_riemann == 1 && (Geometry::IsSPHERICAL() || Geometry::IsRZ() ))
       {
         std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
-        BoxLib::Error();
+        amrex::Error();
       }
 
     if (use_colglaz >= 0)
       {
 	std::cerr << "ERROR:: use_colglaz is deprecated.  Use riemann_solver instead\n";
-	BoxLib::Error();
+	amrex::Error();
       }
 
 
@@ -351,7 +353,7 @@ Castro::read_params ()
     if (max_dt < fixed_dt)
       {
 	std::cerr << "cannot have max_dt < fixed_dt\n";
-	BoxLib::Error();
+	amrex::Error();
       }
 
 #ifdef PARTICLES
@@ -374,7 +376,7 @@ Castro::read_params ()
     if (do_rotation) {
       if (rotational_period <= 0.0) {
 	std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
-	BoxLib::Error();
+	amrex::Error();
       }
     }
     if (Geometry::IsRZ())
@@ -382,7 +384,7 @@ Castro::read_params ()
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
 	std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
-	BoxLib::Error();
+	amrex::Error();
       }
 #endif
 #endif
@@ -783,7 +785,7 @@ Castro::initMFs()
 
 	}
 	else {
-	    BoxLib::Abort("Unknown reflux_strategy.");
+	    amrex::Abort("Unknown reflux_strategy.");
 	}
 
 
@@ -911,13 +913,13 @@ Castro::initData ()
     const Real SMALL = 1.e-13;
     if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
       {
-	BoxLib::Abort("We don't support dx != dy");
+	amrex::Abort("We don't support dx != dy");
       }
 #elif (BL_SPACEDIM == 3)
     const Real SMALL = 1.e-13;
     if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
       {
-	BoxLib::Abort("We don't support dx != dy != dz");
+	amrex::Abort("We don't support dx != dy != dz");
       }
 #endif
 
@@ -2116,7 +2118,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
-	    BoxLib::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
+	    amrex::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
 	}
 #endif
 
@@ -2244,7 +2246,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->Reflux(*dphi[ilev], crse_lev.volume, 1.0, 0, 0, 1, crse_lev.geom);
 
-	    BoxLib::average_down(*dphi[ilev + 1], *dphi[ilev], 0, 1, getLevel(lev).crse_ratio);
+	    amrex::average_down(*dphi[ilev + 1], *dphi[ilev], 0, 1, getLevel(lev).crse_ratio);
 
 	    reg->setVal(0.0);
 
@@ -2472,7 +2474,7 @@ Castro::avgDown (int state_indx)
     MultiFab&  S_crse   = get_new_data(state_indx);
     MultiFab&  S_fine   = fine_lev.get_new_data(state_indx);
 
-    BoxLib::average_down(S_fine, S_crse,
+    amrex::average_down(S_fine, S_crse,
 			 fgeom, cgeom,
 			 0, S_fine.nComp(), fine_ratio);
 }
@@ -3100,7 +3102,7 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 	  if (state.contains_nan(Density + i, 1, ng, true))
             {
 	      std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
-	      BoxLib::Abort(abort_string.c_str());
+	      amrex::Abort(abort_string.c_str());
             }
         }
     }

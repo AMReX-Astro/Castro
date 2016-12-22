@@ -11,6 +11,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 HypreExtMultiABec::~HypreExtMultiABec()
 {
 }
@@ -279,7 +281,7 @@ void HypreExtMultiABec::loadMatrix()
     for (OrientationIter oitr; oitr; oitr++) {
       Orientation ori = oitr();
       int idir = ori.coordDir();
-      IntVect vin = BoxLib::BASISV(idir), ves;
+      IntVect vin = amrex::BASISV(idir), ves;
       vin = (ori.isLow() ? -vin : vin);    // outward normal unit vector
       ves = (ori.isLow() ?  ves : vin);    // edge shift vector
       Real h    = geom[level].CellSize(idir); // normal fine grid spacing
@@ -290,7 +292,7 @@ void HypreExtMultiABec::loadMatrix()
       Real of2h = ofac * 0.5 / h;
       for (int i = entry.firstLocal(); entry.isValid(i);
            i = entry.nextLocal(i)) {
-        Box reg = BoxLib::adjCell(grids[level][i], ori);
+        Box reg = amrex::adjCell(grids[level][i], ori);
 	if (grids[level][i][ori] == domain[ori] || level == crse_level) {
           RadBoundCond     bct = bd[level]->bndryConds(ori)[i];
           // bct may be changed below if this is a mixed boundary
@@ -412,7 +414,7 @@ void HypreExtMultiABec::loadMatrix()
                 entry(ori,i)(v).push(&evalue(ori,i)(v+vin), cmult * fac);
               }
               else {
-                BoxLib::Error("HypreExtMultiABec: unsupported boundary type");
+                amrex::Error("HypreExtMultiABec: unsupported boundary type");
               }
             }
           }
@@ -433,7 +435,7 @@ void HypreExtMultiABec::loadMatrix()
       for (OrientationIter oitr; oitr; ++oitr) {
         Orientation ori = oitr();
         int idir = ori.coordDir();
-        IntVect vin = BoxLib::BASISV(idir), ves;
+        IntVect vin = amrex::BASISV(idir), ves;
         vin = (ori.isLow() ? -vin : vin);    // outward normal unit vector
         ves = (ori.isLow() ?  ves : vin);    // edge shift vector
         Real h = geom[level].CellSize(idir); // normal fine grid spacing
@@ -441,7 +443,7 @@ void HypreExtMultiABec::loadMatrix()
         Real of2h = ofac * 0.5 / h;
         for (int i = cintrp[level]->firstLocal(); cintrp[level]->isValid(i);
              i = cintrp[level]->nextLocal(i)) {
-          Box reg = BoxLib::adjCell(grids[level][i], ori);
+          Box reg = amrex::adjCell(grids[level][i], ori);
           const Mask &msk = bd[level]->bndryMasks(ori,i);
           FaceValue(evalue(ori,i),
                     (*cintrp[level])(ori,i),
@@ -491,11 +493,11 @@ void HypreExtMultiABec::loadMatrix()
     for (OrientationIter oitr; oitr; ++oitr) {
       Orientation ori = oitr();
       int idir = ori.coordDir();
-      IntVect vin = BoxLib::BASISV(idir);
+      IntVect vin = amrex::BASISV(idir);
       vin = (ori.isLow() ? -vin : vin);    // outward normal unit vector
       for (int i = entry.firstLocal(); entry.isValid(i);
            i = entry.nextLocal(i)) {
-        Box reg = BoxLib::adjCell(grids[level][i], ori);
+        Box reg = amrex::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
 //        const Mask &msk = bd[level]->bndryMasks(ori,i);
         for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
@@ -591,7 +593,7 @@ void HypreExtMultiABec::loadMatrix()
       if (d2coefs[level]) {
         c_entry[level]->loadFaceData(ori, (*d2coefs[level])[idir], 0, pc[2], 1);
       }
-      IntVect vin = BoxLib::BASISV(idir), ves;
+      IntVect vin = amrex::BASISV(idir), ves;
       vin = (ori.isLow() ? -vin : vin); // outward normal unit vector
       ves = (ori.isLow() ? -vin : ves); // edge shift vector (diff from above)
       Real hc = geom[level-1].CellSize(idir); // normal coarse grid spacing
@@ -601,12 +603,12 @@ void HypreExtMultiABec::loadMatrix()
       IntVect ve; // default constructor initializes to zero
 #if (BL_SPACEDIM >= 2)
       int jdir = (idir + 1) % BL_SPACEDIM;
-      ve += (rat[jdir] - 1) * BoxLib::BASISV(jdir);
+      ve += (rat[jdir] - 1) * amrex::BASISV(jdir);
       rfac /= rat[jdir]; // will average over fine cells in tangential dir
 #endif
 #if (BL_SPACEDIM == 3)
       int kdir = (idir + 2) % 3;
-      ve += (rat[kdir] - 1) * BoxLib::BASISV(kdir);
+      ve += (rat[kdir] - 1) * amrex::BASISV(kdir);
       rfac /= rat[kdir]; // will average over fine cells in tangential dir
 #endif
       for (int i = c_entry[level]->firstLocal(); c_entry[level]->isValid(i);
@@ -819,7 +821,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
   for (OrientationIter oitr; oitr; oitr++) {
     Orientation ori = oitr();
     int idir = ori.coordDir();
-    IntVect vin = BoxLib::BASISV(idir), ves;
+    IntVect vin = amrex::BASISV(idir), ves;
     vin = (ori.isLow() ? -vin : vin);    // outward normal unit vector
     ves = (ori.isLow() ?  ves : vin);    // edge shift vector
     Real h    = geom[level].CellSize(idir); // normal fine grid spacing
@@ -829,7 +831,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
     Real ofh  = ofac / h;
     for (MFIter mfi(rhs); mfi.isValid(); ++mfi) {
       int i = mfi.index();
-      Box reg = BoxLib::adjCell(grids[level][i], ori);
+      Box reg = amrex::adjCell(grids[level][i], ori);
       if (grids[level][i][ori] == domain[ori] || level == crse_level) {
         RadBoundCond     bct = bd[level]->bndryConds(ori)[i];
         // bct may be changed below if this is a mixed boundary

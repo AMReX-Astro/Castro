@@ -1,6 +1,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 void
 Castro::construct_old_hybrid_source(Real time, Real dt)
 {

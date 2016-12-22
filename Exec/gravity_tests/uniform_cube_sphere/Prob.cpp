@@ -8,6 +8,8 @@
 
 #include "buildInfo.H"
 
+using namespace amrex;
+
 int Castro::problem = -1;
 Real Castro::diameter = 0.0;
 Real Castro::density = 0.0;
@@ -104,7 +106,7 @@ void Castro::problem_post_init() {
 	      std::cout << "Target mass: " << target_mass << "\n";
 	      std::cout << "\n";
 	  }
-	  BoxLib::Abort("Sphere does not have the right amount of mass.");
+	  amrex::Abort("Sphere does not have the right amount of mass.");
       }
 
   }

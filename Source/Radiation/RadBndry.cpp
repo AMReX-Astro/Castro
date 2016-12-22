@@ -15,6 +15,8 @@
 
 #include "RAD_F.H"
 
+using namespace amrex;
+
 int         RadBndry::first = 1;
 Array<int>  RadBndry::bcflag(2*BL_SPACEDIM);
 Array<Real> RadBndry::bcval(2*BL_SPACEDIM);

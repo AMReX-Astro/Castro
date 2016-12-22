@@ -4,6 +4,8 @@
 #include <RadInterpBndryData.H>
 #include <RADINTERPBNDRYDATA_F.H>
 
+using namespace amrex;
+
 static BDInterpFunc* bdfunc[2*BL_SPACEDIM];
 static int bdfunc_set = 0;
 
@@ -104,7 +106,7 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
 //     (B) Copy from ghost region of MultiFab at physical bndry
 //     (C) Copy from valid region of MultiFab at fine/fine interface
 void
-RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
+RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
 				const MultiFab& fine, int f_start,
 				int bnd_start, int num_comp, IntVect& ratio,
 				const BCRec& bc)
@@ -128,7 +130,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
         BL_ASSERT(grids[mfi.index()] == mfi.validbox());
         int grd = mfi.index();
 	const Box& fine_bx = grids[grd];
-        Box crse_bx = BoxLib::coarsen(fine_bx,ratio);
+        Box crse_bx = amrex::coarsen(fine_bx,ratio);
         const int* cblo = crse_bx.loVect();
         const int* cbhi = crse_bx.hiVect();
         int mxlen = crse_bx.longside() + 2;

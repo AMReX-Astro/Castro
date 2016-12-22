@@ -11,6 +11,8 @@ using std::endl;
 #include "Radiation.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 // RHOYLTEST just prints out extra diagnostics to check the Yl implementation.
 
 #define RHOYLTEST

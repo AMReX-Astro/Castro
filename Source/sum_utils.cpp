@@ -8,6 +8,8 @@
 #include <Gravity_F.H>
 #endif
 
+using namespace amrex;
+
 Real
 Castro::sumDerive (const std::string& name,
                    Real               time,

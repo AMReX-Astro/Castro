@@ -19,6 +19,8 @@
 
 #include <sstream>
 
+using namespace amrex;
+
 // Radiation test problems and static parameters.  Some of these are
 // initialized with inputs values in the function read_static_params.
 // This is called from Castro::read_params in Castro.cpp.  The reason
@@ -165,14 +167,14 @@ void Radiation::read_static_params()
   filter_lambda_S = filter_lambda_T - 1;
   pp.query("filter_lambda_S", filter_lambda_S);
   if (filter_lambda_T > 4) {
-    BoxLib::Error("filter_lambda_T > 4");
+    amrex::Error("filter_lambda_T > 4");
   }
   if (filter_lambda_T < 0) {
-    BoxLib::Error("filter_lambda_T < 0");
+    amrex::Error("filter_lambda_T < 0");
   }
   if (filter_lambda_T > 0) {
     if (filter_lambda_S >= filter_lambda_T) {
-      BoxLib::Error("Invalid filter_lambda_S; S must be less than T when T > 0.");
+      amrex::Error("Invalid filter_lambda_S; S must be less than T when T > 0.");
     }
   }
 
@@ -181,20 +183,20 @@ void Radiation::read_static_params()
   filter_prim_S = filter_prim_T - 1;
   pp.query("filter_prim_S", filter_prim_S);
   if (filter_prim_T > 4) {
-    BoxLib::Error("filter_prim_T > 4");
+    amrex::Error("filter_prim_T > 4");
   }
   if (filter_prim_T < 0) {
-    BoxLib::Error("filter_prim_T < 0");
+    amrex::Error("filter_prim_T < 0");
   }
   if (filter_prim_T > 0) {
     if (filter_prim_S >= filter_prim_T) {
-      BoxLib::Error("Invalid filter_prim_S; S must be less than T when T > 0.");
+      amrex::Error("Invalid filter_prim_S; S must be less than T when T > 0.");
     }
   }
 
   if (rad_hydro_combined) {
     if (Castro::use_colglaz >= 0) {
-      BoxLib::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
+      amrex::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
     }
   }
 
@@ -240,7 +242,7 @@ void Radiation::read_static_params()
   }
   else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
-      BoxLib::Error("Unknown Radiation::SolverType");    
+      amrex::Error("Unknown Radiation::SolverType");    
   }
 
 
@@ -471,10 +473,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("convergence_check_type", convergence_check_type);
   limiter  = 2;              pp.query("limiter", limiter);
   if (SolverType == SGFLDSolver && limiter%10 == 1) {
-    BoxLib::Abort("SGFLDSolver does not supports limiter = 1");    
+    amrex::Abort("SGFLDSolver does not supports limiter = 1");    
   }
   if (SolverType == MGFLDSolver && limiter%10 == 1) {
-    BoxLib::Abort("MGFLDSolver does not supports limiter = 1");    
+    amrex::Abort("MGFLDSolver does not supports limiter = 1");    
   }
 
   closure = 3;
@@ -922,7 +924,7 @@ void Radiation::restart(int level, const BoxArray& grids,
     BL_ASSERT(flux_cons_old[level]->fineLevel() == flux_in.fineLevel());
     BL_ASSERT(flux_cons_old[level]->crseLevel() == flux_in.crseLevel());
     BL_ASSERT(flux_cons_old[level]->nComp()     == flux_in.nComp());
-    BL_ASSERT(BoxLib::match(flux_cons_old[level]->boxes(), flux_in.boxes()));
+    BL_ASSERT(amrex::match(flux_cons_old[level]->boxes(), flux_in.boxes()));
 
     FluxRegister::Copy(*flux_cons_old[level], flux_in);
   }
@@ -1593,7 +1595,7 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
 	}
     }
     else {
-	BoxLib::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
+	amrex::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
     }
 }
 
@@ -1617,7 +1619,7 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
 	      state.dataPtr(), dimlist(sbox));
     }
     else {
-	BoxLib::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
+	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
     }
     
     if (use_opacity_table_module) {
@@ -1664,7 +1666,7 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
 	    state.dataPtr(), dimlist(sbox));
   }
   else {
-    BoxLib::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
+    amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
   }
 
   state.copy(temp,reg,0,reg,Temp,1);
@@ -1976,7 +1978,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
             const Box& domain = parent->Geom(flev).Domain();
 
             // this may be inefficient, so do it box by box instead
-            //ffgr = BoxLib::intersect(ffgr, domain);
+            //ffgr = amrex::intersect(ffgr, domain);
             for (int i = 0; i < ffgr.size(); i++) {
               ffgr.set(i, (ffgr[i] & domain));
             }
@@ -2076,7 +2078,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
               rhs_tmp.setVal(0.0);     // clear garbage
 
               // The data we are coarsening already has the metric factor built in.
-	      BoxLib::average_down(flev_data, rhs_tmp, 0, 1, ref_rat);
+	      amrex::average_down(flev_data, rhs_tmp, 0, 1, ref_rat);
 
               // Add coarsened result into rhs.
               rhs.plus(rhs_tmp, 0, 1, 0);
@@ -2263,7 +2265,7 @@ void Radiation::scaledGradient(int level,
 	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
 	      const Box &kbox = kappa_r[mfi].box();
 
-	      const Box& reg = BoxLib::enclosedCells(nbox);
+	      const Box& reg = amrex::enclosedCells(nbox);
 
 	      if (limiter == 0) {
 		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
@@ -2275,7 +2277,7 @@ void Radiation::scaledGradient(int level,
 	      }
 	      else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
-		  const Box& dbox = BoxLib::grow(reg,1);
+		  const Box& dbox = amrex::grow(reg,1);
 		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  scgrd2(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
@@ -2291,7 +2293,7 @@ void Radiation::scaledGradient(int level,
 	      }
 	      else {
 #if (BL_SPACEDIM >= 2)
-		  const Box& dbox = BoxLib::grow(reg,1);
+		  const Box& dbox = amrex::grow(reg,1);
 		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  scgrd3(R[idim][mfi].dataPtr(Rcomp), dimlist(rbox), dimlist(reg),
@@ -2408,7 +2410,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		std::cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
 		     << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
 		     << "when use_opacity_table_module=1"<<std::endl;
-		BoxLib::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
+		amrex::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
 	    }
 	    
 	    
@@ -2546,7 +2548,7 @@ void Radiation::set_current_group(int igroup)
     current_group_name = "Muon";
   }
   else {
-    BoxLib::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
+    amrex::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
   }
 #else
   current_group_number = igroup;

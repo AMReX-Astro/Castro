@@ -7,11 +7,8 @@
 using std::istream;
 using std::ostream;
 
-//#include <AMReX_Box.H>
-//#include <PArray.H>
 #include <AMReX_MultiFab.H>
-//#include <AMReX_FArrayBox.H>
-//#include <AMReX_BaseFab.H>
+#include <AMReX_Amr.H>
 
 #ifdef _MEM_CHECK_
 #include "mem.H"
@@ -38,8 +35,6 @@ class XGFrame {
       int        level;       // maximum level of plot
 };
 
-// forward ref
-class Amr;
 
 static const int XGPtMXGY=256; // Man is weak...
 class XGPt {
@@ -59,7 +54,7 @@ inline bool operator<(const XGGrid& lhs,const XGGrid& rhs) {
 class XGraph1d {
    friend ostream& operator << (ostream &os, XGraph1d &cont);
    public:
-      XGraph1d(Amr& amrsys);
+    XGraph1d(amrex::Amr& amrsys);
 
       ~XGraph1d();
 
@@ -70,7 +65,7 @@ class XGraph1d {
 
       void draw(int nstep, Real time, int force_draw = 0);
 
-      void dumpXGraph(MultiFab& q, MultiFab& qf, int comp,
+      void dumpXGraph(amrex::MultiFab& q, amrex::MultiFab& qf, int comp,
          std::list<XGGrid>& xgg, int& lev, int& maxlev);
 
    private:
@@ -81,7 +76,7 @@ class XGraph1d {
       void draw_all(int nstep, Real time, int force_draw);
 
       std::list<XGFrame> frames;
-      Amr *amrptr;
+      amrex::Amr *amrptr;
 
       static int verbose;
 

@@ -2,6 +2,8 @@
 #include "AMReX_LevelBld.H"
 #include "Castro.H"
 
+using namespace amrex;
+
 class CastroBld
     :
     public LevelBld

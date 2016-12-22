@@ -4,6 +4,8 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
+using namespace amrex;
+
 void
 Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_T_max)
 {

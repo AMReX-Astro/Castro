@@ -7,6 +7,8 @@ using std::string;
 
 #include "Diffusion.H"
 
+using namespace amrex;
+
 void
 Castro::construct_old_diff_source(Real time, Real dt)
 {
@@ -127,7 +129,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
     } else if (is_old == 0) {
       S = &get_new_data(State_Type);
     } else {
-      BoxLib::Abort("invalid time level in getTempDiffusionTerm");
+      amrex::Abort("invalid time level in getTempDiffusionTerm");
     }
 
    if (verbose && ParallelDescriptor::IOProcessor())
@@ -205,7 +207,7 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
     } else if (is_old == 0) {
       S = &get_new_data(State_Type);
     } else {
-      BoxLib::Abort("invalid time level in getEnthDiffusionTerm");
+      amrex::Abort("invalid time level in getEnthDiffusionTerm");
     }
 
    if (verbose && ParallelDescriptor::IOProcessor())
@@ -293,7 +295,7 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm, int is_old)
   } else if (is_old == 0) {
     S = &get_new_data(State_Type);
   } else {
-    BoxLib::Abort("invalid time level in getSpecDiffusionTerm");
+    amrex::Abort("invalid time level in getSpecDiffusionTerm");
   }
   
   if (verbose && ParallelDescriptor::IOProcessor())

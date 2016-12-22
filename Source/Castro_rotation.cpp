@@ -3,6 +3,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 void Castro::construct_old_rotation_source(Real time, Real dt)
 {
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
@@ -211,7 +213,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     ng = state.nGrow();
 
     if (ng > rot.nGrow())
-      BoxLib::Error("State MF has more ghost cells than rotation MF.");
+      amrex::Error("State MF has more ghost cells than rotation MF.");
     
 #ifdef _OPENMP
 #pragma omp parallel

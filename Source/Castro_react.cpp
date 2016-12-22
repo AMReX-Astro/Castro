@@ -6,6 +6,7 @@
 #include "AMReX_DistributionMapping.H"
 
 using std::string;
+using namespace amrex;
 
 #ifndef SDC
 

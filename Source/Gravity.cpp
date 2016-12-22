@@ -19,6 +19,8 @@
 
 #include "gravity_defaults.H"
 
+using namespace amrex;
+
 #ifndef NDEBUG
 int Gravity::test_solves  = 1;
 #else
@@ -91,33 +93,33 @@ Gravity::read_params ()
              (gravity_type != "PrescribedGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
-        	BoxLib::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
+        	amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
              }
 
         if (  gravity_type == "ConstantGrav")
         {
 	  if ( Geometry::IsSPHERICAL() )
-	      BoxLib::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
+	      amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
 #if (BL_SPACEDIM == 1)
         if (gravity_type == "PoissonGrav")
         {
-	  BoxLib::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
+	  amrex::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
         }
         else if (gravity_type == "MonopoleGrav" && !(Geometry::IsSPHERICAL()))
         {
-	  BoxLib::Abort("Only use MonopoleGrav in 1D spherical coordinates");
+	  amrex::Abort("Only use MonopoleGrav in 1D spherical coordinates");
         }
         else if (gravity_type == "ConstantGrav" && Geometry::IsSPHERICAL())
         {
-	  BoxLib::Abort("Can't use constant gravity in 1D spherical coordinates");
+	  amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
         }
 
 #elif (BL_SPACEDIM == 2)
         if (gravity_type == "MonopoleGrav" && Geometry::IsCartesian() )
         {
-	  BoxLib::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
+	  amrex::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
         }
 #endif
 
@@ -171,7 +173,7 @@ Gravity::read_params ()
 
 	} else {
 
-	    BoxLib::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
+	    amrex::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
 
 	}
 
@@ -188,7 +190,7 @@ Gravity::read_params ()
 
 	if (pp.contains("ml_tol")) {
 
-	    BoxLib::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
+	    amrex::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
 
 	    if (!pp.contains("rel_tol"))
 		rel_tol_name = "ml_tol";
@@ -220,17 +222,17 @@ Gravity::read_params ()
 
 	} else {
 
-	    BoxLib::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
+	    amrex::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
 
 	}
 
 	// Warn user about obsolete tolerance parameters.
 
 	if (pp.contains("delta_tol"))
-	    BoxLib::Warning("The gravity parameter delta_tol is no longer used.");
+	    amrex::Warning("The gravity parameter delta_tol is no longer used.");
 
 	if (pp.contains("sl_tol"))
-	    BoxLib::Warning("The gravity parameter sl_tol is no longer used.");
+	    amrex::Warning("The gravity parameter sl_tol is no longer used.");
 
         Real Gconst;
         get_grav_const(&Gconst);
@@ -678,7 +680,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
 
 	const IntVect& ratio = parent->refRatio(lev);
 
-	BoxLib::average_down(LevelData[lev+1]->get_new_data(PhiGrav_Type),
+	amrex::average_down(LevelData[lev+1]->get_new_data(PhiGrav_Type),
 			     LevelData[lev  ]->get_new_data(PhiGrav_Type),
 			     0, 1, ratio);
 
@@ -688,7 +690,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
 
 	// Average down the gravitational acceleration too.
 
-	BoxLib::average_down(LevelData[lev+1]->get_new_data(Gravity_Type),
+	amrex::average_down(LevelData[lev+1]->get_new_data(Gravity_Type),
 			     LevelData[lev  ]->get_new_data(Gravity_Type),
 			     0, 1, ratio);
 
@@ -818,13 +820,13 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 	  const IntVect& ratio = parent->refRatio(amr_lev-1);
 	  if (is_new == 1)
 	    {
-	      BoxLib::average_down(LevelData[amr_lev  ]->get_new_data(PhiGrav_Type),
+	      amrex::average_down(LevelData[amr_lev  ]->get_new_data(PhiGrav_Type),
 				   LevelData[amr_lev-1]->get_new_data(PhiGrav_Type),
 				   0, 1, ratio);
 	    }
 	  else if (is_new == 0)
 	    {
-	      BoxLib::average_down(LevelData[amr_lev  ]->get_old_data(PhiGrav_Type),
+	      amrex::average_down(LevelData[amr_lev  ]->get_old_data(PhiGrav_Type),
 				   LevelData[amr_lev-1]->get_old_data(PhiGrav_Type),
 				   0, 1, ratio);
 	    }
@@ -878,7 +880,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
       const Array<BCRec>& gp_bcs = LevelData[amr_lev]->get_desc_lst()[Gravity_Type].getBCs();
 
       for (int n = 0; n < BL_SPACEDIM; ++n) {
-	  BoxLib::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
+	  amrex::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
 					0, 0, 1,
 					parent->Geom(amr_lev-1), parent->Geom(amr_lev),
 					gp_phys_bc, gp_phys_bc, parent->refRatio(amr_lev-1),
@@ -933,11 +935,11 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
-       BoxLib::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_prev[level]), geom);
+       amrex::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
-       BoxLib::Abort("Unknown gravity_type in get_old_grav_vector");
+       amrex::Abort("Unknown gravity_type in get_old_grav_vector");
     }
 
     // Do the copy to the output vector.
@@ -1011,11 +1013,11 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
 	const Geometry& geom = parent->Geom(level);
-	BoxLib::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_curr[level]), geom);
+	amrex::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_curr[level]), geom);
 	grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
-       BoxLib::Abort("Unknown gravity_type in get_new_grav_vector");
+       amrex::Abort("Unknown gravity_type in get_new_grav_vector");
     }
 
     // Do the copy to the output vector.
@@ -1228,7 +1230,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     IntVect fine_ratio = parent->refRatio(level);
 
     for (int i = 0; i < crse_gphi_fine_BA.size(); ++i)
-        crse_gphi_fine_BA.set(i,BoxLib::coarsen(grids[level+1][i],fine_ratio));
+        crse_gphi_fine_BA.set(i,amrex::coarsen(grids[level+1][i],fine_ratio));
 
     Array<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
     for (int n=0; n<BL_SPACEDIM; ++n)
@@ -1240,7 +1242,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
 
-    BoxLib::average_down_faces(amrex::GetArrOfConstPtrs(grad_phi[level+1]),
+    amrex::average_down_faces(amrex::GetArrOfConstPtrs(grad_phi[level+1]),
 			       amrex::GetArrOfPtrs(crse_gphi_fine),
 			       fine_ratio);
 
@@ -1301,7 +1303,7 @@ Gravity::test_composite_phi (int crse_level)
     {
 	const IntVect& ratio = parent->refRatio(amr_lev);
 	int ilev = amr_lev - crse_level;
-	BoxLib::average_down(*res[ilev+1], *res[ilev],
+	amrex::average_down(*res[ilev+1], *res[ilev],
 			     0, 1, ratio);
     }
 
@@ -2070,14 +2072,14 @@ Gravity::make_mg_bc ()
             } else if (phys_bc->lo(dir) == Outflow) {
               mg_bc[2*dir + 0] = MGT_BC_DIR;
             } else {
-              BoxLib::Abort("Unknown lo bc in make_mg_bc");
+              amrex::Abort("Unknown lo bc in make_mg_bc");
             }
             if (phys_bc->hi(dir) == Symmetry) {
               mg_bc[2*dir + 1] = MGT_BC_NEU;
             } else if (phys_bc->hi(dir) == Outflow) {
               mg_bc[2*dir + 1] = MGT_BC_DIR;
             } else {
-              BoxLib::Abort("Unknown hi bc in make_mg_bc");
+              amrex::Abort("Unknown hi bc in make_mg_bc");
             }
         }
     }
@@ -2255,7 +2257,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         {
      	    std::cout << " Level / Time in make_radial_gravity is: " << lev << " " << time  << std::endl;
       	    std::cout << " but old / new time      are: " << t_old << " " << t_new << std::endl;
-      	    BoxLib::Abort("Problem in Gravity::make_radial_gravity");
+      	    amrex::Abort("Problem in Gravity::make_radial_gravity");
         }
 
         if (lev < level)
@@ -2675,7 +2677,7 @@ Gravity::sanity_check (int level)
 	}
 	BoxArray shrunk_domain_ba(shrunk_domain);
 	if (!shrunk_domain_ba.contains(grids[level]))
-	    BoxLib::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
+	    amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
 }
 

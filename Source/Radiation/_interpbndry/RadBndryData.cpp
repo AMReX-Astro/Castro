@@ -8,6 +8,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 #define DEF_LIMITS(fab,fabdat,fablo,fabhi)   \
 const int* fablo = (fab).loVect();           \
 const int* fabhi = (fab).hiVect();           \
@@ -74,7 +76,7 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 	//for (int k = 0; k < len; k++) {
         for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
             int k = bi.index();
-	    Box face_box = BoxLib::adjCell(grids[k],face,1);
+	    Box face_box = amrex::adjCell(grids[k],face,1);
 
 	    // extend box in directions orthogonal to face normal
 	    for (int dir = 0; dir < BL_SPACEDIM; dir++) {

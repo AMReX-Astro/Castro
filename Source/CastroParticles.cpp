@@ -5,6 +5,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 #ifdef PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
@@ -62,8 +64,8 @@ Castro::read_particle_params ()
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(timestamp_dir, 0755))
-            BoxLib::CreateDirectoryFailed(timestamp_dir);
+        if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
+            amrex::CreateDirectoryFailed(timestamp_dir);
     //
     // Force other processors to wait till directory is built.
     //
@@ -185,13 +187,13 @@ Castro::ParticleDerive(const std::string& name,
               FArrayBox&       cfab = ctemp_dat[mfi];
               const Box&       fbx  = ffab.box();
 
-              BL_ASSERT(cfab.box() == BoxLib::coarsen(fbx,trr));
+              BL_ASSERT(cfab.box() == amrex::coarsen(fbx,trr));
 
               for (IntVect p = fbx.smallEnd(); p <= fbx.bigEnd(); fbx.next(p))
               {
                   const Real val = ffab(p);
                   if (val > 0)
-                      cfab(BoxLib::coarsen(p,trr)) += val;
+                      cfab(amrex::coarsen(p,trr)) += val;
               }
           }
 

@@ -5,6 +5,8 @@
 #include "Radiation.H"
 #endif
 
+using namespace amrex;
+
 void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {

@@ -75,7 +75,7 @@ enum sources { ext_src = 0,
 
 class Castro
     :
-    public AmrLevel
+    public amrex::AmrLevel
 {
 public:
     //
@@ -85,10 +85,10 @@ public:
     //
     //The basic constructor.
     //
-    Castro (Amr&            papa,
+    Castro (amrex::Amr&            papa,
             int             lev,
-            const Geometry& level_geom,
-            const BoxArray& bl,
+            const amrex::Geometry& level_geom,
+            const amrex::BoxArray& bl,
             Real            time);
     //
     //The destructor.
@@ -97,19 +97,19 @@ public:
     //
     //Restart from a checkpoint file.
     //
-    virtual void restart (Amr&     papa,
+    virtual void restart (amrex::Amr&     papa,
                           istream& is,
 			  bool bReadSpecial = false) override;
     //
     //This is called only when we restart from an old checkpoint.
     //
-    virtual void set_state_in_checkpoint (Array<int>& state_in_checkpoint) override;
+    virtual void set_state_in_checkpoint (amrex::Array<int>& state_in_checkpoint) override;
     //
-    //Call AmrLevel::checkPoint and then add radiation info
+    //Call amrex::AmrLevel::checkPoint and then add radiation info
     //
     virtual void checkPoint(const std::string& dir,
                             std::ostream&      os,
-                            VisMF::How         how,
+                            amrex::VisMF::How         how,
                             bool               dump_old) override;
 
     /*A string written as the first item in writePlotFile() at
@@ -124,10 +124,10 @@ public:
     //
     virtual void writePlotFile (const std::string& dir,
                                 ostream&       os,
-                                VisMF::How     how) override;
+                                amrex::VisMF::How     how) override;
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
-				     VisMF::How     how) override;
+				     amrex::VisMF::How     how) override;
     void writeJobInfo (const std::string& dir);
 
     //
@@ -167,7 +167,7 @@ public:
     //
     // Derived quantities associated with particles
     //
-    MultiFab* ParticleDerive (const std::string& name,
+    amrex::MultiFab* ParticleDerive (const std::string& name,
                               Real           time,
                               int            ngrow);
     //
@@ -192,16 +192,16 @@ public:
     //
     // Get problem metrics.
     //
-    MultiFab* Area ();
-    MultiFab& Area (int dir);
+    amrex::MultiFab* Area ();
+    amrex::MultiFab& Area (int dir);
     //
     // The volume of the multifab.
     //
-    MultiFab& Volume ();
+    amrex::MultiFab& Volume ();
     //
     // Return the n'th fluxes MultiFab.
     //
-    MultiFab& Fluxes (int dir);
+    amrex::MultiFab& Fluxes (int dir);
     //
     // Set time levels of state data.
     //
@@ -211,7 +211,7 @@ public:
     //
     // Initialize data on this level from another Castro (during regrid).
     //
-    virtual void init (AmrLevel& old) override;
+    virtual void init (amrex::AmrLevel& old) override;
     //
     // Initialize data on this level after regridding if old level did not previously exist
     //
@@ -247,10 +247,10 @@ public:
 
     void construct_hydro_source(Real time, Real dt);
 
-    void check_for_nan(MultiFab& state, int check_ghost=0);
+    void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
 #ifdef SDC
-    void cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux);
+    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux);
 #endif
 
     bool source_flag(int src);
@@ -263,11 +263,11 @@ public:
 
     void construct_new_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
-    void sum_of_sources(MultiFab& source);
+    void sum_of_sources(amrex::MultiFab& source);
 
-    void time_center_source_terms (MultiFab& S_new,
-				   MultiFab& src_old,
-				   MultiFab& src_new,
+    void time_center_source_terms (amrex::MultiFab& S_new,
+				   amrex::MultiFab& src_old,
+				   amrex::MultiFab& src_new,
 				   Real dt = 1.0);
 
 #ifdef SPONGE
@@ -280,7 +280,7 @@ public:
 
     void construct_new_ext_source(Real time, Real dt);
 
-    void fill_ext_source(Real time, Real dt, MultiFab& S_old, MultiFab& S_new, MultiFab& ext_src, int ng);
+    void fill_ext_source(Real time, Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src, int ng);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -310,19 +310,19 @@ public:
     //
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
-                                   Array<int>&           n_cycle,
-                                   const Array<IntVect>& ref_ratio,
-                                   Array<Real>&          dt_level,
+                                   amrex::Array<int>&           n_cycle,
+                                   const amrex::Array<amrex::IntVect>& ref_ratio,
+                                   amrex::Array<Real>&          dt_level,
                                    Real                  stop_time) override;
     //
     // Compute new `dt'.
     //
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
-                               Array<int>&           n_cycle,
-                               const Array<IntVect>& ref_ratio,
-                               Array<Real>&          dt_min,
-                               Array<Real>&          dt_level,
+                               amrex::Array<int>&           n_cycle,
+                               const amrex::Array<amrex::IntVect>& ref_ratio,
+                               amrex::Array<Real>&          dt_min,
+                               amrex::Array<Real>&          dt_level,
                                Real                  stop_time,
                                int                   post_regrid_flag) override;
     //
@@ -369,7 +369,7 @@ public:
     //
     // Error estimation for regridding.
     //
-    virtual void errorEst (TagBoxArray& tb,
+    virtual void errorEst (amrex::TagBoxArray& tb,
                            int          clearval,
                            int          tagval,
                            Real         time,
@@ -380,24 +380,24 @@ public:
     // The user is responsible for deleting this pointer when done
     // with it.  If ngrow>0 the MultiFab is built on the appropriately
     // grown BoxArray.
-    virtual MultiFab* derive (const std::string& name,
+    virtual amrex::MultiFab* derive (const std::string& name,
 			      Real               time,
 			      int                ngrow) override;
 
     // This version of derive() fills the dcomp'th component of mf with the derived quantity.
     virtual void derive (const std::string& name,
 			 Real               time,
-			 MultiFab&          mf,
+			 amrex::MultiFab&          mf,
 			 int                dcomp) override;
 
     static int numGrow();
 
 #ifdef REACTIONS
 #ifndef SDC
-    void react_state(MultiFab& state,
-		     MultiFab& reactions,
-		     const iMultiFab& mask,
-		     MultiFab& weights,
+    void react_state(amrex::MultiFab& state,
+		     amrex::MultiFab& reactions,
+		     const amrex::iMultiFab& mask,
+		     amrex::MultiFab& weights,
 		     Real time,
 		     Real dt_react,
 		     int  ngrow = 0);
@@ -407,11 +407,11 @@ public:
     void strang_react_second_half(Real time, Real dt);
 #else
     void react_state(Real time, Real dt);
-    void get_react_source_prim(MultiFab& source, Real dt);
+    void get_react_source_prim(amrex::MultiFab& source, Real dt);
 #endif
 
-    void strang_chem (MultiFab&  state,
-                      MultiFab&  react_mf,
+    void strang_chem (amrex::MultiFab&  state,
+                      amrex::MultiFab&  react_mf,
                       Real       time,
                       Real       dt);
 #endif
@@ -425,47 +425,47 @@ public:
 
     void construct_new_rotation_source(Real time, Real dt);
 
-    void fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, Real time);
+    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, Real time);
 #endif
 
 #ifdef RADIATION
-    void final_radiation_call (MultiFab& S_new, 
+    void final_radiation_call (amrex::MultiFab& S_new, 
                                int iteration, 
                                int ncycle);
 #endif
 
-    void reset_internal_energy (MultiFab& State);
+    void reset_internal_energy (amrex::MultiFab& State);
 
-    void computeTemp (MultiFab& State);
+    void computeTemp (amrex::MultiFab& State);
 
 #ifdef DIFFUSION
     void construct_old_diff_source(Real time, Real dt);
     void construct_new_diff_source(Real time, Real dt);
 
-    void getTempDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
-    void getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
+    void getTempDiffusionTerm (Real time, amrex::MultiFab& DiffTerm, int is_old);
+    void getEnthDiffusionTerm (Real time, amrex::MultiFab& DiffTerm, int is_old);
 #if (BL_SPACEDIM == 1)
-    void getSpecDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old);
+    void getSpecDiffusionTerm (Real time, amrex::MultiFab& DiffTerm, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
-    void getViscousTerm (Real time, MultiFab& ViscousTermforMomentum, MultiFab& ViscousTermforEnergy);
-    void getFirstViscousTerm (Real time, MultiFab& ViscousTerm);
-    void getSecndViscousTerm (Real time, MultiFab& ViscousTerm);
-    void getViscousTermForEnergy (Real time, MultiFab& ViscousTermforEnergy);
+    void getViscousTerm (Real time, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
+    void getFirstViscousTerm (Real time, amrex::MultiFab& ViscousTerm);
+    void getSecndViscousTerm (Real time, amrex::MultiFab& ViscousTerm);
+    void getViscousTermForEnergy (Real time, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, Real t, int is_old);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, Real t, int is_old);
 #endif
 #if (BL_SPACEDIM == 1)
-    void add_viscous_term_to_source   (MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
-                                       MultiFab& ViscousTermforEnergy, Real t);
+    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
+                                       amrex::MultiFab& ViscousTermforEnergy, Real t);
 #endif
 #endif
 
 #ifdef ROTATION
-  void add_rotation_to_source(MultiFab& ext_src, MultiFab& RotationTerm, Real old_time);
-  void time_center_rotation(MultiFab& S_new, MultiFab& OldRotationTerm, Real cur_time, Real dt);
+  void add_rotation_to_source(amrex::MultiFab& ext_src, amrex::MultiFab& RotationTerm, Real old_time);
+  void time_center_rotation(amrex::MultiFab& S_new, amrex::MultiFab& OldRotationTerm, Real cur_time, Real dt);
 #endif
 
     Real volWgtSum (const std::string& name, Real time, bool local=false, bool finemask=true);
@@ -476,7 +476,7 @@ public:
 
     Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2, bool local=false);
 
-    Real volWgtSumMF (MultiFab* mf, int comp, bool local=false);
+    Real volWgtSumMF (amrex::MultiFab* mf, int comp, bool local=false);
 
     Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir, bool local=false);
 
@@ -495,16 +495,16 @@ public:
 
     void construct_new_hybrid_source(Real time, Real dt);
 
-    void fill_hybrid_hydro_source(MultiFab& state, MultiFab& source);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source);
 
-    void hybrid_sync(MultiFab& state);
+    void hybrid_sync(amrex::MultiFab& state);
 #endif
 
-    void add_force_to_sources (MultiFab& force, MultiFab& sources, MultiFab& state);
+    void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (MultiFab& state, MultiFab& source, Real dt);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, Real dt);
 
-    void expand_state(MultiFab& S, Real time, int ng);
+    void expand_state(amrex::MultiFab& S, Real time, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -515,7 +515,7 @@ public:
 #endif
 
 #ifdef PARTICLES
-    static AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
+    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
     static int       NUM_STATE;
@@ -541,8 +541,8 @@ public:
     // This coarse MultiFab has to live on the fine level because it must be updated
     // even when only the fine level changes.
     //
-    MultiFab fine_mask;
-    MultiFab& build_fine_mask();
+    amrex::MultiFab fine_mask;
+    amrex::MultiFab& build_fine_mask();
 
 protected:
 
@@ -550,8 +550,8 @@ protected:
     // Build a mask that ghost cells overlapping with interior cells in the same multifab
     // are set to 0, whereas others are set to 1.
     //
-    Array<std::unique_ptr<iMultiFab> > ib_mask;
-    iMultiFab& build_interior_boundary_mask (int ng);
+    amrex::Array<std::unique_ptr<amrex::iMultiFab> > ib_mask;
+    amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
 #ifdef SELF_GRAVITY
     int get_numpts();
@@ -559,45 +559,45 @@ protected:
     //
     // Difference between composite and level solve for phi.
     //
-    MultiFab comp_minus_level_phi;
-    Array<std::unique_ptr<MultiFab> > comp_minus_level_grad_phi;
+    amrex::MultiFab comp_minus_level_phi;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
 #endif
 
     //
     // A state array with ghost zones.
     //
-    MultiFab Sborder;
+    amrex::MultiFab Sborder;
 
     //
     // Source terms to the hydrodynamics solve.
     //
-    MultiFab sources_for_hydro;
+    amrex::MultiFab sources_for_hydro;
 
     //
     // Source term representing hydrodynamics update.
     //
-    MultiFab hydro_source;
+    amrex::MultiFab hydro_source;
 
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    Array<std::unique_ptr<MultiFab> > fluxes;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > fluxes;
 #if (BL_SPACEDIM <= 2)
-    MultiFab         P_radial;
+    amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
-    Array<std::unique_ptr<MultiFab> > rad_fluxes;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
 
-    FluxRegister flux_reg;
+    amrex::FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
-    FluxRegister pres_reg;
+    amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
-    FluxRegister rad_flux_reg;
+    amrex::FluxRegister rad_flux_reg;
 #endif
 #ifdef GRAVITY
-    FluxRegister phi_reg;
+    amrex::FluxRegister phi_reg;
 #endif
 
     // Scalings for the flux registers.
@@ -610,13 +610,13 @@ protected:
     //
     // Non-hydro source terms.
     //
-    Array<std::unique_ptr<MultiFab> > old_sources;
-    Array<std::unique_ptr<MultiFab> > new_sources;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > old_sources;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > new_sources;
 
     //
     // State data to hold if we want to do a retry.
     //
-    Array<std::unique_ptr<StateData> > prev_state;
+    amrex::Array<std::unique_ptr<amrex::StateData> > prev_state;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -631,15 +631,15 @@ protected:
 
     void reflux (int crse_level, int fine_level);
 
-    void normalize_species (MultiFab& S_new);
+    void normalize_species (amrex::MultiFab& S_new);
 
-    void enforce_consistent_e (MultiFab& S);
+    void enforce_consistent_e (amrex::MultiFab& S);
 
-    Real enforce_min_density (MultiFab& S_old, MultiFab& S_new);
+    Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
 
-    Real clean_state (MultiFab& state);
+    Real clean_state (amrex::MultiFab& state);
 
-    Real clean_state (MultiFab& state, MultiFab& state_old);
+    Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
 
     void avgDown ();
 
@@ -658,7 +658,7 @@ protected:
     void write_info ();
 
 #ifdef SELF_GRAVITY
-    void define_new_center (MultiFab& S, Real time);
+    void define_new_center (amrex::MultiFab& S, Real time);
     void write_center ();
 #endif
 
@@ -671,10 +671,10 @@ protected:
     //
     // The data.
     //
-    MultiFab             volume;
-    MultiFab             area[BL_SPACEDIM];
-    MultiFab             dLogArea[1];
-    Array< Array<Real> > radius;
+    amrex::MultiFab             volume;
+    amrex::MultiFab             area[BL_SPACEDIM];
+    amrex::MultiFab             dLogArea[1];
+    amrex::Array< amrex::Array<Real> > radius;
 
     //
     // Static data members.
@@ -685,8 +685,8 @@ protected:
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
-    static ErrorList err_list;
-    static BCRec     phys_bc;
+    static amrex::ErrorList err_list;
+    static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
 
     // for keeping track of mass changes from negative density resets
@@ -737,13 +737,13 @@ protected:
 #endif
 
 #ifdef PARTICLES
-    static AmrTracerParticleContainer* TracerPC;
+    static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
     // Name of the probin file and its length.
     static std::string probin_file;
 
-    static IntVect hydro_tile_size;
+    static amrex::IntVect hydro_tile_size;
 
     static int Knapsack_Weight_Type;
     static int num_state_type;
@@ -765,21 +765,21 @@ Castro::numGrow()
 }
 
 inline
-MultiFab*
+amrex::MultiFab*
 Castro::Area ()
 {
     return area;
 }
 
 inline
-MultiFab&
+amrex::MultiFab&
 Castro::Area (int dir)
 {
     return area[dir];
 }
 
 inline
-MultiFab&
+amrex::MultiFab&
 Castro::Volume ()
 {
     return volume;
