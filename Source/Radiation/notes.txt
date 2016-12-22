@@ -1,0 +1,6 @@
+abec is the abbreviation for the form of the linear system we solve.
+See, e.g,  https://github.com/BoxLib-Codes/BoxLib/blob/master/Src/LinearSolvers/C_CellMG/ABecLaplacian.H
+
+
+The dcf routines are the D coefficient in Eq. 46 of the gray radiation paper
+

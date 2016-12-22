@@ -3,6 +3,11 @@
 
 module habec_module
 
+  ! habec is Hypre abec, where abec is the form of the linear equation
+  ! we are solving:
+  ! 
+  ! alpha*phi - div(beta*grad phi) + div(\vec{c}*phi) 
+
   use bl_types
 
   implicit none
