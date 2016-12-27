@@ -521,6 +521,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	FluxRegister* reg;
 
+	// For all of the following, we only add the coarse fluxes in the first
+	// subcycled timestep. This is mainly so we can update the coarse fluxes
+	// MultiFab in later subcycles without affecting what happens here.
+
 	for (int lev = fine_level; lev > crse_level; --lev) {
 
 	    reg = &getLevel(lev).flux_reg;
@@ -529,7 +533,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    Castro& fine_lev = getLevel(lev);
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		if (amr_iteration == 1)
 		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
 		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
 	    }
@@ -539,7 +543,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 		reg = &getLevel(lev).pres_reg;
 
-		if (!(reflux_strategy == 2 && amr_iteration > 1))
+		if (amr_iteration == 1)
 		    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
 		reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_fine_scale);
 
@@ -552,7 +556,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 		reg = &getLevel(lev).rad_flux_reg;
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    if (!(reflux_strategy == 2 && amr_iteration > 1))
+		    if (amr_iteration == 1)
 			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
 		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
 		}
