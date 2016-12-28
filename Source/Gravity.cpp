@@ -2579,7 +2579,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	    for (int i = 0; i < BL_SPACEDIM ; i++) {
 		MFInfo info;
 		info.SetNodal(IntVect::TheDimensionVector(i));
-		coeffs[ilev][i].reset(new MultiFab(grids[amr_lev], dmap[amr_lev], 1, 0));
+		coeffs[ilev][i].reset(new MultiFab(grids[amr_lev], dmap[amr_lev], 1, 0, info));
 						   
 		coeffs[ilev][i]->setVal(1.0);
 	    }
@@ -2753,7 +2753,7 @@ Gravity::update_max_rhs()
 	    for (int i = 0; i < BL_SPACEDIM ; i++) {
 		MFInfo info;
 		info.SetNodal(IntVect::TheDimensionVector(i));
-		coeffs[lev][i].reset(new MultiFab(grids[lev], dmap[lev], 1, 0));
+		coeffs[lev][i].reset(new MultiFab(grids[lev], dmap[lev], 1, 0, info));
 						  
 		coeffs[lev][i]->setVal(1.0);
 	    }
