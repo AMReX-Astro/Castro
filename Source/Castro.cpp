@@ -2081,8 +2081,12 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = crse_level; lev <= fine_level; ++lev) {
 
-	    drho[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, dmap, 1, 0));
-	    dphi[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, dmap, 1, 0));
+	    const auto& amrlevel = getLevel(lev);
+	    const auto& ba = amrlevel.boxArray();
+	    const auto& dm = amrlevel.DistributionMap();
+
+	    drho[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
+	    dphi[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
 
 	    drho[lev - crse_level]->setVal(0.0);
 	    dphi[lev - crse_level]->setVal(0.0);
