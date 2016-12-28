@@ -133,7 +133,7 @@ Castro::restart (Amr&     papa,
 
       int ns = desc_lst[State_Type].nComp();
       int ng = desc_lst[State_Type].nExtra();
-      MultiFab* new_data = new MultiFab(grids,ns,ng,Fab_allocate);
+      MultiFab* new_data = new MultiFab(grids,dmap,ns,ng);
       MultiFab& chk_data = get_state_data(State_Type).newData();
 
 #if (BL_SPACEDIM == 1)
@@ -398,8 +398,8 @@ Castro::restart (Amr&     papa,
         int rad_restart = 1; // disables quasi-steady initialization
         radiation = new Radiation(parent, this, rad_restart);
       }
-      radiation->regrid(level, grids);
-      radiation->restart(level, grids, parent->theRestartFile(), is);
+      radiation->regrid(level, grids, dmap);
+      radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
     }
 #endif
 }
@@ -989,7 +989,7 @@ Castro::writePlotFile (const std::string& dir,
     // but a derived variable is allowed to have multiple components.
     int       cnt   = 0;
     const int nGrow = 0;
-    MultiFab  plotMF(grids,n_data_items,nGrow);
+    MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
     MultiFab* this_dat = 0;
     //
     // Cull data from state variables -- use no ghost cells.
@@ -1163,7 +1163,7 @@ Castro::writeSmallPlotFile (const std::string& dir,
     // but a derived variable is allowed to have multiple components.
     int       cnt   = 0;
     const int nGrow = 0;
-    MultiFab  plotMF(grids,n_data_items,nGrow);
+    MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
     MultiFab* this_dat = 0;
     //
     // Cull data from state variables -- use no ghost cells.

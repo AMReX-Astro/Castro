@@ -19,11 +19,11 @@ const int* fablo = (fab).loVect();           \
 const int* fabhi = (fab).hiVect();           \
 const REAL* fabdat = (fab).dataPtr();
 
-RadBndryData::RadBndryData(const BoxArray& _grids, int _ncomp, 
-			   const ProxyGeometry& _geom)
+RadBndryData::RadBndryData(const BoxArray& _grids, const DistributionMapping& _dmap,
+			   int _ncomp, const ProxyGeometry& _geom)
     : BndryRegister(), geom(_geom)
 {
-    define(_grids,_ncomp,_geom);
+    define(_grids,_dmap,_ncomp,_geom);
 }
 
 // // copy constructor
@@ -56,7 +56,8 @@ std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 }
 
 void
-RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _geom)
+RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
+		     int _ncomp, const ProxyGeometry& _geom)
 {
     geom = _geom;
     BndryRegister::setBoxes(_grids);
@@ -70,7 +71,7 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 	bcloc[face].resize(len);
 	bcond[face].resize(len);
 
-	BndryRegister::define(face,IndexType::TheCellType(),0,1,0,_ncomp);
+	BndryRegister::define(face,IndexType::TheCellType(),0,1,0,_ncomp,_dmap);
 
 	// alloc mask and set to quad_interp value
 	//for (int k = 0; k < len; k++) {

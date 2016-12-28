@@ -95,11 +95,13 @@ public:
 //@ManDoc: default constructor
     RadBndryData() : amrex::BndryRegister() {};
 //@ManDoc: constructor specifying number of components and box of physical domain (cell-centered)
-    RadBndryData(const amrex::BoxArray& _grids, int _ncomp, const ProxyGeometry& geom);
+    RadBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+		 int _ncomp, const ProxyGeometry& geom);
 //@ManDoc: destructor
     virtual ~RadBndryData();
 //@ManDoc: alocate bndry fabs along given face
-    void define(const amrex::BoxArray& _grids, int _ncomp, const ProxyGeometry& geom);
+    void define(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+		int _ncomp, const ProxyGeometry& geom);
 
 //@ManMemo: I/O functions
 //@ManDoc: write to output stream

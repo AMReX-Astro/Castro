@@ -121,6 +121,9 @@ class BndryAuxVarBase {
 
  public:
 
+  BndryAuxVarBase (const amrex::DistributionMapping& dm)
+      : distributionMap(dm) {}
+
   // Location type explanation ---
   //  INTERIOR: cells along insides of grid faces, overlaps marked "slave".
   //  EXTERIOR: cells along outsides of grid faces, overlaps (from other
@@ -156,7 +159,9 @@ class BndryAuxVar : public BndryAuxVarBase {
 
  public:
 
-  BndryAuxVar(const amrex::BoxArray& _grids, Location loc);
+  BndryAuxVar(const amrex::BoxArray& _grids, 
+	      const amrex::DistributionMapping& _dmap,
+	      Location loc);
 
   //~BndryAuxVar(); destructor not needed
 
@@ -186,6 +191,7 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
  public:
 
   CrseBndryAuxVar(const amrex::BoxArray& _cgrids,
+		  const amrex::DistributionMapping& _cdmap,
                   const amrex::BoxArray& _fgrids, Location loc);
 
   CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc);
@@ -248,6 +254,7 @@ class HypreMultiABec {
   void addLevel(int level,
 		const amrex::Geometry& _geom,
 		const amrex::BoxArray& _grids,
+		const amrex::DistributionMapping& _dmap,
 		amrex::IntVect         _crse_ratio);
 
   int crseLevel() {
@@ -387,6 +394,7 @@ class HypreMultiABec {
 
   amrex::Array<amrex::Geometry> geom;
   amrex::Array<amrex::BoxArray> grids;
+  amrex::Array<amrex::DistributionMapping> dmap;
   amrex::Array<amrex::IntVect> fine_ratio;
   amrex::Array<NGBndry*> bd;
   int bdcomp; // component number used for bd

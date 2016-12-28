@@ -299,7 +299,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+    Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
     const Real prev_time = state[State_Type].prevTime();
     expand_state(Sborder, prev_time, NUM_GROW);
 
@@ -456,13 +456,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	// These arrays hold all source terms that update the state.
 
 	for (int n = 0; n < num_src; ++n) {
-	    old_sources[n].reset(new MultiFab(grids, NUM_STATE, NUM_GROW));
-	    new_sources[n].reset(new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	    old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+	    new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
 	}
 
 	// This array holds the hydrodynamics update.
 
-	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+	hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
 
@@ -471,7 +471,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // hydro update to store the sum of the new-time sources, so that we can
     // compute the time derivative of the source terms.
 
-    sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro.define(grids,dmap,NUM_STATE,NUM_GROW);
 
     // Zero out the current fluxes.
 

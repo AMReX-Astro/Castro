@@ -30,7 +30,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
-      (*a2coefs[level])[i].define(edge_boxes, ncomp, ngrow, Fab_allocate);
+      (*a2coefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
       (*a2coefs[level])[i].setVal(0.0);
     }
   }
@@ -53,7 +53,7 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
-      (*ccoefs[level])[i].define(edge_boxes, ncomp, ngrow, Fab_allocate);
+      (*ccoefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
       (*ccoefs[level])[i].setVal(0.0);
     }
   }
@@ -74,7 +74,7 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
     d1coefs[level].reset(new Tuple<MultiFab, BL_SPACEDIM>);
 
     for (int i = 0; i < BL_SPACEDIM; i++) {
-      (*d1coefs[level])[i].define(grids[level], ncomp, ngrow, Fab_allocate);
+      (*d1coefs[level])[i].define(grids[level], dmap[level], ncomp, ngrow);
       (*d1coefs[level])[i].setVal(0.0);
     }
   }
@@ -97,7 +97,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
-      (*d2coefs[level])[i].define(edge_boxes, ncomp, ngrow, Fab_allocate);
+      (*d2coefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
       (*d2coefs[level])[i].setVal(0.0);
     }
   }
@@ -266,12 +266,12 @@ void HypreExtMultiABec::loadMatrix()
     // because the action will be happening on a different set of
     // processors.)
 
-    BndryAuxVar evalue(grids[level], BndryAuxVar::GHOST);
-    BndryAuxVar entry( grids[level], BndryAuxVar::INTERIOR);
+    BndryAuxVar evalue(grids[level], dmap[level], BndryAuxVar::GHOST);
+    BndryAuxVar entry( grids[level], dmap[level], BndryAuxVar::INTERIOR);
     if (level == crse_level) {
       // HypreMultiABec creates this for finer levels but not this one.
       // We will delete it manually below.
-      ederiv[level].reset(new BndryAuxVar(grids[level], BndryAuxVar::GHOST));
+      ederiv[level].reset(new BndryAuxVar(grids[level], dmap[level], BndryAuxVar::GHOST));
     }
 
     // Add matrix entries corresponding to physical boundary conditions

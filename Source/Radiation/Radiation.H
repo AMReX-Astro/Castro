@@ -96,13 +96,14 @@ public:
   Radiation(amrex::Amr* Parent, class Castro* castro, int restart = 0);
   ~Radiation() { }
 
-  void regrid(int level, const amrex::BoxArray& grids);
+  void regrid(int level, const amrex::BoxArray& grids,
+	      const amrex::DistributionMapping& dmap);
 
   void close(int level);
 
   void restart(int level, const amrex::BoxArray& grids,
-               const std::string& dir,
-               std::istream& is);
+	       const amrex::DistributionMapping& dmap,
+               const std::string& dir, std::istream& is);
 
   void checkPoint(int level,
                   const std::string& dir,

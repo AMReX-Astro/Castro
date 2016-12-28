@@ -45,7 +45,9 @@ static int* hiV(const Box& b) {
 #endif
 }
 
-HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
+HypreABec::HypreABec(const BoxArray& grids,
+		     const DistributionMapping& dmap,
+		     const Geometry& _geom,
 		     int _solver_flag)
   : geom(_geom), solver_flag(_solver_flag)
 {
@@ -210,13 +212,13 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
 
   int ncomp=1;
   int ngrow=0;
-  acoefs.reset(new MultiFab(grids, ncomp, ngrow));
+  acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
  
   for (i = 0; i < BL_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
-    bcoefs[i].reset(new MultiFab(edge_boxes, ncomp, ngrow));
+    bcoefs[i].reset(new MultiFab(edge_boxes, dmap, ncomp, ngrow));
   }
 }
 
@@ -256,7 +258,8 @@ void HypreABec::SPalpha(const MultiFab& a)
   BL_ASSERT( a.ok() );
   if (SPa == 0) {
     const BoxArray& grids = a.boxArray(); 
-    SPa.reset(new MultiFab(grids,1,0));
+    const DistributionMapping& dmap = a.DistributionMap();
+    SPa.reset(new MultiFab(grids,dmap,1,0));
   }
   MultiFab::Copy(*SPa, a, 0, 0, 1, 0);
 }

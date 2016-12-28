@@ -23,8 +23,9 @@ Array<Real> RadBndry::bcval(2*BL_SPACEDIM);
 Real        RadBndry::time = 0.0;
 int         RadBndry::correction = 0;
 
-RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
-  NGBndry(_grids,1,_geom)
+RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
+		   const Geometry& _geom) :
+    NGBndry(_grids,_dmap,1,_geom)
 {
   if (first)
     init();
@@ -59,8 +60,9 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
   }
 }
 
-RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom, Real bv) :
-  NGBndry(_grids,1,_geom)
+RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
+		   const Geometry& _geom, Real bv) :
+    NGBndry(_grids,_dmap,1,_geom)
 {
   if (first)
     init(bv);

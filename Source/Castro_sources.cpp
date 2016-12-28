@@ -274,14 +274,14 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Carries the contribution of all non-reacting source terms.
 
-    MultiFab A(grids, NUM_STATE, ng, Fab_allocate);
+    MultiFab A(grids, dmap, NUM_STATE, ng);
 
     sum_of_sources(A);
 
     // Compute the state that has effectively only been updated with advection.
     // U* = U_old + dt A
     // where A = -div U + S_hydro
-    MultiFab S_noreact(grids, NUM_STATE, ng, Fab_allocate);
+    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
 
     MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
     MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
@@ -290,22 +290,22 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute its primitive counterpart, q*
 
-    MultiFab q_noreact(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_noreact(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_noreact(grids, dmap, QVAR, ng);
+    MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_noreact, q_noreact, qaux_noreact);
 
     // Compute the primitive version of the old state, q_old
 
-    MultiFab q_old(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_old(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_old(grids, dmap, QVAR, ng);
+    MultiFab qaux_old(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_old, q_old, qaux_old);
 
     // Compute the effective advective update on the primitive state.
     // A(q) = (q* - q_old)/dt
 
-    MultiFab A_prim(grids, QVAR, ng, Fab_allocate);
+    MultiFab A_prim(grids, dmap, QVAR, ng);
 
     A_prim.setVal(0.0);
 
@@ -316,8 +316,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute the primitive version of the new state.
 
-    MultiFab q_new(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_new(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_new(grids, dmap, QVAR, ng);
+    MultiFab qaux_new(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_new, q_new, qaux_new);
 

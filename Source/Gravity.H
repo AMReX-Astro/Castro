@@ -111,7 +111,9 @@ protected:
   //
   // BoxArray at each level
   //
-  amrex::Array<amrex::BoxArray> grids;
+  const amrex::Array<amrex::BoxArray>& grids;
+  //
+  const amrex::Array<amrex::DistributionMapping>& dmap;
   //
   // Absolute tolerance on each level
   //

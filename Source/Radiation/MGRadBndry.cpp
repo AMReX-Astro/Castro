@@ -26,9 +26,10 @@ Real        MGRadBndry::time = 0.0;
 int         MGRadBndry::correction = 0;
 
 MGRadBndry::MGRadBndry(const BoxArray& _grids,
+		       const DistributionMapping& _dmap,
                        const int _ngroups,
                        const Geometry& _geom) :
-  NGBndry(_grids,_ngroups,_geom)
+    NGBndry(_grids,_dmap,_ngroups,_geom)
 {
   if (first)
     init(_ngroups);

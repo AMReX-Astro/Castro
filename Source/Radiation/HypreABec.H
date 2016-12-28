@@ -16,7 +16,9 @@ class HypreABec {
   // solver_flag = 0 for SMG
   // solver_flag = 1 for PFMG
 
-  HypreABec(const amrex::BoxArray& grids, const amrex::Geometry& geom,
+  HypreABec(const amrex::BoxArray& grids,
+	    const amrex::DistributionMapping& dmap,
+	    const amrex::Geometry& geom,
 	    int solver_flag = 0);
   ~HypreABec();
 

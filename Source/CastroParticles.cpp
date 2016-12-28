@@ -148,8 +148,8 @@ Castro::ParticleDerive(const std::string& name,
 
   if (TracerPC && name == "particle_count")
   {
-      MultiFab* derive_dat = new MultiFab(grids,1,0);
-      MultiFab    temp_dat(grids,1,0);
+      MultiFab* derive_dat = new MultiFab(grids,dmap,1,0);
+      MultiFab    temp_dat(grids,dmap,1,0);
       temp_dat.setVal(0);
       TracerPC->Increment(temp_dat,level);
       MultiFab::Copy(*derive_dat,temp_dat,0,0,1,0);
@@ -167,14 +167,15 @@ Castro::ParticleDerive(const std::string& name,
       for (int lev = level+1; lev <= parent->finestLevel(); lev++)
       {
           BoxArray ba = parent->boxArray(lev);
+	  const DistributionMapping& dm = parent->DistributionMap(lev);
 
-          MultiFab temp_dat(ba,1,0);
+          MultiFab temp_dat(ba,dm,1,0);
 
           trr *= parent->refRatio(lev-1);
 
           ba.coarsen(trr);
 
-          MultiFab ctemp_dat(ba,1,0);
+          MultiFab ctemp_dat(ba,dm,1,0);
 
           temp_dat.setVal(0);
           ctemp_dat.setVal(0);
@@ -199,7 +200,7 @@ Castro::ParticleDerive(const std::string& name,
 
           temp_dat.clear();
 
-          MultiFab dat(grids,1,0);
+          MultiFab dat(grids,dmap,1,0);
           dat.setVal(0);
           dat.copy(ctemp_dat);
 
@@ -287,7 +288,7 @@ Castro::advance_particles(int iteration, Real time, Real dt)
 	int ng = iteration;
 	Real t = time + 0.5*dt;
 
-	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
+	MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
 
 	{
 	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);

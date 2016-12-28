@@ -252,8 +252,11 @@ void XGraph1d::draw_single(int nstep, Real time, int force_draw)
    int amrlev = amrptr->finestLevel();
    if(maxlev < 0||maxlev>amrlev) maxlev = amrlev;
    Array<MultiFab*> soln(amrlev+1);
-   for(int lev = 0; lev <= amrlev; lev++)
-      soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),frames.size(),0);
+   for(int lev = 0; lev <= amrlev; lev++) {
+       soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),
+			      amrptr->getLevel(lev).DistributionMap(),
+			      frames.size(),0);
+   }
    // set up arrays of output streams/filenames
    BL_ASSERT(fname_vec.size()<=XGPtMXGY);
    std::ofstream os[XGPtMXGY];
@@ -562,8 +565,11 @@ void XGraph1d::draw_all(int nstep, Real time, int force_draw)
     }
     
     Array<MultiFab*> soln(amrlev+1);
-    for(int lev = 0; lev <= amrlev; lev++)
-	soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),frames.size(),0);
+    for(int lev = 0; lev <= amrlev; lev++) {
+	soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),
+			       amrptr->getLevel(lev).DistributionMap(),
+			       frames.size(),0);
+    }
 
     int cntall=0;
     for(std::list<XGFrame>::iterator li=frames.begin(); li != frames.end(); li++,cntall++) {

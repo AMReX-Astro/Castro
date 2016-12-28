@@ -118,10 +118,11 @@ void RadSolve::levelInit(int level)
 {
   BL_PROFILE("RadSolve::levelInit");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 //  const Real *dx = parent->Geom(level).CellSize();
 
   if (level_solver_flag < 100) {
-      hd = new HypreABec(grids, parent->Geom(level), level_solver_flag);
+      hd = new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag);
   }
   else {
       if (use_hypre_nonsymmetric_terms == 0) {
@@ -134,7 +135,7 @@ void RadSolve::levelInit(int level)
 	  d1Multi = hem->d1Multiplier();
 	  d2Multi = hem->d2Multiplier();
       }
-      hm->addLevel(level, parent->Geom(level), grids,
+      hm->addLevel(level, parent->Geom(level), grids, dmap,
                    IntVect::TheUnitVector());
       hm->buildMatrixStructure();
   }
@@ -236,13 +237,14 @@ void RadSolve::levelACoeffs(int level,
 {
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
   int Ncomp  = 1;
   int Nghost = 0;
 
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
+  MultiFab acoefs(grids, dmap, Ncomp, Nghost);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -274,10 +276,11 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
 			 int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
   const Geometry& geom = parent->Geom(level);
   const Box& domainBox = geom.Domain();
 
-  MultiFab spa(grids, 1, 0);
+  MultiFab spa(grids, dmap, 1, 0);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -335,7 +338,7 @@ void RadSolve::levelBCoeffs(int level,
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
 
-    MultiFab bcoefs(lambda[idim].boxArray(), 1, 0, Fab_allocate);
+    MultiFab bcoefs(lambda[idim].boxArray(), lambda[idim].DistributionMap(), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -372,10 +375,11 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+    const DistributionMapping& dm = castro->DistributionMap();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
-	MultiFab dcoefs(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+	MultiFab dcoefs(castro->getEdgeBoxArray(idim), dm, 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -544,9 +548,10 @@ void RadSolve::levelFlux(int level,
 {
   BL_PROFILE("RadSolve::levelFlux");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // grow a larger MultiFab to hold Er so we can difference across faces
-  MultiFab Erborder(grids, 1, 1);
+  MultiFab Erborder(grids, dmap, 1, 1);
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
@@ -640,16 +645,17 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 {
   BL_PROFILE("RadSolve::levelDterm");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
   const Real* dx = parent->Geom(level).CellSize();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
   Tuple<MultiFab, BL_SPACEDIM> Dterm_face;
   for (int idim=0; idim<BL_SPACEDIM; idim++) {
-    Dterm_face[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+      Dterm_face[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   // grow a larger MultiFab to hold Er so we can difference across faces
-  MultiFab Erborder(grids, 1, 1);
+  MultiFab Erborder(grids, dmap, 1, 1);
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
@@ -780,12 +786,13 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 {
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
   int Ncomp = 1;
   int Nghost = 0;
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
+  MultiFab acoefs(grids, dmap, Ncomp, Nghost);
 
 #ifdef _OPENMP
 #pragma omp parallel

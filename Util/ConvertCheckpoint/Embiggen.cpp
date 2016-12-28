@@ -916,12 +916,14 @@ static void ConvertData() {
          falRef.state[n].domain.refine(grown_factor);
    }
 
+   DistributionMapping newdm {newgrids};
+
    // We need to allocate a MultiFab for new data but don't need to fill it
    for (int n = 0; n < nstatetypes; n++) 
    {
       if (falRef0.state[n].new_data != 0) {
          int ncomps = (falRef0.state[n].new_data)->nComp();
-         MultiFab * newNewData = new MultiFab(newgrids,ncomps,1);
+         MultiFab * newNewData = new MultiFab(newgrids,newdm,ncomps,1);
 
          newNewData->setVal(0.); 
 
@@ -939,7 +941,7 @@ static void ConvertData() {
    {
       if (falRef0.state[n].old_data != 0) {
          int ncomps = (falRef0.state[n].old_data)->nComp();
-         MultiFab * newOldData = new MultiFab(newgrids,ncomps,1);
+         MultiFab * newOldData = new MultiFab(newgrids,newdm,ncomps,1);
          newOldData->setVal(0.);
 
          if (star_at_center == 1)  

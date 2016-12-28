@@ -36,34 +36,35 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
   Real delta_t          = parent->dtLevel(level);
   Real time = castro->get_state_data(Rad_Type).curTime();
 
   MultiFab& S_new = castro->get_new_data(State_Type);
   MultiFab& Er_new = castro->get_new_data(Rad_Type);
 
-  MultiFab Er_old(grids, Er_new.nComp(), Er_new.nGrow());
+  MultiFab Er_old(grids, dmap, Er_new.nComp(), Er_new.nGrow());
   Er_old.copy(Er_new); // all components, including any first moments
 
   Tuple<MultiFab, BL_SPACEDIM> Ff_new;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      Ff_new[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+      Ff_new[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   MultiFab Dterm;  
   if (has_dcoefs) {
-    Dterm.define(grids, BL_SPACEDIM, 0, Fab_allocate);
+      Dterm.define(grids, dmap, BL_SPACEDIM, 0);
   }
 
-  MultiFab frhoem(grids,1,0);
-  MultiFab frhoes(grids,1,0);
+  MultiFab frhoem(grids,dmap,1,0);
+  MultiFab frhoes(grids,dmap,1,0);
 
-  MultiFab temp(grids,1,0);
-  MultiFab fkp(grids,1,0);
+  MultiFab temp(grids,dmap,1,0);
+  MultiFab fkp(grids,dmap,1,0);
 
   MultiFab& dflux_old = *dflux[level];
-  MultiFab dflux_new(grids,1,0);
+  MultiFab dflux_new(grids,dmap,1,0);
 
   MultiFab Er_lim; // will only be allocated if needed
 
@@ -79,26 +80,26 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   // Rosseland mean in grid interiors can be updated within the loop,
   // but ghost cell values are set once and never updated.
 
-  MultiFab kappa_r(grids,1,1);    // note ghost cell, needs to be filled
+  MultiFab kappa_r(grids,dmap,1,1);    // note ghost cell, needs to be filled
 
   MultiFab velo;
   MultiFab dcfactor; // 2. * (1-eta) * kappa_p/kappa_r
   if (has_dcoefs) {
-    velo.define(grids, BL_SPACEDIM, 1, Fab_allocate);
-    dcfactor.define(grids, 1, 1, Fab_allocate);
+    velo.define(grids, dmap, BL_SPACEDIM, 1);
+    dcfactor.define(grids, dmap, 1, 1);
     get_rosseland_v_dcf(kappa_r, velo, dcfactor, delta_t, c, castro);
   }
   else {
     get_rosseland(kappa_r, castro); // fills everywhere, incl ghost cells
   }
 
-  MultiFab eta(grids,1,0);
-  MultiFab etainv(grids,1,0);  // this is 1-eta, to avoid loss of accuracy
+  MultiFab eta(grids,dmap,1,0);
+  MultiFab etainv(grids,dmap,1,0);  // this is 1-eta, to avoid loss of accuracy
 
   Tuple<MultiFab, BL_SPACEDIM> lambda;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-    lambda[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+      lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   if (update_limiter == 0) {
@@ -116,7 +117,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   // Implicit update loop:
 
-  RadBndry bd(grids, castro->Geom());
+  RadBndry bd(grids, dmap, castro->Geom());
 
   getBndryData(bd, Er_new, time, level);
 
@@ -199,7 +200,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     }
 
     {
-      MultiFab rhs(grids,1,0);
+      MultiFab rhs(grids,dmap,1,0);
 
       dflux_new.setVal(0.0); // used as work space in place of edot
       solver.levelRhs(level, rhs, temp,
@@ -380,7 +381,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
-      MultiFab flx(grids, BL_SPACEDIM, 0);
+      MultiFab flx(grids, dmap, BL_SPACEDIM, 0);
       solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
       if (plot_lab_Er) {

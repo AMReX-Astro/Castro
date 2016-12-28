@@ -162,11 +162,11 @@ int BndryAuxVarBase::nextLocal(int i)
   return i;
 }
 
-BndryAuxVar::BndryAuxVar(const BoxArray& _grids, Location loc)
-  : grids(_grids)
+BndryAuxVar::BndryAuxVar(const BoxArray& _grids, 
+			 const DistributionMapping& _dmap,
+			 Location loc)
+    : BndryAuxVarBase(_dmap), grids(_grids)
 {
-  distributionMap.define(grids, ParallelDescriptor::NProcs());
-
   // For Location type EXTERIOR use CrseBndryAuxVar instead:
   BL_ASSERT(loc == INTERIOR || loc == GHOST);
 
@@ -244,11 +244,10 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids, Location loc)
 }
 
 CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
+				 const DistributionMapping& _cdmap,
                                  const BoxArray& _fgrids, Location loc)
-  : cgrids(_cgrids), fgrids(_fgrids)
+    : BndryAuxVarBase(_cdmap), cgrids(_cgrids), fgrids(_fgrids)
 {
-  distributionMap.define(cgrids, ParallelDescriptor::NProcs());
-
   // For Location type INTERIOR use BndryAuxVar instead:
   BL_ASSERT(loc == EXTERIOR || loc == GHOST);
 
@@ -327,10 +326,8 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
 }
 
 CrseBndryAuxVar::CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc)
-  : cgrids(other.cgrids), fgrids(other.fgrids)
+    : BndryAuxVarBase(other.distributionMap), cgrids(other.cgrids), fgrids(other.fgrids)
 {
-  distributionMap = other.distributionMap;
-
   // For Location type INTERIOR use BndryAuxVar instead:
   BL_ASSERT(loc == EXTERIOR || loc == GHOST);
 
@@ -367,10 +364,8 @@ CrseBndryAuxVar::CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc)
 CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
                                  const BoxArray& _fgrids,
                                  const CrseBndryAuxVar& other, Location loc)
-  : cgrids(_cgrids), fgrids(_fgrids)
+    : BndryAuxVarBase(other.distributionMap), cgrids(_cgrids), fgrids(_fgrids)
 {
-  distributionMap = other.distributionMap;
-
   // For Location type INTERIOR use BndryAuxVar instead:
   BL_ASSERT(loc == EXTERIOR || loc == GHOST);
 
@@ -608,6 +603,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
     solver_flag(_solver_flag),
     geom(fine_level+1),
     grids(fine_level+1),
+    dmap(fine_level+1),
     fine_ratio(fine_level+1),
     bd(fine_level+1),
     subgrids(fine_level+1),
@@ -715,12 +711,14 @@ HypreMultiABec::~HypreMultiABec()
 void HypreMultiABec::addLevel(int             level,
 			      const Geometry& _geom,
 			      const BoxArray& _grids,
+			      const DistributionMapping& _dmap,
 			      IntVect         _fine_ratio)
 {
   int part = level - crse_level;
 
   geom[level]  = _geom;
   grids[level] = _grids;
+  dmap[level]  = _dmap;
   fine_ratio[level] = _fine_ratio;
 
 #if (BL_SPACEDIM == 1)
@@ -982,7 +980,7 @@ void HypreMultiABec::buildMatrixStructure()
   for (int level = crse_level; level <= fine_level; level++) {
     int ncomp=1;
     int ngrow=0;
-    acoefs[level].reset(new MultiFab(grids[level], ncomp, ngrow));
+    acoefs[level].reset(new MultiFab(grids[level], dmap[level], ncomp, ngrow));
     acoefs[level]->setVal(0.0);
 
     bcoefs[level].reset(new Tuple<MultiFab, BL_SPACEDIM>);
@@ -990,7 +988,7 @@ void HypreMultiABec::buildMatrixStructure()
     for (int i = 0; i < BL_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
-      (*bcoefs[level])[i].define(edge_boxes, ncomp, ngrow, Fab_allocate);
+      (*bcoefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
       (*bcoefs[level])[i].setVal(0.0);
     }
   }
@@ -1052,9 +1050,9 @@ void HypreMultiABec::buildMatrixStructure()
 
   for (int level = crse_level + 1; level <= fine_level; level++) {
     int part = level - crse_level;
-    cintrp[level].reset(new BndryAuxVar(grids[level], BndryAuxVar::GHOST));
-    ederiv[level].reset(new BndryAuxVar(grids[level], BndryAuxVar::GHOST));
-    BndryAuxVar entry(grids[level], BndryAuxVar::INTERIOR);
+    cintrp[level].reset(new BndryAuxVar(grids[level], dmap[level], BndryAuxVar::GHOST));
+    ederiv[level].reset(new BndryAuxVar(grids[level], dmap[level],  BndryAuxVar::GHOST));
+    BndryAuxVar entry(grids[level], dmap[level], BndryAuxVar::INTERIOR);
     IntVect rat = fine_ratio[level-1];
 
     for (OrientationIter oitr; oitr; ++oitr) {
@@ -1170,13 +1168,8 @@ void HypreMultiABec::buildMatrixStructure()
     BoxArray c_fgrids(f_fgrids);
     c_fgrids.coarsen(rat);
 
-    c_cintrp[level].reset(new CrseBndryAuxVar(f_cgrids, f_fgrids,
-                                            BndryAuxVar::GHOST));
-    //c_ederiv[level].reset(new CrseBndryAuxVar(f_cgrids, f_fgrids,
-    //                                        BndryAuxVar::GHOST));
-    //c_entry[level].reset(new CrseBndryAuxVar(c_cgrids, c_fgrids,
-    //                                        BndryAuxVar::EXTERIOR));
-
+    c_cintrp[level].reset(new CrseBndryAuxVar(f_cgrids, dmap[level-1],
+					      f_fgrids, BndryAuxVar::GHOST));
     c_ederiv[level].reset(new CrseBndryAuxVar(*c_cintrp[level],
                                             BndryAuxVar::GHOST));
     c_entry[level].reset (new CrseBndryAuxVar(c_cgrids, c_fgrids,
@@ -1345,8 +1338,9 @@ void HypreMultiABec::SPalpha(int level, const MultiFab& a)
 {
   BL_ASSERT( a.ok() );
   if (! SPa[level]) {
-    SPa[level].reset(new MultiFab(grids[level],1,0));
+    SPa[level].reset(new MultiFab(grids[level],dmap[level],1,0));
     BL_ASSERT( a.boxArray() == SPa[level]->boxArray() );
+    BL_ASSERT( a.DistributionMap() == SPa[level]->DistributionMap() );
   }
   MultiFab::Copy(*SPa[level], a, 0, 0, 1, 0);
 }
@@ -1519,7 +1513,7 @@ void HypreMultiABec::loadMatrix()
     // First we do the entries as seen by the fine cells adjacent
     // to the interface, working on the fine processor:
 
-    BndryAuxVar entry(grids[level], BndryAuxVar::INTERIOR);
+    BndryAuxVar entry(grids[level], dmap[level], BndryAuxVar::INTERIOR);
     for (OrientationIter oitr; oitr; ++oitr) {
       Orientation ori = oitr();
       int idir = ori.coordDir();

@@ -75,7 +75,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
     MultiFab& Erborder = fpi_rad.get_mf();
 
-    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
     if (radiation->pure_hydro) {
       lamborder.setVal(0.0, NUM_GROW);
     }

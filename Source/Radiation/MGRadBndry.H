@@ -7,6 +7,7 @@ class MGRadBndry : public NGBndry
 {
 public:
   MGRadBndry(const amrex::BoxArray& _grids,
+	     const amrex::DistributionMapping& _dmap,
              const int _ngroups,
              const amrex::Geometry& _geom);
 
@@ -49,9 +50,11 @@ protected:
 class MGRadBndryBld : public NGBndryBld
 {
 public:
-  NGBndry* operator()(const amrex::BoxArray& _grids, int _ngroups,
+  NGBndry* operator()(const amrex::BoxArray& _grids, 
+		      const amrex::DistributionMapping& _dmap,
+		      int _ngroups,
 		      const amrex::Geometry& _geom) const {
-    return new MGRadBndry(_grids, _ngroups, _geom);
+      return new MGRadBndry(_grids, _dmap, _ngroups, _geom);
   }
 };
 

@@ -10,8 +10,9 @@ enum BC_Mode { Homogeneous_BC = 0, Inhomogeneous_BC };
 class NGBndry : public RadInterpBndryData
 {
 public:
-  NGBndry(const amrex::BoxArray& _grids, int _ncomp, const amrex::Geometry& _geom) :
-    RadInterpBndryData(_grids,_ncomp,_geom) { }
+    NGBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+	  int _ncomp, const amrex::Geometry& _geom) :
+	RadInterpBndryData(_grids,_dmap,_ncomp,_geom) { }
 
   virtual void setBndryFluxConds(const amrex::BCRec& bc,
 		       const BC_Mode phys_bc_mode = Inhomogeneous_BC) = 0;
@@ -36,7 +37,9 @@ private:
 class NGBndryBld
 {
 public:
-  virtual NGBndry* operator()(const amrex::BoxArray& _grids, int _ncomp,
+  virtual NGBndry* operator()(const amrex::BoxArray& _grids, 
+			      const amrex::DistributionMapping& _dmap,
+			      int _ncomp,
 			      const amrex::Geometry& _geom) const = 0;
 };
 

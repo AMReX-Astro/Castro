@@ -69,12 +69,12 @@ Castro::strang_react_first_half(Real time, Real dt)
 	const DistributionMapping& dm = DistributionMapping::makeKnapSack(get_old_data(Knapsack_Weight_Type));
 	
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				state_temp = new MultiFab(state.boxArray(), state.nComp(), state.nGrow(), dm)));
+				state_temp = new MultiFab(state.boxArray(), dm, state.nComp(), state.nGrow())));
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				reactions_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), dm)));
+				reactions_temp = new MultiFab(reactions.boxArray(), dm, reactions.nComp(), reactions.nGrow())));
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm)));
-	temp_idata.reset(mask_temp = new iMultiFab(interior_mask.boxArray(), interior_mask.nComp(), interior_mask.nGrow(), dm));
+				weights_temp = new MultiFab(weights->boxArray(), dm, weights->nComp(), weights->nGrow())));
+	temp_idata.reset(mask_temp = new iMultiFab(interior_mask.boxArray(), dm, interior_mask.nComp(), interior_mask.nGrow()));
 
 	// Copy data from the state. Note that this is a parallel copy
 	// from FabArray, and the parallel copy assumes that the data
@@ -104,7 +104,8 @@ Castro::strang_react_first_half(Real time, Real dt)
 	// Create a dummy weight array to pass to Fortran.
 
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow())));
+				weights_temp = new MultiFab(reactions.boxArray(), reactions.DistributionMap(),
+							    reactions.nComp(), reactions.nGrow())));
 
     }
 
@@ -182,12 +183,12 @@ Castro::strang_react_second_half(Real time, Real dt)
 	const DistributionMapping& dm = DistributionMapping::makeKnapSack(get_old_data(Knapsack_Weight_Type));
 
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				state_temp = new MultiFab(state.boxArray(), state.nComp(), state.nGrow(), dm)));
+				state_temp = new MultiFab(state.boxArray(), dm, state.nComp(), state.nGrow())));
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				reactions_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow(), dm)));
+				reactions_temp = new MultiFab(reactions.boxArray(), dm, reactions.nComp(), reactions.nGrow())));
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				weights_temp = new MultiFab(weights->boxArray(), weights->nComp(), weights->nGrow(), dm)));
-	temp_idata.reset(mask_temp = new iMultiFab(interior_mask.boxArray(), interior_mask.nComp(), interior_mask.nGrow(), dm));
+				weights_temp = new MultiFab(weights->boxArray(), dm, weights->nComp(), weights->nGrow())));
+	temp_idata.reset(mask_temp = new iMultiFab(interior_mask.boxArray(), dm, interior_mask.nComp(), interior_mask.nGrow()));
 
 	state_temp->copy(state, 0, 0, state.nComp(), state.nGrow(), state.nGrow());
 
@@ -205,7 +206,8 @@ Castro::strang_react_second_half(Real time, Real dt)
 	mask_temp = &interior_mask;
 
 	temp_data.push_back(std::unique_ptr<MultiFab>(
-				weights_temp = new MultiFab(reactions.boxArray(), reactions.nComp(), reactions.nGrow())));
+				weights_temp = new MultiFab(reactions.boxArray(), reactions.DistributionMap(),
+							    reactions.nComp(), reactions.nGrow())));
 
     }
 
@@ -315,7 +317,7 @@ Castro::react_state(Real time, Real dt)
 
     // Create a MultiFab with all of the non-reacting source terms.
 
-    MultiFab A_src(grids, NUM_STATE, ng, Fab_allocate);
+    MultiFab A_src(grids, dmap, NUM_STATE, ng);
     sum_of_sources(A_src);
 
     MultiFab& reactions = get_old_data(Reactions_Type);

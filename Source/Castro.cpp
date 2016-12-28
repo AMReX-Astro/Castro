@@ -414,9 +414,10 @@ Castro::Castro (Amr&            papa,
                 int             lev,
                 const Geometry& level_geom,
                 const BoxArray& bl,
+		const DistributionMapping& dm,
                 Real            time)
     :
-    AmrLevel(papa,lev,level_geom,bl,time),
+    AmrLevel(papa,lev,level_geom,bl,dm,time),
     old_sources(num_src),
     new_sources(num_src),
     prev_state(num_state_type)
@@ -527,7 +528,7 @@ Castro::Castro (Amr&            papa,
 	// radiation is a static object, only alloc if not already there
 	radiation = new Radiation(parent, this);
       }
-      radiation->regrid(level, grids);
+      radiation->regrid(level, grids, dmap);
     }
 #endif
 
@@ -600,19 +601,19 @@ Castro::buildMetrics ()
     }
 
     volume.clear();
-    volume.define(grids,1,NUM_GROW,Fab_allocate);
+    volume.define(grids,dmap,1,NUM_GROW);
     geom.GetVolume(volume);
 
     for (int dir = 0; dir < BL_SPACEDIM; dir++)
     {
         area[dir].clear();
-	area[dir].define(getEdgeBoxArray(dir),1,NUM_GROW,Fab_allocate);
+	area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
     }
 
     dLogArea[0].clear();
 #if (BL_SPACEDIM <= 2)
-    geom.GetDLogA(dLogArea[0],grids,0,NUM_GROW);
+    geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
 #endif
 
     if (level == 0) setGridInfo();
@@ -626,47 +627,47 @@ Castro::initMFs()
     fluxes.resize(3);
 
     for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), NUM_STATE, 0));
+	fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
 
     for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-	fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), NUM_STATE, 0));
+	fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
 
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
-	P_radial.define(getEdgeBoxArray(0), 1, 0, Fab_allocate);
+	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
 	rad_fluxes.resize(BL_SPACEDIM);
         for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
-	    rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), Radiation::nGroups, 0));
+	    rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
 	}
     }
 #endif
 
     if (do_reflux && level > 0) {
 
-	flux_reg.define(grids, crse_ratio, level, NUM_STATE);
+	flux_reg.define(grids, dmap, crse_ratio, level, NUM_STATE);
 	flux_reg.setVal(0.0);
 
 #if (BL_SPACEDIM < 3)
 	if (!Geometry::IsCartesian()) {
-	    pres_reg.define(grids, crse_ratio, level, 1);
+	    pres_reg.define(grids, dmap, crse_ratio, level, 1);
 	    pres_reg.setVal(0.0);
 	}
 #endif
 
 #ifdef RADIATION
 	if (Radiation::rad_hydro_combined) {
-	    rad_flux_reg.define(grids, crse_ratio, level, Radiation::nGroups);
+	    rad_flux_reg.define(grids, dmap, crse_ratio, level, Radiation::nGroups);
 	    rad_flux_reg.setVal(0.0);
 	}
 #endif
 
 #ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
-	    phi_reg.define(grids, crse_ratio, level, 1);
+	    phi_reg.define(grids, dmap, crse_ratio, level, 1);
 	    phi_reg.setVal(0.0);
 	}
 #endif
@@ -796,13 +797,13 @@ Castro::initMFs()
 	// These arrays hold all source terms that update the state.
 
 	for (int n = 0; n < num_src; ++n) {
-	    old_sources[n].reset(new MultiFab(grids, NUM_STATE, NUM_GROW));
-	    new_sources[n].reset(new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	    old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+	    new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
 	}
 
 	// This array holds the hydrodynamics update.
 
-	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+	hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
 
@@ -2080,8 +2081,8 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = crse_level; lev <= fine_level; ++lev) {
 
-	    drho[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, 1, 0));
-	    dphi[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, 1, 0));
+	    drho[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, dmap, 1, 0));
+	    dphi[lev - crse_level].reset(new MultiFab(getLevel(lev).grids, dmap, 1, 0));
 
 	    drho[lev - crse_level]->setVal(0.0);
 	    dphi[lev - crse_level]->setVal(0.0);
@@ -2130,7 +2131,9 @@ Castro::reflux(int crse_level, int fine_level)
 	if (update_sources_after_reflux) {
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(), crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
+		temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(), 
+						  crse_lev.fluxes[i]->DistributionMap(),
+						  crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
 		temp_fluxes[i]->setVal(0.0);
 	    }
 	    for (OrientationIter fi; fi; ++fi) {
@@ -2158,7 +2161,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg = &getLevel(lev).pres_reg;
 
-	    MultiFab dr(crse_lev.grids, 1, 0);
+	    MultiFab dr(crse_lev.grids, crse_lev.dmap, 1, 0);
 	    dr.setVal(crse_lev.geom.CellSize(0));
 
 	    reg->ClearInternalBorders(crse_lev.geom);
@@ -2167,7 +2170,9 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    if (update_sources_after_reflux) {
 
-		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(), crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
+		temp_fluxes[0].reset(new MultiFab(crse_lev.P_radial.boxArray(), 
+						  crse_lev.P_radial.DistributionMap(),
+						  crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
 		temp_fluxes[0]->setVal(0.0);
 
 		for (OrientationIter fi; fi; ++fi) {
@@ -2207,7 +2212,9 @@ Castro::reflux(int crse_level, int fine_level)
 	    if (update_sources_after_reflux) {
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(), crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
+		    temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(), 
+						      crse_lev.rad_fluxes[i]->DistributionMap(),
+						      crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
 		    temp_fluxes[i]->setVal(0.0);
 		}
 		for (OrientationIter fi; fi; ++fi) {
@@ -2942,8 +2949,9 @@ Castro::define_new_center(MultiFab& S, Real time)
     Box bx(max_index,max_index);
     bx.grow(1);
     BoxArray ba(bx);
-    MultiFab mf(ba,1,0);
-    int owner = mf.DistributionMap()[0];
+    int owner = ParallelDescriptor::IOProcessorNumber();
+    DistributionMapping dm { {owner, ParallelDescriptor::MyProc()} };
+    MultiFab mf(ba,dm,1,0);
 
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,Density,1);
@@ -3027,7 +3035,8 @@ Castro::build_fine_mask()
     baf.coarsen(crse_ratio);
 
     const BoxArray& bac = parent->boxArray(level-1);
-    fine_mask.define(bac,1,0,Fab_allocate);
+    const DistributionMapping& dmc = parent->DistributionMap(level-1);
+    fine_mask.define(bac,dmc,1,0);
     fine_mask.setVal(1.0);
 
 #ifdef _OPENMP
@@ -3059,7 +3068,7 @@ Castro::build_interior_boundary_mask (int ng)
     }
 
     //  If we got here, we need to build a new one
-    ib_mask.push_back(std::unique_ptr<iMultiFab>(new iMultiFab(grids, 1, ng)));
+    ib_mask.push_back(std::unique_ptr<iMultiFab>(new iMultiFab(grids, dmap, 1, ng)));
 
     iMultiFab& imf = *ib_mask.back();
 
@@ -3147,7 +3156,7 @@ Castro::clean_state(MultiFab& state) {
 
     // Enforce a minimum density.
 
-    MultiFab temp_state(state.boxArray(), state.nComp(), state.nGrow(), Fab_allocate);
+    MultiFab temp_state(state.boxArray(), state.DistributionMap(), state.nComp(), state.nGrow());
 
     MultiFab::Copy(temp_state, state, 0, 0, state.nComp(), state.nGrow());
 

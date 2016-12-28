@@ -48,9 +48,9 @@ const int* fablo = (fab).loVect();           \
 const int* fabhi = (fab).hiVect();           \
 const REAL* fabdat = (fab).dataPtr();
 
-RadInterpBndryData::RadInterpBndryData(const BoxArray& _grids, int _ncomp,
-                                 const Geometry& geom)
-    : RadBndryData(_grids,_ncomp,geom)
+RadInterpBndryData::RadInterpBndryData(const BoxArray& _grids, const DistributionMapping& _dmap,
+				       int _ncomp, const Geometry& geom)
+    : RadBndryData(_grids,_dmap,_ncomp,geom)
 {
 }
 

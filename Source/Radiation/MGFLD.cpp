@@ -471,6 +471,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   const Geometry& geom = parent->Geom(level);
   const Real* dx = parent->Geom(level).CellSize();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+  const DistributionMapping& dmap = castro->DistributionMap();
 
   if (nGroups > 1) {
     solver.setHypreMulti(1.0);
@@ -480,11 +481,11 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
   mgbd.setCorrection();
 
-  MultiFab Er_zero(grids, 1, 0);
+  MultiFab Er_zero(grids, dmap, 1, 0);
   Er_zero.setVal(0.0);
   getBndryDataMG_ga(mgbd, Er_zero, level);
 
-  MultiFab spec(grids, nGroups, 1);
+  MultiFab spec(grids, dmap, nGroups, 1);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif 
@@ -526,7 +527,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   solver.levelBndry(mgbd,0);
 
   // A coefficients
-  MultiFab acoefs(grids, 1, 0);
+  MultiFab acoefs(grids, dmap, 1, 0);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -556,19 +557,21 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   solver.cellCenteredApplyMetrics(level, acoefs);
   solver.setLevelACoeffs(level, acoefs);
 
+  const DistributionMapping& dm = castro->DistributionMap();
+
   // B & C coefficients
   Tuple<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
     const BoxArray& edge_boxes = castro->getEdgeBoxArray(idim);
 
-    bcoefs[idim].define(edge_boxes, 1, 0, Fab_allocate);
+    bcoefs[idim].define(edge_boxes, dm, 1, 0);
     bcoefs[idim].setVal(0.0);
 
-    bcgrp [idim].define(edge_boxes, 1, 0, Fab_allocate);
+    bcgrp [idim].define(edge_boxes, dm, 1, 0);
 
     if (nGroups > 1) {
-      ccoefs[idim].define(edge_boxes, 2, 0, Fab_allocate);
-      ccoefs[idim].setVal(0.0);
+	ccoefs[idim].define(edge_boxes, dm, 2, 0);
+	ccoefs[idim].setVal(0.0);
     }
   }
 
@@ -612,7 +615,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
 
   // rhs
-  MultiFab rhs(grids,1,0);
+  MultiFab rhs(grids,dmap,1,0);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -646,7 +649,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   solver.cellCenteredApplyMetrics(level, rhs);
 
   // solve
-  MultiFab accel(grids,1,0);
+  MultiFab accel(grids,dmap,1,0);
   accel.setVal(0.0);
   solver.levelSolve(level, accel, 0, rhs, 0.01);
 
@@ -720,7 +723,9 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 {
   BL_PROFILE("Radiation::state_energy_update (MGFLD)");
 
-  MultiFab msk(grids,1,0);
+  const DistributionMapping& dmap = state.DistributionMap();
+
+  MultiFab msk(grids,dmap,1,0);
 
   {
       BoxArray baf;
@@ -953,6 +958,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 				MultiFab &lamborder)
 { // it works for both single- and multi-group
   int ngrow = lamborder.nGrow();
+  const DistributionMapping& dmap = lamborder.DistributionMap();
 
   if (filter_lambda_T) {
     BL_ASSERT(ngrow == 4);
@@ -965,7 +971,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
   }
   else {
 
-    MultiFab kpr(grids,Radiation::nGroups,ngrow);  
+    MultiFab kpr(grids,dmap,Radiation::nGroups,ngrow);  
 
     if (do_multigroup) {
 	MGFLD_compute_rosseland(kpr, Sborder); 
@@ -974,7 +980,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
       SGFLD_compute_rosseland(kpr, Sborder); 
     }
 
-    MultiFab Er_wide(grids, nGroups, ngrow+1);
+    MultiFab Er_wide(grids, dmap, nGroups, ngrow+1);
     Er_wide.setVal(-1.0);
     MultiFab::Copy(Er_wide, Erborder, 0, 0, nGroups, 0);
     

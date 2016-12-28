@@ -37,6 +37,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   // allocation and intialization
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
   Real delta_t = parent->dtLevel(level);
 
   int ngrow = 1; 
@@ -50,7 +51,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Tuple<MultiFab, BL_SPACEDIM> lambda;
   if (limiter > 0) {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      lambda[idim].define(castro->getEdgeBoxArray(idim), nGroups, 0, Fab_allocate);
+	lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
     }
 
     if (inner_update_limiter == -1) {
@@ -64,7 +65,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	S_lag[fpi].copy(fpi());
       }
 
-      MultiFab kpr_lag(grids,nGroups,1);
+      MultiFab kpr_lag(grids,dmap,nGroups,1);
       MGFLD_compute_rosseland(kpr_lag, S_lag); 
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
@@ -77,7 +78,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
   else {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      lambda[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+	lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
       lambda[idim].setVal(1./3.);
     }    
   }
@@ -89,7 +90,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   //
   MultiFab& Er_new = castro->get_new_data(Rad_Type);
   {
-    MultiFab rhs(grids,1,0);
+    MultiFab rhs(grids,dmap,1,0);
     for (int igroup=0; igroup<nGroups; igroup++) {
       rhs.setVal(0.0);
       deferred_sync(level, rhs, igroup);
@@ -97,35 +98,35 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       MultiFab::Add(Er_new, rhs, 0, igroup, 1, 0);
     }
   }
-  MultiFab Er_old(grids, Er_new.nComp(), 0);
+  MultiFab Er_old(grids, dmap , Er_new.nComp(), 0);
   Er_old.copy(Er_new); 
-  MultiFab Er_pi(grids,nGroups,1);
-  MultiFab Er_star(grids, nGroups, 1);
+  MultiFab Er_pi(grids,dmap,nGroups,1);
+  MultiFab Er_star(grids, dmap, nGroups, 1);
   Er_pi.setBndry(-1.0); // later we may use it to compute limiter
   Er_star.setBndry(-1.0); // later we may use it to compute limiter
 
-  MultiFab rhoe_new(grids,1,0);
-  MultiFab rhoe_old(grids,1,0);
-  MultiFab rhoe_star(grids,1,0);
+  MultiFab rhoe_new(grids,dmap,1,0);
+  MultiFab rhoe_old(grids,dmap,1,0);
+  MultiFab rhoe_star(grids,dmap,1,0);
 
 #ifdef NEUTRINO
-  MultiFab rhoYe_new(grids, 1, 0);
-  MultiFab rhoYe_old(grids, 1, 0);
-  MultiFab rhoYe_star(grids, 1, 0);
+  MultiFab rhoYe_new(grids,dmap, 1, 0);
+  MultiFab rhoYe_old(grids,dmap, 1, 0);
+  MultiFab rhoYe_star(grids,dmap, 1, 0);
 #else
   MultiFab rhoYe_new, rhoYe_old, rhoYe_star;
 #endif
 
-  MultiFab rho(grids,1,1);
-  MultiFab temp_new(grids,1,1); // ghost cell for kappa_r
-  MultiFab temp_star(grids,1,0);
+  MultiFab rho(grids,dmap,1,1);
+  MultiFab temp_new(grids,dmap,1,1); // ghost cell for kappa_r
+  MultiFab temp_star(grids,dmap,1,0);
 #ifdef NEUTRINO
-  MultiFab Ye_new(grids, 1, 1);
-  MultiFab Ye_star(grids, 1, 0);
+  MultiFab Ye_new(grids,dmap, 1, 1);
+  MultiFab Ye_star(grids,dmap, 1, 0);
 #else
   MultiFab Ye_new, Ye_star;
   if (castro->NumAux > 0) {
-    Ye_new.define(grids, 1, 1, Fab_allocate);
+      Ye_new.define(grids, dmap, 1, 1);
   }
 #endif
 
@@ -167,28 +168,28 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   // Planck mean and Rosseland 
-  MultiFab kappa_p(grids,nGroups,1);
-  MultiFab kappa_r(grids,nGroups,1); 
+  MultiFab kappa_p(grids,dmap,nGroups,1);
+  MultiFab kappa_r(grids,dmap,nGroups,1); 
 
   // emissivity, j_g = \int j_nu dnu
   // j_nu = 4 pi /c * \eta_0^{th} = \kappa_0 * B_\nu (assuming LTE),
   // where B_\nu is the usual Planck function \times 4 pi / c
-  MultiFab jg(grids,nGroups,1);    
-  MultiFab djdT(grids,nGroups,1);  
-  MultiFab dkdT(grids,nGroups,1);  
-  MultiFab etaT(grids,1,0);
-  MultiFab etaTz(grids,1,0);
-  MultiFab eta1(grids,1,0); // eta1 = 1 - etaT + etaY
+  MultiFab jg(grids,dmap,nGroups,1);    
+  MultiFab djdT(grids,dmap,nGroups,1);  
+  MultiFab dkdT(grids,dmap,nGroups,1);  
+  MultiFab etaT(grids,dmap,1,0);
+  MultiFab etaTz(grids,dmap,1,0);
+  MultiFab eta1(grids,dmap,1,0); // eta1 = 1 - etaT + etaY
 #ifdef NEUTRINO
-  MultiFab djdY  (grids, nGroups, 1); 
-  MultiFab dkdY  (grids, nGroups, 1); 
-  MultiFab etaY  (grids, 1      , 0);
-  MultiFab etaYz (grids, 1      , 0);
-  MultiFab thetaT(grids, 1      , 0);
-  MultiFab thetaY(grids, 1      , 0);  
-  MultiFab thetaTz(grids, 1      , 0);
-  MultiFab thetaYz(grids, 1      , 0);  
-  MultiFab theta1(grids, 1      , 0);  
+  MultiFab djdY  (grids,dmap, nGroups, 1); 
+  MultiFab dkdY  (grids,dmap, nGroups, 1); 
+  MultiFab etaY  (grids,dmap, 1      , 0);
+  MultiFab etaYz (grids,dmap, 1      , 0);
+  MultiFab thetaT(grids,dmap, 1      , 0);
+  MultiFab thetaY(grids,dmap, 1      , 0);  
+  MultiFab thetaTz(grids,dmap, 1      , 0);
+  MultiFab thetaYz(grids,dmap, 1      , 0);  
+  MultiFab theta1(grids,dmap, 1      , 0);  
 #else
   MultiFab djdY, dkdY, etaY, etaYz, thetaT, thetaY, thetaTz, thetaYz, theta1;
 #endif
@@ -196,22 +197,22 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab& mugT = djdT;
   MultiFab& mugY = djdY;
 
-  MultiFab dedT(grids,1,0);
+  MultiFab dedT(grids,dmap,1,0);
 #ifdef NEUTRINO
-  MultiFab dedY(grids,1,0);
+  MultiFab dedY(grids,dmap,1,0);
 #else
   MultiFab dedY;
 #endif
 
-  MultiFab coupT(grids,1,0); // \sum{\kappa E - j}
+  MultiFab coupT(grids,dmap,1,0); // \sum{\kappa E - j}
 #ifdef NEUTRINO
-  MultiFab coupY(grids,1,0); // \sum{(\kappa E - j)*erg2rhoYe}
+  MultiFab coupY(grids,dmap,1,0); // \sum{(\kappa E - j)*erg2rhoYe}
 #else 
   MultiFab coupY;
 #endif
 
   // multigroup boundary object
-  MGRadBndry mgbd(grids, nGroups, castro->Geom());
+  MGRadBndry mgbd(grids,dmap, nGroups, castro->Geom());
   getBndryDataMG(mgbd, Er_new, time, level);
 
   bool have_Sanchez_Pomraning = false;
@@ -240,7 +241,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   Tuple<MultiFab, BL_SPACEDIM> Flux;
   for (int n = 0; n < BL_SPACEDIM; n++) {
-    Flux[n].define(castro->getEdgeBoxArray(n), 1, 0, Fab_allocate);
+      Flux[n].define(castro->getEdgeBoxArray(n), dmap, 1, 0);
   }
 
   std::unique_ptr<MultiFab> flxsave;
@@ -250,7 +251,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       flxcc = plotvar[level].get();
       icomp_flux = icomp_com_Fr;
   } else if (plot_lab_Er || plot_lab_flux) {
-      flxsave.reset(new MultiFab(grids, nGroups*BL_SPACEDIM, 0, Fab_allocate));
+      flxsave.reset(new MultiFab(grids, dmap, nGroups*BL_SPACEDIM, 0));
       flxcc = flxsave.get();
       icomp_flux = 0;
   } 
@@ -362,7 +363,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
 	{ // src and rhd block
 	  	  
-	  MultiFab rhs(grids,1,0);
+	  MultiFab rhs(grids,dmap,1,0);
 
 	  solver.levelRhs(level, rhs, jg, mugT, mugY, 
 			  coupT, coupY, etaT, etaY, thetaT, thetaY,

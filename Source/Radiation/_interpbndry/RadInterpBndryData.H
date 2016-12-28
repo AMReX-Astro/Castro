@@ -50,7 +50,8 @@ public:
 //@ManDoc: default constructor
     RadInterpBndryData() : RadBndryData() {};
 //@ManDoc: constructor for given BoxArray, etc
-    RadInterpBndryData(const amrex::BoxArray& _grids, int _ncomp, const amrex::Geometry& geom);
+    RadInterpBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+		       int _ncomp, const amrex::Geometry& geom);
 //@ManDoc: interpret user BCs to those expected by LinOp: takes integer ratio and
 // is a wrapper to the IntVect version
     void setBndryConds(const amrex::BCRec& phys_bc,

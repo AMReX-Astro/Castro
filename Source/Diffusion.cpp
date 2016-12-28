@@ -80,7 +80,9 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 	coeffs_curv.resize(BL_SPACEDIM);
 
 	for (int i = 0; i< BL_SPACEDIM; ++i) {
-	    coeffs_curv[i].reset(new MultiFab(temp_cond_coef[i]->boxArray(), 1, 0, Fab_allocate));
+	    coeffs_curv[i].reset(new MultiFab(temp_cond_coef[i]->boxArray(),
+					      temp_cond_coef[i]->DistributionMap(),
+					      1, 0));
 	    MultiFab::Copy(*coeffs_curv[i], *temp_cond_coef[i], 0, 0, 1, 0);
 	}
 
