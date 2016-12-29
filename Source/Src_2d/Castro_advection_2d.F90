@@ -250,16 +250,12 @@ contains
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
     call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
 #ifdef RADIATION
                 rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
 #endif
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-#ifdef RADIATION
-                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
-#else
-                qaux(:,:,QGAMC), qa_l1, qa_l2, qa_h1, qa_h2, &
-#endif
                 srcQ, src_l1, src_l2, src_h1, src_h2, &
                 hdt, hdtdy, &
                 ilo1-1, ihi1+1, ilo2, ihi2)
@@ -281,16 +277,12 @@ contains
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
     call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
 #ifdef RADIATION
                 rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
 #endif
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-#ifdef RADIATION
-                qaux(:,:,QGAMCG), qa_l1, qa_l2, qa_h1, qa_h2, &
-#else
-                qaux(:,:,QGAMC), qa_l1, qa_l2, qa_h1, qa_h2, &
-#endif
                 srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
                 hdt, hdtdx, &
                 area1, area1_l1, area1_l2, area1_h1, area1_h2, &
