@@ -436,10 +436,9 @@ contains
           ! Compute U_x and U_y at kc (k3d)
 
 #ifdef RADIATION
-          call tracexy_ppm_rad(q, qaux(:,:,:,QC), qaux(:,:,:,QCG), flatn, qd_lo, qd_hi, &
+          call tracexy_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
                                Ip, Im, Ip_src, Im_src, &
                                qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                               qaux(:,:,:,QGAMC), qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                                lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 #else
           call tracexy_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
@@ -555,10 +554,9 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
 #ifdef RADIATION
-          call tracez_ppm_rad(q, qaux(:,:,:,QC), qaux(:,:,:,QCG), flatn, qd_lo, qd_hi, &
+          call tracez_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
                               Ip, Im, Ip_src, Im_src, &
                               qzm, qzp, qt_lo, qt_hi, &
-                              qaux(:,:,:,QGAMC), qaux(:,:,:,QGAMCG), qa_lo, qa_hi, &
                               lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
 
 #else

@@ -206,12 +206,11 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call trace_ppm_rad(q,qaux(:,:,QC),qaux(:,:,QCG),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                          dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                          qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-                          srcQ,src_l1,src_l2,src_h1,src_h2, &
-                          qaux(:,:,QGAMC),qaux(:,:,QGAMCG),qa_l1,qa_l2,qa_h1,qa_h2, &
-                          ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call trace_ppm_rad(q, qaux, flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                          dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
+                          qxm, qxp, qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+                          srcQ, src_l1, src_l2, src_h1, src_h2, &
+                          ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
 
 #else
        call trace_ppm(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &

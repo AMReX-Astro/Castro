@@ -128,12 +128,11 @@ contains
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
-       call trace_ppm_rad(q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG), &
-                          flatn,qd_l1,qd_h1, &
-                          dloga,dloga_l1,dloga_h1, &
-                          srcQ,src_l1,src_h1, &
-                          qm,qp,ilo-1,ihi+1, &
-                          ilo,ihi,domlo,domhi,dx,dt)
+       call trace_ppm_rad(q, qaux, flatn, qd_l1, qd_h1, &
+                          dloga, dloga_l1, dloga_h1, &
+                          srcQ, src_l1, src_h1, &
+                          qm, qp, ilo-1, ihi+1, &
+                          ilo, ihi, domlo, domhi, dx, dt)
 #else
        call trace_ppm(q,qaux(:,QC),flatn,qaux(:,QGAMC),qd_l1,qd_h1, &
                       dloga,dloga_l1,dloga_h1, &
