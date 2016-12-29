@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use parallel
   use probdata_module
@@ -67,7 +67,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      xloc_vortices(i) = (dble(i-1) + 0.5d0) * offset + problo(1)
   enddo
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

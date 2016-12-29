@@ -1,5 +1,5 @@
       
-      subroutine PROBINIT (init,name,namlen,problo,probhi)
+      subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
       use probdata_module
       use network, only : network_init
       implicit none

@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_types
   use bl_constants_module
@@ -67,7 +67,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = HALF*(problo(1)+probhi(1))
   center(2) = HALF*(problo(2)+probhi(2))
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

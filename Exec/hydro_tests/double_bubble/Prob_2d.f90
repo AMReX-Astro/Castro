@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use prob_params_module, only: center
   use probdata_module
@@ -58,7 +58,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      right_bubble_x_center = problo(1) + 2.d0*(probhi(1)-problo(1))/3.d0
   endif
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

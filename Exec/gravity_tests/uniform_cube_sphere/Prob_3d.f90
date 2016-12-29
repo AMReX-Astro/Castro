@@ -1,4 +1,4 @@
-   subroutine PROBINIT (init,name,namlen,problo,probhi)
+   subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
      use probdata_module
      use bl_constants_module
@@ -44,7 +44,7 @@
      read(untin,fortin)
      close(unit=untin)
 
-   end subroutine PROBINIT
+   end subroutine amrex_probinit
 
 
    ! ::: -----------------------------------------------------------

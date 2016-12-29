@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use prob_params_module, only : center
@@ -45,7 +45,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(2) = (problo(2)+probhi(2))/2.d0
   center(3) = (problo(3)+probhi(3))/2.d0
   
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

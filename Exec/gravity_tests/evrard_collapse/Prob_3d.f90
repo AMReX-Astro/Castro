@@ -1,4 +1,4 @@
-   subroutine PROBINIT (init,name,namlen,problo,probhi)
+   subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      
      use probdata_module, only: initialize
 
@@ -10,7 +10,7 @@
 
      call initialize(name, namlen)
 
-   end subroutine PROBINIT
+   end subroutine amrex_probinit
 
 
    ! ::: -----------------------------------------------------------

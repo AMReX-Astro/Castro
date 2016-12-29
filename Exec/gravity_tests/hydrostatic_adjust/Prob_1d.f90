@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
@@ -98,7 +98,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   hse_eint_top = eos_state%e
   hse_p_top = eos_state%p
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used

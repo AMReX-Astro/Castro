@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
@@ -43,7 +43,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = frac*(problo(1)+probhi(1))
   center(2) = frac*(problo(2)+probhi(2))
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

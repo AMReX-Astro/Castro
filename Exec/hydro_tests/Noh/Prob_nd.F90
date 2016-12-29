@@ -1,4 +1,4 @@
-   subroutine PROBINIT (init,name,namlen,problo,probhi)
+   subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
      implicit none
 
@@ -6,7 +6,7 @@
      integer :: name(namlen)
      double precision :: problo(3), probhi(3)
 
-   end subroutine PROBINIT
+   end subroutine amrex_probinit
 
 
    ! ::: -----------------------------------------------------------

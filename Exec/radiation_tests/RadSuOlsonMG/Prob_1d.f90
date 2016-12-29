@@ -1,5 +1,5 @@
 
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use network, only : network_init
@@ -56,7 +56,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   qn(0) = a_rad * Temp0**4 * c_light * kapbar * Q * p0
   qn(1) = a_rad * Temp0**4 * c_light * kapbar * Q * p1
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used

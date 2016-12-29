@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_types
   use prob_params_module, only: center
@@ -71,7 +71,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   print *, 'here!', const_conductivity, diff_coeff
   rho0 = const_conductivity/(diff_coeff*eos_state%cv)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

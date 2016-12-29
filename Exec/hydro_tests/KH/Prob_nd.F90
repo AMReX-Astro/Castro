@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
    use probdata_module
    use bl_constants_module
@@ -62,7 +62,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
       pressure = 10.0
    endif
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

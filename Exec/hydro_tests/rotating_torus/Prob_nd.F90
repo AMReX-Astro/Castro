@@ -1,4 +1,4 @@
-subroutine probinit(init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_constants_module
   use fundamental_constants_module, only: Gconst
@@ -48,7 +48,7 @@ subroutine probinit(init,name,namlen,problo,probhi)
   torus_width = HALF * (outer_radius - inner_radius)
   torus_center = inner_radius + torus_width
 
-end subroutine probinit
+end subroutine amrex_probinit
 
 
 

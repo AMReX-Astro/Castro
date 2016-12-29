@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use eos_module, only : gamma_const
@@ -45,7 +45,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   L_x = probhi(1) - problo(1)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

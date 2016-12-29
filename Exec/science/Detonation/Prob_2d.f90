@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use network   , only : network_species_index, nspec
@@ -89,7 +89,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xn(io16) = 1.d0 - cfrac
 
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

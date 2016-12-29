@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
@@ -110,7 +110,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   endif
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

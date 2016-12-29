@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use bl_constants_module
@@ -70,7 +70,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   x_c2  = HALF*probhi(1)
   y_c2  = HALF*probhi(2) - r_0
   
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

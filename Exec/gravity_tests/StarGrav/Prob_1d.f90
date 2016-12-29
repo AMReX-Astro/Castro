@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
@@ -41,7 +41,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   center(1) = 0.d0
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used

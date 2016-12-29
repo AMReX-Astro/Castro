@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use bl_error_module
@@ -125,7 +125,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! we're done -- abort the code
   call bl_error("done with Riemann")
   
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------

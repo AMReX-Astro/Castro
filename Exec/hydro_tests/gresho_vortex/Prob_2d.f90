@@ -4,7 +4,7 @@
 ! By choosing the reference pressure, p0, we can specify the
 ! Mach number
 
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use prob_params_module, only : center
@@ -53,7 +53,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   x_r = probhi(1) - problo(1)
   q_r = 0.4_dp_t*M_pi*x_r/t_r
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
