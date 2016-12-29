@@ -640,7 +640,7 @@ contains
           rhoe_g = q(i,j,k3d,QREINT)
           h_g = ( (p + rhoe_g)/rho)/csq
 
-          gam_g = gamc(i,j,k3d)
+          gam_g = gamcg(i,j,k3d)
           game = q(i,j,k3d,QGAME)
 
           ptot = q(i,j,k3d,qptot)
@@ -1198,7 +1198,7 @@ contains
           rhoe_g = q(i,j,k3d,QREINT)
           h_g = ( (p + rhoe_g)/rho)/csq
 
-          gam_g = gamc(i,j,k3d)
+          gam_g = gamcg(i,j,k3d)
           game = q(i,j,k3d,QGAME)
 
           ptot = q(i,j,k3d,qptot)
@@ -1410,7 +1410,7 @@ contains
           rhoe_g = q(i,j,k3d-1,QREINT)
           h_g = ( (p + rhoe_g)/rho)/csq
 
-          gam_g = gamc(i,j,k3d-1)
+          gam_g = gamcg(i,j,k3d-1)
           game = q(i,j,k3d-1,QGAME)
 
           ptot = q(i,j,k3d-1,qptot)
