@@ -999,7 +999,7 @@ contains
                     verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, NQ, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
                                    GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &

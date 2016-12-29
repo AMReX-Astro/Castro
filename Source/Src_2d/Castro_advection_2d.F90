@@ -386,7 +386,7 @@ contains
 #endif
                                    UEDEN, UEINT, UTEMP, NGDNV, GDPRES, track_grid_losses, &
 
-                                   limit_fluxes_on_small_dens, QVAR, NQ
+                                   limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : coord_type, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
     use advection_util_2d_module, only : normalize_species_fluxes
