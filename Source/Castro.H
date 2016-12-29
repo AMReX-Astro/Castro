@@ -680,6 +680,11 @@ protected:
     Array< Array<Real> > radius;
 
     //
+    // Keep track of which AMR iteration we're on.
+    //
+    int iteration;
+
+    //
     // Static data members.
     //
 #include <castro_params.H>

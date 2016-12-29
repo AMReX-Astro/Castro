@@ -363,6 +363,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
 
+    // Save the current iteration.
+
+    iteration = amr_iteration;
+
     // The option of whether to do a multilevel initialization is
     // controlled within the radiation class.  This step belongs
     // before the swap.
@@ -510,14 +514,21 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // Store the fluxes in the flux registers. In the old method,
     // we just store the current level's fluxes; in the new method,
     // we need to add the contribution from all coarser levels.
+    // Note that in the new method we only want to update the flux
+    // registers on the finest level for consistency purposes,
+    // so we'll skip the loop on coarser levels.
 
     if (do_reflux && level > 0) {
 
 	int fine_level = level;
 	int crse_level = level - 1;
 
-	if (reflux_strategy == 1)
-	    crse_level = 0;
+	if (reflux_strategy == 1) {
+	    if (level == parent->finestLevel())
+		crse_level = 0;
+	    else
+		crse_level = fine_level+1;
+	}
 
 	FluxRegister* reg;
 
@@ -532,8 +543,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    Castro& crse_lev = getLevel(lev-1);
 	    Castro& fine_lev = getLevel(lev);
 
+	    bool update_coarse_fluxes;
+
+	    update_coarse_fluxes = true;
+	    for (int temp_lev = lev; temp_lev <= parent->finestLevel(); ++temp_lev)
+		if (getLevel(temp_lev).iteration > 1)
+		    update_coarse_fluxes = false;
+
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		if (amr_iteration == 1)
+		if (update_coarse_fluxes)
 		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
 		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
 	    }
@@ -543,7 +561,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 		reg = &getLevel(lev).pres_reg;
 
-		if (amr_iteration == 1)
+		if (update_coarse_fluxes)
 		    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
 		reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_fine_scale);
 
@@ -556,7 +574,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 		reg = &getLevel(lev).rad_flux_reg;
 
 		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    if (amr_iteration == 1)
+		    if (update_coarse_fluxes)
 			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
 		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
 		}
