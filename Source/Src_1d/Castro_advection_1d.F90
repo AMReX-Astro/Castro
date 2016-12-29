@@ -203,7 +203,7 @@ contains
                                    comoving, fspace_type, &
                                    GDU, GDPRES, &
 #endif
-                                   limit_fluxes_on_small_dens, QVAR, NGDNV, GDPRES, NQ
+                                   limit_fluxes_on_small_dens, NGDNV, GDPRES, NQ
     use advection_util_1d_module, only: normalize_species_fluxes
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
