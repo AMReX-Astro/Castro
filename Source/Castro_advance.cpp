@@ -546,7 +546,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    bool update_coarse_fluxes;
 
 	    update_coarse_fluxes = true;
-	    for (int temp_lev = lev; temp_lev <= parent->finestLevel(); ++temp_lev)
+	    for (int temp_lev = lev; temp_lev <= fine_level; ++temp_lev)
 		if (getLevel(temp_lev).iteration > 1)
 		    update_coarse_fluxes = false;
 
