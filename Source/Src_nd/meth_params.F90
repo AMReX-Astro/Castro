@@ -29,7 +29,7 @@ module meth_params_module
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
 #ifdef RADIATION
-  integer, save :: QGAMCG, QCG
+  integer, save :: QGAMCG, QCG, QLAM
 #endif
   integer, save :: QFA, QFS, QFX
 
@@ -90,7 +90,7 @@ module meth_params_module
   !$acc create(QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
-  !$acc create(QGAMCG, QCG) &
+  !$acc create(QGAMCG, QCG, QLAM) &
   !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif

@@ -480,9 +480,10 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
   ! that we create in the primitive variable call but that do not need to
   ! participate in tracing.
+  ! Note: radiation adds cg, gamcg, lambda
 
 #ifdef RADIATION
-  NQAUX = 7
+  NQAUX = 8
 #else
   NQAUX = 5
 #endif        
@@ -495,6 +496,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef RADIATION
   QGAMCG  = 6
   QCG     = 7
+  QLAM    = 8
 #endif
 
   ! easy indexing for the passively advected quantities.  This
@@ -604,7 +606,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
 #ifdef RADIATION
-  !$acc device(QGAMCG, QCG) &
+  !$acc device(QGAMCG, QCG, QLAM) &
 #endif
   !$acc device(small_dens, small_temp)
 
