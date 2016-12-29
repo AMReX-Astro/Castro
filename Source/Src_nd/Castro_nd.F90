@@ -345,6 +345,9 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use parallel, only : parallel_initialize
   use eos_module, only : eos_init, eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
 
   implicit none
 
@@ -480,10 +483,10 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
   ! that we create in the primitive variable call but that do not need to
   ! participate in tracing.
-  ! Note: radiation adds cg, gamcg, lambda
+  ! Note: radiation adds cg, gamcg, lambda (ngroups components)
 
 #ifdef RADIATION
-  NQAUX = 8
+  NQAUX = 7 + ngroups
 #else
   NQAUX = 5
 #endif        
@@ -496,7 +499,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef RADIATION
   QGAMCG  = 6
   QCG     = 7
-  QLAM    = 8
+  QLAMS   = 8
 #endif
 
   ! easy indexing for the passively advected quantities.  This
@@ -606,7 +609,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
 #ifdef RADIATION
-  !$acc device(QGAMCG, QCG, QLAM) &
+  !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
   !$acc device(small_dens, small_temp)
 

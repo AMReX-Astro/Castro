@@ -573,6 +573,7 @@ contains
 
              qaux(i,j,k,QC)    = ctot
              qaux(i,j,k,QGAMC) = gamc_tot
+             qaux(i,j,k,QLAMS:QLAMS-1+ngroups) = lam(i,j,k,0:ngroups-1)
 
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
 #else
