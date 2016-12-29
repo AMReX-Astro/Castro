@@ -413,7 +413,7 @@ class HypreMultiABec {
 
   int verbose, verbose_threshold, bho, use_subgrids;
 
-  HYPRE_SStructGrid     grid;
+  HYPRE_SStructGrid     hgrid;
   HYPRE_SStructStencil  stencil;
   HYPRE_SStructGraph    graph;
   HYPRE_SStructMatrix   A, A0;

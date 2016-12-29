@@ -100,7 +100,7 @@ class HypreABec {
 
   int solver_flag, verbose, verbose_threshold, pfmg_relax_type, bho;
 
-  HYPRE_StructGrid    grid;
+  HYPRE_StructGrid    hgrid;
   //HYPRE_StructStencil stencil;
 
   HYPRE_StructMatrix  A, A0;

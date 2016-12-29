@@ -97,7 +97,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   // (SMG reduces to cyclic reduction in this case, so it's an exact solve.)
   // (PFMG will not work.)
 
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, 2, &grid);
+  HYPRE_StructGridCreate(MPI_COMM_WORLD, 2, &hgrid);
 
   if (geom.isAnyPeriodic()) {
     BL_ASSERT(geom.isPeriodic(0));
@@ -108,12 +108,12 @@ HypreABec::HypreABec(const BoxArray& grids,
     is_periodic[1] = 0;
     BL_ASSERT(ispow2(is_periodic[0]));
 
-    HYPRE_StructGridSetPeriodic(grid, is_periodic);
+    HYPRE_StructGridSetPeriodic(hgrid, is_periodic);
   }
 
 #else
 
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, &grid);
+  HYPRE_StructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, &hgrid);
 
   if (geom.isAnyPeriodic()) {
     int is_periodic[BL_SPACEDIM];
@@ -125,7 +125,7 @@ HypreABec::HypreABec(const BoxArray& grids,
 	BL_ASSERT(geom.Domain().smallEnd(i) == 0);
       }
     }
-    HYPRE_StructGridSetPeriodic(grid, is_periodic);
+    HYPRE_StructGridSetPeriodic(hgrid, is_periodic);
   }
 #endif
 
@@ -137,17 +137,17 @@ HypreABec::HypreABec(const BoxArray& grids,
 
     for (i = 0; i < grids.size(); i++) {
       if (distributionMap[i] == myid) {
-	HYPRE_StructGridSetExtents(grid, loV(grids[i]), hiV(grids[i]));
+	HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
       }
     }
   }
   else {
     for (i = 0; i < grids.size(); i++) {
-      HYPRE_StructGridSetExtents(grid, loV(grids[i]), hiV(grids[i]));
+      HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
     }
   }
 
-  HYPRE_StructGridAssemble(grid);
+  HYPRE_StructGridAssemble(hgrid);
 
 #if (BL_SPACEDIM == 1)
   // if we were really 1D:
@@ -190,20 +190,20 @@ HypreABec::HypreABec(const BoxArray& grids,
     HYPRE_StructStencilSetElement(stencil, i, offsets[i]);
   }
 
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &A);
+  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, hgrid, stencil, &A);
   HYPRE_StructMatrixSetSymmetric(A, 1);
   HYPRE_StructMatrixSetNumGhost(A, A_num_ghost);
   HYPRE_StructMatrixInitialize(A);
 
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &A0);
+  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, hgrid, stencil, &A0);
   HYPRE_StructMatrixSetSymmetric(A0, 1);
   HYPRE_StructMatrixSetNumGhost(A0, A_num_ghost);
   HYPRE_StructMatrixInitialize(A0);
 
-  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, stencil, &b);
-  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, stencil, &x);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &b);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &x);
+  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, stencil, &b);
+  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, stencil, &x);
+  HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, &b);
+  HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, &x);
 
   HYPRE_StructStencilDestroy(stencil); // no longer needed
 
@@ -230,7 +230,7 @@ HypreABec::~HypreABec()
   HYPRE_StructMatrixDestroy(A);
   HYPRE_StructMatrixDestroy(A0);
 
-  HYPRE_StructGridDestroy(grid);
+  HYPRE_StructGridDestroy(hgrid);
 }
 
 void HypreABec::setScalars(Real Alpha, Real Beta)

@@ -615,7 +615,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
     c_cintrp(fine_level+1),
     c_ederiv(fine_level+1),
     c_entry(fine_level+1),
-    grid(NULL), stencil(NULL), graph(NULL),
+    hgrid(NULL), stencil(NULL), graph(NULL),
     A(NULL), A0(NULL), b(NULL), x(NULL),
     sstruct_solver(NULL), solver(NULL), precond(NULL)
 {
@@ -686,11 +686,11 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
   // (SMG reduces to cyclic reduction in this case, so it's an exact solve.)
   // (PFMG will not work.)
 
-  HYPRE_SStructGridCreate(MPI_COMM_WORLD, 2, nparts, &grid);
+  HYPRE_SStructGridCreate(MPI_COMM_WORLD, 2, nparts, &hgrid);
 
 #else
 
-  HYPRE_SStructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, nparts, &grid);
+  HYPRE_SStructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, nparts, &hgrid);
 
 #endif
 }
@@ -705,7 +705,7 @@ HypreMultiABec::~HypreMultiABec()
 
   HYPRE_SStructGraphDestroy(graph);
   HYPRE_SStructStencilDestroy(stencil);
-  HYPRE_SStructGridDestroy(grid);
+  HYPRE_SStructGridDestroy(hgrid);
 }
 
 void HypreMultiABec::addLevel(int             level,
@@ -732,7 +732,7 @@ void HypreMultiABec::addLevel(int             level,
     is_periodic[1] = 0;
     BL_ASSERT(ispow2(is_periodic[0]));
 
-    HYPRE_SStructGridSetPeriodic(grid, part, is_periodic);
+    HYPRE_SStructGridSetPeriodic(hgrid, part, is_periodic);
   }
 
 #else
@@ -747,21 +747,19 @@ void HypreMultiABec::addLevel(int             level,
 	BL_ASSERT(geom[level].Domain().smallEnd(i) == 0);
       }
     }
-    HYPRE_SStructGridSetPeriodic(grid, part, is_periodic);
+    HYPRE_SStructGridSetPeriodic(hgrid, part, is_periodic);
   }
 
 #endif
 
-  int num_procs = ParallelDescriptor::NProcs();
-  int myid      = ParallelDescriptor::MyProc();
-  DistributionMapping distributionMap(grids[level], num_procs);
+  int myid = ParallelDescriptor::MyProc();
 
   subgrids[level].resize(grids[level].size());
 
   if (!use_subgrids || level == fine_level || grids[level+1].size() == 0) {
     for (int i = 0; i < grids[level].size(); i++) {
-      if (distributionMap[i] == myid) {
-        HYPRE_SStructGridSetExtents(grid, part,
+      if (dmap[level][i] == myid) {
+        HYPRE_SStructGridSetExtents(hgrid, part,
                                     loV(grids[level][i]),
                                     hiV(grids[level][i]));
       }
@@ -771,7 +769,7 @@ void HypreMultiABec::addLevel(int             level,
     BoxArray mask = grids[level+1];
     mask.coarsen(fine_ratio[level]);
     for (int i = 0; i < grids[level].size(); i++) {
-      if (distributionMap[i] == myid) {
+      if (dmap[level][i] == myid) {
         subgrids[level][i] = amrex::complementIn(grids[level][i], mask);
 #if 0
         std::cout << "Coarse level, grid " << i << " subgrids are "
@@ -780,7 +778,7 @@ void HypreMultiABec::addLevel(int             level,
              << "Subgrids numPts = " << subgrids[level][i].numPts() << std::endl;
 #endif
         for (int j = 0; j < subgrids[level][i].size(); j++) {
-          HYPRE_SStructGridSetExtents(grid, part,
+          HYPRE_SStructGridSetExtents(hgrid, part,
                                       loV(subgrids[level][i][j]),
                                       hiV(subgrids[level][i][j]));
         }
@@ -790,7 +788,7 @@ void HypreMultiABec::addLevel(int             level,
 
   // All variables are cell-centered
   HYPRE_SStructVariable vars[1] = {HYPRE_SSTRUCT_VARIABLE_CELL};
-  HYPRE_SStructGridSetVariables(grid, part, 1, vars);
+  HYPRE_SStructGridSetVariables(hgrid, part, 1, vars);
 }
 
 static void
@@ -995,7 +993,7 @@ void HypreMultiABec::buildMatrixStructure()
 
   // This can be done now that addLevel has been called for each level:
 
-  HYPRE_SStructGridAssemble(grid);
+  HYPRE_SStructGridAssemble(hgrid);
 
   // Setup stencils:
 
@@ -1038,7 +1036,7 @@ void HypreMultiABec::buildMatrixStructure()
   }
 
   BL_ASSERT(graph == NULL);
-  HYPRE_SStructGraphCreate(MPI_COMM_WORLD, grid, &graph);
+  HYPRE_SStructGraphCreate(MPI_COMM_WORLD, hgrid, &graph);
   HYPRE_SStructGraphSetObjectType(graph, ObjectType);
 
   for (int level = crse_level; level <= fine_level; level++) {
@@ -1296,11 +1294,11 @@ void HypreMultiABec::buildMatrixStructure()
   HYPRE_SStructMatrixInitialize(A0);
 
   BL_ASSERT(b == NULL);
-  HYPRE_SStructVectorCreate(MPI_COMM_WORLD, grid, &b);
+  HYPRE_SStructVectorCreate(MPI_COMM_WORLD, hgrid, &b);
   HYPRE_SStructVectorSetObjectType(b, ObjectType);
 
   BL_ASSERT(x == NULL);
-  HYPRE_SStructVectorCreate(MPI_COMM_WORLD, grid, &x);
+  HYPRE_SStructVectorCreate(MPI_COMM_WORLD, hgrid, &x);
   HYPRE_SStructVectorSetObjectType(x, ObjectType);
 
   HYPRE_SStructVectorInitialize(b);
@@ -2037,8 +2035,8 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_SStructFACSetLogging(sstruct_solver, 1);
 
     for (int i = 1; i < nparts; i++) {
-      HYPRE_SStructFACZeroCFSten(A, grid, i, prefinements[i]);
-      HYPRE_SStructFACZeroFCSten(A, grid, i);
+      HYPRE_SStructFACZeroCFSten(A, hgrid, i, prefinements[i]);
+      HYPRE_SStructFACZeroFCSten(A, hgrid, i);
     }
     for (int i = 0; i < nparts-1; i++) {
       HYPRE_SStructFACZeroAMRMatrixData(A, i, prefinements[i+1]);
