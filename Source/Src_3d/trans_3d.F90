@@ -8,12 +8,10 @@ module transverse_module
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
+                                 GDERADS, GDLAMS, &
 #endif
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-#ifdef RADIATION
-                                 GDERADS, GDLAMS, &
-#endif
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &
