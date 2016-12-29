@@ -4,7 +4,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                     uout, uout_l1, uout_l2, uout_h1, uout_h2, &
 #ifdef RADIATION
                     Erin, Erin_l1, Erin_l2, Erin_h1, Erin_h2, &
-                    lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                     Erout, Erout_l1, Erout_l2, Erout_h1, Erout_h2, &
 #endif
                     q, q_l1, q_l2, q_h1, q_h2, &
@@ -59,7 +58,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: uin_l1, uin_l2, uin_h1, uin_h2
 #ifdef RADIATION
   integer, intent(in) :: Erin_l1, Erin_l2, Erin_h1, Erin_h2
-  integer, intent(in) :: lam_l1, lam_l2, lam_h1, lam_h2
   integer, intent(in) :: Erout_l1, Erout_l2, Erout_h1, Erout_h2
 #endif
   integer, intent(in) :: uout_l1,uout_l2,uout_h1,uout_h2
@@ -83,7 +81,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(inout) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
 #ifdef RADIATION
   double precision, intent(in) :: Erin(Erin_l1:Erin_h1,Erin_l2:Erin_h2,0:ngroups-1)
-  double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
 #endif
   double precision, intent(inout) :: q(q_l1:q_h1,q_l2:q_h2,NQ)
@@ -198,7 +195,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                flux1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
                flux2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
 #ifdef RADIATION
-               lam, lam_l1,lam_l2,lam_h1,lam_h2, &
                radflux1,radflux1_l1,radflux1_l2,radflux1_h1,radflux1_h2, &
                radflux2,radflux2_l1,radflux2_l2,radflux2_h1,radflux2_h2, &
 #endif               

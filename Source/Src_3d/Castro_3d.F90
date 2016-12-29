@@ -4,7 +4,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                     uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
 #ifdef RADIATION
                     Erin, Erin_l1, Erin_l2, Erin_l3, Erin_h1, Erin_h2, Erin_h3, &
-                    lam, lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &
                     Erout, Erout_l1, Erout_l2, Erout_l3, Erout_h1, Erout_h2, Erout_h3, &
 #endif
                     q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
@@ -62,7 +61,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   integer, intent(in) :: Erin_l1, Erin_l2, Erin_l3, Erin_h1, Erin_h2, Erin_h3
   integer, intent(in) :: Erout_l1, Erout_l2, Erout_l3, Erout_h1, Erout_h2, Erout_h3
-  integer, intent(in) :: lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3
 #endif
   integer, intent(in) :: q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   integer, intent(in) :: qa_l1, qa_l2, qa_l3, qa_h1, qa_h2, qa_h3
@@ -86,7 +84,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   double precision, intent(in) :: Erin(Erin_l1:Erin_h1, Erin_l2:Erin_h2, Erin_l3:Erin_h3, 0:ngroups-1)
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3, 0:ngroups-1)
-  double precision, intent(in) :: lam(lam_l1:lam_h1, lam_l2:lam_h2, lam_l3:lam_h3, 0:ngroups-1)
 #endif
   double precision, intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQ)
   double precision, intent(in) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
@@ -131,7 +128,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   integer :: Erin_lo(3), Erin_hi(3)                                             
   integer :: Erout_lo(3), Erout_hi(3)                                           
-  integer :: lam_lo(3), lam_hi(3)
 #endif
   integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
@@ -170,9 +166,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
 #ifdef RADIATION
-  lam_lo(:) = [lam_l1, lam_l2, lam_l3]                                          
-  lam_hi(:) = [lam_h1, lam_h2, lam_h3]       
-
   Erin_lo = [Erin_l1, Erin_l2, Erin_l3]                                         
   Erin_hi = [Erin_h1, Erin_h2, Erin_h3]                                         
                                                                                 
@@ -266,7 +259,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                flux2, flux2_lo, flux2_hi, &
                flux3, flux3_lo, flux3_hi, &
 #ifdef RADIATION
-               lam, lam_lo, lam_hi, &
                radflux1, radflux1_lo, radflux1_hi, &
                radflux2, radflux2_lo, radflux2_hi, &
                radflux3, radflux3_lo, radflux3_hi, &

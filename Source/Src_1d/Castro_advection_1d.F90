@@ -33,7 +33,6 @@ contains
                      uout, uout_l1, uout_h1, &
                      flux, fd_l1, fd_h1, &
 #ifdef RADIATION
-                     lam, lam_l1, lam_h1, &
                      rflux, rfd_l1, rfd_h1, &
 #endif
                      q1, q1_l1, q1_h1, &
@@ -69,7 +68,6 @@ contains
     integer, intent(in) :: fd_l1, fd_h1
 #ifdef RADIATION
     integer, intent(in) :: rfd_l1, rfd_h1
-    integer, intent(in) :: lam_l1, lam_h1
 #endif
     integer, intent(in) :: q1_l1, q1_h1
     integer, intent(in) :: ilo, ihi
@@ -82,7 +80,6 @@ contains
     double precision, intent(inout) :: flux(fd_l1:fd_h1,NVAR)
 #ifdef RADIATION
     double precision, intent(inout) :: rflux(rfd_l1:rfd_h1,0:ngroups-1)
-    double precision, intent(in) :: lam(lam_l1:lam_h1,0:ngroups-1)
 #endif
     double precision, intent(in) :: srcQ(src_l1  :src_h1,QVAR)
     double precision, intent(inout) :: q1(q1_l1:q1_h1,NGDNV)
@@ -131,8 +128,7 @@ contains
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
-       call trace_ppm_rad(lam, lam_l1, lam_h1, &
-                          q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG), &
+       call trace_ppm_rad(q,qaux(:,QC),qaux(:,QCG),qaux(:,QGAMC),qaux(:,QGAMCG), &
                           flatn,qd_l1,qd_h1, &
                           dloga,dloga_l1,dloga_h1, &
                           srcQ,src_l1,src_h1, &
@@ -167,7 +163,6 @@ contains
                 flux, fd_l1, fd_h1, &
                 q1, q1_l1, q1_h1, &
 #ifdef RADIATION
-                lam, lam_l1, lam_h1, &
                 rflux, rfd_l1,rfd_h1, &
 #endif
                 qaux, qa_l1, qa_h1, ilo, ihi)

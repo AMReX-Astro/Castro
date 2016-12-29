@@ -159,6 +159,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  qaux.resize(qbx, NQAUX);
 	  src_q.resize(qbx, QVAR);
 
+	  // convert the conservative state to the primitive variable state.
+	  // this fills both q and qaux.
+
 	  ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		  statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
 #ifdef RADIATION
@@ -167,6 +170,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 		  q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
 		  qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
+
+	  // convert the source terms expressed as sources to the conserved state to those
+	  // expressed as sources for the primitive state.
 
 	  srctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		    q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
@@ -207,7 +213,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     BL_TO_FORTRAN(stateout),
 #ifdef RADIATION
 	     BL_TO_FORTRAN(Er), 
-	     BL_TO_FORTRAN(lam),
 	     BL_TO_FORTRAN(Erout),
 #endif
 	     BL_TO_FORTRAN(q),

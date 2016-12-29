@@ -4,7 +4,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                     uout, uout_l1, uout_h1, &
 #ifdef RADIATION
                     Erin, Erin_l1, Erin_h1, &
-                    lam, lam_l1, lam_h1, &
                     Erout, Erout_l1, Erout_h1, &
 #endif
                     q, q_l1, q_h1, &
@@ -59,7 +58,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   integer, intent(inout) :: nstep_fsp
   integer, intent(in) :: Erin_l1, Erin_h1
-  integer, intent(in) :: lam_l1, lam_h1
   integer, intent(in) :: Erout_l1, Erout_h1
   integer, intent(in) :: radflux_l1, radflux_h1
 #endif
@@ -79,7 +77,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
   double precision, intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
   double precision, intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
-  double precision, intent(in) ::  lam( lam_l1: lam_h1, 0:ngroups-1)
 #endif
   double precision, intent(inout) :: pradial(  p_l1:   p_h1)
   double precision, intent(in) :: area( area_l1: area_h1     )
@@ -175,7 +172,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                uout, uout_l1, uout_h1, &
                flux, flux_l1, flux_h1, &
 #ifdef RADIATION
-               lam, lam_l1, lam_h1, &
                radflux,radflux_l1,radflux_h1, &
 #endif
                q1, flux_l1-1, flux_h1+1, &

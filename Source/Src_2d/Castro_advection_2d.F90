@@ -37,7 +37,6 @@ contains
                      flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                      flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
 #ifdef RADIATION
-                     lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                      rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
                      rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
 #endif
@@ -83,7 +82,6 @@ contains
 #ifdef RADIATION
     integer, intent(in) :: rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2
     integer, intent(in) :: rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2
-    integer, intent(in) :: lam_l1, lam_l2, lam_h1, lam_h2
 #endif
     integer, intent(in) :: q1_l1, q1_l2, q1_h1, q1_h2
     integer, intent(in) :: q2_l1, q2_l2, q2_h1, q2_h2
@@ -105,7 +103,6 @@ contains
     double precision, intent(inout) :: flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
     double precision, intent(inout) :: flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
 #ifdef RADIATION
-    double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision, intent(inout) :: rflux1(rfd1_l1:rfd1_h1,rfd1_l2:rfd1_h2,0:ngroups-1)
     double precision, intent(inout) :: rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,0:ngroups-1)
 #endif
@@ -209,8 +206,7 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call trace_ppm_rad(lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                          q,qaux(:,:,QC),qaux(:,:,QCG),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
+       call trace_ppm_rad(q,qaux(:,:,QC),qaux(:,:,QCG),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
                           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
                           qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
                           srcQ,src_l1,src_l2,src_h1,src_h2, &
@@ -233,7 +229,6 @@ contains
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
                 qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
 #ifdef RADIATION
-                lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                 rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
 #endif
                 qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
@@ -246,7 +241,6 @@ contains
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
 #ifdef RADIATION
-                lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                 rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
 #endif
                 qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
@@ -256,11 +250,7 @@ contains
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
-    call transy(&
-#ifdef RADIATION
-                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-#endif
-                qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+    call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
 #ifdef RADIATION
                 rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
@@ -282,7 +272,6 @@ contains
                 flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
                 q1, q1_l1, q1_l2, q1_h1, q1_h2, &
 #ifdef RADIATION
-                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
                 rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
 #endif
                 qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
@@ -292,11 +281,7 @@ contains
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
-    call transx(&
-#ifdef RADIATION
-                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-#endif
-                qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
+    call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
                 fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
 #ifdef RADIATION
                 rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
@@ -320,7 +305,6 @@ contains
                 flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
                 q2, q2_l1, q2_l2, q2_h1, q2_h2, &
 #ifdef RADIATION
-                lam,lam_l1,lam_l2,lam_h1,lam_h2, &
                 rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
 #endif
                 qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
