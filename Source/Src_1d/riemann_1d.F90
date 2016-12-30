@@ -78,7 +78,7 @@ contains
 #ifdef RADIATION
     allocate (gamcgp(ilo:ihi+1) )
     allocate (gamcgm(ilo:ihi+1) )
-    allocate (lam(ilo:ihi+1,0:ngroups-1) )
+    allocate (lam(ilo-1:ihi+2,0:ngroups-1) )
 #endif
 
     do i = ilo, ihi+1
@@ -89,9 +89,14 @@ contains
 #ifdef RADIATION
        gamcgm (i) = qaux(i-1,QGAMCG)
        gamcgp (i) = qaux(i,QGAMCG)
-       lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
 #endif
     enddo
+
+#ifdef RADIATION
+    do i = ilo-1, ihi+2
+       lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
+    enddo
+#endif
 
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
@@ -775,7 +780,7 @@ contains
     double precision  qint( qg_l1: qg_h1, NGDNV)
 
 #ifdef RADIATION
-    double precision lam(ilo:ihi+1, 0:ngroups-1)
+    double precision lam(ilo-1:ihi+2, 0:ngroups-1)
     double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
     double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 
