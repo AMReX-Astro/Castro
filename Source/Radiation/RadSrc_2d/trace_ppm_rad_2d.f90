@@ -19,8 +19,8 @@ contains
 
     use network, only : nspec
     use bl_constants_module
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
-         QGAME, &
+    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QREINT, QPRES, &
+         QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
          QRADVAR, qrad, qradhi, qptot, qreitot, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
@@ -49,8 +49,6 @@ contains
     double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
     double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
     double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
-
 
     double precision dx, dy, dt
 

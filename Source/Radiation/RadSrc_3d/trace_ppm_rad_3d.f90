@@ -18,7 +18,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-         QREINT, QPRES, QGAME, &
+         QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
          NQ, qrad, qradhi, qptot, qreitot, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, &

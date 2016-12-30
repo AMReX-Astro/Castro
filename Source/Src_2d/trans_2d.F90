@@ -2,13 +2,14 @@ module transverse_module
 
   use bl_constants_module
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
+  use meth_params_module, only : NQ, QVAR, NQAUX, &
+                                 NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, &
-                                 NGDNV, &
+                                 NGDNV, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
-                                 GDERADS, &
+                                 GDERADS, QGAMCG, QLAMS, &
                                  fspace_type, comoving, &
 #endif
                                  small_pres, small_temp, &
@@ -63,7 +64,8 @@ contains
     double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qaux(ga_l1:ga_h1,ga_l2:ga_h2,NQAUX)
+
+    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
 
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
     double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
@@ -511,6 +513,8 @@ contains
     double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+
+    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
 
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
     double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)

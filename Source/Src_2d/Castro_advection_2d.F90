@@ -93,7 +93,7 @@ contains
 
     double precision, intent(in) :: dx, dy, dt
     double precision, intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision, intent(in) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    double precision, intent(inout) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
     double precision, intent(in) :: flatn(qd_l1:qd_h1,qd_l2:qd_h2)
     double precision, intent(in) :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision, intent(in) :: dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
