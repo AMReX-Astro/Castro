@@ -66,7 +66,7 @@ contains
 
     ! Local variables
     integer i
-    double precision, allocatable :: smallc(:),cavg(:),gamcp(:), gamcm(:)
+    double precision, allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
 #ifdef RADIATION
     double precision, allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
 #endif
@@ -123,6 +123,9 @@ contains
     endif
 
     deallocate (smallc,cavg,gamcm,gamcp)
+#ifdef RADIATION
+    deallocate(gamcgm,gamcgp,lam)
+#endif
 
   end subroutine cmpflx
 

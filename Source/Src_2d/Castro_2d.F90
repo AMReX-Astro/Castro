@@ -84,7 +84,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
 #endif
   double precision, intent(inout) :: q(q_l1:q_h1,q_l2:q_h2,NQ)
-  double precision, intent(in) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+  double precision, intent(inout) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   double precision, intent(in) :: srcQ(srQ_l1:srQ_h1,srQ_l2:srQ_h2,QVAR)
   double precision, intent(inout) :: update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
   double precision, intent(inout) :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
