@@ -167,7 +167,7 @@ contains
 #ifdef RADIATION
           gamc = qaux(i,j,QGAMCG)
 #else
-          gamc = qaux(i,j,QGAMCG)
+          gamc = qaux(i,j,QGAMC)
 #endif
 
 #ifdef RADIATION
@@ -605,7 +605,7 @@ contains
 #ifdef RADIATION
           gamc = qaux(i,j,QGAMCG)
 #else
-          gamc = qaux(i,j,QGAMCG)
+          gamc = qaux(i,j,QGAMC)
 #endif
 
 
