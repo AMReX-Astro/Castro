@@ -500,6 +500,10 @@ contains
     ! update NQ -- it was already initialized in the hydro
     NQ = QRADVAR
 
+    ! NQAUX already knows about the hydro and the non-group-dependent
+    ! rad variables, update it here
+    NQAUX = NQAUX + ngroups
+
     if (ngroups .eq. 1) then
        fspace_type = 1
     else
@@ -523,7 +527,7 @@ contains
     flatten_pp_threshold = fppt
     
     !$acc update &
-    !$acc device(NQ) &
+    !$acc device(NQ,NQAUX) &
     !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &

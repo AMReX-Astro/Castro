@@ -483,10 +483,12 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
   ! that we create in the primitive variable call but that do not need to
   ! participate in tracing.
-  ! Note: radiation adds cg, gamcg, lambda (ngroups components)
-
+  ! Note: radiation adds cg, gamcg, lambda (ngroups components), but we don't
+  ! yet know the number of radiation groups, so we'll add that lambda count
+  ! to it later
+   
 #ifdef RADIATION
-  NQAUX = 7 + ngroups
+  NQAUX = 7 !+ ngroups to be added later
 #else
   NQAUX = 5
 #endif        

@@ -457,7 +457,7 @@ contains
 
     double precision, parameter :: small = 1.d-8
 
-    integer          :: i, j, k
+    integer          :: i, j, k, g
     integer          :: n, iq, ipassive
     double precision :: kineng, rhoinv
     double precision :: vel(3)
@@ -573,7 +573,10 @@ contains
 
              qaux(i,j,k,QC)    = ctot
              qaux(i,j,k,QGAMC) = gamc_tot
-             qaux(i,j,k,QLAMS:QLAMS-1+ngroups) = lam(i,j,k,0:ngroups-1)
+
+             do g = 0, ngroups-1
+                qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
+             enddo
 
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
 #else
