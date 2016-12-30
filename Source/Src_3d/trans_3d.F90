@@ -3,12 +3,14 @@ module transverse_module
   use bl_constants_module
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
+                                 QC, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
                                  GDERADS, GDLAMS, &
+                                 QCG, QGAMCG, QLAMS, &
 #endif
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
@@ -499,6 +501,7 @@ contains
     double precision rhoekenrz, rhoekenlz
     double precision compn, compu
     double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision :: gamc
 
 #ifdef RADIATION
     double precision :: dre, dmom
@@ -1250,6 +1253,7 @@ contains
     double precision pnewrz, pnewlz
     double precision rhoekenrz, rhoekenlz
     double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision :: gamc
 
 #ifdef RADIATION
     double precision :: dre, dmom
@@ -1650,6 +1654,7 @@ contains
     double precision pnewrx, pnewry, pnewlx, pnewly
     double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
     double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    double precision :: gamc
 
 #ifdef RADIATION
     double precision :: dmz, dre
@@ -2143,6 +2148,7 @@ contains
   ! transxy
   !===========================================================================
   subroutine transxy(qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fxy, &
 #ifdef RADIATION
                      rfxy, &

@@ -19,7 +19,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
          QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
-         NQ, qrad, qradhi, qptot, qreitot, &
+         NQ, NQAUX, qrad, qradhi, qptot, qreitot, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, &
          ppm_reference_eigenvectors, ppm_predict_gammae, &
@@ -29,15 +29,13 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lam_lo(3), lam_hi(3)
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qs_lo(3), qs_hi(3)
-    integer, intent(in) :: gc_lo(3), gc_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: kc,k3d
 
     double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision, intent(in) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
+    double precision, intent(inout) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
     double precision, intent(in) :: Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
@@ -1050,8 +1048,8 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QGAME, &
-                                   NQ, qrad, qradhi, qptot, qreitot, &
+                                   QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
+                                   NQ, NQAUX, qrad, qradhi, qptot, qreitot, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_trace_sources, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
@@ -1063,7 +1061,6 @@ contains
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qs_lo(3), qs_hi(3)
-    integer, intent(in) :: gc_lo(3), gc_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: km, kc, k3d
 
@@ -1373,9 +1370,9 @@ contains
           ! been to find the minus state on face kc+1
 
           do g=0, ngroups-1
-             lam0(g) = lam(i,j,k3d-1,g)
-             lamp(g) = lam(i,j,k3d-1,g)
-             lamm(g) = lam(i,j,k3d-1,g)
+             lam0(g) = qaux(i,j,k3d-1,QLAMS+g)
+             lamp(g) = qaux(i,j,k3d-1,QLAMS+g)
+             lamm(g) = qaux(i,j,k3d-1,QLAMS+g)
           end do
 
           rho = q(i,j,k3d-1,QRHO)
