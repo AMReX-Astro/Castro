@@ -19,8 +19,8 @@ contains
 
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
-         NQ, qrad, qradhi, qptot, qreitot, &
-         QGAME, &
+         NQ, NQAUX, qrad, qradhi, qptot, qreitot, &
+         QGAME, QGAMC, QGAMCG, QC, QCG, QLAMS, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_predict_gammae, ppm_reference_eigenvectors, &

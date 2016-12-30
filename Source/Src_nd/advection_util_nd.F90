@@ -418,7 +418,7 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-                                   QCG, QGAMCG, &
+                                   QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
