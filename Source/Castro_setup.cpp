@@ -1,4 +1,3 @@
-#include <AMReX_winstd.H>
 #include <cstdio>
 
 #include "AMReX_LevelBld.H"
@@ -11,7 +10,7 @@
 # include "RAD_F.H"
 #endif
 
-#include "buildInfo.H"
+#include "AMReX_buildInfo.H"
 
 using std::string;
 using namespace amrex;

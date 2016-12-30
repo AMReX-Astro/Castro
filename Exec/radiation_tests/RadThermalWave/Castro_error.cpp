@@ -1,4 +1,3 @@
-#include <AMReX_winstd.H>
 
 #include "Castro.H"
 #include "Castro_error_F.H"

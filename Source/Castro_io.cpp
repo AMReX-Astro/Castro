@@ -1,4 +1,3 @@
-#include <AMReX_winstd.H>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -32,7 +31,7 @@
 #endif
 
 
-#include "buildInfo.H"
+#include "AMReX_buildInfo.H"
 
 using std::string;
 using namespace amrex;
@@ -663,7 +662,7 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
   jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
   jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-  jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
+  jobInfoFile << "BoxLib dir:    " << buildInfoGetAMReXDir() << "\n";
 
   jobInfoFile << "\n";
 

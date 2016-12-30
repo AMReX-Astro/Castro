@@ -1,4 +1,3 @@
-#include <AMReX_winstd.H>
 
 #ifndef WIN32
 #include <unistd.h>

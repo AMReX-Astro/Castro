@@ -2,7 +2,7 @@
 #define _Castro_F_H_
 #include <AMReX_BLFort.H>
 
-#include <AMReX_BoxLib.H>
+#include <AMReX.H>
 
 extern "C"
 {

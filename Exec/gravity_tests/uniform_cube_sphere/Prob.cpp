@@ -6,7 +6,7 @@
 
 #include "AMReX_ParmParse.H"
 
-#include "buildInfo.H"
+#include "AMReX_buildInfo.H"
 
 using namespace amrex;
 

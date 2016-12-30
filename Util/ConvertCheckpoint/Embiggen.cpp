@@ -2,7 +2,6 @@
 // This is the version that reads a Checkpoint file
 // and writes it out again.
 // ---------------------------------------------------------------
-#include <AMReX_winstd.H>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
