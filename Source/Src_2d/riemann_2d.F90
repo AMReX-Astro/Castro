@@ -10,7 +10,7 @@ module riemann_module
                                  GDPRES, GDGAME, QGAMC, QC, QCSML, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
-                                 GDERADS, GDLAMS, QGAMCG, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
                                  NGDNV, small_dens, small_pres, small_temp, &
                                  cg_maxiter, cg_tol, cg_blend, &
@@ -41,7 +41,6 @@ contains
                     flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                     qint, qg_l1, qg_l2, qg_h1, qg_h2, &
 #ifdef RADIATION
-                    lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                     rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
 #endif
                     qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
@@ -62,9 +61,7 @@ contains
     integer, intent(in) :: domlo(2),domhi(2)
 
 #ifdef RADIATION
-    integer, intent(in) :: lam_l1,lam_l2,lam_h1,lam_h2
     integer, intent(in) :: rflx_l1,rflx_l2,rflx_h1,rflx_h2
-    double precision, intent(inout) :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
     double precision, intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
 #endif
 
@@ -83,7 +80,7 @@ contains
     double precision, allocatable :: smallc(:,:), cavg(:,:)
     double precision, allocatable :: gamcm(:,:), gamcp(:,:)
 #ifdef RADIATION    
-    double precision, allocatable :: gamcgm(:,:), gamcgp(:,:)
+    double precision, allocatable :: gamcgm(:,:), gamcgp(:,:), lam(:,:,:)
 #endif
     
     integer :: imin, imax, jmin, jmax
@@ -98,6 +95,7 @@ contains
 #ifdef RADIATION   
     allocate ( gamcgm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate ( gamcgp(ilo-1:ihi+1,jlo-1:jhi+1) )
+    allocate (    lam(ilo-1:ihi+1,jlo-1:jhi+1,0:ngroups-1) )
 #endif
 
 #ifdef RADIATION
@@ -138,6 +136,14 @@ contains
           enddo
        enddo
     endif
+
+#ifdef RADIATION
+    do j = jlo-1, jhi+1
+       do i = ilo-1, ihi+1
+          lam(i,j,:) = qaux(i,j,QLAMS:QLAMS+ngroups-1)
+       enddo
+    enddo
+#endif
 
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
@@ -220,8 +226,7 @@ contains
                       flx, flx_l1, flx_l2, flx_h1, flx_h2, &
                       qint, qg_l1, qg_l2, qg_h1, qg_h2, &
 #ifdef RADIATION
-                      lam,lam_l1,lam_l2,lam_h1,lam_h2,&
-                      gamcgm, gamcgp, &
+                      lam, gamcgm, gamcgp, &
                       rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
 #endif
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
@@ -291,7 +296,7 @@ contains
 
     deallocate(smallc,cavg,gamcm,gamcp)
 #ifdef RADIATION
-    deallocate(gamcgm,gamcgp)
+    deallocate(gamcgm,gamcgp,lam)
 #endif
 
   end subroutine cmpflx
@@ -944,8 +949,7 @@ contains
                        uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
                        qint, qg_l1, qg_l2, qg_h1, qg_h2, &
 #ifdef RADIATION
-                       lam,lam_l1,lam_l2,lam_h1,lam_h2, &
-                       gamcgl,gamcgr, &
+                       lam, gamcgl, gamcgr, &
                        rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
 #endif
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
@@ -959,7 +963,6 @@ contains
     integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
     integer :: qg_l1, qg_l2, qg_h1, qg_h2
 #ifdef RADIATION
-    integer :: lam_l1, lam_l2, lam_h1, lam_h2
     integer :: rflx_l1, rflx_l2, rflx_h1, rflx_h2
 #endif
     integer :: idir, ilo1, ihi1, ilo2, ihi2
@@ -975,7 +978,7 @@ contains
     double precision :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
     double precision :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
 #ifdef RADIATION
-    double precision :: lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+    double precision ::    lam(gd_l1:gd_h1,gd_l2:gd_h2,0:ngroups-1)
     double precision :: gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: gamcgr(gd_l1:gd_h1,gd_l2:gd_h2)
     double precision :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)

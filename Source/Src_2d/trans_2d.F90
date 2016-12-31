@@ -2,15 +2,14 @@ module transverse_module
 
   use bl_constants_module
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
+  use meth_params_module, only : NQ, QVAR, NQAUX, &
+                                 NVAR, QRHO, QU, QV, QW, QPRES, QREINT, QGAME, &
                                  URHO, UMX, UMY, UEDEN, UEINT, QFS, QFX, &
                                  GDU, GDV, GDPRES, GDGAME, &
-#ifdef RADIATION
-                                 GDERADS, &
-#endif
-                                 NGDNV, &
+                                 NGDNV, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
+                                 GDERADS, QGAMCG, QLAMS, &
                                  fspace_type, comoving, &
 #endif
                                  small_pres, small_temp, &
@@ -34,29 +33,21 @@ module transverse_module
 
 contains
 
-  subroutine transx( &
-#ifdef RADIATION
-                    lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-#endif
-                    qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine transx(qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
+                    qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                     fx, fx_l1, fx_l2, fx_h1, fx_h2, &
 #ifdef RADIATION
                     rfx, rfx_l1, rfx_l2, rfx_h1, rfx_h2, &
 #endif
                     qgdx, qgdx_l1, qgdx_l2, qgdx_h1, qgdx_h2, &
-                    gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     hdt, cdtdx,  &
                     area1, area1_l1, area1_l2, area1_h1, area1_h2, &
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                     ilo, ihi, jlo, jhi)
 
-#ifdef RADIATION
-    integer lam_l1,lam_l2,lam_h1,lam_h2
-    integer rfx_l1, rfx_l2, rfx_h1, rfx_h2
-#endif
     integer qd_l1, qd_l2, qd_h1, qd_h2
-    integer gc_l1, gc_l2, gc_h1, gc_h2
+    integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fx_l1, fx_l2, fx_h1, fx_h2
     integer qgdx_l1, qgdx_l2, qgdx_h1, qgdx_h2
     integer src_l1, src_l2, src_h1, src_h2
@@ -65,7 +56,7 @@ contains
     integer ilo, ihi, jlo, jhi
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+    integer rfx_l1, rfx_l2, rfx_h1, rfx_h2
     double precision rfx(rfx_l1:rfx_h1,rfx_l2:rfx_h2,0:ngroups-1)
 #endif
 
@@ -74,9 +65,10 @@ contains
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
+    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+
     double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
     double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
     double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
@@ -93,7 +85,7 @@ contains
 
     ! here, pggp/pggm is the Godunov gas pressure (not radiation contribution)
     double precision :: pggp, pggm, ugp, ugm, dAup, pav, uav, dAu, pnewl,pnewr
-    double precision :: geav, dge, gegp, gegm
+    double precision :: geav, dge, gegp, gegm, gamc
     double precision :: rhotmp
 
 #ifdef RADIATION
@@ -156,7 +148,7 @@ contains
           gegm = qgdx(i,  j,GDGAME)
 
 #ifdef RADIATION
-          lambda(:) = lam(i,j,:)
+          lambda(:) = qaux(i,j,QLAMS:QLAMS+ngroups-1)
           ugc = 0.5d0*(ugp+ugm)
           ergp(:) = qgdx(i+1,j,GDERADS:GDERADS-1+ngroups)
           ergm(:) = qgdx(i  ,j,GDERADS:GDERADS-1+ngroups)
@@ -172,6 +164,13 @@ contains
           dAu = area1(i+1,j)*ugp-area1(i,j)*ugm
           geav = HALF*(gegp+gegm)
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,QGAMCG)
+#else
+          gamc = qaux(i,j,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge(:) = lambda(:) * (ergp(:)-ergm(:))
@@ -316,7 +315,7 @@ contains
                       !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
                       ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
                       ! but these are divergences, so we need area factors
-                      pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
+                      pnewr = qp(i,j,QPRES) - hdt*(dAup + pav*dAu*(gamc - ONE))/vol(i,j)
                       qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
                    endif
 
@@ -326,7 +325,7 @@ contains
 
                    ! Update gammae with its transverse terms
                    qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                        hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                        hdt*( (geav-ONE)*(geav - gamc)*dAu)/vol(i,j) - cdtdx*uav*dge
 
                    ! and compute the p edge state from this and (rho e)
                    qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
@@ -453,7 +452,7 @@ contains
                       !   p_t + div{Up} + (gamma_1 - 1)p div{U} = 0
                       ! The transverse term is d(up)/dx + (gamma_1 - 1)p du/dx,
                       ! but these are divergences, so we need area factors
-                      pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc(i,j)-ONE))/vol(i,j)
+                      pnewl = qm(i,j+1,QPRES) - hdt*(dAup + pav*dAu*(gamc - ONE))/vol(i,j)
                       qmo(i,j+1,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
                    endif
 
@@ -463,7 +462,7 @@ contains
 
                    ! Update gammae with its transverse terms
                    qmo(i,j+1,QGAME) = qm(i,j+1,QGAME) + &
-                        hdt*( (geav-ONE)*(geav-gamc(i,j))*dAu)/vol(i,j) - cdtdx*uav*dge
+                        hdt*( (geav-ONE)*(geav - gamc)*dAu)/vol(i,j) - cdtdx*uav*dge
 
                    ! and compute the p edge state from this and (rho e)
                    qmo(i,j+1,QPRES) = qmo(i,j+1,QREINT)*(qmo(i,j+1,QGAME)-ONE)
@@ -488,34 +487,25 @@ contains
   end subroutine transx
 
 
-  subroutine transy( &
-#ifdef RADIATION
-                    lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-#endif
-                    qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine transy(qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
+                    qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                     fy,fy_l1,fy_l2,fy_h1,fy_h2, &
 #ifdef RADIATION
                     rfy,rfy_l1,rfy_l2,rfy_h1,rfy_h2, &
 #endif
                     qgdy, qgdy_l1, qgdy_l2, qgdy_h1, qgdy_h2, &
-                    gamc, gc_l1, gc_l2, gc_h1, gc_h2, &
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
-#ifdef RADIATION
-    integer lam_l1,lam_l2,lam_h1,lam_h2
-    integer rfy_l1, rfy_l2, rfy_h1, rfy_h2
-#endif
-
     integer qd_l1, qd_l2, qd_h1, qd_h2
-    integer gc_l1, gc_l2, gc_h1, gc_h2
+    integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fy_l1, fy_l2, fy_h1, fy_h2
     integer qgdy_l1, qgdy_l2, qgdy_h1, qgdy_h2
     integer src_l1, src_l2, src_h1, src_h2
     integer ilo, ihi, jlo, jhi
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
+    integer rfy_l1, rfy_l2, rfy_h1, rfy_h2
     double precision rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
 #endif
 
@@ -524,9 +514,10 @@ contains
     double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
     double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
+    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+
     double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
     double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
     double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision hdt, cdtdy
 
@@ -535,7 +526,7 @@ contains
 
     double precision :: rr,rrnew
     double precision :: pggp, pggm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
-    double precision :: gegp, gegm, geav, dge
+    double precision :: gegp, gegm, geav, dge, gamc
     double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
     double precision :: rrnewr, runewr, rvnewr, renewr
     double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
@@ -598,7 +589,7 @@ contains
           gegm = qgdy(i,j  ,GDGAME)
 
 #ifdef RADIATION
-          lambda(:) = lam(i,j,:)
+          lambda(:) = qaux(i,j,QLAMS:QLAMS+ngroups-1)
           ugc = 0.5d0*(ugp+ugm)
           ergp(:) = qgdy(i,j+1,GDERADS:GDERADS-1+ngroups)
           ergm(:) = qgdy(i,j  ,GDERADS:GDERADS-1+ngroups)
@@ -613,6 +604,14 @@ contains
           du = ugp-ugm
           geav = HALF*(gegp+gegm)
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,QGAMCG)
+#else
+          gamc = qaux(i,j,QGAMC)
+#endif
+
 
 #ifdef RADIATION
           lamge(:) = lambda(:) * (ergp(:)-ergm(:))
@@ -733,7 +732,7 @@ contains
                       qpo(i,j,QPRES ) = pnewr
                       qpo(i,j,QREINT) = eos_state % e * eos_state % rho
                    else
-                      pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
+                      pnewr = qp(i  ,j,QPRES)-cdtdy*(dup + pav*du*(gamc - ONE))
                       qpo(i,j,QPRES) = pnewr + hdt*srcQ(i,j,QPRES)
                    endif
 
@@ -743,7 +742,7 @@ contains
 
                    ! Update gammae with its transverse terms
                    qpo(i,j,QGAME) = qp(i,j,QGAME) + &
-                        cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
+                        cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qpo(i,j,QPRES) = qpo(i,j,QREINT)*(qpo(i,j,QGAME)-ONE)
@@ -856,7 +855,7 @@ contains
                       qmo(i+1,j,QPRES ) = pnewr
                       qmo(i+1,j,QREINT) = eos_state % e * eos_state % rho
                    else
-                      pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc(i,j)-ONE))
+                      pnewl = qm(i+1,j,QPRES)-cdtdy*(dup + pav*du*(gamc - ONE))
                       qmo(i+1,j,QPRES) = pnewl + hdt*srcQ(i,j,QPRES)
                    endif
 
@@ -866,7 +865,7 @@ contains
 
                    ! Update gammae with its transverse terms
                    qmo(i+1,j,QGAME) = qm(i+1,j,QGAME) + &
-                        cdtdy*( (geav-ONE)*(geav-gamc(i,j))*du - uav*dge )
+                        cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qmo(i+1,j,QPRES) = qmo(i+1,j,QREINT)*(qmo(i+1,j,QGAME)-ONE)

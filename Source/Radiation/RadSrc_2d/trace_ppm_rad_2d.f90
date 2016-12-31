@@ -11,18 +11,16 @@ module trace_ppm_rad_module
 
 contains
 
-  subroutine trace_ppm_rad(lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-                           q,c,cg,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                           dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                           qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                           srcQ,src_l1,src_l2,src_h1,src_h2, &
-                           gamc,gamcg,gc_l1,gc_l2,gc_h1,gc_h2, &
-                           ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+  subroutine trace_ppm_rad(q, qaux, flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                           dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
+                           qxm, qxp, qym, qyp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+                           srcQ, src_l1, src_l2, src_h1, src_h2, &
+                           ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
 
     use network, only : nspec
     use bl_constants_module
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
-         QGAME, &
+    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QREINT, QPRES, &
+         QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
          QRADVAR, qrad, qradhi, qptot, qreitot, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
@@ -35,28 +33,22 @@ contains
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
-    integer lam_l1,lam_l2,lam_h1,lam_h2
     integer qd_l1,qd_l2,qd_h1,qd_h2
     integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QRADVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision    cg(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    double precision :: qaux(qd_l1:qd_h1,qd_l2:qd_h2, NQAUX)
     double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
     double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QRADVAR)
-    double precision lam(lam_l1:lam_h1,lam_l2:lam_h2,0:ngroups-1)
-
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
-    double precision gamcg(gc_l1:gc_h1,gc_l2:gc_h2)
+    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
 
     double precision dx, dy, dt
 
@@ -135,8 +127,8 @@ contains
     dtdy = dt/dy
 
     ! indices: (x, y, dimension, wave, variable)
-    allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QRADVAR))
-    allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QRADVAR))
+    allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,NQ))
+    allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,NQ))
 
     if (ppm_trace_sources == 1) then
        allocate(Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
@@ -179,12 +171,12 @@ contains
     ! Compute Ip and Im -- this does the parabolic reconstruction,
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
-    do n=1,QRADVAR
-       call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
-                q(:,:,QU:QV), c, qd_l1,qd_l2,qd_h1,qd_h2,&
+    do n = 1, NQ
+       call ppm(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
+                q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2,&
                 flatn, &
-                Ip(:,:,:,:,n),Im(:,:,:,:,n), &
-                ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+                Ip(:,:,:,:,n), Im(:,:,:,:,n), &
+                ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
     end do
 
     ! trace the gas gamma to the edge
@@ -197,12 +189,12 @@ contains
     !   endif
 
     if (ppm_trace_sources == 1) then
-       do n = 1,QVAR
-          call ppm(srcQ(:,:,n),src_l1,src_l2,src_h1,src_h2, &
-                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+       do n = 1, QVAR
+          call ppm(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
+                   q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
                    flatn, &
-                   Ip_src(:,:,:,:,n),Im_src(:,:,:,:,n), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+                   Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
+                   ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
        enddo
     endif
 
@@ -215,15 +207,15 @@ contains
        do i = ilo1-1, ihi1+1
 
           do g=0, ngroups-1
-             lam0(g) = lam(i,j,g)
-             lamp(g) = lam(i,j,g)
-             lamm(g) = lam(i,j,g)
+             lam0(g) = qaux(i,j,QLAMS+g)
+             lamp(g) = qaux(i,j,QLAMS+g)
+             lamm(g) = qaux(i,j,QLAMS+g)
           end do
 
           ! cgassq is the gas soundspeed **2
           ! cc is the total soundspeed **2 (gas + radiation)
-          cgassq = cg(i,j)**2
-          cc = c(i,j)
+          cgassq = qaux(i,j,QCG)**2
+          cc = qaux(i,j,QC)
           csq = cc**2
 
           rho = q(i,j,QRHO)
@@ -237,7 +229,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamcg(i,j)
+          gam_g = qaux(i,j,QGAMCG)
           game = q(i,j,QGAME)
 
           ptot = q(i,j,qptot)
@@ -704,15 +696,15 @@ contains
        do i = ilo1-1, ihi1+1
 
           do g=0, ngroups-1
-             lam0(g) = lam(i,j,g)
-             lamp(g) = lam(i,j,g)
-             lamm(g) = lam(i,j,g)
+             lam0(g) = qaux(i,j,QLAMS+g)
+             lamp(g) = qaux(i,j,QLAMS+g)
+             lamm(g) = qaux(i,j,QLAMS+g)
           end do
 
           ! cgassq is the gas soundspeed **2
           ! cc is the total soundspeed **2 (gas + radiation)
-          cgassq = cg(i,j)**2
-          cc = c(i,j)
+          cgassq = qaux(i,j,QCG)**2
+          cc = qaux(i,j,QC)
           csq = cc**2
 
           rho = q(i,j,QRHO)
@@ -726,7 +718,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamcg(i,j)
+          gam_g = qaux(i,j,QGAMCG)
           game = q(i,j,QGAME)
 
           ptot = q(i,j,qptot)

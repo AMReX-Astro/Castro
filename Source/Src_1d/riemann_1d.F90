@@ -7,7 +7,7 @@ module riemann_module
                                    QFS, QFX, &
                                    NGDNV, GDU, GDPRES, QGAMC, QC, QCSML, &
 #ifdef RADIATION
-                                   GDERADS, GDLAMS, QGAMCG, &
+                                   GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
                                    URHO, UMX, UEDEN, UEINT, &
                                    small_temp, small_dens, small_pres, &
@@ -36,7 +36,6 @@ contains
                     flx, flx_l1, flx_h1, &
                     qint, qg_l1, qg_h1, &
 #ifdef RADIATION
-                    lam, lam_l1, lam_h1, &
                     rflx, rflx_l1, rflx_h1, &
 #endif
                     qaux, qa_l1, qa_h1, ilo, ihi)
@@ -61,17 +60,15 @@ contains
     double precision  qaux( qa_l1: qa_h1, NQAUX)
 
 #ifdef RADIATION
-    integer lam_l1, lam_h1
     integer rflx_l1, rflx_h1
-    double precision lam(lam_l1:lam_h1, 0:ngroups-1)
     double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 #endif
 
     ! Local variables
     integer i
-    double precision, allocatable :: smallc(:),cavg(:),gamcp(:), gamcm(:)
+    double precision, allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
 #ifdef RADIATION
-    double precision, allocatable :: gamcgp(:), gamcgm(:)
+    double precision, allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
 #endif
 
     allocate ( smallc(ilo:ihi+1) )
@@ -81,6 +78,7 @@ contains
 #ifdef RADIATION
     allocate (gamcgp(ilo:ihi+1) )
     allocate (gamcgm(ilo:ihi+1) )
+    allocate (lam(ilo-1:ihi+2,0:ngroups-1) )
 #endif
 
     do i = ilo, ihi+1
@@ -94,6 +92,12 @@ contains
 #endif
     enddo
 
+#ifdef RADIATION
+    do i = ilo-1, ihi+2
+       lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
+    enddo
+#endif
+
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson
@@ -103,8 +107,7 @@ contains
                       flx, flx_l1, flx_h1, &
                       qint, qg_l1, qg_h1, &
 #ifdef RADIATION
-                      lam, lam_l1, lam_h1, &
-                      gamcgm, gamcgp, &
+                      lam, gamcgm, gamcgp, &
                       rflx, rflx_l1, rflx_h1, &
 #endif
                       ilo, ihi, domlo, domhi )
@@ -120,6 +123,9 @@ contains
     endif
 
     deallocate (smallc,cavg,gamcm,gamcp)
+#ifdef RADIATION
+    deallocate(gamcgm,gamcgp,lam)
+#endif
 
   end subroutine cmpflx
 
@@ -744,8 +750,7 @@ contains
                        uflx,uflx_l1,uflx_h1,&
                        qint,qg_l1,qg_h1, &
 #ifdef RADIATION
-                       lam, lam_l1, lam_h1, &
-                       gamcgl, gamcgr, &
+                       lam, gamcgl, gamcgr, &
                        rflx,rflx_l1,rflx_h1, &
 #endif
                        ilo,ihi,domlo,domhi)
@@ -767,7 +772,6 @@ contains
 
 #ifdef RADIATION
     integer rflx_l1, rflx_h1
-    integer lam_l1, lam_h1
 #endif
 
     double precision ql(qpd_l1:qpd_h1, NQ)
@@ -779,7 +783,7 @@ contains
     double precision  qint( qg_l1: qg_h1, NGDNV)
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1, 0:ngroups-1)
+    double precision lam(ilo-1:ihi+2, 0:ngroups-1)
     double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
     double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 

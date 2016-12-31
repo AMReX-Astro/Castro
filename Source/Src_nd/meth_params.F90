@@ -29,7 +29,7 @@ module meth_params_module
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
 #ifdef RADIATION
-  integer, save :: QGAMCG, QCG
+  integer, save :: QGAMCG, QCG, QLAMS
 #endif
   integer, save :: QFA, QFS, QFX
 
@@ -90,7 +90,7 @@ module meth_params_module
   !$acc create(QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
-  !$acc create(QGAMCG, QCG) &
+  !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
@@ -500,6 +500,10 @@ contains
     ! update NQ -- it was already initialized in the hydro
     NQ = QRADVAR
 
+    ! NQAUX already knows about the hydro and the non-group-dependent
+    ! rad variables, update it here
+    NQAUX = NQAUX + ngroups
+
     if (ngroups .eq. 1) then
        fspace_type = 1
     else
@@ -523,7 +527,7 @@ contains
     flatten_pp_threshold = fppt
     
     !$acc update &
-    !$acc device(NQ) &
+    !$acc device(NQ,NQAUX) &
     !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &

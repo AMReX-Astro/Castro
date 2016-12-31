@@ -458,7 +458,6 @@ extern "C"
      BL_FORT_FAB_ARG(stateout),
 #ifdef RADIATION
      BL_FORT_FAB_ARG(Er), 
-     BL_FORT_FAB_ARG(lam),
      BL_FORT_FAB_ARG(Erout),
 #endif
      BL_FORT_FAB_ARG(q),

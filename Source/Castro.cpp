@@ -550,6 +550,9 @@ Castro::Castro (Amr&            papa,
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
@@ -1767,6 +1770,9 @@ Castro::post_restart ()
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
