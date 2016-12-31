@@ -10,7 +10,7 @@ module riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
                                  QC, QCSML, QGAMC, &
 #ifdef RADIATION
-                                 GDERADS, GDLAMS, QGAMCG, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  small_dens, small_pres, small_temp, &
@@ -42,7 +42,6 @@ contains
                     flx, flx_lo, flx_hi, &
                     qint, q_lo, q_hi, &
 #ifdef RADIATION
-                    lam, lam_lo, lam_hi, &
                     rflx, rflx_lo, rflx_hi, &
 #endif
                     qaux, qa_lo, qa_hi, &
@@ -60,7 +59,6 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
 
 #ifdef RADIATION
-    integer lam_lo(3), lam_hi(3)
     integer rflx_lo(3), rflx_hi(3)
 #endif
 
@@ -81,7 +79,6 @@ contains
     double precision, intent(inout) ::   qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
 
 #ifdef RADIATION
-    double precision, intent(in) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision, intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
 #endif
 
@@ -100,6 +97,7 @@ contains
     double precision, pointer :: gamcm(:,:), gamcp(:,:)
 #ifdef RADIATION
     double precision, pointer :: gamcgm(:,:), gamcgp(:,:)
+    double precision, pointer :: lam(:,:,:,:)
 #endif
 
     integer :: is_shock
@@ -118,6 +116,7 @@ contains
 #ifdef RADIATION
     call bl_allocate ( gamcgm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate ( gamcgp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate ( lam, qa_lo(1), qa_hi(1), qa_lo(2), qa_hi(2), qa_lo(3), qa_hi(3), 0, ngroups-1)
 #endif
 
     if (idir == 1) then
@@ -163,6 +162,10 @@ contains
           enddo
        enddo
     endif
+
+#ifdef RADIATION
+    lam(:,:,:,0:ngroups-1) = qaux(:,:,:,QLAMS:QLAMS+ngroups-1)
+#endif
 
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
@@ -225,7 +228,7 @@ contains
                       flx, flx_lo, flx_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
-                      lam, lam_lo, lam_hi, &
+                      lam, qa_lo, qa_hi, &
                       gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
@@ -297,6 +300,7 @@ contains
 #ifdef RADIATION
     call bl_deallocate(gamcgm)
     call bl_deallocate(gamcgp)
+    call bl_deallocate(lam)
 #endif
 
   end subroutine cmpflx
@@ -1051,8 +1055,8 @@ contains
                        uflx,uflx_lo,uflx_hi, &
                        qint,q_lo,q_hi, &
 #ifdef RADIATION
-                       lam,lam_lo,lam_hi, &
-                       gamcgl,gamcgr, &
+                       lam, lam_lo, lam_hi, &
+                       gamcgl, gamcgr, &
                        rflx, rflx_lo,rflx_hi, &
 #endif
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
@@ -1073,7 +1077,7 @@ contains
     integer :: domlo(3),domhi(3)
 
 #ifdef RADIATION
-    integer lam_lo(3),lam_hi(3)
+    integer lam_lo(3), lam_hi(3)
     integer rflx_lo(3),rflx_hi(3)
 #endif
 
