@@ -9,6 +9,11 @@
      merged with the pure hydro routines.  This gives round-off level
      differences.  This also now uses all velocity components in the
      kinetic energy correction for radiation. (issues #66, 70)
+
+  -- a minor bug was fixed in the 3-d radiation characteristic tracing,
+     regarding which gamma_1 (gamc) is used.
+
+
 previous changes:
 
 * 16.12a
