@@ -2247,7 +2247,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i)
-		reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
+		reg->FineAdd(*fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
 
 	}
 
