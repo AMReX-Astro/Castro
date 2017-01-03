@@ -50,6 +50,15 @@ def main():
 
     regexs = [r1, r2, r3]
 
+
+    # also we want to convert numeric constants that are of the form X.Y_dp_t, etc.
+    c_re = re.compile(r"([0-9edED.\+\-]+)(_dp_t)", re.IGNORECASE|re.DOTALL)
+
+    # and... we want to replace and "d" scientific notation with the new style
+    # this matches stuff like -1.25d-10, and gives us separate groups for the 
+    # prefix and exponent
+    d_re = re.compile(r"([\+\-0-9.]+)[dD]([\+\-0-9]+)", re.IGNORECASE|re.DOTALL)
+
     # find the source files
     sfiles = []
     for e in extensions:
@@ -93,10 +102,35 @@ def main():
         # we encounter a declaration, convert it to the new form
         new_lines = []
         for line in lines:
+
+            # replace declarations
             for r in regexs:
                 decl = r.search(line)
                 if decl:
-                    line = line.replace(decl.group(0), "real(c_real)")
+                    old_decl = decl.group(0)
+                    new_decl = "real(c_real)"
+                    # preserve spacing, if possible
+                    lo = len(old_decl) - len(new_decl)
+                    if lo > 0:
+                        new_decl = new_decl + lo*" "
+                    line = line.replace(old_decl, new_decl)
+
+            # replace constants
+            const = c_re.search(line)
+            if const:
+                num_value = const.group(1)
+                new_const = "{}_rt".format(num_value)
+                old_const = const.group(0)
+                line = line.replace(old_const, new_const)
+
+            # update "d" scientific notation -- allow for multiple constants on a single line
+            for dd in d_re.finditer(line):
+                prefix = dd.group(1)
+                exponent = dd.group(2)
+                new_num = "{}e{}_rt".format(prefix, exponent)
+                old_num = dd.group(0)
+                line = line.replace(old_num, new_num)
+
             new_lines.append(line)
 
         # skip comments
