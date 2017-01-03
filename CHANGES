@@ -1,4 +1,9 @@
-* changes since the last release:
+# changes since the last release:
+
+
+# previous changes:
+
+* 17.01
 
   -- the radiation-specific version of computeTemp has been removed
      and instead everything goes through the main Castro computeTemp.
@@ -13,8 +18,6 @@
   -- a minor bug was fixed in the 3-d radiation characteristic tracing,
      regarding which gamma_1 (gamc) is used.
 
-
-previous changes:
 
 * 16.12a
 
