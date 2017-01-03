@@ -3,13 +3,14 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
-  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
+                                 QC, QCSML, QGAMC, &
 #ifdef RADIATION
-                                 GDERADS, GDLAMS, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
 #endif
                                  small_dens, small_pres, small_temp, &
@@ -41,13 +42,11 @@ contains
                     flx, flx_lo, flx_hi, &
                     qint, q_lo, q_hi, &
 #ifdef RADIATION
-                    lam, lam_lo, lam_hi, &
                     rflx, rflx_lo, rflx_hi, &
-                    gamcg, &
 #endif
-                    gamc,csml,c,qd_lo,qd_hi, &
-                    shk,s_lo,s_hi, &
-                    idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
+                    qaux, qa_lo, qa_hi, &
+                    shk, s_lo, s_hi, &
+                    idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module
@@ -56,11 +55,10 @@ contains
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
 
 #ifdef RADIATION
-    integer lam_lo(3), lam_hi(3)
     integer rflx_lo(3), rflx_hi(3)
 #endif
 
@@ -81,25 +79,25 @@ contains
     double precision, intent(inout) ::   qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
 
 #ifdef RADIATION
-    double precision, intent(in) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
     double precision, intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    double precision, intent(in) :: gamcg(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 #endif
 
-    ! gamc, csml, c, shk come in dimensioned as the full box, so we
-    ! use k3d here to index it in z
-    double precision, intent(in) :: gamc(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) ::    c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) :: csml(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    ! qaux come in dimensioned as the full box, so we use k3d here to
+    ! index it in z
+
+    double precision, intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
     double precision, intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     ! local variables
+
     integer i, j
     integer :: gd_lo(2), gd_hi(2)
     double precision, pointer :: smallc(:,:), cavg(:,:)
     double precision, pointer :: gamcm(:,:), gamcp(:,:)
 #ifdef RADIATION
     double precision, pointer :: gamcgm(:,:), gamcgp(:,:)
+    double precision, pointer :: lam(:,:,:,:)
 #endif
 
     integer :: is_shock
@@ -118,19 +116,20 @@ contains
 #ifdef RADIATION
     call bl_allocate ( gamcgm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate ( gamcgp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
+    call bl_allocate ( lam, qa_lo(1), qa_hi(1), qa_lo(2), qa_hi(2), qa_lo(3), qa_hi(3), 0, ngroups-1)
 #endif
 
     if (idir == 1) then
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
-             smallc(i,j) = max( csml(i,j,k3d), csml(i-1,j,k3d) )
-             cavg(i,j) = HALF*( c(i,j,k3d) + c(i-1,j,k3d) )
-             gamcm(i,j) = gamc(i-1,j,k3d)
-             gamcp(i,j) = gamc(i,j,k3d)
+             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i-1,j,k3d,QCSML) )
+             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i-1,j,k3d,QC) )
+             gamcm(i,j) = qaux(i-1,j,k3d,QGAMC)
+             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
 #ifdef RADIATION
-             gamcgm(i,j) = gamcg(i-1,j,k3d)
-             gamcgp(i,j) = gamcg(i,j,k3d)
+             gamcgm(i,j) = qaux(i-1,j,k3d,QGAMCG)
+             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
 #endif
           enddo
        enddo
@@ -138,13 +137,13 @@ contains
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
-             smallc(i,j) = max( csml(i,j,k3d), csml(i,j-1,k3d) )
-             cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j-1,k3d) )
-             gamcm(i,j) = gamc(i,j-1,k3d)
-             gamcp(i,j) = gamc(i,j,k3d)
+             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i,j-1,k3d,QCSML) )
+             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i,j-1,k3d,QC) )
+             gamcm(i,j) = qaux(i,j-1,k3d,QGAMC)
+             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
 #ifdef RADIATION
-             gamcgm(i,j) = gamcg(i,j-1,k3d)
-             gamcgp(i,j) = gamcg(i,j,k3d)
+             gamcgm(i,j) = qaux(i,j-1,k3d,QGAMCG)
+             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
 #endif
           enddo
        enddo
@@ -152,17 +151,21 @@ contains
        do j = jlo, jhi
           !dir$ ivdep
           do i = ilo, ihi
-             smallc(i,j) = max( csml(i,j,k3d), csml(i,j,k3d-1) )
-             cavg(i,j) = HALF*( c(i,j,k3d) + c(i,j,k3d-1) )
-             gamcm(i,j) = gamc(i,j,k3d-1)
-             gamcp(i,j) = gamc(i,j,k3d)
+             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i,j,k3d-1,QCSML) )
+             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i,j,k3d-1,QC) )
+             gamcm(i,j) = qaux(i,j,k3d-1,QGAMC)
+             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
 #ifdef RADIATION
-             gamcgm(i,j) = gamcg(i,j,k3d-1)
-             gamcgp(i,j) = gamcg(i,j,k3d)
+             gamcgm(i,j) = qaux(i,j,k3d-1,QGAMCG)
+             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
 #endif
           enddo
        enddo
     endif
+
+#ifdef RADIATION
+    lam(:,:,:,0:ngroups-1) = qaux(:,:,:,QLAMS:QLAMS+ngroups-1)
+#endif
 
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
@@ -225,7 +228,7 @@ contains
                       flx, flx_lo, flx_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
-                      lam, lam_lo, lam_hi, &
+                      lam, qa_lo, qa_hi, &
                       gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
@@ -270,14 +273,14 @@ contains
 
                 select case (idir)
                 case (1)
-                   cl = c(i-1,j,k3d)
-                   cr = c(i,j,k3d)
+                   cl = qaux(i-1,j,k3d,QC)
+                   cr = qaux(i,j,k3d,QC)
                 case (2)
-                   cl = c(i,j-1,k3d)
-                   cr = c(i,j,k3d)
+                   cl = qaux(i,j-1,k3d,QC)
+                   cr = qaux(i,j,k3d,QC)
                 case (3)
-                   cl = c(i,j,k3d-1)
-                   cr = c(i,j,k3d)
+                   cl = qaux(i,j,k3d-1,QC)
+                   cr = qaux(i,j,k3d,QC)
                 end select
 
                 call HLL(qm(i,j,kc,:), qp(i,j,kc,:), cl, cr, &
@@ -297,6 +300,7 @@ contains
 #ifdef RADIATION
     call bl_deallocate(gamcgm)
     call bl_deallocate(gamcgp)
+    call bl_deallocate(lam)
 #endif
 
   end subroutine cmpflx
@@ -311,7 +315,7 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     double precision, intent(in) :: dx(3)
-    double precision, intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    double precision, intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     double precision, intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     integer :: i, j, k
@@ -440,8 +444,8 @@ contains
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
 
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
@@ -1051,8 +1055,8 @@ contains
                        uflx,uflx_lo,uflx_hi, &
                        qint,q_lo,q_hi, &
 #ifdef RADIATION
-                       lam,lam_lo,lam_hi, &
-                       gamcgl,gamcgr, &
+                       lam, lam_lo, lam_hi, &
+                       gamcgl, gamcgr, &
                        rflx, rflx_lo,rflx_hi, &
 #endif
                        idir,ilo,ihi,jlo,jhi,kc,kflux,k3d,domlo,domhi)
@@ -1073,7 +1077,7 @@ contains
     integer :: domlo(3),domhi(3)
 
 #ifdef RADIATION
-    integer lam_lo(3),lam_hi(3)
+    integer lam_lo(3), lam_hi(3)
     integer rflx_lo(3),rflx_hi(3)
 #endif
 
@@ -1535,8 +1539,8 @@ contains
     integer :: idir,ilo,ihi,jlo,jhi
     integer :: domlo(3),domhi(3)
 
-    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    double precision :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    double precision :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     double precision ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     double precision ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))

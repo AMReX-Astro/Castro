@@ -4,7 +4,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                     uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
 #ifdef RADIATION
                     Erin, Erin_l1, Erin_l2, Erin_l3, Erin_h1, Erin_h2, Erin_h3, &
-                    lam, lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3, &
                     Erout, Erout_l1, Erout_l2, Erout_l3, Erout_h1, Erout_h2, Erout_h3, &
 #endif
                     q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
@@ -45,16 +44,14 @@ subroutine ca_umdrv(is_finest_level, time, &
   use flatten_module, only: uflaten
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use rad_advection_module, only : umeth3d_rad, consup_rad
   use flatten_module, only : rad_flaten
-#else
-  use advection_module, only : umeth3d, consup
 #endif
+  use advection_module, only : umeth3d, consup
 
   implicit none
 
 #ifdef RADIATION
-  integer, intent(in) :: nstep_fsp
+  integer, intent(inout) :: nstep_fsp
 #endif
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(3), hi(3), verbose
@@ -64,7 +61,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   integer, intent(in) :: Erin_l1, Erin_l2, Erin_l3, Erin_h1, Erin_h2, Erin_h3
   integer, intent(in) :: Erout_l1, Erout_l2, Erout_l3, Erout_h1, Erout_h2, Erout_h3
-  integer, intent(in) :: lam_l1, lam_l2, lam_l3, lam_h1, lam_h2, lam_h3
 #endif
   integer, intent(in) :: q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   integer, intent(in) :: qa_l1, qa_l2, qa_l3, qa_h1, qa_h2, qa_h3
@@ -88,10 +84,9 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   double precision, intent(in) :: Erin(Erin_l1:Erin_h1, Erin_l2:Erin_h2, Erin_l3:Erin_h3, 0:ngroups-1)
   double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3, 0:ngroups-1)
-  double precision, intent(in) :: lam(lam_l1:lam_h1, lam_l2:lam_h2, lam_l3:lam_h3, 0:ngroups-1)
 #endif
   double precision, intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQ)
-  double precision, intent(in) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
+  double precision, intent(inout) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
   double precision, intent(in) :: srcQ(srQ_l1:srQ_h1, srQ_l2:srQ_h2, srQ_l3:srQ_h3, QVAR)
   double precision, intent(inout) :: update(updt_l1:updt_h1, updt_l2:updt_h2, updt_l3:updt_h3, NVAR)
   double precision, intent(inout) :: flux1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, flux1_l3:flux1_h3, NVAR)
@@ -133,7 +128,6 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
   integer :: Erin_lo(3), Erin_hi(3)                                             
   integer :: Erout_lo(3), Erout_hi(3)                                           
-  integer :: lam_lo(3), lam_hi(3)
 #endif
   integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
@@ -172,9 +166,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
 #ifdef RADIATION
-  lam_lo(:) = [lam_l1, lam_l2, lam_l3]                                          
-  lam_hi(:) = [lam_h1, lam_h2, lam_h3]       
-
   Erin_lo = [Erin_l1, Erin_l2, Erin_l3]                                         
   Erin_hi = [Erin_h1, Erin_h2, Erin_h3]                                         
                                                                                 
@@ -258,37 +249,25 @@ subroutine ca_umdrv(is_finest_level, time, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
+  call umeth3d(q, q_lo, q_hi, &
+               flatn, &
+               qaux, qa_lo, qa_hi, &
+               srcQ, srQ_lo, srQ_hi, &
+               lo, hi, delta, dt, &
+               uout, uout_lo, uout_hi, &
+               flux1, flux1_lo, flux1_hi, &
+               flux2, flux2_lo, flux2_hi, &
+               flux3, flux3_lo, flux3_hi, &
 #ifdef RADIATION
-  call umeth3d_rad(q,q_lo,q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lam, lam_lo, lam_hi, &
-                   flatn, &
-                   srcQ, srQ_lo, srQ_hi, &
-                   lo, hi, delta, dt, &
-                   flux1, flux1_lo, flux1_hi, &
-                   flux2, flux2_lo, flux2_hi, &
-                   flux3, flux3_lo, flux3_hi, &
-                   radflux1, radflux1_lo, radflux1_hi, &
-                   radflux2, radflux2_lo, radflux2_hi, &
-                   radflux3, radflux3_lo, radflux3_hi, &
-                   q1, q1_lo, q1_hi, &
-                   q2, q2_lo, q2_hi, &
-                   q3, q3_lo, q3_hi, &
-                   pdivu, domlo, domhi)
-#else
-  call umeth3d(q,flatn,q_lo,q_hi, &
-               qaux,qa_lo,qa_hi, &
-               srcQ,srQ_lo,srQ_hi, &
-               lo,hi,delta,dt, &
-               uout,uout_lo,uout_hi, &
-               flux1,flux1_lo,flux1_hi, &
-               flux2,flux2_lo,flux2_hi, &
-               flux3,flux3_lo,flux3_hi, &
+               radflux1, radflux1_lo, radflux1_hi, &
+               radflux2, radflux2_lo, radflux2_hi, &
+               radflux3, radflux3_lo, radflux3_hi, &
+#endif
                q1, q1_lo, q1_hi, &
                q2, q2_lo, q2_hi, &
                q3, q3_lo, q3_hi, &
                pdivu, domlo, domhi)
-#endif
+
 
   call bl_deallocate( flatn)
 
@@ -296,29 +275,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   call divu(lo,hi,q,q_lo,q_hi,delta,div,lo,hi+1)
 
   ! Conservative update
-#ifdef RADIATION
-  call consup_rad(uin, uin_lo, uin_hi, &
-                  q, q_lo, q_hi, &
-                  uout, uout_lo, uout_hi, &
-                  update, updt_lo, updt_hi, &
-                  Erin, Erin_lo, Erin_hi, &
-                  Erout, Erout_lo, Erout_hi, &
-                  flux1, flux1_lo, flux1_hi, &
-                  flux2, flux2_lo, flux2_hi, &
-                  flux3, flux3_lo, flux3_hi, &
-                  radflux1, radflux1_lo, radflux1_hi, &
-                  radflux2, radflux2_lo, radflux2_hi, &
-                  radflux3, radflux3_lo, radflux3_hi, &
-                  q1, q1_lo, q1_hi, &
-                  q2, q2_lo, q2_hi, &
-                  q3, q3_lo, q3_hi, &
-                  area1, area1_lo, area1_hi, &
-                  area2, area2_lo, area2_hi, &
-                  area3, area3_lo, area3_hi, &
-                  vol, vol_lo, vol_hi, &
-                  div, pdivu, &
-                  lo, hi, delta, dt, nstep_fsp, verbose)
-#else
   call consup(uin ,  uin_lo , uin_hi, &
               q, q_lo, q_hi, &
               uout, uout_lo, uout_hi, &
@@ -326,6 +282,14 @@ subroutine ca_umdrv(is_finest_level, time, &
               flux1, flux1_lo, flux1_hi, &
               flux2, flux2_lo, flux2_hi, &
               flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+              Erin, Erin_lo, Erin_hi, &
+              Erout, Erout_lo, Erout_hi, &
+              radflux1, radflux1_lo, radflux1_hi, &
+              radflux2, radflux2_lo, radflux2_hi, &
+              radflux3, radflux3_lo, radflux3_hi, &
+              nstep_fsp, &
+#endif
               q1, q1_lo, q1_hi, &
               q2, q2_lo, q2_hi, &
               q3, q3_lo, q3_hi, &
@@ -338,7 +302,6 @@ subroutine ca_umdrv(is_finest_level, time, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
-#endif
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)

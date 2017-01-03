@@ -1,6 +1,6 @@
 \label{ch:diffusion}
 
-\section{Introduction}
+\section{Thermal Diffusion}
 
 Castro incorporates explicit thermal diffusion into the energy equation.  
 In terms of the specific internal energy, $e$, this appears as:
@@ -22,15 +22,18 @@ explicitly requires a timestep limiter of
 \begin{equation}
 \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 \end{equation}
-(this is implemented in {\tt Castro/Source/Src\_nd/timestep.F90}).
+(this is implemented in \code{ca\_estdt\_temp\_diffusion} in {\tt
+  Castro/Source/Src\_nd/timestep.F90}).
 
-Support for diffusion must be compiled into the code by setting
-{\tt USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.
-
+Support for diffusion must be compiled into the code by setting {\tt
+  USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.  It is treated
+explicitly, by constructing the contribution to the evolution as a
+source term.  This is time-centered to achieve second-order accuracy
+in time.
 
 The following parameter affects diffusion:
 \begin{itemize}
-\item {\tt castro.diffuse\_temp}:  enable thermal diffusion (0 or 1; default 0)
+\item \runparam{castro.diffuse\_temp}:  enable thermal diffusion (0 or 1; default 0)
 \end{itemize}
 
 A pure diffusion problem (with no hydrodynamics) can be run by setting
@@ -39,18 +42,52 @@ castro.diffuse_temp = 1
 castro.do_hydro = 0
 \end{verbatim}
 
-To complete the setup, a thermal conductivity must be specified.
-A simple constant conductivity is provided in {\tt Conductivity/constant/}
-and can be selected by setting
+To complete the setup, a thermal conductivity must be specified.  The
+interface for the conductivity is:
+\begin{lstlisting}[language=fortran]
+  subroutine thermal_conductivity(eos_state, therm_cond)
+    
+    use extern_probin_module, only: const_conductivity
+
+    type (eos_t), intent(in) :: eos_state
+    real (kind=dp_t), intent(inout) :: therm_cond
+\end{lstlisting}
+The density, temperature, and mass fractions come in through the {\tt
+  eos\_state} type.  An EOS call is done in \castro\ just before the
+call to \code{thermal\_conductivity}, so you can assume that the entire
+state is consistent.
+
+There are two conductivity routines provided with \castro\ by default:
+\begin{itemize}
+\item {\tt constant} : A simple constant thermal conductivity.  This can be 
+  selected by setting 
 \begin{verbatim}
 Conductivity_dir := constant
 \end{verbatim}
-in your GNUmakefile.  To set the value of the conductivity (e.g., to
+in your {\tt GNUmakefile}.  To set the value of the conductivity (e.g., to
 $100$), you add to your {\tt probin} file's {\tt \&extern} namelist:
 \begin{verbatim}
 const_conductivity = 100.0
 \end{verbatim}
 
+\item {\tt constant\_opacity} : A simple constant opacity.  This is
+  converted to an opacity as:
+  \begin{equation}
+    k_B = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
+  \end{equation}
+where $\kappa_\mathrm{const}$ is the opacity, with units $\mathrm{cm^2~g^{-1}}$.
+This is selected by setting
+\begin{verbatim}
+Conductivity_dir := constant_opacity
+\end{verbatim}
+in your {\tt GNUmakefile}.  To set the value of the opacity, e.g., to
+0.2 (e.g., for electron scattering), set:
+\begin{verbatim}
+const_opacity = 0.2
+\end{verbatim}
+in the {\tt \&extern} namelist of your {\tt probin}.
+
+\end{itemize}
 
 The diffusion approximation breaks down at the surface of stars,
 where the density rapidly drops and the mean free path becomes 
@@ -62,12 +99,27 @@ below which, diffusion is not modeled.  This is implemented in the
 code by zeroing out the conductivity and skipping the estimation
 of the timestep limit in these zones.
 
-
-The interface for the conductivity routine takes
-the thermodynamic state through an {\tt eos\_t} type (you can assume
-that $\rho$, $T$, and $X_k$ are set).  More complicated conductivities
-can be created by modifying this simple version.
-
 A simple test problem that sets up a Gaussian temperature profile 
 and does pure diffusion is provided as {\tt diffusion\_test}.
+
+
+
+\section{Enthalpy Diffusion}
+
+\castro\ can also diffuse enthalpy \MarginPar{these need to be documented}
+
+Note this uses the same interface for the transport coefficients as
+thermal diffusion, so the two cannot be used at the same time.
+
+
+\section{Species Diffusion}
+
+\castro\ can also diffuse species.  
+
+Note this uses the same interface for the transport coefficients as
+thermal diffusion, so the two cannot be used at the same time.
+
+
+
+\section{Viscosity}
 

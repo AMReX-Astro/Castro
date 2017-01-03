@@ -1,5 +1,7 @@
 module advection_module
 
+  use bl_constants_module
+
   implicit none
 
   private
@@ -14,21 +16,21 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
+! ::: :: qaux        => (const)  auxillary hydro data
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
 ! ::: :: ny          => (const)  number of cells in Y direction
 ! ::: :: nz          => (const)  number of cells in Z direction
-! ::: :: dx          => (const)  grid spacing in X direction
-! ::: :: dy          => (const)  grid spacing in Y direction
-! ::: :: dz          => (const)  grid spacing in Z direction
+! ::: :: dx          => (const)  grid spacing in X, Y, Z direction
 ! ::: :: dt          => (const)  time stepsize
 ! ::: :: flux1      <=  (modify) flux in X direction on X edges
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth3d(q, flatn, qd_lo, qd_hi, &
+  subroutine umeth3d(q, qd_lo, qd_hi, &
+                     flatn, &
                      qaux, qa_lo, qa_hi, &
                      srcQ, src_lo, src_hi, &
                      lo, hi, dx, dt, &
@@ -36,6 +38,11 @@ contains
                      flux1, fd1_lo, fd1_hi, &
                      flux2, fd2_lo, fd2_hi, &
                      flux3, fd3_lo, fd3_hi, &
+#ifdef RADIATION
+                     rflux1, rfd1_lo, rfd1_hi, &
+                     rflux2, rfd2_lo, rfd2_hi, &
+                     rflux3, rfd3_lo, rfd3_hi, &
+#endif
                      q1, q1_lo, q1_hi, &
                      q2, q2_lo, q2_hi, &
                      q3, q3_lo, q3_hi, &
@@ -46,6 +53,9 @@ contains
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QCSML, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
+#ifdef RADIATION
+                                   QGAMCG, QCG, &
+#endif
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
                                    hybrid_riemann
@@ -59,6 +69,12 @@ contains
     use eos_module, only : eos_t, eos_input_rt, eos
     use riemann_module, only: cmpflx, shock
     use bl_constants_module
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use trace_ppm_rad_module, only : tracexy_ppm_rad, tracez_ppm_rad
+#else
+    use trace_ppm_module, only : tracexy_ppm, tracez_ppm
+#endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
@@ -77,9 +93,14 @@ contains
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
+#ifdef RADIATION
+    integer, intent(in) :: rfd1_lo(3), rfd1_hi(3)
+    integer, intent(in) :: rfd2_lo(3), rfd2_hi(3)
+    integer, intent(in) :: rfd3_lo(3), rfd3_hi(3)
+#endif
 
     double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision, intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    double precision, intent(inout) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     double precision, intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
@@ -94,6 +115,11 @@ contains
 
     double precision, intent(in) :: dx(3), dt
 
+#ifdef RADIATION
+    double precision rflux1(rfd1_lo(1):rfd1_hi(1),rfd1_lo(2):rfd1_hi(2),rfd1_lo(3):rfd1_hi(3),0:ngroups-1)
+    double precision rflux2(rfd2_lo(1):rfd2_hi(1),rfd2_lo(2):rfd2_hi(2),rfd2_lo(3):rfd2_hi(3),0:ngroups-1)
+    double precision rflux3(rfd3_lo(1):rfd3_hi(1),rfd3_lo(2):rfd3_hi(2),rfd3_lo(3):rfd3_hi(3),0:ngroups-1)
+#endif
 
     double precision :: dxinv, dyinv, dzinv
     double precision :: dtdx, dtdy, dtdz, hdt
@@ -131,6 +157,13 @@ contains
     double precision, pointer :: qgdnvx(:,:,:,:), qgdnvxf(:,:,:,:), qgdnvtmpx(:,:,:,:)
     double precision, pointer :: qgdnvy(:,:,:,:), qgdnvyf(:,:,:,:), qgdnvtmpy(:,:,:,:)
     double precision, pointer :: qgdnvz(:,:,:,:), qgdnvzf(:,:,:,:), qgdnvtmpz1(:,:,:,:), qgdnvtmpz2(:,:,:,:)
+
+#ifdef RADIATION
+    double precision, pointer ::  rfx(:,:,:,:), rfy(:,:,:,:),rfz(:,:,:,:)
+    double precision, pointer ::rfxy(:,:,:,:),rfxz(:,:,:,:)
+    double precision, pointer ::rfyx(:,:,:,:),rfyz(:,:,:,:)
+    double precision, pointer ::rfzx(:,:,:,:),rfzy(:,:,:,:)
+#endif
 
     double precision, pointer :: Ip(:,:,:,:,:,:), Im(:,:,:,:,:,:)
     double precision, pointer :: Ip_src(:,:,:,:,:,:), Im_src(:,:,:,:,:,:)
@@ -178,39 +211,39 @@ contains
     call bl_allocate ( qgdnvtmpz1, qt_lo, qt_hi, NGDNV)
     call bl_allocate ( qgdnvtmpz2, qt_lo, qt_hi, NGDNV)
 
-    call bl_allocate ( qxm, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qxp, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qxm, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qxp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmxy, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpxy, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmxy, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpxy, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmxz, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpxz, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmxz, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpxz, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qym, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qyp, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qym, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qyp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmyx, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpyx, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmyx, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpyx, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmyz, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpyz, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmyz, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpyz, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qzm, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qzp, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qzm, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qzp, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qxl, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qxr, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qyl, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qyr, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qzl, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qzr, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qxl, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qxr, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qyl, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qyr, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qzl, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qzr, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmzx, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpzx, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmzx, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpzx, qt_lo, qt_hi, NQ)
 
-    call bl_allocate ( qmzy, qt_lo, qt_hi, QVAR)
-    call bl_allocate ( qpzy, qt_lo, qt_hi, QVAR)
+    call bl_allocate ( qmzy, qt_lo, qt_hi, NQ)
+    call bl_allocate ( qpzy, qt_lo, qt_hi, NQ)
 
     call bl_allocate ( fx, fx_lo, fx_hi, NVAR)
     call bl_allocate ( fy, fy_lo, fy_hi, NVAR)
@@ -225,22 +258,34 @@ contains
     call bl_allocate ( fzx, fz_lo, fz_hi, NVAR)
     call bl_allocate ( fzy, fz_lo, fz_hi, NVAR)
 
+#ifdef RADIATION
+    call bl_allocate (rfx, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call bl_allocate (rfy, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call bl_allocate (rfz, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+    call bl_allocate (rfxy, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call bl_allocate (rfxz, fx_lo(1), fx_hi(1), fx_lo(2), fx_hi(2), fx_lo(3), fx_hi(3), 0, ngroups-1)
+    call bl_allocate (rfyx, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call bl_allocate (rfyz, fy_lo(1), fy_hi(1), fy_lo(2), fy_hi(2), fy_lo(3), fy_hi(3), 0, ngroups-1)
+    call bl_allocate (rfzx, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+    call bl_allocate (rfzy, fz_lo(1), fz_hi(1), fz_lo(2), fz_hi(2), fz_lo(3), fz_hi(3), 0, ngroups-1)
+#endif
+
     if (ppm_type .gt. 0) then
        ! x-index, y-index, z-index, dim, characteristics, variables
-       call bl_allocate ( Ip, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
-       call bl_allocate ( Im, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
+       call bl_allocate ( Ip, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call bl_allocate ( Im, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
 
        ! for source terms
-       call bl_allocate ( Ip_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
-       call bl_allocate ( Im_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,QVAR)
+       call bl_allocate ( Ip_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
+       call bl_allocate ( Im_src, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,NQ)
 
        ! for gamc -- needed for the reference state in eigenvectors
        call bl_allocate ( Ip_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
        call bl_allocate ( Im_gc, It_lo(1),It_hi(1),It_lo(2),It_hi(2),It_lo(3),It_hi(3),1,3,1,3,1,1)
     else
-       call bl_allocate ( dqx, qt_lo, qt_hi, QVAR)
-       call bl_allocate ( dqy, qt_lo, qt_hi, QVAR)
-       call bl_allocate ( dqz, qt_lo, qt_hi, QVAR)
+       call bl_allocate ( dqx, qt_lo, qt_hi, NQ)
+       call bl_allocate ( dqy, qt_lo, qt_hi, NQ)
+       call bl_allocate ( dqz, qt_lo, qt_hi, NQ)
     end if
 
     ! for the hybrid Riemann solver
@@ -321,7 +366,7 @@ contains
 
        if (ppm_type .gt. 0) then
 
-          do n=1,QVAR
+          do n = 1, NQ
              call ppm(q(:,:,:,n  ),  qd_lo,qd_hi, &
                       q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
                       flatn,qd_lo,qd_hi, &
@@ -339,6 +384,7 @@ contains
              enddo
           endif
 
+          ! this probably doesn't support radiation
           if (ppm_temp_fix /= 1) then
              call ppm(qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                       q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
@@ -388,18 +434,30 @@ contains
           endif
 
           ! Compute U_x and U_y at kc (k3d)
+
+#ifdef RADIATION
+          call tracexy_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
+                               Ip, Im, Ip_src, Im_src, &
+                               qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                               lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
+#else
           call tracexy_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
                            Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                            qxm,qxp,qym,qyp,qt_lo,qt_hi, &
                            qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                            lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
+#endif
 
        else
+
+#ifdef RADIATION
+          call bl_error("ppm_type <=0 is not supported in with radiation")
+#endif
 
           ! Compute all slopes at kc (k3d)
           call uslope(q,flatn,qd_lo,qd_hi, &
                       dqx,dqy,dqz,qt_lo,qt_hi, &
-                      lo(1),lo(2),hi(1),hi(2),kc,k3d,QVAR)
+                      lo(1),lo(2),hi(1),hi(2),kc,k3d,NQ)
 
           if (use_pslope .eq. 1) &
                call pslope(q(:,:,:,QPRES),q(:,:,:,QRHO), &
@@ -418,61 +476,90 @@ contains
        end if
 
        ! Compute \tilde{F}^x at kc (k3d)
-       call cmpflx(qxm,qxp,qt_lo,qt_hi, &
-                   fx,fx_lo,fx_hi, &
-                   qgdnvx,qt_lo,qt_hi, &
-                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                   shk,shk_lo,shk_hi, &
-                   1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
+       call cmpflx(qxm, qxp, qt_lo, qt_hi, &
+                   fx, fx_lo, fx_hi, &
+                   qgdnvx, qt_lo, qt_hi, &
+#ifdef RADIATION
+                   rfx, fx_lo, fx_hi, &
+#endif
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
        ! Compute \tilde{F}^y at kc (k3d)
-       call cmpflx(qym,qyp,qt_lo,qt_hi, &
-                   fy,fy_lo,fy_hi, &
-                   qgdnvy,qt_lo,qt_hi, &
-                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                   shk,shk_lo,shk_hi, &
-                   2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
+       call cmpflx(qym, qyp, qt_lo, qt_hi, &
+                   fy, fy_lo, fy_hi, &
+                   qgdnvy, qt_lo, qt_hi, &
+#ifdef RADIATION
+                   rfy, fy_lo, fy_hi, &
+#endif
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
        ! Compute U'^y_x at kc (k3d)
-       call transy1(qxm,qmxy,qxp,qpxy,qt_lo,qt_hi, &
-                    fy,fy_lo,fy_hi, &
-                    qgdnvy,qt_lo,qt_hi, &
-                    qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                    cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,k3d)
+       call transy1(qxm, qmxy, qxp, qpxy, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fy, &
+#ifdef RADIATION
+                    rfy, &
+#endif
+                    fy_lo, fy_hi, &
+                    qgdnvy, qt_lo, qt_hi, &
+                    cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, k3d)
 
        ! Compute U'^x_y at kc (k3d)
-       call transx1(qym,qmyx,qyp,qpyx,qt_lo,qt_hi, &
-                    fx,fx_lo,fx_hi, &
-                    qgdnvx,qt_lo,qt_hi, &
-                    qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                    cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,k3d)
+       call transx1(qym, qmyx, qyp, qpyx, qt_lo, qt_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fx, &
+#ifdef RADIATION
+                    rfx, &
+#endif
+                    fx_lo, fx_hi, &
+                    qgdnvx, qt_lo, qt_hi, &
+                    cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1,kc,k3d)
 
        ! Compute F^{x|y} at kc (k3d)
-       call cmpflx(qmxy,qpxy,qt_lo,qt_hi, &
-                   fxy,fx_lo,fx_hi, &
-                   qgdnvtmpx,qt_lo,qt_hi, &
-                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
+       call cmpflx(qmxy, qpxy, qt_lo, qt_hi, &
+                   fxy, fx_lo, fx_hi, &
+                   qgdnvtmpx, qt_lo, qt_hi, &
+#ifdef RADIATION
+                   rfxy, fx_lo, fx_hi, &
+#endif
+                   qaux, qa_lo, qa_hi, &
                    shk,shk_lo,shk_hi, &
-                   1,lo(1),hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
+                   1, lo(1), hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
        ! Compute F^{y|x} at kc (k3d)
-       call cmpflx(qmyx,qpyx,qt_lo,qt_hi, &
-                   fyx,fy_lo,fy_hi, &
-                   qgdnvtmpy,qt_lo,qt_hi, &
-                   qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                   shk,shk_lo,shk_hi, &
-                   2,lo(1),hi(1),lo(2),hi(2)+1,kc,kc,k3d,domlo,domhi)
+       call cmpflx(qmyx, qpyx, qt_lo, qt_hi, &
+                   fyx, fy_lo, fy_hi, &
+                   qgdnvtmpy, qt_lo, qt_hi, &
+#ifdef RADIATION
+                   rfyx, fy_lo, fy_hi, &
+#endif
+                   qaux, qa_lo, qa_hi, &
+                   shk, shk_lo, shk_hi, &
+                   2, lo(1), hi(1), lo(2), hi(2)+1, kc, kc, k3d, domlo, domhi)
 
        if (k3d.ge.lo(3)) then
 
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
+#ifdef RADIATION
+          call tracez_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
+                              Ip, Im, Ip_src, Im_src, &
+                              qzm, qzp, qt_lo, qt_hi, &
+                              lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
+
+#else
              call tracez_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
                              Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
                              qzm,qzp,qt_lo,qt_hi, &
                              qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                              lo(1),lo(2),hi(1),hi(2),dt,km,kc,k3d)
+#endif
           else
+             ! we should not land here with radiation
              call tracez(q,qaux(:,:,:,QC),qd_lo,qd_hi, &
                          dqz,qt_lo,qt_hi, &
                          qzm,qzp,qt_lo,qt_hi, &
@@ -483,55 +570,83 @@ contains
           call cmpflx(qzm,qzp,qt_lo,qt_hi, &
                       fz,fz_lo,fz_hi, &
                       qgdnvz,qt_lo,qt_hi, &
-                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                      shk,shk_lo,shk_hi, &
-                      3,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
+#ifdef RADIATION
+                      rfz, fz_lo, fz_hi, &
+#endif
+                      qaux, qa_lo, qa_hi, &
+                      shk, shk_lo, shk_hi, &
+                      3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
           ! Compute U'^y_z at kc (k3d)
-          call transy2(qzm,qmzy,qzp,qpzy,qt_lo,qt_hi, &
-                       fy,fy_lo,fy_hi, &
-                       qgdnvy,qt_lo,qt_hi, &
-                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                       cdtdy,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,km,k3d)
+          call transy2(qzm, qmzy, qzp, qpzy, qt_lo, qt_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       fy, &
+#ifdef RADIATION
+                       rfy, &
+#endif
+                       fy_lo, fy_hi, &
+                       qgdnvy, qt_lo, qt_hi, &
+                       cdtdy, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, km, k3d)
 
           ! Compute U'^x_z at kc (k3d)
-          call transx2(qzm,qmzx,qzp,qpzx,qt_lo,qt_hi, &
-                       fx,fx_lo,fx_hi, &
-                       qgdnvx,qt_lo,qt_hi, &
-                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                       cdtdx,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,km,k3d)
+          call transx2(qzm, qmzx, qzp, qpzx, qt_lo, qt_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       fx, &
+#ifdef RADIATION
+                       rfx, &
+#endif
+                       fx_lo, fx_hi, &
+                       qgdnvx, qt_lo, qt_hi, &
+                       cdtdx, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, km, k3d)
 
           ! Compute F^{z|x} at kc (k3d)
-          call cmpflx(qmzx,qpzx,qt_lo,qt_hi, &
-                      fzx,fz_lo,fz_hi, &
-                      qgdnvtmpz1,qt_lo,qt_hi, &
-                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                      shk,shk_lo,shk_hi, &
-                      3,lo(1),hi(1),lo(2)-1,hi(2)+1,kc,kc,k3d,domlo,domhi)
+          call cmpflx(qmzx, qpzx, qt_lo, qt_hi, &
+                      fzx, fz_lo, fz_hi, &
+                      qgdnvtmpz1, qt_lo, qt_hi, &
+#ifdef RADIATION
+                      rfzx, fz_lo, fz_hi, &
+#endif
+                      qaux, qa_lo, qa_hi, &
+                      shk, shk_lo, shk_hi, &
+                      3, lo(1), hi(1), lo(2)-1, hi(2)+1, kc, kc, k3d, domlo, domhi)
 
           ! Compute F^{z|y} at kc (k3d)
-          call cmpflx(qmzy,qpzy,qt_lo,qt_hi, &
-                      fzy,fz_lo,fz_hi, &
-                      qgdnvtmpz2,qt_lo,qt_hi, &
-                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                      shk,shk_lo,shk_hi, &
-                      3,lo(1)-1,hi(1)+1,lo(2),hi(2),kc,kc,k3d,domlo,domhi)
+          call cmpflx(qmzy, qpzy, qt_lo, qt_hi, &
+                      fzy, fz_lo, fz_hi, &
+                      qgdnvtmpz2, qt_lo, qt_hi, &
+#ifdef RADIATION
+                      rfzy, fz_lo, fz_hi, &
+#endif
+                      qaux, qa_lo, qa_hi, &
+                      shk, shk_lo, shk_hi, &
+                      3, lo(1)-1, hi(1)+1, lo(2), hi(2), kc, kc, k3d, domlo, domhi)
 
           ! Compute U''_z at kc (k3d)
-          call transxy(qzm,qzl,qzp,qzr,qt_lo,qt_hi, &
-                       fxy,fx_lo,fx_hi, &
-                       fyx,fy_lo,fy_hi, &
-                       qgdnvtmpx,qt_lo,qt_hi, &
-                       qgdnvtmpy,qt_lo,qt_hi, &
-                       qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                       srcQ,src_lo,src_hi,&
-                       hdt,hdtdx,hdtdy,lo(1),hi(1),lo(2),hi(2),kc,km,k3d)
+          call transxy(qzm, qzl, qzp, qzr, qt_lo, qt_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       fxy, &
+#ifdef RADIATION
+                       rfxy, &
+#endif
+                       fx_lo, fx_hi, &
+                       fyx,&
+#ifdef RADIATION
+                       rfyx, &
+#endif
+                       fy_lo, fy_hi, &
+                       qgdnvtmpx, qt_lo, qt_hi, &
+                       qgdnvtmpy, qt_lo, qt_hi, &
+                       srcQ, src_lo, src_hi,&
+                       hdt, hdtdx, hdtdy, lo(1), hi(1), lo(2), hi(2), kc, km, k3d)
 
           ! Compute F^z at kc (k3d) -- note that flux3 is indexed by k3d, not kc
-          call cmpflx(qzl,qzr,qt_lo,qt_hi, &
-                      flux3,fd3_lo,fd3_hi, &
-                      qgdnvzf,qt_lo,qt_hi, &
-                      qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
+          call cmpflx(qzl, qzr, qt_lo, qt_hi, &
+                      flux3, fd3_lo, fd3_hi, &
+                      qgdnvzf, qt_lo, qt_hi, &
+#ifdef RADIATION
+                      rflux3, rfd3_lo, rfd3_hi, &
+#endif
+                      qaux, qa_lo, qa_hi, &
                       shk,shk_lo,shk_hi, &
                       3,lo(1),hi(1),lo(2),hi(2),kc,k3d,k3d,domlo,domhi)
 
@@ -551,58 +666,88 @@ contains
              end do
           end if
 
+
           if (k3d.gt.lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
-             call transz(qxm,qmxz,qxp,qpxz,qym,qmyz,qyp,qpyz,qt_lo,qt_hi, &
-                         fz,fz_lo,fz_hi, &
+             call transz(qxm, qmxz, qxp, qpxz, qym, qmyz, qyp, qpyz, qt_lo, qt_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         fz, &
+#ifdef RADIATION
+                         rfz, &
+#endif
+                         fz_lo, fz_hi, &
                          qgdnvz,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
                          cdtdz,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,km,kc,k3d)
 
              ! Compute F^{x|z} at km (k3d-1)
-             call cmpflx(qmxz,qpxz,qt_lo,qt_hi, &
-                         fxz,fx_lo,fx_hi, &
-                         qgdnvx,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         1,lo(1),hi(1)+1,lo(2)-1,hi(2)+1,km,km,k3d-1,domlo,domhi)
+             call cmpflx(qmxz, qpxz, qt_lo, qt_hi, &
+                         fxz, fx_lo, fx_hi, &
+                         qgdnvx, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         rfxz, fx_lo, fx_hi, &
+#endif
+                         qaux, qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute F^{y|z} at km (k3d-1)
-             call cmpflx(qmyz,qpyz,qt_lo,qt_hi, &
-                         fyz,fy_lo,fy_hi, &
-                         qgdnvy,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         2,lo(1)-1,hi(1)+1,lo(2),hi(2)+1,km,km,k3d-1,domlo,domhi)
+             call cmpflx(qmyz, qpyz, qt_lo, qt_hi, &
+                         fyz, fy_lo, fy_hi, &
+                         qgdnvy, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         rfyz, fy_lo, fy_hi, &
+#endif
+                         qaux, qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, km, km, k3d-1, domlo, domhi)
 
              ! Compute U''_x at km (k3d-1)
-             call transyz(qxm,qxl,qxp,qxr,qt_lo,qt_hi, &
-                          fyz,fy_lo,fy_hi, &
-                          fzy,fz_lo,fz_hi, &
-                          qgdnvy,qt_lo,qt_hi, &
-                          qgdnvtmpz2,qt_lo,qt_hi, &
-                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                          srcQ,src_lo,src_hi, &
-                          hdt,hdtdy,hdtdz,lo(1)-1,hi(1)+1,lo(2),hi(2),km,kc,k3d-1)
+             call transyz(qxm, qxl, qxp, qxr, qt_lo, qt_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          fyz, &
+#ifdef RADIATION
+                          rfyz, &
+#endif
+                          fy_lo, fy_hi, &
+                          fzy, &
+#ifdef RADIATION
+                          rfzy, &
+#endif
+                          fz_lo, fz_hi, &
+                          qgdnvy, qt_lo, qt_hi, &
+                          qgdnvtmpz2, qt_lo, qt_hi, &
+                          srcQ, src_lo, src_hi, &
+                          hdt, hdtdy, hdtdz, lo(1)-1, hi(1)+1, lo(2), hi(2), km, kc, k3d-1)
 
              ! Compute U''_y at km (k3d-1)
-             call transxz(qym,qyl,qyp,qyr,qt_lo,qt_hi, &
-                          fxz,fx_lo,fx_hi, &
-                          fzx,fz_lo,fz_hi, &
-                          qgdnvx,qt_lo,qt_hi, &
-                          qgdnvtmpz1,qt_lo,qt_hi, &
-                          qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                          srcQ,src_lo,src_hi, &
-                          hdt,hdtdx,hdtdz,lo(1),hi(1),lo(2)-1,hi(2)+1,km,kc,k3d-1)
+             call transxz(qym, qyl, qyp, qyr, qt_lo, qt_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          fxz, &
+#ifdef RADIATION
+                          rfxz, &
+#endif
+                          fx_lo, fx_hi, &
+                          fzx, &
+#ifdef RADIATION
+                          rfzx, &
+#endif
+                          fz_lo, fz_hi, &
+                          qgdnvx, qt_lo, qt_hi, &
+                          qgdnvtmpz1, qt_lo, qt_hi, &
+                          srcQ, src_lo, src_hi, &
+                          hdt, hdtdx, hdtdz, lo(1), hi(1), lo(2)-1, hi(2)+1, km, kc, k3d-1)
 
              ! Compute F^x at km (k3d-1)
-             call cmpflx(qxl,qxr,qt_lo,qt_hi, &
-                         flux1,fd1_lo,fd1_hi, &
-                         qgdnvxf,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         1,lo(1),hi(1)+1,lo(2),hi(2),km,k3d-1,k3d-1,domlo,domhi)
+             call cmpflx(qxl, qxr, qt_lo, qt_hi, &
+                         flux1, fd1_lo, fd1_hi, &
+                         qgdnvxf, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         rflux1, rfd1_lo, rfd1_hi, &
+#endif
+                         qaux, qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         1, lo(1), hi(1)+1, lo(2), hi(2), km, k3d-1, k3d-1, domlo, domhi)
 
              do j=lo(2)-1,hi(2)+1
                 do i=lo(1)-1,hi(1)+2
@@ -611,12 +756,15 @@ contains
              end do
 
              ! Compute F^y at km (k3d-1)
-             call cmpflx(qyl,qyr,qt_lo,qt_hi, &
-                         flux2,fd2_lo,fd2_hi, &
-                         qgdnvyf,qt_lo,qt_hi, &
-                         qaux(:,:,:,QGAMC),qaux(:,:,:,QCSML),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         shk,shk_lo,shk_hi, &
-                         2,lo(1),hi(1),lo(2),hi(2)+1,km,k3d-1,k3d-1,domlo,domhi)
+             call cmpflx(qyl, qyr, qt_lo, qt_hi, &
+                         flux2, fd2_lo, fd2_hi, &
+                         qgdnvyf, qt_lo, qt_hi, &
+#ifdef RADIATION
+                         rflux2, rfd2_lo, rfd2_hi, &
+#endif
+                         qaux, qa_lo, qa_hi, &
+                         shk, shk_lo, shk_hi, &
+                         2, lo(1), hi(1), lo(2), hi(2)+1, km, k3d-1, k3d-1, domlo, domhi)
 
              do j=lo(2)-1,hi(2)+2
                 do i=lo(1)-1,hi(1)+1
@@ -699,6 +847,21 @@ contains
     call bl_deallocate ( fzx)
     call bl_deallocate ( fzy)
 
+#ifdef RADIATION
+    call bl_deallocate (rfx)
+    call bl_deallocate (rfy)
+    call bl_deallocate (rfz)
+
+    call bl_deallocate(rfxy)
+    call bl_deallocate(rfxz)
+
+    call bl_deallocate(rfyx)
+    call bl_deallocate(rfyz)
+
+    call bl_deallocate(rfzx)
+    call bl_deallocate(rfxy)
+#endif
+
     if (ppm_type .gt. 0) then
        call bl_deallocate ( Ip)
        call bl_deallocate ( Im)
@@ -722,35 +885,52 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine consup(uin,uin_lo,uin_hi, &
-                    q,q_lo,q_hi, &
-                    uout,uout_lo,uout_hi, &
-                    update,updt_lo,updt_hi, &
-                    flux1,flux1_lo,flux1_hi, &
-                    flux2,flux2_lo,flux2_hi, &
-                    flux3,flux3_lo,flux3_hi, &
-                    qx,qx_lo,qx_hi, &
-                    qy,qy_lo,qy_hi, &
-                    qz,qz_lo,qz_hi, &
-                    area1,area1_lo,area1_hi, &
-                    area2,area2_lo,area2_hi, &
-                    area3,area3_lo,area3_hi, &
+  subroutine consup(uin, uin_lo, uin_hi, &
+                    q, q_lo, q_hi, &
+                    uout, uout_lo, uout_hi, &
+                    update, updt_lo, updt_hi, &
+                    flux1, flux1_lo, flux1_hi, &
+                    flux2, flux2_lo, flux2_hi, &
+                    flux3, flux3_lo, flux3_hi, &
+#ifdef RADIATION
+                    Erin, Erin_lo, Erin_hi, &
+                    Erout, Erout_lo, Erout_hi, &
+                    radflux1, radflux1_lo, radflux1_hi, &
+                    radflux2, radflux2_lo, radflux2_hi, &
+                    radflux3, radflux3_lo, radflux3_hi, &
+                    nstep_fsp, &
+#endif
+                    qx, qx_lo, qx_hi, &
+                    qy, qy_lo, qy_hi, &
+                    qz, qz_lo, qz_hi, &
+                    area1, area1_lo, area1_hi, &
+                    area2, area2_lo, area2_hi, &
+                    area3, area3_lo, area3_hi, &
                     vol,vol_lo,vol_hi, &
-                    div,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
-                    xmom_added_flux,ymom_added_flux,zmom_added_flux, &
-                    mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-                    eden_lost,xang_lost,yang_lost,zang_lost, &
+                    div, pdivu, lo, hi, dx, dt, &
+                    mass_added_flux, E_added_flux, &
+                    xmom_added_flux, ymom_added_flux, zmom_added_flux, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, NGDNV, QVAR, NQ, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
+#ifdef RADIATION
+                                   fspace_type, comoving, &
+                                   GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &
+#endif                                   
                                    track_grid_losses, limit_fluxes_on_small_dens
-    use bl_constants_module, only : ZERO, FOURTH, ONE
     use advection_util_3d_module, only : normalize_species_fluxes
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
     use amrinfo_module, only : amr_level
+#ifdef RADIATION
+    use rad_params_module, only : ngroups, nugroup, dlognu
+    use radhydro_nd_module, only : advect_in_fspace
+    use fluxlimiter_module, only : Edd_factor    
+#endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
@@ -774,7 +954,17 @@ contains
     integer, intent(in) ::    qz_lo(3),    qz_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
 
+#ifdef RADIATION
+    integer, intent(in) :: Erout_lo(3), Erout_hi(3)
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
+    integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
+    integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
+    integer, intent(inout) :: nstep_fsp
+#endif
+
     integer, intent(in) :: verbose
+
 
     double precision, intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -794,14 +984,46 @@ contains
     double precision, intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     double precision, intent(in) :: dx(3), dt
 
+#ifdef RADIATION
+    double precision  Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    double precision Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
+    double precision radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
+    double precision radflux2(radflux2_lo(1):radflux2_hi(1),radflux2_lo(2):radflux2_hi(2),radflux2_lo(3):radflux2_hi(3),0:ngroups-1)
+    double precision radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
+#endif
+
     double precision, intent(inout) :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
     double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
     double precision :: div1, volinv
-    integer          :: i, j, k, n
+    integer          :: i, j, g, k, n
     integer          :: domlo(3), domhi(3)
     double precision :: loc(3), ang_mom(3)
+
+#ifdef RADIATION
+    double precision, dimension(0:ngroups-1) :: Erscale
+    double precision, dimension(0:ngroups-1) :: ustar, af
+    double precision :: Eddf, Eddfxm, Eddfxp, Eddfym, Eddfyp, Eddfzm, Eddfzp
+    double precision :: f1, f2, f1xm, f1xp, f1ym, f1yp, f1zm, f1zp
+    double precision :: Gf1E(3)
+    double precision :: ux, uy, uz, divu, lamc, Egdc
+    double precision :: dudx(3), dudy(3), dudz(3), nhat(3), GnDotu(3), nnColonDotGu
+    double precision :: dprdx, dprdy, dprdz, ek1, ek2, dek
+    double precision :: urho_new
+    double precision :: umx_new1, umy_new1, umz_new1
+    double precision :: umx_new2, umy_new2, umz_new2
+#endif
+
+#ifdef RADIATION
+    if (ngroups .gt. 1) then
+       if (fspace_type .eq. 1) then
+          Erscale = dlognu
+       else
+          Erscale = nugroup*dlognu
+       end if
+    end if
+#endif
 
     do n = 1, NVAR
 
@@ -858,6 +1080,47 @@ contains
 
     enddo
 
+#ifdef RADIATION
+    do g=0,ngroups-1
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)+1
+                div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + div(i,j,k+1) + div(i,j+1,k+1))
+                div1 = difmag*min(ZERO, div1)
+
+                radflux1(i,j,k,g) = radflux1(i,j,k,g) + dx(1)*div1*(Erin(i,j,k,g)-Erin(i-1,j,k,g))
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g=0,ngroups-1
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)+1
+             do i = lo(1),hi(1)
+                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j,k+1) + div(i+1,j,k+1))
+                div1 = difmag*min(ZERO, div1)
+
+                radflux2(i,j,k,g) = radflux2(i,j,k,g) + dx(2)*div1*(Erin(i,j,k,g)-Erin(i,j-1,k,g))
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g=0,ngroups-1
+       do k = lo(3),hi(3)+1
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
+                div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + div(i,j+1,k) + div(i+1,j+1,k))
+                div1 = difmag*min(ZERO, div1)
+
+                radflux3(i,j,k,g) = radflux3(i,j,k,g) + dx(3)*div1*(Erin(i,j,k,g)-Erin(i,j,k-1,g))
+             enddo
+          enddo
+       enddo
+    enddo
+#endif
+
     if (limit_fluxes_on_small_dens == 1) then
        call limit_hydro_fluxes_on_small_dens(uin,uin_lo,uin_hi, &
                                              q,q_lo,q_hi, &
@@ -888,9 +1151,10 @@ contains
 
                 volinv = ONE / vol(i,j,k)
 
-                update(i,j,k,n) = update(i,j,k,n) + ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                                                      flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
-                                                      flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) * volinv
+                update(i,j,k,n) = update(i,j,k,n) + &
+                     ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
+                       flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                       flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) * volinv
 
                 ! Add the p div(u) source term to (rho e).
                 if (n .eq. UEINT) then
@@ -911,6 +1175,163 @@ contains
 #endif
 
 
+#ifdef RADIATION
+    ! radiation energy update.  For the moment, we actually update things 
+    ! fully here, instead of creating a source term for the update
+    do g=0,ngroups-1
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
+                Erout(i,j,k,g) = Erin(i,j,k,g) + dt * &
+                     ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k) + &
+                       radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) + &
+                       radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) ) / vol(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    ! add radiation force terms (the hydro pressure gradient is always
+    ! included in the momentum flux in 3-d)
+
+    do k = lo(3),hi(3)
+       do j = lo(2),hi(2)
+          do i = lo(1),hi(1)
+
+             dprdx = ZERO
+             dprdy = ZERO
+             dprdz = ZERO
+             do g=0,ngroups-1
+                lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                        qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                        qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.d0
+                dprdx = dprdx + lamc*(qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
+                dprdy = dprdy + lamc*(qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
+                dprdz = dprdz + lamc*(qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
+             end do
+
+             ! we now want to compute the change in the kinetic energy -- we
+             ! base this off of uout, since that has the source terms in it.
+             ! But note that this does not have the fluxes (since we are
+             ! using update)
+
+             urho_new = uout(i,j,k,URHO) + dt * update(i,j,k,URHO)
+
+             ! this update includes the hydro fluxes and grad{p} from hydro
+             umx_new1 = uout(i,j,k,UMX) + dt * update(i,j,k,UMX)
+             umy_new1 = uout(i,j,k,UMY) + dt * update(i,j,k,UMY)
+             umz_new1 = uout(i,j,k,UMZ) + dt * update(i,j,k,UMZ)
+
+             ek1 = (umx_new1**2 + umy_new1**2 + umz_new1**2) / (TWO*urho_new)
+
+             ! now add the radiation pressure gradient
+             update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx
+             update(i,j,k,UMY) = update(i,j,k,UMY) - dprdy
+             update(i,j,k,UMZ) = update(i,j,k,UMZ) - dprdz
+
+             umx_new2 = umx_new1 - dt * dprdx
+             umy_new2 = umy_new1 - dt * dprdy
+             umz_new2 = umz_new1 - dt * dprdz
+
+             ek2 = (umx_new2**2 + umy_new2**2 + umz_new2**2) / (TWO*urho_new)
+
+             dek = ek2 - ek1
+
+             ! the update is a source / dt, so scale accordingly
+             update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek/dt
+
+             if (.not. comoving) then ! mixed-frame (single group only)
+                Erout(i,j,k,0) = Erout(i,j,k,0) - dek
+             end if
+
+          end do
+       end do
+    end do
+
+    ! Add radiation source terms
+    if (comoving) then
+       do k = lo(3),hi(3)
+          do j = lo(2),hi(2)
+             do i = lo(1),hi(1)
+
+                ux = HALF*(qx(i,j,k,GDU) + qx(i+1,j,k,GDU))
+                uy = HALF*(qy(i,j,k,GDV) + qy(i,j+1,k,GDV))
+                uz = HALF*(qz(i,j,k,GDW) + qz(i,j,k+1,GDW))
+
+                dudx(1) = (qx(i+1,j,k,GDU) - qx(i,j,k,GDU))/dx(1)
+                dudx(2) = (qx(i+1,j,k,GDV) - qx(i,j,k,GDV))/dx(1)
+                dudx(3) = (qx(i+1,j,k,GDW) - qx(i,j,k,GDW))/dx(1)
+
+                dudy(1) = (qy(i,j+1,k,GDU) - qy(i,j,k,GDU))/dx(2)
+                dudy(2) = (qy(i,j+1,k,GDV) - qy(i,j,k,GDV))/dx(2)
+                dudy(3) = (qy(i,j+1,k,GDW) - qy(i,j,k,GDW))/dx(2)
+
+                dudz(1) = (qz(i,j,k+1,GDU) - qz(i,j,k,GDU))/dx(3)
+                dudz(2) = (qz(i,j,k+1,GDV) - qz(i,j,k,GDV))/dx(3)
+                dudz(3) = (qz(i,j,k+1,GDW) - qz(i,j,k,GDW))/dx(3)
+
+                divu = dudx(1) + dudy(2) + dudz(3)
+
+                ! Note that for single group, fspace_type is always 1
+                do g=0, ngroups-1
+
+                   nhat(1) = (qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx(1)
+                   nhat(2) = (qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx(2)
+                   nhat(3) = (qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx(3)
+
+                   GnDotu(1) = dot_product(nhat, dudx)
+                   GnDotu(2) = dot_product(nhat, dudy)
+                   GnDotu(3) = dot_product(nhat, dudz)
+
+                   nnColonDotGu = dot_product(nhat, GnDotu) / (dot_product(nhat,nhat)+1.d-50)
+
+                   lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                           qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                           qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.d0
+                   Eddf = Edd_factor(lamc)
+                   f1 = (ONE-Eddf)*HALF
+                   f2 = (3.d0*Eddf-ONE)*HALF
+                   af(g) = -(f1*divu + f2*nnColonDotGu)
+
+                   if (fspace_type .eq. 1) then
+                      Eddfxp = Edd_factor(qx(i+1,j  ,k  ,GDLAMS+g))
+                      Eddfxm = Edd_factor(qx(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfyp = Edd_factor(qy(i  ,j+1,k  ,GDLAMS+g))
+                      Eddfym = Edd_factor(qy(i  ,j  ,k  ,GDLAMS+g))
+                      Eddfzp = Edd_factor(qz(i  ,j  ,k+1,GDLAMS+g))
+                      Eddfzm = Edd_factor(qz(i  ,j  ,k  ,GDLAMS+g))
+
+                      f1xp = HALF*(ONE-Eddfxp)
+                      f1xm = HALF*(ONE-Eddfxm)
+                      f1yp = HALF*(ONE-Eddfyp)
+                      f1ym = HALF*(ONE-Eddfym)
+                      f1zp = HALF*(ONE-Eddfzp)
+                      f1zm = HALF*(ONE-Eddfzm)
+
+                      Gf1E(1) = (f1xp*qx(i+1,j,k,GDERADS+g) - f1xm*qx(i,j,k,GDERADS+g)) / dx(1)
+                      Gf1E(2) = (f1yp*qy(i,j+1,k,GDERADS+g) - f1ym*qy(i,j,k,GDERADS+g)) / dx(2)
+                      Gf1E(3) = (f1zp*qz(i,j,k+1,GDERADS+g) - f1zm*qz(i,j,k,GDERADS+g)) / dx(3)
+
+                      Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) &
+                           +  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g) &
+                           +  qz(i,j,k,GDERADS+g) + qz(i,j,k+1,GDERADS+g) ) / 6.d0
+
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)+uz*Gf1E(3)) &
+                           - dt*f2*Egdc*nnColonDotGu
+                   end if
+
+                end do
+
+                if (ngroups.gt.1) then
+                   ustar = Erout(i,j,k,:) / Erscale
+                   call advect_in_fspace(ustar, af, dt, nstep_fsp)
+                   Erout(i,j,k,:) = ustar * Erscale
+                end if
+             enddo
+          enddo
+       enddo
+    endif
+#endif
 
     ! Scale the fluxes for the form we expect later in refluxing.
 
@@ -943,6 +1364,39 @@ contains
           enddo
        enddo
     enddo
+
+#ifdef RADIATION
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1) + 1
+                radflux1(i,j,k,g) = dt * radflux1(i,j,k,g) * area1(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2) + 1
+             do i = lo(1), hi(1)
+                radflux2(i,j,k,g) = dt * radflux2(i,j,k,g) * area2(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3) + 1
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                radflux3(i,j,k,g) = dt * radflux3(i,j,k,g) * area3(i,j,k)
+             enddo
+          enddo
+       enddo
+    enddo
+#endif
+
 
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
 

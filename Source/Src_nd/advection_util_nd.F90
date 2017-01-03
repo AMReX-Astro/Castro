@@ -418,7 +418,7 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-                                   QCG, QGAMCG, &
+                                   QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
@@ -457,7 +457,7 @@ contains
 
     double precision, parameter :: small = 1.d-8
 
-    integer          :: i, j, k
+    integer          :: i, j, k, g
     integer          :: n, iq, ipassive
     double precision :: kineng, rhoinv
     double precision :: vel(3)
@@ -573,6 +573,10 @@ contains
 
              qaux(i,j,k,QC)    = ctot
              qaux(i,j,k,QGAMC) = gamc_tot
+
+             do g = 0, ngroups-1
+                qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
+             enddo
 
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
 #else

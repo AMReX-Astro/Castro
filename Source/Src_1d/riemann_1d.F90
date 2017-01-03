@@ -3,11 +3,11 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
-    use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+    use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    QFS, QFX, &
-                                   NGDNV, GDU, GDPRES, &
+                                   NGDNV, GDU, GDPRES, QGAMC, QC, QCSML, &
 #ifdef RADIATION
-                                   GDERADS, GDLAMS, &
+                                   GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
                                    URHO, UMX, UEDEN, UEINT, &
                                    small_temp, small_dens, small_pres, &
@@ -31,16 +31,14 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine cmpflx(lo,hi,domlo,domhi, &
-                    qm,qp,qpd_l1,qpd_h1, &
-                    flx,flx_l1,flx_h1, &
-                    qint,qg_l1,qg_h1, &
+  subroutine cmpflx(lo, hi, domlo, domhi, &
+                    qm, qp, qpd_l1, qpd_h1, &
+                    flx, flx_l1, flx_h1, &
+                    qint, qg_l1, qg_h1, &
 #ifdef RADIATION
-                    lam, lam_l1, lam_h1, &
-                    rflx,rflx_l1,rflx_h1, &
-                    gamcg, &
+                    rflx, rflx_l1, rflx_h1, &
 #endif
-                    gamc,csml,c,qd_l1,qd_h1,ilo,ihi)
+                    qaux, qa_l1, qa_h1, ilo, ihi)
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -52,35 +50,25 @@ contains
     integer qpd_l1,qpd_h1
     integer flx_l1, flx_h1
     integer  qg_l1,  qg_h1
-    integer  qd_l1,  qd_h1
-
-#ifdef RADIATION
-    integer lam_l1, lam_h1
-    integer rflx_l1, rflx_h1
-    integer erg_l1,erg_h1
-    integer  lg_l1, lg_h1
-#endif
+    integer  qa_l1,  qa_h1
 
     double precision    qm(qpd_l1:qpd_h1, NQ)
     double precision    qp(qpd_l1:qpd_h1, NQ)
 
     double precision   flx(flx_l1:flx_h1, NVAR)
     double precision  qint( qg_l1: qg_h1, NGDNV)
-    double precision  gamc( qd_l1: qd_h1)
-    double precision     c( qd_l1: qd_h1)
-    double precision  csml( qd_l1: qd_h1)
+    double precision  qaux( qa_l1: qa_h1, NQAUX)
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1, 0:ngroups-1)
+    integer rflx_l1, rflx_h1
     double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
-    double precision gamcg( qd_l1: qd_h1)
 #endif
 
     ! Local variables
     integer i
-    double precision, allocatable :: smallc(:),cavg(:),gamcp(:), gamcm(:)
+    double precision, allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
 #ifdef RADIATION
-    double precision, allocatable :: gamcgp(:), gamcgm(:)
+    double precision, allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
 #endif
 
     allocate ( smallc(ilo:ihi+1) )
@@ -90,18 +78,25 @@ contains
 #ifdef RADIATION
     allocate (gamcgp(ilo:ihi+1) )
     allocate (gamcgm(ilo:ihi+1) )
+    allocate (lam(ilo-1:ihi+2,0:ngroups-1) )
 #endif
 
     do i = ilo, ihi+1
-       smallc(i) = max( csml(i), csml(i-1) )
-       cavg(i) = HALF*( c(i) + c(i-1) )
-       gamcm(i) = gamc(i-1)
-       gamcp(i) = gamc(i)
+       smallc(i) = max( qaux(i,QCSML), qaux(i-1,QCSML) )
+       cavg(i) = HALF*( qaux(i,QC) + qaux(i-1,QC) )
+       gamcm(i) = qaux(i-1,QGAMC)
+       gamcp(i) = qaux(i,QGAMC)
 #ifdef RADIATION
-       gamcgm (i) = gamcg(i-1)
-       gamcgp (i) = gamcg(i)
+       gamcgm (i) = qaux(i-1,QGAMCG)
+       gamcgp (i) = qaux(i,QGAMCG)
 #endif
     enddo
+
+#ifdef RADIATION
+    do i = ilo-1, ihi+2
+       lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
+    enddo
+#endif
 
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
@@ -112,8 +107,7 @@ contains
                       flx, flx_l1, flx_h1, &
                       qint, qg_l1, qg_h1, &
 #ifdef RADIATION
-                      lam, lam_l1, lam_h1, &
-                      gamcgm, gamcgp, &
+                      lam, gamcgm, gamcgp, &
                       rflx, rflx_l1, rflx_h1, &
 #endif
                       ilo, ihi, domlo, domhi )
@@ -129,6 +123,9 @@ contains
     endif
 
     deallocate (smallc,cavg,gamcm,gamcp)
+#ifdef RADIATION
+    deallocate(gamcgm,gamcgp,lam)
+#endif
 
   end subroutine cmpflx
 
@@ -143,7 +140,7 @@ contains
     integer, intent(in) :: s_l1, s_h1
     integer, intent(in) :: ilo1, ihi1
     double precision, intent(in) :: dx
-    double precision, intent(in) :: q(qd_l1:qd_h1,QVAR)
+    double precision, intent(in) :: q(qd_l1:qd_h1,NQ)
     double precision, intent(inout) :: shk(s_l1:s_h1)
 
     integer :: i
@@ -245,8 +242,8 @@ contains
     integer :: uflx_l1, uflx_h1
     integer :: qg_l1, qg_h1
 
-    double precision :: ql(qpd_l1:qpd_h1, QVAR+3)
-    double precision :: qr(qpd_l1:qpd_h1, QVAR+3)
+    double precision :: ql(qpd_l1:qpd_h1, NQ)
+    double precision :: qr(qpd_l1:qpd_h1, NQ)
     double precision ::  gamcl(ilo:ihi+1)
     double precision ::  gamcr(ilo:ihi+1)
     double precision ::    cav(ilo:ihi+1)
@@ -753,8 +750,7 @@ contains
                        uflx,uflx_l1,uflx_h1,&
                        qint,qg_l1,qg_h1, &
 #ifdef RADIATION
-                       lam, lam_l1, lam_h1, &
-                       gamcgl, gamcgr, &
+                       lam, gamcgl, gamcgr, &
                        rflx,rflx_l1,rflx_h1, &
 #endif
                        ilo,ihi,domlo,domhi)
@@ -776,9 +772,6 @@ contains
 
 #ifdef RADIATION
     integer rflx_l1, rflx_h1
-    integer lam_l1, lam_h1
-    integer  erg_l1,  erg_h1
-    integer   lg_l1,   lg_h1
 #endif
 
     double precision ql(qpd_l1:qpd_h1, NQ)
@@ -790,7 +783,7 @@ contains
     double precision  qint( qg_l1: qg_h1, NGDNV)
 
 #ifdef RADIATION
-    double precision lam(lam_l1:lam_h1, 0:ngroups-1)
+    double precision lam(ilo-1:ihi+2, 0:ngroups-1)
     double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
     double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 

@@ -538,6 +538,9 @@ Castro::Castro (Amr&            papa,
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
@@ -694,20 +697,24 @@ Castro::initMFs()
 	    flux_crse_scale = -1.0 / crse_ratio[0];
 	    flux_fine_scale = 1.0;
 
-	    if (level > 0) {
+	    // Now set the scaling for the level below us. All other levels will be done
+	    // in a general loop below; we cannot fuse this one because getLevel() will not
+	    // return a result for this level until after the Castro constructor completes.
 
-		getLevel(level-1).flux_crse_scale = flux_crse_scale / crse_ratio[0];
-		getLevel(level-1).flux_fine_scale = flux_fine_scale / crse_ratio[0];
+	    if (level > 1) {
+
+		getLevel(level-1).flux_crse_scale = flux_crse_scale / getLevel(level-1).crse_ratio[0];
+		getLevel(level-1).flux_fine_scale = flux_fine_scale / getLevel(level-1).fine_ratio[0];
 
 	    }
 
-	    for (int lev = level - 2; lev >= 0; --lev) {
+	    for (int lev = level - 2; lev > 0; --lev) {
 
 		// Note that we're arbitrarily using the first component of ref_ratio, on the
 		// assumption that the refinement is equal in all dimensions.
 
-		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev+1).crse_ratio[0];
-		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev+1).crse_ratio[0];
+		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev).crse_ratio[0];
+		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev).fine_ratio[0];
 
 	    }
 
@@ -737,7 +744,7 @@ Castro::initMFs()
 	    pres_crse_scale *= flux_crse_scale;
 	    pres_fine_scale *= flux_fine_scale;
 
-	    for (int lev = level - 1; lev >= 0; --lev) {
+	    for (int lev = level - 1; lev > 0; --lev) {
 
 		getLevel(lev).pres_crse_scale = 1.0;
 
@@ -762,7 +769,7 @@ Castro::initMFs()
 	    flux_crse_scale = -1.0;
 	    flux_fine_scale = 1.0;
 
-	    for (int lev = level - 1; lev >= 0; --lev) {
+	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).flux_crse_scale = -1.0;
 		getLevel(lev).flux_fine_scale = 1.0;
 	    }
@@ -774,7 +781,7 @@ Castro::initMFs()
 	    pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
 
-	    for (int lev = level - 1; lev >= 0; --lev) {
+	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).pres_crse_scale = 1.0;
 #if (BL_SPACEDIM == 1)
 		getLevel(lev).pres_fine_scale = 1.0;
@@ -1755,6 +1762,9 @@ Castro::post_restart ()
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
@@ -2155,9 +2165,14 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-	// Zero out the flux register; it's no longer needed.
+	// Subtract out the fine part of the flux register; it's no longer needed.
+	// This assumes that we always initialize the coarse fluxes only once
+	// at the first AMR iteration. We do it this way so that we can modify
+	// the fluxes above without worrying about a modification to the fluxes
+	// MultiFab on the coarse domain affecting later refluxes.
 
-	reg->setVal(0.0);
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, -getLevel(lev).flux_fine_scale);
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
@@ -2178,24 +2193,23 @@ Castro::reflux(int crse_level, int fine_level)
 						  crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
 		temp_fluxes[0]->setVal(0.0);
 
-		for (OrientationIter fi; fi; ++fi) {
-
+                for (OrientationIter fi; fi; ++fi) 
+		{
 		    const FabSet& fs = (*reg)[fi()];
 		    int idir = fi().coordDir();
 		    if (idir == 0) {
 			fs.copyTo(*temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir]->nComp());
 		    }
-
-		}
+                }
 
 		MultiFab::Add(crse_lev.P_radial, *temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
 		temp_fluxes[0].reset();
 
-		reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
+                reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    }
 
-	    reg->setVal(0.0);
+	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, -getLevel(lev).pres_fine_scale);
 
 	}
 #endif
@@ -2232,7 +2246,8 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    reg->setVal(0.0);
+	    for (int i = 0; i < BL_SPACEDIM; ++i)
+		reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
 
 	}
 
