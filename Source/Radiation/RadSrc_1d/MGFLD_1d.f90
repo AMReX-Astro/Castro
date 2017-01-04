@@ -62,12 +62,12 @@ subroutine ca_accel_rhs( lo, hi, &
   double precision, intent(in) :: dt
 
   integer :: i 
-  double precision :: rt, H
+  double precision :: rt_term, H
 
   do i = lo(1), hi(1)
-     rt = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
+     rt_term = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
      H = etaT(i)
-     rhs(i) = clight*H*rt
+     rhs(i) = clight*H*rt_term
   end do
 
 end subroutine ca_accel_rhs
@@ -668,13 +668,13 @@ subroutine ca_local_accel( lo, hi,  &
   double precision,intent(in) :: dt, tau
 
   integer :: i 
-  double precision :: cdt1, rt, p
+  double precision :: cdt1, rt_term, p
   double precision,dimension(0:ngroups-1)::Hg, epsilon, kapt, kk
 
   cdt1 = 1.d0/(clight*dt)
 
   do i = lo(1), hi(1)
-     rt = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
+     rt_term = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
 
      Hg = mugT(i,:)*etaT(i)
 
@@ -682,7 +682,7 @@ subroutine ca_local_accel( lo, hi,  &
      kk = kap(i,:) / kapt
 
      p = 1.d0-sum(Hg*kk)
-     epsilon = (Hg * rt) / (kapt*p + 1.d-50)
+     epsilon = (Hg * rt_term) / (kapt*p + 1.d-50)
 
      Ern(i,:) = Ern(i,:) + epsilon
   end do
