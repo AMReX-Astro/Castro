@@ -13,14 +13,26 @@ import sys
 # routine signatures
 routine_re = re.compile(r"^(subroutine|function|module)\s+(\w*)", re.IGNORECASE|re.DOTALL)
 
+# functions can be a little tricker, since they can be "double precision function...."
+func_re = re.compile(r"^(double\s+precision|real\*8|real|real\s*\(\s*kind\s*=\s*dp_t\s*\))\s+function\s+(\w*)", re.IGNORECASE|re.DOTALL)
+
 # declaration signatures
-decl_re = re.compile(r"^(real|integer|double\s*precision|logical|character|type)", re.IGNORECASE|re.DOTALL)
+decl_re = re.compile(r"^(real|integer|double\s*precision|logical|character|type|class)", re.IGNORECASE|re.DOTALL)
 
 # implicit none signature
 implno_re = re.compile(r"^(implicit\s+none)", re.IGNORECASE|re.DOTALL)
 
 # use module signature
 use_re = re.compile(r"^(use)\s+(\w*)", re.IGNORECASE|re.DOTALL)
+
+# module include line to add
+mod_incl = "use bl_fort_module, only : rp_t => c_real"
+
+# new-style declaration
+new_decl = "real(rp_t)"
+
+# constant type specifier
+const_spec = "_rp_t"
 
 
 def find_files(top_dir, extension):
@@ -53,7 +65,10 @@ def main():
     # match declarations like "double precision"
     r3 = re.compile(r"(double)\s*(precision)", re.IGNORECASE|re.DOTALL)
 
-    regexs = [r1, r2, r3]
+    # match declarations like "real*8"
+    r4 = re.compile(r"(real\*8)", re.IGNORECASE|re.DOTALL)
+
+    regexs = [r1, r2, r3, r4]
 
 
     # also we want to convert numeric constants that are of the form X.Y_dp_t, etc.
@@ -61,8 +76,9 @@ def main():
 
     # and... we want to replace and "d" scientific notation with the new style
     # this matches stuff like -1.25d-10, and gives us separate groups for the
-    # prefix and exponent
-    d_re = re.compile(r"([\+\-0-9.]+)[dD]([\+\-0-9]+)", re.IGNORECASE|re.DOTALL)
+    # prefix and exponent.  The [^\w] makes sure a letter isn't right in front
+    # of the match (like 'k3d-1')
+    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD][\+\-]?([0-9]+)", re.IGNORECASE|re.DOTALL)
 
     # find the source files
     sfiles = []
@@ -117,11 +133,25 @@ def main():
                 current_unit = rout.group(2)
                 has_decl = False
 
+            fout = func_re.search(tline)
+            if fout:
+                # save the old info
+                if current_unit is not None:
+                    units[current_unit] = has_decl
+
+                # start the next unit
+                current_unit = fout.group(2)
+                has_decl = False
+                
             # are there any declarations that we need to replace?
             for r in regexs:
                 decl = r.search(line)
                 if decl:
                     has_decl = True
+
+            # scientific notation to replace?
+            if d_re.finditer(line):
+                has_decl = True
 
         # we never stored the last found unit
         if current_unit is not None and current_unit not in units:
@@ -141,13 +171,18 @@ def main():
 
             # is this the start of a routine?
             rout = routine_re.search(line.strip())
-            if rout:
-                current_unit = rout.group(2)
+            fout = func_re.search(line.strip())
+            if rout or fout:
+                if rout:
+                    current_unit = rout.group(2)
+                elif fout:
+                    current_unit = fout.group(2)
                 has_decl = units[current_unit]
 
-                new_lines.append(line)
-
                 while has_decl:
+
+                    new_lines.append(line)
+
                     # we need to add the use line before any declarations or
                     # and implicit none.  We don't simply add it after first
                     # detecting the start of a routine, since the function
@@ -168,13 +203,8 @@ def main():
                         indent = max(0, indent)
 
                         # we need to add the module use statement
-                        new_lines.append("{}use bl_fort_module\n".format(indent*" "))
+                        new_lines.append("{}{}\n".format(indent*" ", mod_incl))
                         has_decl = False
-
-                        # this line will be added at the end of the while
-
-                    else:
-                        new_lines.append(line)
 
 
             # replace declarations
@@ -182,18 +212,17 @@ def main():
                 decl = r.search(line)
                 if decl:
                     old_decl = decl.group(0)
-                    new_decl = "real(c_real)"
                     # preserve spacing, if possible
                     lo = len(old_decl) - len(new_decl)
                     if lo > 0:
-                        new_decl = new_decl + lo*" "
-                    line = line.replace(old_decl, new_decl)
+                        new_decl_out = new_decl + lo*" "
+                    line = line.replace(old_decl, new_decl_out)
 
             # replace constants
             const = c_re.search(line)
             if const:
                 num_value = const.group(1)
-                new_const = "{}_rt".format(num_value)
+                new_const = "{}{}".format(num_value, const_spec)
                 old_const = const.group(0)
                 line = line.replace(old_const, new_const)
 
@@ -201,7 +230,7 @@ def main():
             for dd in d_re.finditer(line):
                 prefix = dd.group(1)
                 exponent = dd.group(2)
-                new_num = "{}e{}_rt".format(prefix, exponent)
+                new_num = "{}e{}{}".format(prefix, exponent, const_spec)
                 old_num = dd.group(0)
                 line = line.replace(old_num, new_num)
 
