@@ -1,5 +1,6 @@
 module timestep_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -21,20 +22,21 @@ contains
     use amrinfo_module, only: amr_time
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: u_lo(3), u_hi(3)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    double precision :: dx(3), dt
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)         :: dx(3), dt
 
-    double precision :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
+    real(rt)         :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
 
 #ifdef ROTATION
-    double precision :: vel(3)
+    real(rt)         :: vel(3)
 #endif
 
     ! Call EOS for the purpose of computing sound speed
@@ -114,6 +116,7 @@ contains
     use eos_type_module
     use extern_probin_module, only: small_x
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: so_lo(3), so_hi(3)
@@ -121,18 +124,18 @@ contains
     integer          :: ro_lo(3), ro_hi(3)
     integer          :: rn_lo(3), rn_hi(3)
     integer          :: lo(3), hi(3)
-    double precision :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-    double precision :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    double precision :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
-    double precision :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
-    double precision :: dx(3), dt, dt_old
+    real(rt)         :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    real(rt)         :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt)         :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    real(rt)         :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt)         :: dx(3), dt, dt_old
 
-    double precision :: e, X(nspec), dedt, dXdt(nspec)
+    real(rt)         :: e, X(nspec), dedt, dXdt(nspec)
     integer          :: i, j, k
 
     type (burn_t)    :: state_old, state_new
     type (eos_t)     :: eos_state
-    double precision :: rhooinv, rhoninv
+    real(rt)         :: rhooinv, rhoninv
 
     ! We want to limit the timestep so that it is not larger than
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
@@ -154,7 +157,7 @@ contains
     ! values for the thermodynamic data like abar, zbar, etc.
     ! But we will call in (rho, T) mode, which is inexpensive.
 
-    if (dtnuc_e > 1.d199 .and. dtnuc_X > 1.d199) return
+    if (dtnuc_e > 1.e199_rt .and. dtnuc_X > 1.e199_rt) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -218,8 +221,8 @@ contains
 
              endif
 
-             dedt = max(abs(dedt), 1.d-50)
-             dXdt = max(abs(dXdt), 1.d-50)
+             dedt = max(abs(dedt), 1.e-50_rt)
+             dXdt = max(abs(dXdt), 1.e-50_rt)
 
              dt = min(dt, dtnuc_e * e / dedt)
              dt = min(dt, dtnuc_X * minval(X / dXdt))
@@ -246,16 +249,17 @@ contains
     use bl_constants_module
     use conductivity_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    double precision :: dx(3), dt
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: dx(3), dt
 
-    double precision :: dt1, dt2, dt3, rho_inv
+    real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    double precision :: cond, D
+    real(rt)         :: cond, D
 
     type (eos_t) :: eos_state
 
@@ -322,16 +326,17 @@ contains
     use bl_constants_module
     use conductivity_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    double precision :: dx(3), dt
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: dx(3), dt
 
-    double precision :: dt1, dt2, dt3, rho_inv
+    real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
-    double precision :: cond, D
+    real(rt)         :: cond, D
 
     type (eos_t) :: eos_state
 
@@ -411,6 +416,7 @@ contains
     use extern_probin_module, only: small_x
     use eos_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -420,25 +426,25 @@ contains
     integer          :: ro_lo(3), ro_hi(3)
     integer          :: rn_lo(3), rn_hi(3)
 #endif
-    double precision :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-    double precision :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt)         :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    real(rt)         :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
 #ifdef REACTIONS
-    double precision :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
-    double precision :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt)         :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    real(rt)         :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
 #endif
-    double precision :: dx(3), dt_old, dt_new
+    real(rt)         :: dx(3), dt_old, dt_new
 
     integer          :: i, j, k
-    double precision :: rhooinv, rhoninv
+    real(rt)         :: rhooinv, rhoninv
 #ifdef REACTIONS
-    double precision :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
-    double precision :: e_old, e_new, e_avg, e_dot
-    double precision :: tau_X, tau_e
+    real(rt)         :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
+    real(rt)         :: e_old, e_new, e_avg, e_dot
+    real(rt)         :: tau_X, tau_e
 #endif
-    double precision :: tau_CFL
+    real(rt)         :: tau_CFL
 
 
-    double precision :: v(3), c
+    real(rt)         :: v(3), c
     type (eos_t)     :: eos_state
 
     do k = lo(3), hi(3)
@@ -496,7 +502,7 @@ contains
                 X_avg = max(small_x, HALF * (X_old + X_new))
                 X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
 
-                X_dot = max(abs(X_dot), 1.d-50)
+                X_dot = max(abs(X_dot), 1.e-50_rt)
                 tau_X = minval( X_avg / X_dot )
 
                 e_old = s_old(i,j,k,UEINT) * rhooinv
@@ -504,7 +510,7 @@ contains
                 e_avg = HALF * (e_old + e_new)
                 e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
 
-                e_dot = max(abs(e_dot), 1.d-50)
+                e_dot = max(abs(e_dot), 1.e-50_rt)
                 tau_e = e_avg / e_dot
 
                 if (dt_old > dtnuc_e * tau_e) then

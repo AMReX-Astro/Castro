@@ -1,5 +1,6 @@
 module gravity_2D_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -14,6 +15,7 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(2),hi(2)
@@ -21,14 +23,14 @@ contains
     integer          :: rhl1, rhl2, rhh1, rhh2
     integer          :: ecxl1, ecxl2, ecxh1, ecxh2
     integer          :: ecyl1, ecyl2, ecyh1, ecyh2
-    double precision :: rhs(rhl1:rhh1,rhl2:rhh2)
-    double precision :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
-    double precision :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-    double precision :: dx(2), problo(2)
+    real(rt)         :: rhs(rhl1:rhh1,rhl2:rhh2)
+    real(rt)         :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
+    real(rt)         :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
+    real(rt)         :: dx(2), problo(2)
 
     ! Local variables
-    double precision :: lapphi
-    double precision :: ri,ro,rc
+    real(rt)         :: lapphi
+    real(rt)         :: ri,ro,rc
     integer          :: i,j
 
     ! Cartesian
@@ -80,24 +82,25 @@ contains
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(2),hi(2)
-    double precision :: dx(2),dr
-    double precision :: problo(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
     integer          :: n1d,drdxfac,level
-    double precision :: radial_mass(0:n1d-1)
-    double precision :: radial_vol (0:n1d-1)
+    real(rt)         :: radial_mass(0:n1d-1)
+    real(rt)         :: radial_vol (0:n1d-1)
 
     integer          :: r_l1,r_l2,r_h1,r_h2
-    double precision :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
+    real(rt)         :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
 
     integer          :: i,j,index
     integer          :: ii,jj
-    double precision :: xc,yc,r,octant_factor
-    double precision :: fac,xx,yy,dx_frac,dy_frac,vol_frac,vol_frac_fac
-    double precision :: lo_i,lo_j,rlo,rhi
+    real(rt)         :: xc,yc,r,octant_factor
+    real(rt)         :: fac,xx,yy,dx_frac,dy_frac,vol_frac,vol_frac_fac
+    real(rt)         :: lo_i,lo_j,rlo,rhi
 
     if (abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2)) then
        octant_factor = TWO
@@ -168,21 +171,22 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer          :: lo(2),hi(2)
-    double precision :: dx(2),dr
-    double precision :: problo(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
     integer          :: n1d,level
-    double precision :: radial_grav(0:n1d-1)
+    real(rt)         :: radial_grav(0:n1d-1)
 
     integer          :: g_l1,g_l2,g_h1,g_h2
-    double precision :: grav(g_l1:g_h1,g_l2:g_h2,2)
+    real(rt)         :: grav(g_l1:g_h1,g_l2:g_h2,2)
 
     integer          :: i,j,index
-    double precision :: x,y,r,mag_grav
-    double precision :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
+    real(rt)         :: x,y,r,mag_grav
+    real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
 
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells
@@ -221,7 +225,7 @@ contains
              mag_grav = &
                   ( ghi -  TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
                   ( ghi       - glo     )*xi   /(TWO*dr   ) + &
-                  (-ghi + 26.d0*gmd - glo)/24.d0
+                  (-ghi + 26.e0_rt*gmd - glo)/24.e0_rt
 
              minvar = min(gmd, min(glo,ghi))
              maxvar = max(gmd, max(glo,ghi))
@@ -248,22 +252,23 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer          :: lo(2),hi(2)
     integer          :: domlo(2),domhi(2)
-    double precision :: dx(2),dr
-    double precision :: problo(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
     integer          :: numpts_1d
-    double precision :: radial_phi(0:numpts_1d-1)
+    real(rt)         :: radial_phi(0:numpts_1d-1)
     integer          :: fill_interior
 
     integer          :: p_l1,p_l2,p_h1,p_h2
-    double precision :: phi(p_l1:p_h1,p_l2:p_h2)
+    real(rt)         :: phi(p_l1:p_h1,p_l2:p_h2)
 
     integer          :: i,j,index
-    double precision :: x,y,r
-    double precision :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
+    real(rt)         :: x,y,r
+    real(rt)         :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
 
     ! Note that when we interpolate into the ghost cells we use the
     ! location of the edge, not the cell center
@@ -315,7 +320,7 @@ contains
                 phi(i,j) = &
                      ( p_hi -  TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
                      ( p_hi       - p_lo      )*xi   /(TWO*dr   ) + &
-                     (-p_hi + 26.d0*p_md - p_lo)/24.d0
+                     (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
                 minvar = min(p_md, min(p_lo,p_hi))
                 maxvar = max(p_md, max(p_lo,p_hi))
                 phi(i,j) = max(phi(i,j),minvar)

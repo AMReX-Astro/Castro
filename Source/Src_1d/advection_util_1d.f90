@@ -1,5 +1,6 @@
 module advection_util_1d_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -14,15 +15,16 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer          :: lo(1),hi(1)
     integer          :: flux_l1,flux_h1
-    double precision :: flux(flux_l1:flux_h1,NVAR)
+    real(rt)         :: flux(flux_l1:flux_h1,NVAR)
     
     ! Local variables
     integer          :: i,n
-    double precision :: sum,fac
+    real(rt)         :: sum,fac
     
     do i = lo(1),hi(1)+1
        sum = ZERO
@@ -51,15 +53,16 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module    
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(1), hi(1)
     integer          :: u_l1,u_h1
-    double precision :: u(u_l1:u_h1,NVAR)
+    real(rt)         :: u(u_l1:u_h1,NVAR)
     
     ! Local variables
     integer          :: i,n
-    double precision :: fac,sum
+    real(rt)         :: fac,sum
     
     do i = lo(1),hi(1)
        sum = ZERO

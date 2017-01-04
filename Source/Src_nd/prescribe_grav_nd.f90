@@ -1,5 +1,6 @@
 module prescribe_grav_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -13,18 +14,19 @@ contains
     use prob_params_module, only: dim
     ! use prob_params_module, only: problo, center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: g_lo(3), g_hi(3)
-    double precision :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),dim)
-    double precision :: dx(3)
+    real(rt)         :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),dim)
+    real(rt)         :: dx(3)
 
     ! Local variables
     !     integer          :: i, j, k
-    !     double precision :: x, y, z
-    !     double precision :: r, maggrav
-    !     double precision :: r_c, rho_c
+    !     real(rt)         :: x, y, z
+    !     real(rt)         :: r, maggrav
+    !     real(rt)         :: r_c, rho_c
 
     !     This is an example of how to specify a radial profile.
     !     Note that in this example r_c and rho_c could be saved 
@@ -33,8 +35,8 @@ contains
     !     in fewer than three dimensions; you may want to set
     !     z = 0 for 2D and y = 0 for 1D.
     !
-    !     r_c = 1.0d9
-    !     rho_c = 1.0d8
+    !     r_c = 1.0e9_rt
+    !     rho_c = 1.0e8_rt
     !
     !     do k = lo(3), hi(3)
     !        if (dim .eq. 3) then      

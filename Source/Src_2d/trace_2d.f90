@@ -1,5 +1,6 @@
 module trace_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -20,6 +21,7 @@ contains
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
@@ -28,39 +30,39 @@ contains
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer src_l1,src_l2,src_h1,src_h2
 
-    double precision dx, dy, dt
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision src(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         dx, dy, dt
+    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    real(rt)             c(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         src(src_l1:src_h1,src_l2:src_h2,QVAR)
 
-    double precision, allocatable :: dqx(:,:,:), dqy(:,:,:)
+    real(rt)        , allocatable :: dqx(:,:,:), dqy(:,:,:)
 
     ! Local variables
     integer i, j
     integer n, ipassive
 
-    double precision dtdx, dtdy
-    double precision cc, csq, rho, u, v, p, rhoe
-    double precision drho, du, dv, dp, drhoe
+    real(rt)         dtdx, dtdy
+    real(rt)         cc, csq, rho, u, v, p, rhoe
+    real(rt)         drho, du, dv, dp, drhoe
     
-    double precision enth, alpham, alphap, alpha0r, alpha0e
-    double precision alpha0u, alpha0v
-    double precision spzero
-    double precision apright, amright, azrright, azeright
-    double precision azu1rght, azv1rght
-    double precision apleft, amleft, azrleft, azeleft
-    double precision azu1left, azv1left
-    double precision acmprght, acmpleft, acmpbot, acmptop
-    double precision sourcr,sourcp,source,courn,eta,dlogatmp
+    real(rt)         enth, alpham, alphap, alpha0r, alpha0e
+    real(rt)         alpha0u, alpha0v
+    real(rt)         spzero
+    real(rt)         apright, amright, azrright, azeright
+    real(rt)         azu1rght, azv1rght
+    real(rt)         apleft, amleft, azrleft, azeleft
+    real(rt)         azu1left, azv1left
+    real(rt)         acmprght, acmpleft, acmpbot, acmptop
+    real(rt)         sourcr,sourcp,source,courn,eta,dlogatmp
     
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
-    double precision :: e(3)
+    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_ref
+    real(rt)         :: e(3)
 
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in trace with ppm_type != 0'
@@ -165,8 +167,8 @@ contains
           rhoe_ref = rhoe - HALF*(ONE + dtdx*min(e(1),ZERO))*drhoe
 
           ! this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
-          apright = 0.25d0*dtdx*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
-          amright = 0.25d0*dtdx*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
+          apright = 0.25e0_rt*dtdx*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
+          amright = 0.25e0_rt*dtdx*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
           
           azrright = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0r
           azeright = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
@@ -191,12 +193,12 @@ contains
           p_ref = p + HALF*(ONE - dtdx*max(e(3),ZERO))*dp
           rhoe_ref = rhoe + HALF*(ONE - dtdx*max(e(3),ZERO))*drhoe
 
-          apleft = 0.25d0*dtdx*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
-          amleft = 0.25d0*dtdx*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
+          apleft = 0.25e0_rt*dtdx*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
+          amleft = 0.25e0_rt*dtdx*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
           
-          azrleft = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
-          azeleft = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
-          azv1left = 0.25d0*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0v
+          azrleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
+          azeleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
+          azv1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0v
           
           if (i .le. ihi1) then
              qxm(i+1,j,QRHO) = rho_ref + apleft + amleft + azrleft
@@ -308,8 +310,8 @@ contains
           p_ref = p - HALF*(ONE + dtdy*min(e(1),ZERO))*dp
           rhoe_ref = rhoe - HALF*(ONE + dtdy*min(e(1),ZERO))*drhoe
 
-          apright = 0.25d0*dtdy*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
-          amright = 0.25d0*dtdy*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
+          apright = 0.25e0_rt*dtdy*(e(1) - e(3))*(ONE - sign(ONE,e(3)))*alphap
+          amright = 0.25e0_rt*dtdy*(e(1) - e(1))*(ONE - sign(ONE,e(1)))*alpham
           
           azrright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0r
           azeright = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
@@ -334,12 +336,12 @@ contains
           p_ref = p + HALF*(ONE - dtdy*max(e(3),ZERO))*dp
           rhoe_ref = rhoe + HALF*(ONE - dtdy*max(e(3),ZERO))*drhoe
 
-          apleft = 0.25d0*dtdy*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
-          amleft = 0.25d0*dtdy*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
+          apleft = 0.25e0_rt*dtdy*(e(3) - e(3))*(ONE + sign(ONE,e(3)))*alphap
+          amleft = 0.25e0_rt*dtdy*(e(3) - e(1))*(ONE + sign(ONE,e(1)))*alpham
 
-          azrleft = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
-          azeleft = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
-          azu1left = 0.25d0*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0u
+          azrleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0r
+          azeleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
+          azu1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0u
           
           if (j .le. ihi2) then
              qym(i,j+1,QRHO) = rho_ref + apleft + amleft + azrleft

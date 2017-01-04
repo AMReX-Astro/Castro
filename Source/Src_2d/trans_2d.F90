@@ -25,6 +25,7 @@ module transverse_module
 
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -46,6 +47,7 @@ contains
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                     ilo, ihi, jlo, jhi)
 
+    use bl_fort_module, only : rt => c_real
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fx_l1, fx_l2, fx_h1, fx_h2
@@ -57,42 +59,42 @@ contains
 
 #ifdef RADIATION
     integer rfx_l1, rfx_l2, rfx_h1, rfx_h2
-    double precision rfx(rfx_l1:rfx_h1,rfx_l2:rfx_h2,0:ngroups-1)
+    real(rt)         rfx(rfx_l1:rfx_h1,rfx_l2:rfx_h2,0:ngroups-1)
 #endif
 
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
-    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    real(rt)         qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
 
-    double precision fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
-    double precision qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision area1(area1_l1:area1_h1,area1_l2:area1_h2)
-    double precision vol(vol_l1:vol_h1,vol_l2:vol_h2)
-    double precision hdt, cdtdx
+    real(rt)         fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
+    real(rt)         qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
+    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         area1(area1_l1:area1_h1,area1_l2:area1_h2)
+    real(rt)         vol(vol_l1:vol_h1,vol_l2:vol_h2)
+    real(rt)         hdt, cdtdx
 
     integer          :: i, j, g
     integer          :: n, nqp, ipassive
 
-    double precision :: rr, rrnew, compo, compn
-    double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
-    double precision :: rrnewr, runewr, rvnewr, renewr
-    double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
-    double precision :: rrnewl, runewl, rvnewl, renewl
+    real(rt)         :: rr, rrnew, compo, compn
+    real(rt)         :: rrr, rur, rvr, rer, ekinr, rhoekinr
+    real(rt)         :: rrnewr, runewr, rvnewr, renewr
+    real(rt)         :: rrl, rul, rvl, rel, ekinl, rhoekinl
+    real(rt)         :: rrnewl, runewl, rvnewl, renewl
 
     ! here, pggp/pggm is the Godunov gas pressure (not radiation contribution)
-    double precision :: pggp, pggm, ugp, ugm, dAup, pav, uav, dAu, pnewl,pnewr
-    double precision :: geav, dge, gegp, gegm, gamc
-    double precision :: rhotmp
+    real(rt)         :: pggp, pggm, ugp, ugm, dAup, pav, uav, dAu, pnewl,pnewr
+    real(rt)         :: geav, dge, gegp, gegm, gamc
+    real(rt)         :: rhotmp
 
 #ifdef RADIATION
-    double precision dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, lamge, luge, &
+    real(rt)         dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, lamge, luge, &
          der, ernewr, ernewl
-    double precision eddf, f1, ugc, divu
+    real(rt)         eddf, f1, ugc, divu
 #endif
 
     type (eos_t) :: eos_state
@@ -149,7 +151,7 @@ contains
 
 #ifdef RADIATION
           lambda(:) = qaux(i,j,QLAMS:QLAMS+ngroups-1)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = 0.5e0_rt*(ugp+ugm)
           ergp(:) = qgdx(i+1,j,GDERADS:GDERADS-1+ngroups)
           ergm(:) = qgdx(i  ,j,GDERADS:GDERADS-1+ngroups)
 #endif
@@ -180,15 +182,15 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = 0.5e0_rt*(1.e0_rt-eddf)
                 der(g) = cdtdx * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              divu = (area1(i+1,j)*ugp-area1(i,j)*ugm)/vol(i,j)
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = -hdt * f1 * 0.5d0*(ergp(g)+ergm(g)) * divu
+                f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                der(g) = -hdt * f1 * 0.5e0_rt*(ergp(g)+ergm(g)) * divu
              end do
           else ! mixed frame
              der(:) = cdtdx * luge(:)
@@ -497,6 +499,7 @@ contains
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
+    use bl_fort_module, only : rt => c_real
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fy_l1, fy_l2, fy_h1, fy_h2
@@ -506,39 +509,39 @@ contains
 
 #ifdef RADIATION
     integer rfy_l1, rfy_l2, rfy_h1, rfy_h2
-    double precision rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
+    real(rt)         rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
 #endif
 
-    double precision qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
 
-    double precision qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    real(rt)         qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
 
-    double precision fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
-    double precision qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision hdt, cdtdy
+    real(rt)         fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
+    real(rt)         qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
+    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         hdt, cdtdy
 
     integer          :: i, j, g
     integer          :: n, nqp, ipassive
 
-    double precision :: rr,rrnew
-    double precision :: pggp, pggm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
-    double precision :: gegp, gegm, geav, dge, gamc
-    double precision :: rrr, rur, rvr, rer, ekinr, rhoekinr
-    double precision :: rrnewr, runewr, rvnewr, renewr
-    double precision :: rrl, rul, rvl, rel, ekinl, rhoekinl
-    double precision :: rrnewl, runewl, rvnewl, renewl
-    double precision :: rhotmp
-    double precision :: compo, compn
+    real(rt)         :: rr,rrnew
+    real(rt)         :: pggp, pggm, ugp, ugm, dup, pav, uav, du, pnewr,pnewl
+    real(rt)         :: gegp, gegm, geav, dge, gamc
+    real(rt)         :: rrr, rur, rvr, rer, ekinr, rhoekinr
+    real(rt)         :: rrnewr, runewr, rvnewr, renewr
+    real(rt)         :: rrl, rul, rvl, rel, ekinl, rhoekinl
+    real(rt)         :: rrnewl, runewl, rvnewl, renewl
+    real(rt)         :: rhotmp
+    real(rt)         :: compo, compn
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, lamge, luge, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, lamge, luge, &
          der, ernewr, ernewl
-    double precision :: eddf, f1, ugc
+    real(rt)         :: eddf, f1, ugc
 #endif
 
     type (eos_t) :: eos_state
@@ -590,7 +593,7 @@ contains
 
 #ifdef RADIATION
           lambda(:) = qaux(i,j,QLAMS:QLAMS+ngroups-1)
-          ugc = 0.5d0*(ugp+ugm)
+          ugc = 0.5e0_rt*(ugp+ugm)
           ergp(:) = qgdy(i,j+1,GDERADS:GDERADS-1+ngroups)
           ergm(:) = qgdy(i,j  ,GDERADS:GDERADS-1+ngroups)
 #endif
@@ -621,14 +624,14 @@ contains
           if (fspace_type .eq. 1 .and. comoving) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
+                f1 = 0.5e0_rt*(1.e0_rt-eddf)
                 der(g) = cdtdy * ugc * f1 * (ergp(g) - ergm(g))
              end do
           else if (fspace_type .eq. 2) then
              do g=0, ngroups-1
                 eddf = Edd_factor(lambda(g))
-                f1 = 0.5d0*(1.d0-eddf)
-                der(g) = cdtdy * f1 * 0.5d0*(ergp(g)+ergm(g)) * (ugm-ugp)
+                f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                der(g) = cdtdy * f1 * 0.5e0_rt*(ergp(g)+ergm(g)) * (ugm-ugp)
              end do
           else ! mixed frame
              der(:) = cdtdy * luge

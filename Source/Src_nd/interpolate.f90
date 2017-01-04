@@ -1,5 +1,6 @@
 module interpolate_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   contains
@@ -10,15 +11,16 @@ module interpolate_module
 !     find the value of model_var at point r using linear interpolation.
 !     Eventually, we can do something fancier here.
       
-      double precision, intent(in   ) :: r
+      use bl_fort_module, only : rt => c_real
+      real(rt)        , intent(in   ) :: r
       integer         , intent(in   ) :: npts_model
-      double precision, intent(in   ) :: model_r(npts_model), model_var(npts_model)
+      real(rt)        , intent(in   ) :: model_r(npts_model), model_var(npts_model)
       integer, intent(in), optional   :: iloc
-      double precision                :: interpolate
+      real(rt)                        :: interpolate
 
       ! Local variables
       integer                         :: id
-      double precision                :: slope,minvar,maxvar
+      real(rt)                        :: slope,minvar,maxvar
       
 !     find the location in the coordinate array where we want to interpolate
       if (present(iloc)) then
@@ -89,18 +91,19 @@ module interpolate_module
       ! tri-linear interpolation; useful for EOS tables
       ! this is stricly interpolation, so if the point (x,y,z) is outside
       ! the bounds of model_x,model_y,model_z, then we abort
-      double precision, intent(in   ) :: x,y,z
+      use bl_fort_module, only : rt => c_real
+      real(rt)        , intent(in   ) :: x,y,z
       integer,          intent(in   ) :: npts_x, npts_y, npts_z
-      double precision, intent(in   ) :: model_x(npts_x), &
+      real(rt)        , intent(in   ) :: model_x(npts_x), &
                                          model_y(npts_y), &
                                          model_z(npts_z), &
                                          model_var(npts_x,npts_y,npts_z)
-      double precision, intent(  out) :: interp_var, derivs(3)
+      real(rt)        , intent(  out) :: interp_var, derivs(3)
       logical,          intent(  out) :: error
 
       integer :: ix,iy,iz
-      double precision :: deltax, deltay, deltaz
-      double precision :: c(8), delta(8)
+      real(rt)         :: deltax, deltay, deltaz
+      real(rt)         :: c(8), delta(8)
 
       error = .false.
 
@@ -158,8 +161,9 @@ module interpolate_module
 
 
     function locate(x, n, xs)
+      use bl_fort_module, only : rt => c_real
       integer, intent(in) :: n
-      double precision, intent(in) :: x, xs(n)
+      real(rt)        , intent(in) :: x, xs(n)
       integer :: locate      
 
       integer :: ilo, ihi, imid

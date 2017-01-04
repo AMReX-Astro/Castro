@@ -3,6 +3,7 @@
 
 module trace_ppm_rad_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -27,6 +28,7 @@ contains
     use rad_params_module, only : ngroups
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -34,30 +36,30 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: kc,k3d
 
-    double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision, intent(inout) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
-    double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt)        , intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)        , intent(inout) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
+    real(rt)        , intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-    double precision, intent(in) :: Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-    double precision, intent(in) :: Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
 
-    double precision, intent(in) :: Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-    double precision, intent(in) :: Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-
-
-    double precision, intent(inout) :: qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    double precision, intent(inout) :: qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    double precision, intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    double precision, intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(in) :: Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
 
 
-    double precision, intent(in) :: dt
+    real(rt)        , intent(inout) :: qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(inout) :: qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(inout) :: qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+
+
+    real(rt)        , intent(in) :: dt
 
     ! Local variables
     integer :: i, j, g
     integer :: n, ipassive
 
-    double precision :: hdt
+    real(rt)         :: hdt
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -77,32 +79,32 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
-    double precision :: rho, u, v, w, p, rhoe_g, h_g, tau
-    double precision :: ptot, gam_g, game
+    real(rt)         :: cc, csq, cgassq, Clag
+    real(rt)         :: rho, u, v, w, p, rhoe_g, h_g, tau
+    real(rt)         :: ptot, gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: de, dge, dtau
-    double precision :: dup, dvp, dptotp
-    double precision :: dum, dvm, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: de, dge, dtau
+    real(rt)         :: dup, dvp, dptotp
+    real(rt)         :: dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: tau_ref
-    double precision :: ptot_ref
+    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: tau_ref
+    real(rt)         :: ptot_ref
 
-    double precision :: gam_ref, game_ref, gfactor
+    real(rt)         :: gam_ref, game_ref, gfactor
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
 
-    double precision :: tau_s, e_s
+    real(rt)         :: tau_s, e_s
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
+    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision, dimension(0:ngroups-1) :: er_ref
+    real(rt)        , dimension(0:ngroups-1) :: er_ref
 
 
-    double precision :: er_foo
+    real(rt)         :: er_foo
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -1057,6 +1059,7 @@ contains
     use rad_params_module, only : ngroups
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -1064,28 +1067,28 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: km, kc, k3d
 
-    double precision, intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision, intent(in) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
-    double precision, intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt)        , intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)        , intent(in) ::  qaux(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQAUX)
+    real(rt)        , intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-    double precision, intent(in) :: Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-    double precision, intent(in) :: Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
 
-    double precision, intent(in) :: Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-    double precision, intent(in) :: Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
-
-
-    double precision, intent(inout) :: qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
-    double precision, intent(inout) :: qzp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(in) :: Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
+    real(rt)        , intent(in) :: Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3,1:3,NQ)
 
 
-    double precision, intent(in) :: dt
+    real(rt)        , intent(inout) :: qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+    real(rt)        , intent(inout) :: qzp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
+
+
+    real(rt)        , intent(in) :: dt
 
     !     Local variables
     integer :: i, j, g
     integer :: n, ipassive
 
-    double precision :: hdt
+    real(rt)         :: hdt
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -1105,31 +1108,31 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
-    double precision :: rho, u, v, w, p, rhoe_g, h_g, tau
-    double precision :: ptot, gam_g, game
+    real(rt)         :: cc, csq, cgassq, Clag
+    real(rt)         :: rho, u, v, w, p, rhoe_g, h_g, tau
+    real(rt)         :: ptot, gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: de, dge, dtau
-    double precision :: dwp, dptotp
-    double precision :: dwm, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: de, dge, dtau
+    real(rt)         :: dwp, dptotp
+    real(rt)         :: dwm, dptotm
 
-    double precision :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: tau_ref
-    double precision :: ptot_ref
+    real(rt)         :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: tau_ref
+    real(rt)         :: ptot_ref
 
-    double precision :: gam_g_ref, game_ref, gfactor
+    real(rt)         :: gam_g_ref, game_ref, gfactor
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
 
-    double precision :: tau_s, e_s
+    real(rt)         :: tau_s, e_s
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
+    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision, dimension(0:ngroups-1) :: er_ref
+    real(rt)        , dimension(0:ngroups-1) :: er_ref
 
-    double precision :: er_foo
+    real(rt)         :: er_foo
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'

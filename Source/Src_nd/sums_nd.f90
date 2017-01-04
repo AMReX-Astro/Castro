@@ -1,5 +1,6 @@
 module castro_sums_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -11,14 +12,15 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: mass, dx(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: mass, dx(3)
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 
@@ -41,14 +43,15 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: mass, dx(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: mass, dx(3)
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 
@@ -72,19 +75,20 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: idir
     integer          :: lo(3), hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: mass, dx(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: mass, dx(3)
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
-    double precision :: x, y, z
-    double precision :: symlo, symhi
+    real(rt)         :: x, y, z
+    real(rt)         :: symlo, symhi
 
     mass = ZERO
 
@@ -151,19 +155,20 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: idir1, idir2
     integer          :: lo(3), hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: mass, dx(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: mass, dx(3)
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
-    double precision :: x, y, z
-    double precision :: symlo1, symhi1, symlo2, symhi2
+    real(rt)         :: x, y, z
+    real(rt)         :: symlo1, symhi1, symlo2, symhi2
 
     mass = ZERO
 
@@ -322,18 +327,19 @@ contains
     use prob_params_module, only: problo, center, dim
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: idir
     integer          :: lo(3), hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: mass, dx(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: mass, dx(3)
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
-    double precision :: x, y, z
+    real(rt)         :: x, y, z
 
     mass = ZERO
 
@@ -375,17 +381,18 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: f1_lo(3), f1_hi(3)
     integer          :: f2_lo(3), f2_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: product
-    double precision :: dx(3)
-    double precision :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
-    double precision :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: product
+    real(rt)         :: dx(3)
+    real(rt)         :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt)         :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 

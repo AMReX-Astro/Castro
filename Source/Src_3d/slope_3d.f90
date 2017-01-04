@@ -1,5 +1,6 @@
 module slope_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -20,26 +21,27 @@ contains
       use meth_params_module
       use bl_constants_module
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)
       integer          :: qpd_lo(3),qpd_hi(3)
       integer          :: ilo1, ilo2, ihi1, ihi2, kc, k3d, nv
 
-      double precision :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),nv)
-      double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-      double precision :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
-      double precision :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
-      double precision :: dqz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
+      real(rt)         :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),nv)
+      real(rt)         :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+      real(rt)         :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
+      real(rt)         :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
+      real(rt)         :: dqz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),nv)
 
       integer i, j, k, n
 
-      double precision dlft, drgt, slop, dq1
-      double precision dm, dp, dc, ds, sl, dl, dfm, dfp
+      real(rt)         dlft, drgt, slop, dq1
+      real(rt)         dm, dp, dc, ds, sl, dl, dfm, dfp
 
       integer ilo, ihi      
       
-      double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+      real(rt)        , pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
       ilo = MIN(ilo1,ilo2)
       ihi = MAX(ihi1,ihi2)
@@ -189,6 +191,7 @@ contains
         use meth_params_module
         use bl_constants_module
 
+        use bl_fort_module, only : rt => c_real
         implicit none
 
         integer          :: qd_lo(3), qd_hi(3)
@@ -196,24 +199,24 @@ contains
         integer          :: src_lo(3),src_hi(3)
         integer          :: ilo1, ilo2, ihi1, ihi2, kc, k3d
 
-        double precision :: p  (qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-        double precision :: rho(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-        double precision :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-        double precision :: dpx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
-        double precision :: dpy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
-        double precision :: dpz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
-        double precision :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-        double precision :: dx(3)
+        real(rt)         :: p  (qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        real(rt)         :: rho(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        real(rt)         :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+        real(rt)         :: dpx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        real(rt)         :: dpy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        real(rt)         :: dpz(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3))
+        real(rt)         :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+        real(rt)         :: dx(3)
 
         integer i, j, k
 
         integer ilo,ihi        
         
-        double precision dlft, drgt, dp1
-        double precision dm, dp, dc, dl, dfm, dfp, ds
+        real(rt)         dlft, drgt, dp1
+        real(rt)         dm, dp, dc, dl, dfm, dfp, ds
 
         !     Local arrays
-        double precision, pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
+        real(rt)        , pointer::dsgn(:,:),dlim(:,:),df(:,:),dcen(:,:)
 
         ilo = MIN(ilo1,ilo2)
         ihi = MAX(ihi1,ihi2)

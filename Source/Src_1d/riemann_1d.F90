@@ -17,13 +17,14 @@ module riemann_module
                                    riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    allow_negative_energy
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
 
   public cmpflx, shock
 
-  real (kind=dp_t), parameter :: smallu = 1.e-12_dp_t
+  real(rt)        , parameter :: smallu = 1.e-12_rt
 
 contains
 
@@ -44,6 +45,7 @@ contains
     use rad_params_module, only : ngroups
 #endif
 
+    use bl_fort_module, only : rt => c_real
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer ilo,ihi
@@ -52,23 +54,23 @@ contains
     integer  qg_l1,  qg_h1
     integer  qa_l1,  qa_h1
 
-    double precision    qm(qpd_l1:qpd_h1, NQ)
-    double precision    qp(qpd_l1:qpd_h1, NQ)
+    real(rt)            qm(qpd_l1:qpd_h1, NQ)
+    real(rt)            qp(qpd_l1:qpd_h1, NQ)
 
-    double precision   flx(flx_l1:flx_h1, NVAR)
-    double precision  qint( qg_l1: qg_h1, NGDNV)
-    double precision  qaux( qa_l1: qa_h1, NQAUX)
+    real(rt)           flx(flx_l1:flx_h1, NVAR)
+    real(rt)          qint( qg_l1: qg_h1, NGDNV)
+    real(rt)          qaux( qa_l1: qa_h1, NQAUX)
 
 #ifdef RADIATION
     integer rflx_l1, rflx_h1
-    double precision rflx(rflx_l1:rflx_h1, 0:ngroups-1)
+    real(rt)         rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 #endif
 
     ! Local variables
     integer i
-    double precision, allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
+    real(rt)        , allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
 #ifdef RADIATION
-    double precision, allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
+    real(rt)        , allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
 #endif
 
     allocate ( smallc(ilo:ihi+1) )
@@ -136,24 +138,25 @@ contains
 
     use prob_params_module, only : coord_type
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: qd_l1, qd_h1
     integer, intent(in) :: s_l1, s_h1
     integer, intent(in) :: ilo1, ihi1
-    double precision, intent(in) :: dx
-    double precision, intent(in) :: q(qd_l1:qd_h1,NQ)
-    double precision, intent(inout) :: shk(s_l1:s_h1)
+    real(rt)        , intent(in) :: dx
+    real(rt)        , intent(in) :: q(qd_l1:qd_h1,NQ)
+    real(rt)        , intent(inout) :: shk(s_l1:s_h1)
 
     integer :: i
 
-    double precision :: divU
-    double precision :: px_pre, px_post
-    double precision :: e_x, d
-    double precision :: p_pre, p_post, pjump
+    real(rt)         :: divU
+    real(rt)         :: px_pre, px_post
+    real(rt)         :: e_x, d
+    real(rt)         :: p_pre, p_post, pjump
 
-    double precision :: rc, rm, rp
+    real(rt)         :: rc, rm, rp
 
-    double precision, parameter :: small = 1.d-10
-    double precision, parameter :: eps = 0.33d0
+    real(rt)        , parameter :: small = 1.e-10_rt
+    real(rt)        , parameter :: eps = 0.33e0_rt
 
     ! This is a basic multi-dimensional shock detection algorithm.
     ! This implementation follows Flash, which in turn follows
@@ -236,54 +239,55 @@ contains
     use eos_module
     use riemann_util_module
 
-    double precision, parameter :: small = 1.d-8
+    use bl_fort_module, only : rt => c_real
+    real(rt)        , parameter :: small = 1.e-8_rt
 
     integer :: qpd_l1, qpd_h1
     integer :: uflx_l1, uflx_h1
     integer :: qg_l1, qg_h1
 
-    double precision :: ql(qpd_l1:qpd_h1, NQ)
-    double precision :: qr(qpd_l1:qpd_h1, NQ)
-    double precision ::  gamcl(ilo:ihi+1)
-    double precision ::  gamcr(ilo:ihi+1)
-    double precision ::    cav(ilo:ihi+1)
-    double precision :: smallc(ilo:ihi+1)
-    double precision :: uflx(uflx_l1:uflx_h1, NVAR)
-    double precision ::  qint(qg_l1:qg_h1, NGDNV)
+    real(rt)         :: ql(qpd_l1:qpd_h1, NQ)
+    real(rt)         :: qr(qpd_l1:qpd_h1, NQ)
+    real(rt)         ::  gamcl(ilo:ihi+1)
+    real(rt)         ::  gamcr(ilo:ihi+1)
+    real(rt)         ::    cav(ilo:ihi+1)
+    real(rt)         :: smallc(ilo:ihi+1)
+    real(rt)         :: uflx(uflx_l1:uflx_h1, NVAR)
+    real(rt)         ::  qint(qg_l1:qg_h1, NGDNV)
 
     integer :: ilo,ihi
     integer :: n, nqp, ipassive
 
-    double precision :: rgdnv,ustar,gamgdnv,v1gdnv,v2gdnv
-    double precision :: rl, ul, v1l, v2l, pl, rel
-    double precision :: rr, ur, v1r, v2r, pr, rer
-    double precision :: wl, wr, rhoetot
-    double precision :: rstar, cstar, pstar
-    double precision :: ro, uo, po, co, gamco
-    double precision :: sgnm, spin, spout, ushock, frac
-    double precision :: wsmall, csmall,qavg
+    real(rt)         :: rgdnv,ustar,gamgdnv,v1gdnv,v2gdnv
+    real(rt)         :: rl, ul, v1l, v2l, pl, rel
+    real(rt)         :: rr, ur, v1r, v2r, pr, rer
+    real(rt)         :: wl, wr, rhoetot
+    real(rt)         :: rstar, cstar, pstar
+    real(rt)         :: ro, uo, po, co, gamco
+    real(rt)         :: sgnm, spin, spout, ushock, frac
+    real(rt)         :: wsmall, csmall,qavg
 
-    double precision :: gcl, gcr
-    double precision :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    double precision :: zm, zp
-    double precision :: denom, dpditer, dpjmp
-    double precision :: gamc_bar, game_bar
-    double precision :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
+    real(rt)         :: gcl, gcr
+    real(rt)         :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
+    real(rt)         :: zm, zp
+    real(rt)         :: denom, dpditer, dpjmp
+    real(rt)         :: gamc_bar, game_bar
+    real(rt)         :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
     integer :: iter, iter_max
-    double precision :: tol
-    double precision :: err
+    real(rt)         :: tol
+    real(rt)         :: err
 
     logical :: converged
 
-    double precision :: pstnm1
-    double precision :: taul, taur, tauo
-    double precision :: ustarm, ustarp, ustnm1, ustnp1
-    double precision :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt)         :: pstnm1
+    real(rt)         :: taul, taur, tauo
+    real(rt)         :: ustarm, ustarp, ustnm1, ustnp1
+    real(rt)         :: pstarl, pstarc, pstaru, pfuncc, pfuncu
 
-    double precision, parameter :: weakwv = 1.d-3
+    real(rt)        , parameter :: weakwv = 1.e-3_rt
 
-    double precision, allocatable :: pstar_hist(:), pstar_hist_extra(:)
+    real(rt)        , allocatable :: pstar_hist(:), pstar_hist_extra(:)
 
     type (eos_t) :: eos_state
 
@@ -375,8 +379,8 @@ contains
 
        ! these should consider a wider average of the cell-centered
        ! gammas
-       gmin = min(gamel, gamer, ONE, 4.d0/3.d0)
-       gmax = max(gamel, gamer, TWO, 5.d0/3.d0)
+       gmin = min(gamel, gamer, ONE, 4.e0_rt/3.e0_rt)
+       gmax = max(gamel, gamer, TWO, 5.e0_rt/3.e0_rt)
 
        game_bar = HALF*(gamel + gamer)
        gamc_bar = HALF*(gcl + gcr)
@@ -762,7 +766,8 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
 
-    double precision, parameter:: small = 1.d-8
+    use bl_fort_module, only : rt => c_real
+    real(rt)        , parameter:: small = 1.e-8_rt
 
     integer ilo,ihi
     integer domlo(1),domhi(1)
@@ -774,38 +779,38 @@ contains
     integer rflx_l1, rflx_h1
 #endif
 
-    double precision ql(qpd_l1:qpd_h1, NQ)
-    double precision qr(qpd_l1:qpd_h1, NQ)
+    real(rt)         ql(qpd_l1:qpd_h1, NQ)
+    real(rt)         qr(qpd_l1:qpd_h1, NQ)
 
-    double precision   cav(ilo:ihi+1), smallc(ilo:ihi+1)
-    double precision gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
-    double precision  uflx(uflx_l1:uflx_h1, NVAR)
-    double precision  qint( qg_l1: qg_h1, NGDNV)
+    real(rt)           cav(ilo:ihi+1), smallc(ilo:ihi+1)
+    real(rt)         gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
+    real(rt)          uflx(uflx_l1:uflx_h1, NVAR)
+    real(rt)          qint( qg_l1: qg_h1, NGDNV)
 
 #ifdef RADIATION
-    double precision lam(ilo-1:ihi+2, 0:ngroups-1)
-    double precision gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
-    double precision  rflx(rflx_l1:rflx_h1, 0:ngroups-1)
+    real(rt)         lam(ilo-1:ihi+2, 0:ngroups-1)
+    real(rt)         gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
+    real(rt)          rflx(rflx_l1:rflx_h1, 0:ngroups-1)
 
-    double precision, dimension(0:ngroups-1) :: erl, err
-    double precision :: regdnv_g, pgdnv_g, pgdnv_t
-    double precision :: estar_g, pstar_g
-    double precision, dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
-    double precision :: eddf, f1
-    double precision :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
+    real(rt)        , dimension(0:ngroups-1) :: erl, err
+    real(rt)         :: regdnv_g, pgdnv_g, pgdnv_t
+    real(rt)         :: estar_g, pstar_g
+    real(rt)        , dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
+    real(rt)         :: eddf, f1
+    real(rt)         :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
 
     integer :: g
 #endif
 
-    double precision rgdnv, regdnv, ustar, v1gdnv, v2gdnv
-    double precision rl, ul, v1l, v2l, pl, rel
-    double precision rr, ur, v1r, v2r, pr, rer
-    double precision wl, wr, rhoetot, scr
-    double precision rstar, cstar, estar, pstar, drho
-    double precision ro, uo, po, reo, co, gamco, entho
-    double precision sgnm, spin, spout, ushock, frac
+    real(rt)         rgdnv, regdnv, ustar, v1gdnv, v2gdnv
+    real(rt)         rl, ul, v1l, v2l, pl, rel
+    real(rt)         rr, ur, v1r, v2r, pr, rer
+    real(rt)         wl, wr, rhoetot, scr
+    real(rt)         rstar, cstar, estar, pstar, drho
+    real(rt)         ro, uo, po, reo, co, gamco, entho
+    real(rt)         sgnm, spin, spout, ushock, frac
 
-    double precision wsmall, csmall
+    real(rt)         wsmall, csmall
     integer ipassive, n, nqp
     integer k
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
@@ -911,12 +916,12 @@ contains
 
 #ifdef RADIATION
           do g=0, ngroups-1
-             lambda(g) = 0.5d0*(lam(k-1,g)+lam(k,g))
+             lambda(g) = 0.5e0_rt*(lam(k-1,g)+lam(k,g))
           end do
-          reo_r(:) = 0.5d0*(erl(:)+err(:))
-          reo_g = 0.5d0*(rel_g+rer_g)
+          reo_r(:) = 0.5e0_rt*(erl(:)+err(:))
+          reo_g = 0.5e0_rt*(rel_g+rer_g)
           po_r(:) = lambda(:) * reo_r(:)
-          gamco_g = 0.5d0*(gamcgl(k)+gamcgr(k))
+          gamco_g = 0.5e0_rt*(gamcgl(k)+gamcgr(k))
           po_g = 0.5*(pr_g+pl_g)
 #endif
        endif
@@ -982,10 +987,10 @@ contains
        rgdnv = frac*rstar + (ONE - frac)*ro
        qint(k,GDU) = frac*ustar + (ONE - frac)*uo
 #ifdef RADIATION
-       pgdnv_t = frac*pstar + (1.d0 - frac)*po
-       pgdnv_g = frac*pstar_g + (1.d0 - frac)*po_g
-       regdnv_g = frac*estar_g + (1.d0 - frac)*reo_g
-       regdnv_r(:) = frac*estar_r(:) + (1.d0 - frac)*reo_r(:)
+       pgdnv_t = frac*pstar + (1.e0_rt - frac)*po
+       pgdnv_g = frac*pstar_g + (1.e0_rt - frac)*po_g
+       regdnv_g = frac*estar_g + (1.e0_rt - frac)*reo_g
+       regdnv_r(:) = frac*estar_r(:) + (1.e0_rt - frac)*reo_r(:)
 #else
        qint(k,GDPRES) = frac*pstar + (ONE - frac)*po
        regdnv = frac*estar + (ONE - frac)*reo
@@ -1068,8 +1073,8 @@ contains
        if (fspace_type.eq.1) then
           do g = 0, ngroups-1
              eddf = Edd_factor(lambda(g))
-             f1 = 0.5d0*(1.d0-eddf)
-             rflx(k,g) = (1.d0+f1) * qint(k,GDERADS+g) * qint(k,GDU)
+             f1 = 0.5e0_rt*(1.e0_rt-eddf)
+             rflx(k,g) = (1.e0_rt+f1) * qint(k,GDERADS+g) * qint(k,GDU)
           end do
        else ! type 2
           do g = 0, ngroups-1

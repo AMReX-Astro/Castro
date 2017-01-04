@@ -5,6 +5,7 @@ module rotation_module
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
                                 rotation_include_domegadt
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -21,14 +22,15 @@ contains
     use prob_params_module, only: center
     use castro_util_module, only: position
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: idx(3)
-    double precision, intent(in   ) :: time
-    double precision, intent(inout) :: v(3)
+    real(rt)        , intent(in   ) :: time
+    real(rt)        , intent(inout) :: v(3)
     integer, intent(in), optional :: idir
 
-    double precision :: loc(3), omega(3)
+    real(rt)         :: loc(3), omega(3)
 
     if (present(idir)) then
        if (idir .eq. 1) then
@@ -63,12 +65,13 @@ contains
     use bl_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: r(3), v(3), time
-    double precision :: Sr(3)
+    real(rt)         :: r(3), v(3), time
+    real(rt)         :: Sr(3)
 
-    double precision :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
+    real(rt)         :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
 
     logical, optional :: centrifugal, coriolis, domegadt
     logical :: c1, c2, c3
@@ -174,12 +177,13 @@ contains
     use bl_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: r(3), time
-    double precision :: phi
+    real(rt)         :: r(3), time
+    real(rt)         :: phi
 
-    double precision :: omega(3), omegacrossr(3)
+    real(rt)         :: omega(3), omegacrossr(3)
 
     if (state_in_rotating_frame .eq. 1) then
 
@@ -211,16 +215,17 @@ contains
     use prob_params_module, only: problo, center
     use bl_constants_module, only: HALF
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
 
-    double precision, intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    double precision, intent(in   ) :: dx(3), time
+    real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt)        , intent(in   ) :: dx(3), time
 
     integer          :: i, j, k
-    double precision :: r(3)
+    real(rt)         :: r(3)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
@@ -248,18 +253,19 @@ contains
     use prob_params_module, only: problo, center
     use bl_constants_module, only: HALF
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
     integer         , intent(in   ) :: state_lo(3), state_hi(3)
 
-    double precision, intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
-    double precision, intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    double precision, intent(in   ) :: dx(3), time
+    real(rt)        , intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
+    real(rt)        , intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: dx(3), time
 
     integer          :: i, j, k
-    double precision :: r(3)
+    real(rt)         :: r(3)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
