@@ -26,13 +26,13 @@ implno_re = re.compile(r"^(implicit\s+none)", re.IGNORECASE|re.DOTALL)
 use_re = re.compile(r"^(use)\s+(\w*)", re.IGNORECASE|re.DOTALL)
 
 # module include line to add
-mod_incl = "use bl_fort_module, only : rp_t => c_real"
+mod_incl = "use bl_fort_module, only : rt => c_real"
 
 # new-style declaration
-new_decl = "real(rp_t)"
+new_decl = "real(rt)"
 
 # constant type specifier
-const_spec = "_rp_t"
+const_spec = "_rt"
 
 
 def find_files(top_dir, extension):
@@ -78,7 +78,7 @@ def main():
     # this matches stuff like -1.25d-10, and gives us separate groups for the
     # prefix and exponent.  The [^\w] makes sure a letter isn't right in front
     # of the match (like 'k3d-1')
-    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD][\+\-]?([0-9]+)", re.IGNORECASE|re.DOTALL)
+    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
 
     # find the source files
     sfiles = []
