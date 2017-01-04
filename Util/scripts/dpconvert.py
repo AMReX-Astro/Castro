@@ -10,13 +10,18 @@ import re
 import sys
 
 
-class Unit(object):
-    def __init__(self, name="", ftype="subroutine", has_decls=False, in_module=False):
-        self.name = name
-        self.ftype = ftype
-        self.has_decls = has_decls
-        self.in_module = in_module
-        
+# routine signatures
+routine_re = re.compile(r"^(subroutine|function|module)\s+(\w*)", re.IGNORECASE|re.DOTALL)
+
+# declaration signatures
+decl_re = re.compile(r"^(real|integer|double\s*precision|logical|character|type)", re.IGNORECASE|re.DOTALL)
+
+# implicit none signature
+implno_re = re.compile(r"^(implicit\s+none)", re.IGNORECASE|re.DOTALL)
+
+# use module signature
+use_re = re.compile(r"^(use)\s+(\w*)", re.IGNORECASE|re.DOTALL)
+
 
 def find_files(top_dir, extension):
     """ find files with a given extension -- return a list """
@@ -38,7 +43,7 @@ def main():
 
     # define the regular expressions for double precision declaration -- these are
     # what we seek to replace
-    
+
     # match declarations like "real (kind=dp_t)"
     r1 = re.compile(r"(real)\s*(\(\s*kind\s*=\s*dp_t\s*\))", re.IGNORECASE|re.DOTALL)
 
@@ -55,7 +60,7 @@ def main():
     c_re = re.compile(r"([0-9edED.\+\-]+)(_dp_t)", re.IGNORECASE|re.DOTALL)
 
     # and... we want to replace and "d" scientific notation with the new style
-    # this matches stuff like -1.25d-10, and gives us separate groups for the 
+    # this matches stuff like -1.25d-10, and gives us separate groups for the
     # prefix and exponent
     d_re = re.compile(r"([\+\-0-9.]+)[dD]([\+\-0-9]+)", re.IGNORECASE|re.DOTALL)
 
@@ -71,11 +76,7 @@ def main():
         # the tricky part of the conversion is that we need to add the
         # "use bl_fort_module" to the source in any program unit (or
         # scope) that has double precision declarations.
-        
-        # keep track of all the program units in file file (modules,
-        # subroutines, etc.)
-        units = []
-        
+
         # read the file
         try:
             f = open(sf, "r")
@@ -90,18 +91,87 @@ def main():
             os.rename(sf, "{}_orig".format(sf))
         except:
             sys.exit("error renaming {}".format(sf))
-            
+
         # parse it first looking for subroutine and function
         # definitions, marking which have any double precision
         # definitions
+
+        # keep track of all the program units in file file (modules,
+        # subroutines, etc.)
+        units = {}
+
         current_unit = None
+        has_decl = False
+
+        for line in lines:
+            tline = line.strip()
+
+            # are we a routine?
+            rout = routine_re.search(tline)
+            if rout:
+                # save the old info
+                if current_unit is not None:
+                    units[current_unit] = has_decl
+
+                # start the next unit
+                print("here: {}".format(rout.group(0)))
+                print(tline)
+                current_unit = rout.group(2)
+                has_decl = False
+
+            # are there any declarations that we need to replace?
+            for r in regexs:
+                decl = r.search(line)
+                if decl:
+                    has_decl = True
+
+        # we never stored the last found unit
+        if current_unit is not None and current_unit not in units:
+            units[current_unit] = has_decl
 
 
         # now write out the file, line by line.  When we encounter a
         # subroutine or function, add the necessary module line.  When
         # we encounter a declaration, convert it to the new form
+        current_unit = None
+        has_decl = False
+
+        print("keys:", units.keys())
+
         new_lines = []
-        for line in lines:
+        while lines:
+
+            line = lines.pop(0)
+
+            # is this the start of a routine?
+            rout = routine_re.search(line.strip())
+            if rout:
+                current_unit = rout.group(2)
+                has_decl = units[current_unit]
+
+                new_lines.append(line)
+
+                while has_decl:
+                    # we need to add the use line before any declarations or 
+                    # and implicit none.  We don't simply add it after first 
+                    # detecting the start of a routine, since the function
+                    # definition might span multiple lines
+                    
+                    line = lines.pop(0)
+                    
+                    is_decl = decl_re.search(line.strip())
+                    is_implno = implno_re.search(line.strip())
+
+                    if is_decl or is_implno:
+                        # we need to add the module use statement
+                        new_lines.append("use bl_fort_module\n")
+                        has_decl = False
+
+                        # this line will be added at the end of the while
+
+                    else:
+                        new_lines.append(line)
+
 
             # replace declarations
             for r in regexs:
@@ -133,7 +203,7 @@ def main():
 
             new_lines.append(line)
 
-        # skip comments
+
         try:
             f = open(sf, "w")
         except IOError:
@@ -141,6 +211,6 @@ def main():
         else:
             f.writelines(new_lines)
             f.close()
-            
+
 if __name__ == "__main__":
     main()
