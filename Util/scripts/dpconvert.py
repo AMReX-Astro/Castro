@@ -114,8 +114,6 @@ def main():
                     units[current_unit] = has_decl
 
                 # start the next unit
-                print("here: {}".format(rout.group(0)))
-                print(tline)
                 current_unit = rout.group(2)
                 has_decl = False
 
@@ -136,8 +134,6 @@ def main():
         current_unit = None
         has_decl = False
 
-        print("keys:", units.keys())
-
         new_lines = []
         while lines:
 
@@ -152,19 +148,27 @@ def main():
                 new_lines.append(line)
 
                 while has_decl:
-                    # we need to add the use line before any declarations or 
-                    # and implicit none.  We don't simply add it after first 
+                    # we need to add the use line before any declarations or
+                    # and implicit none.  We don't simply add it after first
                     # detecting the start of a routine, since the function
                     # definition might span multiple lines
-                    
+
                     line = lines.pop(0)
-                    
+
                     is_decl = decl_re.search(line.strip())
                     is_implno = implno_re.search(line.strip())
 
                     if is_decl or is_implno:
+                        # figure out the indent
+                        if is_decl:
+                            indent = line.find(is_decl.group(0))
+                        elif is_implno:
+                            indent = line.find(is_implno.group(0))
+
+                        indent = max(0, indent)
+
                         # we need to add the module use statement
-                        new_lines.append("use bl_fort_module\n")
+                        new_lines.append("{}use bl_fort_module\n".format(indent*" "))
                         has_decl = False
 
                         # this line will be added at the end of the while
