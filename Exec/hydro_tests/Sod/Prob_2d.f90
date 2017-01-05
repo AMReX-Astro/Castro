@@ -6,12 +6,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network
   use probdata_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
-  double precision xn(nspec)
+  real(rt)         problo(2), probhi(2)
+  real(rt)         xn(nspec)
 
   integer untin,i
 
@@ -64,8 +65,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   split(2) = frac*(problo(2)+probhi(2))
 
   !     compute the internal energy (erg/cc) for the left and right state
-  xn(:) = 0.0d0
-  xn(1) = 1.0d0
+  xn(:) = 0.0e0_rt
+  xn(1) = 1.0e0_rt
 
   if (use_Tinit) then
 
@@ -91,7 +92,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
      eos_state%rho = rho_l
      eos_state%p = p_l
-     eos_state%T = 100000.d0  ! initial guess
+     eos_state%T = 100000.e0_rt  ! initial guess
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rp, eos_state)
@@ -101,7 +102,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
      eos_state%rho = rho_r
      eos_state%p = p_r
-     eos_state%T = 100000.d0  ! initial guess
+     eos_state%T = 100000.e0_rt  ! initial guess
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rp, eos_state)
@@ -143,28 +144,29 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision xcen,ycen
+  real(rt)         xcen,ycen
   integer i,j
 
   do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
      
      do i = lo(1), hi(1)
-        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+        xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
         
         if (idir == 1) then
            if (xcen <= split(1)) then
               state(i,j,URHO) = rho_l
               state(i,j,UMX) = rho_l*u_l
-              state(i,j,UMY) = 0.d0
+              state(i,j,UMY) = 0.e0_rt
 
               state(i,j,UEDEN) = rhoe_l + 0.5*rho_l*u_l*u_l
               state(i,j,UEINT) = rhoe_l 
@@ -172,7 +174,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            else
               state(i,j,URHO) = rho_r
               state(i,j,UMX) = rho_r*u_r
-              state(i,j,UMY) = 0.d0
+              state(i,j,UMY) = 0.e0_rt
 
               state(i,j,UEDEN) = rhoe_r + 0.5*rho_r*u_r*u_r
               state(i,j,UEINT) = rhoe_r 
@@ -182,7 +184,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         else if (idir == 2) then
            if (ycen <= split(2)) then
               state(i,j,URHO) = rho_l
-              state(i,j,UMX) = 0.d0
+              state(i,j,UMX) = 0.e0_rt
               state(i,j,UMY) = rho_l*u_l
 
               state(i,j,UEDEN) = rhoe_l + 0.5*rho_l*u_l*u_l
@@ -190,7 +192,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               state(i,j,UTEMP) = T_l
            else
               state(i,j,URHO) = rho_r
-              state(i,j,UMX) = 0.d0
+              state(i,j,UMX) = 0.e0_rt
               state(i,j,UMY) = rho_r*u_r
 
               state(i,j,UEDEN) = rhoe_r + 0.5*rho_r*u_r*u_r
@@ -202,7 +204,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            call bl_abort('invalid idir')
         endif
 
-        state(i,j,UFS:UFS-1+nspec) = 0.0d0
+        state(i,j,UFS:UFS-1+nspec) = 0.0e0_rt
         state(i,j,UFS  ) = state(i,j,URHO)
         
      enddo

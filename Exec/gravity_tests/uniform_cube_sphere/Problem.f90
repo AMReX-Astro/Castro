@@ -4,6 +4,7 @@ subroutine problem_checkpoint(int_dir_name, len) bind(c)
 
   ! called by the IO processor during checkpoint
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -17,6 +18,7 @@ subroutine problem_restart(int_dir_name, len) bind(c)
 
   ! called by ALL processors during restart 
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -32,6 +34,7 @@ subroutine get_problem_number(problem_out) bind(C,name='get_problem_number')
 
   use probdata_module, only: problem
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: problem_out
@@ -48,9 +51,10 @@ subroutine get_diameter(diameter_out) bind(C,name='get_diameter')
 
   use probdata_module, only: diameter
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision :: diameter_out
+  real(rt)         :: diameter_out
 
   diameter_out = diameter
 
@@ -64,9 +68,10 @@ subroutine get_density(density_out) bind(C,name='get_density')
 
   use probdata_module, only: density
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision :: density_out
+  real(rt)         :: density_out
 
   density_out = density
 
@@ -88,18 +93,19 @@ subroutine update_density(lo, hi, dx, &
   use prob_params_module, only: problo, center
   use probdata_module, only: problem, diameter
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer         , intent(in   ) :: lo(3), hi(3)
   integer         , intent(in   ) :: s_lo(3), s_hi(3)
 
-  double precision, intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+  real(rt)        , intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-  double precision, intent(in   ) :: dx(3)
-  double precision, intent(in   ) :: update_factor
+  real(rt)        , intent(in   ) :: dx(3)
+  real(rt)        , intent(in   ) :: update_factor
 
   integer          :: i, j, k
-  double precision :: xx, yy, zz
+  real(rt)         :: xx, yy, zz
   
   if (problem .eq. 2) then
 

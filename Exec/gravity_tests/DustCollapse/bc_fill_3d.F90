@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -13,6 +14,7 @@ contains
     use meth_params_module, only : NVAR,UMX,UMY,UMZ
     use prob_params_module, only : center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -20,14 +22,14 @@ contains
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
-    double precision delta(3), xlo(3), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
+    real(rt)         delta(3), xlo(3), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
     integer          :: i, j, k, n
     integer          :: ic,jc,kc
-    double precision :: x,y,z,r
-    double precision :: xc,yc,zc,rc
-    double precision :: mom,momc
+    real(rt)         :: x,y,z,r
+    real(rt)         :: xc,yc,zc,rc
+    real(rt)         :: mom,momc
 
     do n = 1,NVAR
        call filcc(adv(adv_l1,adv_l2,adv_l3,n), &
@@ -53,25 +55,25 @@ contains
        do k = adv_l3, adv_h3
           do j = adv_l2, adv_h2
 
-             y = (dble(j) + 0.5d0) * delta(2) - center(2)
-             z = (dble(k) + 0.5d0) * delta(3) - center(3)
+             y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
+             z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
 
              ic = domlo(1)
-             xc = (dble(ic) + 0.5d0) * delta(1) - center(1)
+             xc = (dble(ic) + 0.5e0_rt) * delta(1) - center(1)
              rc = sqrt(xc**2 + y**2 + z**2)
 
              momc = sqrt(adv(ic,j,k,UMX)**2 + adv(ic,j,k,UMY)**2 + adv(ic,j,k,UMZ)**2)
 
              do i = adv_l1, domlo(1)-1
-                x = (dble(i) + 0.5d0) * delta(1) - center(1)
+                x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(ic,j,k,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(ic,j,k,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(ic,j,k,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(ic,j,k,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(ic,j,k,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(ic,j,k,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -83,25 +85,25 @@ contains
        do k = adv_l3, adv_h3
           do j = adv_l2, adv_h2
 
-             y = (dble(j) + 0.5d0) * delta(2) - center(2)
-             z = (dble(k) + 0.5d0) * delta(3) - center(3)
+             y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
+             z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
 
              ic = domhi(1)
-             xc = (dble(ic) + 0.5d0) * delta(1) - center(1)
+             xc = (dble(ic) + 0.5e0_rt) * delta(1) - center(1)
              rc = sqrt(xc**2 + y**2 + z**2)
 
              momc = sqrt(adv(ic,j,k,UMX)**2 + adv(ic,j,k,UMY)**2 + adv(ic,j,k,UMZ)**2)
 
              do i = domhi(1)+1, adv_h1
-                x = (dble(i) + 0.5d0) * delta(1) - center(1)
+                x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(ic,j,k,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(ic,j,k,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(ic,j,k,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(ic,j,k,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(ic,j,k,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(ic,j,k,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -113,26 +115,26 @@ contains
        do k = adv_l3, adv_h3
           do i = adv_l1, adv_h1
 
-             x = (dble(i) + 0.5d0) * delta(1) - center(1)
-             z = (dble(k) + 0.5d0) * delta(3) - center(3)
+             x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
+             z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
 
              jc = domlo(2)
-             yc = (dble(jc) + 0.5d0) * delta(2) - center(2)
+             yc = (dble(jc) + 0.5e0_rt) * delta(2) - center(2)
              rc = sqrt(x**2 + yc**2 + z**2)
 
              momc = sqrt(adv(i,jc,k,UMX)**2 + adv(i,jc,k,UMY)**2 + adv(i,jc,k,UMZ)**2)
 
              do j = adv_l2, domlo(2)-1
 
-                y = (dble(j) + 0.5d0) * delta(2) - center(2)
+                y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(i,jc,k,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(i,jc,k,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(i,jc,k,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(i,jc,k,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(i,jc,k,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(i,jc,k,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -144,25 +146,25 @@ contains
        do k = adv_l3, adv_h3
           do i = adv_l1, adv_h1
 
-             x = (dble(i) + 0.5d0) * delta(1) - center(1)
-             z = (dble(k) + 0.5d0) * delta(3) - center(3)
+             x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
+             z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
 
              jc = domhi(2)
-             yc = (dble(jc) + 0.5d0) * delta(2) - center(2)
+             yc = (dble(jc) + 0.5e0_rt) * delta(2) - center(2)
              rc = sqrt(x**2 + yc**2 + z**2)
 
              momc = sqrt(adv(i,jc,k,UMX)**2 + adv(i,jc,k,UMY)**2 + adv(i,jc,k,UMZ)**2)
 
              do j = domhi(2)+1, adv_h2
-                y = (dble(j) + 0.5d0) * delta(2) - center(2)
+                y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(i,jc,k,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(i,jc,k,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(i,jc,k,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(i,jc,k,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(i,jc,k,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(i,jc,k,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -174,25 +176,25 @@ contains
        do j = adv_l2, adv_h2
           do i = adv_l1, adv_h1
 
-             x = (dble(i) + 0.5d0) * delta(1) - center(1)
-             y = (dble(j) + 0.5d0) * delta(2) - center(2)
+             x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
+             y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
 
              kc = domlo(3)
-             zc = (dble(kc) + 0.5d0) * delta(3) - center(3)
+             zc = (dble(kc) + 0.5e0_rt) * delta(3) - center(3)
              rc = sqrt(x**2 + y**2 + zc**2)
 
              momc = sqrt(adv(i,j,kc,UMX)**2 + adv(i,j,kc,UMY)**2 + adv(i,j,kc,UMZ)**2)
 
              do k = adv_l3, domlo(3)-1
-                z = (dble(k) + 0.5d0) * delta(3) - center(3)
+                z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(i,j,kc,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(i,j,kc,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(i,j,kc,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(i,j,kc,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(i,j,kc,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(i,j,kc,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -204,25 +206,25 @@ contains
        do j = adv_l2, adv_h2
           do i = adv_l1, adv_h1
 
-             x = (dble(i) + 0.5d0) * delta(1) - center(1)
-             y = (dble(j) + 0.5d0) * delta(2) - center(2)
+             x = (dble(i) + 0.5e0_rt) * delta(1) - center(1)
+             y = (dble(j) + 0.5e0_rt) * delta(2) - center(2)
 
              kc = domhi(3)
-             zc = (dble(kc) + 0.5d0) * delta(3) - center(3)
+             zc = (dble(kc) + 0.5e0_rt) * delta(3) - center(3)
              rc = sqrt(x**2 + y**2 + zc**2)
 
              momc = sqrt(adv(i,j,kc,UMX)**2 + adv(i,j,kc,UMY)**2 + adv(i,j,kc,UMZ)**2)
 
              do k = domhi(3)+1, adv_h3
-                z = (dble(k) + 0.5d0) * delta(3) - center(3)
+                z = (dble(k) + 0.5e0_rt) * delta(3) - center(3)
                 r = sqrt(x**2 + y**2 + z**2)
 
                 mom  = momc * (rc/r)**2
 
                 ! Project along the normal
-                adv(i,j,k,UMX) =  sign(1.d0,adv(i,j,kc,UMX)) * mom * (x/r)
-                adv(i,j,k,UMY) =  sign(1.d0,adv(i,j,kc,UMY)) * mom * (y/r)
-                adv(i,j,k,UMZ) =  sign(1.d0,adv(i,j,kc,UMZ)) * mom * (z/r)
+                adv(i,j,k,UMX) =  sign(1.e0_rt,adv(i,j,kc,UMX)) * mom * (x/r)
+                adv(i,j,k,UMY) =  sign(1.e0_rt,adv(i,j,kc,UMY)) * mom * (y/r)
+                adv(i,j,k,UMZ) =  sign(1.e0_rt,adv(i,j,kc,UMZ)) * mom * (z/r)
 
              end do
           end do
@@ -236,6 +238,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C,name="ca_denfill")
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -243,8 +246,8 @@ contains
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer bc(3,2,*)
     integer domlo(3), domhi(3)
-    double precision delta(3), xlo(3), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
+    real(rt)         delta(3), xlo(3), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
     logical rho_only
     integer i,j,k
 
@@ -260,14 +263,15 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     include 'bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
     integer :: bc(3,2,*)
     integer :: domlo(3), domhi(3)
-    double precision delta(3), xlo(3), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt)         delta(3), xlo(3), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
 
@@ -280,6 +284,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -287,8 +292,8 @@ contains
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
     integer :: bc(3,2,*)
     integer :: domlo(3), domhi(3)
-    double precision delta(3), xlo(3), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt)         delta(3), xlo(3), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
 
@@ -301,6 +306,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -308,8 +314,8 @@ contains
     integer :: grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3
     integer :: bc(3,2,*)
     integer :: domlo(3), domhi(3)
-    double precision delta(3), xlo(3), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt)         delta(3), xlo(3), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     call filcc(grav,grav_l1,grav_l2,grav_l3,grav_h1,grav_h2,grav_h3,domlo,domhi,delta,xlo,bc)
 
@@ -320,6 +326,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_l3, &
                             phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) bind(C,name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -327,8 +334,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3
     integer          :: bc(3,2,*)
     integer          :: domlo(3), domhi(3)
-    double precision :: delta(3), xlo(3), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
+    real(rt)         :: delta(3), xlo(3), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     call filcc(phi,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
          domlo,domhi,delta,xlo,bc)

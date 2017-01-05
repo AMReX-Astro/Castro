@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -17,6 +18,7 @@ contains
 
     use model_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -24,12 +26,12 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer i,j,n
 
-    double precision, allocatable :: r_model(:), rho_model(:), T_model(:), &
+    real(rt)        , allocatable :: r_model(:), rho_model(:), T_model(:), &
          e_model(:), p_model(:)
 
     integer :: lo_model, hi_model
@@ -62,7 +64,7 @@ contains
           do i=domlo(1)-1,adv_l1,-1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.d0
+             adv(i,j,UMY) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -71,14 +73,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.d0
+                adv(i,j,UMX) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -93,7 +95,7 @@ contains
           do i=domhi(1)+1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.d0
+             adv(i,j,UMY) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -102,14 +104,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.d0
+                adv(i,j,UMX) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -125,7 +127,7 @@ contains
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.d0
+             adv(i,j,UMX) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -134,14 +136,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.d0
+                adv(i,j,UMY) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -154,7 +156,7 @@ contains
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.d0
+             adv(i,j,UMX) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -163,14 +165,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.d0
+                adv(i,j,UMY) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = rho_model(j)
              adv(i,j,UFS:UFS-1+nspec) = adv(i,j,URHO)*xn_model(:)
              adv(i,j,UEINT) = e_model(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = T_model(j)
 
           end do
@@ -190,6 +192,7 @@ contains
 
     use model_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -197,12 +200,12 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer i,j
 
-    double precision, allocatable :: r_model(:), rho_model(:), T_model(:), &
+    real(rt)        , allocatable :: r_model(:), rho_model(:), T_model(:), &
          e_model(:), p_model(:)
 
     integer :: lo_model, hi_model
@@ -286,14 +289,15 @@ contains
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
 
     use probdata_module
+    use bl_fort_module, only : rt => c_real
     implicit none
     include 'bc_types.fi'
 
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -306,6 +310,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -313,8 +318,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -327,6 +332,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -334,8 +340,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -347,6 +353,7 @@ contains
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -354,8 +361,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
          domlo,domhi,delta,xlo,bc)

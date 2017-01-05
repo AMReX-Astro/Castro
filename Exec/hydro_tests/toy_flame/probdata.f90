@@ -1,9 +1,10 @@
 module probdata_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, save :: pert_frac, pert_delta
+  real(rt)        , save :: pert_frac, pert_delta
 
-  double precision, save :: rho_fuel, T_fuel
+  real(rt)        , save :: rho_fuel, T_fuel
 
 end module probdata_module

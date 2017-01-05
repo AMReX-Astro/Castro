@@ -1,22 +1,23 @@
 module probdata_module
 
   ! Probin file
+  use bl_fort_module, only : rt => c_real
   character (len=:), allocatable :: probin
 
   ! Determine if we are the I/O processor
   integer :: ioproc
 
   ! Mass and radius of the collapsing sphere
-  double precision :: sphere_mass, sphere_radius
+  real(rt)         :: sphere_mass, sphere_radius
 
   ! Smallest allowed mass fraction
-  double precision :: smallx
+  real(rt)         :: smallx
 
   ! Smallest allowed velocity on the grid
-  double precision :: smallu
+  real(rt)         :: smallu
   
   ! Density of ambient gas around the star
-  double precision :: ambient_density
+  real(rt)         :: ambient_density
   
 contains
 
@@ -28,6 +29,7 @@ contains
     use bl_constants_module, only: ZERO
     use bl_error_module, only: bl_error
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: namlen, i
@@ -59,6 +61,7 @@ contains
 
   subroutine read_namelist
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: untin
@@ -67,13 +70,13 @@ contains
 
     ! Set namelist defaults
 
-    sphere_mass   = 1.0d0
-    sphere_radius = 9.0d8
+    sphere_mass   = 1.0e0_rt
+    sphere_radius = 9.0e8_rt
 
-    ambient_density = 1.0d0
+    ambient_density = 1.0e0_rt
 
-    smallx = 1.d-10
-    smallu = 1.d-12
+    smallx = 1.e-10_rt
+    smallu = 1.e-12_rt
 
     ! Read namelist to override the defaults
 
@@ -90,6 +93,7 @@ contains
 
   subroutine get_ioproc
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     ! For outputting -- determine if we are the IO processor
@@ -108,16 +112,17 @@ contains
     use eos_module, only: eos_input_rt, eos
     use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     type (eos_t) :: eos_state
 
     ! Given the inputs of small_dens and small_temp, figure out small_pres.
 
-    if (small_dens > 0.0d0 .and. small_temp > 0.0d0) then
+    if (small_dens > 0.0e0_rt .and. small_temp > 0.0e0_rt) then
        eos_state % rho = small_dens
        eos_state % T   = small_temp
-       eos_state % xn  = 1.0d0 / nspec
+       eos_state % xn  = 1.0e0_rt / nspec
  
        call eos(eos_input_rt, eos_state)
 

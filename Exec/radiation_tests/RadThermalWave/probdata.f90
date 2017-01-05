@@ -1,10 +1,11 @@
 module probdata_module
 
-      double precision Pi
-      parameter (Pi=3.1415926535897932384d0)
+      use bl_fort_module, only : rt => c_real
+      real(rt)         Pi
+      parameter (Pi=3.1415926535897932384e0_rt)
 
-      double precision, save :: rhocv, T0, Eexp, rexp
+      real(rt)        , save :: rhocv, T0, Eexp, rexp
       
-      double precision, save :: xmin,xmax,ymin,ymax,zmin,zmax
+      real(rt)        , save :: xmin,xmax,ymin,ymax,zmin,zmax
 
 end module probdata_module

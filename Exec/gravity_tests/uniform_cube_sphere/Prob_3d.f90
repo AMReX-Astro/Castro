@@ -5,11 +5,12 @@
      use fundamental_constants_module
      use eos_module
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: init, namlen
      integer :: name(namlen)
-     double precision :: problo(3), probhi(3)
+     real(rt)         :: problo(3), probhi(3)
 
      integer :: untin
      integer :: i
@@ -30,10 +31,10 @@
         probin(i:i) = char(name(i))
      end do
 
-     density  = 1.0d0
-     diameter = 1.0d0
+     density  = 1.0e0_rt
+     diameter = 1.0e0_rt
 
-     ambient_dens = 1.0d-8
+     ambient_dens = 1.0e-8_rt
 
      problem = 1
 
@@ -79,15 +80,16 @@
      use bl_constants_module
      use prob_params_module, only: problo, probhi, center
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: level, nscal
      integer :: lo(3), hi(3)
      integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     double precision :: xlo(3), xhi(3), time, delta(3)
-     double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+     real(rt)         :: xlo(3), xhi(3), time, delta(3)
+     real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
-     double precision :: xx, yy, zz
+     real(rt)         :: xx, yy, zz
 
      integer :: i, j, k
 
@@ -128,9 +130,9 @@
               ! Establish the thermodynamic quantities. They don't have to be
               ! valid because this test will never do a hydro step.
 
-              state(i,j,k,UTEMP) = 1.0d0
-              state(i,j,k,UEINT) = 1.0d0
-              state(i,j,k,UEDEN) = 1.0d0
+              state(i,j,k,UTEMP) = 1.0e0_rt
+              state(i,j,k,UEINT) = 1.0e0_rt
+              state(i,j,k,UEDEN) = 1.0e0_rt
 
               state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO) / nspec
 

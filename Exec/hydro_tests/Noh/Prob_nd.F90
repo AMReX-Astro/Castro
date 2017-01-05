@@ -1,10 +1,11 @@
    subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: init, namlen
      integer :: name(namlen)
-     double precision :: problo(3), probhi(3)
+     real(rt)         :: problo(3), probhi(3)
 
    end subroutine PROBINIT
 
@@ -43,15 +44,16 @@
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center, dim
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: level, nscal
      integer :: lo(3), hi(3)
      integer :: state_lo(3), state_hi(3)
-     double precision :: xlo(3), xhi(3), time, delta(3)
-     double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+     real(rt)         :: xlo(3), xhi(3), time, delta(3)
+     real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-     double precision :: loc(3), r, vel(3)
+     real(rt)         :: loc(3), r, vel(3)
 
      type (eos_t) :: zone_state
 
@@ -69,8 +71,8 @@
 
               ! Uniform density, negligible pressure.
 
-              zone_state % rho = 1.0d0
-              zone_state % P   = 1.0d-6
+              zone_state % rho = 1.0e0_rt
+              zone_state % P   = 1.0e-6_rt
               zone_state % xn(:) = ONE / nspec
 
               call eos(eos_input_rp, zone_state)

@@ -6,11 +6,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network, only : nspec
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(1), probhi(1)
+  real(rt)         :: problo(1), probhi(1)
 
   type(eos_t) :: eos_state
 
@@ -45,8 +46,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   eos_state % rho = rho_0
   eos_state % T   = T_0
-  eos_state % xn  = 0.d0
-  eos_state % xn(1) = 1.d0
+  eos_state % xn  = 0.e0_rt
+  eos_state % xn(1) = 1.e0_rt
 
   call eos(eos_input_rt, eos_state)
 
@@ -86,28 +87,29 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(1), hi(1)
   integer state_l1,state_h1
-  double precision state(state_l1:state_h1,NVAR)
-  double precision time, delta(1)
-  double precision xlo(1), xhi(1)
+  real(rt)         state(state_l1:state_h1,NVAR)
+  real(rt)         time, delta(1)
+  real(rt)         xlo(1), xhi(1)
 
-  double precision xcen
+  real(rt)         xcen
   integer i
 
   do i = lo(1), hi(1)
-     xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+     xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
 
      state(i,URHO ) = rho_0
-     state(i,UMX  ) = 0.d0
+     state(i,UMX  ) = 0.e0_rt
      state(i,UEDEN) = rhoe_0 
      state(i,UEINT) = rhoe_0
 
      ! set the composition to be all in the first species
-     state(i,UFS:UFS-1+nspec) = 0.d0
+     state(i,UFS:UFS-1+nspec) = 0.e0_rt
      state(i,UFS) = state(i,URHO)
      if (naux > 0) then
         state(i,UFX) = state(i,URHO)
@@ -131,6 +133,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use fundamental_constants_module, only : hplanck, c_light, k_B
   use bl_constants_module, only : ZERO, ONE, HALF, M_PI
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nrad
@@ -141,7 +144,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   real(kind=8) rad_state(rad_state_l1:rad_state_h1,0:nrad-1)
 
   ! local variables
-  double precision xcen, nu, xx
+  real(rt)         xcen, nu, xx
   integer i, igroup
 
   !        if (nrad .ne. 64) then
@@ -156,13 +159,13 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
         nu = nugroup(igroup)
 
         xx = hplanck*nu/(k_B*T_0)
-        if (xx > 708.d0) then
+        if (xx > 708.e0_rt) then
            ! exp(708+eps) will give 1.e308 -- the limits of IEEE floating point, 
            ! and generate an overflow exception
            rad_state(i,igroup) = ZERO
         else
            rad_state(i,igroup) =  &
-                (8.d0*M_PI*hplanck*nu**3/c_light**3)/(exp(xx) - ONE) &
+                (8.e0_rt*M_PI*hplanck*nu**3/c_light**3)/(exp(xx) - ONE) &
                 * dnugroup(igroup)
         endif
      end do

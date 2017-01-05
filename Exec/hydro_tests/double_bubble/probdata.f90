@@ -2,18 +2,19 @@ module probdata_module
 
   use network
 
-  double precision, save :: dens_base, pres_base
-  double precision, save :: pert_factor, y_pert_center, pert_width
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save :: dens_base, pres_base
+  real(rt)        , save :: pert_factor, y_pert_center, pert_width
 
   logical,          save :: do_isentropic
 
   integer,          save :: boundary_type
 
-  double precision, save :: xn_model(nspec)
+  real(rt)        , save :: xn_model(nspec)
 
-  double precision, save :: ymin, ymax
+  real(rt)        , save :: ymin, ymax
 
-  double precision, save :: left_bubble_x_center, right_bubble_x_center
+  real(rt)        , save :: left_bubble_x_center, right_bubble_x_center
 
   logical         , save :: single
 
