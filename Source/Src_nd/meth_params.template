@@ -9,6 +9,7 @@ module meth_params_module
 
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
@@ -39,7 +40,7 @@ module meth_params_module
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
 
-  double precision, save :: flatten_pp_threshold = -1.d0
+  real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
 #endif
 
   integer, save :: npassive
@@ -55,14 +56,14 @@ module meth_params_module
 
   integer         , save :: numpts_1d
 
-  double precision, save, allocatable :: outflow_data_old(:,:)
-  double precision, save, allocatable :: outflow_data_new(:,:)
-  double precision, save :: outflow_data_old_time
-  double precision, save :: outflow_data_new_time
+  real(rt)        , save, allocatable :: outflow_data_old(:,:)
+  real(rt)        , save, allocatable :: outflow_data_new(:,:)
+  real(rt)        , save :: outflow_data_old_time
+  real(rt)        , save :: outflow_data_new_time
   logical         , save :: outflow_data_allocated
-  double precision, save :: max_dist
+  real(rt)        , save :: max_dist
 
-  double precision, save :: diffuse_cutoff_density
+  real(rt)        , save :: diffuse_cutoff_density
 
   character(len=:), allocatable :: gravity_type
 
@@ -98,7 +99,7 @@ module meth_params_module
 
   ! End the declarations of the ParmParse parameters
 
-  double precision, save :: rot_vec(3)
+  real(rt)        , save :: rot_vec(3)
 
 contains
 
@@ -106,6 +107,7 @@ contains
 
     use parmparse_module, only: parmparse_build, parmparse_destroy, ParmParse
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     type (ParmParse) :: pp
@@ -179,6 +181,7 @@ contains
 #ifdef RADIATION
   subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(inout) :: qradvar_in
@@ -192,8 +195,9 @@ contains
 
     use rad_params_module, only : ngroups
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
-    double precision, intent(in) :: fppt
+    real(rt)        , intent(in) :: fppt
 
     QPTOT  = QVAR+1
     QREITOT = QVAR+2
@@ -237,7 +241,7 @@ contains
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold = -1.d0)
+    !$acc device(flatten_pp_threshold = -1.e0_rt)
 
   end subroutine ca_init_radhydro_pars
 #endif

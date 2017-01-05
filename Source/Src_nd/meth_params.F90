@@ -100,11 +100,11 @@ module meth_params_module
 
   ! Begin the declarations of the ParmParse parameters
 
-  real(rt)        , save :: difmag
-  real(rt)        , save :: small_dens
-  real(rt)        , save :: small_temp
-  real(rt)        , save :: small_pres
-  real(rt)        , save :: small_ener
+  real(rt), save :: difmag
+  real(rt), save :: small_dens
+  real(rt), save :: small_temp
+  real(rt), save :: small_pres
+  real(rt), save :: small_ener
   integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
@@ -116,16 +116,16 @@ module meth_params_module
   integer         , save :: hybrid_riemann
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
-  real(rt)        , save :: cg_tol
+  real(rt), save :: cg_tol
   integer         , save :: cg_blend
   integer         , save :: use_flattening
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density
   integer         , save :: transverse_reset_rhoe
   integer         , save :: dual_energy_update_E_from_e
-  real(rt)        , save :: dual_energy_eta1
-  real(rt)        , save :: dual_energy_eta2
-  real(rt)        , save :: dual_energy_eta3
+  real(rt), save :: dual_energy_eta1
+  real(rt), save :: dual_energy_eta2
+  real(rt), save :: dual_energy_eta3
   integer         , save :: use_pslope
   integer         , save :: fix_mass_flux
   integer         , save :: limit_fluxes_on_small_dens
@@ -144,22 +144,22 @@ module meth_params_module
   integer         , save :: hse_zero_vels
   integer         , save :: hse_interp_temp
   integer         , save :: hse_reflect_vels
-  real(rt)        , save :: cfl
-  real(rt)        , save :: dtnuc_e
-  real(rt)        , save :: dtnuc_X
+  real(rt), save :: cfl
+  real(rt), save :: dtnuc_e
+  real(rt), save :: dtnuc_X
   integer         , save :: dtnuc_mode
-  real(rt)        , save :: dxnuc
+  real(rt), save :: dxnuc
   integer         , save :: do_react
-  real(rt)        , save :: react_T_min
-  real(rt)        , save :: react_T_max
-  real(rt)        , save :: react_rho_min
-  real(rt)        , save :: react_rho_max
+  real(rt), save :: react_T_min
+  real(rt), save :: react_T_max
+  real(rt), save :: react_rho_min
+  real(rt), save :: react_rho_max
   integer         , save :: disable_shock_burning
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
-  real(rt)        , save :: rot_period
-  real(rt)        , save :: rot_period_dot
+  real(rt), save :: rot_period
+  real(rt), save :: rot_period_dot
   integer         , save :: rotation_include_centrifugal
   integer         , save :: rotation_include_coriolis
   integer         , save :: rotation_include_domegadt
@@ -167,11 +167,11 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
-  real(rt)        , save :: point_mass
+  real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
-  real(rt)        , save :: const_grav
+  real(rt), save :: const_grav
   integer         , save :: get_g_from_phi
 
   !$acc declare &
@@ -216,11 +216,11 @@ contains
 
     call parmparse_build(pp, "castro")
 
-    difmag = 0.1e0_rt;
-    small_dens = -1.e200_rt;
-    small_temp = -1.e200_rt;
-    small_pres = -1.e200_rt;
-    small_ener = -1.e200_rt;
+    difmag = 0.1d0;
+    small_dens = -1.d200;
+    small_temp = -1.d200;
+    small_pres = -1.d200;
+    small_ener = -1.d200;
     do_hydro = -1;
     hybrid_hydro = 0;
     ppm_type = 1;
@@ -232,16 +232,16 @@ contains
     hybrid_riemann = 0;
     riemann_solver = 0;
     cg_maxiter = 12;
-    cg_tol = 1.0e-5_rt;
+    cg_tol = 1.0d-5;
     cg_blend = 2;
     use_flattening = 1;
     transverse_use_eos = 0;
     transverse_reset_density = 1;
     transverse_reset_rhoe = 0;
     dual_energy_update_E_from_e = 1;
-    dual_energy_eta1 = 1.0e0_rt;
-    dual_energy_eta2 = 1.0e-4_rt;
-    dual_energy_eta3 = 1.0e0_rt;
+    dual_energy_eta1 = 1.0d0;
+    dual_energy_eta2 = 1.0d-4;
+    dual_energy_eta3 = 1.0d0;
     use_pslope = 1;
     fix_mass_flux = 0;
     limit_fluxes_on_small_dens = 0;
@@ -260,22 +260,22 @@ contains
     hse_zero_vels = 0;
     hse_interp_temp = 0;
     hse_reflect_vels = 0;
-    cfl = 0.8e0_rt;
-    dtnuc_e = 1.e200_rt;
-    dtnuc_X = 1.e200_rt;
+    cfl = 0.8d0;
+    dtnuc_e = 1.d200;
+    dtnuc_X = 1.d200;
     dtnuc_mode = 1;
-    dxnuc = 1.e200_rt;
+    dxnuc = 1.d200;
     do_react = -1;
-    react_T_min = 0.0e0_rt;
-    react_T_max = 1.e200_rt;
-    react_rho_min = 0.0e0_rt;
-    react_rho_max = 1.e200_rt;
+    react_T_min = 0.0d0;
+    react_T_max = 1.d200;
+    react_rho_min = 0.0d0;
+    react_rho_max = 1.d200;
     disable_shock_burning = 0;
     do_grav = -1;
     grav_source_type = 4;
     do_rotation = -1;
-    rot_period = -1.e200_rt;
-    rot_period_dot = 0.0e0_rt;
+    rot_period = -1.d200;
+    rot_period_dot = 0.0d0;
     rotation_include_centrifugal = 1;
     rotation_include_coriolis = 1;
     rotation_include_domegadt = 1;
@@ -283,11 +283,11 @@ contains
     rot_source_type = 4;
     implicit_rotation_update = 1;
     rot_axis = 3;
-    point_mass = 0.0e0_rt;
+    point_mass = 0.0d0;
     point_mass_fix_solution = 0;
     do_acc = -1;
     track_grid_losses = 0;
-    const_grav = 0.0e0_rt;
+    const_grav = 0.0d0;
     get_g_from_phi = 0;
 
     call pp%query("difmag", difmag)
