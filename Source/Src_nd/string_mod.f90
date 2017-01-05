@@ -3,6 +3,7 @@ module string_module
 
   use iso_c_binding
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -12,6 +13,7 @@ module string_module
 contains
 
   function string_f_to_c (fstr) result(cstr)
+    use bl_fort_module, only : rt => c_real
     character(*), intent(in) :: fstr
     character(c_char) :: cstr(len_trim(fstr)+1)
     integer :: i, n
@@ -23,6 +25,7 @@ contains
   end function string_f_to_c
 
   function string_c_to_f (cstr) result(fstr)
+    use bl_fort_module, only : rt => c_real
     character(c_char), intent(in) :: cstr(:)
     character(len=size(cstr)-1) :: fstr
     integer :: i, n

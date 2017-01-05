@@ -3,6 +3,7 @@ module parmparse_module
   use iso_c_binding
   use string_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -29,6 +30,7 @@ module parmparse_module
   interface
      subroutine fi_new_parmparse (pp, name) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr) :: pp
        character(c_char), intent(in) :: name(*)
@@ -36,12 +38,14 @@ module parmparse_module
 
      subroutine fi_delete_parmparse (pp) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
      end subroutine fi_delete_parmparse
 
      subroutine fi_parmparse_get_int (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -50,6 +54,7 @@ module parmparse_module
 
      subroutine fi_parmparse_get_double (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -58,6 +63,7 @@ module parmparse_module
 
      subroutine fi_parmparse_get_bool (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -66,6 +72,7 @@ module parmparse_module
 
      subroutine fi_parmparse_get_string (pp, name, v, len) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -75,6 +82,7 @@ module parmparse_module
 
      subroutine fi_parmparse_query_int (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -83,6 +91,7 @@ module parmparse_module
 
      subroutine fi_parmparse_query_double (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -91,6 +100,7 @@ module parmparse_module
 
      subroutine fi_parmparse_query_bool (pp, name, v) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -99,6 +109,7 @@ module parmparse_module
 
      subroutine fi_parmparse_query_string (pp, name, v, len) bind(c)
        use iso_c_binding
+       use bl_fort_module, only : rt => c_real
        implicit none
        type(c_ptr), value :: pp
        character(c_char), intent(in) :: name(*)
@@ -110,12 +121,14 @@ module parmparse_module
 contains
 
   subroutine parmparse_build (pp, name)
+    use bl_fort_module, only : rt => c_real
     type(ParmParse) :: pp
     character(*), intent(in) :: name
     call fi_new_parmparse(pp%p, string_f_to_c(name))
   end subroutine parmparse_build
 
   subroutine parmparse_destroy (this)
+    use bl_fort_module, only : rt => c_real
     type(ParmParse) :: this
     if (c_associated(this%p)) then
        call fi_delete_parmparse(this%p)
@@ -124,6 +137,7 @@ contains
   end subroutine parmparse_destroy
 
   subroutine get_int (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: v
@@ -131,13 +145,15 @@ contains
   end subroutine get_int
 
   subroutine get_double (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
-    double precision :: v
+    real(rt)         :: v
     call fi_parmparse_get_double (this%p, string_f_to_c(name), v)
   end subroutine get_double
 
   subroutine get_logical (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
     logical :: v
@@ -147,6 +163,7 @@ contains
   end subroutine get_logical
 
   subroutine get_string (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
     character(*), intent(inout) :: v
@@ -161,6 +178,7 @@ contains
   end subroutine get_string
 
   subroutine query_int (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: v
@@ -168,13 +186,15 @@ contains
   end subroutine query_int
 
   subroutine query_double (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
-    double precision :: v
+    real(rt)         :: v
     call fi_parmparse_query_double (this%p, string_f_to_c(name), v)
   end subroutine query_double
 
   subroutine query_logical (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
     logical :: v
@@ -184,6 +204,7 @@ contains
   end subroutine query_logical
 
   subroutine query_string (this, name, v)
+    use bl_fort_module, only : rt => c_real
     class(ParmParse), intent(in) :: this
     character(*), intent(in) :: name
     character(*), intent(inout) :: v

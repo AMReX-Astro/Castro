@@ -1,5 +1,6 @@
 module derive_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -17,6 +18,7 @@ contains
     ! The incoming   "dat" vector contains (rho,T,(rho X)_1)
     ! The outgoing "state" vector contains (rho,T,X_1)
     !
+    use bl_fort_module, only : rt => c_real
     implicit none 
 
     integer          :: lo(3), hi(3)
@@ -24,9 +26,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
-    double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -66,6 +68,7 @@ contains
     !
     ! This routine will derive the velocity from the momentum.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -73,9 +76,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -102,6 +105,7 @@ contains
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -109,13 +113,13 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
 
     type (eos_t) :: eos_state
 
@@ -151,6 +155,7 @@ contains
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -158,13 +163,13 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
 
     type (eos_t) :: eos_state
 
@@ -197,6 +202,7 @@ contains
     !
     ! This routine will derive magnitude of velocity.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -204,18 +210,18 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
-    double precision :: dat1inv
+    real(rt)         :: dat1inv
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             dat1inv = 1.d0/dat(i,j,k,1)
+             dat1inv = 1.e0_rt/dat(i,j,k,1)
              magvel(i,j,k,1) = sqrt( (dat(i,j,k,2) * dat1inv)**2 + &
                   (dat(i,j,k,3) * dat1inv)**2 + &
                   (dat(i,j,k,4) * dat1inv)**2 )
@@ -234,6 +240,7 @@ contains
     !
     ! This routine will derive magnitude of the gravity vector.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none 
 
     integer          :: lo(3), hi(3)
@@ -241,9 +248,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
-    double precision ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
+    real(rt)         ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -272,6 +279,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -279,13 +287,13 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
-    double precision :: x, y, z, r
+    real(rt)         :: x, y, z, r
 
     do k = lo(3), hi(3)
        z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
@@ -312,6 +320,7 @@ contains
     !
     ! This routine will derive magnitude of momentum.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -319,9 +328,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -347,18 +356,19 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
     integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
-    double precision :: loc(3), mom(3), ang_mom(3), rho
+    real(rt)         :: loc(3), mom(3), ang_mom(3), rho
 
     do k = lo(3), hi(3)
        loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
@@ -390,18 +400,19 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
     integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
-    double precision :: loc(3), mom(3), ang_mom(3), rho
+    real(rt)         :: loc(3), mom(3), ang_mom(3), rho
 
     do k = lo(3), hi(3)
        loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
@@ -433,18 +444,19 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
     integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
-    double precision :: loc(3), mom(3), ang_mom(3), rho
+    real(rt)         :: loc(3), mom(3), ang_mom(3), rho
 
     do k = lo(3), hi(3)
        loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
@@ -477,18 +489,19 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: p_lo(3), p_hi(3), ncomp_p
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -523,18 +536,19 @@ contains
     use bl_constants_module
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: e_lo(3), e_hi(3), ncomp_e
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv, ux, uy, uz
+    real(rt)         :: rhoInv, ux, uy, uz
     integer          :: i, j, k
     !
     ! Compute internal energy from (rho E).
@@ -562,15 +576,16 @@ contains
 
     use meth_params_module, only: URHO, UEINT
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: e_lo(3), e_hi(3), ncomp_e
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
@@ -599,18 +614,19 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: c_lo(3), c_hi(3), ncomp_c
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -647,18 +663,19 @@ contains
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: m_lo(3), m_hi(3), ncomp_mach
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
-    double precision ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
+    real(rt)         ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -695,18 +712,19 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3), ncomp_s
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -744,19 +762,20 @@ contains
     use prob_params_module, only: dim
     use eos_module, only: eos_t, eos_input_re, eos
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: t_lo(3), t_hi(3), ncomp_t
     integer          :: u_lo(3), u_hi(3), ncomp_u
     integer          :: domlo(3), domhi(3)
-    double precision :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
-    double precision :: dx(3), xlo(3), time, dt
+    real(rt)         :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
+    real(rt)         :: dx(3), xlo(3), time, dt
     integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
-    double precision :: rhoInv, eint, enuc, t_s, t_e
+    real(rt)         :: rhoInv, eint, enuc, t_s, t_e
 
     type (eos_t)     :: eos_state
 
@@ -766,7 +785,7 @@ contains
 
              enuc = abs(u(i,j,k,ncomp_u))
 
-             if (enuc > 1.d-100) then
+             if (enuc > 1.e-100_rt) then
 
                 rhoInv = ONE / u(i,j,k,URHO)
 
@@ -809,6 +828,7 @@ contains
     !
     ! This routine derives the mass fractions of the species.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -816,9 +836,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
-    double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -841,6 +861,7 @@ contains
                           xlo,time,dt,bc,level,grid_no) &
                           bind(C, name="ca_derlogden")
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -848,9 +869,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3), level, grid_no
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
     integer          :: i, j, k
 
@@ -878,6 +899,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -885,13 +907,13 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3), level, grid_no
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
     integer          :: i, j, k
-    double precision :: uy, uz, vx, vz, wx, wy, v1, v2, v3
-    double precision :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
+    real(rt)         :: uy, uz, vx, vz, wx, wy, v1, v2, v3
+    real(rt)         :: ldat(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,2:4)
 
     ldat = ZERO
 
@@ -959,6 +981,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -966,13 +989,13 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    double precision ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
-    double precision :: ulo, uhi, vlo, vhi, wlo, whi
+    real(rt)         :: ulo, uhi, vlo, vhi, wlo, whi
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1009,6 +1032,7 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1016,9 +1040,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -1045,6 +1069,7 @@ contains
     !
     ! This routine is used by particle_count.  Yes it does nothing.
     !
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1052,9 +1077,9 @@ contains
     integer          :: d_lo(3), d_hi(3), nc
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
-    double precision :: delta(3), xlo(3), time, dt
-    double precision :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
-    double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
   end subroutine ca_dernull

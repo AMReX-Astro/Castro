@@ -1,11 +1,12 @@
 module probdata_module
 
 !     These determine the refinement criteria
-      double precision, save :: denerr,  dengrad
-      double precision, save :: velerr,  velgrad
-      double precision, save :: presserr,pressgrad
-      double precision, save :: temperr,tempgrad
-      double precision, save :: raderr,radgrad
+      use bl_fort_module, only : rt => c_real
+      real(rt)        , save :: denerr,  dengrad
+      real(rt)        , save :: velerr,  velgrad
+      real(rt)        , save :: presserr,pressgrad
+      real(rt)        , save :: temperr,tempgrad
+      real(rt)        , save :: raderr,radgrad
       integer         , save :: max_denerr_lev   ,max_dengrad_lev
       integer         , save :: max_velerr_lev   ,max_velgrad_lev
       integer         , save :: max_presserr_lev, max_pressgrad_lev
@@ -13,16 +14,16 @@ module probdata_module
       integer         , save :: max_raderr_lev, max_radgrad_lev
 
 !     Sod variables
-      double precision, save ::  T_l, T_r, dens, frac, cfrac
+      real(rt)        , save ::  T_l, T_r, dens, frac, cfrac
 
 
 !     These help specify which specific problem
       integer        , save ::  probtype,idir
 
-      double precision, save ::  center(3)
-      double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
+      real(rt)        , save ::  center(3)
+      real(rt)        , save :: xmin, xmax, ymin, ymax, zmin, zmax
       
       integer, save :: ihe4, ic12, io16
-      double precision, save, allocatable :: xn(:)
+      real(rt)        , save, allocatable :: xn(:)
 
 end module probdata_module

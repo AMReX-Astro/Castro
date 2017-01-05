@@ -3,11 +3,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use network   , only : network_species_index, nspec
   use bl_error_module
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
 
   integer untin,i
 
@@ -31,25 +32,25 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
   ! set namelist defaults
   
-  T_l = 1.d9
-  T_r = 5.d7
-  dens = 1.d8
+  T_l = 1.e9_rt
+  T_r = 5.e7_rt
+  dens = 1.e8_rt
 
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
-  denerr = 1.d20
-  dengrad = 1.d20
+  denerr = 1.e20_rt
+  dengrad = 1.e20_rt
   max_denerr_lev = -1
   max_dengrad_lev = -1
 
-  presserr = 1.d20
-  pressgrad = 1.d20
+  presserr = 1.e20_rt
+  pressgrad = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
 
-  velgrad = 1.d20
+  velgrad = 1.e20_rt
   max_velgrad_lev = -1
   
 !     Read namelists
@@ -61,7 +62,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xmin = problo(1)
   xmax = probhi(1)
 
-  center(1) = 0.5d0*(problo(1)+probhi(1))
+  center(1) = 0.5e0_rt*(problo(1)+probhi(1))
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")
@@ -74,16 +75,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
 
   ! make sure that the carbon fraction falls between 0 and 1
-  if (cfrac > 1.d0 .or. cfrac < 0.d0) then
+  if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
      call bl_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
   ! set the default mass fractions
   allocate(xn(nspec))
 
-  xn(:) = 0.d0
+  xn(:) = 0.e0_rt
   xn(ic12) = cfrac
-  xn(ihe4) = 1.d0 - cfrac
+  xn(ihe4) = 1.e0_rt - cfrac
   
 end subroutine PROBINIT
 
@@ -117,26 +118,27 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer level, nscal
   integer lo(1), hi(1)
   integer state_l1,state_h1
-  double precision state(state_l1:state_h1,NVAR)
-  double precision time, delta(1)
-  double precision xlo(1), xhi(1)
+  real(rt)         state(state_l1:state_h1,NVAR)
+  real(rt)         time, delta(1)
+  real(rt)         xlo(1), xhi(1)
   
-  double precision xcen
-  double precision p_temp, eint_temp
+  real(rt)         xcen
+  real(rt)         p_temp, eint_temp
   integer i
 
-  double precision :: L_x
+  real(rt)         :: L_x
 
   type (eos_t) :: eos_state
 
   L_x = xmax - xmin
 
   do i = lo(1), hi(1)
-     xcen = xmin + delta(1)*(dble(i) + 0.5d0)
+     xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
 
      state(i,URHO ) = dens
             
@@ -154,7 +156,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
      call eos(eos_input_rt, eos_state)
     
-     state(i,UMX  ) = 0.d0
+     state(i,UMX  ) = 0.e0_rt
      state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added
      state(i,UEINT) = state(i,URHO)*eos_state%e
             

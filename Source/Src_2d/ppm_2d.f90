@@ -1,5 +1,6 @@
 module ppm_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private 
@@ -18,45 +19,46 @@ contains
         use meth_params_module, only : ppm_type
         use bl_constants_module
 
+        use bl_fort_module, only : rt => c_real
         implicit none
 
         integer          s_l1,s_l2,s_h1,s_h2
         integer          qd_l1,qd_l2,qd_h1,qd_h2
         integer          ilo1,ilo2,ihi1,ihi2
-        double precision s(s_l1:s_h1,s_l2:s_h2)
-        double precision     u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
-        double precision  cspd(qd_l1:qd_h1,qd_l2:qd_h2)
-        double precision flatn(s_l1:s_h1,s_l2:s_h2)
-        double precision Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
-        double precision Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
-        double precision dx,dy,dt
+        real(rt)         s(s_l1:s_h1,s_l2:s_h2)
+        real(rt)             u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
+        real(rt)          cspd(qd_l1:qd_h1,qd_l2:qd_h2)
+        real(rt)         flatn(s_l1:s_h1,s_l2:s_h2)
+        real(rt)         Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
+        real(rt)         Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
+        real(rt)         dx,dy,dt
 
         ! local
         integer i,j
 
         logical extremum, bigp, bigm
 
-        double precision dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
-        double precision sgn, sigma, s6, amax, delam, delap
-        double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
-        double precision dachkm, dachkp
+        real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
+        real(rt)         sgn, sigma, s6, amax, delam, delap
+        real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
+        real(rt)         dachkm, dachkp
 
         ! s_{\ib,+}, s_{\ib,-}
-        double precision, allocatable :: sp(:,:)
-        double precision, allocatable :: sm(:,:)
+        real(rt)        , allocatable :: sp(:,:)
+        real(rt)        , allocatable :: sm(:,:)
 
         ! \delta s_{\ib}^{vL}
-        double precision, allocatable :: dsvl(:,:)
+        real(rt)        , allocatable :: dsvl(:,:)
 
         ! s_{i+\half}^{H.O.}
-        double precision, allocatable :: sedge(:,:)
+        real(rt)        , allocatable :: sedge(:,:)
 
         ! cell-centered indexing
         allocate(sp(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
         allocate(sm(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
 
         ! constant used in Colella 2008
-        C = 1.25d0
+        C = 1.25e0_rt
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! x-direction
@@ -197,15 +199,15 @@ contains
                     D2C = s(i-1,j)-TWO*s(i,j)+s(i+1,j)
                     sgn = sign(ONE,D2)
                     D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-                    alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-                    alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+                    alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
+                    alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
                  else
                     if (bigp) then
                        sgn = sign(ONE,alpham)
                        amax = -alphap**2 / (4*(alpham + alphap))
                        delam = s(i-1,j) - s(i,j)
                        if (sgn*amax .ge. sgn*delam) then
-                          if (sgn*(delam - alpham).ge.1.d-10) then
+                          if (sgn*(delam - alpham).ge.1.e-10_rt) then
                              alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                           else 
                              alphap = -TWO*alpham
@@ -217,7 +219,7 @@ contains
                        amax = -alpham**2 / (4*(alpham + alphap))
                        delap = s(i+1,j) - s(i,j)
                        if (sgn*amax .ge. sgn*delap) then
-                          if (sgn*(delap - alphap).ge.1.d-10) then
+                          if (sgn*(delap - alphap).ge.1.e-10_rt) then
                              alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                           else
                              alpham = -TWO*alphap
@@ -439,15 +441,15 @@ contains
                     D2C = s(i,j-1)-TWO*s(i,j)+s(i,j+1)
                     sgn = sign(ONE,D2)
                     D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-                    alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-                    alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+                    alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
+                    alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
                  else
                     if (bigp) then
                        sgn = sign(ONE,alpham)
                        amax = -alphap**2 / (4*(alpham + alphap))
                        delam = s(i,j-1) - s(i,j)
                        if (sgn*amax .ge. sgn*delam) then
-                          if (sgn*(delam - alpham).ge.1.d-10) then
+                          if (sgn*(delam - alpham).ge.1.e-10_rt) then
                              alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                           else 
                              alphap = -TWO*alpham
@@ -459,7 +461,7 @@ contains
                        amax = -alpham**2 / (4*(alpham + alphap))
                        delap = s(i,j+1) - s(i,j)
                        if (sgn*amax .ge. sgn*delap) then
-                          if (sgn*(delap - alphap).ge.1.d-10) then
+                          if (sgn*(delap - alphap).ge.1.e-10_rt) then
                              alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                           else
                              alpham = -TWO*alphap

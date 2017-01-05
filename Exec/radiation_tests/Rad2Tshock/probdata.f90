@@ -1,16 +1,17 @@
 module probdata_module
   
   ! Ensman test variables -- we set the defaults here
-  double precision, save :: rho0 = 5.4588672836d-13
-  double precision, save :: T0 = 100.d0
-  double precision, save :: v0 = 235435.371882d0
-  double precision, save :: rho1 = 1.24793794736d-12
-  double precision, save :: T1 = 207.756999533d0
-  double precision, save :: v1 = 102986.727159d0
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save :: rho0 = 5.4588672836e-13_rt
+  real(rt)        , save :: T0 = 100.e0_rt
+  real(rt)        , save :: v0 = 235435.371882e0_rt
+  real(rt)        , save :: rho1 = 1.24793794736e-12_rt
+  real(rt)        , save :: T1 = 207.756999533e0_rt
+  real(rt)        , save :: v1 = 102986.727159e0_rt
   
   namelist /fortin/ rho0, T0, v0, rho1, T1, v1
 
   ! for convenience
-  double precision, save :: xmin, xmax, ymin, ymax, zmin, zmax
+  real(rt)        , save :: xmin, xmax, ymin, ymax, zmin, zmax
   
 end module probdata_module

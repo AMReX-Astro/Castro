@@ -1,5 +1,6 @@
 module slope_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -18,6 +19,7 @@ contains
 
     use bl_constants_module        
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo,ihi
@@ -25,15 +27,15 @@ contains
     integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer ilo1,ilo2,ihi1,ihi2,nv,idir
     
-    double precision     q( qd_l1: qd_h1, qd_l2: qd_h2,nv)
-    double precision flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-    double precision    dq(qpd_l1:qpd_h1,qpd_l2:qpd_h2,nv)
+    real(rt)             q( qd_l1: qd_h1, qd_l2: qd_h2,nv)
+    real(rt)         flatn( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)            dq(qpd_l1:qpd_h1,qpd_l2:qpd_h2,nv)
     
     ! local
-    double precision, allocatable::dsgn(:),dlim(:),df(:),dcen(:)
+    real(rt)        , allocatable::dsgn(:),dlim(:),df(:),dcen(:)
     
     integer i, j, n
-    double precision dlft, drgt, dq1
+    real(rt)         dlft, drgt, dq1
     
     ilo = MIN(ilo1,ilo2)
     ihi = MAX(ihi1,ihi2)
@@ -119,6 +121,7 @@ contains
     use bl_constants_module
     use meth_params_module, only: QU, QV, QVAR
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer ilo,ihi
@@ -127,18 +130,18 @@ contains
     integer src_l1,src_l2,src_h1,src_h2
     integer ilo1,ilo2,ihi1,ihi2,idir
     
-    double precision, intent(in   ) ::      p( qd_l1: qd_h1, qd_l2: qd_h2)
-    double precision, intent(in   ) ::    rho( qd_l1: qd_h1, qd_l2: qd_h2)
-    double precision, intent(in   ) ::  flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-    double precision, intent(  out) ::     dp(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
-    double precision, intent(in   ) ::    src(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision, intent(in   ) ::  dx,dy
+    real(rt)        , intent(in   ) ::      p( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(in   ) ::    rho( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(in   ) ::  flatn( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(  out) ::     dp(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
+    real(rt)        , intent(in   ) ::    src(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)        , intent(in   ) ::  dx,dy
     
     ! local
-    double precision, allocatable :: dsgn(:), dlim(:), df(:), dcen(:)
+    real(rt)        , allocatable :: dsgn(:), dlim(:), df(:), dcen(:)
     
     integer          :: i, j
-    double precision :: dlft, drgt, dp1
+    real(rt)         :: dlft, drgt, dp1
     
     ilo = MIN(ilo1,ilo2)
     ihi = MAX(ihi1,ihi2)
@@ -227,29 +230,30 @@ contains
 
     use bl_constants_module        
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
     integer, intent(in) :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
     integer, intent(in) :: ilo, jlo, ihi, jhi
 
-    double precision, intent(in) :: dx, dy
+    real(rt)        , intent(in) :: dx, dy
 
-    double precision, intent(in) ::     q( qd_l1: qd_h1, qd_l2: qd_h2)
-    double precision, intent(in) :: flatn( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(in) ::     q( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(in) :: flatn( qd_l1: qd_h1, qd_l2: qd_h2)
 
-    double precision, intent(inout) :: dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
-    double precision, intent(inout) :: dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
+    real(rt)        , intent(inout) :: dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
+    real(rt)        , intent(inout) :: dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
 
     integer :: i, j, m, n
     
-    double precision, allocatable :: q_nd(:,:)
+    real(rt)        , allocatable :: q_nd(:,:)
 
     integer, parameter :: ill = 1, ilh = 2, irl = 3, irh = 4
-    double precision :: ss(4), ss_temp(4), min_ss(4), max_ss(4), diff(4)
-    double precision :: A_x, A_y, A_xy
-    double precision :: sumdiff, sgndiff, redfac, redmax, div
-    double precision, parameter :: eps = 1.d-10
+    real(rt)         :: ss(4), ss_temp(4), min_ss(4), max_ss(4), diff(4)
+    real(rt)         :: A_x, A_y, A_xy
+    real(rt)         :: sumdiff, sgndiff, redfac, redmax, div
+    real(rt)        , parameter :: eps = 1.e-10_rt
     integer :: kdp
     integer, parameter :: niter = 3
     
@@ -267,11 +271,11 @@ contains
        do i = ilo-2, ihi+3
           
           q_nd(i,j) = &
-             (         q(i-2,j-2) -  7.0d0*(q(i-1,j-2) + q(i,j-2)) +       q(i+1,j-2) + &
-              (-7.0d0)*q(i-2,j-1) + 49.0d0*(q(i-1,j-1) + q(i,j-1)) - 7.0d0*q(i+1,j-1) + &
-              (-7.0d0)*q(i-2,j  ) + 49.0d0*(q(i-1,j  ) + q(i,j  )) - 7.0d0*q(i+1,j  ) + &
-                       q(i-2,j+1) -  7.0d0*(q(i-1,j+1) + q(i,j+1)) +       q(i+1,j+1))/ &
-             144.0d0
+             (         q(i-2,j-2) -  7.0e0_rt*(q(i-1,j-2) + q(i,j-2)) +       q(i+1,j-2) + &
+              (-7.0e0_rt)*q(i-2,j-1) + 49.0e0_rt*(q(i-1,j-1) + q(i,j-1)) - 7.0e0_rt*q(i+1,j-1) + &
+              (-7.0e0_rt)*q(i-2,j  ) + 49.0e0_rt*(q(i-1,j  ) + q(i,j  )) - 7.0e0_rt*q(i+1,j  ) + &
+                       q(i-2,j+1) -  7.0e0_rt*(q(i-1,j+1) + q(i,j+1)) +       q(i+1,j+1))/ &
+             144.0e0_rt
 
        enddo
     enddo
@@ -286,15 +290,15 @@ contains
           ss(irl) = q_nd(i+1,j)   ! a_{i+1/2,j-1/2}
           ss(irh) = q_nd(i+1,j+1) ! a_{i+1/2,j+1/2}
           
-          A_x  = ((ss(irh) + ss(irl)) - (ss(ilh) + ss(ill)))/(2.0d0*dx)
-          A_y  = ((ss(ilh) + ss(irh)) - (ss(ill) + ss(irl)))/(2.0d0*dy)
+          A_x  = ((ss(irh) + ss(irl)) - (ss(ilh) + ss(ill)))/(2.0e0_rt*dx)
+          A_y  = ((ss(ilh) + ss(irh)) - (ss(ill) + ss(irl)))/(2.0e0_rt*dy)
           A_xy = ((ss(irh) - ss(irl)) - (ss(ilh) - ss(ill)))/(dx*dy)
           
           ! check if we are within the cc-values
-          ss_temp(ill) = q(i,j) - HALF*dx*A_x - HALF*dy*A_y + 0.25d0*dx*dy*A_xy
-          ss_temp(ilh) = q(i,j) - HALF*dx*A_x + HALF*dy*A_y - 0.25d0*dx*dy*A_xy
-          ss_temp(irl) = q(i,j) + HALF*dx*A_x - HALF*dy*A_y - 0.25d0*dx*dy*A_xy
-          ss_temp(irh) = q(i,j) + HALF*dx*A_x + HALF*dy*A_y + 0.25d0*dx*dy*A_xy
+          ss_temp(ill) = q(i,j) - HALF*dx*A_x - HALF*dy*A_y + 0.25e0_rt*dx*dy*A_xy
+          ss_temp(ilh) = q(i,j) - HALF*dx*A_x + HALF*dy*A_y - 0.25e0_rt*dx*dy*A_xy
+          ss_temp(irl) = q(i,j) + HALF*dx*A_x - HALF*dy*A_y - 0.25e0_rt*dx*dy*A_xy
+          ss_temp(irh) = q(i,j) + HALF*dx*A_x + HALF*dy*A_y + 0.25e0_rt*dx*dy*A_xy
           
           min_ss(ill) = min(q(i-1,j-1), q(i,j-1), q(i-1,j), q(i,j))
           max_ss(ill) = max(q(i-1,j-1), q(i,j-1), q(i-1,j), q(i,j))
@@ -315,8 +319,8 @@ contains
 
           do n = 1, niter
              sumdiff = (ss_temp(ill) + ss_temp(ilh) + &
-                        ss_temp(irl) + ss_temp(irh)) - 4.0d0*q(i,j)
-             sgndiff = sign(1.d0,sumdiff)
+                        ss_temp(irl) + ss_temp(irh)) - 4.0e0_rt*q(i,j)
+             sgndiff = sign(1.e0_rt,sumdiff)
 
              do m = 1, 4
                 diff(m) = (ss_temp(m) - q(i,j))*sgndiff
@@ -330,7 +334,7 @@ contains
              
              do m = 1, 4
                 if (kdp < 1) then
-                   div = 1.d0
+                   div = 1.e0_rt
                 else
                    div = dble(kdp)
                 endif
@@ -339,10 +343,10 @@ contains
                    redfac = sumdiff*sgndiff/div
                    kdp = kdp-1
                 else
-                   redfac = 0.0d0
+                   redfac = 0.0e0_rt
                 endif
               
-                if (sgndiff > 0.0d0) then
+                if (sgndiff > 0.0e0_rt) then
                    redmax = ss_temp(m) - min_ss(m)
                 else
                    redmax = max_ss(m) - ss_temp(m)
@@ -356,10 +360,10 @@ contains
           
           ! construct the final slopes
           A_x  = ((ss_temp(irh) + ss_temp(irl)) - &
-                  (ss_temp(ilh) + ss_temp(ill)))/(2.0d0*dx)
+                  (ss_temp(ilh) + ss_temp(ill)))/(2.0e0_rt*dx)
 
           A_y  = ((ss_temp(ilh) + ss_temp(irh)) - &
-                  (ss_temp(ill) + ss_temp(irl)))/(2.0d0*dy)
+                  (ss_temp(ill) + ss_temp(irl)))/(2.0e0_rt*dy)
 
           A_xy = ((ss_temp(irh) - ss_temp(irl)) - &
                   (ss_temp(ilh) - ss_temp(ill)))/(dx*dy)

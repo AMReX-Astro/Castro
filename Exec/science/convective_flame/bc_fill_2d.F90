@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -12,6 +13,7 @@ contains
     use meth_params_module, only : NVAR
     use hse_bc_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -19,8 +21,8 @@ contains
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer :: n
 
@@ -52,6 +54,7 @@ contains
     use probdata_module
     use hse_bc_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -59,8 +62,8 @@ contains
     integer          :: adv_l1,adv_l2,adv_h1,adv_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
@@ -92,6 +95,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -99,8 +103,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     integer :: bc_temp(2,2)
 
@@ -123,6 +127,7 @@ contains
 
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -130,8 +135,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     integer :: bc_temp(2,2)
 
@@ -154,6 +159,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -161,8 +167,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     integer :: bc_temp(2,2)
 
@@ -183,6 +189,7 @@ contains
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -190,8 +197,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     integer :: bc_temp(2,2)
 
@@ -214,6 +221,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -221,8 +229,8 @@ contains
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision rot(rot_l1:rot_h1,rot_l2:rot_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
     integer :: bc_temp(2,2)
 
@@ -245,6 +253,7 @@ contains
 
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -252,8 +261,8 @@ contains
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision rot(rot_l1:rot_h1,rot_l2:rot_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
     integer :: bc_temp(2,2)
 
@@ -276,6 +285,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -283,8 +293,8 @@ contains
     integer :: rot_l1,rot_l2,rot_h1,rot_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision rot(rot_l1:rot_h1,rot_l2:rot_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         rot(rot_l1:rot_h1,rot_l2:rot_h2)
 
     integer :: bc_temp(2,2)
 
@@ -305,6 +315,7 @@ contains
                            phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -312,8 +323,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     integer :: bc_temp(2,2)
 
@@ -334,6 +345,7 @@ contains
                           react_h1,react_h2,domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_reactfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -341,8 +353,8 @@ contains
     integer          :: react_l1,react_l2,react_h1,react_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: react(react_l1:react_h1,react_l2:react_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: react(react_l1:react_h1,react_l2:react_h2)
 
     integer :: bc_temp(2,2)
 

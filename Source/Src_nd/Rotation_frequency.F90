@@ -1,5 +1,6 @@
 module rotation_frequency_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -14,12 +15,13 @@ contains
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: time
-    double precision :: omega(3)
+    real(rt)         :: time
+    real(rt)         :: omega(3)
 
-    double precision :: curr_period
+    real(rt)         :: curr_period
 
     ! If rot_period is less than zero, that means rotation is disabled, and so we should effectively
     ! shut off the source term by setting omega = 0. Note that by default rot_axis == 3 for Cartesian
@@ -57,12 +59,13 @@ contains
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: time
-    double precision :: domegadt(3)
+    real(rt)         :: time
+    real(rt)         :: domegadt(3)
 
-    double precision :: curr_period, curr_omega(3)
+    real(rt)         :: curr_period, curr_omega(3)
 
     domegadt = ZERO
 

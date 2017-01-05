@@ -1,7 +1,8 @@
 module probdata_module
 
-      double precision, save ::  p0, rho0, t_r
-      double precision, save :: x_r, q_r
+      use bl_fort_module, only : rt => c_real
+      real(rt)        , save ::  p0, rho0, t_r
+      real(rt)        , save :: x_r, q_r
       integer, save :: nsub
 
 end module probdata_module

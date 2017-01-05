@@ -1,5 +1,6 @@
 module slope_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -12,19 +13,20 @@ contains
 !      use meth_params_module, only : QPRES
       use bl_constants_module
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer ilo, ihi, nv
       integer qd_l1,qd_h1,qpd_l1,qpd_h1
-      double precision q(qd_l1:qd_h1, nv)
-      double precision dq(qpd_l1:qpd_h1,nv)
-      double precision flatn(qd_l1:qd_h1)
+      real(rt)         q(qd_l1:qd_h1, nv)
+      real(rt)         dq(qpd_l1:qpd_h1,nv)
+      real(rt)         flatn(qd_l1:qd_h1)
 
 !     Local arrays 
-      double precision, allocatable::dsgn(:),dlim(:),df(:),dcen(:)
+      real(rt)        , allocatable::dsgn(:),dlim(:),df(:),dcen(:)
 
       integer i, n
-      double precision dlft, drgt, slop, dq1
+      real(rt)         dlft, drgt, slop, dq1
 
       allocate (dsgn(ilo-2:ihi+2))
       allocate (dlim(ilo-2:ihi+2))
@@ -72,24 +74,25 @@ contains
       use bl_constants_module
       use meth_params_module, only: QU, QVAR
       
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer ilo, ihi
       integer  qd_l1, qd_h1
       integer qpd_l1,qpd_h1
       integer src_l1,src_h1
-      double precision, intent(in   ) ::      p( qd_l1: qd_h1)
-      double precision, intent(in   ) ::    rho( qd_l1: qd_h1)
-      double precision, intent(in   ) ::  flatn( qd_l1: qd_h1)
-      double precision, intent(  out) ::     dp(qpd_l1:qpd_h1)
-      double precision, intent(in   ) ::    src(src_l1:src_h1,QVAR)
-      double precision, intent(in   ) ::  dx
+      real(rt)        , intent(in   ) ::      p( qd_l1: qd_h1)
+      real(rt)        , intent(in   ) ::    rho( qd_l1: qd_h1)
+      real(rt)        , intent(in   ) ::  flatn( qd_l1: qd_h1)
+      real(rt)        , intent(  out) ::     dp(qpd_l1:qpd_h1)
+      real(rt)        , intent(in   ) ::    src(src_l1:src_h1,QVAR)
+      real(rt)        , intent(in   ) ::  dx
 
 !     Local arrays
-      double precision, allocatable :: dsgn(:), dlim(:), df(:), dcen(:)
+      real(rt)        , allocatable :: dsgn(:), dlim(:), df(:), dcen(:)
 
       integer          :: i
-      double precision :: dlft, drgt, dp1
+      real(rt)         :: dlft, drgt, dp1
 
       allocate (dsgn(ilo-2:ihi+2))
       allocate (dlim(ilo-2:ihi+2))

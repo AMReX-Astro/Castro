@@ -4,11 +4,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use model_parser_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
   integer untin,i
   
@@ -29,13 +30,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
 
   ! Namelist defaults
-  H_min = 1.d-4
-  cutoff_density = 500.d0
+  H_min = 1.e-4_rt
+  cutoff_density = 500.e0_rt
   
   
-  dtemp = 3.81d8
-  x_half_max = 1.2d5
-  x_half_width = 3.6d4
+  dtemp = 3.81e8_rt
+  x_half_max = 1.2e5_rt
+  x_half_width = 3.6e4_rt
   
   interp_BC = .false.
   zero_vels = .false.
@@ -82,20 +83,21 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision dist,x,y
+  real(rt)         dist,x,y
   integer i,j,n
 
-  double precision t0,x1,y1,r1,temp
+  real(rt)         t0,x1,y1,r1,temp
 
-  double precision temppres(state_l1:state_h1,state_l2:state_h2)
+  real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
 
@@ -144,7 +146,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.d0 
+  state(:,:,UMX:UMZ) = 0.e0_rt 
 
   ! Now add the perturbation
   do j = lo(2), hi(2)
@@ -153,7 +155,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i = lo(1), hi(1)
         x = problo(1) + (dble(i)+HALF)*delta(1)
         
-        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 1.0d5) then
+        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 1.0e5_rt) then
            state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
                 (ONE + exp((x-x_half_max)/x_half_width))   
         end if 

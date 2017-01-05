@@ -3,6 +3,7 @@
 
 module trace_ppm_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -31,6 +32,7 @@ contains
          npassive, qpass_map
     use ppm_module, only : ppm
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
@@ -40,26 +42,26 @@ contains
     integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    real(rt)             c(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
-    double precision  srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
+    real(rt)          srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
-    double precision dx, dy, dt
+    real(rt)         dx, dy, dt
 
     ! Local variables
     integer :: i, j, iwave, idim
     integer :: n, ipassive
 
-    double precision :: hdt, dtdx, dtdy
+    real(rt)         :: hdt, dtdx, dtdy
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -79,35 +81,35 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, Clag
-    double precision :: rho, u, v, p, rhoe_g, h_g
-    double precision :: gam_g, game
+    real(rt)         :: cc, csq, Clag
+    real(rt)         :: rho, u, v, p, rhoe_g, h_g
+    real(rt)         :: gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: dge, dtau
-    double precision :: dup, dvp, dptotp
-    double precision :: dum, dvm, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: dge, dtau
+    real(rt)         :: dup, dvp, dptotp
+    real(rt)         :: dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: tau_ref
+    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: tau_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
+    real(rt)         :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
+    real(rt)         :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: tau_s
+    real(rt)         :: tau_s
 
-    double precision, allocatable :: Ip(:,:,:,:,:)
-    double precision, allocatable :: Im(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip(:,:,:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_src(:,:,:,:,:)
-    double precision, allocatable :: Im_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:,:,:)
 
     ! gamma_c/1 on the interfaces
-    double precision, allocatable :: Ip_gc(:,:,:,:,:)
-    double precision, allocatable :: Im_gc(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip_gc(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_gc(:,:,:,:,:)
 
     type (eos_t) :: eos_state
 

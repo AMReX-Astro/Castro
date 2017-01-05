@@ -3,6 +3,7 @@ module riemann_util_module
   use bl_types
   use bl_constants_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -56,13 +57,13 @@ contains
 
     ! compute the lagrangian wave speeds.
 
-    double precision, intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
-    double precision, intent(out) :: wsq, gstar
+    real(rt)        , intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
+    real(rt)        , intent(out) :: wsq, gstar
 
-    double precision, parameter :: smlp1 = 1.d-10
-    double precision, parameter :: small = 1.d-7
+    real(rt)        , parameter :: smlp1 = 1.e-10_rt
+    real(rt)        , parameter :: small = 1.e-7_rt
 
-    double precision :: alpha, beta
+    real(rt)         :: alpha, beta
 
     ! First predict a value of game across the shock
 
@@ -102,16 +103,16 @@ contains
                                                   
     use meth_params_module, only : cg_maxiter, cg_tol
 
-    double precision, intent(inout) :: pstar_lo, pstar_hi
-    double precision, intent(in) :: ul, pl, taul, gamel, clsql
-    double precision, intent(in) :: ur, pr, taur, gamer, clsqr
-    double precision, intent(in) :: gdot, gmin, gmax
-    double precision, intent(out) :: pstar, gamstar
+    real(rt)        , intent(inout) :: pstar_lo, pstar_hi
+    real(rt)        , intent(in) :: ul, pl, taul, gamel, clsql
+    real(rt)        , intent(in) :: ur, pr, taur, gamer, clsqr
+    real(rt)        , intent(in) :: gdot, gmin, gmax
+    real(rt)        , intent(out) :: pstar, gamstar
     logical, intent(out) :: converged
-    double precision, intent(out) :: pstar_hist_extra(:)
+    real(rt)        , intent(out) :: pstar_hist_extra(:)
 
-    double precision :: pstar_c, ustar_l, ustar_r, f_lo, f_hi, f_c
-    double precision :: wl, wr, wlsq, wrsq
+    real(rt)         :: pstar_c, ustar_l, ustar_r, f_lo, f_hi, f_c
+    real(rt)         :: wl, wr, wlsq, wrsq
 
     integer :: iter
 
@@ -196,20 +197,21 @@ contains
                                    npassive, upass_map, qpass_map
     use prob_params_module, only : coord_type
 
-    double precision, intent(in) :: ql(QVAR), qr(QVAR), cl, cr
-    double precision, intent(inout) :: f(NVAR)
+    use bl_fort_module, only : rt => c_real
+    real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
+    real(rt)        , intent(inout) :: f(NVAR)
     integer, intent(in) :: idir, ndim
 
     integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
-    double precision :: a1, a4, bd, bl, bm, bp, br
-    double precision :: cavg, uavg
-    double precision :: fl_tmp, fr_tmp
-    double precision :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
+    real(rt)         :: a1, a4, bd, bl, bm, bp, br
+    real(rt)         :: cavg, uavg
+    real(rt)         :: fl_tmp, fr_tmp
+    real(rt)         :: rhod, rhoEl, rhoEr, rhol_sqrt, rhor_sqrt
     integer :: n, nq
 
     integer :: ipassive
 
-    double precision, parameter :: small = 1.d-10
+    real(rt)        , parameter :: small = 1.e-10_rt
 
     select case (idir)
     case (1)
@@ -351,8 +353,8 @@ contains
          NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map, qpass_map
 
-    real (kind=dp_t), intent(in)  :: q(QVAR)
-    real (kind=dp_t), intent(out) :: U(NVAR)
+    real(rt)        , intent(in)  :: q(QVAR)
+    real(rt)        , intent(out) :: U(NVAR)
 
     integer :: ipassive, n, nq
 
@@ -387,11 +389,11 @@ contains
          npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
-    real (kind=dp_t), intent(in)  :: S_k, S_c
-    real (kind=dp_t), intent(in)  :: q(QVAR)
-    real (kind=dp_t), intent(out) :: U(NVAR)
+    real(rt)        , intent(in)  :: S_k, S_c
+    real(rt)        , intent(in)  :: q(QVAR)
+    real(rt)        , intent(out) :: U(NVAR)
 
-    real (kind=dp_t) :: hllc_factor, u_k
+    real(rt)         :: hllc_factor, u_k
     integer :: ipassive, n, nq
 
     if (idir == 1) then
@@ -441,12 +443,12 @@ contains
     use prob_params_module, only : coord_type
 
     integer, intent(in) :: idir, ndim, bnd_fac
-    real (kind=dp_t), intent(in) :: U(NVAR)
-    real (kind=dp_t), intent(in) :: p
-    real (kind=dp_t), intent(out) :: F(NVAR)
+    real(rt)        , intent(in) :: U(NVAR)
+    real(rt)        , intent(in) :: p
+    real(rt)        , intent(out) :: F(NVAR)
 
     integer :: ipassive, n
-    real (kind=dp_t) :: u_flx
+    real(rt)         :: u_flx
 
     if (idir == 1) then
        u_flx = U(UMX)/U(URHO)

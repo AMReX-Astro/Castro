@@ -43,6 +43,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #endif
   use advection_module  , only : umeth1d, consup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: is_finest_level
@@ -66,39 +67,39 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: dloga_l1, dloga_h1
   integer, intent(in) :: vol_l1, vol_h1
 
-  double precision, intent(in) ::      uin(  uin_l1:  uin_h1,NVAR)
-  double precision, intent(inout) ::  uout( uout_l1: uout_h1,NVAR)
-  double precision, intent(inout) ::     q(    q_l1:    q_h1,NQ)
-  double precision, intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
-  double precision, intent(in) ::     srcQ(  srQ_l1:  srQ_h1,QVAR)
-  double precision, intent(inout) :: update(updt_l1: updt_h1,NVAR)
-  double precision, intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
+  real(rt)        , intent(in) ::      uin(  uin_l1:  uin_h1,NVAR)
+  real(rt)        , intent(inout) ::  uout( uout_l1: uout_h1,NVAR)
+  real(rt)        , intent(inout) ::     q(    q_l1:    q_h1,NQ)
+  real(rt)        , intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
+  real(rt)        , intent(in) ::     srcQ(  srQ_l1:  srQ_h1,QVAR)
+  real(rt)        , intent(inout) :: update(updt_l1: updt_h1,NVAR)
+  real(rt)        , intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
 #ifdef RADIATION
-  double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
-  double precision, intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
-  double precision, intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
+  real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
+  real(rt)        , intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
+  real(rt)        , intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
 #endif
-  double precision, intent(inout) :: pradial(  p_l1:   p_h1)
-  double precision, intent(in) :: area( area_l1: area_h1     )
-  double precision, intent(in) :: dloga(dloga_l1:dloga_h1     )
-  double precision, intent(in) ::   vol(  vol_l1: vol_h1      )
-  double precision, intent(in) :: delta(1), dt, time
-  double precision, intent(inout) :: courno
+  real(rt)        , intent(inout) :: pradial(  p_l1:   p_h1)
+  real(rt)        , intent(in) :: area( area_l1: area_h1     )
+  real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1     )
+  real(rt)        , intent(in) ::   vol(  vol_l1: vol_h1      )
+  real(rt)        , intent(in) :: delta(1), dt, time
+  real(rt)        , intent(inout) :: courno
 
-  double precision, intent(inout) :: E_added_flux, mass_added_flux
-  double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
-  double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-  double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+  real(rt)        , intent(inout) :: E_added_flux, mass_added_flux
+  real(rt)        , intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
+  real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+  real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
   ! Automatic arrays for workspace
-  double precision, allocatable:: flatn(:)
-  double precision, allocatable:: div(:)
-  double precision, allocatable:: pdivu(:)
+  real(rt)        , allocatable:: flatn(:)
+  real(rt)        , allocatable:: div(:)
+  real(rt)        , allocatable:: pdivu(:)
 
   ! Edge-centered primitive variables (Riemann state)
-  double precision, allocatable :: q1(:,:)
+  real(rt)        , allocatable :: q1(:,:)
 
-  double precision :: dx
+  real(rt)         :: dx
 
   integer i,ngf, ngq
 
@@ -109,7 +110,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer :: lo_3D(3), hi_3D(3)
   integer :: q_lo_3D(3), q_hi_3D(3)
   integer :: uin_lo_3D(3), uin_hi_3D(3)
-  double precision :: dx_3D(3)
+  real(rt)         :: dx_3D(3)
 
   uin_lo  = [uin_l1]
   uin_hi  = [uin_h1]

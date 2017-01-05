@@ -5,11 +5,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use prob_params_module, only : center
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(1), probhi(1)
+  real(rt)         :: problo(1), probhi(1)
 
   integer :: untin,i
 
@@ -29,10 +30,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! set namelist defaults
 
-  rho_ambient = 1.d0
-  rho_peak = 2.d0
-  t_ambient = 1.d0
-  sigma = 0.1d0
+  rho_ambient = 1.e0_rt
+  rho_peak = 2.e0_rt
+  t_ambient = 1.e0_rt
+  sigma = 0.1e0_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), &
@@ -77,15 +78,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: xlo(1), xhi(1), time, delta(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
 
-  double precision :: xx
+  real(rt)         :: xx
 
   integer :: i
   type(eos_t) :: eos_state

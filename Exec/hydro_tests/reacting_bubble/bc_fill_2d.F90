@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,6 +17,7 @@ contains
     use network, only: nspec
     use model_parser_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -23,20 +25,20 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer i,j,n,iter,MAX_ITER,l
-    double precision y
-    double precision pres_above,pres_below,pres_want,pres_zone
-    double precision drho,dpdr,temperature,eint,pressure,species(3),density
-    double precision TOL
+    real(rt)         y
+    real(rt)         pres_above,pres_below,pres_want,pres_zone
+    real(rt)         drho,dpdr,temperature,eint,pressure,species(3),density
+    real(rt)         TOL
     logical converged_hse
 
     type (eos_t) :: eos_state
 
     MAX_ITER = 100
-    TOL = 1.d-8
+    TOL = 1.e-8_rt
 
     do n = 1,NVAR
        call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
@@ -49,7 +51,7 @@ contains
        if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
 
           do j=adv_l2,adv_h2
-             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
              do i=domlo(1)-1,adv_l1,-1
 
                 ! set all the variables even though we're testing on URHO
@@ -95,7 +97,7 @@ contains
        if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
 
           do j=adv_l2,adv_h2
-             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
              do i=domhi(1)+1,adv_h1
 
                 ! set all the variables even though we're testing on URHO
@@ -141,7 +143,7 @@ contains
        if ( bc(2,1,n).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
           ! this do loop counts backwards since we want to work downward
           do j=domlo(2)-1,adv_l2,-1
-             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
              do i=adv_l1,adv_h1
 
                 ! set all the variables even though we're testing on URHO
@@ -188,7 +190,7 @@ contains
        !        YHI
        if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
           do j=domhi(2)+1,adv_h2
-             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
              do i=adv_l1,adv_h1
 
                 ! set all the variables even though we're testing on URHO
@@ -241,6 +243,7 @@ contains
     use interpolate_module
     use model_parser_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -248,11 +251,11 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer i,j
-    double precision y
+    real(rt)         y
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
@@ -265,7 +268,7 @@ contains
     !     XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
        do j=adv_l2,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=adv_l1,domlo(1)-1
              adv(i,j) = interpolate(y,npts_model,model_r, &
                   model_state(:,idens_model))
@@ -276,7 +279,7 @@ contains
     !     XHI
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
        do j=adv_l2,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=domhi(1)+1,adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r, &
                   model_state(:,idens_model))
@@ -287,7 +290,7 @@ contains
     !     YLO
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
        do j=adv_l2,domlo(2)-1
-          y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5e0_rt)
           do i=adv_l1,adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r, &
                   model_state(:,idens_model))
@@ -298,7 +301,7 @@ contains
     !     YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
        do j=domhi(2)+1,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2)+ 0.5e0_rt)
           do i=adv_l1,adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r, &
                   model_state(:,idens_model))
@@ -315,6 +318,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -322,8 +326,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -336,6 +340,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -343,8 +348,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -357,6 +362,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -364,8 +370,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -379,6 +385,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -386,8 +393,8 @@ contains
     integer :: react_l1,react_l2,react_h1,react_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision react(react_l1:react_h1,react_l2:react_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         react(react_l1:react_h1,react_l2:react_h2)
 
     call filcc(react,react_l1,react_l2,react_h1,react_h2,domlo,domhi,delta,xlo,bc)
 
@@ -399,6 +406,7 @@ contains
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -406,8 +414,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
                domlo,domhi,delta,xlo,bc)

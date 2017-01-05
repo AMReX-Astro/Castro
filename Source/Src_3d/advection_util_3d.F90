@@ -1,5 +1,6 @@
 module advection_util_3d_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -21,19 +22,20 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-    double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
 
     ! Local variables
     integer          :: i, j, k, n
-    double precision :: sum, fac
+    real(rt)         :: sum, fac
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -103,17 +105,18 @@ contains
     use meth_params_module, only : QU, QV, QW, QVAR
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: div_lo(3), div_hi(3)
-    double precision, intent(in) :: dx(3)
-    double precision, intent(inout) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
-    double precision, intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)        , intent(in) :: dx(3)
+    real(rt)        , intent(inout) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
 
     integer          :: i, j, k
-    double precision :: ux, vy, wz, dxinv, dyinv, dzinv
+    real(rt)         :: ux, vy, wz, dxinv, dyinv, dzinv
 
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)

@@ -2,13 +2,14 @@
       subroutine PROBINIT (init,name,namlen,problo,probhi)
       use probdata_module
       use network, only : network_init
+      use bl_fort_module, only : rt => c_real
       implicit none
       integer init, namlen
       integer name(namlen)
-      double precision problo(3), probhi(3)
+      real(rt)         problo(3), probhi(3)
 
       integer untin,i,j,k,dir
-      double precision rn
+      real(rt)         rn
 
       namelist /fortin/ rhocv, T0, Eexp, rexp
 
@@ -31,10 +32,10 @@
       end do
 
 !     Set defaults
-      rhocv = -1.0d50
-      T0 = -1.0d50
-      Eexp = -1.d-50
-      rexp = -1.d50
+      rhocv = -1.0e50_rt
+      T0 = -1.0e50_rt
+      Eexp = -1.e-50_rt
+      rexp = -1.e50_rt
 
       ! domain extrema and center
       xmin = problo(1)
@@ -86,36 +87,37 @@
       use network, only : nspec
       use eos_module
 
+      use bl_fort_module, only : rt => c_real
       implicit none
       integer level, nscal
       integer lo(3), hi(3)
       integer state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-      double precision xlo(3), xhi(3), time, delta(3)
-      double precision state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3, &
+      real(rt)         xlo(3), xhi(3), time, delta(3)
+      real(rt)         state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3, &
           nscal)
 
       integer i,j,k, ii, jj, kk
       type(eos_t) :: eos_state
-      double precision :: rho, cv, T, p, eint
-      double precision :: rhoeexp, Vexp, rhoe0
-      double precision :: xx, xcl, xcr, dx_sub
-      double precision :: yy, ycl, ycr, dy_sub 
-      double precision :: zz, zcl, zcr, dz_sub 
-      double precision :: rr2, xcmin, xcmax, ycmin, ycmax, zcmin, zcmax , rcmin, rcmax
-      double precision :: vol_pert, vol_ambient, T_zone, rhoe_zone
+      real(rt)         :: rho, cv, T, p, eint
+      real(rt)         :: rhoeexp, Vexp, rhoe0
+      real(rt)         :: xx, xcl, xcr, dx_sub
+      real(rt)         :: yy, ycl, ycr, dy_sub 
+      real(rt)         :: zz, zcl, zcr, dz_sub 
+      real(rt)         :: rr2, xcmin, xcmax, ycmin, ycmax, zcmin, zcmax , rcmin, rcmax
+      real(rt)         :: vol_pert, vol_ambient, T_zone, rhoe_zone
       integer, parameter :: nsub = 64
 
-      Vexp = 4.d0/3.d0*Pi * rexp**3
+      Vexp = 4.e0_rt/3.e0_rt*Pi * rexp**3
 
       rhoeexp = Eexp / Vexp
 
-      rho = 1.0d0
-      T = 1.0d0
+      rho = 1.0e0_rt
+      T = 1.0e0_rt
 
       eos_state % rho = rho
       eos_state % T   = T
-      eos_state % xn  = 0.d0
-      eos_state % xn(1)  = 1.d0
+      eos_state % xn  = 0.e0_rt
+      eos_state % xn(1)  = 1.e0_rt
       
       call eos(eos_input_rt, eos_state)
 
@@ -157,9 +159,9 @@
                rcmax = sqrt(xcmax**2+ycmax**2+zcmax**2)
                
                state(i,j,k,URHO) = rho
-               state(i,j,k,UMX)  = 0.d0
-               state(i,j,k,UMY)  = 0.d0
-               state(i,j,k,UMZ)  = 0.d0
+               state(i,j,k,UMX)  = 0.e0_rt
+               state(i,j,k,UMY)  = 0.e0_rt
+               state(i,j,k,UMZ)  = 0.e0_rt
 
                if (rcmin .ge. rexp) then
                   T_zone = T0
@@ -168,22 +170,22 @@
                   T_zone = T
                   rhoe_zone = rhoeexp
                else 
-                  vol_pert    = 0.d0
-                  vol_ambient = 0.d0
+                  vol_pert    = 0.e0_rt
+                  vol_ambient = 0.e0_rt
                   
                   do kk = 0, nsub-1
-                     zz = zcl + (dble(kk) + 0.5d0) * dz_sub
+                     zz = zcl + (dble(kk) + 0.5e0_rt) * dz_sub
                      do jj = 0, nsub-1
-                        yy = ycl + (dble(jj) + 0.5d0) * dy_sub
+                        yy = ycl + (dble(jj) + 0.5e0_rt) * dy_sub
                         do ii = 0, nsub-1
-                           xx = xcl + (dble(ii) + 0.5d0) * dx_sub
+                           xx = xcl + (dble(ii) + 0.5e0_rt) * dx_sub
                            
                            rr2 = xx**2 + yy**2 + zz**2
                            
                            if (rr2 <= rexp**2) then
-                              vol_pert = vol_pert + 1.d0
+                              vol_pert = vol_pert + 1.e0_rt
                            else
-                              vol_ambient = vol_ambient + 1.d0
+                              vol_ambient = vol_ambient + 1.e0_rt
                            endif
                         end do
                      end do
@@ -213,6 +215,7 @@
 
         use probdata_module
 
+        use bl_fort_module, only : rt => c_real
         implicit none
         integer level, nrad
         integer lo(1), hi(1)
@@ -223,7 +226,7 @@
              rad_state_l2:rad_state_h2, & 
              rad_state_l3:rad_state_h3,nrad)
 
-        rad_state = 0.d0
+        rad_state = 0.e0_rt
 
       end subroutine ca_initrad
 

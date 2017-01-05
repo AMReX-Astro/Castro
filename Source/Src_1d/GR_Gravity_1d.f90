@@ -13,23 +13,24 @@
       use network, only : nspec, naux
       use bl_constants_module, only: HALF, FOUR3RD, M_PI
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer          :: lo(1),hi(1)
-      double precision :: dx(1),dr
-      double precision :: problo(1)
+      real(rt)         :: dx(1),dr
+      real(rt)         :: problo(1)
 
       integer          :: n1d,drdxfac,level
-      double precision :: radial_pres(0:n1d-1)
+      real(rt)         :: radial_pres(0:n1d-1)
 
       integer          :: r_l1,r_h1
-      double precision :: var(r_l1:r_h1,NVAR)
+      real(rt)         :: var(r_l1:r_h1,NVAR)
 
       integer          :: i,n,index
       integer          :: ii
-      double precision :: r
-      double precision :: fac,dx_frac,vol
-      double precision :: lo_i,rlo,rhi
+      real(rt)         :: r
+      real(rt)         :: fac,dx_frac,vol
+      real(rt)         :: lo_i,rlo,rhi
 
       type (eos_t) :: eos_state
 

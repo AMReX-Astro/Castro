@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,19 +17,20 @@ contains
     use eos_module
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
     integer adv_l1,adv_h1
     integer bc(1,2,*)
     integer domlo(1), domhi(1)
-    double precision delta(1), xlo(1), time
-    double precision adv(adv_l1:adv_h1,NVAR)
+    real(rt)         delta(1), xlo(1), time
+    real(rt)         adv(adv_l1:adv_h1,NVAR)
 
     integer i, n
 
     type(eos_t) :: eos_state
-    double precision, save :: eint0, etot0, eint1, etot1
+    real(rt)        , save :: eint0, etot0, eint1, etot1
     logical, save :: first_call = .true.
 
     if (first_call) then
@@ -36,7 +38,7 @@ contains
 
        eos_state % rho = rho0
        eos_state % T   =   T0
-       eos_state % xn  = 1.d0
+       eos_state % xn  = 1.e0_rt
 
        call eos(eos_input_rt, eos_state)
 
@@ -69,8 +71,8 @@ contains
        do i = adv_l1, domlo(1)-1
           adv(i,URHO) = rho0
           adv(i,UMX) = rho0*v0
-          adv(i,UMY) = 0.d0
-          adv(i,UMZ) = 0.d0
+          adv(i,UMY) = 0.e0_rt
+          adv(i,UMZ) = 0.e0_rt
           adv(i,UFS) = adv(i,URHO)
           if (naux>0) then
              adv(i,UFX) = adv(i,URHO)           
@@ -86,8 +88,8 @@ contains
        do i = domhi(1)+1, adv_h1
           adv(i,URHO) = rho1
           adv(i,UMX) = rho1*v1
-          adv(i,UMY) = 0.d0
-          adv(i,UMZ) = 0.d0
+          adv(i,UMY) = 0.e0_rt
+          adv(i,UMZ) = 0.e0_rt
           adv(i,UFS) = adv(i,URHO)
           if (naux>0) then
              adv(i,UFX) = adv(i,URHO)           
@@ -109,13 +111,14 @@ contains
 
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     include 'bc_types.fi'
     integer adv_l1,adv_h1
     integer bc(1,2,*)
     integer domlo(1), domhi(1)
-    double precision delta(1), xlo(1), time
-    double precision adv(adv_l1:adv_h1)
+    real(rt)         delta(1), xlo(1), time
+    real(rt)         adv(adv_l1:adv_h1)
     integer i
 
     !     Note: this function should not be needed, technically, but is provided
@@ -148,6 +151,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
                             domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -155,8 +159,8 @@ contains
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: phi(phi_l1:phi_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: phi(phi_l1:phi_h1)
 
     call filcc(phi,phi_l1,phi_h1, &
          domlo,domhi,delta,xlo,bc)
@@ -172,13 +176,14 @@ contains
 
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     include 'bc_types.fi'
     integer adv_l1,adv_h1
     integer bc(1,2,*)
     integer domlo(1), domhi(1)
-    double precision delta(1), xlo(1), time
-    double precision adv(adv_l1:adv_h1)
+    real(rt)         delta(1), xlo(1), time
+    real(rt)         adv(adv_l1:adv_h1)
     integer i
 
     !     Note: this function should not be needed, technically, but is provided
