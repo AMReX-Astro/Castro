@@ -76,12 +76,10 @@ Castro::maxVal (const std::string& name,
 {
   Real        maxval  = 0.0;
   const Real* dx      = geom.CellSize();
-  MultiFab*   mf      = derive(name,time,0);
-  BL_ASSERT(mf != 0);
+  auto        mf      = derive(name,time,0);
+  BL_ASSERT(mf);
 
   maxval = (*mf).max(0,0);
-
-  delete mf;
 
   return maxval;
 }

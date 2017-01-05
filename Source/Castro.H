@@ -168,9 +168,9 @@ public:
     //
     // Derived quantities associated with particles
     //
-    amrex::MultiFab* ParticleDerive (const std::string& name,
-                              Real           time,
-                              int            ngrow);
+    std::unique_ptr<amrex::MultiFab> ParticleDerive (const std::string& name,
+						     Real           time,
+						     int            ngrow);
     //
     // Timestamp particles
     //
@@ -381,9 +381,9 @@ public:
     // The user is responsible for deleting this pointer when done
     // with it.  If ngrow>0 the MultiFab is built on the appropriately
     // grown BoxArray.
-    virtual amrex::MultiFab* derive (const std::string& name,
-			      Real               time,
-			      int                ngrow) override;
+    virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
+						     Real               time,
+						     int                ngrow) override;
 
     // This version of derive() fills the dcomp'th component of mf with the derived quantity.
     virtual void derive (const std::string& name,
@@ -477,7 +477,7 @@ public:
 
     Real locWgtSum2D (const std::string& name, Real time, int idir1, int idir2, bool local=false);
 
-    Real volWgtSumMF (amrex::MultiFab* mf, int comp, bool local=false);
+    Real volWgtSumMF (const amrex::MultiFab& mf, int comp, bool local=false);
 
     Real locWgtSumOneSide (const std::string& name, Real time, int idir, int side, int bdir, bool local=false);
 

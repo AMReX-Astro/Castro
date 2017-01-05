@@ -643,27 +643,27 @@ extern "C"
 #endif
 
   void ca_summass
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
 
   void ca_sumsquared
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass);
 
   void ca_sumlocmass
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
 
   void ca_sumlocmass2d
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir1, const int& idir2);
   
   void ca_sumlocsquaredmass
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(rho),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* mass, const int& idir);
   
   void ca_sumproduct
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), BL_FORT_FAB_ARG_3D(f2),
      const Real* dx, BL_FORT_FAB_ARG_3D(vol), Real* s);
 
 #ifdef REACTIONS

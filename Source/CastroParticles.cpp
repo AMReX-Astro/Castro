@@ -139,7 +139,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
     }
 }
 
-MultiFab*
+std::unique_ptr<MultiFab>
 Castro::ParticleDerive(const std::string& name,
                        Real               time,
                        int                ngrow)
@@ -153,14 +153,14 @@ Castro::ParticleDerive(const std::string& name,
       temp_dat.setVal(0);
       TracerPC->Increment(temp_dat,level);
       MultiFab::Copy(*derive_dat,temp_dat,0,0,1,0);
-      return derive_dat;
+      return std::unique_ptr<MultiFab>(derive_dat);
   }
   else if (TracerPC && name == "total_particle_count")
   {
       //
       // We want the total particle count at this level or higher.
       //
-      MultiFab* derive_dat = ParticleDerive("particle_count",time,ngrow);
+      auto derive_dat = ParticleDerive("particle_count",time,ngrow);
 
       IntVect trr(D_DECL(1,1,1));
 

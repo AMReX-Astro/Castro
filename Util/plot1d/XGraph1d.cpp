@@ -368,13 +368,12 @@ void XGraph1d::draw_single(int nstep, Real time, int force_draw)
       for(int lev = 0; lev <= maxlev; lev++) {
          // void derive() doesn't work correctly for derived variables
          // amrptr->getLevel(lev).derive(li->var_name,time,*soln[lev],cntall);
-         MultiFab* temp = amrptr->derive(li->var_name,time,lev,0);
+	 auto temp = amrptr->derive(li->var_name,time,lev,0);
          MultiFab::Copy(*soln[lev],*temp,0,cntall,1,0);
          Real g_min = soln[lev]->min(cntall);
          Real g_max = soln[lev]->max(cntall);
          v_min = Min(v_min,g_min);
          v_max = Max(v_max,g_max);
-	 delete temp;
       }
 
       ParallelDescriptor::ReduceRealMin(v_min);
@@ -574,9 +573,8 @@ void XGraph1d::draw_all(int nstep, Real time, int force_draw)
     int cntall=0;
     for(std::list<XGFrame>::iterator li=frames.begin(); li != frames.end(); li++,cntall++) {
 	for(int lev = 0; lev <= maxlev; lev++) {
-	    MultiFab* temp = amrptr->derive(li->var_name,time,lev,0);
+	    auto temp = amrptr->derive(li->var_name,time,lev,0);
 	    MultiFab::Copy(*soln[lev],*temp,0,cntall,1,0);
-	    delete temp;
 	}
     }
 

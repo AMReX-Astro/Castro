@@ -2536,9 +2536,9 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < err_list.size(); j++)
     {
-        MultiFab* mf = derive(err_list[j].name(), time, err_list[j].nGrow());
+        auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
 
-        BL_ASSERT(!(mf == 0));
+        BL_ASSERT(mf);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2591,7 +2591,6 @@ Castro::errorEst (TagBoxArray& tags,
 	    }
 	}
 
-        delete mf;
     }
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -2643,7 +2642,7 @@ Castro::errorEst (TagBoxArray& tags,
     }
 }
 
-MultiFab*
+std::unique_ptr<MultiFab>
 Castro::derive (const std::string& name,
                 Real           time,
                 int            ngrow)
@@ -2730,7 +2729,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum0 = volWgtSumMF(&S_new,Eden,true);
+        sum0 = volWgtSumMF(S_new,Eden,true);
     }
 
     int ng = S_new.nGrow();
@@ -2756,7 +2755,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (parent->finestLevel() == 0 && print_energy_diagnostics)
     {
         // Pass in the multifab and the component
-        sum = volWgtSumMF(&S_new,Eden,true);
+        sum = volWgtSumMF(S_new,Eden,true);
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
 #endif
@@ -2968,7 +2967,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     bx.grow(1);
     BoxArray ba(bx);
     int owner = ParallelDescriptor::IOProcessorNumber();
-    DistributionMapping dm { {owner, ParallelDescriptor::MyProc()} };
+    DistributionMapping dm { Array<int>(1,owner) };
     MultiFab mf(ba,dm,1,0);
 
     // Define a cube 3-on-a-side around the point with the maximum density

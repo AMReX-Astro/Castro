@@ -1009,9 +1009,8 @@ Castro::writePlotFile (const std::string& dir,
 	for (std::list<std::string>::iterator it = derive_names.begin();
 	     it != derive_names.end(); ++it)
 	{
-	    MultiFab* derive_dat = derive(*it,cur_time,nGrow);
+	    auto derive_dat = derive(*it,cur_time,nGrow);
 	    MultiFab::Copy(plotMF,*derive_dat,0,cnt,1,nGrow);
-	    delete derive_dat;
 	    cnt++;
 	}
     }
