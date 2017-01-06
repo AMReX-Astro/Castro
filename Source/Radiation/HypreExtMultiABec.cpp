@@ -131,7 +131,7 @@ FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
     Real efac1 = ( 1.5 * r) / (1 + r);
     Real efac2 = (-0.5 * r) / (3 + r);
     IntVect vi2 = 2 * vin;
-    for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+    for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
       if (msk(v) == RadBndryData::not_covered) {
         evalue(v).push(&cintrp(v),    efacb);
         evalue(v).push(flevel, v-vin, efac1);
@@ -142,7 +142,7 @@ FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
   else {
     Real efacb = 1.0 / (1 + r);
     Real efac1 = r / (1.0 + r);
-    for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+    for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
       if (msk(v) == RadBndryData::not_covered) {
         evalue(v).push(&cintrp(v),    efacb);
         evalue(v).push(flevel, v-vin, efac1);
@@ -319,7 +319,7 @@ void HypreExtMultiABec::loadMatrix()
           // for the linear solver:
 
           reg.shift(-vin); // fine interior cells
-          for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+          for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
             if (msk(v+vin) != RadBndryData::covered) {
 
               // zero out interior stencil since this is a boundary cell
@@ -463,7 +463,7 @@ void HypreExtMultiABec::loadMatrix()
                     cintrp[level](ori)[i],
                     msk, reg, vin, rat[idir], bho, level);
           reg.shift(-vin); // fine interior cells
-          for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+          for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
             if (msk(v+vin) == RadBndryData::not_covered) {
               if (a2coefs.defined(level)) {
                 Real fac = alpha2 * a2coefs[level][idir][i](v+ves);
@@ -514,7 +514,7 @@ void HypreExtMultiABec::loadMatrix()
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
 //        const Mask &msk = bd[level].bndryMasks(ori)[i];
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori)[i](v).empty() &&
               !entry(ori)[i](v).slave()) {
             entry(ori)[i](v).collapse();
@@ -638,7 +638,7 @@ void HypreExtMultiABec::loadMatrix()
           // fcoefs contains a2coefs, then ccoefs, then d2coefs, in order, but
           // only the ones that exist.  pc array does component translation.
           const Fab& fcoefs = c_entry[level].faceData(ori)[i][j];
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             Box face(vf, vf + ve);
@@ -650,7 +650,7 @@ void HypreExtMultiABec::loadMatrix()
                   .push(level-1, vc,
                         -0.25 * alpha2 * a2coefs[level-1][idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
-                for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+                for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                   c_entry[level](ori)[i][j](vc)
                     .push(&c_evalue(ori)[i][j](v),
                           0.5 * alpha2 * rfac * fcoefs(v+ves, pc[0]));
@@ -662,7 +662,7 @@ void HypreExtMultiABec::loadMatrix()
                   .push(level-1, vc,
                         0.5 * gamma * ofhc * ccoefs[level-1][idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
-                for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+                for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                   c_entry[level](ori)[i][j](vc)
                     .push(&c_evalue(ori)[i][j](v),
                           -gamma * ofhc * rfac * fcoefs(v+ves, pc[1]));
@@ -674,7 +674,7 @@ void HypreExtMultiABec::loadMatrix()
                   .push(level-1, vc,
                         -0.5 * delta1 * ofhc * d1coef);
                 // Add fine fluxes over face of coarse cell:
-                for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+                for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                   // note that there are no fd1coefs:
                   c_entry[level](ori)[i][j](vc)
                     .push(&c_ederiv[level](ori)[i][j](v),
@@ -686,7 +686,7 @@ void HypreExtMultiABec::loadMatrix()
                   .push(level-1, vc,
                         -0.5 * delta2 * ofhc * d2coefs[level-1][idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
-                for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+                for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                   c_entry[level](ori)[i][j](vc)
                     .push(&c_ederiv[level](ori)[i][j](v),
                           0.5 * delta2 * ofac * rfac * fcoefs(v+ves, pc[2]));
@@ -710,7 +710,7 @@ void HypreExtMultiABec::loadMatrix()
           const Box& reg = c_cintrp[level](ori)[i][j].box(); // adjacent cells
           const Box& creg = c_entry[level](ori)[i][j].box(); // adjacent cells
           const Mask &msk = c_cintrp[level].mask(ori)[i][j]; // fine mask
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
@@ -861,7 +861,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
         // for the linear solver:
 
         reg.shift(-vin); // fine interior cells
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (msk(v+vin) != RadBndryData::covered) {
             // determine what type of boundary this is and act accordingly
             if (reg[ori] == domain[ori] && bd[level].mixedBndry(ori)) {

@@ -1,7 +1,6 @@
 #ifndef _LHH_H_
 #define _LHH_H_
 
-typedef IntVect   Iv;
 typedef FArrayBox Fab;
 
 #if (BL_SPACEDIM == 1)

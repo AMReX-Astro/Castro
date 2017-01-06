@@ -195,7 +195,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids, Location loc)
             const Box& bs = aux[os][i].box();
             if (bm.intersects(bs)) {
               Box reg = (bm & bs);
-              for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+              for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
                 aux[om][i](v).push_slave(&aux[os][i](v));
               }
             }
@@ -230,7 +230,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids, Location loc)
           const Box& bs = aux[os][i].box();
           if (bm.intersects(bs)) {
             Box reg = (bm & bs);
-            for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+            for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
               aux[om][i](v).push_slave(&aux[os][i](v));
             }
           }
@@ -438,7 +438,7 @@ void CrseBndryAuxVar::reinitialize_connections(Location loc)
       int n = aux[ori][i].size();
       for (int j = 0; j < n; j++) {
         const Box& reg = aux[ori][i][j].box();
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           aux[ori][i][j](v).clear();
         }
       }
@@ -466,7 +466,7 @@ void CrseBndryAuxVar::initialize_slaves(Location loc)
 
               if (bm.intersects(bs)) {
                 Box reg = (bm & bs);
-                for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+                for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
                   aux[om][i][jm](v).push_slave(&aux[os][i][js](v));
                 }
               }
@@ -558,7 +558,7 @@ void HypreMultiABec::vectorSetBoxValues(HYPRE_SStructVector x,
       const Box& sreg = sgr[j];
       int svol = sreg.numPts();
       Real *svec = hypre_CTAlloc(double, svol);
-      for (Iv v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
+      for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
         int is = sreg.index(v);
         int ir =  reg.index(v);
         svec[is] = vec[ir];
@@ -587,7 +587,7 @@ void HypreMultiABec::vectorGetBoxValues(HYPRE_SStructVector x,
       int svol = sreg.numPts();
       Real *svec = hypre_CTAlloc(double, svol);
       HYPRE_SStructVectorGetBoxValues(x, part, loV(sreg), hiV(sreg), 0, svec);
-      for (Iv v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
+      for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
         int is = sreg.index(v);
         int ir =  reg.index(v);
         vec[ir] = svec[is];
@@ -814,19 +814,19 @@ void HypreMultiABec::addLevel(int             level,
 static void
 TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
                       const Box& reg, const Box& creg,
-                      D_DECL(const IntVect& rat, const Iv& vj1, const Iv& vk1),
-                      D_DECL(const IntVect& ve,  const Iv& vjr, const Iv& vkr),
+                      D_DECL(const IntVect& rat, const IntVect& vj1, const IntVect& vk1),
+                      D_DECL(const IntVect& ve,  const IntVect& vjr, const IntVect& vkr),
                       D_DECL(int idir, int jdir, int kdir),
                       int clevel)
 {
-  for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+  for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
     IntVect vf = rat * vc;
     vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
     Box face(vf, vf + ve);
     if (msk(vf) == RadBndryData::not_covered) {
 #if (0)
       // force piecewise constant interpolation for debugging:
-      for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+      for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
         cintrp(v).push(clevel, vc,     1.0);
       }
 #elif (BL_SPACEDIM == 1)
@@ -835,7 +835,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       if (msk(vf-vj1) != RadBndryData::not_covered &&
           msk(vf+vjr) == RadBndryData::not_covered) {
         // low direction not available, use linear interp upwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc+vj1, xx);
           cintrp(v).push(clevel, vc,     1.0 - xx);
@@ -844,7 +844,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vj1) == RadBndryData::not_covered &&
                msk(vf+vjr) == RadBndryData::not_covered) {
         // use piecewise quadratic interpolation whenever possible:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc+vj1, 0.5*xx*(xx+1));
           cintrp(v).push(clevel, vc,     1.0-xx*xx);
@@ -854,7 +854,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vj1) == RadBndryData::not_covered &&
                msk(vf+vjr) != RadBndryData::not_covered) {
         // high direction not available, use linear interp downwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc,     1.0 + xx);
           cintrp(v).push(clevel, vc-vj1, -xx);
@@ -862,7 +862,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       }
       else {
         // neither direction available, drop back to piecewise const:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           cintrp(v).push(clevel, vc,     1.0);
         }
         //BoxLib::Error("Case not implemented");
@@ -874,7 +874,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       if (msk(vf-vj1) != RadBndryData::not_covered &&
           msk(vf+vjr) == RadBndryData::not_covered) {
         // low direction not available, use linear interp upwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc+vj1, xx);
           cintrp(v).push(clevel, vc,     1.0 - xx);
@@ -883,7 +883,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vj1) == RadBndryData::not_covered &&
                msk(vf+vjr) == RadBndryData::not_covered) {
         // use piecewise quadratic interpolation whenever possible:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc+vj1, 0.5*xx*(xx+1));
           cintrp(v).push(clevel, vc,     1.0-xx*xx);
@@ -893,7 +893,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vj1) == RadBndryData::not_covered &&
                msk(vf+vjr) != RadBndryData::not_covered) {
         // high direction not available, use linear interp downwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           cintrp(v).push(clevel, vc,     1.0 + xx);
           cintrp(v).push(clevel, vc-vj1, -xx);
@@ -901,7 +901,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       }
       else {
         // neither direction available, drop back to piecewise const:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           cintrp(v).push(clevel, vc,     1.0);
         }
       }
@@ -911,7 +911,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       if (msk(vf-vk1) != RadBndryData::not_covered &&
           msk(vf+vkr) == RadBndryData::not_covered) {
         // low direction not available, use linear interp upwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real yy = (v[kdir] - vf[kdir] - 0.5 * ve[kdir]) / rat[kdir];
           cintrp(v).push(clevel, vc+vk1, yy);
           cintrp(v).push(clevel, vc,    -yy);
@@ -920,7 +920,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vk1) == RadBndryData::not_covered &&
                msk(vf+vkr) == RadBndryData::not_covered) {
         // use piecewise quadratic interpolation whenever possible:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real yy = (v[kdir] - vf[kdir] - 0.5 * ve[kdir]) / rat[kdir];
           cintrp(v).push(clevel, vc+vk1, 0.5*yy*(yy+1));
           cintrp(v).push(clevel, vc,     -yy*yy);
@@ -930,7 +930,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       else if (msk(vf-vk1) == RadBndryData::not_covered &&
                msk(vf+vkr) != RadBndryData::not_covered) {
         // high direction not available, use linear interp downwards:
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real yy = (v[kdir] - vf[kdir] - 0.5 * ve[kdir]) / rat[kdir];
           cintrp(v).push(clevel, vc,      yy);
           cintrp(v).push(clevel, vc-vk1, -yy);
@@ -947,7 +947,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
           msk(vf-vj1+vkr) == RadBndryData::not_covered &&
           msk(vf+vjr-vk1) == RadBndryData::not_covered &&
           msk(vf+vjr+vkr) == RadBndryData::not_covered) {
-        for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+        for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
           Real xx = (v[jdir] - vf[jdir] - 0.5 * ve[jdir]) / rat[jdir];
           Real yy = (v[kdir] - vf[kdir] - 0.5 * ve[kdir]) / rat[kdir];
           cintrp(v).push(clevel, vc-vj1-vk1,  0.25*xx*yy);
@@ -971,7 +971,7 @@ NormalDerivative(AuxVarBox& ederiv, AuxVarBox& cintrp,
     Real efac1 = (r - 3) / (h * (1 + r));
     Real efac2 = (1 - r) / (h * (3 + r));
     IntVect vi2 = 2 * vin;
-    for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+    for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
       if (msk(v) == RadBndryData::not_covered) {
         ederiv(v).push(&cintrp(v),    efacb);
         ederiv(v).push(flevel, v-vin, efac1);
@@ -981,7 +981,7 @@ NormalDerivative(AuxVarBox& ederiv, AuxVarBox& cintrp,
   }
   else {
     Real efac = 2.0 / (h * (1 + r)); // normal derivative factor
-    for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+    for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
       if (msk(v) == RadBndryData::not_covered) {
         ederiv(v).push(&cintrp(v),     efac);
         ederiv(v).push(flevel, v-vin, -efac);
@@ -1115,7 +1115,7 @@ void HypreMultiABec::buildMatrixStructure()
         // done again later when the edge coefficients are available.
 
         reg.shift(-vin); // fine interior cells
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (msk(v+vin) == RadBndryData::not_covered) {
             // value not important, since coefficient not known.
             entry(ori)[i](v).push(&ederiv[level](ori)[i](v+vin), 1.0);
@@ -1134,7 +1134,7 @@ void HypreMultiABec::buildMatrixStructure()
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
 //        const Mask &msk = bd[level].bndryMasks(ori)[i];
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
 #if (0 && !defined(NDEBUG))
           if (msk(v+vin) == RadBndryData::not_covered &&
               entry(ori)[i](v).slave()) {
@@ -1241,12 +1241,12 @@ void HypreMultiABec::buildMatrixStructure()
           // in draft form to establish the graph connections, but must be
           // done again later when the edge coefficients are available.
 
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             Box face(vf, vf + ve);
             if (msk(vf) == RadBndryData::not_covered) {
-              for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+              for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                 // value not important, since coefficient not known.
                 c_entry[level](ori)[i][j](vc)
                   .push(&c_ederiv[level](ori)[i][j](v), 1.0);
@@ -1266,7 +1266,7 @@ void HypreMultiABec::buildMatrixStructure()
           const Box& reg = c_cintrp[level](ori)[i][j].box(); // adjacent cells
           const Box& creg = c_entry[level](ori)[i][j].box(); // adjacent cells
           const Mask &msk = c_cintrp[level].mask(ori)[i][j]; // fine mask
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             // Unlike fine entry, it should not be possible for this
@@ -1509,7 +1509,7 @@ void HypreMultiABec::loadMatrix()
           const Box& sreg = subgrids[level][i][j];
           int svol = sreg.numPts();
           Real *smat = hypre_CTAlloc(double, size*svol);
-          for (Iv v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
+          for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
             int is = sreg.index(v);
             int ir =  reg.index(v);
             for (int s = 0; s < size; s++) {
@@ -1551,7 +1551,7 @@ void HypreMultiABec::loadMatrix()
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
         const Mask &msk = bd[level].bndryMasks(ori)[i];
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (msk(v+vin) == RadBndryData::not_covered) {
             entry(ori)[i](v).push(&ederiv[level](ori)[i](v+vin),
                                   ffac * bcoefs[level][idir][i](v+ves));
@@ -1570,7 +1570,7 @@ void HypreMultiABec::loadMatrix()
         Box reg = BoxLib::adjCell(grids[level][i], ori);
         reg.shift(-vin); // fine interior cells
 //        const Mask &msk = bd[level].bndryMasks(ori)[i];
-        for (Iv v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
+        for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori)[i](v).empty() &&
               !entry(ori)[i](v).slave()) {
             entry(ori)[i](v).collapse();
@@ -1654,7 +1654,7 @@ void HypreMultiABec::loadMatrix()
           const Box& creg = c_entry[level](ori)[i][j].box(); // adjacent cells
           const Mask& msk = c_cintrp[level].mask(ori)[i][j]; // fine mask
           const Fab& fbcoefs = c_entry[level].faceData(ori)[i][j];
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             Box face(vf, vf + ve);
@@ -1664,7 +1664,7 @@ void HypreMultiABec::loadMatrix()
               c_entry[level](ori)[i][j](vc).push(level-1, vc,
                                 zfac * bcoefs[level-1][idir][i](vc+ves));
               // Add fine fluxes over face of coarse cell:
-              for (Iv v = vf; v <= face.bigEnd(); face.next(v)) {
+              for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                 c_entry[level](ori)[i][j](vc)
                   .push(&c_ederiv[level](ori)[i][j](v), cfac * fbcoefs(v+ves));
               }
@@ -1684,7 +1684,7 @@ void HypreMultiABec::loadMatrix()
           const Box& reg = c_cintrp[level](ori)[i][j].box(); // adjacent cells
           const Box& creg = c_entry[level](ori)[i][j].box(); // adjacent cells
           const Mask &msk = c_cintrp[level].mask(ori)[i][j]; // fine mask
-          for (Iv vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
+          for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
@@ -3341,7 +3341,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
         const Box& sreg = subgrids[level][i][j];
         int svol = sreg.numPts();
         Real *smat = hypre_CTAlloc(double, size*svol);
-        for (Iv v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
+        for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
           int is = sreg.index(v);
           int ir =  reg.index(v);
           for (int s = 0; s < size; s++) {
