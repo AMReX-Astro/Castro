@@ -374,11 +374,10 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   // Components 0:Numspec-1         are      omegadot_i
-  // Component    NumSpec            is      enuc =      (eout-ein)
-  // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
+  // Component    NumSpec            is      rho_enuc = rho * (eout-ein)
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,0,NumSpec+2,
+			 StateDescriptor::Point,0,NumSpec+1,
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -534,8 +533,7 @@ Castro::variableSetUp ()
       name_react = "omegadot_" + spec_names[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_reactfill));
     }
-  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_reactfill));
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
+  desc_lst.setComponent(Reactions_Type, NumSpec  , "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
 #ifdef SDC
