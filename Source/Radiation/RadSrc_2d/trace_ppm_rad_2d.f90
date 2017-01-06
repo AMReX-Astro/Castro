@@ -3,6 +3,7 @@
 
 module trace_ppm_rad_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -30,6 +31,7 @@ contains
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
@@ -39,24 +41,24 @@ contains
     integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    double precision :: qaux(qd_l1:qd_h1,qd_l2:qd_h2, NQAUX)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         :: qaux(qd_l1:qd_h1,qd_l2:qd_h2, NQAUX)
+    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
 
-    double precision dx, dy, dt
+    real(rt)         dx, dy, dt
 
     ! Local variables
     integer :: i, j, g
     integer :: n, ipassive
 
-    double precision :: hdt, dtdx, dtdy
+    real(rt)         :: hdt, dtdx, dtdy
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -76,39 +78,39 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
-    double precision :: rho, u, v, p, rhoe_g, h_g, tau
-    double precision :: ptot, gam_g, game
+    real(rt)         :: cc, csq, cgassq, Clag
+    real(rt)         :: rho, u, v, p, rhoe_g, h_g, tau
+    real(rt)         :: ptot, gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: dge, dtau
-    double precision :: dup, dvp, dptotp
-    double precision :: dum, dvm, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: dge, dtau
+    real(rt)         :: dup, dvp, dptotp
+    real(rt)         :: dum, dvm, dptotm
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: ptot_ref
-    double precision :: tau_ref
+    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: ptot_ref
+    real(rt)         :: tau_ref
 
-    double precision :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
+    real(rt)         :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: tau_s
+    real(rt)         :: tau_s
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp,hr
+    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision, dimension(0:ngroups-1) :: er_ref
+    real(rt)        , dimension(0:ngroups-1) :: er_ref
 
 
-    double precision, allocatable :: Ip(:,:,:,:,:)
-    double precision, allocatable :: Im(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip(:,:,:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_src(:,:,:,:,:)
-    double precision, allocatable :: Im_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:,:,:)
 
-    double precision :: er_foo
+    real(rt)         :: er_foo
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'

@@ -1,5 +1,6 @@
 module io_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -10,6 +11,7 @@ contains
 
     use iso_fortran_env, only: output_unit
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     flush(output_unit)

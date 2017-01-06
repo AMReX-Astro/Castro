@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -17,6 +18,7 @@ contains
     use network, only: nspec
     use model_parser_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -24,16 +26,16 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer i,j,q,n,iter
-    double precision y
-    double precision pres_above,p_want,pres_zone, A
-    double precision drho,dpdr,temp_zone,eint,X_zone(nspec),dens_zone
+    real(rt)         y
+    real(rt)         pres_above,p_want,pres_zone, A
+    real(rt)         drho,dpdr,temp_zone,eint,X_zone(nspec),dens_zone
 
     integer, parameter :: MAX_ITER = 100 
-    double precision, parameter :: TOL = 1.d-8
+    real(rt)        , parameter :: TOL = 1.e-8_rt
     logical converged_hse
 
     type (eos_t) :: eos_state
@@ -66,7 +68,7 @@ contains
 
           ! this do loop counts backwards since we want to work downward
           do j=domlo(2)-1,adv_l2,-1
-             y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5e0_rt)
 
              do i=adv_l1,adv_h1
 
@@ -114,7 +116,7 @@ contains
 
                          ! pressure needed from HSE
                          p_want = pres_above - &
-                              delta(2)*0.5d0*(dens_zone + adv(i,j+1,URHO))*const_grav
+                              delta(2)*0.5e0_rt*(dens_zone + adv(i,j+1,URHO))*const_grav
 
                          ! pressure from EOS
                          eos_state%rho = dens_zone
@@ -131,8 +133,8 @@ contains
                          A = p_want - pres_zone
                          drho = A/(dpdr + 0.5*delta(2)*const_grav)
 
-                         dens_zone = max(0.9_dp_t*dens_zone, &
-                              min(dens_zone + drho, 1.1_dp_t*dens_zone))
+                         dens_zone = max(0.9_rt*dens_zone, &
+                              min(dens_zone + drho, 1.1_rt*dens_zone))
 
 
                          ! convergence?
@@ -152,11 +154,11 @@ contains
                    if (zero_vels) then
 
                       ! zero normal momentum causes pi waves to pass through
-                      adv(i,j,UMY) = 0.d0
+                      adv(i,j,UMY) = 0.e0_rt
 
                       ! zero transverse momentum
-                      adv(i,j,UMX) = 0.d0
-                      adv(i,j,UMZ) = 0.d0
+                      adv(i,j,UMX) = 0.e0_rt
+                      adv(i,j,UMZ) = 0.e0_rt
                    else
 
                       ! zero gradient velocity
@@ -177,7 +179,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eint
                    adv(i,j,UEDEN) = dens_zone*eint + &
-                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
+                        0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -191,7 +193,7 @@ contains
        if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
 
           do j=domhi(2)+1,adv_h2
-             y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
+             y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5e0_rt)
 
              do i=adv_l1,adv_h1
 
@@ -211,11 +213,11 @@ contains
 
 
                    ! extrap normal momentum
-                   adv(i,j,UMY) = max(0.d0,adv(i,domhi(2),UMY))
+                   adv(i,j,UMY) = max(0.e0_rt,adv(i,domhi(2),UMY))
 
                    ! zero transverse momentum
-                   adv(i,j,UMX) = 0.d0
-                   adv(i,j,UMZ) = 0.d0
+                   adv(i,j,UMX) = 0.e0_rt
+                   adv(i,j,UMZ) = 0.e0_rt
 
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
@@ -229,7 +231,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eint
                    adv(i,j,UEDEN) = dens_zone*eint + &
-                        0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
+                        0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2+adv(i,j,UMZ)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
 
@@ -254,6 +256,7 @@ contains
     use model_parser_module
     use bl_error_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -261,11 +264,11 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer i,j
-    double precision y
+    real(rt)         y
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
@@ -289,7 +292,7 @@ contains
     !     YLO
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
        do j=adv_l2,domlo(2)-1
-          y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(dble(j-adv_l2) + 0.5e0_rt)
           do i=adv_l1,adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
           end do
@@ -299,7 +302,7 @@ contains
     !     YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
        do j=domhi(2)+1,adv_h2
-          y = xlo(2) + delta(2)*(dble(j-adv_l2)+ 0.5d0)
+          y = xlo(2) + delta(2)*(dble(j-adv_l2)+ 0.5e0_rt)
           do i=adv_l1,adv_h1
              adv(i,j) = interpolate(y,npts_model,model_r,model_state(:,idens_model))
           end do
@@ -316,6 +319,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -323,8 +327,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -338,6 +342,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -345,8 +350,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -360,6 +365,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -367,8 +373,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -382,6 +388,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -389,8 +396,8 @@ contains
     integer :: react_l1,react_l2,react_h1,react_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision react(react_l1:react_h1,react_l2:react_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         react(react_l1:react_h1,react_l2:react_h2)
 
     call filcc(react,react_l1,react_l2,react_h1,react_h2,domlo,domhi,delta,xlo,bc)
 
@@ -401,6 +408,7 @@ contains
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -408,8 +416,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
          domlo,domhi,delta,xlo,bc)

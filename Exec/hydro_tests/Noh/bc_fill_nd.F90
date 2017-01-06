@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -20,6 +21,7 @@ contains
     use eos_type_module, only: eos_t
     use network, only: nspec
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -27,15 +29,15 @@ contains
     integer          :: adv_lo(3),adv_hi(3)
     integer          :: bc(dim,2,*)
     integer          :: domlo(3), domhi(3)
-    double precision :: delta(3), xlo(3), time
-    double precision :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
+    real(rt)         :: delta(3), xlo(3), time
+    real(rt)         :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
 
     integer          :: i, j, k, n
-    double precision :: loc(3), vel(3), r
+    real(rt)         :: loc(3), vel(3), r
     type (eos_t)     :: zone_state
 
-    double precision :: pres_init = 1.0d-6
-    double precision :: rho_init = 1.0d0
+    real(rt)         :: pres_init = 1.0e-6_rt
+    real(rt)         :: rho_init = 1.0e0_rt
 
     do n = 1,NVAR
        call filcc_nd(adv(:,:,:,n),adv_lo,adv_hi,domlo,domhi,delta,xlo,bc(:,:,n))
@@ -84,6 +86,7 @@ contains
 
     use prob_params_module, only: dim  
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -91,8 +94,8 @@ contains
     integer          :: adv_lo(3),adv_hi(3)
     integer          :: bc(dim,2,*)
     integer          :: domlo(3), domhi(3)
-    double precision :: delta(3), xlo(3), time
-    double precision :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt)         :: delta(3), xlo(3), time
+    real(rt)         :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
     call filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 

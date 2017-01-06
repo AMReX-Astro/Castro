@@ -1,5 +1,6 @@
 module gravity_3D_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -13,6 +14,7 @@ contains
        ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -21,15 +23,15 @@ contains
     integer          :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
     integer          :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
     integer          :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-    double precision :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
-    double precision :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-    double precision :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-    double precision :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
-    double precision :: dx(3),problo(3)
+    real(rt)         :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
+    real(rt)         :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
+    real(rt)         :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
+    real(rt)         :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
+    real(rt)         :: dx(3),problo(3)
 
     ! Local variables
     integer          :: i,j,k
-    double precision :: lapphi
+    real(rt)         :: lapphi
 
     do k=lo(3),hi(3)
        do j=lo(2),hi(2)
@@ -55,29 +57,30 @@ contains
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
-    double precision :: dx(3),dr
-    double precision :: problo(3)
+    real(rt)         :: dx(3),dr
+    real(rt)         :: problo(3)
 
     integer          :: n1d,drdxfac,level
-    double precision :: radial_mass(0:n1d-1)
-    double precision :: radial_vol (0:n1d-1)
+    real(rt)         :: radial_mass(0:n1d-1)
+    real(rt)         :: radial_vol (0:n1d-1)
 
     integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
-    double precision :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
+    real(rt)         :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
 
     integer          :: i,j,k,index
     integer          :: ii,jj,kk
-    double precision :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
-    double precision :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
-    double precision :: vol_frac, drinv
-    double precision :: lo_i,lo_j,lo_k
+    real(rt)         :: xc,yc,zc,r,xxsq,yysq,zzsq,octant_factor
+    real(rt)         :: fac,xx,yy,zz,dx_frac,dy_frac,dz_frac
+    real(rt)         :: vol_frac, drinv
+    real(rt)         :: lo_i,lo_j,lo_k
 
-    if (( abs(center(1) - problo(1)) .lt. 1.d-2 * dx(1) ) .and. &
-         ( abs(center(2) - problo(2)) .lt. 1.d-2 * dx(2) ) .and. &
-         ( abs(center(3) - problo(3)) .lt. 1.d-2 * dx(3) ) ) then
+    if (( abs(center(1) - problo(1)) .lt. 1.e-2_rt * dx(1) ) .and. &
+         ( abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2) ) .and. &
+         ( abs(center(3) - problo(3)) .lt. 1.e-2_rt * dx(3) ) ) then
        octant_factor = EIGHT
     else
        octant_factor = ONE
@@ -156,21 +159,22 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
-    double precision :: dx(3),dr
-    double precision :: problo(3)
+    real(rt)         :: dx(3),dr
+    real(rt)         :: problo(3)
 
     integer          :: n1d,level
-    double precision :: radial_grav(0:n1d-1)
+    real(rt)         :: radial_grav(0:n1d-1)
 
     integer          :: g_l1,g_l2,g_l3,g_h1,g_h2,g_h3
-    double precision :: grav(g_l1:g_h1,g_l2:g_h2,g_l3:g_h3,3)
+    real(rt)         :: grav(g_l1:g_h1,g_l2:g_h2,g_l3:g_h3,3)
 
     integer          :: i,j,k,index
-    double precision :: x,y,z,r,mag_grav
-    double precision :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
+    real(rt)         :: x,y,z,r,mag_grav
+    real(rt)         :: cen,xi,slope,glo,gmd,ghi,minvar,maxvar
     !
     ! Note that we are interpolating onto the entire range of grav,
     ! including the ghost cells.
@@ -223,7 +227,7 @@ contains
                 mag_grav = &
                      ( ghi -   TWO*gmd + glo)*xi**2/(TWO*dr**2) + &
                      ( ghi       - glo      )*xi   /(TWO*dr   ) + &
-                     (-ghi + 26.d0*gmd - glo)/24.d0
+                     (-ghi + 26.e0_rt*gmd - glo)/24.e0_rt
 
                 minvar = min(gmd, min(glo,ghi))
                 maxvar = max(gmd, max(glo,ghi))
@@ -252,23 +256,24 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
     integer          :: domlo(3),domhi(3)
-    double precision :: dx(3),dr
-    double precision :: problo(3)
+    real(rt)         :: dx(3),dr
+    real(rt)         :: problo(3)
 
     integer          :: numpts_1d
-    double precision :: radial_phi(0:numpts_1d-1)
+    real(rt)         :: radial_phi(0:numpts_1d-1)
     integer          :: fill_interior
 
     integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
-    double precision :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+    real(rt)         :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
     integer          :: i,j,k,index
-    double precision :: x,y,z,r
-    double precision :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
+    real(rt)         :: x,y,z,r
+    real(rt)         :: cen,xi,slope,p_lo,p_md,p_hi,minvar,maxvar
     !
     ! Note that when we interpolate into the ghost cells we use the
     ! location of the edge, not the cell center
@@ -338,7 +343,7 @@ contains
                    phi(i,j,k) = &
                         ( p_hi -   TWO*p_md + p_lo)*xi**2/(TWO*dr**2) + &
                         ( p_hi       - p_lo      )*xi    /(TWO*dr   ) + &
-                        (-p_hi + 26.d0*p_md - p_lo)/24.d0
+                        (-p_hi + 26.e0_rt*p_md - p_lo)/24.e0_rt
                    minvar     = min(p_md, min(p_lo,p_hi))
                    maxvar     = max(p_md, max(p_lo,p_hi))
                    phi(i,j,k) = max(phi(i,j,k),minvar)
@@ -366,31 +371,32 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: bclo(3), bchi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: dx(3), bcdx(3)
-    double precision :: problo(3), probhi(3)
+    real(rt)         :: dx(3), bcdx(3)
+    real(rt)         :: problo(3), probhi(3)
 
     integer          :: symmetry_type
     integer          :: lo_bc(3), hi_bc(3)
 
-    double precision :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
-    double precision :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
-    double precision :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
-    double precision :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
-    double precision :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
-    double precision :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt)         :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt)         :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt)         :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt)         :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt)         :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt)         :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k, l, m, n, b
-    double precision :: r
-    double precision :: loc(3), locb(3), dx2, dy2, dz2
+    real(rt)         :: r
+    real(rt)         :: loc(3), locb(3), dx2, dy2, dz2
 
     logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
 
@@ -617,20 +623,21 @@ contains
                                    bcYZLo, bcYZHi, &
                                    bclo, bchi) bind(C, name="ca_put_direct_sum_bc")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: bclo(3), bchi(3)
     integer          :: p_lo(3), p_hi(3)
 
-    double precision :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
-    double precision :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
-    double precision :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
-    double precision :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
-    double precision :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
-    double precision :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt)         :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt)         :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt)         :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt)         :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt)         :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt)         :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    double precision :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
     integer          :: i, j, k
 
@@ -702,15 +709,16 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: loc(3), locb(3)
-    double precision :: problo(3), probhi(3)
+    real(rt)         :: loc(3), locb(3)
+    real(rt)         :: problo(3), probhi(3)
     logical          :: doSymmetricAddLo(3), doSymmetricAddHi(3)
 
-    double precision :: x, y, z, r
-    double precision :: rho, dV
-    double precision :: bcTerm
+    real(rt)         :: x, y, z, r
+    real(rt)         :: rho, dV
+    real(rt)         :: bcTerm
 
     ! Add contributions from any symmetric boundaries.
 

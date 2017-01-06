@@ -9,24 +9,25 @@ subroutine do_burn() bind(C)
   use reactions_module, only: ca_react_state
   use extern_probin_module, only: ncell, dt, dens_min, dens_max, temp_min, temp_max
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, parameter :: nv = 7 + nspec
 
-  double precision, parameter :: time = 0.0d0
+  real(rt)        , parameter :: time = 0.0e0_rt
 
   integer :: lo(3), hi(3), w(3)
 
-  double precision :: dlogrho, dlogT
+  real(rt)         :: dlogrho, dlogT
 
-  double precision, allocatable :: state(:,:,:,:), reactions(:,:,:,:)
+  real(rt)        , allocatable :: state(:,:,:,:), reactions(:,:,:,:)
   integer, allocatable :: mask(:,:,:)
 
   integer :: i, j, k
 
   type (eos_t) :: eos_state
 
-  double precision :: start, finish
+  real(rt)         :: start, finish
 
   character (len=32) :: probin_file
   integer :: probin_pass(32)
@@ -78,10 +79,10 @@ subroutine do_burn() bind(C)
 
            state(i,j,k,:) = ZERO
 
-           eos_state % rho = 10.0d0**(log10(dens_min) + dble(i)*dlogrho)
-           eos_state % T   = 10.0d0**(log10(temp_min) + dble(j)*dlogT  )
-           eos_state % xn  = 1.d-12
-           eos_state % xn(1 + INT( (dble(k) / w(3)) * nspec)) = ONE  - (nspec - 1) * 1.d-12
+           eos_state % rho = 10.0e0_rt**(log10(dens_min) + dble(i)*dlogrho)
+           eos_state % T   = 10.0e0_rt**(log10(temp_min) + dble(j)*dlogT  )
+           eos_state % xn  = 1.e-12_rt
+           eos_state % xn(1 + INT( (dble(k) / w(3)) * nspec)) = ONE  - (nspec - 1) * 1.e-12_rt
 
            call eos(eos_input_rt, eos_state)
 

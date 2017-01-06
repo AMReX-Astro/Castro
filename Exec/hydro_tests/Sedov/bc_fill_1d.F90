@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -11,6 +12,7 @@ contains
 
     use meth_params_module, only : NVAR
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -18,11 +20,11 @@ contains
     integer :: adv_l1,adv_h1
     integer :: bc(1,2,*)
     integer :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1,NVAR)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1,NVAR)
 
-    double precision :: state(NVAR)
-    double precision :: staten(NVAR)
+    real(rt)         :: state(NVAR)
+    real(rt)         :: staten(NVAR)
 
     integer :: i, n
     logical rho_only
@@ -74,6 +76,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -81,8 +84,8 @@ contains
     integer :: adv_l1,adv_h1
     integer :: bc(1,2,*)
     integer :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1)
     logical rho_only
     integer :: i
 
@@ -120,10 +123,11 @@ contains
     use eos_module, only: gamma_const
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision, intent(in   ) ::  u_int(*)
-    double precision, intent(  out) ::  u_ext(*)
+    real(rt)        , intent(in   ) ::  u_int(*)
+    real(rt)        , intent(  out) ::  u_ext(*)
     logical         , intent(in   ) :: rho_only
 
     ! Local variables
@@ -146,8 +150,8 @@ contains
        enddo
 
        u_ext(URHO ) = dens_ambient
-       u_ext(UMX  ) = 0.d0
-       u_ext(UEDEN) = p_ambient/(gamma_const-1.d0)
+       u_ext(UMX  ) = 0.e0_rt
+       u_ext(UEDEN) = p_ambient/(gamma_const-1.e0_rt)
        u_ext(UEINT) = u_ext(UEDEN)
 
     endif

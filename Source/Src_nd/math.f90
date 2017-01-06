@@ -8,10 +8,11 @@ contains
 
   function cross_product(A,B) result(C)
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: A(3), B(3)
-    double precision :: C(3)
+    real(rt)         :: A(3), B(3)
+    real(rt)         :: C(3)
 
     C(1) = A(2)*B(3) - A(3)*B(2)
     C(2) = A(3)*B(1) - A(1)*B(3)

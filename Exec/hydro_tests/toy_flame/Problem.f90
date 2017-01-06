@@ -4,6 +4,7 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
 
   ! called by the IO processor during checkpoint
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -26,6 +27,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   ! called by ALL processors during restart 
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -50,21 +52,22 @@ subroutine flame_width_temp(temp, t_lo, t_hi, &
 
   use bl_constants_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer         , intent(in   ) :: t_lo(3), t_hi(3)
 
-  double precision, intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+  real(rt)        , intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
 
   integer         , intent(in   ) :: lo(3), hi(3)
-  double precision, intent(in   ) :: dx(3), time
+  real(rt)        , intent(in   ) :: dx(3), time
 
-  double precision, intent(inout) :: T_max, T_min, grad_T_max
+  real(rt)        , intent(inout) :: T_max, T_min, grad_T_max
 
   ! Local variables
   
   integer :: i, j, k
-  double precision :: T, grad_T
+  real(rt)         :: T, grad_T
   
   ! Assumes 1D simulation, right now. Also assumes that
   ! we have at least one ghost cell in the x dimension.
@@ -106,16 +109,17 @@ subroutine flame_speed_data(omegadot, od_lo, od_hi, &
 
   use bl_constants_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer         , intent(in   ) :: od_lo(3), od_hi(3)
 
-  double precision, intent(in   ) :: omegadot(od_lo(1):od_hi(1),od_lo(2):od_hi(2),od_lo(3):od_hi(3))
+  real(rt)        , intent(in   ) :: omegadot(od_lo(1):od_hi(1),od_lo(2):od_hi(2),od_lo(3):od_hi(3))
 
   integer         , intent(in   ) :: lo(3), hi(3)
-  double precision, intent(in   ) :: dx(3)
+  real(rt)        , intent(in   ) :: dx(3)
 
-  double precision, intent(inout) :: rho_X_dot
+  real(rt)        , intent(inout) :: rho_X_dot
 
   ! Local variables
   

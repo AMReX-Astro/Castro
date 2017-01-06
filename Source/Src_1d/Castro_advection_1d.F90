@@ -2,6 +2,7 @@ module advection_module
 
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -56,6 +57,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(1),hi(1)
@@ -72,25 +74,25 @@ contains
     integer, intent(in) :: q1_l1, q1_h1
     integer, intent(in) :: ilo, ihi
 
-    double precision, intent(in) :: dx, dt
-    double precision, intent(in) :: q(   qd_l1:qd_h1,NQ)
-    double precision, intent(in) :: qaux(   qa_l1:qa_h1,NQAUX)
-    double precision, intent(in) :: flatn(   qd_l1:qd_h1)
-    double precision, intent(inout) :: uout(uout_l1:uout_h1,NVAR)
-    double precision, intent(inout) :: flux(fd_l1:fd_h1,NVAR)
+    real(rt)        , intent(in) :: dx, dt
+    real(rt)        , intent(in) :: q(   qd_l1:qd_h1,NQ)
+    real(rt)        , intent(in) :: qaux(   qa_l1:qa_h1,NQAUX)
+    real(rt)        , intent(in) :: flatn(   qd_l1:qd_h1)
+    real(rt)        , intent(inout) :: uout(uout_l1:uout_h1,NVAR)
+    real(rt)        , intent(inout) :: flux(fd_l1:fd_h1,NVAR)
 #ifdef RADIATION
-    double precision, intent(inout) :: rflux(rfd_l1:rfd_h1,0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux(rfd_l1:rfd_h1,0:ngroups-1)
 #endif
-    double precision, intent(in) :: srcQ(src_l1  :src_h1,QVAR)
-    double precision, intent(inout) :: q1(q1_l1:q1_h1,NGDNV)
-    double precision, intent(in) :: dloga(dloga_l1:dloga_h1)
+    real(rt)        , intent(in) :: srcQ(src_l1  :src_h1,QVAR)
+    real(rt)        , intent(inout) :: q1(q1_l1:q1_h1,NGDNV)
+    real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1)
 
-    double precision, allocatable :: shk(:)
+    real(rt)        , allocatable :: shk(:)
 
     integer :: i
 
     ! Left and right state arrays (edge centered, cell centered)
-    double precision, allocatable:: dq(:,:), qm(:,:), qp(:,:)
+    real(rt)        , allocatable:: dq(:,:), qm(:,:), qp(:,:)
 
 
     allocate (shk(ilo-1:ihi+1))
@@ -218,6 +220,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: lo(1), hi(1)
     integer, intent(in) :: uin_l1, uin_h1
     integer, intent(in) :: uout_l1, uout_h1
@@ -235,43 +238,43 @@ contains
     integer, intent(in) :: vol_l1,  vol_h1
     integer, intent(in) :: verbose
 
-    double precision, intent(in) :: uin(uin_l1:uin_h1,NVAR)
-    double precision, intent(in) :: uout(uout_l1:uout_h1,NVAR)
-    double precision, intent(inout) :: update(updt_l1:updt_h1,NVAR)
-    double precision, intent(in) :: q1(q1_l1:q1_h1,NGDNV)
-    double precision, intent(in) :: q(q_l1:q_h1,NQ)
-    double precision, intent(inout) :: flux(flux_l1:flux_h1,NVAR)
+    real(rt)        , intent(in) :: uin(uin_l1:uin_h1,NVAR)
+    real(rt)        , intent(in) :: uout(uout_l1:uout_h1,NVAR)
+    real(rt)        , intent(inout) :: update(updt_l1:updt_h1,NVAR)
+    real(rt)        , intent(in) :: q1(q1_l1:q1_h1,NGDNV)
+    real(rt)        , intent(in) :: q(q_l1:q_h1,NQ)
+    real(rt)        , intent(inout) :: flux(flux_l1:flux_h1,NVAR)
 #ifdef RADIATION
-    double precision, intent(in) :: Erin(Erin_l1:Erin_h1,0:ngroups-1)
-    double precision, intent(inout) :: Erout(Erout_l1:Erout_h1,0:ngroups-1)
-    double precision, intent(inout) :: rflux(rflux_l1:rflux_h1,0:ngroups-1)
+    real(rt)        , intent(in) :: Erin(Erin_l1:Erin_h1,0:ngroups-1)
+    real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1,0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux(rflux_l1:rflux_h1,0:ngroups-1)
 #endif
-    double precision, intent(in) :: area( area_l1: area_h1)
-    double precision, intent(in) :: vol(vol_l1:vol_h1)
-    double precision, intent(in) :: div(lo(1):hi(1)+1)
-    double precision, intent(in) :: pdivu(lo(1):hi(1)  )
-    double precision, intent(in) :: dx, dt
-    double precision, intent(inout) :: E_added_flux, mass_added_flux
-    double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
-    double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-    double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+    real(rt)        , intent(in) :: area( area_l1: area_h1)
+    real(rt)        , intent(in) :: vol(vol_l1:vol_h1)
+    real(rt)        , intent(in) :: div(lo(1):hi(1)+1)
+    real(rt)        , intent(in) :: pdivu(lo(1):hi(1)  )
+    real(rt)        , intent(in) :: dx, dt
+    real(rt)        , intent(inout) :: E_added_flux, mass_added_flux
+    real(rt)        , intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
+    real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+    real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
     integer          :: i, j, k, n
-    double precision :: div1
+    real(rt)         :: div1
     integer          :: domlo(3), domhi(3)
-    double precision :: loc(3), ang_mom(3)
+    real(rt)         :: loc(3), ang_mom(3)
 #ifdef RADIATION
     integer :: g
-    double precision :: SrU, Up, SrE
+    real(rt)         :: SrU, Up, SrE
 
-    double precision, dimension(0:ngroups-1) :: Erscale
-    double precision, dimension(0:ngroups-1) :: ustar, af
-    double precision :: Eddf, Eddflft, Eddfrgt, f1, f2, f1lft, f1rgt
-    double precision :: ux, divu, dudx, Egdc, lamc
-    double precision :: dpdx, dprdx, ek1, ek2, dek
+    real(rt)        , dimension(0:ngroups-1) :: Erscale
+    real(rt)        , dimension(0:ngroups-1) :: ustar, af
+    real(rt)         :: Eddf, Eddflft, Eddfrgt, f1, f2, f1lft, f1rgt
+    real(rt)         :: ux, divu, dudx, Egdc, lamc
+    real(rt)         :: dpdx, dprdx, ek1, ek2, dek
 
-    double precision :: urho_new, umx_new1, umy_new1, umz_new1
-    double precision :: umx_new2, umy_new2, umz_new2
+    real(rt)         :: urho_new, umx_new1, umy_new1, umz_new1
+    real(rt)         :: umx_new2, umy_new2, umz_new2
 #endif
 
 #ifdef RADIATION
@@ -390,14 +393,14 @@ contains
        umx_new1 = uout(i,UMX) + dt * update(i,UMX)
        umy_new1 = uout(i,UMY) + dt * update(i,UMY)
        umz_new1 = uout(i,UMZ) + dt * update(i,UMZ)
-       ek1 = (umx_new1**2 + umy_new1**2 + umz_new1**2)/(2.d0*urho_new)
+       ek1 = (umx_new1**2 + umy_new1**2 + umz_new1**2)/(2.e0_rt*urho_new)
 
        ! now add the radiation pressure gradient
        update(i,UMX) = update(i,UMX) - dprdx
        umx_new2 = umx_new1 - dt * dprdx
        umy_new2 = umy_new1
        umz_new2 = umz_new1
-       ek2 = (umx_new2**2 + umy_new2**2 + umz_new2**2)/(2.d0*urho_new)
+       ek2 = (umx_new2**2 + umy_new2**2 + umz_new2**2)/(2.e0_rt*urho_new)
 
        dek = ek2 - ek1
 
@@ -424,7 +427,7 @@ contains
              lamc = HALF * (q1(i,GDLAMS+g) + q1(i+1,GDLAMS+g))
              Eddf = Edd_factor(lamc)
              f1 = (ONE - Eddf)*HALF
-             f2 = (3.d0*Eddf - ONE)*HALF
+             f2 = (3.e0_rt*Eddf - ONE)*HALF
              af(g) = -(f1*divu + f2*dudx)
 
              if (fspace_type .eq. 1) then

@@ -2,11 +2,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   use probdata_module
   use prob_params_module, only : center
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(1), probhi(1)
+  real(rt)         :: problo(1), probhi(1)
   
   integer :: untin,i
 
@@ -27,10 +28,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
   ! set namelist defaults
 
-  p_ambient = 1.d-5        ! ambient pressure (in erg/cc)
-  dens_ambient = 1.d0      ! ambient density (in g/cc)
-  exp_energy = 1.d0        ! absolute energy of the explosion (in erg)
-  r_init = 0.05d0          ! initial radius of the explosion (in cm)
+  p_ambient = 1.e-5_rt        ! ambient pressure (in erg/cc)
+  dens_ambient = 1.e0_rt      ! ambient density (in g/cc)
+  exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
+  r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
 
   ! Read namelists
@@ -39,7 +40,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   read(untin,fortin)
   close(unit=untin)
 
-  center(1) = 0.d0
+  center(1) = 0.e0_rt
 
 end subroutine PROBINIT
 
@@ -74,22 +75,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: xlo(1), xhi(1), time, delta(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
   
-  double precision :: xmin
-  double precision :: xx, xl, xr
-  double precision :: dx_sub,dist
-  double precision :: eint, p_zone
-  double precision :: vctr, p_exp
+  real(rt)         :: xmin
+  real(rt)         :: xx, xl, xr
+  real(rt)         :: dx_sub,dist
+  real(rt)         :: eint, p_zone
+  real(rt)         :: vctr, p_exp
 
   integer :: i,ii
-  double precision :: vol_pert, vol_ambient
+  real(rt)         :: vol_pert, vol_ambient
 
   dx_sub = delta(1)/dble(nsub)
 
@@ -99,14 +101,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! set explosion pressure -- we will convert the point-explosion energy into
      ! a corresponding pressure distributed throughout the perturbed volume
      vctr = M_PI*r_init**2
-     p_exp = (gamma_const - 1.d0)*exp_energy/vctr
+     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
 
      do i = lo(1), hi(1)
         xmin = xlo(1) + delta(1)*dble(i-lo(1))
-        vol_pert    = 0.d0
-        vol_ambient = 0.d0
+        vol_pert    = 0.e0_rt
+        vol_ambient = 0.e0_rt
         do ii = 0, nsub-1
-           xx = xmin + (dble(ii) + 0.5d0) * dx_sub
+           xx = xmin + (dble(ii) + 0.5e0_rt) * dx_sub
            dist = xx
            if(dist <= r_init) then
               vol_pert = vol_pert + dist
@@ -117,12 +119,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/(vol_pert+vol_ambient)
   
-        eint = p_zone/(gamma_const - 1.d0)
+        eint = p_zone/(gamma_const - 1.e0_rt)
    
         state(i,URHO) = dens_ambient
-        state(i,UMX:UMZ) = 0.d0
+        state(i,UMX:UMZ) = 0.e0_rt
   
-        state(i,UEDEN) = eint + 0.5d0 * state(i,UMX)**2 / state(i,URHO)
+        state(i,UEDEN) = eint + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint
 
         state(i,UFS) = state(i,URHO)
@@ -135,16 +137,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! set explosion pressure -- we will convert the point-explosion energy into
      ! a corresponding pressure distributed throughout the perturbed volume
      vctr = FOUR3RD*M_PI*r_init**3
-     p_exp = (gamma_const - 1.d0)*exp_energy/vctr
+     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
      
      do i = lo(1), hi(1)
         xmin = xlo(1) + delta(1)*dble(i-lo(1))
-        vol_pert    = 0.d0
-        vol_ambient = 0.d0
+        vol_pert    = 0.e0_rt
+        vol_ambient = 0.e0_rt
         do ii = 0, nsub-1
            xl = xmin + (dble(ii)        ) * dx_sub
-           xr = xmin + (dble(ii) + 1.0d0) * dx_sub
-           xx = 0.5d0*(xl + xr)
+           xr = xmin + (dble(ii) + 1.0e0_rt) * dx_sub
+           xx = 0.5e0_rt*(xl + xr)
            
            ! the volume of a subzone is (4/3) pi (xr^3 - xl^3).
            ! we can factor this as: (4/3) pi dr (xr^2 + xl*xr + xl^2)
@@ -158,12 +160,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/(vol_pert+vol_ambient)
   
-        eint = p_zone/(gamma_const - 1.d0)
+        eint = p_zone/(gamma_const - 1.e0_rt)
    
         state(i,URHO) = dens_ambient
-        state(i,UMX:UMZ) = 0.d0
+        state(i,UMX:UMZ) = 0.e0_rt
         
-        state(i,UEDEN) = eint + 0.5d0 * state(i,UMX)**2 / state(i,URHO)
+        state(i,UEDEN) = eint + 0.5e0_rt * state(i,UMX)**2 / state(i,URHO)
         state(i,UEINT) = eint
 
         state(i,UFS) = state(i,URHO)

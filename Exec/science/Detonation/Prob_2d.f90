@@ -4,11 +4,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network   , only : network_species_index, nspec
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
   
   integer untin,i
 
@@ -31,25 +32,25 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
 ! set namelist defaults
 
-  T_l = 1.d9
-  T_r = 5.d7
-  dens = 1.d8
+  T_l = 1.e9_rt
+  T_r = 5.e7_rt
+  dens = 1.e8_rt
   
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
-  denerr = 1.d20
-  dengrad = 1.d20
+  denerr = 1.e20_rt
+  dengrad = 1.e20_rt
   max_denerr_lev = -1
   max_dengrad_lev = -1
   
-  presserr = 1.d20
-  pressgrad = 1.d20
+  presserr = 1.e20_rt
+  pressgrad = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
   
-  velgrad = 1.d20
+  velgrad = 1.e20_rt
   max_velgrad_lev = -1
   
 !     Read namelists
@@ -77,16 +78,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
 
   ! make sure that the carbon fraction falls between 0 and 1
-  if (cfrac > 1.d0 .or. cfrac < 0.d0) then
+  if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
      call bl_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
   ! set the default mass fractions
   allocate(xn(nspec))
 
-  xn(:) = 0.d0
+  xn(:) = 0.e0_rt
   xn(ic12) = cfrac
-  xn(io16) = 1.d0 - cfrac
+  xn(io16) = 1.e0_rt - cfrac
 
 
 end subroutine PROBINIT
@@ -122,30 +123,31 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision time, delta(2)
-  double precision xlo(2), xhi(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         time, delta(2)
+  real(rt)         xlo(2), xhi(2)
 
-  double precision xcen, ycen
-  double precision p_temp, eint_temp
+  real(rt)         xcen, ycen
+  real(rt)         p_temp, eint_temp
   integer i,j
 
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
-     ycen = ymin + delta(2)*(dble(j) + 0.5d0)
+     ycen = ymin + delta(2)*(dble(j) + 0.5e0_rt)
          
      do i = lo(1), hi(1)
-        xcen = xmin + delta(1)*(dble(i) + 0.5d0)
+        xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
             
         state(i,j,URHO ) = dens
 
-        if (xcen <= frac*(xmin + 0.5d0*(xmax-xmin))) then
+        if (xcen <= frac*(xmin + 0.5e0_rt*(xmax-xmin))) then
            state(i,j,UTEMP) = T_l
         else
            state(i,j,UTEMP) = T_r
@@ -159,8 +161,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         call eos(eos_input_rt, eos_state)
 
-        state(i,j,UMX  ) = 0.d0
-        state(i,j,UMY  ) = 0.d0
+        state(i,j,UMX  ) = 0.e0_rt
+        state(i,j,UMY  ) = 0.e0_rt
         state(i,j,UEDEN) = state(i,j,URHO)*eos_state%e
         state(i,j,UEINT) = state(i,j,URHO)*eos_state%e
         

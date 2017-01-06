@@ -1,5 +1,6 @@
 module gravity_sources_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -22,6 +23,7 @@ contains
 #endif
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -32,25 +34,25 @@ contains
     integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
 
-    double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    double precision :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
-    double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision :: dx(3), dt, time
-    double precision :: E_added, mom_added(3)
+    real(rt)         :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt)         :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
+    real(rt)         :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
+    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)         :: dx(3), dt, time
+    real(rt)         :: E_added, mom_added(3)
 
-    double precision :: rho, rhoInv
-    double precision :: Sr(3), SrE
-    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
-    double precision :: loc(3)
+    real(rt)         :: rho, rhoInv
+    real(rt)         :: Sr(3), SrE
+    real(rt)         :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+    real(rt)         :: loc(3)
     integer          :: i, j, k
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -171,6 +173,7 @@ contains
     use hybrid_advection_module, only : add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -190,55 +193,55 @@ contains
 
     ! Old and new time gravitational potential
 
-    double precision :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    double precision :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+    real(rt)         :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt)         :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
 
     ! Old and new time gravitational acceleration
 
-    double precision :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
-    double precision :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
+    real(rt)         :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
+    real(rt)         :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
 
     ! Old and new time state data
 
-    double precision :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    double precision :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
     ! The source term to send back
 
-    double precision :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
     ! Hydrodynamics fluxes
 
-    double precision :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    double precision :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    double precision :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
 
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision :: dx(3), dt, time
-    double precision :: E_added, mom_added(3)
+    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)         :: dx(3), dt, time
+    real(rt)         :: E_added, mom_added(3)
 
     integer          :: i, j, k
 
-    double precision :: Sr_old(3), Sr_new(3), Srcorr(3)
-    double precision :: vold(3), vnew(3)
-    double precision :: SrE_old, SrE_new, SrEcorr
-    double precision :: rhoo, rhooinv, rhon, rhoninv
+    real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3)
+    real(rt)         :: vold(3), vnew(3)
+    real(rt)         :: SrE_old, SrE_new, SrEcorr
+    real(rt)         :: rhoo, rhooinv, rhon, rhoninv
 
-    double precision :: old_ke, old_rhoeint, old_re
-    double precision :: new_ke, new_rhoeint
-    double precision :: old_mom(3), loc(3)
+    real(rt)         :: old_ke, old_rhoeint, old_re
+    real(rt)         :: new_ke, new_rhoeint
+    real(rt)         :: old_mom(3), loc(3)
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
-    double precision, pointer :: phi(:,:,:)
-    double precision, pointer :: grav(:,:,:,:)
-    double precision, pointer :: gravx(:,:,:)
-    double precision, pointer :: gravy(:,:,:)
-    double precision, pointer :: gravz(:,:,:)
+    real(rt)        , pointer :: phi(:,:,:)
+    real(rt)        , pointer :: grav(:,:,:,:)
+    real(rt)        , pointer :: gravx(:,:,:)
+    real(rt)        , pointer :: gravy(:,:,:)
+    real(rt)        , pointer :: gravz(:,:,:)
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -519,6 +522,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -526,20 +530,20 @@ contains
     integer          :: uold_lo(3), uold_hi(3)
     integer          :: src_lo(3), src_hi(3)
 
-    double precision :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: dx(3), dt, time
+    real(rt)         :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
+    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: dx(3), dt, time
 
-    double precision :: rho, rhoInv
-    double precision :: Sr(3), SrE
-    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+    real(rt)         :: rho, rhoInv
+    real(rt)         :: Sr(3), SrE
+    real(rt)         :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
     integer          :: i, j, k
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -565,7 +569,7 @@ contains
              old_mom = snew(UMX:UMZ)
              ! ****   End Diagnostics ****
 
-             Sr(:)   = 0.d0
+             Sr(:)   = 0.e0_rt
              Sr(dim) = rho * const_grav
 
              src(UMX:UMZ) = Sr
@@ -648,6 +652,7 @@ contains
     use hybrid_advection_module, only : add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -664,38 +669,38 @@ contains
 
     ! Old and new time state data
 
-    double precision :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    double precision :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
     ! The source term to send back
 
-    double precision :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
     ! Hydrodynamics fluxes
 
-    double precision :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    double precision :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    double precision :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
 
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision :: dx(3), dt, time
+    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)         :: dx(3), dt, time
 
     integer          :: i, j, k
 
-    double precision :: Sr_old(3), Sr_new(3), Srcorr(3)
-    double precision :: vold(3), vnew(3)
-    double precision :: SrE_old, SrE_new, SrEcorr
-    double precision :: rhoo, rhooinv, rhon, rhoninv
+    real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3)
+    real(rt)         :: vold(3), vnew(3)
+    real(rt)         :: SrE_old, SrE_new, SrEcorr
+    real(rt)         :: rhoo, rhooinv, rhon, rhoninv
 
-    double precision :: old_ke, old_rhoeint, old_re
-    double precision :: new_ke, new_rhoeint
-    double precision :: old_mom(3)
+    real(rt)         :: old_ke, old_rhoeint, old_re
+    real(rt)         :: new_ke, new_rhoeint
+    real(rt)         :: old_mom(3)
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -728,7 +733,7 @@ contains
 
              vold = uold(i,j,k,UMX:UMZ) * rhooinv
 
-             Sr_old(1:3) = 0.d0
+             Sr_old(1:3) = 0.e0_rt
              Sr_old(dim) = rhoo * const_grav
              SrE_old     = dot_product(vold, Sr_old)
 
@@ -736,7 +741,7 @@ contains
 
              vnew = snew(UMX:UMZ) * rhoninv
 
-             Sr_new(1:3) = 0.d0
+             Sr_new(1:3) = 0.e0_rt
              Sr_new(dim) = rhon * const_grav
              SrE_new     = dot_product(vnew, Sr_new)
 

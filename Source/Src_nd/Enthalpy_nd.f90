@@ -1,5 +1,6 @@
 module enthalpy_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -19,13 +20,14 @@ contains
     use conductivity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: e_lo(3), e_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) ::  enth(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) ::  enth(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
 
     ! local variables
     integer          :: i, j, k

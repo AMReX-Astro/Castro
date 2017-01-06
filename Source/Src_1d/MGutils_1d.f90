@@ -1,5 +1,6 @@
 module MGutils_1D_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -11,17 +12,18 @@ contains
        rhs, rl1, rh1,  &
        ecx, ecxl1, ecxh1, dx, coord_type) bind(C, name="ca_apply_metric")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1),xlo(1),xhi(1)
     integer rl1, rh1
     integer ecxl1, ecxh1
     integer coord_type
-    double precision rhs(rl1:rh1)
-    double precision ecx(ecxl1:ecxh1)
-    double precision dx(1)
+    real(rt)         rhs(rl1:rh1)
+    real(rt)         ecx(ecxl1:ecxh1)
+    real(rt)         dx(1)
 
-    double precision r,rlo,rhi
+    real(rt)         r,rlo,rhi
     integer i
 
     ! r-z
@@ -29,7 +31,7 @@ contains
 
        ! At centers
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           rhs(i) = rhs(i) * r
        enddo
 
@@ -44,11 +46,11 @@ contains
 
        ! At centers
        do i=lo(1),hi(1)
-          !           r = (dble(i)+0.5d0) * dx(1)
+          !           r = (dble(i)+0.5e0_rt) * dx(1)
           !           rhs(i) = rhs(i) * r**2
           rlo = dble(i) * dx(1)
           rhi = rlo + dx(1)
-          rhs(i) = rhs(i) * (rhi**3 - rlo**3) / (3.d0 * dx(1))
+          rhs(i) = rhs(i) * (rhi**3 - rlo**3) / (3.e0_rt * dx(1))
        enddo
 
        ! Note that (rhi**3 - rlo**3) / (3 dr) = ( (r + dr/2)**3 - (r - dr/2)**3 ) / (3 dr)
@@ -73,22 +75,23 @@ contains
        cc, cl1, ch1,  &
        dx, coord_type) bind(C, name="ca_weight_cc")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)
     integer cl1, ch1
     integer coord_type
-    double precision cc(cl1:ch1)
-    double precision dx(1)
+    real(rt)         cc(cl1:ch1)
+    real(rt)         dx(1)
 
-    double precision r
+    real(rt)         r
     integer i
 
     ! r-z
     if (coord_type .eq. 1) then
 
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           cc(i) = cc(i) * r
        enddo
 
@@ -96,7 +99,7 @@ contains
     else if (coord_type .eq. 2) then
 
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           cc(i) = cc(i) * r**2
        enddo
 
@@ -113,22 +116,23 @@ contains
        cc, cl1, ch1,  &
        dx, coord_type) bind(C, name="ca_unweight_cc")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)
     integer cl1, ch1
     integer coord_type
-    double precision cc(cl1:ch1)
-    double precision dx(1)
+    real(rt)         cc(cl1:ch1)
+    real(rt)         dx(1)
 
-    double precision r
+    real(rt)         r
     integer i
 
     ! r-z
     if (coord_type .eq. 1) then
 
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           cc(i) = cc(i) / r
        enddo
 
@@ -136,7 +140,7 @@ contains
     else if (coord_type .eq. 2) then
 
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           cc(i) = cc(i) / r**2
        enddo
 
@@ -153,15 +157,16 @@ contains
        ecx, ecxl1, ecxh1, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)
     integer ecxl1, ecxh1
     integer coord_type, idir
-    double precision ecx(ecxl1:ecxh1)
-    double precision dx(1)
+    real(rt)         ecx(ecxl1:ecxh1)
+    real(rt)         dx(1)
 
-    double precision r
+    real(rt)         r
     integer i
 
     ! r-z

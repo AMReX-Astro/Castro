@@ -1,9 +1,10 @@
 module probdata_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, save :: thermal_conductivity, diff_coeff
-  double precision, save :: T1, T2, rho0
-  double precision, save :: t_0
+  real(rt)        , save :: thermal_conductivity, diff_coeff
+  real(rt)        , save :: T1, T2, rho0
+  real(rt)        , save :: t_0
 
 end module probdata_module

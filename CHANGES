@@ -1,4 +1,18 @@
-* changes since the last release:
+# changes since the last release:
+
+  -- to support both single and double precision, all of the 
+     floating point declarations use the c_real type defined
+     in the bl_fort_module -- this is set to single or double
+     precision at compile time.  All constants also now use
+     this type.  For brevity, we rename it to 'rt' in the use
+     statement.  (issue #34)
+
+  -- the sponge is now time-centered by default (issue #7)
+
+
+# previous changes:
+
+* 17.01
 
   -- the radiation-specific version of computeTemp has been removed
      and instead everything goes through the main Castro computeTemp.
@@ -9,7 +23,10 @@
      merged with the pure hydro routines.  This gives round-off level
      differences.  This also now uses all velocity components in the
      kinetic energy correction for radiation. (issues #66, 70)
-previous changes:
+
+  -- a minor bug was fixed in the 3-d radiation characteristic tracing,
+     regarding which gamma_1 (gamc) is used.
+
 
 * 16.12a
 

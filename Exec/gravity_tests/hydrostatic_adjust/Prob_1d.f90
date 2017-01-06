@@ -8,12 +8,13 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use model_parser_module
 
   use network, only : nspec
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init,namlen,untin,i,k
   integer :: name(namlen)
 
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
 
   type (eos_t) :: eos_state
 
@@ -39,10 +40,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   ! set namelist defaults
 
-  heating_time = 0.5d0
-  heating_rad = 0.0d0
-  heating_peak = 1.d16
-  heating_sigma = 1.d7
+  heating_time = 0.5e0_rt
+  heating_rad = 0.0e0_rt
+  heating_peak = 1.e16_rt
+  heating_sigma = 1.e7_rt
   prob_type = 1
 
 
@@ -70,10 +71,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      hse_s(i,:) = model_state(:,ispec_model+i-1)
   enddo
 
-  center(1) = 0.0d0
+  center(1) = 0.0e0_rt
 
   xmin = problo(1)
-  if (xmin /= 0.d0) then
+  if (xmin /= 0.e0_rt) then
      call bl_error("ERROR: xmin should be 0!")
   endif
 
@@ -132,16 +133,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use model_parser_module, only: npts_model
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: level, nscal
   integer          :: lo(1), hi(1)
   integer          :: state_l1,state_h1
-  double precision :: state(state_l1:state_h1,NVAR)
-  double precision :: time, delta(1)
-  double precision :: xlo(1), xhi(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: time, delta(1)
+  real(rt)         :: xlo(1), xhi(1)
 
-  double precision :: x,dist
+  real(rt)         :: x,dist
   integer          :: i,n
 
   type (eos_t) :: eos_state
@@ -149,7 +151,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ! Interpolate rho, T and X
   do i = lo(1), hi(1)
 
-     dist = (dble(i) + 0.5d0) * delta(1)
+     dist = (dble(i) + 0.5e0_rt) * delta(1)
 
      state(i,URHO ) = interpolate(dist,npts_model,hse_r,hse_rho)
      state(i,UTEMP) = interpolate(dist,npts_model,hse_r,hse_t)
@@ -174,7 +176,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   do i = lo(1), hi(1)
-     state(i,UMX:UMZ) = 0.d0
+     state(i,UMX:UMZ) = 0.e0_rt
      state(i,UEINT) = state(i,URHO) * state(i,UEINT)
      state(i,UEDEN) = state(i,UEINT)
      state(i,UFS:UFS+nspec-1) = state(i,URHO) * state(i,UFS:UFS+nspec-1)

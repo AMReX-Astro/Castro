@@ -12,14 +12,15 @@
 module constants_module
 
   ! fundamental constants
-  double precision, parameter :: h_planck = 6.62606957d-27   ! erg s
-  double precision, parameter :: k_B = 1.3806488d-16  ! erg / K
-  double precision, parameter :: c_light = 2.99792458d10  ! cm / s
-  double precision, parameter :: ev2erg = 1.602176487d-12 ! erg/eV
-  double precision, parameter :: pi = 3.14159265358979323846d0
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , parameter :: h_planck = 6.62606957e-27_rt   ! erg s
+  real(rt)        , parameter :: k_B = 1.3806488e-16_rt  ! erg / K
+  real(rt)        , parameter :: c_light = 2.99792458e10_rt  ! cm / s
+  real(rt)        , parameter :: ev2erg = 1.602176487e-12_rt ! erg/eV
+  real(rt)        , parameter :: pi = 3.14159265358979323846e0_rt
 
   ! physical parameters
-  double precision, parameter :: T_sphere = 1500.d0*ev2erg/k_B ! sphere temp (K
+  real(rt)        , parameter :: T_sphere = 1500.e0_rt*ev2erg/k_B ! sphere temp (K
   
 
 end module constants_module
@@ -38,12 +39,13 @@ function planck(nu,T) result (B)
   ! have units of erg / cm^3 / MeV.  As a result, we have one
   ! less factor of h_planck.
   use constants_module
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: nu, T
-  double precision :: B
+  real(rt)        , intent(in) :: nu, T
+  real(rt)         :: B
 
-  B = (8.d0*pi*h_planck*nu**3/c_light**3)/(exp(h_planck*nu/(k_B*T)) - 1.d0)
+  B = (8.e0_rt*pi*h_planck*nu**3/c_light**3)/(exp(h_planck*nu/(k_B*T)) - 1.e0_rt)
 
   return
 end function planck
@@ -59,8 +61,8 @@ program bc
   implicit none
 
   integer :: ngroups
-  double precision, allocatable :: nu_groups(:), dnu_groups(:)
-  double precision :: planck
+  real(rt)        , allocatable :: nu_groups(:), dnu_groups(:)
+  real(rt)         :: planck
   
   integer :: n
   character(len=256) :: header_line

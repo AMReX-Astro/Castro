@@ -117,9 +117,21 @@ Floating point data in the \cpp\ \boxlib\ frame work is declared as
 {\tt Real}.  This is {\tt typedef} to either {\tt float} or {\tt
   double} depending on the make variable \makevar{PRECISION}.
 
-At present, single precision is not supported in \castro.  This is
-because the Fortran routines that we interact with are all written to
-accept double precision inputs.
+The corresponding type for Fortran is provided by the
+\code{bl\_fort\_module} as \variable{c\_real}.  We typically rename
+this to \variable{rt} when using it.  An example of a declaration of a
+parameter is:
+\begin{lstlisting}[language=fortran]
+  use bl_fort_module, only : rt => c_real                                       
+
+  real(rt) :: tol = 1.0e-10_rt
+\end{lstlisting}
+
+The {\tt bl\_constants\_module} provides common constants that can
+be used in the code, like {\tt ZERO}, {\tt THIRD}, {\tt ONE}, etc.
+
+Note: single precision support in \castro\ is not yet complete.  In
+particular, a lot of the supporting microphysics has not been updated.
 
 \subsection{\bbox\ and \farraybox}
 

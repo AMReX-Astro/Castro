@@ -11,18 +11,19 @@
     use prob_params_module, only: center
     use network
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer         ,intent(in   ) :: lo(1),hi(1)
     integer         ,intent(in   ) :: old_state_l1,old_state_h1
     integer         ,intent(in   ) :: new_state_l1,new_state_h1
     integer         ,intent(in   ) :: src_l1,src_h1
-    double precision,intent(in   ) :: old_state(old_state_l1:old_state_h1,NVAR)
-    double precision,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
-    double precision,intent(  out) :: src(src_l1:src_h1,NVAR)
-    double precision,intent(in   ) :: problo(1),dx(1),time,dt
+    real(rt)        ,intent(in   ) :: old_state(old_state_l1:old_state_h1,NVAR)
+    real(rt)        ,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
+    real(rt)        ,intent(  out) :: src(src_l1:src_h1,NVAR)
+    real(rt)        ,intent(in   ) :: problo(1),dx(1),time,dt
     
     integer          :: i
-    double precision :: x, r_0, H_0, W_0, Hext, t_stop
+    real(rt)         :: x, r_0, H_0, W_0, Hext, t_stop
 
     integer :: ihe4_p
 
@@ -40,7 +41,7 @@
           if (lo(1) .eq. 0) print *,'TIME vs TSTOP ',time, t_stop 
           do i = lo(1), hi(1)
 
-             x = problo(1) + ((dble(i)+0.5d0)*dx(1) + xmin) - center(1)
+             x = problo(1) + ((dble(i)+0.5e0_rt)*dx(1) + xmin) - center(1)
 
              Hext = H_0*exp(-((x-r_0)**2)/W_0**2)
 
@@ -50,8 +51,8 @@
           enddo
        else
 
-          src(lo(1):hi(1),UEINT) = 0.d0
-          src(lo(1):hi(1),UEDEN) = 0.d0
+          src(lo(1):hi(1),UEINT) = 0.e0_rt
+          src(lo(1):hi(1),UEDEN) = 0.e0_rt
 
        end if
 
@@ -64,7 +65,7 @@
           if (lo(1) .eq. 0) print *,'TIME vs TSTOP ',time, t_stop 
           do i = lo(1), hi(1)
 
-             x = problo(1) + ((dble(i)+0.5d0)*dx(1) + xmin) - center(1)
+             x = problo(1) + ((dble(i)+0.5e0_rt)*dx(1) + xmin) - center(1)
 
              Hext = H_0*exp(-((x-r_0)**2)/W_0**2)*old_state(i,UFS-1+ihe4_p)/old_state(i,URHO)
 
@@ -74,8 +75,8 @@
           enddo
        else
 
-          src(lo(1):hi(1),UEINT) = 0.d0
-          src(lo(1):hi(1),UEDEN) = 0.d0
+          src(lo(1):hi(1),UEINT) = 0.e0_rt
+          src(lo(1):hi(1),UEDEN) = 0.e0_rt
 
        end if
 

@@ -25,6 +25,7 @@ module transverse_module
 
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -34,9 +35,10 @@ contains
 
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    double precision, intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 
     logical :: reset
     type (eos_t) :: eos_state
@@ -106,6 +108,7 @@ contains
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -113,46 +116,46 @@ contains
     integer ilo,ihi,jlo,jhi,kc,k3d
 
 #ifdef RADIATION
-    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision cdtdx
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)         cdtdx
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision rrry, rrly
-    double precision rury, ruly
-    double precision rvry, rvly
-    double precision rwry, rwly
-    double precision ekenry, ekenly
-    double precision rery, rely
-    double precision rrnewry, rrnewly
-    double precision runewry, runewly
-    double precision rvnewry, rvnewly
-    double precision rwnewry, rwnewly
-    double precision renewry, renewly
-    double precision pnewry, pnewly
-    double precision rhoekenry, rhoekenly
-    double precision compn, compu
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         rrry, rrly
+    real(rt)         rury, ruly
+    real(rt)         rvry, rvly
+    real(rt)         rwry, rwly
+    real(rt)         ekenry, ekenly
+    real(rt)         rery, rely
+    real(rt)         rrnewry, rrnewly
+    real(rt)         runewry, runewly
+    real(rt)         rvnewry, rvnewly
+    real(rt)         rwnewry, rwnewly
+    real(rt)         renewry, renewly
+    real(rt)         pnewry, pnewly
+    real(rt)         rhoekenry, rhoekenly
+    real(rt)         compn, compu
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
 
-    double precision :: gamc
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -462,6 +465,7 @@ contains
                      qx, qx_lo, qx_hi, &
                      cdtdx, ilo, ihi, jlo, jhi, kc, km, k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -469,45 +473,45 @@ contains
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
 #ifdef RADIATION
-    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision cdtdx
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)         cdtdx
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision rrrz, rrlz
-    double precision rurz, rulz
-    double precision rvrz, rvlz
-    double precision rwrz, rwlz
-    double precision ekenrz, ekenlz
-    double precision rerz, relz
-    double precision rrnewrz, rrnewlz
-    double precision runewrz, runewlz
-    double precision rvnewrz, rvnewlz
-    double precision rwnewrz, rwnewlz
-    double precision renewrz, renewlz
-    double precision pnewrz, pnewlz
-    double precision rhoekenrz, rhoekenlz
-    double precision compn, compu
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
-    double precision :: gamc
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrz, rhoekenlz
+    real(rt)         compn, compu
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -861,6 +865,7 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -868,46 +873,46 @@ contains
     integer ilo,ihi,jlo,jhi,kc,k3d
 
 #ifdef RADIATION
-    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision cdtdy
+    real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrx, rrlx
-    double precision rurx, rulx
-    double precision rvrx, rvlx
-    double precision rwrx, rwlx
-    double precision ekenrx, ekenlx
-    double precision rerx, relx
-    double precision rrnewrx, rrnewlx
-    double precision runewrx, runewlx
-    double precision rvnewrx, rvnewlx
-    double precision rwnewrx, rwnewlx
-    double precision renewrx, renewlx
-    double precision pnewrx, pnewlx
-    double precision rhoekenrx, rhoekenlx
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
-    double precision :: gamc
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrx, rrlx
+    real(rt)         rurx, rulx
+    real(rt)         rvrx, rvlx
+    real(rt)         rwrx, rwlx
+    real(rt)         ekenrx, ekenlx
+    real(rt)         rerx, relx
+    real(rt)         rrnewrx, rrnewlx
+    real(rt)         runewrx, runewlx
+    real(rt)         rvnewrx, rvnewlx
+    real(rt)         rwnewrx, rwnewlx
+    real(rt)         renewrx, renewlx
+    real(rt)         pnewrx, pnewlx
+    real(rt)         rhoekenrx, rhoekenlx
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -1213,6 +1218,7 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, km, k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -1220,46 +1226,46 @@ contains
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
 #ifdef RADIATION
-    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision cdtdy
+    real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrz, rrlz
-    double precision rurz, rulz
-    double precision rvrz, rvlz
-    double precision rwrz, rwlz
-    double precision ekenrz, ekenlz
-    double precision rerz, relz
-    double precision rrnewrz, rrnewlz
-    double precision runewrz, runewlz
-    double precision rvnewrz, rvnewlz
-    double precision rwnewrz, rwnewlz
-    double precision renewrz, renewlz
-    double precision pnewrz, pnewlz
-    double precision rhoekenrz, rhoekenlz
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
-    double precision :: gamc
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrz, rhoekenlz
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -1611,6 +1617,7 @@ contains
                     qz,qz_lo,qz_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fz_lo(3),fz_hi(3)
@@ -1618,49 +1625,49 @@ contains
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision cdtdz
+    real(rt)         fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)         qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         cdtdz
 
     integer n, nqp, i, j, ipassive
 
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrx, rrry, rrlx, rrly
-    double precision rurx, rury, rulx, ruly
-    double precision rvrx, rvry, rvlx, rvly
-    double precision rwrx, rwry, rwlx, rwly
-    double precision ekenrx, ekenry, ekenlx, ekenly
-    double precision rerx, rery, relx, rely
-    double precision rrnewrx, rrnewry, rrnewlx, rrnewly
-    double precision runewrx, runewry, runewlx, runewly
-    double precision rvnewrx, rvnewry, rvnewlx, rvnewly
-    double precision rwnewrx, rwnewry, rwnewlx, rwnewly
-    double precision renewrx, renewry, renewlx, renewly
-    double precision pnewrx, pnewry, pnewlx, pnewly
-    double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
-    double precision :: gamc
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrx, rrry, rrlx, rrly
+    real(rt)         rurx, rury, rulx, ruly
+    real(rt)         rvrx, rvry, rvlx, rvly
+    real(rt)         rwrx, rwry, rwlx, rwly
+    real(rt)         ekenrx, ekenry, ekenlx, ekenly
+    real(rt)         rerx, rery, relx, rely
+    real(rt)         rrnewrx, rrnewry, rrnewlx, rrnewly
+    real(rt)         runewrx, runewry, runewlx, runewly
+    real(rt)         rvnewrx, rvnewry, rvnewlx, rvnewly
+    real(rt)         rwnewrx, rwnewry, rwnewlx, rwnewly
+    real(rt)         renewrx, renewry, renewlx, renewly
+    real(rt)         pnewrx, pnewry, pnewlx, pnewly
+    real(rt)         rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
+    real(rt)         :: dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
          ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -2164,6 +2171,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -2174,44 +2182,44 @@ contains
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdx,cdtdy
+    real(rt)         fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdx,cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    double precision uxav, gexav, dgex, uyav, geyav, dgey
-    double precision pggxpm, pggxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
-    double precision pggypm, pggymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
-    double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
-    double precision compr, compl, compnr, compnl
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    real(rt)         uxav, gexav, dgex, uyav, geyav, dgey
+    real(rt)         pggxpm, pggxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
+    real(rt)         pggypm, pggymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
+    real(rt)         uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
+    real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    double precision :: dmx, dmy, dre
-    double precision, dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
+    real(rt)         :: dmx, dmy, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -2645,6 +2653,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -2655,41 +2664,41 @@ contains
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdx,cdtdz
+    real(rt)         fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdx,cdtdz
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
-    double precision uxav, gexav, dgex, uzav, gezav, dgez
-    double precision compr, compl, compnr, compnl, drr, dcompn
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    real(rt)         uxav, gexav, dgex, uzav, gezav, dgez
+    real(rt)         compr, compl, compnr, compnl, drr, dcompn
 
 #ifdef RADIATION
-    double precision :: dmx, dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+    real(rt)         :: dmx, dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -3061,6 +3070,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -3071,42 +3081,42 @@ contains
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdy,cdtdz
+    real(rt)         fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdy,cdtdz
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
-    double precision uyav, geyav, dgey, uzav, gezav, dgez
-    double precision compr, compl, compnr, compnl
-    double precision drr, dcompn
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    real(rt)         pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    real(rt)         uyav, geyav, dgey, uzav, gezav, dgez
+    real(rt)         compr, compl, compnr, compnl
+    real(rt)         drr, dcompn
 
 #ifdef RADIATION
-    double precision :: dmy, dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
+    real(rt)         :: dmy, dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 

@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,6 +17,7 @@ contains
     use eos_type_module
     use network, only: nspec
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -23,17 +25,17 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer i,j,n
-    double precision y
-    double precision X_in(nspec)
-    double precision H
+    real(rt)         y
+    real(rt)         X_in(nspec)
+    real(rt)         H
 
     integer npts_1d
-    double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
-    double precision const
+    real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
+    real(rt)         const
 
     type (eos_t) :: eos_state
 
@@ -41,7 +43,7 @@ contains
     ! compute background state
 
     ! first make a 1D initial model for the entire domain
-    npts_1d = (2.d0*center(2)+1.d-8) / delta(2)
+    npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / delta(2)
 
     allocate(pressure(-5:npts_1d+4))
     allocate(density (-5:npts_1d+4))
@@ -54,7 +56,7 @@ contains
     density(0)  = dens_base
 
     ! only initialize the first species
-    X_in(1) = 1.d0
+    X_in(1) = 1.e0_rt
 
     ! compute the pressure scale height (for an isothermal, ideal-gas
     ! atmosphere)
@@ -63,20 +65,20 @@ contains
     do j=0,npts_1d+4
 
        ! initial guess
-       temp(j) = 1000.d0
+       temp(j) = 1000.e0_rt
 
        if (do_isentropic) then
           y = dble(j) * delta(2)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-               (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+               (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
        else
-          y = (dble(j)+0.5d0) * delta(2)
+          y = (dble(j)+0.5e0_rt) * delta(2)
           density(j) = dens_base * exp(-y/H)
        end if
 
        if (j .gt. 0) then
           pressure(j) = pressure(j-1) - &
-               delta(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
+               delta(2) * 0.5e0_rt * (density(j)+density(j-1)) * abs(const_grav)
        end if
 
        eos_state%rho = density(j)
@@ -94,19 +96,19 @@ contains
     do j=-1,-5,-1
 
        ! initial guess
-       temp(j) = 1000.d0
+       temp(j) = 1000.e0_rt
 
        if (do_isentropic) then
           y = dble(j) * delta(2)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-               (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+               (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
        else
-          y = (dble(j)+0.5d0) * delta(2)
+          y = (dble(j)+0.5e0_rt) * delta(2)
           density(j) = dens_base * exp(-y/H)
        end if
 
        pressure(j) = pressure(j+1) + &
-            delta(2) * 0.5d0 * (density(j)+density(j+1)) * abs(const_grav)
+            delta(2) * 0.5e0_rt * (density(j)+density(j+1)) * abs(const_grav)
 
        eos_state%rho = density(j)
        eos_state%T = temp(j)
@@ -132,11 +134,11 @@ contains
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
 
        do j=adv_l2,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=domlo(1)-1,adv_l1,-1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.d0
+             adv(i,j,UMY) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -145,14 +147,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.d0
+                adv(i,j,UMX) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -164,11 +166,11 @@ contains
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
 
        do j=adv_l2,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=domhi(1)+1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMY) = 0.d0
+             adv(i,j,UMY) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -177,14 +179,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMX) = 0.d0
+                adv(i,j,UMX) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -197,11 +199,11 @@ contains
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
        ! this do loop counts backwards since we want to work downward
        do j=domlo(2)-1,adv_l2,-1
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.d0
+             adv(i,j,UMX) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -210,14 +212,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.d0
+                adv(i,j,UMY) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -227,11 +229,11 @@ contains
     !        YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
        do j=domhi(2)+1,adv_h2
-          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+          y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
           do i=adv_l1,adv_h1
 
              ! zero transverse momentum
-             adv(i,j,UMX) = 0.d0
+             adv(i,j,UMX) = 0.e0_rt
 
              if (boundary_type .eq. 1) then
                 ! extrapolate normal momentum
@@ -240,14 +242,14 @@ contains
              else
                 ! zero normal momentum
                 ! permits pi to pass through boundary
-                adv(i,j,UMY) = 0.d0
+                adv(i,j,UMY) = 0.e0_rt
              end if
 
              adv(i,j,URHO) = density(j)
              adv(i,j,UFS) = adv(i,j,URHO)
              adv(i,j,UEINT) = eint(j)*adv(i,j,URHO)
              adv(i,j,UEDEN) = adv(i,j,UEINT) &
-                  + 0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
+                  + 0.5e0_rt*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/adv(i,j,URHO)
              adv(i,j,UTEMP) = temp(j)
 
           end do
@@ -268,6 +270,7 @@ contains
     use eos_module, only: gamma_const
     use meth_params_module, only : const_grav
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -275,11 +278,11 @@ contains
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer i,j
-    double precision y,H
+    real(rt)         y,H
 
     ! compute the pressure scale height (for an isothermal, ideal-gas
     ! atmosphere)
@@ -300,9 +303,9 @@ contains
              if (do_isentropic) then
                 y = xlo(2) + delta(2)*float(j-adv_l2)
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-                     (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+                     (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -318,9 +321,9 @@ contains
              if (do_isentropic) then
                 y = xlo(2) + delta(2)*float(j-adv_l2)
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-                     (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+                     (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -336,9 +339,9 @@ contains
              if (do_isentropic) then
                 y = xlo(2) + delta(2)*float(j-adv_l2)
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-                     (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+                     (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -354,9 +357,9 @@ contains
              if (do_isentropic) then
                 y = xlo(2) + delta(2)*float(j-adv_l2)
                 adv(i,j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-                     (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+                     (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
              else
-                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
+                y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5e0_rt)
                 adv(i,j) = dens_base * exp(-y/H)
              end if
 
@@ -374,6 +377,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -381,8 +385,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -395,6 +399,7 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -402,8 +407,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -416,6 +421,7 @@ contains
 
     use probdata_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -423,8 +429,8 @@ contains
     integer :: grav_l1,grav_l2,grav_h1,grav_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision grav(grav_l1:grav_h1,grav_l2:grav_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         grav(grav_l1:grav_h1,grav_l2:grav_h2)
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -435,6 +441,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'bc_types.fi'
@@ -442,8 +449,8 @@ contains
     integer          :: phi_l1,phi_l2,phi_h1,phi_h2
     integer          :: bc(2,2,*)
     integer          :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2)
 
     call filcc(phi,phi_l1,phi_l2,phi_h1,phi_h2, &
                domlo,domhi,delta,xlo,bc)

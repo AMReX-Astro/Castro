@@ -4,11 +4,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use network, only : network_init
   use eos_module, only : gamma_const
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
   
   integer untin,i
   
@@ -71,17 +72,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UTEMP
   use network, only : nspec
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: state(state_l1:state_h1,NVAR)
-  double precision :: time, delta(1)
-  double precision :: xlo(1), xhi(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: time, delta(1)
+  real(rt)         :: xlo(1), xhi(1)
   
   integer :: i
-  double precision :: c_v, eint
+  real(rt)         :: c_v, eint
 
   do i = lo(1), hi(1)
   
@@ -90,7 +92,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      state(i,UMX) = 0.0
         
      ! set the composition to be all in the first species
-     state(i,UFS:UFS-1+nspec) = 0.d0
+     state(i,UFS:UFS-1+nspec) = 0.e0_rt
      state(i,UFS  ) = state(i,URHO)
      
      state(i,UEINT) = 0.0
@@ -112,12 +114,13 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use probdata_module
   use fundamental_constants_module, only: a_rad
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: level, nrad
   integer :: lo(1), hi(1)
   integer :: rad_state_l1,rad_state_h1
-  double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision ::  rad_state(rad_state_l1:rad_state_h1, nrad)
+  real(rt)         :: xlo(1), xhi(1), time, delta(1)
+  real(rt)         ::  rad_state(rad_state_l1:rad_state_h1, nrad)
 
   ! local variables
   integer :: i

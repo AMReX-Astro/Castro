@@ -1,11 +1,12 @@
 module sponge_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, save :: sponge_lower_factor, sponge_upper_factor
-  double precision, save :: sponge_lower_radius, sponge_upper_radius
-  double precision, save :: sponge_lower_density, sponge_upper_density
-  double precision, save :: sponge_timescale
+  real(rt)        , save :: sponge_lower_factor, sponge_upper_factor
+  real(rt)        , save :: sponge_lower_radius, sponge_upper_radius
+  real(rt)        , save :: sponge_lower_density, sponge_upper_density
+  real(rt)        , save :: sponge_timescale
 
 contains
 
@@ -21,30 +22,31 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
     integer          :: state_lo(3), state_hi(3)
     integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
-    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    double precision :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision :: dx(3), dt, time
-    double precision :: E_added, mom_added(3)
+    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)         :: dx(3), dt, time
+    real(rt)         :: E_added, mom_added(3)
 
     ! Local variables
 
-    double precision :: r(3), radius
-    double precision :: ke_old, E_old, mom_old(3)
-    double precision :: sponge_factor, alpha
-    double precision :: delta_r, delta_rho
-    double precision :: rho, rhoInv
-    double precision :: update_factor
+    real(rt)         :: r(3), radius
+    real(rt)         :: ke_old, E_old, mom_old(3)
+    real(rt)         :: sponge_factor, alpha
+    real(rt)         :: delta_r, delta_rho
+    real(rt)         :: rho, rhoInv
+    real(rt)         :: update_factor
 
     integer          :: i, j, k
 
-    double precision :: src(NVAR), snew(NVAR)
+    real(rt)         :: src(NVAR), snew(NVAR)
 
     ! Radial distance between upper and lower boundaries.
 

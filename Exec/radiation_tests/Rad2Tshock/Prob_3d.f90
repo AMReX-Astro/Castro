@@ -3,11 +3,12 @@ subroutine probinit(init, name, namlen, problo, probhi)
   use probdata_module
   use network, only : network_init
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(3), probhi(3)
+  real(rt)         problo(3), probhi(3)
   
   integer untin,i
   
@@ -68,47 +69,48 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec, naux
   use eos_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3, NVAR)
-  double precision :: time, delta(3)
-  double precision :: xlo(3), xhi(3)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3, NVAR)
+  real(rt)         :: time, delta(3)
+  real(rt)         :: xlo(3), xhi(3)
   
   integer :: i,j,k
-  double precision :: xcell, rhoInv
+  real(rt)         :: xcell, rhoInv
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)  
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
   
-           xcell = xmin  + delta(1) * (dble(i) + 0.5d0)
+           xcell = xmin  + delta(1) * (dble(i) + 0.5e0_rt)
            
-           if (xcell < 0.d0) then
+           if (xcell < 0.e0_rt) then
               state(i,j,k,URHO) = rho0
            
               ! set the composition to be all in the first species
-              state(i,j,k,UFS:UFS-1+nspec) = 0.d0
+              state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
               state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
               state(i,j,k,UTEMP) = T0
               state(i,j,k,UMX) = rho0*v0
-              state(i,j,k,UMY) = 0.0d0
-              state(i,j,k,UMZ) = 0.0d0
+              state(i,j,k,UMY) = 0.0e0_rt
+              state(i,j,k,UMZ) = 0.0e0_rt
            else
               state(i,j,k,URHO) = rho1
         
               ! set the composition to be all in the first species
-              state(i,j,k,UFS:UFS-1+nspec) = 0.d0
+              state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
               state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
               state(i,j,k,UTEMP) = T1
               state(i,j,k,UMX) = rho1*v1
-              state(i,j,k,UMY) = 0.0d0
-              state(i,j,k,UMZ) = 0.0d0
+              state(i,j,k,UMY) = 0.0e0_rt
+              state(i,j,k,UMZ) = 0.0e0_rt
            end if
  
            if (naux > 0) then
@@ -118,7 +120,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % rho = state(i,j,k,URHO)
            eos_state % T   = state(i,j,k,UTEMP)
 
-           rhoInv = 1.d0 / state(i,j,k,URHO)
+           rhoInv = 1.e0_rt / state(i,j,k,URHO)
            eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
            eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
            
@@ -126,7 +128,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
-                0.5d0*(state(i,j,k,UMX)**2 + &
+                0.5e0_rt*(state(i,j,k,UMX)**2 + &
                        state(i,j,k,UMY)**2 + &
                        state(i,j,k,UMZ)**2)/state(i,j,k,URHO)
         enddo
@@ -150,26 +152,27 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: level, nrad
   integer :: lo(3), hi(3)
   integer :: rad_state_l1,rad_state_l2,rad_state_l3,rad_state_h1,rad_state_h2,rad_state_h3
-  double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision ::  rad_state(rad_state_l1:rad_state_h1, &
+  real(rt)         :: xlo(3), xhi(3), time, delta(3)
+  real(rt)         ::  rad_state(rad_state_l1:rad_state_h1, &
                                  rad_state_l2:rad_state_h2, &
                                  rad_state_l3:rad_state_h3, 0:nrad-1)
 
   ! local variables
   integer :: i, j, k, igroup
-  double precision xcell, t
+  real(rt)         xcell, t
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcell = xmin + delta(1) * (dble(i) + 0.5d0)
+           xcell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
    
-           if (xcell < 0.d0) then
+           if (xcell < 0.e0_rt) then
               T = T0
            else
               T = T1

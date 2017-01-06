@@ -1,8 +1,9 @@
 module probdata_module
 
 !     Sod variables
-      double precision, save ::  p_ambient, dens_ambient, exp_energy
-      double precision, save ::  r_init
+      use bl_fort_module, only : rt => c_real
+      real(rt)        , save ::  p_ambient, dens_ambient, exp_energy
+      real(rt)        , save ::  r_init
       integer         , save ::  nsub
 
 !     These help specify which specific problem

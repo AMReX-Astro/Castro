@@ -3,11 +3,12 @@
 
       use probdata_module
       use network, only : network_init
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: init, namlen
       integer :: name(namlen)
-      double precision :: problo(1), probhi(1)
+      real(rt)         :: problo(1), probhi(1)
 
       integer :: untin,i
 
@@ -33,14 +34,14 @@
          
       ! set namelist defaults
 
-      rho_0 = 1.8212111d-5
-      T_0 = 0.1d0           ! keV
-      kappa_0 = 0.1d0
-      x_jump = 0.5d0
-      R = 1.d0
+      rho_0 = 1.8212111e-5_rt
+      T_0 = 0.1e0_rt           ! keV
+      kappa_0 = 0.1e0_rt
+      x_jump = 0.5e0_rt
+      R = 1.e0_rt
 
-      wref_l1 = 0.d0
-      wref_l2 = 0.d0
+      wref_l1 = 0.e0_rt
+      wref_l2 = 0.e0_rt
 
 !     Read namelists
       untin = 9
@@ -83,41 +84,42 @@
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
       use network, only : nspec, naux
       
+      use bl_fort_module, only : rt => c_real
       implicit none
       
       integer level, nscal
       integer lo(1), hi(1)
       integer state_l1,state_h1
-      double precision state(state_l1:state_h1,NVAR)
-      double precision time, delta(1)
-      double precision xlo(1), xhi(1)
+      real(rt)         state(state_l1:state_h1,NVAR)
+      real(rt)         time, delta(1)
+      real(rt)         xlo(1), xhi(1)
       
-      double precision xcen
+      real(rt)         xcen
       integer i
-      double precision Tcgs, B0, nu0, l0, x0, u0
-      double precision pi, rhoe_0
+      real(rt)         Tcgs, B0, nu0, l0, x0, u0
+      real(rt)         pi, rhoe_0
 
-      Tcgs = T_0 * 1.d3 * ev2erg / k_B
+      Tcgs = T_0 * 1.e3_rt * ev2erg / k_B
       
-      pi = 4.0d0*atan(1.0d0)
+      pi = 4.0e0_rt*atan(1.0e0_rt)
       B0 = 8.*pi*hplanck/c_light**3
       nu0 = k_B*Tcgs/hplanck
       l0 = nu0**3/kappa_0
-      x0 = l0/sqrt(3.d0)
+      x0 = l0/sqrt(3.e0_rt)
       u0 = B0*nu0**3
       
 !      rhoe_0 = R * k_B * Tcgs * u0 / hplanck
-      rhoe_0 = 99968636.6828d0 * Tcgs * rho_0
+      rhoe_0 = 99968636.6828e0_rt * Tcgs * rho_0
       !          cv            * T    * rho
 
       do i = lo(1), hi(1)
-         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+         xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
          
          state(i,URHO ) = rho_0
-         state(i,UMX  ) = 0.d0
+         state(i,UMX  ) = 0.e0_rt
          
          ! set the composition to be all in the first species
-         state(i,UFS:UFS-1+nspec) = 0.d0
+         state(i,UFS:UFS-1+nspec) = 0.e0_rt
          state(i,UFS) = state(i,URHO)
          if (naux > 0) then
             state(i,UFX) = state(i,URHO)
@@ -128,9 +130,9 @@
             state(i,UEINT) = rhoe_0
             state(i,UTEMP) = Tcgs
          else
-            state(i,UEDEN) = 0.d0
-            state(i,UEINT) = 0.d0
-            state(i,UTEMP) = 0.d0
+            state(i,UEDEN) = 0.e0_rt
+            state(i,UEINT) = 0.e0_rt
+            state(i,UTEMP) = 0.e0_rt
          end if
          
       enddo
@@ -146,6 +148,7 @@
 
         use probdata_module
 
+        use bl_fort_module, only : rt => c_real
         implicit none
         integer level, nrad
         integer lo(1), hi(1)
@@ -155,11 +158,11 @@
         real(kind=8) rad_state(rad_state_l1:rad_state_h1,nrad)
 
         ! local variables
-        double precision xcen
+        real(rt)         xcen
         integer i
 
         do i = lo(1), hi(1)  
-           rad_state(i, :) = 0.d0
+           rad_state(i, :) = 0.e0_rt
         enddo
 
       end subroutine ca_initrad

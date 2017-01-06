@@ -1,5 +1,6 @@
 module castro_util_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -15,11 +16,12 @@ contains
     use bl_constants_module, only: ZERO, HALF
 
     ! Input arguments
+    use bl_fort_module, only : rt => c_real
     integer :: i, j, k
     logical, optional :: ccx, ccy, ccz
 
     ! Local variables
-    double precision :: position(3), dx(3), offset(3)
+    real(rt)         :: position(3), dx(3), offset(3)
     integer :: idx(3)
     logical :: cc(3)
     integer :: domlo(3), domhi(3)
@@ -83,15 +85,16 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     ! Local variables
     integer          :: i,j,k
-    double precision :: u, v, w, rhoInv
+    real(rt)         :: u, v, w, rhoInv
 
     !
     ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
@@ -126,15 +129,16 @@ contains
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3), verbose
     integer          :: u_lo(3), u_hi(3)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
     integer          :: i,j,k
-    double precision :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
+    real(rt)         :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
 
     type (eos_t) :: eos_state
 
@@ -331,14 +335,15 @@ contains
          UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3),hi(3)
     integer         , intent(in   ) :: s_lo(3),s_hi(3)
-    double precision, intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     integer          :: i,j,k
-    double precision :: rhoInv
+    real(rt)         :: rhoInv
 
     type (eos_t) :: eos_state
 
@@ -407,15 +412,16 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: state_lo(3), state_hi(3)
-    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     ! Local variables
     integer          :: i, j, k
-    double precision :: spec_sum
+    real(rt)         :: spec_sum
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -423,7 +429,7 @@ contains
 
              spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
 
-             if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.d-8 * state(i,j,k,URHO)) then
+             if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
                 call bl_error("Error:: Failed check of initial species summing to 1")
@@ -445,15 +451,16 @@ contains
     use bl_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: u_lo(3), u_hi(3)
-    double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
     integer          :: i, j, k
-    double precision :: xn(nspec)
+    real(rt)         :: xn(nspec)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -483,7 +490,8 @@ contains
     use amrinfo_module, only: amr_level
     use prob_params_module, only: dx_level, dim
     
-    double precision :: loc(3)
+    use bl_fort_module, only : rt => c_real
+    real(rt)         :: loc(3)
 
     integer :: index(3)
 
@@ -507,14 +515,15 @@ contains
     use bl_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: i, j, k, dir
 
-    double precision :: area
+    real(rt)         :: area
 
     logical :: cc(3) = .true.
-    double precision :: dx(3), loc(3)
+    real(rt)         :: dx(3), loc(3)
 
     ! Force edge-centering along the direction of interest
 
@@ -636,13 +645,14 @@ contains
     use bl_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: i, j, k
 
-    double precision :: volume
+    real(rt)         :: volume
 
-    double precision :: dx(3), loc_l(3), loc_r(3)
+    real(rt)         :: dx(3), loc_l(3), loc_r(3)
 
     dx = dx_level(:,amr_level)
 
@@ -712,9 +722,10 @@ contains
 
     use prob_params_module, only : center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision, intent(inout) :: center_out(3)
+    real(rt)        , intent(inout) :: center_out(3)
 
     center_out = center
 
@@ -726,9 +737,10 @@ contains
 
     use prob_params_module, only : center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: center_in(3)
+    real(rt)         :: center_in(3)
 
     center = center_in
 
@@ -742,12 +754,13 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg, dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
-    double precision :: new_center(3)
-    double precision :: dx(3),problo(3)
-    double precision :: a,b,x,y,z,cen
+    real(rt)         :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
+    real(rt)         :: new_center(3)
+    real(rt)         :: dx(3),problo(3)
+    real(rt)         :: a,b,x,y,z,cen
     integer          :: icen(3)
     integer          :: i,j,k
 
@@ -814,24 +827,25 @@ contains
     use prob_params_module, only : center, dim
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3),nc
-    double precision :: dx(3),dr,problo(3)
+    real(rt)         :: dx(3),dr,problo(3)
 
     integer          :: numpts_1d
-    double precision :: radial_state(nc,0:numpts_1d-1)
-    double precision :: radial_vol(0:numpts_1d-1)
+    real(rt)         :: radial_state(nc,0:numpts_1d-1)
+    real(rt)         :: radial_vol(0:numpts_1d-1)
 
     integer          :: s_lo(3), s_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nc)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nc)
 
     integer          :: v_lo(3), v_hi(3)
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i,j,k,n,index
-    double precision :: x,y,z,r
-    double precision :: x_mom,y_mom,z_mom,radial_mom
+    real(rt)         :: x,y,z,r
+    real(rt)         :: x_mom,y_mom,z_mom,radial_mom
 
     if (dim .eq. 1) call bl_error("Error: cannot do ca_compute_avgstate in 1D.")
 
@@ -880,10 +894,11 @@ contains
 
   function linear_to_angular_momentum(loc, mom) result(ang_mom)
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: loc(3), mom(3)
-    double precision :: ang_mom(3)
+    real(rt)         :: loc(3), mom(3)
+    real(rt)         :: ang_mom(3)
 
     ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
     ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)

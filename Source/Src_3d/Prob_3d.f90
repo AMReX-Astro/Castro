@@ -1,10 +1,11 @@
 subroutine PROBINIT (init,name,namlen,problo,probhi)
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: init, namlen
   integer          :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
 
 end subroutine PROBINIT
 
@@ -36,13 +37,14 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
 
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nvar
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: xlo(3), xhi(3), time, dx(3)
-  double precision :: state(state_l1:state_h1, &
+  real(rt)         :: xlo(3), xhi(3), time, dx(3)
+  real(rt)         :: state(state_l1:state_h1, &
                             state_l2:state_h2, &
                             state_l3:state_h3,nvar)
 

@@ -5,8 +5,8 @@ program bc
   implicit none
 
   integer :: ngroups, igroup
-  double precision, allocatable :: xnu(:)
-  double precision :: T
+  real(rt)        , allocatable :: xnu(:)
+  real(rt)         :: T
 
   integer :: n
   character(len=256) :: line

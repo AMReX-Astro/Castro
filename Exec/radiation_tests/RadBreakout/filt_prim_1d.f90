@@ -12,26 +12,27 @@ subroutine ca_filt_prim(lo, hi, &
        small_temp, small_dens, nadv
   use filter_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1), domlo(1), domhi(1), level
   integer, intent(in) :: filt_T, S
-  double precision, intent(in) :: delta(1), xlo(1), problo(1), time
+  real(rt)        , intent(in) :: delta(1), xlo(1), problo(1), time
   integer, intent(in) ::   Stmp_l1,Stmp_h1
   integer, intent(in) ::   Snew_l1,Snew_h1
   integer, intent(in) ::   mask_l1,mask_h1
-  double precision :: Stmp(Stmp_l1:Stmp_h1,NVAR)
-  double precision :: Snew(Snew_l1:Snew_h1,NVAR)
-  double precision :: mask(mask_l1:mask_h1)
-  ! mask has three possible values: -1.d0, 0.d0, and 1.d0.
-  ! -1.d0 appears only in cells that are covered by neither this level nor the finer level.
+  real(rt)         :: Stmp(Stmp_l1:Stmp_h1,NVAR)
+  real(rt)         :: Snew(Snew_l1:Snew_h1,NVAR)
+  real(rt)         :: mask(mask_l1:mask_h1)
+  ! mask has three possible values: -1.e0_rt, 0.e0_rt, and 1.e0_rt.
+  ! -1.e0_rt appears only in cells that are covered by neither this level nor the finer level.
   !       It can only appear in ghost cells. 
-  !  0.d0 appears only in cells that are covered by only this level, but not the finer level.
-  !  1.d0 appears only in cells that are covered by the finer level.
+  !  0.e0_rt appears only in cells that are covered by only this level, but not the finer level.
+  !  1.e0_rt appears only in cells that are covered by the finer level.
   !       It can appear in either valid cells or ghost cells. 
 
   integer :: i
-  double precision :: rhotmpinv
+  real(rt)         :: rhotmpinv
   type(eos_t) :: eos_state
   logical, allocatable :: filtered(:)
 
@@ -124,7 +125,7 @@ subroutine ca_filt_prim(lo, hi, &
         eos_state % rho = Snew(i,URHO)
         eos_state % T = Snew(i,UTEMP)
 
-        rhotmpInv = 1.d0 / Stmp(i,URHO)
+        rhotmpInv = 1.e0_rt / Stmp(i,URHO)
         eos_state % xn  = Stmp(i,UFS:UFS+nspec-1) * rhotmpInv
         eos_state % aux = Stmp(i,UFX:UFX+naux-1) * rhotmpInv
 
