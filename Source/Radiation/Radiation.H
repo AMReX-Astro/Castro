@@ -3,8 +3,6 @@
 
 #include <AmrLevel.H>
 
-#include "LHH.H"
-
 #include "Castro.H"
 #include "RadTypes.H"
 #include "RadBndry.H"
