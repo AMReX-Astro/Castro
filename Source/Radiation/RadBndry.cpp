@@ -230,7 +230,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      setValue(face, i, value);
 	    }
 	    else {
-	      Fab& bnd_fab = bndry[face][i];
+	      FArrayBox& bnd_fab = bndry[face][i];
 	      const Box& bnd_box = bnd_fab.box();
 	      int iface = face.isLow() ? 0 : 1;
 	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
@@ -245,7 +245,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	  exit(2);
 
 #if 0
-	  Fab& bnd_fab = bndry[face][bi];
+	  FArrayBox& bnd_fab = bndry[face][bi];
 	  const Box& bnd_box = bnd_fab.box();
 	  BaseFab<int>& tfab = bctypearray[face][i];
 	  FORT_RADBNDRY2(bnd_fab.dataPtr(), dimlist(bnd_box),

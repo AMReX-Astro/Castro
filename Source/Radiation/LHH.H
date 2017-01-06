@@ -1,8 +1,6 @@
 #ifndef _LHH_H_
 #define _LHH_H_
 
-typedef FArrayBox Fab;
-
 #if (BL_SPACEDIM == 1)
 #  define intS  const int&, const int&
 #  define dimlist(a) a.smallEnd(0), a.bigEnd(0)

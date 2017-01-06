@@ -637,7 +637,7 @@ void HypreExtMultiABec::loadMatrix()
                     msk, reg, vin, rat[idir], bho, level);
           // fcoefs contains a2coefs, then ccoefs, then d2coefs, in order, but
           // only the ones that exist.  pc array does component translation.
-          const Fab& fcoefs = c_entry[level].faceData(ori)[i][j];
+          const FArrayBox& fcoefs = c_entry[level].faceData(ori)[i][j];
           for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
@@ -852,7 +852,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
         RadBoundCond     bct = bd[level].bndryConds(ori)[i];
         // bct may be changed below if this is a mixed boundary
         const Real      &bcl = bd[level].bndryLocs(ori)[i];
-        const Fab       &fs  = bd[level].bndryValues(ori)[mfi];
+        const FArrayBox       &fs  = bd[level].bndryValues(ori)[mfi];
         const Mask      &msk = bd[level].bndryMasks(ori)[i];
 //        const Box &bbox = bcoefs[level][idir][i].box();
 //        const Box &msb  = msk.box();
@@ -964,7 +964,7 @@ void HypreExtMultiABec::boundaryDterm(int level,
       int idim = oitr().coordDir();
       const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
       const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-      const Fab       &bcv  = bd[level].bndryValues(oitr())[mfi];
+      const FArrayBox       &bcv  = bd[level].bndryValues(oitr())[mfi];
       const Mask      &msk = bd[level].bndryMasks(oitr())[i];
       const Box &dtbox = Dterm[idim][mfi].box(); 
       const Box &sbox = Soln[mfi].box();

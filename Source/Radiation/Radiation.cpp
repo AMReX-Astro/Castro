@@ -1198,7 +1198,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
 #pragma omp parallel
 #endif
     {
-	Fab c_v;
+	FArrayBox c_v;
 	for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
 	    const Box& bx = mfi.tilebox();
 	    
@@ -1343,7 +1343,7 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
       Real relative_priv = 0.0;
       Real absolute_priv = 0.0;
       Real theta = 1.0;
-      Fab c_v;
+      FArrayBox c_v;
 
       for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
 	  const Box &reg = mfi.tilebox();
@@ -1585,8 +1585,8 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
   }
 }
 
-void Radiation::get_frhoe(Fab& frhoe,
-                          Fab& state,
+void Radiation::get_frhoe(FArrayBox& frhoe,
+                          FArrayBox& state,
                           const Box& reg)
 {
     const Box& fbox = frhoe.box();
@@ -1594,7 +1594,7 @@ void Radiation::get_frhoe(Fab& frhoe,
     cfrhoe(dimlist(reg), frhoe.dataPtr(), dimlist(fbox), state.dataPtr(), dimlist(sbox));
 }
 
-void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
+void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
                         const Box& reg)
 {
     if (do_real_eos == 1) {
@@ -1620,8 +1620,8 @@ void Radiation::get_c_v(Fab& c_v, Fab& temp, Fab& state,
 }
 
 // temp contains frhoe on input:
-void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
-                                    Fab& state, const Box& reg,
+void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
+                                    FArrayBox& state, const Box& reg,
 				    int igroup, Real delta_t)
 {
     const Box& fbox = fkp.box();
@@ -1663,9 +1663,9 @@ void Radiation::get_planck_and_temp(Fab& fkp, Fab& temp,
     }
 }
 
-void Radiation::get_rosseland_and_temp(Fab& kappa_r,
-                                       Fab& temp,
-                                       Fab& state,
+void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
+                                       FArrayBox& temp,
+                                       FArrayBox& state,
                                        const Box& reg,
 				       int igroup)
 {
@@ -1720,8 +1720,8 @@ void Radiation::get_rosseland_and_temp(Fab& kappa_r,
 
 // temp contains temp on input:
 
-void Radiation::get_planck_from_temp(Fab& fkp, Fab& temp,
-                                     Fab& state, const Box& reg,
+void Radiation::get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
+                                     FArrayBox& state, const Box& reg,
 				     int igroup)
 {
   if (use_opacity_table_module) {
@@ -1743,9 +1743,9 @@ void Radiation::get_planck_from_temp(Fab& fkp, Fab& temp,
   }
 }
 
-void Radiation::get_rosseland_from_temp(Fab& kappa_r,
-                                        Fab& temp,
-                                        Fab& state,
+void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
+                                        FArrayBox& temp,
+                                        FArrayBox& state,
                                         const Box& reg,
 					int igroup)
 {
@@ -1844,7 +1844,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 #pragma omp parallel
 #endif
   {
-      Fab temp;
+      FArrayBox temp;
       for(MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
       {
 	  const Box& reg = mfi.growntilebox();
@@ -2283,7 +2283,7 @@ void Radiation::scaledGradient(int level,
 #pragma omp parallel
 #endif
   {
-      Fab dtmp;
+      FArrayBox dtmp;
       for (int idim = 0; idim < BL_SPACEDIM; idim++) {
 
 	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
@@ -2381,7 +2381,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 #pragma omp parallel
 #endif
     {
-	Fab temp, c_v, kp, kp2;
+	FArrayBox temp, c_v, kp, kp2;
 	for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& reg = mfi.growntilebox();

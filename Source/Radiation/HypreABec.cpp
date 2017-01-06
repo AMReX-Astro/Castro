@@ -356,7 +356,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-	const Fab &fs  = bd.bndryValues(oitr())[vi];
+	const FArrayBox &fs  = bd.bndryValues(oitr())[vi];
 	const Box &fsb = fs.box();
 	Real* pSPa;
 	Box SPabox; 
@@ -391,7 +391,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 	      (*bcoefs[idim])[vi].dataPtr(), dimlist(bbox),
 	      beta, dx);
 	if (inhom) {
-	  const Fab &fs  = bd.bndryValues(oitr())[vi];
+	  const FArrayBox &fs  = bd.bndryValues(oitr())[vi];
 	  const Box &fsb = fs.box();
 	  hbvec(vec, dimlist(reg),
 		cdir, bct, bho, bcl,
@@ -466,7 +466,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 		int idim = oitr().coordDir();
 		const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 		const Real      &bcl = bd.bndryLocs(oitr())[i];
-		const Fab       &fs  = bd.bndryValues(oitr())[si];
+		const FArrayBox       &fs  = bd.bndryValues(oitr())[si];
 		const Mask      &msk = bd.bndryMasks(oitr())[i];
 		const Box &fbox = Flux[idim][si].box();
 		const Box &sbox = Soln[si].box();
@@ -888,7 +888,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 	idim = oitr().coordDir();
 	const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 	const Real      &bcl = bd.bndryLocs(oitr())[i];
-	const Fab       &fs  = bd.bndryValues(oitr())[di];
+	const FArrayBox       &fs  = bd.bndryValues(oitr())[di];
 	const Mask      &msk = bd.bndryMasks(oitr())[i];
 	const Box &bbox = (*bcoefs[idim])[di].box();
 	const Box &fsb  =  fs.box();

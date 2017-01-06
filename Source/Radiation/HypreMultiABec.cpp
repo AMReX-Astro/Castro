@@ -576,7 +576,7 @@ void HypreMultiABec::vectorGetBoxValues(HYPRE_SStructVector x,
                                         int part,
                                         const Box& reg,
                                         const BoxArray& sgr,
-                                        Fab& f, int fcomp)
+                                        FArrayBox& f, int fcomp)
 {
   BL_ASSERT(f.box() == reg);
   Real* vec = f.dataPtr(fcomp);
@@ -1653,7 +1653,7 @@ void HypreMultiABec::loadMatrix()
           const Box& reg = c_cintrp[level](ori)[i][j].box(); // adjacent cells
           const Box& creg = c_entry[level](ori)[i][j].box(); // adjacent cells
           const Mask& msk = c_cintrp[level].mask(ori)[i][j]; // fine mask
-          const Fab& fbcoefs = c_entry[level].faceData(ori)[i][j];
+          const FArrayBox& fbcoefs = c_entry[level].faceData(ori)[i][j];
           for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
@@ -1801,7 +1801,7 @@ void HypreMultiABec::loadLevelVectors(int level,
 	int idim = oitr().coordDir();
 	const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 	const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-	const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
+	const FArrayBox       &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
 	const Box &bbox = bcoefs[level][idim][mfi].box();
 	const Box &fsb  =  fs.box();
@@ -1913,7 +1913,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
 	int idim = oitr().coordDir();
 	const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 	const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-	const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
+	const FArrayBox       &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
 	const Box &bbox = bcoefs[level][idim][mfi].box();
 	const Box &fsb  =  fs.box();
@@ -3140,7 +3140,7 @@ void HypreMultiABec::boundaryFlux(int level,
 		int idim = oitr().coordDir();
 		const RadBoundCond &bct = bd[level].bndryConds(oitr())[i];
 		const Real      &bcl = bd[level].bndryLocs(oitr())[i];
-		const Fab       &fs  = bd[level].bndryValues(oitr())[mfi];
+		const FArrayBox       &fs  = bd[level].bndryValues(oitr())[mfi];
 		const Mask      &msk = bd[level].bndryMasks(oitr())[i];
 		const Box &fbox = Flux[idim][mfi].box();
 		const Box &sbox = Soln[mfi].box();
@@ -3282,7 +3282,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-	const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
+	const FArrayBox &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Box &fsb = fs.box();
 	Real* pSPa;
 	Box SPabox;
@@ -3318,7 +3318,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	      bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
 	      beta, geom[level].CellSize());
 	if (inhom) {
-	  const Fab &fs  = bd[level].bndryValues(oitr())[mfi];
+	  const FArrayBox &fs  = bd[level].bndryValues(oitr())[mfi];
 	  const Box &fsb = fs.box();
 	  hbvec(vec, dimlist(reg),
 		cdir, bct, bho, bcl,
