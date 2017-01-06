@@ -435,7 +435,7 @@ class HypreMultiABec {
                                  int part,
                                  const Box& reg,
                                  const BoxArray& sgr,
-                                 Fab& f, int fcomp);
+                                 FArrayBox& f, int fcomp);
 
 #if (BL_SPACEDIM == 1)
   static int vl[2];

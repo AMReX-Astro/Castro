@@ -1,6 +1,7 @@
 #ifndef _HABEC_F_H_
 #define _HABEC_F_H_
 
+#include "LHH.H"
 
 extern "C" {
   void hacoef(Real* mat, Real* acoefs, intS, intS,
