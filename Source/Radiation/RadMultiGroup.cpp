@@ -5,7 +5,8 @@
 #include "Radiation.H"
 
 #include "RAD_F.H"
-#include "LHH.H"
+
+#include "RadTests.H"
 
 #include <ParmParse.H>
 

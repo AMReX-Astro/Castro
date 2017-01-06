@@ -17,12 +17,5 @@ typedef FArrayBox Fab;
                      a.bigEnd(0),   a.bigEnd(1),   a.bigEnd(2)
 #endif
 
-class RadTests {
-
-public:
-
-  static int do_thermal_wave_cgs;
-  static int do_rad_sphere;
-};
 
 #endif

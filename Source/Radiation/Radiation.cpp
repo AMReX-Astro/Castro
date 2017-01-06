@@ -6,6 +6,8 @@
 
 #include "Castro_F.H"
 
+#include "RadTests.H"
+
 #undef BL_USE_ARLIM
 
 #include "RAD_F.H"
