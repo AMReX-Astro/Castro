@@ -607,8 +607,10 @@ protected:
     Real flux_crse_scale;
     Real flux_fine_scale;
 
+#if (BL_SPACEDIM <= 2)
     Real pres_crse_scale;
     Real pres_fine_scale;
+#endif
 
     //
     // Non-hydro source terms.
