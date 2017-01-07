@@ -31,7 +31,7 @@ contains
     integer i
     logical extremum, bigp, bigm
 
-    real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
+    real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
     real(rt)         sgn, sigma, s6, amax, delam, delap
     real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
 
@@ -45,13 +45,18 @@ contains
     ! s_{i+\half}^{H.O.}
     real(rt)        , allocatable :: sedge(:)
 
+    ! constant used in Colella 2008
+    real(rt), parameter :: C = 1.25e0_rt
+
+    ! a constant used for testing extrema
+    real(rt), parameter :: SMALL = 1.e-10_rt    
+
+
     ! cell-centered indexing
     allocate(sp(ilo-1:ihi+1))
     allocate(sm(ilo-1:ihi+1))
     
-    ! constant used in Colella 2008
-    C = 1.25e0_rt
-    
+
     ! cell-centered indexing w/extra x-ghost cell
     allocate(dsvl(ilo-2:ihi+2))
 
@@ -174,15 +179,15 @@ contains
              D2C = s(i-1)-TWO*s(i)+s(i+1)
              sgn = sign(ONE,D2)
              D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
-             alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
+             alpham = alpham*D2LIM/max(abs(D2),SMALL)
+             alphap = alphap*D2LIM/max(abs(D2),SMALL)
           else
              if (bigp) then
                 sgn = sign(ONE,alpham)
                 amax = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1) - s(i)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.e-10_rt) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
                       alphap = -TWO*alpham
@@ -194,7 +199,7 @@ contains
                 amax = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1) - s(i)
                if (sgn*amax .ge. sgn*delap) then
-                  if (sgn*(delap - alphap).ge.1.e-10_rt) then
+                  if (sgn*(delap - alphap).ge. SMALL) then
                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                   else
                      alpham = -TWO*alphap
