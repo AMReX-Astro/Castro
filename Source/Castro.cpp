@@ -2284,7 +2284,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt = parent->dtLevel(lev);
 
 	    for (int n = 0; n < num_src; ++n)
-		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
+                if (source_flag(n))
+		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
