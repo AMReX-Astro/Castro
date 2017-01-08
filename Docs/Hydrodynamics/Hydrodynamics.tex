@@ -669,7 +669,7 @@ s = \text{sign}(\alpha_{i,\mp})
 \end{equation}
 \begin{equation}
 \delta\mathcal{I}_{\text{ext}} = \frac{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
-\end{equation}
+\end{equation} \MarginPar{bad notation--shouldn't reuse $\mathcal{I}$ here}
 \begin{equation}
 \delta s = s_{i\mp 1} - s_i,
 \end{equation}
@@ -702,21 +702,21 @@ s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
   $\lambda_k$.\\ \\ Define the following integrals, where $\sigma_k =
   |\lambda_k|\Delta t/h$:
 \begin{eqnarray}
-\mathcal{I}_{i,+}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
-\mathcal{I}_{i,-}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
+\mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
+\mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
 \end{eqnarray}
 Plugging in (\ref{Quadratic Interp}) gives:
 \begin{eqnarray}
-\mathcal{I}_{i,+}(\sigma_k) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
-\mathcal{I}_{i,-}(\sigma_k) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
+\mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
+\mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
 \end{eqnarray}
 \item {\bf Step 4:} Obtain 1D edge states by performing a 1D
   extrapolation to get left and right edge states.  Note that we
   include an explicit source term contribution.
 \begin{eqnarray}
-s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,+}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
-s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,-}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n.
-\end{eqnarray}
+s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
+s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.
+\end{eqnarray} \MarginPar{this is old---we don't do flattening this way, nor is this the reference state we use}
 Here, $\rb_k$ is the $k^{\rm th}$ right column eigenvector of
 $\Rb(\Ab_d)$ and $\lb_k$ is the $k^{\rm th}$ left row eigenvector lf
 $\Lb(\Ab_d)$.  The flattening coefficient is $\chi_i$.
@@ -956,12 +956,23 @@ solution, effectively time-centering the source term.
 
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
-prediction.
+prediction.  The options are controlled by \runparam{castro.ppm\_temp\_fix},
+which takes values:
+\begin{itemize}
+  \item {\tt 0}: the default method---temperature is not considered
+
+  \item {\tt 1}: do parabolic reconstruction on $T$.  We then derive 
+
+
+\end{itemize}
+
+
+
 
 
 
 \section{Resets}
-<
+
 \subsection{Density Resets}
 
 Need to document {\tt density\_reset\_method}
