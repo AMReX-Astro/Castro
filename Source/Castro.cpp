@@ -743,11 +743,11 @@ Castro::initMFs()
 
 #if (BL_SPACEDIM <= 2)
 	    pres_crse_scale = flux_crse_scale;
-	    pres_fine_scale = flux_fine_scale / std::pow(crse_ratio[1], BL_SPACEDIM-1);
+	    pres_fine_scale = flux_fine_scale / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
 	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).pres_crse_scale = getLevel(lev).flux_crse_scale;
-		getLevel(lev).pres_fine_scale = getLevel(lev).flux_fine_scale / std::pow(getLevel(lev).crse_ratio[1], BL_SPACEDIM-1);
+		getLevel(lev).pres_fine_scale = getLevel(lev).flux_fine_scale / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
 #endif
 
@@ -768,11 +768,11 @@ Castro::initMFs()
 
 #if (BL_SPACEDIM <= 2)
 	    pres_crse_scale = 1.0;
-	    pres_fine_scale = 1.0 / std::pow(crse_ratio[1], BL_SPACEDIM-1);
+	    pres_fine_scale = 1.0 / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
 	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).pres_crse_scale = 1.0;
-		getLevel(lev).pres_fine_scale = 1.0 / std::pow(getLevel(lev).crse_ratio[1], BL_SPACEDIM-1);
+		getLevel(lev).pres_fine_scale = 1.0 / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
 #endif
 
