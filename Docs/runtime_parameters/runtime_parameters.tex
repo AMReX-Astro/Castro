@@ -296,7 +296,7 @@
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
 \rowcolor{tableShade}
-\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 0 \\
+\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 1 \\
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
 \rowcolor{tableShade}
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
