@@ -166,7 +166,7 @@ contains
     ! Compute Ip and Im -- this does the parabolic reconstruction,
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
-    do n=1,QVAR
+    do n = 1, QVAR
        call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
                 q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
                 flatn, &
@@ -212,12 +212,12 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
-          call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
-                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   flatn, &
-                   Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
-       endif
+       call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
+               q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
+                 flatn, &
+                 Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
+                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+    endif
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
