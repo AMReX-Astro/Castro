@@ -10,6 +10,23 @@ Some general notes:
 \begin{itemize}
 \item Regardless of the dimensionality, we always carry around all 3
   components of velocity/momentum---this allows for rotation sources easily.
+
+\item When radiation is enabled (via \ifdef{RADIATION}), we discuss
+  the gas and radiation quantities separately.  This generally applies
+  to the temperature, pressure, internal energy, various adiabatic
+  indices, and sound speed.  When we refer to the ``total'' value of
+  one of these, it means that both gas and radiation contributions
+  are included.  When we refer to the ``gas'' quantity, this is what
+  the equation of state would return.
+
+  For continuity, we continue to use the ``gas'' qualifier even if we
+  are not solving the radiation hydrodynamics equations.  In this
+  case, it still means that it comes through the equation of state,
+  but note some of our equations of state (like the helmeos) include a
+  radiation pressure contribution when we are running without
+  radiation hydrodynamics enabled.  In this case, we still refer to
+  this as the ``gas''.
+
 \end{itemize}
 
 \section{Hydrodynamics Data Structures}
@@ -961,8 +978,26 @@ which takes values:
 \begin{itemize}
   \item {\tt 0}: the default method---temperature is not considered
 
-  \item {\tt 1}: do parabolic reconstruction on $T$.  We then derive 
+  \item {\tt 1}: do parabolic reconstruction on $T$, giving
+    $\mathcal{I}_{+}^{(k)}(T_i)$.  We then derive the pressure and
+    internal energy (gas portion) via the equation of state as:
+    \begin{align}
+      \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
+      \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
+    \end{align}
 
+    The remainder of the hydrodynamics algorithm then proceeds unchanged.
+
+  \item {\tt 2}: on entering the Riemann solver, we recompute the
+    thermodynamics on the interfaces to ensure that they are all
+    consistent.  This is done by taking the interface values of
+    $\rho$, $e$, $X_k$, and computing the corresponding pressure, $p$
+    from this.
+
+  \item {\tt 3}: This does the characteristic tracing using the
+    $(\tau, u, T)$ eigensystem.  Note: this is not widely
+    implemented---see the \problem{Sod\_stellar} for an
+    implementation.
 
 \end{itemize}
 
