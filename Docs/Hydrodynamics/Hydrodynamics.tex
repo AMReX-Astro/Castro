@@ -1,3 +1,144 @@
+\section{Introduction}
+
+The hydrodynamics scheme in \castro\ implements an unsplit
+second-order Godunov method.  Characteristic tracing is used to
+time-center the input states to the Riemann solver.  The same
+hydrodynamics routines are used for pure hydro and radiation
+hydrodynamics.
+
+
+\section{Hydrodynamics Data Structures}
+
+Within the Fortran routines that implement the hydrodynamics, there are
+several main data structures that hold the state.  
+
+\begin{itemize}
+\item conserved state: these arrays generally begin with {\tt u},
+  e.g., \variable{uin}, \variable{uout}.  The \variable{NVAR}
+  components for the state data in the array are accessed using
+  integer keys defined in \ref{table:consints}.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt URHO} & $\rho$ \\
+          {\tt UMX} & $\rho u$ \\
+          {\tt UMY} & $\rho v$ \\
+          {\tt UMZ} & $\rho w$ \\
+          {\tt UEDEN} & $\rho E$ \\
+          {\tt UEINT} & $\rho e$ & this is computed from the other quantities using
+          $\rho e = \rho E - \rho \ub \cdot \ub / 2$ \\
+          {\tt UTEMP} & $T$  & this is computed from the other quantities using the EOS \\
+          {\tt UFA} & $\rho A_1$ & the first advected quantity \\
+          {\tt UFS} & $\rho X_1$ & the first species \\
+          {\tt UFX} & $\rho Y_1$ & the first auxiliary variable \\
+          {\tt USHK}& a shock flag & (used for shock detection) \\
+          {\tt UMR} & radial momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+          {\tt UML} & angular momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+          {\tt UMP} & vertical momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:consints} The integer variables to index the conservative state array}
+  \end{table}
+
+\item primitive variable state: these arrays generally simply called
+  {\tt q}, and has \variable{NQ} components.  Note: if
+  \ifdef{RADIATION} is defined, then there are \variable{QVAR}
+  components that are pure hydro out of the total {\tt NQ} components,
+  and the pure hydro components always come first in the state array.
+
+  Table~\ref{table:primlist} gives the names of the primitive variable integer
+  keys for accessing these arrays.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QRHO} & $\rho$ \\
+          {\tt  QU} & $u$ \\
+          {\tt  QV} & $v$ \\
+          {\tt  QW} & $w$ \\
+          {\tt  QPRES} & $p$ \\
+          {\tt  QREINT} & $\rho e$ \\
+          {\tt  QTEMP} & $T$ \\
+          {\tt  QGAME} & $p/(\rho e) + 1$ \\
+          {\tt  QFA} & $A_1$ & the first advected quantity \\
+          {\tt  QFS} & $X_1$ & the first species \\
+          {\tt  QFX} & $Y_1$ & the first auxiliary variable \\
+          {\tt QPTOT} & $p_\mathrm{tot}$ & the total pressure, gas + radiation \\
+          {\tt QREITOT} & $e_\mathrm{tot}$ & the total specific internal energy, gas + radiation  \\
+          {\tt QRAD} & $E_r$ & the radiation energy (there are \variable{ngroups} of these) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:primlist} The integer variable keys for
+      accessing the primitive state vector.  Note, unless otherwise
+      specified the quantities without a subscript are ``gas'' only
+      and those with the ``tot'' subscript are ``gas + radiation''.}
+  \end{table}
+
+\item auxillary primitive variables: these arrays are generally called
+  \variable{qaux}.  The main difference between these and the regular
+  primitive variables is that we do not attempt to do any
+  reconstruction on their profiles.  There are \variable{NQAUX} quantities, indexed
+  by the integer keys listed in table~\ref{table:qauxlist}.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QGAMC} & $\gamma_1$ & the first adiabatic exponent, as returned from the EOS \\
+          {\tt  QC} & $c_s$ & the sound speed, as returned from the EOS \\
+          {\tt  QCSML} & & a small sound speed used for cutoffs \\
+          {\tt  QDPDR} & $\partial p/\partial \rho |_e$ & computed via the EOS \\
+          {\tt  QDPDE} & $\partial p/\partial e|_\rho$ & computed via the EOS \\
+          {\tt  QGAMCG} & ${\Gamma_1}_\mathrm{tot}$ & includes radiation components (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QCG} & ${c_s}_\mathrm{tot}$ & total sound speed including radiation (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QLAMS} & $\lambda_f$ & the \variable{ngroups} flux limiters (defined only if \ifdef{RADIATION} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:qauxlist} The integer variable keys for
+      accessing the auxillary primitive state vector, {\tt quax}.
+      Note, unless otherwise specified the quantities without a
+      subscript are ``gas'' only and those with the ``tot'' subscript
+      are ``gas + radiation''.}
+  \end{table}
+
+\item interface variable: these are the time-centered interface states
+  returned by the Riemann solver.  They are used to discretize some
+  non-conservative terms in the equations.  These arrays are generally
+  called {\tt qx}, {\tt qy}, and {\tt qz} for the x, y, and z
+  interfaces respectively (in some places the numbers 1, 2, and 3 are
+  used instead).  There are \variable{NGDNV} components accessed with
+  the integer keys defined in table~\ref{table:gdlist}
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QGDRHO} & $\rho$ \\
+          {\tt  QDU} & $u$ \\
+          {\tt  QDV} & $v$ \\
+          {\tt  QDW} & $w$ \\ 
+          {\tt  QDPRES} & $p$ & regardless of whether \ifdef{RADIATION} is defined, this is always just the gas pressure \\
+          {\tt  QDGAME} & $\gamma_e = p/(\rho e) + 1$ & regardless of whether \ifdef{RADIATION} is defined, this is always just the gas contribution \\
+          {\tt  QDLAMS} & ${\lambda_f}$ & the starting index for the flux limiter---there are \variable{ngroups} components (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QDERADS} & $E_r$ & the starting index for the radiation energy---there are \variable{ngroups} components (defined only if \ifdef{RADIATION} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:gdlist} The integer variable keys for
+      accessing the Godunov interface state vectors.
+      Note, unless otherwise specified the quantities without a
+      subscript are ``gas'' only and those with the ``tot'' subscript
+      are ``gas + radiation''.}
+  \end{table}
+
+\end{itemize}
+
 \section{Conservation Forms}
 We begin with the fully compressible equations for the conserved state vector, 
 $\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):$
@@ -25,27 +166,6 @@ state vector even though they are derived from the other conserved
 quantities.  The ordering of the elements within $\Ub$ is defined
 by integer variables into the array---see
 Table~\ref{table:consints}
-\begin{table}[t]
-  \centering
-\begin{tabular}{llp{3.5in}}
-  \hline
-      {\bf variable} & {\bf quantity} & {\bf note} \\
-  \hline
-{\tt URHO} & $\rho$ \\
-{\tt UMX} & $\rho u$ \\
-{\tt UMY} & $\rho v$ \\
-{\tt UMZ} & $\rho w$ \\
-{\tt UEDEN} & $\rho E$ \\
-{\tt UEINT} & $\rho e$ & this is computed from the other quantities using
-             $\rho e = \rho E - \rho \ub \cdot \ub / 2$ \\
-{\tt UTEMP} & $T$  & this is computed from the other quantities using the EOS \\
-{\tt UFA} & $\rho A_1$ & the first advected quantity \\
-{\tt UFS} & $\rho X_1$ & the first species \\
-{\tt UFX} & $\rho Y_1$ & the first auxiliary variable \\
-\hline
-\end{tabular}
-\caption{\label{table:consints} The integer variables to index the conservative state array}
-\end{table}
 
 Some notes:
 \begin{itemize}
@@ -192,27 +312,6 @@ vector, as described in Section \ref{Sec:Compute Primitive Variables}.
 When accessing the primitive variable state vector, the integer variable
 keys for the different quantities are listed in Table~\ref{table:primlist}.
 
-\begin{table}[t]
-  \centering
-\begin{tabular}{llp{3.5in}}
-  \hline
-      {\bf variable} & {\bf quantity} & {\bf note} \\
-  \hline
-{\tt  QRHO} & $\rho$ \\
-{\tt  QU} & $u$ \\
-{\tt  QV} & $v$ \\
-{\tt  QW} & $w$ \\
-{\tt  QPRES} & $p$ \\
-{\tt  QREINT} & $\rho e$ \\
-{\tt  QTEMP} & $T$ \\
-{\tt  QFA} & $A_1$ & the first advected quantity \\
-{\tt  QFS} & $X_1$ & the first species \\
-{\tt  QFX} & $Y_1$ & the first auxiliary variable \\
- \hline
-\end{tabular}
-\caption{\label{table:primlist} The integer variable keys for accessing the
-  primitive state vector}
-\end{table}
 
 The full primitive variable form (without the advected or auxiliary quantities) is
 \begin{equation}
