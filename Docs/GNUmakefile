@@ -16,7 +16,7 @@ section_sources = Preface/Preface.tex \
                   runtime_parameters/rp_intro.tex \
                   ManagingJobs/managingjobs.tex \
                   FAQ/faq.tex \
-                  Equations/Equations.tex \
+                  Hydrodynamics/Hydrodynamics.tex \
 	          Gravity/CastroGravity.tex \
 	          Diffusion/CastroDiffusion.tex \
 	          Rotation/CastroRotation.tex \
