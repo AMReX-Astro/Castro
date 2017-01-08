@@ -9,6 +9,8 @@
 
   -- the sponge is now time-centered by default (issue #7)
 
+  -- the ppm_temp_fix stuff has been documented and made
+     consistent across dimensions (issue #25)
 
 # previous changes:
 

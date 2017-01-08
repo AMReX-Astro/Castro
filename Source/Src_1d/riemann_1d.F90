@@ -41,6 +41,11 @@ contains
 #endif
                     qaux, qa_l1, qa_h1, ilo, ihi)
 
+
+    use eos_type_module
+    use eos_module
+    use network, only: nspec, naux
+
 #ifdef RADIATION
     use rad_params_module, only : ngroups
 #endif
@@ -73,6 +78,8 @@ contains
     real(rt)        , allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
 #endif
 
+    type (eos_t) :: eos_state
+
     allocate ( smallc(ilo:ihi+1) )
     allocate ( cavg(ilo:ihi+1) )
     allocate ( gamcp(ilo:ihi+1) )
@@ -99,6 +106,67 @@ contains
        lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
     enddo
 #endif
+
+
+    if (ppm_temp_fix == 2) then
+       ! recompute the thermodynamics on the interface to make it
+       ! all consistent -- THIS PROBABLY DOESN"T WORK WITH RADIATION
+
+       ! we want to take the edge states of rho, p, and X, and get
+       ! new values for gamc and (rho e) on the edges that are
+       ! thermodynamically consistent.
+
+       do i = ilo, ihi+1
+
+          ! this is an initial guess for iterations, since we
+          ! can't be certain that temp is on interfaces
+          eos_state%T = 10000.0e0_rt
+
+          ! minus state
+          eos_state % rho = qm(i,QRHO)
+          eos_state % p   = qm(i,QPRES)
+          eos_state % e   = qm(i,QREINT)/qm(i,QRHO)
+          eos_state % xn  = qm(i,QFS:QFS-1+nspec)
+          eos_state % aux = qm(i,QFX:QFX-1+naux)
+
+          ! Protect against negative energies
+
+          if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+             eos_state % T = small_temp
+             call eos(eos_input_rt, eos_state)
+          else
+             call eos(eos_input_re, eos_state)
+          endif
+
+          qm(i,QREINT) = qm(i,QRHO)*eos_state%e
+          qm(i,QPRES) = eos_state%p
+          gamcm(i) = eos_state%gam1
+
+
+          ! plus state
+          eos_state % rho = qp(i,QRHO)
+          eos_state % p   = qp(i,QPRES)
+          eos_state % e   = qp(i,QREINT)/qp(i,QRHO)
+          eos_state % xn  = qp(i,QFS:QFS-1+nspec)
+          eos_state % aux = qp(i,QFX:QFX-1+naux)
+          
+          ! Protect against negative energies
+
+          if (allow_negative_energy .eq. 0 .and. eos_state % e < ZERO) then
+             eos_state % T = small_temp
+             call eos(eos_input_rt, eos_state)
+          else
+             call eos(eos_input_re, eos_state)
+          endif
+          
+          qp(i,QREINT) = qp(i,QRHO)*eos_state%e
+          qp(i,QPRES) = eos_state%p
+          gamcp(i) = eos_state%gam1
+          
+       enddo
+
+    endif
+
 
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
