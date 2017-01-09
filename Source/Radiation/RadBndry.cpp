@@ -14,6 +14,7 @@
 #undef BL_USE_ARLIM
 
 #include "RAD_F.H"
+#include "LHH.H"
 
 int         RadBndry::first = 1;
 Array<int>  RadBndry::bcflag(2*BL_SPACEDIM);

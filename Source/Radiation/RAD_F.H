@@ -2,7 +2,6 @@
 #define _RAD_F_H_
 
 #include <ArrayLim.H>
-#include <LHH.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
 #  define   FORT_KAVG    kavg_
@@ -756,170 +755,194 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
 extern "C" {
-  void multrs(Real* d, intS, intS, Real* r, Real* s);
+  void multrs(Real* d, ARLIM_P(cclo), ARLIM_P(cchi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi), Real* r, Real* s);
 
-  void sphc(Real* r, Real* s, intS, const Real* dx);
+  void sphc(Real* r, Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const Real* dx);
 
-  void sphe(Real* r, Real* s, const int& idim, intS, const Real* dx);
+  void sphe(Real* r, Real* s, const int& idim, 
+	    ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const Real* dx);
 
-  void lacoef(Real* acoefs, intS, intS,
+  void lacoef(Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      Real* fkp, Real* eta, Real* etainv,
 	      Real* r, Real* s,
 	      const Real& c, const Real& dt, const Real& theta);
 
   Real FORT_KAVG(const Real& a, const Real& b, const Real& d, const int& iopt);
 
-  void bclim(Real* bcoefs, Real* lambda, intS, intS, const int& idim,
-	     Real* kappa_r, intS,
+  void bclim(Real* bcoefs, Real* lambda, ARLIM_P(blo), ARLIM_P(bhi), 
+	     ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
+	     Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi),
 	     Real* r, Real* s,
 	     const Real& c, const Real* dx);
 
-  void flxlim(Real* lambda, intS, intS, const int& limiter);
+  void flxlim(Real* lambda, ARLIM_P(rlo), ARLIM_P(rhi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter);
 
-  void eddfac(Real* efact, intS, intS, const int& limiter, const int& idim);
+  void eddfac(Real* efact, ARLIM_P(rlo), ARLIM_P(rhi),
+	      ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter, const int& idim);
 
-  void scgrd1(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, const Real* dx);
+  void scgrd1(Real* R, ARLIM_P(rlo), ARLIM_P(rhi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
+	      Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi), Real* Er, const Real* dx);
 
-  void scgrd2(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, 
+  void scgrd2(Real* R, ARLIM_P(rlo), ARLIM_P(rhi),
+	      ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
+	      Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi), Real* Er, 
 #if (BL_SPACEDIM >= 2)
-	      intS, Real* dtmp1, 
+	      ARLIM_P(dlo), ARLIM_P(dhi), Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
 	      Real* dtmp2,
 #endif
 	      const Real* dx);
 
-  void scgrd3(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, 
+  void scgrd3(Real* R, ARLIM_P(rlo), ARLIM_P(rhi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
+	      Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi), Real* Er, 
 #if (BL_SPACEDIM >= 2)
-	      intS, Real* dtmp1, 
+	      ARLIM_P(dlo), ARLIM_P(dhi), Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
 	      Real* dtmp2,
 #endif
 	      const Real* dx);
 
-  void lrhs(Real* rhs, intS, intS,
+  void lrhs(Real* rhs, ARLIM_P(rlo), ARLIM_P(rhi),
+	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    Real* temp, Real* fkp, Real* eta, Real* etainv,
 	    Real* rhoem, Real* rhoes,
-	    Real* dflux_old, Real* Er_old, intS, Real* Edot,
+	    Real* dflux_old, Real* Er_old, ARLIM_P(elo), ARLIM_P(ehi), Real* Edot,
 	    Real* r, Real* s, const Real& delta_t, const Real& sigma,
 	    const Real& c, const Real& theta);
 
-  void anatw2(Real* test, intS,
+  void anatw2(Real* test, ARLIM_P(reglo), ARLIM_P(reghi),
 	      Real* temp,
 	      const Real& p, const Real& xf, const Real& Tc,
 	      const Real* dx, const Real* xlo, const int* lo);
 
-  void cfrhoe(intS, Real* frhoe, intS, Real* state, intS);
+  void cfrhoe(ARLIM_P(reglo), ARLIM_P(reghi), 
+	      Real* frhoe, ARLIM_P(flo), ARLIM_P(fhi), 
+	      Real* state, ARLIM_P(slo), ARLIM_P(shi));
 
-  void gtemp(intS,
-	     Real* temp, intS,
+  void gtemp(ARLIM_P(reglo), ARLIM_P(reghi),
+	     Real* temp, ARLIM_P(tlo), ARLIM_P(thi),
 	     Real* con, Real* em, Real* en,
-	     Real* state, intS);
+	     Real* state, ARLIM_P(slo), ARLIM_P(shi));
 
-  void gcv(intS,
-	   Real* c_v, intS, const Real* temp, intS,
+  void gcv(ARLIM_P(reglo), ARLIM_P(reghi),
+	   Real* c_v, ARLIM_P(clo), ARLIM_P(chi), 
+	   const Real* temp, ARLIM_P(tlo), ARLIM_P(thi),
 	   const Real* con, const Real* em, const Real* en, const Real* tf,
-	   const Real* state, intS);
+	   const Real* state, ARLIM_P(slo), ARLIM_P(shi));
 
-  void cexch(intS,
-	     Real* exch, intS,
-	     Real* er, intS, 
-	     Real* fkp, intS,
+  void cexch(ARLIM_P(reglo), ARLIM_P(reghi),
+	     Real* exch, ARLIM_P(xlo), ARLIM_P(xhi),
+	     Real* er, ARLIM_P(elo), ARLIM_P(ehi), 
+	     Real* fkp, ARLIM_P(klo), ARLIM_P(khi),
 	     const Real& sigma, const Real& c);
 
-  void ceta2(intS,
-	     Real* eta, Real* etainv, intS,
-	     Real* frho, intS, 
-	     Real* temp, intS,
-	     Real* c_v, intS,
-	     Real* fkp, intS,
-	     Real* er, intS,
+  void ceta2(ARLIM_P(reglo), ARLIM_P(reghi),
+	     Real* eta, Real* etainv, ARLIM_P(elo), ARLIM_P(ehi),
+	     Real* frho, ARLIM_P(slo), ARLIM_P(shi), 
+	     Real* temp, ARLIM_P(tlo), ARLIM_P(thi),
+	     Real* c_v, ARLIM_P(clo), ARLIM_P(chi),
+	     Real* fkp, ARLIM_P(flo), ARLIM_P(fhi),
+	     Real* er, ARLIM_P(elo), ARLIM_P(ehi),
 	     const Real& dT, const Real& delta_t, const Real& sigma,
 	     const Real& c, const Real& underr, const int& lagpla);
 
-  void ceup(intS, Real& relres, Real& absres,
-	    Real* frhoes, intS,
+  void ceup(ARLIM_P(reglo), ARLIM_P(reghi), Real& relres, Real& absres,
+	    Real* frhoes, ARLIM_P(glo), ARLIM_P(ghi),
 	    Real* frhoem, Real* eta, Real* etainv,
 	    Real* dflux_old, Real* dflux_new,
 	    Real* exch,
 	    const Real& delta_t, const Real& theta);
 
-  void ceupdterm(intS, Real& relres, Real& absres,
-		 Real* frhoes, intS,
+  void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), Real& relres, Real& absres,
+		 Real* frhoes, ARLIM_P(glo), ARLIM_P(ghi),
 		 Real* frhoem, Real* eta, Real* etainv,
 		 Real* dflux_old, Real* dflux_new,
 		 Real* exch, Real* dterm, 
 		 const Real& delta_t, const Real& theta);
 
-  void nceup(intS, Real& relres, Real& absres,
-	     Real* frhoes, intS,
+  void nceup(ARLIM_P(reglo), ARLIM_P(reghi), Real& relres, Real& absres,
+	     Real* frhoes, ARLIM_P(glo), ARLIM_P(ghi),
 	     Real* frhoem, Real* eta, Real* etainv,
-	     Real* er, intS, Real* dflux_old, Real* dflux_new,
-	     Real* temp, Real* fkp, Real* cv, Real* state, intS,
+	     Real* er, ARLIM_P(elo), ARLIM_P(ehi), Real* dflux_old, Real* dflux_new,
+	     Real* temp, Real* fkp, Real* cv, Real* state, ARLIM_P(slo), ARLIM_P(shi),
 	     const Real& sigma, const Real& c,
 	     const Real& delta_t, const Real& theta);
 
-  void cetot(intS, Real* state, intS, Real* rhoe, intS);
+  void cetot(ARLIM_P(reglo), ARLIM_P(reghi), 
+	     Real* state, ARLIM_P(slo), ARLIM_P(shi), Real* rhoe, ARLIM_P(flo), ARLIM_P(fhi));
 
-  void fkpn(intS,
-	    Real* fkp, intS,
+  void fkpn(ARLIM_P(reglo), ARLIM_P(reghi),
+	    Real* fkp, ARLIM_P(flo), ARLIM_P(fhi),
 	    Real* con, Real* em, Real* en,
 	    Real* ep, const Real& xnu, Real* tf,
-	    Real* temp, intS, 
-	    Real* state, intS);
+	    Real* temp, ARLIM_P(tlo), ARLIM_P(thi), 
+	    Real* state, ARLIM_P(slo), ARLIM_P(shi));
 
-  void rosse1(intS,
-	      Real* kappar, intS,
+  void rosse1(ARLIM_P(reglo), ARLIM_P(reghi),
+	      Real* kappar, ARLIM_P(klo), ARLIM_P(khi),
 	      Real* con, Real* em, Real* en,
 	      Real* ep, const Real& xnu,
 	      Real* tf, const Real& kfloor,
-	      Real* temp, intS, Real* state, intS);
+	      Real* temp, ARLIM_P(tlo), ARLIM_P(thi), 
+	      Real* state, ARLIM_P(slo), ARLIM_P(shi));
 
-  void rosse1s(intS,
-	       Real* kappar, intS,
+  void rosse1s(ARLIM_P(reglo), ARLIM_P(reghi),
+	       Real* kappar, ARLIM_P(klo), ARLIM_P(khi),
 	       Real* con, Real* em, Real* en,
 	       Real* ep, 
 	       Real* scon, Real* sem, Real* sen,
 	       Real* sep, 
 	       const Real& xnu,
 	       Real* tf, const Real& kfloor,
-	       Real* temp, intS, Real* state, intS);
+	       Real* temp, ARLIM_P(tlo), ARLIM_P(thi), 
+	       Real* state, ARLIM_P(slo), ARLIM_P(shi));
   
-  void nfloor(Real* dest, intS, intS,
+  void nfloor(Real* dest, ARLIM_P(dlo), ARLIM_P(dhi), 
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      int& nflr, const Real& flr, const int& nvar);
 
-  void lacoefmgfld(Real* a, intS, intS,
-		   Real* kappa, intS,
+  void lacoefmgfld(Real* a, ARLIM_P(alo), ARLIM_P(ahi), 
+		   ARLIM_P(reglo), ARLIM_P(reghi),
+		   Real* kappa, ARLIM_P(klo), ARLIM_P(khi),
 		   Real* r, Real* s,
 		   const Real& delta_t, const Real& c);
 
-  void rfface(Real* fine, intS, Real* cres, intS,
+  void rfface(Real* fine, ARLIM_P(flo), ARLIM_P(fhi), 
+	      Real* cres, ARLIM_P(clo), ARLIM_P(chi),
 	      const int& idim, const int* irat);
 
-  void FORT_RADBNDRY(Real* bf, intS, intS,
+  void FORT_RADBNDRY(Real* bf, ARLIM_P(blo), ARLIM_P(bhi),
+		     ARLIM_P(dlo), ARLIM_P(dhi), 
 		     const Real* dx, const Real* xlo, const Real& time,
                      const int& dir, const int& face);
 
-  void FORT_RADBNDRY2(Real* bf, intS, int* tfab, intS,
+  void FORT_RADBNDRY2(Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
+		      int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
 		      const Real* dx, const Real* xlo, const Real& time);
 
-  void bextrp(Real* f, intS, intS);
+  void bextrp(Real* f, ARLIM_P(flo), ARLIM_P(fhi), ARLIM_P(rlo), ARLIM_P(rhi));
 
   // neutrino routines below
 
   void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
-  void lbcoefna(Real* bcoef, Real* bcgrp, intS, intS,
-		Real* spec, intS,
+  void lbcoefna(Real* bcoef, Real* bcgrp, 
+		ARLIM_P(blo), ARLIM_P(bhi), 
+		ARLIM_P(bxlo), ARLIM_P(bxhi),
+		Real* spec, ARLIM_P(slo), ARLIM_P(shi),
 		const int& idim);
 
-  void ljupna(Real* jnew, intS, intS,
-	      Real* spec, intS,
-	      Real* accel, intS,
+  void ljupna(Real* jnew, ARLIM_P(jlo), ARLIM_P(jhi),
+	      ARLIM_P(reglo), ARLIM_P(reghi), 
+	      Real* spec, ARLIM_P(slo), ARLIM_P(shi),
+	      Real* accel, ARLIM_P(alo), ARLIM_P(ahi),
 	      const int& nTotal);
 };
 
