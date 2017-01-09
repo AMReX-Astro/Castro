@@ -11,6 +11,7 @@
 #undef BL_USE_ARLIM
 
 #include "RAD_F.H"
+#include "LHH.H"
 #include "PROB_AMR_F.H"
 
 #include <iostream>
