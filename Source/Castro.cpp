@@ -320,12 +320,6 @@ Castro::read_params ()
       }
 
 
-    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
-      {
-        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
-        BoxLib::Error();
-      }
-
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
