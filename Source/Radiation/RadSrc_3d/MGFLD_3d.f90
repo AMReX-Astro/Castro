@@ -606,7 +606,7 @@ subroutine ca_compute_rhs( lo, hi, &
      re2 , re2_l1, re2_l2, re2_l3, re2_h1, re2_h2, re2_h3, &
      Ers , Ers_l1, Ers_l2, Ers_l3, Ers_h1, Ers_h2, Ers_h3, &
      res , res_l1, res_l2, res_l3, res_h1, res_h2, res_h3, &
-     r, dt, igroup, tau)
+     r, dt, igroup, tau) bind(C, name="ca_compute_rhs")
 
   use rad_params_module, only : ngroups, clight
 
@@ -663,7 +663,7 @@ subroutine ca_compute_rhs_so( lo, hi, & ! MG Su-Olson
      Er2 , Er2_l1, Er2_l2, Er2_l3, Er2_h1, Er2_h2, Er2_h3, &
      re2 , re2_l1, re2_l2, re2_l3, re2_h1, re2_h2, re2_h3, &
      res , res_l1, res_l2, res_l3, res_h1, res_h2, res_h3, &
-     x, t, dt, igroup)
+     x, t, dt, igroup) bind(C, name="ca_compute_rhs_so")
 
   use rad_params_module, only : ngroups, clight
 
@@ -1205,7 +1205,7 @@ end subroutine ca_accel_ccoe
 subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_l2, t_l3, t_h1, t_h2, t_h3, &
      f, f_l1, f_l2, f_l3, f_h1, f_h2, f_h3, &
-     x, x_l1, x_h1, nt, idim, iflx)
+     x, x_l1, x_h1, nt, idim, iflx) bind(C, name="ca_flux_face2center")
 
   use rad_params_module, only : ngroups
   use bl_fort_module, only : rt => c_real
@@ -1373,7 +1373,7 @@ subroutine ca_spalpha( lo, hi, &
      lmx, lmx_l1, lmx_l2, lmx_l3, lmx_h1, lmx_h2, lmx_h3, &
      lmy, lmy_l1, lmy_l2, lmy_l3, lmy_h1, lmy_h2, lmy_h3, &
      lmz, lmz_l1, lmz_l2, lmz_l3, lmz_h1, lmz_h2, lmz_h3, &
-     igroup)
+     igroup) bind(C, name="ca_spalpha")
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDalpha

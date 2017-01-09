@@ -623,7 +623,7 @@ subroutine ca_compute_rhs_neut( lo, hi, &
      Ers , Ers_l1, Ers_h1, &
      res , res_l1, res_h1, &
      rYs , rYs_l1, rYs_h1, &
-     r, dt, igroup, tau)
+     r, dt, igroup, tau) bind(C, name="ca_compute_rhs_neut")
 
   use rad_params_module, only : ngroups, clight
 

@@ -550,7 +550,7 @@ subroutine ca_compute_rhs( lo, hi, &
      re2 , re2_l1, re2_h1, &
      Ers , Ers_l1, Ers_h1, &
      res , res_l1, res_h1, &
-     r, dt, igroup, tau)
+     r, dt, igroup, tau) bind(C, name="ca_compute_rhs")
 
   use rad_params_module, only : ngroups, clight
 
@@ -606,7 +606,7 @@ subroutine ca_compute_rhs_so( lo, hi, & ! MG Su-Olson
      Er2 , Er2_l1, Er2_h1, &
      re2 , re2_l1, re2_h1, &
      res , res_l1, res_h1, &
-     x, t, dt, igroup)
+     x, t, dt, igroup) bind(C, name="ca_compute_rhs_so")
 
   use rad_params_module, only : ngroups, clight
 
@@ -1097,7 +1097,8 @@ subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_h1, &
      f, f_l1, f_h1, &
      x, x_l1, x_h1, &
-     nt, idim, it)
+     nt, idim, it) bind(C, name="ca_flux_face2center")
+
   use bl_fort_module, only : rt => c_real
   implicit none
 
@@ -1221,7 +1222,7 @@ end subroutine ca_compute_powerlaw_kappa
 subroutine ca_spalpha( lo, hi, &
      spa, spa_l1, spa_h1, &
      lam, lam_l1, lam_h1, &
-     igroup)
+     igroup) bind(C, name="ca_spalpha")
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDalpha

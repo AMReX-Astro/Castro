@@ -278,7 +278,7 @@ subroutine ca_compute_dcoefs( lo, hi, &
      lam, lam_l1, lam_h1, &
      v ,    v_l1,   v_h1, &
      dcf, dcf_l1, dcf_h1, &
-     r, idir)
+     r, idir) bind(C, name="ca_compute_dcoefs")
 
   use bl_fort_module, only : rt => c_real
   implicit none
@@ -338,7 +338,8 @@ end subroutine ca_update_dcf
 
 subroutine ca_set_dterm_face( lo, hi, &
      Er, Er_l1, Er_h1, dc, dc_l1, dc_h1, &
-     dtf, dtf_l1, dtf_h1, dx, idir)
+     dtf, dtf_l1, dtf_h1, dx, idir) bind(C, name="ca_set_dterm_face")
+
   use bl_fort_module, only : rt => c_real
   implicit none
 
@@ -359,7 +360,7 @@ end subroutine ca_set_dterm_face
 subroutine ca_face2center( lo, hi, &
      scomp, dcomp, ncomp, nx, nc, &
      foox, foox_l1, foox_h1, &
-     fooc, fooc_l1, fooc_h1)
+     fooc, fooc_l1, fooc_h1) bind(C, name="ca_face2center")
 
   use bl_fort_module, only : rt => c_real
   implicit none
@@ -382,7 +383,7 @@ end subroutine ca_face2center
 
 ! no tiling
 subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
-     re, rc)
+     re, rc) bind(C, name="ca_correct_dterm")
 
   use bl_fort_module, only : rt => c_real
   implicit none

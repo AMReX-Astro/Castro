@@ -145,14 +145,14 @@ extern "C" {
     const BL_FORT_FAB_ARG(kp),
     const BL_FORT_FAB_ARG(kr));
 
-}
-
-BL_FORT_PROC_DECL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
+  void ca_compute_dcoefs
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(d), 
     const BL_FORT_FAB_ARG(lam), 
     const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
     const Real* r, const int* idir);
+
+}
  
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
@@ -165,14 +165,15 @@ BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
     const int lo[], const int hi[],
     const Real* dx, const int* limiter, const int* comoving); 
 
-BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
+extern "C" {
+  void ca_set_dterm_face
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Er),
     const BL_FORT_FAB_ARG(dcoef), 
     BL_FORT_FAB_ARG(dterm_face), 
     const Real* dx, const int* idir);
 
-BL_FORT_PROC_DECL(CA_FACE2CENTER, ca_face2center)
+  void ca_face2center
     (const int lo[], const int hi[], 
      const int& scomp, const int& dcomp, const int& ncomp, const int& nf, const int& nc,
      D_DECL(const BL_FORT_FAB_ARG(foox),
@@ -180,11 +181,12 @@ BL_FORT_PROC_DECL(CA_FACE2CENTER, ca_face2center)
 	    const BL_FORT_FAB_ARG(fooz)),
      BL_FORT_FAB_ARG(fooc));
 
-BL_FORT_PROC_DECL(CA_CORRECT_DTERM, ca_correct_dterm)
+  void ca_correct_dterm
     (D_DECL(BL_FORT_FAB_ARG(dfx),
 	    BL_FORT_FAB_ARG(dfy),
 	    BL_FORT_FAB_ARG(dfz)),
      const Real* re, const Real* rc);
+}
 
 // <MGFLD>
 extern "C" {
@@ -298,7 +300,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
      const BL_FORT_FAB_ARG(Er_star),
      const BL_FORT_FAB_ARG(rho),
      const Real* delta_t, const Real* tau);
-BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
+
+extern "C" {
+  void ca_compute_rhs_neut
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
@@ -318,6 +322,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
     const BL_FORT_FAB_ARG(rhoYe_star),    
     const Real* r,
     const Real* dt, const int* igroup, const Real* ptc_tau);
+}
+
 BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
@@ -466,7 +472,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETAT, ca_compute_etat)
      const BL_FORT_FAB_ARG(Er_star),
      const BL_FORT_FAB_ARG(rho),
      const Real* delta_t, const Real* tau);
-BL_FORT_PROC_DECL(CA_COMPUTE_RHS, ca_compute_rhs)
+
+extern "C" {
+  void ca_compute_rhs
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
@@ -479,6 +487,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS, ca_compute_rhs)
     const BL_FORT_FAB_ARG(rhoe_star),    
     const Real* r,
     const Real* dt, const int* igroup, const Real* ptc_tau);
+}
+
 BL_FORT_PROC_DECL(CA_LOCAL_ACCEL, ca_local_accel)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(Ern),
@@ -598,7 +608,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
     const Real* scattering_exp_p,
     const Real* prop_temp_floor);
 #ifdef MG_SU_OLSON
-BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
+extern "C" {
+  void ca_compute_rhs_so
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
     const BL_FORT_FAB_ARG(jg),
@@ -610,6 +621,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
     const BL_FORT_FAB_ARG(rhoe_star),    
     const Real* x,
     const Real* t, const Real* dt, const int* igroup);
+}
 #endif
 
 // other functions that work for both neutrino and photons
@@ -619,20 +631,27 @@ BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
     const BL_FORT_FAB_ARG(spec),
     BL_FORT_FAB_ARG(ccoe),
     const Real* dx, const int* idim, const int* igroup);
-BL_FORT_PROC_DECL(CA_FLUX_FACE2CENTER, ca_flux_face2center)
+
+
+extern "C"
+{
+
+  void ca_flux_face2center
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(test), 
     const BL_FORT_FAB_ARG(flx),
     const Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* iflx);
 
-BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
+  void ca_spalpha
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG(SPa),
     D_DECL(BL_FORT_FAB_ARG(lamx),
 	   BL_FORT_FAB_ARG(lamy),
 	   BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
+}
+
 BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG(rhs),

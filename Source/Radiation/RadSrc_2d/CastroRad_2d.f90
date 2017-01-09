@@ -527,7 +527,7 @@ subroutine ca_compute_dcoefs(lo, hi, &
                              lam, lam_l1, lam_l2, lam_h1, lam_h2, &
                              v ,    v_l1,   v_l2,   v_h1,   v_h2, &
                              dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
-                             r, idir)
+                             r, idir) bind(C, name="ca_compute_dcoefs")
 
   use bl_fort_module, only : rt => c_real
   implicit none
@@ -608,7 +608,8 @@ end subroutine ca_update_dcf
 subroutine ca_set_dterm_face(lo, hi, &
                              Er, Er_l1, Er_l2, Er_h1, Er_h2, &
                              dc, dc_l1, dc_l2, dc_h1, dc_h2, &
-                             dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir)
+                             dtf, dtf_l1, dtf_l2, dtf_h1, dtf_h2, dx, idir) bind(C, name="ca_set_dterm_face")
+
   use bl_fort_module, only : rt => c_real
   implicit none
 
@@ -642,7 +643,7 @@ subroutine ca_face2center(lo, hi, &
                           scomp, dcomp, ncomp, nf, nc, &
                           foox, foox_l1, foox_l2, foox_h1, foox_h2, &
                           fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
-                          fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2)
+                          fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2) bind(C, name="ca_face2center")
 
   use bl_fort_module, only : rt => c_real
   implicit none
@@ -673,7 +674,7 @@ end subroutine ca_face2center
 subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
                             dfy, dfy_l1, dfy_l2, dfy_h1, dfy_h2, &
-                            re, rc)
+                            re, rc) bind(C, name="ca_correct_dterm")
 
   use bl_fort_module, only : rt => c_real
   implicit none
