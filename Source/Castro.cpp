@@ -320,12 +320,6 @@ Castro::read_params ()
       }
 
 
-    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
-      {
-        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
-        BoxLib::Error();
-      }
-
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -741,31 +735,15 @@ Castro::initMFs()
 	    // fluxes, we want the total refluxing contribution
 	    // over the full set of fine timesteps to equal P_radial.
 
-	    pres_crse_scale = 1.0;
-
-#if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
-#endif
-
-	    pres_crse_scale *= flux_crse_scale;
-	    pres_fine_scale *= flux_fine_scale;
+#if (BL_SPACEDIM <= 2)
+	    pres_crse_scale = flux_crse_scale;
+	    pres_fine_scale = flux_fine_scale / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
 	    for (int lev = level - 1; lev > 0; --lev) {
-
-		getLevel(lev).pres_crse_scale = 1.0;
-
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
-
-		getLevel(lev).pres_crse_scale *= getLevel(lev).flux_crse_scale;
-		getLevel(lev).pres_fine_scale *= getLevel(lev).flux_fine_scale;
-
+		getLevel(lev).pres_crse_scale = getLevel(lev).flux_crse_scale;
+		getLevel(lev).pres_fine_scale = getLevel(lev).flux_fine_scale / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
+#endif
 
 	}
 	else if (reflux_strategy == 2) {
@@ -782,21 +760,15 @@ Castro::initMFs()
 		getLevel(lev).flux_fine_scale = 1.0;
 	    }
 
+#if (BL_SPACEDIM <= 2)
 	    pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
-#endif
+	    pres_fine_scale = 1.0 / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
 	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
+		getLevel(lev).pres_fine_scale = 1.0 / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
+#endif
 
 	}
 	else {
@@ -2306,7 +2278,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt = parent->dtLevel(lev);
 
 	    for (int n = 0; n < num_src; ++n)
-		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
+                if (source_flag(n))
+		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.

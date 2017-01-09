@@ -582,6 +582,9 @@ contains
     ! constant used in Colella 2008
     real(rt)        , parameter :: C = 1.25e0_rt
 
+    ! a constant used for testing extrema
+    real(rt), parameter :: SMALL = 1.e-10_rt    
+
     dtdx = dt/dx(1)
     dtdy = dt/dx(2)
     dtdz = dt/dx(3)
@@ -675,15 +678,15 @@ contains
              D2C    = s(i-1,j,k3d)-TWO*s(i,j,k3d)+s(i+1,j,k3d)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
-             alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.e-10_rt) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -695,7 +698,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.e-10_rt) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap
@@ -840,15 +843,15 @@ contains
              D2C    = s(i,j-1,k3d)-TWO*s(i,j,k3d)+s(i,j+1,k3d)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
-             alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j-1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.e-10_rt) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -860,7 +863,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j+1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.e-10_rt) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap
@@ -1010,15 +1013,15 @@ contains
              D2C    = s(i,j,k-1)-TWO*s(i,j,k)+s(i,j,k+1)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.e-10_rt)
-             alphap = alphap*D2LIM/max(abs(D2),1.e-10_rt)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j,k-1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.e-10_rt) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -1030,7 +1033,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j,k+1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.e-10_rt) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap

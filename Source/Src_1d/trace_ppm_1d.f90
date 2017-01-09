@@ -18,9 +18,12 @@ contains
                        qxm,qxp,qpd_l1,qpd_h1, &
                        ilo,ihi,domlo,domhi,dx,dt)
 
+    use network, only : nspec, naux
+    use eos_type_module
+    use eos_module
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
-         QGAME, &
+         QTEMP, QFS, QFX, QGAME, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_predict_gammae, ppm_reference_eigenvectors, &
@@ -50,7 +53,7 @@ contains
     real(rt)          qxp( qpd_l1: qpd_h1,QVAR)
 
     ! Local variables
-    integer :: i
+    integer :: i, iwave
     integer :: n, ipassive
 
     real(rt)         :: hdt,dtdx
@@ -104,6 +107,8 @@ contains
     real(rt)        , allocatable :: Ip_gc(:,:,:)
     real(rt)        , allocatable :: Im_gc(:,:,:)
 
+    type (eos_t) :: eos_state
+
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (ilo == domlo(1))
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
@@ -113,10 +118,6 @@ contains
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_1d.f90 :: trace_ppm")
     end if
-
-    if (ppm_temp_fix > 0) then
-       call bl_error("ERROR: ppm_temp_fix > 0 not implemented with radiation")
-    endif
 
     hdt = HALF * dt
     dtdx = dt/dx
@@ -162,7 +163,7 @@ contains
     ! Compute Ip and Im -- this does the parabolic reconstruction,
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
-    do n=1,QVAR
+    do n = 1, QVAR
        call ppm(q(:,n),qd_l1,qd_h1, &
                 q(:,QU),c, &
                 flatn, &
@@ -170,14 +171,47 @@ contains
                 ilo,ihi,dx,dt)
     enddo
 
+    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+    if (ppm_temp_fix == 1) then
+       do i = ilo-1, ihi+1
+          do iwave = 1, 3
+             eos_state%rho   = Ip(i,iwave,QRHO)
+             eos_state%T     = Ip(i,iwave,QTEMP)
+             eos_state%xn(:) = Ip(i,iwave,QFS:QFS-1+nspec)
+             eos_state%aux   = Ip(i,iwave,QFX:QFX-1+naux)
+
+             call eos(eos_input_rt, eos_state)
+
+             Ip(i,iwave,QPRES) = eos_state%p
+             Ip(i,iwave,QREINT) = Ip(i,iwave,QRHO)*eos_state%e
+             Ip_gc(i,iwave,1) = eos_state%gam1
+
+             eos_state%rho   = Im(i,iwave,QRHO)
+             eos_state%T     = Im(i,iwave,QTEMP)
+             eos_state%xn(:) = Im(i,iwave,QFS:QFS-1+nspec)
+             eos_state%aux   = Im(i,iwave,QFX:QFX-1+naux)
+
+             call eos(eos_input_rt, eos_state)
+
+             Im(i,iwave,QPRES) = eos_state%p
+             Im(i,iwave,QREINT) = Im(i,iwave,QRHO)*eos_state%e
+             Im_gc(i,iwave,1) = eos_state%gam1
+          enddo
+       enddo
+
+    endif
 
 
-    ! get an edge-based gam1 here
-    call ppm(gamc(:),qd_l1,qd_h1, &
-             q(:,QU),c, &
-             flatn, &
-             Ip_gc(:,:,1),Im_gc(:,:,1), &
-             ilo,ihi,dx,dt)
+    ! get an edge-based gam1 here if we didn't get it from the EOS
+    ! call above (for ppm_temp_fix = 1)
+    if (ppm_temp_fix /= 1) then
+       call ppm(gamc(:),qd_l1,qd_h1, &
+                 q(:,QU),c, &
+                 flatn, &
+                 Ip_gc(:,:,1),Im_gc(:,:,1), &
+                 ilo,ihi,dx,dt)
+    endif
 
     if (ppm_trace_sources == 1) then
        do n=1,QVAR
@@ -370,7 +404,7 @@ contains
           qxp(i  ,QREINT) = qxp(i,QREINT) + hdt*srcQ(i,QREINT)
           qxp(i  ,QPRES ) = qxp(i,QPRES ) + hdt*srcQ(i,QPRES)
 
-          ! add traced source terms as needed
+          ! if we didn't add the gravity source via tracing above, then add it now
           if (ppm_trace_sources == 0) then
              qxp(i  ,QU) = qxp(i,QU) + hdt*srcQ(i,QU)
           endif
@@ -535,7 +569,7 @@ contains
           qxm(i+1,QREINT) = qxm(i+1,QREINT) + hdt*srcQ(i,QREINT)
           qxm(i+1,QPRES ) = qxm(i+1,QPRES ) + hdt*srcQ(i,QPRES)
 
-          ! add traced source terms as needed
+          ! if we didn't add the gravity source via tracing above, then add it now
           if (ppm_trace_sources == 0) then
              qxm(i+1,QU) = qxm(i+1,QU) + hdt*srcQ(i,QU)
           endif
