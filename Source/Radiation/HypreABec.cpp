@@ -391,7 +391,6 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 	      beta, dx);
 	if (inhom) {
 	  const FArrayBox &fs  = bd.bndryValues(oitr())[vi];
-	  const Box &fsb = fs.box();
 	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct, bho, bcl,
 		BL_TO_FORTRAN_N(fs, bdcomp),
@@ -467,11 +466,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 		const Real      &bcl = bd.bndryLocs(oitr())[i];
 		const FArrayBox       &fs  = bd.bndryValues(oitr())[si];
 		const Mask      &msk = bd.bndryMasks(oitr())[i];
-		const Box &fbox = Flux[idim][si].box();
-		const Box &sbox = Soln[si].box();
-		const Box &fsb  =  fs.box();
-		const Box &msb  = msk.box();
-		const Box &bbox = (*bcoefs[idim])[si].box();
+
 		if (reg[oitr()] == domain[oitr()]) {
 		    const int *tfp = NULL;
 		    int bctype = bct;
@@ -495,22 +490,24 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 		    }
 		    getFaceMetric(r, reg, oitr(), geom);
-		    hbflx3(Flux[idim][si].dataPtr(), dimlist(fbox),
-			   Soln[si].dataPtr(icomp), dimlist(sbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+		    hbflx3(BL_TO_FORTRAN(Flux[idim][si]),
+			   BL_TO_FORTRAN_N(Soln[si], icomp),
+			   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 			   cdir, bctype, tfp, bho, bcl,
-			   fs.dataPtr(bdcomp), dimlist(fsb),
-			   msk.dataPtr(), dimlist(msb),
-			   (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+			   BL_TO_FORTRAN_N(fs, bdcomp),
+			   BL_TO_FORTRAN(msk),
+			   BL_TO_FORTRAN((*bcoefs[idim])[si]),
 			   beta, dx, flux_factor, r.dataPtr(), inhom,
-			   pSPa, dimlist(SPabox));
+			   pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
 		}
 		else {
-		    hbflx(Flux[idim][si].dataPtr(), dimlist(fbox),
-			  Soln[si].dataPtr(icomp), dimlist(sbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+		    hbflx(BL_TO_FORTRAN(Flux[idim][si]),
+			  BL_TO_FORTRAN_N(Soln[si], icomp),
+			  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 			  cdir, bct, bho, bcl,
-			  fs.dataPtr(bdcomp), dimlist(fsb),
-			  msk.dataPtr(), dimlist(msb),
-			  (*bcoefs[idim])[si].dataPtr(), dimlist(bbox),
+			  BL_TO_FORTRAN_N(fs, bdcomp),
+			  BL_TO_FORTRAN(msk),
+			  BL_TO_FORTRAN((*bcoefs[idim])[si]),
 			  beta, dx, inhom);
 		}
 	    }
@@ -580,14 +577,14 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     // build matrix interior
 
-    const Box &abox = (*acoefs)[ai].box();
-    hacoef(mat, (*acoefs)[ai].dataPtr(),
-	   dimlist(abox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
+    hacoef(mat, 
+	   BL_TO_FORTRAN((*acoefs)[ai]),
+	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      const Box &bbox = (*bcoefs[idim])[ai].box();
-      hbcoef(mat, (*bcoefs[idim])[ai].dataPtr(),
-	     dimlist(bbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta, dx, idim);
+      hbcoef(mat,
+	     BL_TO_FORTRAN((*bcoefs[idim])[ai]),
+	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta, dx, idim);
     }
 
     // add b.c.'s to matrix diagonal, and
@@ -625,16 +622,17 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
         getFaceMetric(r, reg, oitr(), geom);
 	hbmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	       cdir, bctype, tfp, bcl,
-	       dimlist(fsb), msk.dataPtr(), dimlist(msb),
-	       (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
+	       ARLIM(fsb.loVect()), ARLIM(fsb.hiVect()),
+	       BL_TO_FORTRAN(msk), 
+	       BL_TO_FORTRAN((*bcoefs[idim])[ai]),
 	       beta, dx, flux_factor, r.dataPtr(),
-	       pSPa, dimlist(SPabox));
+	       pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
       }
       else {
 	hbmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	      cdir, bct, bcl,
-	      msk.dataPtr(), dimlist(msb),
-	      (*bcoefs[idim])[ai].dataPtr(), dimlist(bbox),
+	      BL_TO_FORTRAN(msk),
+	      BL_TO_FORTRAN((*bcoefs[idim])[ai]),
 	      beta, dx);
       }
     }
@@ -890,8 +888,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 	const FArrayBox       &fs  = bd.bndryValues(oitr())[di];
 	const Mask      &msk = bd.bndryMasks(oitr())[i];
 	const Box &bbox = (*bcoefs[idim])[di].box();
-	const Box &fsb  =  fs.box();
-	const Box &msb  = msk.box();
+
         if (reg[oitr()] == domain[oitr()]) {
           const int *tfp = NULL;
           int bctype = bct;
@@ -903,17 +900,17 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
           getFaceMetric(r, reg, oitr(), geom);
 	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		 cdir, bctype, tfp, bho, bcl,
-		 fs.dataPtr(bdcomp), dimlist(fsb),
-		 msk.dataPtr(), dimlist(msb),
-		 (*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
+		 BL_TO_FORTRAN_N(fs, bdcomp),
+		 BL_TO_FORTRAN(msk),
+		 BL_TO_FORTRAN((*bcoefs[idim])[di]),
 		 beta, dx, r.dataPtr());
 	}
 	else {
 	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct, bho, bcl,
-		fs.dataPtr(bdcomp), dimlist(fsb),
-		msk.dataPtr(), dimlist(msb),
-		(*bcoefs[idim])[di].dataPtr(), dimlist(bbox),
+		BL_TO_FORTRAN_N(fs, bdcomp),
+		BL_TO_FORTRAN(msk),
+		BL_TO_FORTRAN((*bcoefs[idim])[di]),
 		beta, dx);
 	}
       }
