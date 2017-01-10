@@ -68,24 +68,24 @@ extern "C" {
 	      const int& inhom,
 	      const Real* spa, ARLIM_P(splo), ARLIM_P(sphi));
 
-  void hdterm(Real* dterm, ARLIM_P(dtlo), ARLIM_P(dthi),
-	      Real* soln, ARLIM_P(slo), ARLIM_P(shi), 
+  void hdterm(BL_FORT_FAB_ARG(dterm),
+	      BL_FORT_FAB_ARG(soln),
 	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const RadBoundCond& bct,
 	      const Real& bcl,
-	      const Real* bcval, ARLIM_P(bclo), ARLIM_P(bchi), 
-	      const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	      Real* dcoefs, ARLIM_P(dclo), ARLIM_P(dchi),
+	      const BL_FORT_FAB_ARG(bcval),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(dcoefs),
 	      const Real* dx);
 
-  void hdterm3(Real* dterm, ARLIM_P(dtlo), ARLIM_P(dthi),
-	       Real* soln, ARLIM_P(slo), ARLIM_P(shi),
+  void hdterm3(BL_FORT_FAB_ARG(dterm),
+	       BL_FORT_FAB_ARG(soln),
 	       ARLIM_P(reglo), ARLIM_P(reghi),
 	       const int& cdir, const int& bctype, const int* tf,
 	       const Real& bcl,
-	       const Real* bcval, ARLIM_P(bclo), ARLIM_P(bchi), 
-	       const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	       Real* dcoefs, ARLIM_P(dclo), ARLIM_P(dchi),
+	       const BL_FORT_FAB_ARG(bcval),
+	       const BL_FORT_IFAB_ARG(mask),
+	       BL_FORT_FAB_ARG(dcoefs),
 	       const Real* dx);
 
   void hmac(Real* mat, Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi),
@@ -96,19 +96,23 @@ extern "C" {
 	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const Real& beta, const Real* dx, const int& n);
 
-  void hma2c(Real* mat, Real* a2coefs, ARLIM_P(alo), ARLIM_P(ahi),
+  void hma2c(Real* mat, 
+	     BL_FORT_FAB_ARG(a2coefs), 
 	     ARLIM_P(reglo), ARLIM_P(reghi), 
 	     const Real& alpha2, const int& n);
 
-  void hmcc(Real* mat, Real* ccoefs, ARLIM_P(clo), ARLIM_P(chi), 
+  void hmcc(Real* mat, 
+	    BL_FORT_FAB_ARG(ccoefs),
 	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const Real& gamma, const Real* dx, const int& n);
 
-  void hmd1c(Real* mat, Real* d1coefs, ARLIM_P(d1lo), ARLIM_P(d1hi),
+  void hmd1c(Real* mat,
+	     BL_FORT_FAB_ARG(d1coefs),
 	     ARLIM_P(reglo), ARLIM_P(reghi),
 	     const Real& delta1, const Real* dx, const int& n);
 
-  void hmd2c(Real* mat, Real* d2coefs, ARLIM_P(d2lo), ARLIM_P(d2hi),
+  void hmd2c(Real* mat,
+	     BL_FORT_FAB_ARG(d2coefs),
 	     ARLIM_P(reglo), ARLIM_P(reghi),
 	     const Real& delta2, const Real* dx, const int& n);
 

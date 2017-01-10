@@ -952,13 +952,13 @@ extern "C" {
   void lbcoefna(Real* bcoef, Real* bcgrp, 
 		ARLIM_P(blo), ARLIM_P(bhi), 
 		ARLIM_P(bxlo), ARLIM_P(bxhi),
-		Real* spec, ARLIM_P(slo), ARLIM_P(shi),
+		BL_FORT_FAB_ARG(spec),
 		const int& idim);
 
-  void ljupna(Real* jnew, ARLIM_P(jlo), ARLIM_P(jhi),
+  void ljupna(BL_FORT_FAB_ARG(jnew), 
 	      ARLIM_P(reglo), ARLIM_P(reghi), 
-	      Real* spec, ARLIM_P(slo), ARLIM_P(shi),
-	      Real* accel, ARLIM_P(alo), ARLIM_P(ahi),
+	      BL_FORT_FAB_ARG(spec),
+	      BL_FORT_FAB_ARG(accel), 
 	      const int& nTotal);
 };
 
