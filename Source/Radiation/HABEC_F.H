@@ -90,11 +90,13 @@ extern "C" {
 	       BL_FORT_FAB_ARG(dcoefs),
 	       const Real* dx);
 
-  void hmac(Real* mat, Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi),
+  void hmac(Real* mat, 
+	    BL_FORT_FAB_ARG(acoefs),
 	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const Real& alpha);
 
-  void hmbc(Real* mat, Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+  void hmbc(Real* mat,
+	    BL_FORT_FAB_ARG(bcoefs),
 	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const Real& beta, const Real* dx, const int& n);
 
@@ -121,15 +123,15 @@ extern "C" {
   void hmmat(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct,
 	     const int& bho, const Real& bcl,
-	     const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const Real& beta, const Real* dx);
 
   void hmmat3(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const Real& bcl, ARLIM_P(fslo), ARLIM_P(fshi),
-	      const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	      Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const Real& beta, const Real* dx,
 	      const Real& flux_factor, const Real* r,
 	      Real* spa, ARLIM_P(splo), ARLIM_P(sphi));
