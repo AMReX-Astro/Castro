@@ -2,7 +2,7 @@
 #include "REAL.H"
 #include "CONSTANTS.H"
 #include "RADINTERPBNDRYDATA_F.H"
-#include "DIMS.H"
+#include "ArrayLim.H"
 
 #define SDIM 3
 #define NUMDERIV 5
