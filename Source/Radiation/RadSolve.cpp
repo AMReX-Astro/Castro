@@ -14,8 +14,6 @@
 #include <omp.h>
 #endif
 
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 
 #include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?

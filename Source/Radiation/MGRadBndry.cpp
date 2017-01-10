@@ -10,10 +10,6 @@
 #include <omp.h>
 #endif
 
-#include "LHH.H"
-
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 
 int         MGRadBndry::ngroups = 1;

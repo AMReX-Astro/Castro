@@ -8,8 +8,6 @@
 
 #include "RadTests.H"
 
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 #include "PROB_AMR_F.H"
 
