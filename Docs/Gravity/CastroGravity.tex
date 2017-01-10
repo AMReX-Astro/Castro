@@ -45,8 +45,10 @@ The overall integration strategy is unchanged from the discussion in
 \item Then we do the fine grid timestep(s), each using the same
   strategy
 
-\item At the end of the fine grid timesteps, if we're doing a sync
-  solve ({\tt gravity.no\_sync = 0}), we then do a solve starting from
+\item At an AMR synchronization step across levels (see Section \ref{sec:amr_synchronization}
+  for a description of when these synchronizations occur), if we're choosing
+  to synchronize the gravitational field across levels ({\tt gravity.no\_sync = 0})
+  we then do a solve starting from
   the coarse grid that adjusts for the mismatch between the fine-grid
   phi and the coarse-grid phi, as well as the mismatch between the
   fine-grid density fluxes and the coarse-grid density fluxes, and add
