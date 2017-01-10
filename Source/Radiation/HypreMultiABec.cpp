@@ -1425,12 +1425,12 @@ void HypreMultiABec::loadMatrix()
 
       const Box &abox = acoefs[level][mfi].box();
       hmac(mat, acoefs[level][mfi].dataPtr(),
-	   dimlist(abox), dimlist(reg), alpha);
+	   dimlist(abox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
 	const Box &bbox = bcoefs[level][idim][mfi].box();
 	hmbc(mat, bcoefs[level][idim][mfi].dataPtr(),
-	     dimlist(bbox), dimlist(reg), beta,
+	     dimlist(bbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta,
 	     geom[level].CellSize(), idim);
       }
 
@@ -1471,7 +1471,7 @@ void HypreMultiABec::loadMatrix()
 	      SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	    }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            hmmat3(mat, dimlist(reg),
+            hmmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		   cdir, bctype, tfp, bho, bcl,
 		   dimlist(fsb), msk.dataPtr(), dimlist(msb),
 		   bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
@@ -1480,7 +1480,7 @@ void HypreMultiABec::loadMatrix()
 		   pSPa, dimlist(SPabox));
           }
           else {
-            hmmat(mat, dimlist(reg),
+            hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		  cdir, bct, bho, bcl,
 		  msk.dataPtr(), dimlist(msb),
 		  bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
@@ -1494,7 +1494,7 @@ void HypreMultiABec::loadMatrix()
           // stencil using Neumann BC:
 
           const RadBoundCond bct_coarse = LO_NEUMANN;
-	  hmmat(mat, dimlist(reg),
+	  hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct_coarse, bho, bcl,
 		msk.dataPtr(), dimlist(msb),
 		bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
@@ -1820,7 +1820,7 @@ void HypreMultiABec::loadLevelVectors(int level,
               bctype = -1;
             }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, dimlist(reg),
+            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		   cdir, bctype, tfp, bho, bcl,
 		   fs.dataPtr(bdcomp), dimlist(fsb),
 		   msk.dataPtr(), dimlist(msb),
@@ -1828,7 +1828,7 @@ void HypreMultiABec::loadLevelVectors(int level,
 		   beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
-            hbvec(vec, dimlist(reg),
+            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		  cdir, bct, bho, bcl,
 		  fs.dataPtr(bdcomp), dimlist(fsb),
 		  msk.dataPtr(), dimlist(msb),
@@ -1932,7 +1932,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
               bctype = -1;
             }
             getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, dimlist(reg),
+            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		   cdir, bctype, tfp, bho, bcl,
 		   fs.dataPtr(bdcomp), dimlist(fsb),
 		   msk.dataPtr(), dimlist(msb),
@@ -1940,7 +1940,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
 		   beta, geom[level].CellSize(), r.dataPtr());
           }
           else {
-            hbvec(vec, dimlist(reg),
+            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		  cdir, bct, bho, bcl,
 		  fs.dataPtr(bdcomp), dimlist(fsb),
 		  msk.dataPtr(), dimlist(msb),
@@ -3171,7 +3171,7 @@ void HypreMultiABec::boundaryFlux(int level,
 		    }
 		    getFaceMetric(r, reg, oitr(), geom[level]);
 		    hbflx3(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-			   Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			   Soln[mfi].dataPtr(icomp), dimlist(sbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 			   cdir, bctype, tfp, bho, bcl,
 			   fs.dataPtr(bdcomp), dimlist(fsb),
 			   msk.dataPtr(), dimlist(msb),
@@ -3182,7 +3182,7 @@ void HypreMultiABec::boundaryFlux(int level,
 		}
 		else {
 		    hbflx(Flux[idim][mfi].dataPtr(), dimlist(fbox),
-			  Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+			  Soln[mfi].dataPtr(icomp), dimlist(sbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 			  cdir, bct, bho, bcl,
 			  fs.dataPtr(bdcomp), dimlist(fsb),
 			  msk.dataPtr(), dimlist(msb),
@@ -3253,12 +3253,12 @@ void HypreMultiABec::initializeApplyLevel(int level,
 
     const Box &abox = acoefs[level][mfi].box();
     hmac(mat, acoefs[level][mfi].dataPtr(),
-	 dimlist(abox), dimlist(reg), alpha);
+	 dimlist(abox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; idim++) {
       const Box &bbox = bcoefs[level][idim][mfi].box();
       hmbc(mat, bcoefs[level][idim][mfi].dataPtr(),
-	   dimlist(bbox), dimlist(reg), beta,
+	   dimlist(bbox), ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta,
 	   geom[level].CellSize(), idim);
     }
 
@@ -3295,7 +3295,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
         getFaceMetric(r, reg, oitr(), geom[level]);
-        hmmat3(mat, dimlist(reg),
+        hmmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	       cdir, bctype, tfp, bho, bcl,
 	       dimlist(fsb), msk.dataPtr(), dimlist(msb),
 	       bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
@@ -3303,7 +3303,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	       flux_factor, r.dataPtr(),
 	       pSPa, dimlist(SPabox));
 	if (inhom) {
-	  hbvec3(vec, dimlist(reg),
+	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		 cdir, bctype, tfp, bho, bcl,
 		 fs.dataPtr(bdcomp), dimlist(fsb),
 		 msk.dataPtr(), dimlist(msb),
@@ -3312,7 +3312,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	}
       }
       else {
-	hmmat(mat, dimlist(reg),
+	hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	      cdir, bct, bho, bcl,
 	      msk.dataPtr(), dimlist(msb),
 	      bcoefs[level][idim][mfi].dataPtr(), dimlist(bbox),
@@ -3320,7 +3320,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	if (inhom) {
 	  const FArrayBox &fs  = bd[level].bndryValues(oitr())[mfi];
 	  const Box &fsb = fs.box();
-	  hbvec(vec, dimlist(reg),
+	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct, bho, bcl,
 		fs.dataPtr(bdcomp), dimlist(fsb),
 		msk.dataPtr(), dimlist(msb),

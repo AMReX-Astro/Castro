@@ -6,25 +6,27 @@
 #include <BLFort.H>
 
 extern "C" {
-  void hacoef(Real* mat, Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi), 
+  void hacoef(Real* mat, 
+	      BL_FORT_FAB_ARG(acoefs),
 	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const Real& alpha);
 
-  void hbcoef(Real* mat, Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi), 
+  void hbcoef(Real* mat, 
+	      BL_FORT_FAB_ARG(bcoefs),
 	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const Real& beta, const Real* dx, const int& n);
 
   void hbmat(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const Real& bcl,
-	     const int* mask, ARLIM_P(mlo),ARLIM_P(mhi),
-	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const Real& beta, const Real* dx);
 
   void hbmat3(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype,
 	      const int* tf, const Real& bcl, ARLIM_P(flo), ARLIM_P(fhi),
-	      const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	      Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const Real& beta, const Real* dx,
 	      const Real& flux_factor, const Real* r,
 	      const Real* spa, ARLIM_P(slo), ARLIM_P(shi));
@@ -32,17 +34,17 @@ extern "C" {
   void hbvec(Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const int& bho,
 	     const Real& bcl,
-	     const Real* bcval, ARLIM_P(flo), ARLIM_P(fhi), 
-	     const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	     const BL_FORT_FAB_ARG(bcval),
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const Real& beta, const Real* dx);
 
   void hbvec3(Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const Real& bcl,
-	      const Real* bcval, ARLIM_P(flo), ARLIM_P(fhi), 
-	      const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
-	      Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
+	      const BL_FORT_FAB_ARG(bcval),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const Real& beta, const Real* dx, const Real* r);
 
   void hbflx(Real* flux, ARLIM_P(flo), ARLIM_P(fhi),
