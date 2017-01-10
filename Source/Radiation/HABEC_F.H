@@ -3,6 +3,7 @@
 
 #include "LHH.H"
 #include <ArrayLim.H>
+#include <BLFort.H>
 
 extern "C" {
   void hacoef(Real* mat, Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi), 
@@ -18,12 +19,6 @@ extern "C" {
 	     const int* mask, ARLIM_P(mlo),ARLIM_P(mhi),
 	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
 	     const Real& beta, const Real* dx);
-
-  // void hbmat2(Real* mat, intS,
-  // 	      const int& cdir, const int* tf, const Real& bcl, intS,
-  // 	      const int* mask, intS,
-  // 	      Real* bcoefs, intS,
-  // 	      const Real& beta, const Real* dx);
 
   void hbmat3(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype,
@@ -42,13 +37,6 @@ extern "C" {
 	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
 	     const Real& beta, const Real* dx);
 
-  // void hbvec2(Real* vec, intS,
-  // 	      const int& cdir, const int* tf,
-  // 	      const int& bho, const Real& bcl,
-  // 	      const Real* bcval, intS, const int* mask, intS,
-  // 	      Real* bcoefs, intS,
-  // 	      const Real& beta, const Real* dx);
-
   void hbvec3(Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const Real& bcl,
@@ -66,14 +54,6 @@ extern "C" {
 	     const int* mask, ARLIM_P(mlo), ARLIM_P(mhi),
 	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
 	     const Real& beta, const Real* dx, const int& inhom);
-
-  // void hbflx2(Real* flux, intS,
-  // 	      Real* soln, intS, intS,
-  // 	      const int& cdir, const int* tf,
-  // 	      const int& bho, const Real& bcl,
-  // 	      const Real* bcval, intS, const int* mask, intS,
-  // 	      Real* bcoefs, intS,
-  // 	      const Real& beta, const Real* dx, const int& inhom);
 
   void hbflx3(Real* flux, ARLIM_P(flo), ARLIM_P(fhi),
 	      Real* soln, ARLIM_P(slo), ARLIM_P(shi),
@@ -139,13 +119,6 @@ extern "C" {
 	     Real* bcoefs, ARLIM_P(blo), ARLIM_P(bhi),
 	     const Real& beta, const Real* dx);
 
-  // void hmmat2(Real* mat, intS,
-  // 	      const int& cdir, const int* tf,
-  // 	      const int& bho, const Real& bcl, intS,
-  // 	      const int* mask, intS,
-  // 	      Real* bcoefs, intS,
-  // 	      const Real& beta, const Real* dx);
-
   void hmmat3(Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const Real& bcl, ARLIM_P(fslo), ARLIM_P(fshi),
@@ -165,11 +138,11 @@ extern "C" {
 
   void set_abec_flux(ARLIM_P(reglo), ARLIM_P(reghi), 
 		     int*,
-		     Real*, ARLIM_P(dlo), ARLIM_P(dhi),
-		     Real*, ARLIM_P(dclo), ARLIM_P(dchi),
+		     BL_FORT_FAB_ARG(c), 
+		     BL_FORT_FAB_ARG(d), 
 		     const Real*,
 		     const Real*,
-		     Real*, ARLIM_P(flo), ARLIM_P(fhi));
+		     BL_FORT_FAB_ARG(flux));
 };
 
 #endif

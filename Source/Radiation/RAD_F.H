@@ -755,7 +755,7 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
 extern "C" {
-  void multrs(Real* d, ARLIM_P(cclo), ARLIM_P(cchi), 
+  void multrs(BL_FORT_FAB_ARG(cc), 
 	      ARLIM_P(reglo), ARLIM_P(reghi), Real* r, Real* s);
 
   void sphc(Real* r, Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const Real* dx);
@@ -763,7 +763,7 @@ extern "C" {
   void sphe(Real* r, Real* s, const int& idim, 
 	    ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const Real* dx);
 
-  void lacoef(Real* acoefs, ARLIM_P(alo), ARLIM_P(ahi), 
+  void lacoef(BL_FORT_FAB_ARG(acoefs), 
 	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      Real* fkp, Real* eta, Real* etainv,
 	      Real* r, Real* s,
@@ -771,9 +771,10 @@ extern "C" {
 
   Real FORT_KAVG(const Real& a, const Real& b, const Real& d, const int& iopt);
 
-  void bclim(Real* bcoefs, Real* lambda, ARLIM_P(blo), ARLIM_P(bhi), 
+  void bclim(Real* bcoefs, 
+	     BL_FORT_FAB_ARG(lambda), 
 	     ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
-	     Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi),
+	     BL_FORT_FAB_ARG(kappa_r), 
 	     Real* r, Real* s,
 	     const Real& c, const Real* dx);
 
@@ -815,11 +816,13 @@ extern "C" {
 #endif
 	      const Real* dx);
 
-  void lrhs(Real* rhs, ARLIM_P(rlo), ARLIM_P(rhi),
+  void lrhs(BL_FORT_FAB_ARG(rhs), 
 	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    Real* temp, Real* fkp, Real* eta, Real* etainv,
 	    Real* rhoem, Real* rhoes,
-	    Real* dflux_old, Real* Er_old, ARLIM_P(elo), ARLIM_P(ehi), Real* Edot,
+	    Real* dflux_old, 
+	    BL_FORT_FAB_ARG(Er_old), 
+	    Real* Edot,
 	    Real* r, Real* s, const Real& delta_t, const Real& sigma,
 	    const Real& c, const Real& theta);
 
@@ -920,7 +923,7 @@ extern "C" {
 	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      int& nflr, const Real& flr, const int& nvar);
 
-  void lacoefmgfld(Real* a, ARLIM_P(alo), ARLIM_P(ahi), 
+  void lacoefmgfld(BL_FORT_FAB_ARG(a), 
 		   ARLIM_P(reglo), ARLIM_P(reghi),
 		   Real* kappa, ARLIM_P(klo), ARLIM_P(khi),
 		   Real* r, Real* s,
