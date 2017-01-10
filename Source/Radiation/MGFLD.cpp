@@ -345,11 +345,11 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	  }
 	  else if (const_c_v > 0.0) {
 	      gcv(dimlist(box),
-		  dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
-		  temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
+		  BL_TO_FORTRAN(dedT[mfi]), 
+		  BL_TO_FORTRAN(temp_new[mfi]), 
 		  &const_c_v, &c_v_exp_m, &c_v_exp_n,
 		  &prop_temp_floor,
-		  S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
+		  BL_TO_FORTRAN(S_new[mfi]));
 	  }
 	  else {
 	      BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
