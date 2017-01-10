@@ -1,7 +1,6 @@
 #ifndef _HABEC_F_H_
 #define _HABEC_F_H_
 
-#include "LHH.H"
 #include <ArrayLim.H>
 #include <BLFort.H>
 

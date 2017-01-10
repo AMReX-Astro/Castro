@@ -3,8 +3,6 @@
 #include "HABEC_F.H"
 #include "LO_BCTYPES.H"
 
-#include "LHH.H"
-
 #include "_hypre_sstruct_mv.h"
 
 #include <iostream>
