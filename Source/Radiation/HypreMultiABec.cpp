@@ -1459,7 +1459,7 @@ void HypreMultiABec::loadMatrix()
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            const Box &fsb = bd[level].bndryValues(oitr())[mfi].box();
+            const FArrayBox &fs = bd[level].bndryValues(oitr())[mfi];
 	    Real* pSPa;
 	    Box SPabox;
 	    if (SPa.defined(level)) {
@@ -1473,7 +1473,7 @@ void HypreMultiABec::loadMatrix()
             getFaceMetric(r, reg, oitr(), geom[level]);
             hmmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		   cdir, bctype, tfp, bho, bcl,
-		   ARLIM(fsb.loVect()), ARLIM(fsb.hiVect()),
+		   ARLIM(fs.loVect()), ARLIM(fs.hiVect()),
 		   BL_TO_FORTRAN(msk),
 		   BL_TO_FORTRAN(bcoefs[level][idim][mfi]),
 		   beta, geom[level].CellSize(),
@@ -1916,7 +1916,6 @@ void HypreMultiABec::loadLevelVectorB(int level,
 	const FArrayBox       &fs  = bd[level].bndryValues(oitr())[mfi];
 	const Mask      &msk = bd[level].bndryMasks(oitr())[i];
 	const Box &bbox = bcoefs[level][idim][mfi].box();
-	const Box &fsb  =  fs.box();
 	const Box &msb  = msk.box();
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
 
@@ -3144,7 +3143,6 @@ void HypreMultiABec::boundaryFlux(int level,
 		const Mask      &msk = bd[level].bndryMasks(oitr())[i];
 		const Box &fbox = Flux[idim][mfi].box();
 		const Box &sbox = Soln[mfi].box();
-		const Box &fsb  =  fs.box();
 		const Box &msb  = msk.box();
 		const Box &bbox = bcoefs[level][idim][mfi].box();
 		if (reg[oitr()] == domain[oitr()]) {
@@ -3322,7 +3320,6 @@ void HypreMultiABec::initializeApplyLevel(int level,
 	      beta, geom[level].CellSize());
 	if (inhom) {
 	  const FArrayBox &fs  = bd[level].bndryValues(oitr())[mfi];
-	  const Box &fsb = fs.box();
 	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct, bho, bcl,
 		BL_TO_FORTRAN_N(fs, bdcomp),

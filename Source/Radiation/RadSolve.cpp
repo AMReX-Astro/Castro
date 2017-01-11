@@ -791,7 +791,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 	  Real dt_ptc = delta_t/(1.0+ptc_tau);
 	  lacoefmgfld(BL_TO_FORTRAN(acoefs[mfi]), 
 		      ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		      BL_TO_FORTRAN(kpp[mfi]), 
+		      BL_TO_FORTRAN_N(kpp[mfi], igroup), 
 		      r.dataPtr(), s.dataPtr(), dt_ptc, c);
       }
   }

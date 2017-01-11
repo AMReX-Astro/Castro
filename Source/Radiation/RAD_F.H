@@ -806,7 +806,7 @@ extern "C" {
   void scgrd3(BL_FORT_FAB_ARG(R), 
 	      ARLIM_P(reglo), ARLIM_P(reghi), 
 	      const int& idim,
-	      Real* kappa_r, ARLIM_P(klo), ARLIM_P(khi), 
+	      BL_FORT_FAB_ARG(kappa_r), 
 	      Real* Er, 
 #if (BL_SPACEDIM >= 2)
 	      ARLIM_P(dlo), ARLIM_P(dhi), Real* dtmp1, 
