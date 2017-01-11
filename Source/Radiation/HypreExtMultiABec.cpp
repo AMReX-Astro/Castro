@@ -3,8 +3,6 @@
 #include "HABEC_F.H"
 #include "LO_BCTYPES.H"
 
-#include "LHH.H"
-
 #include "_hypre_sstruct_mv.h"
 
 #include <iostream>
@@ -214,36 +212,40 @@ void HypreExtMultiABec::loadMatrix()
 
       if (a2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = a2coefs[level][idim][mfi].box();
-          hma2c(mat, a2coefs[level][idim][mfi].dataPtr(),
-		dimlist(bbox), dimlist(reg), alpha2,
+
+          hma2c(mat, 
+		BL_TO_FORTRAN(a2coefs[level][idim][mfi]),
+		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha2,
 		idim);
         }
       }
 
       if (ccoefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = ccoefs[level][idim][mfi].box();
-          hmcc(mat, ccoefs[level][idim][mfi].dataPtr(),
-	       dimlist(bbox), dimlist(reg), gamma,
+
+          hmcc(mat, 
+	       BL_TO_FORTRAN(ccoefs[level][idim][mfi]), 
+	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()), gamma,
 	       geom[level].CellSize(), idim);
         }
       }
 
       if (d1coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &abox = d1coefs[level][idim][mfi].box();
-          hmd1c(mat, d1coefs[level][idim][mfi].dataPtr(),
-		dimlist(abox), dimlist(reg), delta1,
+
+          hmd1c(mat, 
+		BL_TO_FORTRAN(d1coefs[level][idim][mfi]),
+		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta1,
 		geom[level].CellSize(), idim);
         }
       }
 
       if (d2coefs.defined(level)) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          const Box &bbox = d2coefs[level][idim][mfi].box();
-          hmd2c(mat, d2coefs[level][idim][mfi].dataPtr(),
-		dimlist(bbox), dimlist(reg), delta2,
+
+          hmd2c(mat,
+		BL_TO_FORTRAN(d2coefs[level][idim][mfi]),
+		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta2,
 		geom[level].CellSize(), idim);
         }
       }
@@ -966,11 +968,7 @@ void HypreExtMultiABec::boundaryDterm(int level,
       const Real      &bcl = bd[level].bndryLocs(oitr())[i];
       const FArrayBox       &bcv  = bd[level].bndryValues(oitr())[mfi];
       const Mask      &msk = bd[level].bndryMasks(oitr())[i];
-      const Box &dtbox = Dterm[idim][mfi].box(); 
-      const Box &sbox = Soln[mfi].box();
-      const Box &bcvb  =  bcv.box();
-      const Box &msb  = msk.box();
-      const Box &dcbox = d2coefs[level][idim][mfi].box();
+
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
@@ -979,21 +977,23 @@ void HypreExtMultiABec::boundaryDterm(int level,
           tfp = tf.dataPtr();
           bctype = -1;
         }
-        hdterm3(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
-		Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        hdterm3(BL_TO_FORTRAN(Dterm[idim][mfi]),
+		BL_TO_FORTRAN_N(Soln[mfi], icomp),
+		ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bctype, tfp, bcl,
-		bcv.dataPtr(bdcomp), dimlist(bcvb),
-		msk.dataPtr(), dimlist(msb),
-		d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
+		BL_TO_FORTRAN_N(bcv, bdcomp),
+		BL_TO_FORTRAN(msk),
+		BL_TO_FORTRAN(d2coefs[level][idim][mfi]),
 		geom[level].CellSize());
       }
       else {
-        hdterm(Dterm[idim][mfi].dataPtr(), dimlist(dtbox),
-	       Soln[mfi].dataPtr(icomp), dimlist(sbox), dimlist(reg),
+        hdterm(BL_TO_FORTRAN(Dterm[idim][mfi]),
+	       BL_TO_FORTRAN_N(Soln[mfi], icomp), 
+	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	       cdir, bct, bcl,
-	       bcv.dataPtr(bdcomp), dimlist(bcvb),
-	       msk.dataPtr(), dimlist(msb),
-	       d2coefs[level][idim][mfi].dataPtr(), dimlist(dcbox),
+	       BL_TO_FORTRAN_N(bcv, bdcomp),
+	       BL_TO_FORTRAN(msk),
+	       BL_TO_FORTRAN(d2coefs[level][idim][mfi]),
 	       geom[level].CellSize());
       }
     }

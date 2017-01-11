@@ -7,8 +7,6 @@
 
 #include "Castro_F.H"
 
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 
 #include <iostream>
