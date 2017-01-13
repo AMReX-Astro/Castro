@@ -262,6 +262,10 @@ public:
 
     void construct_new_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
+    Array<Real> evaluate_source_change(MultiFab& update, Real dt, bool local = false);
+
+    void print_source_change(Array<Real> update);
+
     void sum_of_sources(MultiFab& source);
 
     void time_center_source_terms (MultiFab& S_new,

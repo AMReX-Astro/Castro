@@ -231,6 +231,72 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
     } // end switch
 }
 
+// Evaluate diagnostics quantities describing the effect of an
+// update on the state. The optional parameter local determines
+// whether we want to do this calculation globally over all processes
+// or locally just on this processor. The latter is useful if you
+// are evaluating the contribution from multiple source changes at once
+// and want to amortize the cost of the parallel reductions.
+// Note that the resultant output is volume-weighted.
+
+Array<Real>
+Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
+{
+
+  Array<Real> update(source.nComp(), 0.0);
+
+  // Create a temporary array which will hold a single component
+  // at a time of the volume-weighted source.
+
+  MultiFab weighted_source(source.boxArray(), 1, 0);
+
+  for (int n = 0; n < source.nComp(); ++n) {
+
+    weighted_source.setVal(0.0);
+
+    // Fill weighted_source with source x volume.
+
+    MultiFab::AddProduct(weighted_source, source, n, volume, 0, 0, 1, 0);
+
+    update[n] = weighted_source.sum(0, local) * dt;
+
+  }
+
+  return update;
+
+}
+
+// Print the change due to a given source term update.
+// We assume here that the input array is lined up with
+// the NUM_STATE components of State_Type because we are
+// interested in printing changes to energy, mass, etc.
+
+void
+Castro::print_source_change(Array<Real> update)
+{
+
+  BL_ASSERT(update.size() == NUM_STATE);
+
+  if (ParallelDescriptor::IOProcessor()) {
+
+    std::cout << "       mass added: " << update[Density] << std::endl;
+    std::cout << "       xmom added: " << update[Xmom] << std::endl;
+#if (BL_SPACEDIM >= 2)
+    std::cout << "       ymom added: " << update[Ymom] << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
+    std::cout << "       zmom added: " << update[Zmom] << std::endl;
+#endif
+    std::cout << "       ener added: " << update[Eden] << std::endl;
+
+    std::cout << std::endl;
+
+  }
+
+
+}
+
+
 // Obtain the sum of all source terms.
 
 void
