@@ -12,6 +12,11 @@
   -- the ppm_temp_fix stuff has been documented and made
      consistent across dimensions (issue #25)
 
+  -- the job info git information is now the output of git describe,
+     this gives more information, including the last tag, how far we
+     are from the tag, and an abbreviated hash.  It also indicates if
+     your working directory is dirty
+
 # previous changes:
 
 * 17.01

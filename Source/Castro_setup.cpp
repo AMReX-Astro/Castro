@@ -129,16 +129,16 @@ Castro::variableSetUp ()
     const char* buildgitname = buildInfoGetBuildGitName();
 
     if (strlen(castro_hash) > 0) {
-      std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+      std::cout << "\n" << "Castro git describe: " << castro_hash << "\n";
     }
     if (strlen(boxlib_hash) > 0) {
-      std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+      std::cout << "BoxLib git describe: " << boxlib_hash << "\n";
     }
     if (strlen(microphysics_hash) > 0) {
-      std::cout << "Microphysics git hash: " << microphysics_hash << "\n";
+      std::cout << "Microphysics git describe: " << microphysics_hash << "\n";
     }
     if (strlen(buildgithash) > 0){
-      std::cout << buildgitname << " git hash: " << buildgithash << "\n";
+      std::cout << buildgitname << " git describe: " << buildgithash << "\n";
     }
 
     std::cout << "\n";
