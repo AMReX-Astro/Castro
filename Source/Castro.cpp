@@ -88,6 +88,8 @@ int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
+Array<std::string> Castro::source_names;
+
 #include <castro_defaults.H>
 
 #ifdef SELF_GRAVITY

@@ -48,11 +48,12 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
+enum sources {
 #ifdef SPONGE
-enum sources { sponge_src = 0,
+               sponge_src = 0,
                ext_src,
 #else
-enum sources { ext_src = 0,
+               ext_src = 0,
 #endif
 #ifdef DIFFUSION
                diff_src,
@@ -541,6 +542,8 @@ public:
     static int       FirstAdv,  NumAdv;
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
+
+    static Array<std::string> source_names;
 
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
