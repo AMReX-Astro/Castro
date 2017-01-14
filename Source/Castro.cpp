@@ -2699,7 +2699,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
     // Make a copy of the state so we can evaluate how much changed.
 
-    if (parent->finestLevel() == 0 && print_update_diagnostics)
+    if (print_update_diagnostics)
     {
 	old_state.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
         MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
@@ -2725,7 +2725,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (verbose)
       flush_output();
 
-    if (parent->finestLevel() == 0 && print_update_diagnostics)
+    if (print_update_diagnostics)
     {
 	// Evaluate what the effective reset source was.
 
