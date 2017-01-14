@@ -48,12 +48,9 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources {
+enum sources { ext_src = 0,
 #ifdef SPONGE
-               sponge_src = 0,
-               ext_src,
-#else
-               ext_src = 0,
+               sponge_src,
 #endif
 #ifdef DIFFUSION
                diff_src,
