@@ -129,9 +129,9 @@ int         Castro::print_fortran_warnings = 1;
 int         Castro::print_fortran_warnings = 0;
 #endif
 #ifdef DEBUG
-int         Castro::print_energy_diagnostics = 1;
+int         Castro::print_update_diagnostics = 1;
 #else
-int         Castro::print_energy_diagnostics = 0;
+int         Castro::print_update_diagnostics = 0;
 #endif
 int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;

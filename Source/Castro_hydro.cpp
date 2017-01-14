@@ -332,7 +332,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	material_lost_through_boundary_temp[7] += zang_lost;
     }
 
-    if (print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
 	Real foo[5] = {E_added_flux, xmom_added_flux, ymom_added_flux,
 		       zmom_added_flux, mass_added_flux};

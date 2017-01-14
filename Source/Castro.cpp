@@ -2422,7 +2422,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
     }
 
-    if (print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
 
         Real foo[3] = {mass_added, eint_added, eden_added};
@@ -2701,7 +2701,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     Real sum  = 0.;
     Real sum0 = 0.;
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    if (parent->finestLevel() == 0 && print_update_diagnostics)
     {
         // Pass in the multifab and the component
         sum0 = volWgtSumMF(&S_new,Eden,true);
@@ -2727,7 +2727,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (verbose)
       flush_output();
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    if (parent->finestLevel() == 0 && print_update_diagnostics)
     {
         // Pass in the multifab and the component
         sum = volWgtSumMF(&S_new,Eden,true);

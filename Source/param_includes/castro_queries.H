@@ -124,7 +124,7 @@ pp.query("star_at_center", star_at_center);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
 pp.query("print_fortran_warnings", print_fortran_warnings);
-pp.query("print_energy_diagnostics", print_energy_diagnostics);
+pp.query("print_update_diagnostics", print_update_diagnostics);
 pp.query("track_grid_losses", track_grid_losses);
 pp.query("sum_interval", sum_interval);
 pp.query("sum_per", sum_per);

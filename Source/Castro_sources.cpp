@@ -99,7 +99,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
 
-    if (print_energy_diagnostics) {
+    if (print_update_diagnostics) {
       bool is_new = false;
       print_all_source_changes(dt, is_new);
     }
@@ -147,7 +147,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
 
-    if (print_energy_diagnostics) {
+    if (print_update_diagnostics) {
       bool is_new = true;
       print_all_source_changes(dt, is_new);
     }
