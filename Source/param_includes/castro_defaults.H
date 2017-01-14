@@ -133,6 +133,11 @@ int         Castro::print_update_diagnostics = 1;
 #else
 int         Castro::print_update_diagnostics = 0;
 #endif
+#ifdef DEBUG
+int         Castro::coalesce_update_diagnostics = 1;
+#else
+int         Castro::coalesce_update_diagnostics = 0;
+#endif
 int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;
 Real        Castro::sum_per = -1.0e0;
