@@ -305,6 +305,7 @@ Castro::print_source_change(Array<Real> update)
 #if (BL_SPACEDIM == 3)
     std::cout << "       zmom added: " << update[Zmom] << std::endl;
 #endif
+    std::cout << "       eint added: " << update[Eint] << std::endl;
     std::cout << "       ener added: " << update[Eden] << std::endl;
 
     std::cout << std::endl;
