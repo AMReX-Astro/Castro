@@ -141,9 +141,7 @@ extern "C"
      const Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const Real* vol, const int* vol_lo, const int* vol_hi,
      const int* lo, const int* hi,
-     const Real* mass_added, const Real* e_added,
-     const Real* E_added, const Real* frac_change,
-     const int* verbose);
+     const Real* frac_change, const int* verbose);
 
   void ca_normalize_species
     (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);

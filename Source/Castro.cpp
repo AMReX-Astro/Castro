@@ -2398,10 +2398,6 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
     Real dens_change = 1.e0;
 
-    Real mass_added = 0.0;
-    Real eint_added = 0.0;
-    Real eden_added = 0.0;
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
@@ -2417,37 +2413,37 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
 				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				&mass_added, &eint_added, &eden_added, &dens_change,
-				&verbose);
+				&dens_change, &verbose);
 
     }
 
     if (print_update_diagnostics)
     {
 
-        Real foo[3] = {mass_added, eint_added, eden_added};
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, S_old, 0, 0, S_old.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(foo, 3, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
 
-	    if (ParallelDescriptor::IOProcessor())
-	    {
-	        mass_added = foo[0];
-		eint_added = foo[1];
-		eden_added = foo[2];
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[0]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
 
-		if (std::abs(mass_added) != 0.0)
-	        {
-		  std::cout << "   Mass added from negative density correction : " <<
-				mass_added << std::endl;
-		  std::cout << "(rho e) added from negative density correction : " <<
-				eint_added << std::endl;
-		  std::cout << "(rho E) added from negative density correction : " <<
-				eden_added << std::endl;
-	        }
+		    print_source_change(reset_update);
+		}
 	    }
+
 #ifdef BL_LAZY
         });
 #endif
