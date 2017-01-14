@@ -488,11 +488,6 @@ extern "C"
 #ifdef RADIATION
      const int* priv_nstep_fsp,
 #endif
-     Real& mass_added_flux,
-     Real& xmom_added_flux,
-     Real& ymom_added_flux,
-     Real& zmom_added_flux,
-     Real& E_added_flux,
      Real& mass_lost,
      Real& xmom_lost,
      Real& ymom_lost,

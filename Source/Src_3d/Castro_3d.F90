@@ -27,8 +27,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
                     nstep_fsp, &
 #endif
-                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
@@ -108,8 +107,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   real(rt)        , intent(in) :: delta(3), dt, time
   real(rt)        , intent(inout) :: courno
 
-  real(rt)        , intent(inout) :: E_added_flux, mass_added_flux
-  real(rt)        , intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
   real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
   real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
@@ -298,8 +295,7 @@ subroutine ca_umdrv(is_finest_level, time, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt,mass_added_flux,E_added_flux, &
-              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              div,pdivu,lo,hi,delta,dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
