@@ -2694,13 +2694,15 @@ Castro::extern_init ()
 void
 Castro::reset_internal_energy(MultiFab& S_new)
 {
-    Real sum  = 0.;
-    Real sum0 = 0.;
+
+    MultiFab old_state;
+
+    // Make a copy of the state so we can evaluate how much changed.
 
     if (parent->finestLevel() == 0 && print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum0 = volWgtSumMF(&S_new,Eden,true);
+	old_state.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
+        MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
 
     int ng = S_new.nGrow();
@@ -2725,15 +2727,30 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
     if (parent->finestLevel() == 0 && print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum = volWgtSumMF(&S_new,Eden,true);
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
+
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
-	ParallelDescriptor::ReduceRealSum(sum0);
-	ParallelDescriptor::ReduceRealSum(sum);
-        if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
-            std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[Eint]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
+
+		    print_source_change(reset_update);
+		}
+	    }
+
 #ifdef BL_LAZY
 	});
 #endif
