@@ -95,6 +95,15 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     for (int n = 0; n < num_src; ++n)
 	if (source_flag(n))
 	    apply_source_to_state(S_new, old_sources[n], dt);
+
+    // Optionally print out diagnostic information about how much
+    // these source terms changed the state.
+
+    if (print_energy_diagnostics) {
+      bool is_new = false;
+      print_all_source_changes(dt, is_new);
+    }
+
 }
 
 void
@@ -134,6 +143,15 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	clean_state(S_new);
 
     }
+
+    // Optionally print out diagnostic information about how much
+    // these source terms changed the state.
+
+    if (print_energy_diagnostics) {
+      bool is_new = true;
+      print_all_source_changes(dt, is_new);
+    }
+
 
 }
 
@@ -296,6 +314,52 @@ Castro::print_source_change(Array<Real> update)
 
 }
 
+// For the old-time or new-time sources update, evaluate the change in the state
+// for all source terms, then pring the results.
+
+void
+Castro::print_all_source_changes(Real dt, bool is_new)
+{
+
+  Array< Array<Real> > summed_updates;
+
+  summed_updates.resize(num_src);
+
+  bool local = true;
+
+  for (int n = 0; n < num_src; ++n) {
+
+    if (!source_flag(n)) continue;
+
+    MultiFab& source = is_new ? new_sources[n] : old_sources[n];
+
+    summed_updates[n] = evaluate_source_change(source, dt, local);
+
+  }
+
+#ifdef BL_LAZY
+  Lazy::QueueReduction( [=] () mutable {
+#endif
+      for (int n = 0; n < num_src; ++n) {
+
+	if (!source_flag(n)) continue;
+
+	ParallelDescriptor::ReduceRealSum(summed_updates[n].dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+
+	std::string time = is_new ? "new" : "old";
+
+	if (ParallelDescriptor::IOProcessor())
+	  std::cout << std::endl << "  Contributions to the state from the " << time << "-time " << source_names[n] << " source:" << std::endl;
+
+	print_source_change(summed_updates[n]);
+
+      }
+
+#ifdef BL_LAZY
+    });
+#endif
+
+} 
 
 // Obtain the sum of all source terms.
 

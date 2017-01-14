@@ -11,7 +11,7 @@ module sponge_module
 contains
 
   subroutine ca_sponge(lo,hi,state,state_lo,state_hi,source,src_lo,src_hi, &
-                       vol,vol_lo,vol_hi,dx,dt,time,E_added,mom_added) &
+                       vol,vol_lo,vol_hi,dx,dt,time) &
                        bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
@@ -33,12 +33,11 @@ contains
     real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)         :: dx(3), dt, time
-    real(rt)         :: E_added, mom_added(3)
 
     ! Local variables
 
     real(rt)         :: r(3), radius
-    real(rt)         :: ke_old, E_old, mom_old(3)
+    real(rt)         :: ke_old
     real(rt)         :: sponge_factor, alpha
     real(rt)         :: delta_r, delta_rho
     real(rt)         :: rho, rhoInv
@@ -81,11 +80,7 @@ contains
              src = ZERO
              snew = state(i,j,k,:)
 
-             ! Starting diagnostic quantities
-
-             E_old   = snew(UEDEN)
              ke_old  = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             mom_old = snew(UMX:UMZ)
 
              ! Apply radial sponge. By default sponge_lower_radius will be zero
              ! so this sponge is applied only if set by the user.
@@ -157,11 +152,6 @@ contains
              src(UEDEN) = src(UEDEN) + (HALF * sum(snew(UMX:UMZ)**2) * rhoInv - ke_old) / dt
 
              snew(UEDEN) = snew(UEDEN) + dt * src(UEDEN)
-
-             ! Ending diagnostic quantities
-
-             E_added   = E_added   + (snew(UEDEN)   - E_old  ) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - mom_old) * vol(i,j,k)
 
              ! Add terms to the source array.
 

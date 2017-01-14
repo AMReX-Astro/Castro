@@ -267,6 +267,8 @@ public:
 
     void print_source_change(Array<Real> update);
 
+    void print_all_source_changes(Real dt, bool is_new);
+
     void sum_of_sources(MultiFab& source);
 
     void time_center_source_terms (MultiFab& S_new,

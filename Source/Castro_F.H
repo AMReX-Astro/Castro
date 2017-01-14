@@ -518,8 +518,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time,
-     const Real& E_added, const Real* mom_added);
+     const Real* dx, const Real& dt, const Real* time);
 
   void update_sponge_params(const Real* time);
 #endif
@@ -555,8 +554,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time,
-     const Real& E_added, const Real* mom_added);
+     const Real* dx, const Real& dt, const Real* time);
 
   void ca_corrgsrc
     (const int* lo, const int* hi,
@@ -572,8 +570,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(yflux),
      BL_FORT_FAB_ARG_3D(zflux),
      const Real* dx, const Real& dt, const Real* time,
-     const BL_FORT_FAB_ARG_3D(volume), 
-     const Real& E_added, const Real* mom_added);
+     const BL_FORT_FAB_ARG_3D(volume));
 
 #else
 
@@ -620,8 +617,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time,
-     const Real& E_added, const Real* mom_added);
+     const Real* dx, const Real& dt, const Real* time);
 
   void ca_corrrsrc
     (const int* lo, const int* hi,
@@ -637,8 +633,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
      const Real* dx, const Real& dt, const Real* time,
-     const BL_FORT_FAB_ARG_3D(volume),
-     const Real& E_added, const Real* mom_added);
+     const BL_FORT_FAB_ARG_3D(volume));
 
 #endif
 
