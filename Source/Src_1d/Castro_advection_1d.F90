@@ -191,8 +191,6 @@ contains
                     area, area_l1, area_h1, &
                     vol, vol_l1, vol_h1, &
                     div, pdivu, lo, hi, dx, dt, &
-                    mass_added_flux, E_added_flux, &
-                    xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
@@ -254,8 +252,6 @@ contains
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1)
     real(rt)        , intent(in) :: pdivu(lo(1):hi(1)  )
     real(rt)        , intent(in) :: dx, dt
-    real(rt)        , intent(inout) :: E_added_flux, mass_added_flux
-    real(rt)        , intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
@@ -479,20 +475,6 @@ contains
 
     ! Add up some diagnostic quantities. Note that we are not dividing
     ! by the cell volume.
-
-    if (verbose .eq. 1) then
-
-       do i = lo(1), hi(1)
-
-          mass_added_flux = mass_added_flux + ( flux(i,URHO ) - flux(i+1,URHO ) )
-          xmom_added_flux = xmom_added_flux + ( flux(i,UMX  ) - flux(i+1,UMX  ) )
-          ymom_added_flux = ymom_added_flux + ( flux(i,UMY  ) - flux(i+1,UMY  ) )
-          zmom_added_flux = zmom_added_flux + ( flux(i,UMZ  ) - flux(i+1,UMZ  ) )
-          E_added_flux    = E_added_flux    + ( flux(i,UEDEN) - flux(i+1,UEDEN) )
-
-       enddo
-
-    endif
 
     if (track_grid_losses .eq. 1) then
 

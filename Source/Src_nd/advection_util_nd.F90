@@ -13,8 +13,7 @@ contains
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
                                      vol,vol_lo,vol_hi, &
-                                     lo,hi,mass_added,eint_added, &
-                                     eden_added,frac_change,verbose) &
+                                     lo,hi,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
 
     use network, only : nspec, naux
@@ -32,7 +31,7 @@ contains
     real(rt)        , intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
     real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt)        , intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
-    real(rt)        , intent(inout) :: mass_added, eint_added, eden_added, frac_change
+    real(rt)        , intent(inout) :: frac_change
 
     ! Local variables
     integer          :: i,ii,j,jj,k,kk
@@ -191,12 +190,6 @@ contains
           enddo
        enddo
     enddo
-
-    if ( have_reset ) then
-       mass_added = mass_added + final_mass - initial_mass
-       eint_added = eint_added + final_eint - initial_eint
-       eden_added = eden_added + final_eden - initial_eden
-    endif
 
   end subroutine enforce_minimum_density
 

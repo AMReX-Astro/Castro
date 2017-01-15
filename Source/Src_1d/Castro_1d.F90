@@ -23,8 +23,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
                     nstep_fsp, &
 #endif
-                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
@@ -86,8 +85,6 @@ subroutine ca_umdrv(is_finest_level, time, &
   real(rt)        , intent(in) :: delta(1), dt, time
   real(rt)        , intent(inout) :: courno
 
-  real(rt)        , intent(inout) :: E_added_flux, mass_added_flux
-  real(rt)        , intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
   real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
   real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
@@ -208,8 +205,6 @@ subroutine ca_umdrv(is_finest_level, time, &
               area, area_l1, area_h1, &
               vol, vol_l1, vol_h1, &
               div, pdivu, lo, hi, dx, dt, &
-              mass_added_flux, E_added_flux, &
-              xmom_added_flux, ymom_added_flux, zmom_added_flux, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &
               verbose)
