@@ -85,11 +85,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
     // note: the radiation consup currently does not fill these
-    Real E_added_flux    = 0.;
-    Real mass_added_flux = 0.;
-    Real xmom_added_flux = 0.;
-    Real ymom_added_flux = 0.;
-    Real zmom_added_flux = 0.;
     Real mass_lost       = 0.;
     Real xmom_lost       = 0.;
     Real ymom_lost       = 0.;
@@ -105,9 +100,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #ifdef RADIATION
 #pragma omp parallel
 #else
-#pragma omp parallel reduction(+:E_added_flux,mass_added_flux) \
-		     reduction(+:xmom_added_flux,ymom_added_flux,zmom_added_flux) \
-		     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
+#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
 		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
 #endif
@@ -242,11 +235,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #ifdef RADIATION
 	     &priv_nstep_fsp,
 #endif
-	     mass_added_flux,
-	     xmom_added_flux,
-	     ymom_added_flux,
-	     zmom_added_flux,
-	     E_added_flux,
 	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
 	     eden_lost, xang_lost, yang_lost, zang_lost);
 
@@ -332,35 +320,22 @@ Castro::construct_hydro_source(Real time, Real dt)
 	material_lost_through_boundary_temp[7] += zang_lost;
     }
 
-    if (print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
-	Real foo[5] = {E_added_flux, xmom_added_flux, ymom_added_flux,
-		       zmom_added_flux, mass_added_flux};
+
+	bool local = true;
+	Array<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
 
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(foo, 5, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
 
 	    if (ParallelDescriptor::IOProcessor())
-	      {
-	        E_added_flux    = foo[0];
-	        xmom_added_flux = foo[1];
-	        ymom_added_flux = foo[2];
-	        zmom_added_flux = foo[3];
-	        mass_added_flux = foo[4];
-		
-		std::cout << "mass added from fluxes                      : " <<
-		  mass_added_flux << std::endl;
-		std::cout << "xmom added from fluxes                      : " <<
-		  xmom_added_flux << std::endl;
-		std::cout << "ymom added from fluxes                      : " <<
-		  ymom_added_flux << std::endl;
-		std::cout << "zmom added from fluxes                      : " <<
-		  zmom_added_flux << std::endl;
-		std::cout << "(rho E) added from fluxes                   : " <<
-		  E_added_flux << std::endl;
-	      }
+		std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
+
+	    print_source_change(hydro_update);
+
 #ifdef BL_LAZY
 	});
 #endif

@@ -211,23 +211,16 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 
     // Gravitational source term for the time-level n data.
 
-    Real E_added    = 0.;
-    Real xmom_added = 0.;
-    Real ymom_added = 0.;
-    Real zmom_added = 0.;
-
     const Real* dx = geom.CellSize();
     const int* domlo = geom.Domain().loVect();
     const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
+#pragma omp parallel
 #endif
     for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.growntilebox();
-
-	Real mom_added[3] = { 0.0 };
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
@@ -236,40 +229,10 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
 		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
-		ZFILL(dx),dt,&time,
-		E_added,mom_added);
+		ZFILL(dx),dt,&time);
 
-	xmom_added += mom_added[0];
-	ymom_added += mom_added[1];
-	zmom_added += mom_added[2];
     }
 
-    if (print_energy_diagnostics)
-    {
-	Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
-#ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
-#endif
-		ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
-		if (ParallelDescriptor::IOProcessor()) {
-		    E_added = foo[0];
-		    D_EXPR(xmom_added = foo[1],
-			   ymom_added = foo[2],
-			   zmom_added = foo[3]);
-
-		    std::cout << "(rho E) added from grav. source  terms          : " << E_added << std::endl;
-		    std::cout << "xmom added from grav. source terms              : " << xmom_added << std::endl;
-#if (BL_SPACEDIM >= 2)
-		    std::cout << "ymom added from grav. source terms              : " << ymom_added << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
-		    std::cout << "zmom added from grav. source terms              : " << zmom_added << std::endl;
-#endif
-		}
-#ifdef BL_LAZY
-	    });
-#endif
-    }
 }
 
 void Castro::construct_new_gravity_source(Real time, Real dt)
@@ -287,24 +250,17 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 
     if (!do_grav) return;
 
-    Real E_added    = 0.;
-    Real xmom_added = 0.;
-    Real ymom_added = 0.;
-    Real zmom_added = 0.;
-
     const Real *dx = geom.CellSize();
     const int* domlo = geom.Domain().loVect();
     const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:E_added,xmom_added,ymom_added,zmom_added)
+#pragma omp parallel
 #endif
     {
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-
-	    Real mom_added[3] = { 0.0 };
 
 	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
@@ -319,41 +275,11 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
 			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
 			ZFILL(dx),dt,&time,
-			BL_TO_FORTRAN_3D(volume[mfi]),
-			E_added, mom_added);
+			BL_TO_FORTRAN_3D(volume[mfi]));
 
-	    xmom_added += mom_added[0];
-	    ymom_added += mom_added[1];
-	    zmom_added += mom_added[2];
 	}
     }
 
-    if (print_energy_diagnostics)
-    {
-	Real foo[1+BL_SPACEDIM] = {E_added, D_DECL(xmom_added, ymom_added, zmom_added)};
-#ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
-#endif
-		ParallelDescriptor::ReduceRealSum(foo, 1+BL_SPACEDIM, ParallelDescriptor::IOProcessorNumber());
-		if (ParallelDescriptor::IOProcessor()) {
-		    E_added = foo[0];
-		    D_EXPR(xmom_added = foo[1],
-			   ymom_added = foo[2],
-			   zmom_added = foo[3]);
-
-		    std::cout << "(rho E) added from grav. corr.  terms          : " << E_added << std::endl;
-		    std::cout << "xmom added from grav. corr. terms              : " << xmom_added << std::endl;
-#if (BL_SPACEDIM >= 2)
-		    std::cout << "ymom added from grav. corr. terms              : " << ymom_added << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
-		    std::cout << "zmom added from grav. corr. terms              : " << zmom_added << std::endl;
-#endif
-		}
-#ifdef BL_LAZY
-	    });
-#endif
-    }
 }
 #else
 // This is the constant gravity version
@@ -372,8 +298,6 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
     for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.growntilebox();
-
-	Real mom_added[3] = { 0.0 };
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
@@ -402,8 +326,6 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-
-	    Real mom_added[3] = { 0.0 };
 
 	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),

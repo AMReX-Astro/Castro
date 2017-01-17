@@ -11,7 +11,7 @@ contains
   subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
                      uold,uold_lo,uold_hi, &
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
-                     dx,dt,time,E_added,mom_added) bind(C, name="ca_gsrc")
+                     dx,dt,time) bind(C, name="ca_gsrc")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use bl_constants_module
@@ -40,12 +40,12 @@ contains
     real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)         :: dx(3), dt, time
-    real(rt)         :: E_added, mom_added(3)
 
     real(rt)         :: rho, rhoInv
     real(rt)         :: Sr(3), SrE
-    real(rt)         :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+    real(rt)         :: old_ke, new_ke
     real(rt)         :: loc(3)
+
     integer          :: i, j, k
 
     real(rt)         :: src(NVAR)
@@ -73,12 +73,7 @@ contains
              src = ZERO
              snew = uold(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              Sr = rho * grav(i,j,k,:)
 
@@ -124,13 +119,6 @@ contains
 
              snew(UEDEN) = snew(UEDEN) + dt * SrE
 
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
-
              ! Add to the outgoing source array.
 
              source(i,j,k,:) = src
@@ -157,8 +145,7 @@ contains
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
-                         vol,vol_lo,vol_hi, &
-                         E_added,mom_added) bind(C, name="ca_corrgsrc")
+                         vol,vol_lo,vol_hi) bind(C, name="ca_corrgsrc")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
@@ -218,7 +205,6 @@ contains
 
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)         :: dx(3), dt, time
-    real(rt)         :: E_added, mom_added(3)
 
     integer          :: i, j, k
 
@@ -227,9 +213,8 @@ contains
     real(rt)         :: SrE_old, SrE_new, SrEcorr
     real(rt)         :: rhoo, rhooinv, rhon, rhoninv
 
-    real(rt)         :: old_ke, old_rhoeint, old_re
-    real(rt)         :: new_ke, new_rhoeint
-    real(rt)         :: old_mom(3), loc(3)
+    real(rt)         :: old_ke, new_ke
+    real(rt)         :: loc(3)
 
     real(rt)         :: src(NVAR)
 
@@ -362,12 +347,7 @@ contains
              src = ZERO
              snew = unew(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              ! Define old source terms
 
@@ -483,13 +463,6 @@ contains
 
              snew(UEDEN) = snew(UEDEN) + dt * SrEcorr
 
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
-
              ! Add to the outgoing source array.
 
              source(i,j,k,:) = src
@@ -536,7 +509,8 @@ contains
 
     real(rt)         :: rho, rhoInv
     real(rt)         :: Sr(3), SrE
-    real(rt)         :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re, old_mom(3)
+    real(rt)         :: old_ke, new_ke
+
     integer          :: i, j, k
 
     real(rt)         :: src(NVAR)
@@ -562,12 +536,7 @@ contains
              src = ZERO
              snew = uold(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              Sr(:)   = 0.e0_rt
              Sr(dim) = rho * const_grav
@@ -611,11 +580,6 @@ contains
              end if
 
              src(UEDEN) = SrE
-
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             new_rhoeint = snew(UEDEN) - new_ke
-             ! ****   End Diagnostics ****
 
              ! Add to the outgoing source array.
 
@@ -692,9 +656,7 @@ contains
     real(rt)         :: SrE_old, SrE_new, SrEcorr
     real(rt)         :: rhoo, rhooinv, rhon, rhoninv
 
-    real(rt)         :: old_ke, old_rhoeint, old_re
-    real(rt)         :: new_ke, new_rhoeint
-    real(rt)         :: old_mom(3)
+    real(rt)         :: old_ke, new_ke
 
     real(rt)         :: src(NVAR)
 
@@ -722,12 +684,7 @@ contains
              src = ZERO
              snew = unew(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              ! Define old source terms
 
@@ -833,11 +790,6 @@ contains
              end if
 
              src(UEDEN) = SrEcorr
-
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             new_rhoeint = snew(UEDEN) - new_ke
-             ! ****   End Diagnostics ****
 
              ! Add to the outgoing source array.
 

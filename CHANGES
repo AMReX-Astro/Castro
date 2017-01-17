@@ -1,16 +1,29 @@
 # changes since the last release:
 
-  -- to support both single and double precision, all of the 
-     floating point declarations use the c_real type defined
-     in the bl_fort_module -- this is set to single or double
-     precision at compile time.  All constants also now use
-     this type.  For brevity, we rename it to 'rt' in the use
-     statement.  (issue #34)
+  -- diagnostic information about how source terms update the state
+     has been overhauled and made uniform. All source terms, including
+     hydro and resets, print their changes to the state in the same
+     format. The parameter print_energy_diagnostics has been renamed
+     print_update_diagnostics, and a new parameter
+     coalesce_update_diagnostics has been added so that you can
+     combine all of the old-time and new-time updates into one print.
+     (issue #58)
+
+  -- to support both single and double precision, all of the floating
+     point declarations use the c_real type defined in the
+     bl_fort_module -- this is set to single or double precision at
+     compile time.  All constants also now use this type.  For
+     brevity, we rename it to 'rt' in the use statement.  (issue #34)
 
   -- the sponge is now time-centered by default (issue #7)
 
   -- the ppm_temp_fix stuff has been documented and made
      consistent across dimensions (issue #25)
+
+  -- the job info git information is now the output of git describe,
+     this gives more information, including the last tag, how far we
+     are from the tag, and an abbreviated hash.  It also indicates if
+     your working directory is dirty
 
 # previous changes:
 
