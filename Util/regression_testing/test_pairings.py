@@ -44,7 +44,7 @@ def get_run_history(top_dir, changelogs=None):
             else:
                 lines = sf.readlines()
                 for line in lines:
-                    if "PASSED" in line:
+                    if "PASSED" in line or "BENCHMARKS" in line:
                         passed = True
                         break
                 sf.close()
