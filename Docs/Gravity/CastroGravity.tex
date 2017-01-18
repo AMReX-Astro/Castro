@@ -27,7 +27,7 @@ The overall integration strategy is unchanged from the discussion in
 \cite{castro_I}.  Briefly:
 \begin{itemize}
 \item At the beginning of a simulation, we do a multilevel composite
-  solve (if {\tt gravity.no\_composite = 0}).  
+  solve (if \runparam{gravity.no\_composite}{\tt = 0}).  
 
   We also do a multilevel composite solve after each regrid.
 
@@ -47,7 +47,7 @@ The overall integration strategy is unchanged from the discussion in
 
 \item At an AMR synchronization step across levels (see Section \ref{sec:amr_synchronization}
   for a description of when these synchronizations occur), if we're choosing
-  to synchronize the gravitational field across levels ({\tt gravity.no\_sync = 0})
+  to synchronize the gravitational field across levels (\runparam{gravity.no\_sync}{\tt = 0})
   we then do a solve starting from
   the coarse grid that adjusts for the mismatch between the fine-grid
   phi and the coarse-grid phi, as well as the mismatch between the
@@ -56,10 +56,10 @@ The overall integration strategy is unchanged from the discussion in
 
   Thus, to within the gravity error tolerance, you get the same final
   result as if you had done a full composite solve at the end of the
-  timestep (assuming {\tt gravity.no\_sync = 0}).
+  timestep (assuming \runparam{gravity.no\_sync}{\tt = 0}).
 \end{itemize}
 
-If you do {\tt gravity.no\_composite = 1}, then you never do a full
+If you do \runparam{gravity.no\_composite}{\tt = 1}, then you never do a full
 multilevel solve, and the gravity on any level is defined only by the
 solve on that level.  The only time this would be appropriate is if
 the fine level(s) cover essentially all of the mass on the grid for
@@ -83,7 +83,7 @@ USE_POINTMASS = TRUE
 in the {\tt GNUmakefile}.
 
 There are currently four options for how gravity is calculated,
-controlled by setting {\tt gravity.gravity\_type}.  The options are
+controlled by setting \runparam{gravity.gravity\_type}.  The options are
 {\tt ConstantGrav, PoissonGrav, Monopole Grav} or {\tt
   PrescribedGrav}.  Again, these are only relevant if {\tt USE\_GRAV =
   TRUE} in the {\tt GNUmakefile} and {\tt castro.do\_grav = 1} in the
@@ -94,16 +94,17 @@ abort.
 Some additional notes:
 \begin{itemize}
 
-\item For the full Poisson solver ({\tt gravity.gravity\_type =
-  PoissonGrav}), the behavior of the full Poisson solve / multigrid
-solver is controlled by {\tt gravity.no\_sync} and {\tt
-  gravity.no\_composite}.
+\item For the full Poisson solver
+  (\runparam{gravity.gravity\_type}{\tt = PoissonGrav}), the behavior
+  of the full Poisson solve / multigrid solver is controlled by
+  \runparam{gravity.no\_sync} and \runparam{gravity.no\_composite}.
 
-\item For isolated boundary conditions, and when {\tt gravity.gravity\_type
-  = PoissonGrav}, the parameters {\tt gravity.max\_multipole\_order}
-and {\tt gravity.direct\_sum\_bcs} control the accuracy of the
-Dirichlet boundary conditions.  These are described in Section
-\ref{sec-poisson-3d-bcs}.
+\item For isolated boundary conditions, and when
+  \runparam{gravity.gravity\_type}{\tt = PoissonGrav}, the parameters
+           {\tt gravity.max\_multipole\_order} and
+           \runparam{gravity.direct\_sum\_bcs} control the accuracy of
+           the Dirichlet boundary conditions.  These are described in
+           Section \ref{sec-poisson-3d-bcs}.
 
 \item For {\tt MonopoleGrav}, in 1D we must have {\tt coord\_sys = 2}, and in
   2D we must have {\tt coord\_sys = 1}.
@@ -112,52 +113,66 @@ Dirichlet boundary conditions.  These are described in Section
 The following parameters apply to gravity
 solves:
 \begin{itemize}
+\item \runparam{gravity.gravity\_type} : how should we calculate gravity?
+  Can be {\tt ConstantGrav}, {\tt PoissonGrav}, {\tt MonopoleGrav}, or
+  {\tt PrescribedGrav}
 
-\item {\tt castro.do\_grav} : include gravity as a forcing term (0 or 1)
-
-\item {\tt gravity.gravity\_type} : how should we calculate gravity?
-  Can be {\tt ConstantGrav}, {\tt PoissonGrav}, {\tt MonopoleGrav}, or {\tt PrescribedGrav}
-
-\item {\tt gravity.const\_grav} : if {\tt gravity.gravity\_type =
+\item \runparam{gravity.const\_grav} : if {\tt gravity.gravity\_type =
   ConstantGrav}, set the value of constant gravity (default: 0.0)
 
-\item {\tt gravity.no\_sync} : {\tt gravity.gravity\_type = PoissonGrav},
- do we perform the ``sync solve"? (0 or 1; default: 0)
+\item \runparam{gravity.no\_sync} : {\tt gravity.gravity\_type =
+  PoissonGrav}, do we perform the ``sync solve"? (0 or 1; default: 0)
 
-\item {\tt gravity.no\_composite} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, whether to perform a composite solve (0 or 1; default:
-  0)
+\item \runparam{gravity.no\_composite} : if {\tt gravity.gravity\_type
+  = PoissonGrav}, whether to perform a composite solve (0 or 1;
+  default: 0)
 
-\item {\tt gravity.max\_solve\_level} : maximum level to solve for
-  $\phi$ and $\mathbf{g}$; above this level, interpolate from below
-  (default: ${\tt MAX\_LEV} - 1$)
+\item \runparam{gravity.max\_solve\_level} : maximum level to solve
+  for $\phi$ and $\mathbf{g}$; above this level, interpolate from
+  below (default: ${\tt MAX\_LEV} - 1$)
 
-\item {\tt gravity.abs\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the absolute tolerance for the Poisson solve. You
-  can specify a single value for this tolerance (or do nothing, and get a reasonable
-  default value), and then the absolute tolerance used by the multigrid solve is
-  $\text{abs\_tol} \times 4\pi G\, \rho_{\text{max}}$ where $\rho_{\text{max}}$
-  is the maximum value of the density on the domain.
-  On fine levels, this absolute tolerance is multiplied by $\text{ref\_ratio}^2$
-  to account for the change in the absolute scale of the Laplacian operator.
-  You can also specify an array of values for \text{abs\_tol}, one for each possible
-  level in the simulation, and then the scaling by $\text{ref\_ratio}^2$ is not applied.
+\item \runparam{gravity.abs\_tol} : if {\tt gravity.gravity\_type =
+  PoissonGrav}, this is the absolute tolerance for the Poisson
+  solve. You can specify a single value for this tolerane (or do
+  nothing, and get a reasonable default value), and then the absolute
+  tolerance used by the multigrid solve is $\text{abs\_tol} \times
+  4\pi G\, \rho_{\text{max}}$ where $\rho_{\text{max}}$ is the maximum
+  value of the density on the domain.  On fine levels, this absolute
+  tolerance is multiplied by $\text{ref\_ratio}^2$ to account for the
+  change in the absolute scale of the Laplacian operator.  You can
+  also specify an array of values for \text{abs\_tol}, one for each
+  possible level in the simulation, and then the scaling by
+  $\text{ref\_ratio}^2$ is not applied.
 
-\item {\tt gravity.rel\_tol} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, this is the relative tolerance for the Poisson solve. By default
-  it is zero. You can specify a single value for this tolerance and it will apply
-  on every level, or you can specify an array of values for \text{rel\_tol}, one
-  for each possible level in the simulation. This replaces the old parameter {\tt gravity.ml\_tol}.
+\item \runparam{\tt gravity.rel\_tol} : if {\tt gravity.gravity\_type
+  = PoissonGrav}, this is the relative tolerance for the Poisson
+  solve. By default it is zero. You can specify a single value for
+  this tolerance and it will apply on every level, or you can specify
+  an array of values for \text{rel\_tol}, one for each possible level
+  in the simulation. This replaces the old parameter
+  \runparam{gravity.ml\_tol}.
 
-\item {\tt gravity.max\_multipole\_order} : if {\tt
+\item \runparam{gravity.max\_multipole\_order} : if {\tt
   gravity.gravity\_type = PoissonGrav}, this is the max $\ell$ value
   to use for multipole BCs (must be $\geq 0$; default: 0)
 
-\item {\tt gravity.direct\_sum\_bcs} : if {\tt gravity.gravity\_type =
-  PoissonGrav}, evaluate BCs using exact sum (0 or 1; default: 0)
+\item \runparam{gravity.direct\_sum\_bcs} : if {\tt
+  gravity.gravity\_type = PoissonGrav}, evaluate BCs using exact sum
+  (0 or 1; default: 0)
 
-\item {\tt castro.point\_mass} : point mass at the center of the
- star (must be $\geq 0$; default: 0.0)
+\item \runparam{gravity.drdxfac} : ratio of dr for monopole gravity
+  binning to grid resolution
+\end{itemize}
+
+The follow parameters affect the coupling of hydro and gravity:
+\begin{itemize}
+\item \runparam{castro.do\_grav} : turn on/off gravity
+
+\item \runparam{castro.moving\_center} : do we recompute the center
+   used for the multipole gravity solver each step?
+
+\item \runparam{castro.point\_mass} : point mass at the center of the star
+  (must be $\geq 0$; default: 0.0)
 \end{itemize}
 
 Note that in the following, {\tt MAX\_LEV} is a hard-coded parameter
@@ -238,7 +253,7 @@ new maxima or minima.
 
 The default resolution of the radial arrays at a level is the grid
 cell spacing at that level, i.e., $\Delta r = \Delta x$. O For
-increased accuracy, one can define {\tt castro.drdxfac} as a number
+increased accuracy, one can define \runparam{gravity.drdxfac} as a number
 greater than $1$ ($2$ or $4$ are recommended) and the spacing of the
 radial array will then satisfy $\Delta x / \Delta r = $ {\tt drdxfac}.
 Individual Cartesian grid cells are subdivided by {\tt drdxfac} in
@@ -351,7 +366,7 @@ boundary conditions will depend on the chosen value of
 $l_{\text{max}}$.
 
 The number of $l$ values calculated is controlled by
-\texttt{gravity.max\_multipole\_order} in your inputs file. By
+\runparam{gravity.max\_multipole\_order} in your inputs file. By
 default, it is set to \texttt{0}, which means that a monopole
 approximation is used. There is currently a hard-coded limit of
 $l_{\text{max}} = 50$. This is because the method used to generate the
@@ -387,7 +402,7 @@ terms appropriate for each grid onto its respective cells.
 This is quite expensive even for reasonable sized domains, so this
 option is recommended only for analysis purposes, to check if the
 other methods are producing accurate results. It can be enabled by
-setting \texttt{gravity.direct\_sum\_bcs = 1} in your inputs file.
+setting \runparam{gravity.direct\_sum\_bcs}{\tt = 1} in your inputs file.
 
 \end{itemize}
 
