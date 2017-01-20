@@ -90,16 +90,18 @@
 
 
 \rowcolor{tableShade}
+\runparamNS{coalesce\_update\_diagnostics}{castro} &  if we're printing diagnostic information about the updates, should we break down the information into the constitent source terms? & (0, 1) \\
 \runparamNS{hard\_cfl\_limit}{castro} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
-\runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
 \rowcolor{tableShade}
-\runparamNS{print\_energy\_diagnostics}{castro} &  display breakdown of energy sources & (0, 1) \\
+\runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
 \rowcolor{tableShade}
+\runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
-\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \rowcolor{tableShade}
+\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
+\rowcolor{tableShade}
 \runparamNS{track\_grid\_losses}{castro} &  calculate losses of material through physical grid boundaries & 0 \\
 
 

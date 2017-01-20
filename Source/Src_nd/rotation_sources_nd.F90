@@ -10,7 +10,7 @@ contains
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi, &
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
-                     dx,dt,time,E_added,mom_added) bind(C, name="ca_rsrc")
+                     dx,dt,time) bind(C, name="ca_rsrc")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
     use prob_params_module, only: center
@@ -43,9 +43,8 @@ contains
     real(rt)         :: Sr(3),SrE
     real(rt)         :: rho, rhoInv
 
-    real(rt)         :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-    real(rt)         :: old_mom(3), loc(3)
-    real(rt)         :: E_added, mom_added(3)
+    real(rt)         :: old_ke, new_ke
+    real(rt)         :: loc(3)
 
     real(rt)         :: src(NVAR)
 
@@ -65,12 +64,7 @@ contains
              src = ZERO
              snew = uold(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              Sr = rho * rot(i,j,k,:)
 
@@ -120,13 +114,6 @@ contains
 
              snew(UEDEN) = snew(UEDEN) + dt * src(UEDEN)
 
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
-
              ! Add to the outgoing source array.
 
              source(i,j,k,:) = source(i,j,k,:) + src
@@ -151,8 +138,7 @@ contains
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
-                         vol,vol_lo,vol_hi, &
-                         E_added,mom_added) bind(C, name="ca_corrrsrc")
+                         vol,vol_lo,vol_hi) bind(C, name="ca_corrrsrc")
 
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
@@ -220,7 +206,6 @@ contains
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
     real(rt)         :: dx(3), dt, time
-    real(rt)         :: E_added, mom_added(3)
 
     integer          :: i,j,k
     real(rt)         :: loc(3)
@@ -228,8 +213,8 @@ contains
     real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
     real(rt)         :: rhoo, rhon, rhooinv, rhoninv
 
-    real(rt)         :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    real(rt)         :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
+    real(rt)         :: old_ke, new_ke
+    real(rt)         :: dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
     real(rt)         :: src(NVAR)
 
@@ -331,12 +316,7 @@ contains
              src = ZERO
              snew = unew(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              ! Define old source terms
 
@@ -479,13 +459,6 @@ contains
              end if
 
              src(UEDEN) = SrEcorr
-
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
 
              ! Add to the outgoing source array.
 

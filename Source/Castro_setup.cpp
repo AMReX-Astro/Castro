@@ -129,16 +129,16 @@ Castro::variableSetUp ()
     const char* buildgitname = buildInfoGetBuildGitName();
 
     if (strlen(castro_hash) > 0) {
-      std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+      std::cout << "\n" << "Castro git describe: " << castro_hash << "\n";
     }
     if (strlen(boxlib_hash) > 0) {
-      std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+      std::cout << "BoxLib git describe: " << boxlib_hash << "\n";
     }
     if (strlen(microphysics_hash) > 0) {
-      std::cout << "Microphysics git hash: " << microphysics_hash << "\n";
+      std::cout << "Microphysics git describe: " << microphysics_hash << "\n";
     }
     if (strlen(buildgithash) > 0){
-      std::cout << buildgitname << " git hash: " << buildgithash << "\n";
+      std::cout << buildgitname << " git describe: " << buildgithash << "\n";
     }
 
     std::cout << "\n";
@@ -519,12 +519,12 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> sources_name(NUM_STATE);
+  Array<std::string> state_type_source_names(NUM_STATE);
 
   for (int i = 0; i < NUM_STATE; i++)
-    sources_name[i] = name[i] + "_source";
+    state_type_source_names[i] = name[i] + "_source";
 
-  desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -540,8 +540,8 @@ Castro::variableSetUp ()
 
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
-      sources_name[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+      state_type_source_names[i] = "sdc_sources_" + name[i];
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
@@ -889,5 +889,38 @@ Castro::variableSetUp ()
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
   ErrorSetUp();
+
+  //
+  // Construct an array holding the names of the source terms.
+  //
+
+  source_names.resize(num_src);
+
+  // Fill with an empty string to initialize.
+
+  for (int n = 0; n < num_src; ++n)
+    source_names[n] = "";
+
+  source_names[ext_src] = "user-defined external";
+
+#ifdef SPONGE
+  source_names[sponge_src] = "sponge";
+#endif
+
+#ifdef DIFFUSION
+  source_names[diff_src] = "diffusion";
+#endif
+
+#ifdef HYBRID_MOMENTUM
+  source_names[hybrid_src] = "hybrid";
+#endif
+
+#ifdef GRAVITY
+  source_names[grav_src] = "gravity";
+#endif
+
+#ifdef ROTATION
+  source_names[rot_src] = "rotation";
+#endif
 
 }

@@ -910,8 +910,6 @@ contains
                     area3, area3_lo, area3_hi, &
                     vol,vol_lo,vol_hi, &
                     div, pdivu, lo, hi, dx, dt, &
-                    mass_added_flux, E_added_flux, &
-                    xmom_added_flux, ymom_added_flux, zmom_added_flux, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
@@ -995,7 +993,6 @@ contains
     real(rt)         radflux3(radflux3_lo(1):radflux3_hi(1),radflux3_lo(2):radflux3_hi(2),radflux3_lo(3):radflux3_hi(3),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: mass_added_flux, E_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
@@ -1402,32 +1399,6 @@ contains
 
 
     ! Add up some diagnostic quantities. Note that we are not dividing by the cell volume.
-
-    if (verbose .eq. 1) then
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                mass_added_flux = mass_added_flux + ( flux1(i,j,k,URHO) - flux1(i+1,j,k,URHO) + &
-                                                      flux2(i,j,k,URHO) - flux2(i,j+1,k,URHO) + &
-                                                      flux3(i,j,k,URHO) - flux3(i,j,k+1,URHO) )
-                xmom_added_flux = xmom_added_flux + ( flux1(i,j,k,UMX) - flux1(i+1,j,k,UMX) + &
-                                                      flux2(i,j,k,UMX) - flux2(i,j+1,k,UMX) + &
-                                                      flux3(i,j,k,UMX) - flux3(i,j,k+1,UMX) )
-                ymom_added_flux = ymom_added_flux + ( flux1(i,j,k,UMY) - flux1(i+1,j,k,UMY) + &
-                                                      flux2(i,j,k,UMY) - flux2(i,j+1,k,UMY) + &
-                                                      flux3(i,j,k,UMY) - flux3(i,j,k+1,UMY) )
-                zmom_added_flux = zmom_added_flux + ( flux1(i,j,k,UMZ) - flux1(i+1,j,k,UMZ) + &
-                                                      flux2(i,j,k,UMZ) - flux2(i,j+1,k,UMZ) + &
-                                                      flux3(i,j,k,UMZ) - flux3(i,j,k+1,UMZ) )
-                E_added_flux    = E_added_flux    + ( flux1(i,j,k,UEDEN) - flux1(i+1,j,k,UEDEN) + &
-                                                      flux2(i,j,k,UEDEN) - flux2(i,j+1,k,UEDEN) + &
-                                                      flux3(i,j,k,UEDEN) - flux3(i,j,k+1,UEDEN) )
-             enddo
-          enddo
-       enddo
-
-    endif
 
     if (track_grid_losses .eq. 1) then
 

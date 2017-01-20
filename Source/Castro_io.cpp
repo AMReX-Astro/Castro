@@ -681,19 +681,19 @@ Castro::writeJobInfo (const std::string& dir)
   const char* githash2 = buildInfoGetGitHash(2);
   const char* githash3 = buildInfoGetGitHash(3);
   if (strlen(githash1) > 0) {
-    jobInfoFile << "Castro       git hash: " << githash1 << "\n";
+    jobInfoFile << "Castro       git describe: " << githash1 << "\n";
   }
   if (strlen(githash2) > 0) {
-    jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
+    jobInfoFile << "BoxLib       git describe: " << githash2 << "\n";
   }
   if (strlen(githash3) > 0) {	
-    jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
+    jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
   }
 
   const char* buildgithash = buildInfoGetBuildGitHash();
   const char* buildgitname = buildInfoGetBuildGitName();
   if (strlen(buildgithash) > 0){
-    jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
+    jobInfoFile << buildgitname << " git describe: " << buildgithash << "\n";
   }
 
   jobInfoFile << "\n\n";
