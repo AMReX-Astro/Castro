@@ -7,7 +7,7 @@ CEXE_sources += HypreExtMultiABec.cpp HypreMultiABec.cpp HypreABec.cpp \
 
 CEXE_headers += HypreExtMultiABec.H HypreMultiABec.H HypreABec.H \
                 Radiation.H RadSolve.H RadBndry.H \
-                RadTypes.H LHH.H MGRadBndry.H RadTests.H
+                RadTypes.H MGRadBndry.H RadTests.H
 
 FEXE_headers += RAD_F.H HABEC_F.H
 

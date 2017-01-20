@@ -4,3 +4,7 @@ See, e.g,  https://github.com/BoxLib-Codes/BoxLib/blob/master/Src/LinearSolvers/
 
 The dcf routines are the D coefficient in Eq. 46 of the gray radiation paper
 
+A lot of the routines have two variants, with the alternate having "3"
+at the end of the name (like hbmat and hbmat3).  The ones with "3" are
+the physical boundary variants.
+
