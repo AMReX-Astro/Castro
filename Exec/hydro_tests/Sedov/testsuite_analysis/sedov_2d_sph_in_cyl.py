@@ -42,7 +42,7 @@ def process(castro_dir, plotfile):
     os.system("./{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_2d_sph_in_cyl.out"))
 
 
-    analytic = castro_dir + "/Exec/Sedov/Verification/spherical_sedov.dat"
+    analytic = castro_dir + "/Exec/hydro_tests/Sedov/Verification/spherical_sedov.dat"
     analytic_data = np.loadtxt(analytic)
 
     data = np.loadtxt("sedov_2d_sph_in_cyl.out")
