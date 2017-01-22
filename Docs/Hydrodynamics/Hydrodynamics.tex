@@ -303,7 +303,7 @@ We augment the above system with an internal energy equation:
 \frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
                                         + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
 && -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
-\end{eqnarray}
+\end{eqnarray}\MarginPar{Since $(rho e)$ is in the conserved state, I don't think we derive the internal energy source from total and momentum sources anymore}
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
