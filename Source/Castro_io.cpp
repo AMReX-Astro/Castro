@@ -807,6 +807,11 @@ Castro::writePlotFile (const std::string& dir,
                        ostream&       os,
                        VisMF::How     how)
 {
+
+#ifdef PARTICLES
+  ParticleCheckPoint(dir);
+#endif
+
     int i, n;
     //
     // The list of indices of State to write to plotfile.
