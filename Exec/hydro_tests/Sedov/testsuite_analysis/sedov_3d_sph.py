@@ -41,7 +41,7 @@ def process(castro_dir, plotfile):
     os.system("./{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_3d_sph.out"))
 
 
-    analytic = castro_dir + "/Exec/Sedov/Verification/spherical_sedov.dat"
+    analytic = castro_dir + "/Exec/hydro_tests/Sedov/Verification/spherical_sedov.dat"
     analytic_data = np.loadtxt(analytic)
 
     data = np.loadtxt("sedov_3d_sph.out")

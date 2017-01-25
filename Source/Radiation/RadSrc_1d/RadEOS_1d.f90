@@ -8,22 +8,23 @@ subroutine ca_compute_c_v(lo, hi, &
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer, intent(in)           :: lo(1), hi(1)
   integer, intent(in)           :: cv_l1, cv_h1
   integer, intent(in)           :: temp_l1, temp_h1
   integer, intent(in)           :: state_l1, state_h1
-  double precision              :: cv(cv_l1:cv_h1)
-  double precision, intent(in)  :: temp(temp_l1:temp_h1)
-  double precision, intent(in)  :: state(state_l1:state_h1,NVAR)
+  real(rt)                      :: cv(cv_l1:cv_h1)
+  real(rt)        , intent(in)  :: temp(temp_l1:temp_h1)
+  real(rt)        , intent(in)  :: state(state_l1:state_h1,NVAR)
   
   integer           :: i
-  double precision :: rhoInv
+  real(rt)         :: rhoInv
   type(eos_t) :: eos_state
   
   do i = lo(1), hi(1)
      
-     rhoInv = 1.d0 / state(i,URHO)
+     rhoInv = 1.e0_rt / state(i,URHO)
      eos_state % rho = state(i,URHO)
      eos_state % T = temp(i)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
@@ -47,22 +48,23 @@ subroutine ca_get_rhoe(lo, hi, &
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: rhoe_l1, rhoe_h1
   integer         , intent(in) :: temp_l1, temp_h1
   integer         , intent(in) :: state_l1, state_h1
-  double precision, intent(in) :: temp(temp_l1:temp_h1)
-  double precision, intent(in) :: state(state_l1:state_h1,NVAR)
-  double precision             :: rhoe(rhoe_l1:rhoe_h1)
+  real(rt)        , intent(in) :: temp(temp_l1:temp_h1)
+  real(rt)        , intent(in) :: state(state_l1:state_h1,NVAR)
+  real(rt)                     :: rhoe(rhoe_l1:rhoe_h1)
   
   integer          :: i
-  double precision :: rhoInv
+  real(rt)         :: rhoInv
   type(eos_t) :: eos_state  
 
   do i = lo(1), hi(1)
 
-     rhoInv = 1.d0 / state(i,URHO)
+     rhoInv = 1.e0_rt / state(i,URHO)
      eos_state % rho = state(i,URHO)
      eos_state % T   = temp(i)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
@@ -84,21 +86,22 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UFS, UFX, UTEMP, small_temp, allow_negative_energy
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in) :: lo(1),hi(1)
   integer         , intent(in) :: temp_l1,temp_h1, state_l1,state_h1
-  double precision, intent(in) :: state(state_l1:state_h1,NVAR)
-  double precision             :: temp(temp_l1:temp_h1) ! temp contains rhoe as input
+  real(rt)        , intent(in) :: state(state_l1:state_h1,NVAR)
+  real(rt)                     :: temp(temp_l1:temp_h1) ! temp contains rhoe as input
 
   integer :: i
-  double precision :: rhoInv
+  real(rt)         :: rhoInv
   type (eos_t) :: eos_state
 
   do i = lo(1),hi(1)
-     if (allow_negative_energy.eq.0 .and. temp(i).le.0.d0) then
+     if (allow_negative_energy.eq.0 .and. temp(i).le.0.e0_rt) then
         temp(i) = small_temp
      else
-        rhoInv = 1.d0 / state(i,URHO)
+        rhoInv = 1.e0_rt / state(i,URHO)
         eos_state % rho = state(i,URHO)
         eos_state % T   = state(i,UTEMP)
         eos_state % e   = temp(i)*rhoInv 
@@ -120,30 +123,31 @@ subroutine ca_compute_temp_given_cv(lo,hi,  &
 
   use meth_params_module, only : NVAR, URHO
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in) :: lo(1),hi(1)
   integer         , intent(in) :: temp_l1,temp_h1, state_l1,state_h1
-  double precision, intent(in) :: state(state_l1:state_h1,NVAR)
-  double precision             :: temp(temp_l1:temp_h1) ! temp contains rhoe as input
-  double precision, intent(in) :: const_c_v, c_v_exp_m, c_v_exp_n
+  real(rt)        , intent(in) :: state(state_l1:state_h1,NVAR)
+  real(rt)                     :: temp(temp_l1:temp_h1) ! temp contains rhoe as input
+  real(rt)        , intent(in) :: const_c_v, c_v_exp_m, c_v_exp_n
 
   integer :: i
-  double precision :: ex, alpha, rhoal, teff
+  real(rt)         :: ex, alpha, rhoal, teff
 
-  ex = 1.d0 / (1.d0 - c_v_exp_n)
+  ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
 
   do i=lo(1), hi(1)
-     if (c_v_exp_m .eq. 0.d0) then
+     if (c_v_exp_m .eq. 0.e0_rt) then
         alpha = const_c_v
      else
         alpha = const_c_v * state(i,URHO) ** c_v_exp_m
      endif
-     rhoal = state(i,URHO) * alpha + 1.d-50
-     if (c_v_exp_n .eq. 0.d0) then
+     rhoal = state(i,URHO) * alpha + 1.e-50_rt
+     if (c_v_exp_n .eq. 0.e0_rt) then
         temp(i) = temp(i) / rhoal
      else
-        teff = max(temp(i), 1.d-50)
-        temp(i) = ((1.d0 - c_v_exp_n) * teff / rhoal) ** ex
+        teff = max(temp(i), 1.e-50_rt)
+        temp(i) = ((1.e0_rt - c_v_exp_n) * teff / rhoal) ** ex
      endif
   end do
 
@@ -166,28 +170,29 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UFS, UFX, &
        small_temp, allow_negative_energy
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: temp_l1, temp_h1
   integer         , intent(in) :: re_l1, re_h1
   integer         , intent(in) :: ye_l1, ye_h1
   integer         , intent(in) :: state_l1, state_h1
-  double precision, intent(in) :: state(state_l1:state_h1,NVAR)
-  double precision, intent(in) :: rhoe(re_l1:re_h1)
-  double precision, intent(in) :: ye(ye_l1:ye_h1)
-  double precision             :: temp(temp_l1:temp_h1)
+  real(rt)        , intent(in) :: state(state_l1:state_h1,NVAR)
+  real(rt)        , intent(in) :: rhoe(re_l1:re_h1)
+  real(rt)        , intent(in) :: ye(ye_l1:ye_h1)
+  real(rt)                     :: temp(temp_l1:temp_h1)
 
   integer          :: i
-  double precision :: rhoInv
+  real(rt)         :: rhoInv
   type (eos_t) :: eos_state
   
   do i = lo(1), hi(1)
 
-     if(allow_negative_energy.eq.0 .and. rhoe(i).le.0.d0) then
+     if(allow_negative_energy.eq.0 .and. rhoe(i).le.0.e0_rt) then
         temp(i) = small_temp
      else
 
-        rhoInv = 1.d0 / state(i,URHO)
+        rhoInv = 1.e0_rt / state(i,URHO)
         eos_state % rho = state(i,URHO)
         ! set initial guess of temperature
         eos_state % T = temp(i)
@@ -201,7 +206,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
 
         temp(i) = eos_state % T
 
-        if(temp(i).lt.0.d0) then
+        if(temp(i).lt.0.e0_rt) then
            print*,'negative temp in compute_temp_given_reye ', temp(i)
            call bl_error("Error:: ca_compute_temp_given_reye")
         endif
@@ -223,6 +228,7 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: re_l1, re_h1
@@ -230,19 +236,19 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
   integer         , intent(in) :: temp_l1, temp_h1
   integer         , intent(in) :: ye_l1, ye_h1
   integer         , intent(in) :: state_l1, state_h1
-  double precision, intent(in) :: state(state_l1:state_h1,NVAR)
-  double precision             :: rhoe(re_l1:re_h1)
-  double precision             :: rhoY(rY_l1:rY_h1)
-  double precision, intent(in) :: ye(ye_l1:ye_h1)
-  double precision, intent(in) :: temp(temp_l1:temp_h1)
+  real(rt)        , intent(in) :: state(state_l1:state_h1,NVAR)
+  real(rt)                     :: rhoe(re_l1:re_h1)
+  real(rt)                     :: rhoY(rY_l1:rY_h1)
+  real(rt)        , intent(in) :: ye(ye_l1:ye_h1)
+  real(rt)        , intent(in) :: temp(temp_l1:temp_h1)
   
   integer          :: i
-  double precision :: rhoInv
+  real(rt)         :: rhoInv
   type (eos_t) :: eos_state
 
   do i = lo(1), hi(1)
 
-     rhoInv = 1.d0 / state(i,URHO)
+     rhoInv = 1.e0_rt / state(i,URHO)
      eos_state % rho = state(i,URHO)
      eos_state % T = temp(i)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv

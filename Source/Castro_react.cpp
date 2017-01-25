@@ -111,10 +111,6 @@ Castro::strang_react_first_half(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
 
-    // Ensure consistency in internal energy and recompute temperature.
-
-    clean_state(*state_temp);
-
     // Note that this FillBoundary *must* occur before we copy any data back
     // to the main state data; it is the only way to ensure that the parallel
     // copy to follow is sensible, because when we're working with ghost zones
@@ -132,6 +128,9 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     }
 
+    // Ensure consistency in internal energy and recompute temperature.
+
+    clean_state(state);
 
 }
 
@@ -209,8 +208,6 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
 
-    clean_state(*state_temp);
-
     state_temp->FillBoundary(geom.periodicity());
 
     if (use_custom_knapsack_weights) {
@@ -220,6 +217,8 @@ Castro::strang_react_second_half(Real time, Real dt)
 	weights->copy(*weights_temp, 0, 0, weights_temp->nComp(), weights_temp->nGrow(), weights_temp->nGrow());
 
     }
+
+    clean_state(state);
 
 }
 

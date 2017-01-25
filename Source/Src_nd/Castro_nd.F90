@@ -23,6 +23,7 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
   ! initialize the external runtime parameters in
   ! extern_probin_module
 
+  use bl_fort_module, only : rt => c_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -38,6 +39,7 @@ subroutine get_num_spec(nspec_out) bind(C, name="get_num_spec")
 
   use network, only : nspec
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(out) :: nspec_out
@@ -54,6 +56,7 @@ subroutine get_num_aux(naux_out) bind(C, name="get_num_aux")
 
   use network, only : naux
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(out) :: naux_out
@@ -71,6 +74,7 @@ subroutine get_spec_names(spec_names,ispec,len) &
 
   use network, only : nspec, short_spec_names
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in   ) :: ispec
@@ -96,10 +100,11 @@ subroutine get_spec_az(ispec,A,Z) bind(C, name="get_spec_az")
 
   use network, only : nspec, aion, zion
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer         , intent(in   ) :: ispec
-  double precision, intent(inout) :: A, Z
+  real(rt)        , intent(inout) :: A, Z
 
   ! C++ is 0-based indexing, so increment
   A = aion(ispec+1)
@@ -116,6 +121,7 @@ subroutine get_aux_names(aux_names,iaux,len) &
 
   use network, only : naux, short_aux_names
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in   ) :: iaux
@@ -141,6 +147,7 @@ subroutine get_qvar(qvar_in) bind(C, name="get_qvar")
 
   use meth_params_module, only: QVAR
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(inout) :: qvar_in
@@ -157,6 +164,7 @@ subroutine get_nqaux(nqaux_in) bind(C, name="get_nqaux")
 
   use meth_params_module, only: NQAUX
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(inout) :: nqaux_in
@@ -174,10 +182,11 @@ subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: level_in, iteration_in, ncycle_in
-  double precision, intent(in) :: time_in, dt_in
+  real(rt)        , intent(in) :: time_in, dt_in
 
   if (level_in .ge. 0) then
      amr_level = level_in
@@ -211,6 +220,7 @@ subroutine get_method_params(nGrowHyp) bind(C, name="get_method_params")
 
   use meth_params_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(out) :: ngrowHyp
@@ -228,6 +238,7 @@ subroutine allocate_outflow_data(np,nc) &
 
   use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: np,nc
@@ -251,10 +262,11 @@ subroutine set_old_outflow_data(radial,time,np,nc) &
 
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: radial(nc,np)
-  double precision, intent(in) :: time
+  real(rt)        , intent(in) :: radial(nc,np)
+  real(rt)        , intent(in) :: time
   integer         , intent(in) :: np,nc
 
   ! Do this so the routine has the right size
@@ -277,10 +289,11 @@ subroutine set_new_outflow_data(radial,time,np,nc) &
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: radial(nc,np)
-  double precision, intent(in) :: time
+  real(rt)        , intent(in) :: radial(nc,np)
+  real(rt)        , intent(in) :: time
   integer         , intent(in) :: np,nc
 
   ! Do this so the routine has the right size
@@ -301,6 +314,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
        outflow_data_old, outflow_data_old_time
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer                       :: np,nc
@@ -321,9 +335,9 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
 
-  if (outflow_data_new_time .ge. 0.d0) &
+  if (outflow_data_new_time .ge. 0.e0_rt) &
        outflow_data_old_time = outflow_data_new_time
-  outflow_data_new_time = -1.d0
+  outflow_data_new_time = -1.e0_rt
 
 end subroutine swap_outflow_data
 
@@ -345,7 +359,11 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use parallel, only : parallel_initialize
   use eos_module, only : eos_init, eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: dm
@@ -357,7 +375,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
-  double precision, intent(in) :: diffuse_cutoff_density_in
+  real(rt)        , intent(in) :: diffuse_cutoff_density_in
   integer :: iadv, ispec
 
   integer :: QLAST
@@ -480,9 +498,12 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
   ! that we create in the primitive variable call but that do not need to
   ! participate in tracing.
-
+  ! Note: radiation adds cg, gamcg, lambda (ngroups components), but we don't
+  ! yet know the number of radiation groups, so we'll add that lambda count
+  ! to it later
+   
 #ifdef RADIATION
-  NQAUX = 7
+  NQAUX = 7 !+ ngroups to be added later
 #else
   NQAUX = 5
 #endif        
@@ -495,6 +516,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef RADIATION
   QGAMCG  = 6
   QCG     = 7
+  QLAMS   = 8
 #endif
 
   ! easy indexing for the passively advected quantities.  This
@@ -564,26 +586,26 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! safety checks
   !---------------------------------------------------------------------
 
-  if (small_dens <= 0.d0) then
+  if (small_dens <= 0.e0_rt) then
      if (ioproc == 1) then
-        call bl_warning("Warning:: small_dens has not been set, defaulting to 1.d-200.")
+        call bl_warning("Warning:: small_dens has not been set, defaulting to 1.e-200_rt.")
      endif
-     small_dens = 1.d-200
+     small_dens = 1.e-200_rt
   endif
 
-  if (small_temp <= 0.d0) then
+  if (small_temp <= 0.e0_rt) then
      if (ioproc == 1) then
-        call bl_warning("Warning:: small_temp has not been set, defaulting to 1.d-200.")
+        call bl_warning("Warning:: small_temp has not been set, defaulting to 1.e-200_rt.")
      endif
-     small_temp = 1.d-200
+     small_temp = 1.e-200_rt
   endif
 
-  if (small_pres <= 0.d0) then
-     small_pres = 1.d-200
+  if (small_pres <= 0.e0_rt) then
+     small_pres = 1.e-200_rt
   endif
 
-  if (small_ener <= 0.d0) then
-     small_ener = 1.d-200
+  if (small_ener <= 0.e0_rt) then
+     small_ener = 1.e-200_rt
   endif
 
   ! Note that the EOS may modify our choices because of its
@@ -604,7 +626,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
 #ifdef RADIATION
-  !$acc device(QGAMCG, QCG) &
+  !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
   !$acc device(small_dens, small_temp)
 
@@ -616,6 +638,7 @@ subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
   use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
        QU, QV, QW
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   NGDNV = 6
@@ -652,13 +675,14 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   use meth_params_module, only: rot_axis
 #endif
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: dm
   integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer, intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer, intent(in) :: coord_type_in
-  double precision, intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+  real(rt)        , intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
   dim = dm
 
@@ -709,10 +733,11 @@ subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_rati
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer,          intent(in) :: max_level_in
-  double precision, intent(in) :: dx_level_in(3*(max_level_in+1))
+  real(rt)        , intent(in) :: dx_level_in(3*(max_level_in+1))
   integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
   integer,          intent(in) :: ref_ratio_in(3*(max_level_in+1))
   integer,          intent(in) :: n_error_buf_in(0:max_level_in)
@@ -772,7 +797,8 @@ end subroutine set_grid_info
 
 subroutine ca_set_special_tagging_flag(dummy,flag) &
      bind(C, name="ca_set_special_tagging_flag")
-  double precision :: dummy
+  use bl_fort_module, only : rt => c_real
+  real(rt)         :: dummy
   integer          :: flag
 end subroutine ca_set_special_tagging_flag
 
@@ -787,6 +813,7 @@ subroutine get_tagging_params(name, namlen) &
 
   ! Initialize the tagging parameters
 
+  use bl_fort_module, only : rt => c_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -804,33 +831,33 @@ subroutine get_tagging_params(name, namlen) &
        raderr,     radgrad,   max_raderr_lev,   max_radgrad_lev
 
   ! Set namelist defaults
-  denerr = 1.d20
-  dengrad = 1.d20
+  denerr = 1.e20_rt
+  dengrad = 1.e20_rt
   max_denerr_lev = 10
   max_dengrad_lev = 10
 
-  enterr = 1.d20
-  entgrad = 1.d20
+  enterr = 1.e20_rt
+  entgrad = 1.e20_rt
   max_enterr_lev = -1
   max_entgrad_lev = -1
 
-  presserr = 1.d20
-  pressgrad = 1.d20
+  presserr = 1.e20_rt
+  pressgrad = 1.e20_rt
   max_presserr_lev = -1
   max_pressgrad_lev = -1
 
-  velerr  = 1.d20
-  velgrad = 1.d20
+  velerr  = 1.e20_rt
+  velgrad = 1.e20_rt
   max_velerr_lev = -1
   max_velgrad_lev = -1
 
-  temperr  = 1.d20
-  tempgrad = 1.d20
+  temperr  = 1.e20_rt
+  tempgrad = 1.e20_rt
   max_temperr_lev = -1
   max_tempgrad_lev = -1
 
-  raderr  = 1.d20
-  radgrad = 1.d20
+  raderr  = 1.e20_rt
+  radgrad = 1.e20_rt
   max_raderr_lev = -1
   max_radgrad_lev = -1
 
@@ -872,6 +899,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   ! Initialize the sponge parameters
 
+  use bl_fort_module, only : rt => c_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -888,16 +916,16 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   ! Set namelist defaults
 
-  sponge_lower_factor = 0.d0
-  sponge_upper_factor = 1.d0
+  sponge_lower_factor = 0.e0_rt
+  sponge_upper_factor = 1.e0_rt
 
-  sponge_lower_radius = -1.d0
-  sponge_upper_radius = -1.d0
+  sponge_lower_radius = -1.e0_rt
+  sponge_upper_radius = -1.e0_rt
 
-  sponge_lower_density = -1.d0
-  sponge_upper_density = -1.d0
+  sponge_lower_density = -1.e0_rt
+  sponge_upper_density = -1.e0_rt
 
-  sponge_timescale    = -1.d0
+  sponge_timescale    = -1.e0_rt
 
   ! create the filename
   if (namlen > maxlen) then
@@ -926,11 +954,11 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   ! Sanity check
 
-  if (sponge_lower_factor < 0.d0 .or. sponge_lower_factor > 1.d0) then
+  if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
      call bl_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
-  if (sponge_upper_factor < 0.d0 .or. sponge_upper_factor > 1.d0) then
+  if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
      call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 
@@ -946,9 +974,10 @@ subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
 
   use meth_params_module, only: point_mass
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: pointmass_in
+  real(rt)        , intent(in) :: pointmass_in
 
   point_mass = pointmass_in
 

@@ -1,5 +1,6 @@
 module prescribe_phi_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -12,18 +13,19 @@ contains
     ! use fundamental_constants_module, only: Gconst
     ! use prob_params_module, only: problo, center, dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: p_lo(3), p_hi(3)
-    double precision :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    double precision :: dx(3)
+    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt)         :: dx(3)
 
     ! Local variables
     !     integer          :: i, j, k
-    !     double precision :: x, y, z
-    !     double precision :: r, maggrav
-    !     double precision :: M_c
+    !     real(rt)         :: x, y, z
+    !     real(rt)         :: r, maggrav
+    !     real(rt)         :: M_c
 
     !     This is an example of how to specify a radial profile.
     !     Note that in this example M_c could be saved 
@@ -32,7 +34,7 @@ contains
     !     in fewer than three dimensions; you may want to set
     !     z = 0 for 2D and y = 0 for 1D.
     !
-    !     M_c = 1.0d33
+    !     M_c = 1.0e33_rt
     !
     !     do k = lo(3), hi(3)
     !        if (dim .eq. 3) then      

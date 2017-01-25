@@ -11,26 +11,27 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
   integer          :: u_lo(3),u_hi(3),ncomp_u
   integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
+  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt)         :: dx(3), xlo(3), time, dt
   integer          :: bc(3,2,ncomp_u), level, grid_no
 
   ! local
   integer :: i,j,k
 
-  double precision :: y,pres,pres_local
+  real(rt)         :: y,pres,pres_local
 
   type (eos_t) :: eos_state
 
   do k=lo(3),hi(3)  
      do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
         pres = interpolate(y,npts_model,model_r, &
                            model_state(:,ipres_model))
 
@@ -68,26 +69,27 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
   integer          :: u_lo(3),u_hi(3),ncomp_u
   integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
+  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt)         :: dx(3), xlo(3), time, dt
   integer          :: bc(3,2,ncomp_u), level, grid_no
 
   ! local
   integer :: i,j,k
 
-  double precision :: y,pres,pres_local
+  real(rt)         :: y,pres,pres_local
 
   type (eos_t) :: eos_state
 
   do k=lo(3),hi(3)
      do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
         pres = interpolate(y,npts_model,model_r, &
                            model_state(:,ipres_model))
 
@@ -125,24 +127,25 @@ subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
   integer          :: u_lo(3),u_hi(3),ncomp_u
   integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
+  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt)         :: dx(3), xlo(3), time, dt
   integer          :: bc(3,2,ncomp_u), level, grid_no
 
   ! local
   integer :: i,j,k
 
-  double precision :: y,dens
+  real(rt)         :: y,dens
 
   do k=lo(3),hi(3)
      do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
 
         dens = interpolate(y,npts_model,model_r, &
                            model_state(:,idens_model))
@@ -171,24 +174,25 @@ subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
   integer          :: u_lo(3),u_hi(3),ncomp_u
   integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
+  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt)         :: dx(3), xlo(3), time, dt
   integer          :: bc(3,2,ncomp_u), level, grid_no
 
   ! local
   integer :: i,j,k
 
-  double precision :: y,temp
+  real(rt)         :: y,temp
 
   do k=lo(3),hi(3)
      do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
 
         temp = interpolate(y,npts_model,model_r, &
                            model_state(:,itemp_model))

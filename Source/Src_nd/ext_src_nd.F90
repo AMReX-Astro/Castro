@@ -25,16 +25,17 @@
     use bl_constants_module, only: ZERO
     use meth_params_module, only : NVAR
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
     integer          :: os_lo(3),os_hi(3)
     integer          :: ns_lo(3),ns_hi(3)
     integer          :: src_lo(3),src_hi(3)
-    double precision :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
-    double precision :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
-    double precision :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision :: problo(3),dx(3),time,dt
+    real(rt)         :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
+    real(rt)         :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
+    real(rt)         :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: problo(3),dx(3),time,dt
 
     ! lo and hi specify work region
     src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO ! Fill work region only

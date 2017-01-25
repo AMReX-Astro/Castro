@@ -48,11 +48,9 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-#ifdef SPONGE
-enum sources { sponge_src = 0,
-               ext_src,
-#else
 enum sources { ext_src = 0,
+#ifdef SPONGE
+               sponge_src,
 #endif
 #ifdef DIFFUSION
                diff_src,
@@ -261,6 +259,12 @@ public:
     void do_new_sources(Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
     void construct_new_source(int src, Real time, Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+
+    Array<Real> evaluate_source_change(MultiFab& update, Real dt, bool local = false);
+
+    void print_source_change(Array<Real> update);
+
+    void print_all_source_changes(Real dt, bool is_new);
 
     void sum_of_sources(MultiFab& source);
 
@@ -538,6 +542,8 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
+    static Array<std::string> source_names;
+
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
     // to mask out the finer level.  We only build this when it is needed.
@@ -607,8 +613,10 @@ protected:
     Real flux_crse_scale;
     Real flux_fine_scale;
 
+#if (BL_SPACEDIM <= 2)
     Real pres_crse_scale;
     Real pres_fine_scale;
+#endif
 
     //
     // Non-hydro source terms.
@@ -678,6 +686,11 @@ protected:
     MultiFab             area[BL_SPACEDIM];
     MultiFab             dLogArea[1];
     Array< Array<Real> > radius;
+
+    //
+    // Keep track of which AMR iteration we're on.
+    //
+    int iteration;
 
     //
     // Static data members.

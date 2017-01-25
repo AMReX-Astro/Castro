@@ -1,12 +1,13 @@
 module probdata_module
 
-  double precision, save :: pert_factor, dens_base, pres_base, y_pert_center
-  double precision, save :: pert_width
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save :: pert_factor, dens_base, pres_base, y_pert_center
+  real(rt)        , save :: pert_width
   
   logical,          save :: do_isentropic
 
   integer,          save :: boundary_type
 
-  double precision, save :: frac
+  real(rt)        , save :: frac
 
 end module probdata_module

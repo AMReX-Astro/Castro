@@ -9,10 +9,6 @@
 #include <omp.h>
 #endif
 
-#include "LHH.H"
-
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 
 int         RadBndry::first = 1;
@@ -47,9 +43,9 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
 	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(bndry[face][bi].dataPtr(), dimlist(face_box),
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
                          bctypearray[face][igrid].dataPtr(),
-                         dimlist(domain), dx, xlo, time);
+                         ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
         }
       }
@@ -230,11 +226,10 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	      setValue(face, i, value);
 	    }
 	    else {
-	      Fab& bnd_fab = bndry[face][i];
-	      const Box& bnd_box = bnd_fab.box();
+	      FArrayBox& bnd_fab = bndry[face][i];
 	      int iface = face.isLow() ? 0 : 1;
-	      FORT_RADBNDRY(bnd_fab.dataPtr(), dimlist(bnd_box),
-			    dimlist(domain), dx, xlo, time, dir, iface);
+	      FORT_RADBNDRY(BL_TO_FORTRAN(bnd_fab),
+			    ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time, dir, iface);
 	    }
 	  }
 	}
@@ -245,11 +240,11 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 	  exit(2);
 
 #if 0
-	  Fab& bnd_fab = bndry[face][bi];
-	  const Box& bnd_box = bnd_fab.box();
+	  FArrayBox& bnd_fab = bndry[face][bi];
 	  BaseFab<int>& tfab = bctypearray[face][i];
-	  FORT_RADBNDRY2(bnd_fab.dataPtr(), dimlist(bnd_box),
-			 tfab.dataPtr(), dimlist(domain), dx, xlo, time);
+	  FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab), 
+			 tfab.dataPtr(),
+			 ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
 	  if (p_bcflag == 0) {
 	    // Homogeneous case.  We called RADBNDRY2 only to set tfab right.
 	    setValue(face, i, value);

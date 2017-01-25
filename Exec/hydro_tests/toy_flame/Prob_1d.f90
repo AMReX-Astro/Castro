@@ -7,18 +7,19 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use extern_probin_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
-  double precision xn(nspec)
+  real(rt)         problo(1), probhi(1)
+  real(rt)         xn(nspec)
 
   integer untin,i
 
   type (eos_t) :: eos_state
 
-  double precision :: lambda_f, v_f
+  real(rt)         :: lambda_f, v_f
 
   namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel
 
@@ -36,8 +37,8 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   end do
 
   ! set namelist defaults
-  pert_frac = 0.2d0
-  pert_delta = 0.02d0
+  pert_frac = 0.2e0_rt
+  pert_delta = 0.02e0_rt
   rho_fuel = ONE
   T_fuel = ONE
 
@@ -98,21 +99,22 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(1), hi(1)
   integer state_l1,state_h1
-  double precision state(state_l1:state_h1,NVAR)
-  double precision time, delta(1)
-  double precision xlo(1), xhi(1)
+  real(rt)         state(state_l1:state_h1,NVAR)
+  real(rt)         time, delta(1)
+  real(rt)         xlo(1), xhi(1)
 
-  double precision xx, x_int, L, f, pert_width
+  real(rt)         xx, x_int, L, f, pert_width
   integer i
 
-  double precision :: e_fuel, p_fuel
-  double precision :: rho_ash, T_ash, e_ash
-  double precision :: xn_fuel(nspec), xn_ash(nspec)
+  real(rt)         :: e_fuel, p_fuel
+  real(rt)         :: rho_ash, T_ash, e_ash
+  real(rt)         :: xn_fuel(nspec), xn_ash(nspec)
 
   type (eos_t) :: eos_state
 
@@ -140,7 +142,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   p_fuel = eos_state%p
 
   ! compute the ash state
-  rho_ash = rho_fuel / (ONE + 0.6_dp_t*specific_q_burn/e_fuel)
+  rho_ash = rho_fuel / (ONE + 0.6_rt*specific_q_burn/e_fuel)
   e_ash = e_fuel - p_fuel*(ONE/rho_ash - ONE/rho_fuel) + specific_q_burn
   xn_ash(:) = ZERO
   xn_ash(iash) = ONE
@@ -157,7 +159,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   print *, 'ash: ', rho_ash, T_ash, xn_ash
 
   do i = lo(1), hi(1)
-     xx = problo(1) + delta(1)*(dble(i) + 0.5d0)
+     xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
      if (xx <= x_int) then
 

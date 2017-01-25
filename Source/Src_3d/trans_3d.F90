@@ -3,17 +3,17 @@ module transverse_module
   use bl_constants_module
 
   use network, only : nspec, naux
-  use meth_params_module, only : NQ, QVAR, NVAR, QRHO, QU, QV, QW, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NQAUX, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QGAME, QFS, QFX, &
+                                 QC, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
+                                 GDERADS, GDLAMS, &
+                                 QCG, QGAMCG, QLAMS, &
 #endif
                                  URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, &
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
-#ifdef RADIATION
-                                 GDERADS, GDLAMS, &
-#endif
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
                                  ppm_predict_gammae, ppm_trace_sources, ppm_type, &
@@ -25,6 +25,7 @@ module transverse_module
 
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -34,9 +35,10 @@ contains
 
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    double precision, intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
+    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
 
     logical :: reset
     type (eos_t) :: eos_state
@@ -91,74 +93,69 @@ contains
   !===========================================================================
   ! transx1
   !===========================================================================
-  subroutine transx1( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+  subroutine transx1(qym, qymo, qyp, qypo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fx, &
 #ifdef RADIATION
                      rfx, &
 #endif
-                     fx_lo,fx_hi, &
-                     qx,qx_lo,qx_hi, &
-                     gamc,gd_lo,gd_hi, &
-                     cdtdx,ilo,ihi,jlo,jhi,kc,k3d)
+                     fx_lo, fx_hi, &
+                     qx, qx_lo, qx_hi, &
+                     cdtdx, ilo, ihi, jlo, jhi, kc, k3d)
 
     ! Note that what we call ilo here is ilo = lo(1)
     ! Note that what we call ihi here is ihi = hi(1)
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: qx_lo(3),qx_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision cdtdx
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)         cdtdx
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision rrry, rrly
-    double precision rury, ruly
-    double precision rvry, rvly
-    double precision rwry, rwly
-    double precision ekenry, ekenly
-    double precision rery, rely
-    double precision rrnewry, rrnewly
-    double precision runewry, runewly
-    double precision rvnewry, rvnewly
-    double precision rwnewry, rwnewly
-    double precision renewry, renewly
-    double precision pnewry, pnewly
-    double precision rhoekenry, rhoekenly
-    double precision compn, compu
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         rrry, rrly
+    real(rt)         rury, ruly
+    real(rt)         rvry, rvly
+    real(rt)         rwry, rwly
+    real(rt)         ekenry, ekenly
+    real(rt)         rery, rely
+    real(rt)         rrnewry, rrnewly
+    real(rt)         runewry, runewly
+    real(rt)         rvnewry, rvnewly
+    real(rt)         rwnewry, rwnewly
+    real(rt)         renewry, renewly
+    real(rt)         pnewry, pnewly
+    real(rt)         rhoekenry, rhoekenly
+    real(rt)         compn, compu
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -212,7 +209,7 @@ contains
           gegm = qx(i  ,j,kc,GDGAME)
 
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
@@ -228,6 +225,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -322,12 +326,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                   pnewry = qyp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
                    qypo(i,j,kc,QPRES) = max(pnewry,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qypo(i,j,kc,QGAME) = qyp(i,j,kc,QGAME) + &
-                        cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                        cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qypo(i,j,kc,QPRES) = qypo(i,j,kc,QREINT)*(qypo(i,j,kc,QGAME)-ONE)
@@ -417,12 +421,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                   pnewly = qym(i,j+1,kc,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
                    qymo(i,j+1,kc,QPRES) = max(pnewly,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qymo(i,j+1,kc,QGAME) = qym(i,j+1,kc,QGAME) + &
-                        cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                        cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qymo(i,j+1,kc,QPRES) = qymo(i,j+1,kc,QREINT)*(qymo(i,j+1,kc,QGAME)-ONE)
@@ -451,69 +455,63 @@ contains
   !===========================================================================
   ! transx2
   !===========================================================================
-  subroutine transx2( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+  subroutine transx2(qzm, qzmo, qzp, qzpo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fx, &
 #ifdef RADIATION
                      rfx, &
 #endif
-                     fx_lo,fx_hi, &
-                     qx,qx_lo,qx_hi, &
-                     gamc,gd_lo,gd_hi, &
-                     cdtdx,ilo,ihi,jlo,jhi,kc,km,k3d)
+                     fx_lo, fx_hi, &
+                     qx, qx_lo, qx_hi, &
+                     cdtdx, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: qx_lo(3),qx_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision cdtdx
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)         cdtdx
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision rrrz, rrlz
-    double precision rurz, rulz
-    double precision rvrz, rvlz
-    double precision rwrz, rwlz
-    double precision ekenrz, ekenlz
-    double precision rerz, relz
-    double precision rrnewrz, rrnewlz
-    double precision runewrz, runewlz
-    double precision rvnewrz, rvnewlz
-    double precision rwnewrz, rwnewlz
-    double precision renewrz, renewlz
-    double precision pnewrz, pnewlz
-    double precision rhoekenrz, rhoekenlz
-    double precision compn, compu
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrz, rhoekenlz
+    real(rt)         compn, compu
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -567,7 +565,7 @@ contains
           gegp = qx(i+1,j,kc,GDGAME)
           gegm = qx(i  ,j,kc,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
@@ -583,6 +581,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -672,12 +677,12 @@ contains
 
              if (ppm_predict_gammae == 0) then
                 ! add the transverse term to the p evolution eq here
-                pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d)-ONE))
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
                 qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
              else
                 ! Update gammae with its transverse terms
                 qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
-                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                     cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
@@ -707,7 +712,7 @@ contains
           gegp = qx(i+1,j,km,GDGAME)
           gegm = qx(i  ,j,km,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d-1,:)
+          lambda(:) = qaux(i,j,k3d-1,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
           ergm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
@@ -723,6 +728,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d-1,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d-1,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -810,12 +822,12 @@ contains
              ! If we are wrong, we will fix it later
 
              if (ppm_predict_gammae == 0) then
-                pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc(i,j,k3d-1)-ONE))
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
                 qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
              else
                 ! Update gammae with its transverse terms
                 qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
-                     cdtdx*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                     cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
@@ -843,69 +855,64 @@ contains
   !===========================================================================
   ! transy1
   !===========================================================================
-  subroutine transy1( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qxm,qxmo,qxp,qxpo,qd_lo,qd_hi, &
+  subroutine transy1(qxm, qxmo, qxp, qxpo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fy, &
 #ifdef RADIATION
                      rfy, &
 #endif
-                     fy_lo,fy_hi, &
-                     qy,qy_lo,qy_hi, &
-                     gamc,gd_lo,gd_hi, &
-                     cdtdy,ilo,ihi,jlo,jhi,kc,k3d)
+                     fy_lo, fy_hi, &
+                     qy, qy_lo, qy_hi, &
+                     cdtdy, ilo, ihi, jlo, jhi, kc, k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: qy_lo(3),qy_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision cdtdy
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrx, rrlx
-    double precision rurx, rulx
-    double precision rvrx, rvlx
-    double precision rwrx, rwlx
-    double precision ekenrx, ekenlx
-    double precision rerx, relx
-    double precision rrnewrx, rrnewlx
-    double precision runewrx, runewlx
-    double precision rvnewrx, rvnewlx
-    double precision rwnewrx, rwnewlx
-    double precision renewrx, renewlx
-    double precision pnewrx, pnewlx
-    double precision rhoekenrx, rhoekenlx
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrx, rrlx
+    real(rt)         rurx, rulx
+    real(rt)         rvrx, rvlx
+    real(rt)         rwrx, rwlx
+    real(rt)         ekenrx, ekenlx
+    real(rt)         rerx, relx
+    real(rt)         rrnewrx, rrnewlx
+    real(rt)         runewrx, runewlx
+    real(rt)         rvnewrx, rvnewlx
+    real(rt)         rwnewrx, rwnewlx
+    real(rt)         renewrx, renewlx
+    real(rt)         pnewrx, pnewlx
+    real(rt)         rhoekenrx, rhoekenlx
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -956,7 +963,7 @@ contains
           gegp = qy(i,j+1,kc,GDGAME)
           gegm = qy(i,j  ,kc,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
@@ -972,6 +979,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -1065,12 +1079,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                   pnewrx = qxp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc - ONE))
                    qxpo(i,j,kc,QPRES) = max(pnewrx,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qxpo(i,j,kc,QGAME) = qxp(i,j,kc,QGAME) + &
-                        cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                        cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qxpo(i,j,kc,QPRES) = qxpo(i,j,kc,QREINT)*(qxpo(i,j,kc,QGAME)-ONE)
@@ -1159,12 +1173,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                   pnewlx = qxm(i+1,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc - ONE))
                    qxmo(i+1,j,kc,QPRES) = max(pnewlx,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qxmo(i+1,j,kc,QGAME) = qxm(i+1,j,kc,QGAME) + &
-                        cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                        cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qxmo(i+1,j,kc,QPRES) = qxmo(i+1,j,kc,QREINT)*(qxmo(i+1,j,kc,QGAME)-ONE)
@@ -1194,69 +1208,64 @@ contains
   !===========================================================================
   ! transy2
   !===========================================================================
-  subroutine transy2( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qzm,qzmo,qzp,qzpo,qd_lo,qd_hi, &
+  subroutine transy2(qzm, qzmo, qzp, qzpo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fy, &
 #ifdef RADIATION
                      rfy, &
 #endif
-                     fy_lo,fy_hi, &
-                     qy,qy_lo,qy_hi, &
-                     gamc,gd_lo,gd_hi, &
-                     cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
+                     fy_lo, fy_hi, &
+                     qy, qy_lo, qy_hi, &
+                     cdtdy, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: qy_lo(3),qy_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,kc,km,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qzp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qzpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision cdtdy
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rhoinv
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrz, rrlz
-    double precision rurz, rulz
-    double precision rvrz, rvlz
-    double precision rwrz, rwlz
-    double precision ekenrz, ekenlz
-    double precision rerz, relz
-    double precision rrnewrz, rrnewlz
-    double precision runewrz, runewlz
-    double precision rvnewrz, rvnewlz
-    double precision rwnewrz, rwnewlz
-    double precision renewrz, renewlz
-    double precision pnewrz, pnewlz
-    double precision rhoekenrz, rhoekenlz
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rhoinv
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrz, rrlz
+    real(rt)         rurz, rulz
+    real(rt)         rvrz, rvlz
+    real(rt)         rwrz, rwlz
+    real(rt)         ekenrz, ekenlz
+    real(rt)         rerz, relz
+    real(rt)         rrnewrz, rrnewlz
+    real(rt)         runewrz, runewlz
+    real(rt)         rvnewrz, rvnewlz
+    real(rt)         rwnewrz, rwnewlz
+    real(rt)         renewrz, renewlz
+    real(rt)         pnewrz, pnewlz
+    real(rt)         rhoekenrz, rhoekenlz
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dre, dmom
-    double precision, dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt)         :: dre, dmom
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    double precision eddf, f1, ugc
+    real(rt)         eddf, f1, ugc
     integer :: g
 #endif
 
@@ -1310,7 +1319,7 @@ contains
           gegp = qy(i,j+1,kc,GDGAME)
           gegm = qy(i,j  ,kc,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,kc,GDERADS:GDERADS-1+ngroups)
@@ -1326,6 +1335,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d,QGAMC)
+#endif
+
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -1413,12 +1429,12 @@ contains
 
              if (ppm_predict_gammae == 0) then
                 ! add the transverse term to the p evolution eq here
-                pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d) - ONE))
+                pnewrz = qzp(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc - ONE))
                 qzpo(i,j,kc,QPRES) = max(pnewrz,small_pres)
              else
                 ! Update gammae with its transverse terms
                 qzpo(i,j,kc,QGAME) = qzp(i,j,kc,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d))*du - uav*dge )
+                     cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qzpo(i,j,kc,QPRES) = qzpo(i,j,kc,QREINT)*(qzpo(i,j,kc,QGAME)-ONE)
@@ -1448,7 +1464,7 @@ contains
           gegp = qy(i,j+1,km,GDGAME)
           gegm = qy(i,j  ,km,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d-1,:)
+          lambda(:) = qaux(i,j,k3d-1,QLAMS:QLAMS+ngroups-1)
           ugc = HALF*(ugp+ugm)
           ergp = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
           ergm = qy(i,j  ,km,GDERADS:GDERADS-1+ngroups)
@@ -1464,6 +1480,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d-1,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d-1,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -1551,12 +1574,12 @@ contains
 
              if (ppm_predict_gammae == 0) then
                 ! add the transverse term to the p evolution eq here
-                pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                pnewlz = qzm(i,j,kc,QPRES) - cdtdy*(dup + pav*du*(gamc - ONE))
                 qzmo(i,j,kc,QPRES) = max(pnewlz,small_pres)
              else
                 ! Update gammae with its transverse terms
                 qzmo(i,j,kc,QGAME) = qzm(i,j,kc,QGAME) + &
-                     cdtdy*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                     cdtdy*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                 ! and compute the p edge state from this and (rho e)
                 qzmo(i,j,kc,QPRES) = qzmo(i,j,kc,QREINT)*(qzmo(i,j,kc,QGAME)-ONE)
@@ -1584,72 +1607,67 @@ contains
   !===========================================================================
   ! transz
   !===========================================================================
-  subroutine transz( &
-#ifdef RADIATION
-                    lam, lam_lo, lam_hi, &
-#endif
-                    qxm,qxmo,qxp,qxpo,qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+  subroutine transz(qxm,qxmo,qxp,qxpo,qym,qymo,qyp,qypo,qd_lo,qd_hi, &
+                    qaux, qa_lo, qa_hi, &
                     fz, &
 #ifdef RADIATION
                     rfz, &
 #endif
                     fz_lo,fz_hi, &
                     qz,qz_lo,qz_hi, &
-                    gamc,gd_lo,gd_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fz_lo(3),fz_hi(3)
     integer :: qz_lo(3),qz_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qxp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qym(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qyp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qxpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qymo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qypo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision cdtdz
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)         qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         cdtdz
 
     integer n, nqp, i, j, ipassive
 
-    double precision rrnew, rr
-    double precision compn, compu
-    double precision rrrx, rrry, rrlx, rrly
-    double precision rurx, rury, rulx, ruly
-    double precision rvrx, rvry, rvlx, rvly
-    double precision rwrx, rwry, rwlx, rwly
-    double precision ekenrx, ekenry, ekenlx, ekenly
-    double precision rerx, rery, relx, rely
-    double precision rrnewrx, rrnewry, rrnewlx, rrnewly
-    double precision runewrx, runewry, runewlx, runewly
-    double precision rvnewrx, rvnewry, rvnewlx, rvnewly
-    double precision rwnewrx, rwnewry, rwnewlx, rwnewly
-    double precision renewrx, renewry, renewlx, renewly
-    double precision pnewrx, pnewry, pnewlx, pnewly
-    double precision rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
-    double precision pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         rrnew, rr
+    real(rt)         compn, compu
+    real(rt)         rrrx, rrry, rrlx, rrly
+    real(rt)         rurx, rury, rulx, ruly
+    real(rt)         rvrx, rvry, rvlx, rvly
+    real(rt)         rwrx, rwry, rwlx, rwly
+    real(rt)         ekenrx, ekenry, ekenlx, ekenly
+    real(rt)         rerx, rery, relx, rely
+    real(rt)         rrnewrx, rrnewry, rrnewlx, rrnewly
+    real(rt)         runewrx, runewry, runewlx, runewly
+    real(rt)         rvnewrx, rvnewry, rvnewlx, rvnewly
+    real(rt)         rwnewrx, rwnewry, rwnewlx, rwnewly
+    real(rt)         renewrx, renewry, renewlx, renewly
+    real(rt)         pnewrx, pnewry, pnewlx, pnewly
+    real(rt)         rhoekenrx, rhoekenry, rhoekenlx, rhoekenly
+    real(rt)         pggp, pggm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt)         :: gamc
 
 #ifdef RADIATION
-    double precision :: dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
+    real(rt)         :: dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, luge, lamge, &
          ergp, errx, ernewrx, erry, ernewry, ergm, erlx, ernewlx, erly, ernewly
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -1715,7 +1733,7 @@ contains
           gegp = qz(i,j,kc,GDGAME)
           gegm = qz(i,j,km,GDGAME)
 #ifdef RADIATION
-          lambda = lam(i,j,k3d-1,:)
+          lambda(:) = qaux(i,j,k3d-1,QLAMS:QLAMS+ngroups-1)
           ergp = qz(i,j,kc,GDERADS:GDERADS-1+ngroups)
           ergm = qz(i,j,km,GDERADS:GDERADS-1+ngroups)
 #endif
@@ -1726,6 +1744,13 @@ contains
           geav = HALF*(gegp+gegm)
           du = ugp-ugm
           dge = gegp-gegm
+
+          ! this is the gas gamma_1
+#ifdef RADIATION
+          gamc = qaux(i,j,k3d-1,QGAMCG)
+#else
+          gamc = qaux(i,j,k3d-1,QGAMC)
+#endif
 
 #ifdef RADIATION
           lamge = lambda(:) * (ergp(:)-ergm(:))
@@ -1816,12 +1841,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   pnewrx = qxp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
                    qxpo(i,j,km,QPRES) = max(pnewrx,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qxpo(i,j,km,QGAME) = qxp(i,j,km,QGAME) + &
-                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qxpo(i,j,km,QPRES) = qxpo(i,j,km,QREINT)*(qxpo(i,j,km,QGAME)-ONE)
@@ -1908,12 +1933,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   pnewry = qyp(i,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
                    qypo(i,j,km,QPRES) = max(pnewry,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qypo(i,j,km,QGAME) = qyp(i,j,km,QGAME) + &
-                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qypo(i,j,km,QPRES) = qypo(i,j,km,QREINT)*(qypo(i,j,km,QGAME)-ONE)
@@ -2001,12 +2026,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   pnewlx = qxm(i+1,j,km,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
                    qxmo(i+1,j,km,QPRES) = max(pnewlx,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qxmo(i+1,j,km,QGAME) = qxm(i+1,j,km,QGAME) + &
-                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qxmo(i+1,j,km,QPRES) = qxmo(i+1,j,km,QREINT)*(qxmo(i+1,j,km,QGAME)-ONE)
@@ -2094,12 +2119,12 @@ contains
 
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
-                   pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc(i,j,k3d-1) - ONE))
+                   pnewly = qym(i,j+1,km,QPRES) - cdtdz*(dup + pav*du*(gamc - ONE))
                    qymo(i,j+1,km,QPRES) = max(pnewly,small_pres)
                 else
                    ! Update gammae with its transverse terms
                    qymo(i,j+1,km,QGAME) = qym(i,j+1,km,QGAME) + &
-                        cdtdz*( (geav-ONE)*(geav-gamc(i,j,k3d-1))*du - uav*dge )
+                        cdtdz*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 
                    ! and compute the p edge state from this and (rho e)
                    qymo(i,j+1,km,QPRES) = qymo(i,j+1,km,QREINT)*(qymo(i,j+1,km,QGAME)-ONE)
@@ -2129,11 +2154,8 @@ contains
   !===========================================================================
   ! transxy
   !===========================================================================
-  subroutine transxy( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+  subroutine transxy(qm,qmo,qp,qpo,qd_lo,qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fxy, &
 #ifdef RADIATION
                      rfxy, &
@@ -2146,61 +2168,58 @@ contains
                      fy_lo,fy_hi, &
                      qx,qx_lo,qx_hi, &
                      qy,qy_lo,qy_hi, &
-                     gamc,gd_lo,gd_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: qx_lo(3),qx_hi(3)
     integer :: qy_lo(3),qy_hi(3)
-    integer :: gd_lo(3),gd_hi(3)
     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision gamc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),gd_lo(3):gd_hi(3))
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdx,cdtdy
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fxy(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         fyx(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdx,cdtdy
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    double precision uxav, gexav, dgex, uyav, geyav, dgey
-    double precision pggxpm, pggxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
-    double precision pggypm, pggymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
-    double precision uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
-    double precision compr, compl, compnr, compnl
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    real(rt)         uxav, gexav, dgex, uyav, geyav, dgey
+    real(rt)         pggxpm, pggxmm, ugxpm, ugxmm, gegxpm, gegxmm, duxpm, pxavm, duxm, pxnewm, gexnewm
+    real(rt)         pggypm, pggymm, ugypm, ugymm, gegypm, gegymm, duypm, pyavm, duym, pynewm, geynewm
+    real(rt)         uxavm, gexavm, dgexm, uyavm, geyavm, dgeym
+    real(rt)         compr, compl, compnr, compnl
 
 #ifdef RADIATION
-    double precision :: dmx, dmy, dre
-    double precision, dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
+    real(rt)         :: dmx, dmy, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lamc, lamm, lugex, lugey, lgex, lgey, &
          err, ernewr, erl, ernewl, ergxp, ergyp, ergxm, ergym, ergxpm, ergypm, ergxmm, ergymm
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -2263,7 +2282,7 @@ contains
           gegym = qy(i,j  ,kc,GDGAME)
 
 #ifdef RADIATION
-          lamc = lam(i,j,k3d,:)
+          lamc(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
           ergxp = qx(i+1,j,kc,GDERADS:GDERADS-1+ngroups)
           ergxm = qx(i  ,j,kc,GDERADS:GDERADS-1+ngroups)
           ergyp = qy(i,j+1,kc,GDERADS:GDERADS-1+ngroups)
@@ -2285,7 +2304,7 @@ contains
           gegymm = qy(i,j  ,km,GDGAME)
 
 #ifdef RADIATION
-          lamm = lam(i,j,k3d-1,:)
+          lamm(:) = qaux(i,j,k3d-1,QLAMS:QLAMS+ngroups-1)
           ergxpm = qx(i+1,j,km,GDERADS:GDERADS-1+ngroups)
           ergxmm = qx(i  ,j,km,GDERADS:GDERADS-1+ngroups)
           ergypm = qy(i,j+1,km,GDERADS:GDERADS-1+ngroups)
@@ -2298,8 +2317,14 @@ contains
           gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+#ifdef RADIATION
+          pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k3d,QGAMCG) - ONE))
+          gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k3d,QGAMCG))*dux - uxav*dgex )
+#else
+          pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k3d,QGAMC) - ONE))
+          gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k3d,QGAMC))*dux - uxav*dgex )
+#endif
+
 
           duxpm = pggxpm*ugxpm - pggxmm*ugxmm
           pxavm = HALF*(pggxpm+pggxmm)
@@ -2307,27 +2332,39 @@ contains
           gexavm = HALF*(gegxpm+gegxmm)
           duxm = ugxpm-ugxmm
           dgexm = gegxpm-gegxmm
-          pxnewm = cdtdx*(duxpm + pxavm*duxm*(gamc(i,j,k3d-1)-ONE))
-          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm-gamc(i,j,k3d-1))*duxm - uxavm*dgexm )
-
+#ifdef RADIATION
+          pxnewm = cdtdx*(duxpm + pxavm*duxm*(qaux(i,j,k3d-1,QGAMCG) - ONE))
+          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm - qaux(i,j,k3d-1,QGAMCG))*duxm - uxavm*dgexm )
+#else
+          pxnewm = cdtdx*(duxpm + pxavm*duxm*(qaux(i,j,k3d-1,QGAMC) - ONE))
+          gexnewm = cdtdx*( (gexavm-ONE)*(gexavm - qaux(i,j,k3d-1,QGAMC))*duxm - uxavm*dgexm )
+#endif
           duyp = pggyp*ugyp - pggym*ugym
           pyav = HALF*(pggyp+pggym)
           uyav = HALF*(ugyp+ugym)
           geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
           dgey = gegyp-gegym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
-
+#ifdef RADIATION
+          pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k3d,QGAMCG) - ONE))
+          geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k3d,QGAMCG))*duy - uyav*dgey )
+#else
+          pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k3d,QGAMC) - ONE))
+          geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k3d,QGAMC))*duy - uyav*dgey )
+#endif
           duypm = pggypm*ugypm - pggymm*ugymm
           pyavm = HALF*(pggypm+pggymm)
           uyavm = HALF*(ugypm+ugymm)
           geyavm = HALF*(gegypm+gegymm)
           duym = ugypm-ugymm
           dgeym = gegypm-gegymm
-          pynewm = cdtdy*(duypm + pyavm*duym*(gamc(i,j,k3d-1)-ONE))
-          geynewm = cdtdy*( (geyavm-ONE)*(geyavm-gamc(i,j,k3d-1))*duym - uyavm*dgeym )
-
+#ifdef RADIATION
+          pynewm = cdtdy*(duypm + pyavm*duym*(qaux(i,j,k3d-1,QGAMCG) - ONE))
+          geynewm = cdtdy*( (geyavm-ONE)*(geyavm - qaux(i,j,k3d-1,QGAMCG))*duym - uyavm*dgeym )
+#else
+          pynewm = cdtdy*(duypm + pyavm*duym*(qaux(i,j,k3d-1,QGAMC) - ONE))
+          geynewm = cdtdy*( (geyavm-ONE)*(geyavm - qaux(i,j,k3d-1,QGAMC))*duym - uyavm*dgeym )
+#endif
 
           !-------------------------------------------------------------------
           ! qzpo state
@@ -2599,11 +2636,8 @@ contains
   !===========================================================================
   ! transxz
   !===========================================================================
-  subroutine transxz( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+  subroutine transxz(qm, qmo, qp, qpo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fxz, &
 #ifdef RADIATION
                      rfxz, &
@@ -2616,58 +2650,55 @@ contains
                      fz_lo,fz_hi, &
                      qx,qx_lo,qx_hi, &
                      qz,qz_lo,qz_hi, &
-                     gamc,gc_lo,gc_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3), lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
     integer :: fz_lo(3),fz_hi(3)
     integer :: qx_lo(3),qx_hi(3)
     integer :: qz_lo(3),qz_hi(3)
-    integer :: gc_lo(3),gc_hi(3)
     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
-    double precision rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),0:ngroups-1)
+    real(rt)         rfzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision  qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision  qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)          qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
-    double precision fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision  qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdx,cdtdz
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fxz(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
+    real(rt)         fzx(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)          qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdx,cdtdz
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
-    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
-    double precision uxav, gexav, dgex, uzav, gezav, dgez
-    double precision compr, compl, compnr, compnl, drr, dcompn
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggxp, pggxm, ugxp, ugxm, gegxp, gegxm, duxp, pxav, dux, pxnew, gexnew
+    real(rt)         pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    real(rt)         uxav, gexav, dgex, uzav, gezav, dgez
+    real(rt)         compr, compl, compnr, compnl, drr, dcompn
 
 #ifdef RADIATION
-    double precision :: dmx, dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
+    real(rt)         :: dmx, dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugex, lugez, lgex, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergxp, ergzm,  ergxm
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -2722,7 +2753,7 @@ contains
           !-------------------------------------------------------------------
 
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
 #endif
 
           pggxp  = qx(i+1,j,km,GDPRES)
@@ -2753,8 +2784,13 @@ contains
           gexav = HALF*(gegxp+gegxm)
           dux = ugxp-ugxm
           dgex = gegxp-gegxm
-          pxnew = cdtdx*(duxp + pxav*dux*(gamc(i,j,k3d)-ONE))
-          gexnew = cdtdx*( (gexav-ONE)*(gexav-gamc(i,j,k3d))*dux - uxav*dgex )
+#ifdef RADIATION
+          pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k3d,QGAMCG) - ONE))
+          gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k3d,QGAMCG))*dux - uxav*dgex )
+#else
+          pxnew = cdtdx*(duxp + pxav*dux*(qaux(i,j,k3d,QGAMC) - ONE))
+          gexnew = cdtdx*( (gexav-ONE)*(gexav - qaux(i,j,k3d,QGAMC))*dux - uxav*dgex )
+#endif
 
           duzp = pggzp*ugzp - pggzm*ugzm
           pzav = HALF*(pggzp+pggzm)
@@ -2762,8 +2798,13 @@ contains
           gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
-          geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+#ifdef RADIATION
+          pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k3d,QGAMCG) - ONE))
+          geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k3d,QGAMCG))*duz - uzav*dgez )
+#else
+          pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k3d,QGAMC) - ONE))
+          geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k3d,QGAMC))*duz - uzav*dgez )
+#endif
 
 #ifdef RADIATION
           lgex = lambda(:) * (ergxp(:)-ergxm(:))
@@ -3012,11 +3053,8 @@ contains
   !===========================================================================
   ! transyz
   !===========================================================================
-  subroutine transyz( &
-#ifdef RADIATION
-                     lam, lam_lo, lam_hi, &
-#endif
-                     qm,qmo,qp,qpo,qd_lo,qd_hi, &
+  subroutine transyz(qm, qmo, qp, qpo, qd_lo, qd_hi, &
+                     qaux, qa_lo, qa_hi, &
                      fyz, &
 #ifdef RADIATION
                      rfyz, &
@@ -3029,59 +3067,56 @@ contains
                      fz_lo,fz_hi, &
                      qy,qy_lo,qy_hi, &
                      qz,qz_lo,qz_hi, &
-                     gamc,gc_lo,gc_hi, &
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-#ifdef RADIATION
-    integer :: lam_lo(3),lam_hi(3)
-#endif
+    use bl_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
+    integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
     integer :: fz_lo(3),fz_hi(3)
     integer :: qy_lo(3),qy_hi(3)
     integer :: qz_lo(3),qz_hi(3)
-    integer :: gc_lo(3),gc_hi(3)
-    integer :: src_lo(3),src_hi(3)
+     integer :: src_lo(3),src_hi(3)
     integer ilo,ihi,jlo,jhi,km,kc,k3d
 
 #ifdef RADIATION
-    double precision lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    double precision rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
-    double precision rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
+    real(rt)         rfyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),0:ngroups-1)
+    real(rt)         rfzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),0:ngroups-1)
 #endif
 
-    double precision qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    double precision qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    double precision fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
-    double precision fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
-    double precision  qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision  qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision gamc(gc_lo(1):gc_hi(1),gc_lo(2):gc_hi(2),gc_lo(3):gc_hi(3))
-    double precision srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
-    double precision hdt,cdtdy,cdtdz
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt)         fyz(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
+    real(rt)         fzy(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
+    real(rt)          qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)          qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt)         hdt,cdtdy,cdtdz
 
     integer i, j, n, nqp, ipassive
 
-    double precision rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
-    double precision rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
-    double precision rrnewr, runewr, rvnewr, rwnewr, renewr
-    double precision rrnewl, runewl, rvnewl, rwnewl, renewl
-    double precision pnewr, pnewl
-    double precision pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
-    double precision pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
-    double precision uyav, geyav, dgey, uzav, gezav, dgez
-    double precision compr, compl, compnr, compnl
-    double precision drr, dcompn
+    real(rt)         rrr, rur, rvr, rwr, rer, ekenr, rhoekenr
+    real(rt)         rrl, rul, rvl, rwl, rel, ekenl, rhoekenl
+    real(rt)         rrnewr, runewr, rvnewr, rwnewr, renewr
+    real(rt)         rrnewl, runewl, rvnewl, rwnewl, renewl
+    real(rt)         pnewr, pnewl
+    real(rt)         pggyp, pggym, ugyp, ugym, gegyp, gegym, duyp, pyav, duy, pynew, geynew
+    real(rt)         pggzp, pggzm, ugzp, ugzm, gegzp, gegzm, duzp, pzav, duz, pznew, geznew
+    real(rt)         uyav, geyav, dgey, uzav, gezav, dgez
+    real(rt)         compr, compl, compnr, compnl
+    real(rt)         drr, dcompn
 
 #ifdef RADIATION
-    double precision :: dmy, dmz, dre
-    double precision, dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
+    real(rt)         :: dmy, dmz, dre
+    real(rt)        , dimension(0:ngroups-1) :: der, lambda, lugey, lugez, lgey, lgez, &
          err, ernewr, erl, ernewl, ergzp, ergyp, ergzm, ergym
-    double precision eddf, f1
+    real(rt)         eddf, f1
     integer :: g
 #endif
 
@@ -3135,7 +3170,7 @@ contains
           !-------------------------------------------------------------------
 
 #ifdef RADIATION
-          lambda = lam(i,j,k3d,:)
+          lambda(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
 #endif
 
           pggyp  = qy(i,j+1,km,GDPRES)
@@ -3166,8 +3201,13 @@ contains
           geyav = HALF*(gegyp+gegym)
           duy = ugyp-ugym
           dgey = gegyp-gegym
-          pynew = cdtdy*(duyp + pyav*duy*(gamc(i,j,k3d)-ONE))
-          geynew = cdtdy*( (geyav-ONE)*(geyav-gamc(i,j,k3d))*duy - uyav*dgey )
+#ifdef RADIATION
+          pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k3d,QGAMCG) - ONE))
+          geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k3d,QGAMCG))*duy - uyav*dgey )
+#else
+          pynew = cdtdy*(duyp + pyav*duy*(qaux(i,j,k3d,QGAMC) - ONE))
+          geynew = cdtdy*( (geyav-ONE)*(geyav - qaux(i,j,k3d,QGAMC))*duy - uyav*dgey )
+#endif
 
           duzp = pggzp*ugzp - pggzm*ugzm
           pzav = HALF*(pggzp+pggzm)
@@ -3175,8 +3215,13 @@ contains
           gezav = HALF*(gegzp+gegzm)
           duz = ugzp-ugzm
           dgez = gegzp-gegzm
-          pznew = cdtdz*(duzp + pzav*duz*(gamc(i,j,k3d)-ONE))
-          geznew = cdtdz*( (gezav-ONE)*(gezav-gamc(i,j,k3d))*duz - uzav*dgez )
+#ifdef RADIATION
+          pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k3d,QGAMCG) - ONE))
+          geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k3d,QGAMCG))*duz - uzav*dgez )
+#else
+          pznew = cdtdz*(duzp + pzav*duz*(qaux(i,j,k3d,QGAMC) - ONE))
+          geznew = cdtdz*( (gezav-ONE)*(gezav - qaux(i,j,k3d,QGAMC))*duz - uzav*dgez )
+#endif
 
 #ifdef RADIATION
           lgey = lambda(:) * (ergyp(:)-ergym(:))

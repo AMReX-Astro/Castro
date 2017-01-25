@@ -1,5 +1,6 @@
 module MGutils_2D_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -14,6 +15,7 @@ contains
        ecy, ecyl1, ecyl2, ecyh1, ecyh2, dx, coord_type) &
        bind(C, name="ca_apply_metric")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(2),hi(2),xlo(2),ylo(2),xhi(2),yhi(2)
@@ -21,12 +23,12 @@ contains
     integer ecxl1, ecxl2, ecxh1, ecxh2
     integer ecyl1, ecyl2, ecyh1, ecyh2
     integer coord_type
-    double precision rhs(rl1:rh1,rl2:rh2)
-    double precision ecx(ecxl1:ecxh1,ecxl2:ecxh2)
-    double precision ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-    double precision dx(2)
+    real(rt)         rhs(rl1:rh1,rl2:rh2)
+    real(rt)         ecx(ecxl1:ecxh1,ecxl2:ecxh2)
+    real(rt)         ecy(ecyl1:ecyh1,ecyl2:ecyh2)
+    real(rt)         dx(2)
 
-    double precision r
+    real(rt)         r
     integer i,j
 
     ! r-z
@@ -34,7 +36,7 @@ contains
 
        ! At centers
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           do j=lo(2),hi(2)
              rhs(i,j) = rhs(i,j) * r
           enddo
@@ -50,7 +52,7 @@ contains
 
        ! On y-edges
        do i=ylo(1),yhi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           do j=ylo(2),yhi(2)
              ecy(i,j) = ecy(i,j) * r
           enddo
@@ -69,15 +71,16 @@ contains
        cc, cl1, cl2, ch1, ch2,  &
        dx, coord_type) bind(C, name="ca_weight_cc")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(2),hi(2)
     integer cl1, cl2, ch1, ch2
     integer coord_type
-    double precision cc(cl1:ch1,cl2:ch2)
-    double precision dx(2)
+    real(rt)         cc(cl1:ch1,cl2:ch2)
+    real(rt)         dx(2)
 
-    double precision r
+    real(rt)         r
     integer i,j
 
     ! r-z
@@ -85,7 +88,7 @@ contains
 
        ! At centers
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           do j=lo(2),hi(2)
              cc(i,j) = cc(i,j) * r
           enddo
@@ -104,15 +107,16 @@ contains
        cc, cl1, cl2, ch1, ch2,  &
        dx, coord_type) bind(C, name="ca_unweight_cc")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(2),hi(2)
     integer cl1, cl2, ch1, ch2
     integer coord_type
-    double precision cc(cl1:ch1,cl2:ch2)
-    double precision dx(2)
+    real(rt)         cc(cl1:ch1,cl2:ch2)
+    real(rt)         dx(2)
 
-    double precision r
+    real(rt)         r
     integer i,j
 
     ! r-z
@@ -120,7 +124,7 @@ contains
 
        ! At centers
        do i=lo(1),hi(1)
-          r = (dble(i)+0.5d0) * dx(1)
+          r = (dble(i)+0.5e0_rt) * dx(1)
           do j=lo(2),hi(2)
              cc(i,j) = cc(i,j) / r
           enddo
@@ -139,15 +143,16 @@ contains
        ec, ecl1, ecl2, ech1, ech2, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer lo(2),hi(2)
     integer ecl1, ecl2, ech1, ech2
     integer coord_type, idir
-    double precision ec(ecl1:ech1,ecl2:ech2)
-    double precision dx(2)
+    real(rt)         ec(ecl1:ech1,ecl2:ech2)
+    real(rt)         dx(2)
 
-    double precision :: r
+    real(rt)         :: r
     integer          :: i,j
 
     ! r-z
@@ -166,7 +171,7 @@ contains
        else
           ! On y-edges
           do i = lo(1), hi(1)
-             r = (dble(i)+0.5d0) * dx(1)
+             r = (dble(i)+0.5e0_rt) * dx(1)
              do j = lo(2),hi(2)
                 ec(i,j) = ec(i,j) / r
              enddo

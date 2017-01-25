@@ -11,11 +11,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use bl_constants_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(2), probhi(2)
+  real(rt)         :: problo(2), probhi(2)
 
   integer :: untin,i
 
@@ -46,12 +47,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! problem center
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
+  center(1) = (problo(1)+probhi(1))/2.e0_rt
+  center(2) = (problo(2)+probhi(2))/2.e0_rt
 
   ! characteristic scales
   x_r = probhi(1) - problo(1)
-  q_r = 0.4_dp_t*M_pi*x_r/t_r
+  q_r = 0.4_rt*M_pi*x_r/t_r
 
 end subroutine PROBINIT
 
@@ -88,17 +89,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : center, problo
   use network, only: nspec
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(2), hi(2)
   integer :: state_l1,state_l2,state_h1,state_h2
-  double precision :: xlo(2), xhi(2), time, delta(2)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         :: xlo(2), xhi(2), time, delta(2)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision :: x, y, xl, yl, xx, yy, xc, yc
-  double precision :: r
-  double precision :: reint, p, u_phi, u_tot
+  real(rt)         :: x, y, xl, yl, xx, yy, xc, yc
+  real(rt)         :: r
+  real(rt)         :: reint, p, u_phi, u_tot
 
   integer :: i,j,ii,jj
 
@@ -121,13 +123,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               r = sqrt((xx - center(1))**2 + (yy - center(2))**2)
 
-              if (r < 0.2_dp_t) then
+              if (r < 0.2_rt) then
                  u_phi = FIVE*r
-                 p = p0 + 12.5_dp_t*r**2
+                 p = p0 + 12.5_rt*r**2
 
-              else if (r < 0.4_dp_t) then
+              else if (r < 0.4_rt) then
                  u_phi = TWO - FIVE*r
-                 p = p0 + 12.5_dp_t*r**2 + FOUR*(ONE - FIVE*r - log(0.2_dp_t) + log(r))
+                 p = p0 + 12.5_rt*r**2 + FOUR*(ONE - FIVE*r - log(0.2_dp_t) + log(r))
 
               else
                  u_phi = ZERO
@@ -156,7 +158,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UMY) = rho0*q_r*u_phi*((xc-center(1))/r)   ! cos(phi) = x/r
 
         state(i,j,UEDEN) = reint +  &
-             0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
+             0.5e0_rt*(state(i,j,UMX)**2/state(i,j,URHO) + &
                     state(i,j,UMY)**2/state(i,j,URHO))
 
         state(i,j,UEINT) = reint

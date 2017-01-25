@@ -11,17 +11,18 @@
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
 
+       use bl_fort_module, only : rt => c_real
        implicit none
        integer         , intent(in   ) :: lo(3), hi(3)
        integer         , intent(in   ) :: grav_lo(3), grav_hi(3)
        integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
-       double precision, intent(in   ) :: point_mass
-       double precision, intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-       double precision, intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
-       double precision, intent(in   ) :: problo(3),dx(3)
+       real(rt)        , intent(in   ) :: point_mass
+       real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+       real(rt)        , intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
+       real(rt)        , intent(in   ) :: problo(3),dx(3)
 
        integer          :: i,j,k
-       double precision :: x,y,z,rsq,radial_force,rinv
+       real(rt)         :: x,y,z,rsq,radial_force,rinv
 
 !      This computes radial gravity due to a point mass at center().
        do k = lo(3), hi(3)
@@ -34,7 +35,7 @@
                 rsq = x*x + y*y + z*z
                 radial_force = -Gconst * point_mass / rsq
 
-                rinv = 1.d0/sqrt(rsq)
+                rinv = 1.e0_rt/sqrt(rsq)
 
                 ! Note that grav may have more ghost zones than
                 ! phi, so we need to check that we're doing
@@ -72,6 +73,7 @@
       use meth_params_module, only : NVAR, URHO
       use prob_params_module, only : center
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(3),      hi(3)
@@ -79,16 +81,16 @@
       integer :: uout_lo(3), uout_hi(3)
       integer :: vol_lo(3),  vol_hi(3)
 
-      double precision   ::   delta_mass
-      double precision   ::   uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),  &
+      real(rt)           ::   delta_mass
+      real(rt)           ::   uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),  &
                                   uin_lo(3):uin_hi(3),NVAR)
-      double precision   ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), &
+      real(rt)           ::  uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), &
                                   uout_lo(3):uout_hi(3),NVAR)
-      double precision   ::   vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2), &
+      real(rt)           ::   vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2), &
                                   vol_lo(3):vol_hi(3))
-      double precision   :: problo(3),dx(3),time,dt
+      real(rt)           :: problo(3),dx(3),time,dt
 
-      double precision   :: eps
+      real(rt)           :: eps
       integer            :: ii,icen,istart,iend
       integer            :: jj,jcen,jstart,jend
       integer            :: kk,kcen,kstart,kend
@@ -96,7 +98,7 @@
 
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
-      eps = 1.d-8
+      eps = 1.e-8_rt
 
       ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)
@@ -135,19 +137,20 @@
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(3),      hi(3)
       integer :: uin_lo(3),  uin_hi(3)
       integer :: uout_lo(3), uout_hi(3)
 
-      double precision   ::   uin(  uin_lo(1):uin_hi(1),    uin_lo(2):uin_hi(2),  &
+      real(rt)           ::   uin(  uin_lo(1):uin_hi(1),    uin_lo(2):uin_hi(2),  &
                                     uin_lo(3):uin_hi(3),NVAR)
-      double precision   ::  uout( uout_lo(1):uout_hi(1),  uout_lo(2):uout_hi(2), &
+      real(rt)           ::  uout( uout_lo(1):uout_hi(1),  uout_lo(2):uout_hi(2), &
                                     uout_lo(3):uout_hi(3),NVAR)
-      double precision   :: problo(3),dx(3),time,dt
+      real(rt)           :: problo(3),dx(3),time,dt
 
-      double precision   :: eps
+      real(rt)           :: eps
       integer            :: ii,icen,istart,iend
       integer            :: jj,jcen,jstart,jend
       integer            :: kk,kcen,kstart,kend
@@ -155,7 +158,7 @@
 
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
-      eps = 1.d-8
+      eps = 1.e-8_rt
 
       ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)

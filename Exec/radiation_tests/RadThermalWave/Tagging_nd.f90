@@ -1,13 +1,14 @@
 module tagging_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, save ::    denerr,   dengrad
-  double precision, save ::    enterr,   entgrad
-  double precision, save ::    velerr,   velgrad
-  double precision, save ::   temperr,  tempgrad
-  double precision, save ::  presserr, pressgrad
-  double precision, save ::    raderr,   radgrad
+  real(rt)        , save ::    denerr,   dengrad
+  real(rt)        , save ::    enterr,   entgrad
+  real(rt)        , save ::    velerr,   velgrad
+  real(rt)        , save ::   temperr,  tempgrad
+  real(rt)        , save ::  presserr, pressgrad
+  real(rt)        , save ::    raderr,   radgrad
   integer         , save ::  max_denerr_lev,   max_dengrad_lev
   integer         , save ::  max_enterr_lev,   max_entgrad_lev
   integer         , save ::  max_velerr_lev,   max_velgrad_lev
@@ -51,6 +52,7 @@ contains
 
     use prob_params_module, only: dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, np, level
@@ -58,10 +60,10 @@ contains
     integer          :: templo(3), temphi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az, gradT
+    real(rt)         :: ax, ay, az, gradT
     integer          :: i, j, k
 
     !     Tag on regions of high temperature

@@ -343,12 +343,12 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	      dedT[mfi].setVal(const_c_v,box,0);
 	  }
 	  else if (const_c_v > 0.0) {
-	      gcv(dimlist(box),
-		  dedT[mfi].dataPtr(), dimlist(dedT[mfi].box()),
-		  temp_new[mfi].dataPtr(), dimlist(temp_new[mfi].box()),
+	      gcv(ARLIM(box.loVect()), ARLIM(box.hiVect()),
+		  BL_TO_FORTRAN(dedT[mfi]), 
+		  BL_TO_FORTRAN(temp_new[mfi]), 
 		  &const_c_v, &c_v_exp_m, &c_v_exp_n,
 		  &prop_temp_floor,
-		  S_new[mfi].dataPtr(), dimlist(S_new[mfi].box()));
+		  BL_TO_FORTRAN(S_new[mfi]));
 	  }
 	  else {
 	      BoxLib::Error("ERROR Radiation::eos_opacity_emissivity");
@@ -582,11 +582,12 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
 	  const Box&  bx  = mfi.nodaltilebox(idim);
 	  const Box& bbox = bcoefs[idim][mfi].box();
-	  const Box& sbox = spec[mfi].box();
+
 	  lbcoefna(bcoefs[idim][mfi].dataPtr(),
 		   bcgrp[idim][mfi].dataPtr(),
-		   dimlist(bbox), dimlist(bx),
-		   spec[mfi].dataPtr(igroup), dimlist(sbox),
+		   ARLIM(bbox.loVect()), ARLIM(bbox.hiVect()),
+		   ARLIM(bx.loVect()), ARLIM(bx.hiVect()),
+		   BL_TO_FORTRAN_N(spec[mfi], igroup), 
 		   idim);
 	  
 	  if (nGroups > 1) {
@@ -654,13 +655,11 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 #endif
   for (MFIter mfi(spec,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
-      const Box& jbox = Er_new[mfi].box();
-      const Box& sbox = spec[mfi].box();
-      const Box& abox = accel[mfi].box();
-      ljupna(Er_new[mfi].dataPtr(), dimlist(jbox),
-	     dimlist(reg),
-	     spec[mfi].dataPtr(), dimlist(sbox),
-	     accel[mfi].dataPtr(), dimlist(abox),
+
+      ljupna(BL_TO_FORTRAN(Er_new[mfi]), 
+	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+	     BL_TO_FORTRAN(spec[mfi]),
+	     BL_TO_FORTRAN(accel[mfi]), 
 	     nGroups);
   }
 

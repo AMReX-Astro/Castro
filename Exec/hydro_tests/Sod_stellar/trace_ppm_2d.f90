@@ -1,5 +1,6 @@
 module trace_ppm_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -28,6 +29,7 @@ contains
          npassive, qpass_map
     use ppm_module, only : ppm
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
@@ -37,66 +39,66 @@ contains
     integer src_l1,src_l2,src_h1,src_h2
     integer gc_l1,gc_l2,gc_h1,gc_h2
 
-    double precision     q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    double precision     c(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    double precision dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
+    real(rt)             c(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
 
-    double precision qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    double precision qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
 
-    double precision srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    double precision gamc(gc_l1:gc_h1,gc_l2:gc_h2)
+    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         gamc(gc_l1:gc_h1,gc_l2:gc_h2)
 
-    double precision dx, dy, dt
+    real(rt)         dx, dy, dt
 
     ! Local variables
     integer          :: i, j, iwave, idim
     integer          :: n, ipassive
 
-    double precision :: dtdx, dtdy
-    double precision :: cc, csq, Clag, rho, u, v, p, rhoe_g, enth, temp
-    double precision :: drho, dptot, drhoe_g, dT0, dtau
-    double precision :: dup, dvp, du, dptotp, dTp, dtaup
-    double precision :: dum, dvm, dv, dptotm, dTm, dtaum
+    real(rt)         :: dtdx, dtdy
+    real(rt)         :: cc, csq, Clag, rho, u, v, p, rhoe_g, enth, temp
+    real(rt)         :: drho, dptot, drhoe_g, dT0, dtau
+    real(rt)         :: dup, dvp, du, dptotp, dTp, dtaup
+    real(rt)         :: dum, dvm, dv, dptotm, dTm, dtaum
 
-    double precision :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, temp_ref, tau_ref
-    double precision :: tau_s, e_s, de, dge
+    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, temp_ref, tau_ref
+    real(rt)         :: tau_s, e_s, de, dge
 
-    double precision :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
-    double precision :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, temp_ev, tau_ev
-    double precision :: gam, game
-    double precision :: p_r, p_T
+    real(rt)         :: cc_ref, csq_ref, Clag_ref, enth_ref, gam_ref, game_ref, gfactor
+    real(rt)         :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, enth_ev, temp_ev, tau_ev
+    real(rt)         :: gam, game
+    real(rt)         :: p_r, p_T
 
-    double precision :: alpham, alphap, alpha0r, alpha0e
-    double precision :: apright, amright, azrright, azeright
-    double precision :: azu1rght, azv1rght
-    double precision :: apleft, amleft, azrleft, azeleft
-    double precision :: azu1left, azv1left
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e
+    real(rt)         :: apright, amright, azrright, azeright
+    real(rt)         :: azu1rght, azv1rght
+    real(rt)         :: apleft, amleft, azrleft, azeleft
+    real(rt)         :: azu1left, azv1left
+    real(rt)         :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    double precision :: halfdt
+    real(rt)         :: halfdt
 
     integer, parameter :: isx = 1
     integer, parameter :: isy = 2
 
-    double precision, allocatable :: Ip(:,:,:,:,:)
-    double precision, allocatable :: Im(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip(:,:,:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:,:,:)
 
-    double precision, allocatable :: Ip_src(:,:,:,:,:)
-    double precision, allocatable :: Im_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:,:,:)
 
     ! gamma_c/1 on the interfaces
-    double precision, allocatable :: Ip_gc(:,:,:,:,:)
-    double precision, allocatable :: Im_gc(:,:,:,:,:)
+    real(rt)        , allocatable :: Ip_gc(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_gc(:,:,:,:,:)
 
-    double precision, allocatable :: tau(:,:)
-    double precision, allocatable :: Ip_tau(:,:,:,:,:)
-    double precision, allocatable :: Im_tau(:,:,:,:,:)
+    real(rt)        , allocatable :: tau(:,:)
+    real(rt)        , allocatable :: Ip_tau(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_tau(:,:,:,:,:)
 
-    double precision :: eval(3), beta(3), rvec(3,3), lvec(3,3), dq(3)
+    real(rt)         :: eval(3), beta(3), rvec(3,3), lvec(3,3), dq(3)
 
     type (eos_t) :: eos_state
 

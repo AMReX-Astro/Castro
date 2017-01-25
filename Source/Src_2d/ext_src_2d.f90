@@ -26,15 +26,16 @@
     use meth_params_module, only : NVAR
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer         , intent(in   ) :: lo(2),hi(2)
     integer         , intent(in   ) :: old_state_l1,old_state_l2,old_state_h1,old_state_h2
     integer         , intent(in   ) :: new_state_l1,new_state_l2,new_state_h1,new_state_h2
     integer         , intent(in   ) :: src_l1,src_l2,src_h1,src_h2
-    double precision, intent(in   ) :: old_state(old_state_l1:old_state_h1,old_state_l2:old_state_h2,NVAR)
-    double precision, intent(in   ) :: new_state(new_state_l1:new_state_h1,new_state_l2:new_state_h2,NVAR)
-    double precision, intent(  out) :: src(    src_l1:  src_h1,  src_l2:src_h2  ,NVAR)
-    double precision, intent(in   ) :: problo(2),dx(2),time,dt
+    real(rt)        , intent(in   ) :: old_state(old_state_l1:old_state_h1,old_state_l2:old_state_h2,NVAR)
+    real(rt)        , intent(in   ) :: new_state(new_state_l1:new_state_h1,new_state_l2:new_state_h2,NVAR)
+    real(rt)        , intent(  out) :: src(    src_l1:  src_h1,  src_l2:src_h2  ,NVAR)
+    real(rt)        , intent(in   ) :: problo(2),dx(2),time,dt
 
     integer          :: i,j
 

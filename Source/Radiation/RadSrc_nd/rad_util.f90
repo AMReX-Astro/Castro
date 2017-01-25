@@ -5,6 +5,7 @@ module rad_util_module
   use rad_params_module, only : ngroups
   use bl_constants_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -14,16 +15,17 @@ contains
     use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, QRADVAR
     use fluxlimiter_module, only : Edd_factor
 
-    real (kind=dp_t), intent(in) :: lam(0:ngroups-1)
-    real (kind=dp_t), intent(in) :: q(QRADVAR)
-    real (kind=dp_t), intent(in) :: cg
-    real (kind=dp_t), intent(out) :: ptot
-    real (kind=dp_t), intent(out) :: ctot
-    real (kind=dp_t), intent(out) :: gamc_tot
+    use bl_fort_module, only : rt => c_real
+    real(rt)        , intent(in) :: lam(0:ngroups-1)
+    real(rt)        , intent(in) :: q(QRADVAR)
+    real(rt)        , intent(in) :: cg
+    real(rt)        , intent(out) :: ptot
+    real(rt)        , intent(out) :: ctot
+    real(rt)        , intent(out) :: gamc_tot
 
     integer :: g
 
-    real (kind=dp_t) :: csrad2, Eddf, gamr, prad
+    real(rt)         :: csrad2, Eddf, gamr, prad
 
     csrad2 = ZERO
     prad = ZERO
@@ -51,33 +53,34 @@ contains
 
   function FLDlambda(r, limiter) result (lambda)
 
-    double precision :: r
+    use bl_fort_module, only : rt => c_real
+    real(rt)         :: r
     integer :: limiter
 
-    double precision :: lambda
+    real(rt)         :: lambda
 
     if (limiter .eq. 0) then
        ! no limiter
-       lambda = 1.d0/3.d0
+       lambda = 1.e0_rt/3.e0_rt
 
     else if (limiter < 10) then
        ! approximate LP
-       lambda = (2.d0 + r) / (6.d0 + r * (3.d0 + r))
+       lambda = (2.e0_rt + r) / (6.e0_rt + r * (3.e0_rt + r))
 
     else if (limiter < 20) then
        ! Bruenn
-       lambda = 1.d0 / (3.d0 + r)
+       lambda = 1.e0_rt / (3.e0_rt + r)
 
     else if (limiter < 30) then
        ! Larsen's square root
-       lambda = 1.d0 / sqrt(9.d0 + r**2)
+       lambda = 1.e0_rt / sqrt(9.e0_rt + r**2)
 
     else if (limiter < 40) then 
        ! Minerbo
-       if (r .lt. 1.5d0) then
-          lambda = 2.d0/(3.d0 + sqrt(9.d0+12.d0*r**2))
+       if (r .lt. 1.5e0_rt) then
+          lambda = 2.e0_rt/(3.e0_rt + sqrt(9.e0_rt+12.e0_rt*r**2))
        else 
-          lambda = 1.d0/(1.d0+r+sqrt(1.d0+2.d0*r))
+          lambda = 1.e0_rt/(1.e0_rt+r+sqrt(1.e0_rt+2.e0_rt*r))
        end if
 
     else

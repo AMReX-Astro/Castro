@@ -1,5 +1,6 @@
 module diffusion_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -14,11 +15,12 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: lo(3), hi(3)
     integer :: t_lo(3), t_hi(3)
-    double precision :: tdif(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt)         :: tdif(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
 
     ! Local variables
 
@@ -210,22 +212,23 @@ contains
     use conductivity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real (kind=dp_t), intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real (kind=dp_t), intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
+    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
+    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
 
     ! local variables
     integer          :: i, j, k
-    double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: coeff
+    real(rt)         :: coeff
 
     ! fill the cell-centered diffusion coefficient
 
@@ -255,7 +258,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
           end do
        end do
     enddo
@@ -263,7 +266,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1*dg(2)
           do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
+             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
           end do
        end do
     enddo
@@ -271,7 +274,7 @@ contains
     do k = lo(3),hi(3)+1*dg(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
           end do
        end do
     enddo
@@ -296,22 +299,23 @@ contains
     use conductivity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real (kind=dp_t), intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real (kind=dp_t), intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
+    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
+    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
 
     ! local variables
     integer          :: i, j, k
-    double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: cond
+    real(rt)         :: cond
 
     ! fill the cell-centered conductivity
 
@@ -348,7 +352,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
           end do
        end do
     enddo
@@ -356,7 +360,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1*dg(2)
           do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
+             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
           end do
        end do
     enddo
@@ -364,7 +368,7 @@ contains
     do k = lo(3),hi(3)+1*dg(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
           end do
        end do
     enddo
@@ -389,22 +393,23 @@ contains
     use conductivity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real (kind=dp_t), intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real (kind=dp_t), intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
+    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
+    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
 
     ! local variables
     integer          :: i, j, k
-    double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: cond
+    real(rt)         :: cond
 
     ! fill the cell-centered conductivity
 
@@ -435,7 +440,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
           end do
        end do
     enddo
@@ -443,7 +448,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1*dg(2)
           do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
+             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
           end do
        end do
     enddo
@@ -451,7 +456,7 @@ contains
     do k = lo(3),hi(3)+1*dg(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
           end do
        end do
     enddo
@@ -475,22 +480,23 @@ contains
     use viscosity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real (kind=dp_t), intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real (kind=dp_t), intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
+    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
+    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
 
     ! local variables
     integer          :: i, j, k
-    double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: coeff
+    real(rt)         :: coeff
 
     ! fill the cell-centered viscous coefficient
 
@@ -507,7 +513,7 @@ contains
              else
                 coeff = ZERO
              endif
-             coef_cc(i,j,k) = 2.d0 * coeff
+             coef_cc(i,j,k) = 2.e0_rt * coeff
           enddo
        enddo
     enddo
@@ -516,7 +522,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
           end do
        end do
     enddo
@@ -524,7 +530,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1*dg(2)
           do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
+             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
           end do
        end do
     enddo
@@ -532,7 +538,7 @@ contains
     do k = lo(3),hi(3)+1*dg(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
           end do
        end do
     enddo
@@ -554,25 +560,26 @@ contains
     use viscosity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
     integer         , intent(in   ) :: cx_lo(3), cx_hi(3), cy_lo(3), cy_hi(3), cz_lo(3), cz_hi(3)
-    real (kind=dp_t), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
-    real (kind=dp_t), intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
-    real (kind=dp_t), intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
+    real(rt)        , intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(inout) :: coefx(cx_lo(1):cx_hi(1),cx_lo(2):cx_hi(2),cx_lo(3):cx_hi(3))
+    real(rt)        , intent(inout) :: coefy(cy_lo(1):cy_hi(1),cy_lo(2):cy_hi(2),cy_lo(3):cy_hi(3))
+    real(rt)        , intent(inout) :: coefz(cz_lo(1):cz_hi(1),cz_lo(2):cz_hi(2),cz_lo(3):cz_hi(3))
 
     ! local variables
     integer          :: i, j, k
-    double precision :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
+    real(rt)         :: coef_cc(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)
 
     type (eos_t) :: eos_state
-    double precision :: bulk_visc, mu, twothirds
+    real(rt)         :: bulk_visc, mu, twothirds
 
-    bulk_visc = 0.d0
-    twothirds = 2.d0 / 3.d0
+    bulk_visc = 0.e0_rt
+    twothirds = 2.e0_rt / 3.e0_rt
 
     ! fill the cell-centered viscous coefficient
 
@@ -601,7 +608,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)+1*dg(1)
-             coefx(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
+             coefx(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i-1*dg(1),j,k))
           end do
        end do
     enddo
@@ -609,7 +616,7 @@ contains
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)+1*dg(2)
           do i = lo(1),hi(1)
-             coefy(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
+             coefy(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j-1*dg(2),k))
           end do
        end do
     enddo
@@ -617,7 +624,7 @@ contains
     do k = lo(3),hi(3)+1*dg(3)
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
-             coefz(i,j,k) = 0.5d0 * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
+             coefz(i,j,k) = 0.5e0_rt * (coef_cc(i,j,k) + coef_cc(i,j,k-1*dg(3)))
           end do
        end do
     enddo
@@ -636,31 +643,32 @@ contains
     use viscosity_module
     use eos_type_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) ::   lo(3),   hi(3)
     integer         , intent(in   ) :: d_lo(3), d_hi(3)
     integer         , intent(in   ) :: s_lo(3), s_hi(3)
-    real (kind=dp_t), intent(  out) :: div_tau_u(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
-    real (kind=dp_t), intent(in   ) :: state    (s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real (kind=dp_t), intent(in   ) :: dx(3)
+    real(rt)        , intent(  out) :: div_tau_u(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt)        , intent(in   ) :: state    (s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: dx(3)
     integer         , intent(in   ) :: coord_type
 
     ! local variables
-    real (kind=dp_t) :: twothirds
+    real(rt)         :: twothirds
     type (eos_t)     :: eos_state
 
     ! These are cell-centered
-    real (kind=dp_t) :: rm,rc,rp,vm,vc,vp,mu_temp
-    real (kind=dp_t), allocatable :: mu(:), kappa(:)
+    real(rt)         :: rm,rc,rp,vm,vc,vp,mu_temp
+    real(rt)        , allocatable :: mu(:), kappa(:)
 
     ! These are edge-centered
-    real (kind=dp_t) :: mu_em, kap_em, tau1m, tau2m, x_em, v_em
-    real (kind=dp_t) :: mu_ep, kap_ep, tau1p, tau2p, x_ep, v_ep
+    real(rt)         :: mu_em, kap_em, tau1m, tau2m, x_em, v_em
+    real(rt)         :: mu_ep, kap_ep, tau1p, tau2p, x_ep, v_ep
 
     integer          :: i, j, k, imin
 
-    twothirds = 2.d0 / 3.d0
+    twothirds = 2.e0_rt / 3.e0_rt
 
     allocate(   mu(lo(1)-2:hi(1)+2))
     allocate(kappa(lo(1)-2:hi(1)+2))
@@ -681,7 +689,7 @@ contains
        call viscous_coeff(eos_state, mu_temp)
        mu(i) = mu_temp
 
-       kappa(i) = 0.d0
+       kappa(i) = 0.e0_rt
     end do
 
     imin = max(lo(1)-1,0)
@@ -691,9 +699,9 @@ contains
        do i = imin,hi(1)+1
 
           ! These are cell-centered
-          rm = (dble(i)-0.5d0) * dx(1)
-          rc = (dble(i)+0.5d0) * dx(1)
-          rp = (dble(i)+1.5d0) * dx(1)
+          rm = (dble(i)-0.5e0_rt) * dx(1)
+          rc = (dble(i)+0.5e0_rt) * dx(1)
+          rp = (dble(i)+1.5e0_rt) * dx(1)
 
           ! These are cell-centered
           vp = state(i+1,j,k,UMX)/state(i+1,j,k,URHO)
@@ -701,16 +709,16 @@ contains
           vm = state(i-1,j,k,UMX)/state(i-1,j,k,URHO)
 
           ! These are edge-centered
-          mu_em = (mu(i-1)+mu(i)) * 0.5d0
-          mu_ep = (mu(i+1)+mu(i)) * 0.5d0
+          mu_em = (mu(i-1)+mu(i)) * 0.5e0_rt
+          mu_ep = (mu(i+1)+mu(i)) * 0.5e0_rt
 
           ! These are edge-centered
-          kap_em = (kappa(i-1)+kappa(i)) * 0.5d0
-          kap_ep = (kappa(i+1)+kappa(i)) * 0.5d0
+          kap_em = (kappa(i-1)+kappa(i)) * 0.5e0_rt
+          kap_ep = (kappa(i+1)+kappa(i)) * 0.5e0_rt
 
           ! These are edge-centered
-          tau1p = 2.d0 * mu_ep * (vp - vc) /dx(1)
-          tau1m = 2.d0 * mu_em * (vc - vm) /dx(1)
+          tau1p = 2.e0_rt * mu_ep * (vp - vc) /dx(1)
+          tau1m = 2.e0_rt * mu_em * (vc - vm) /dx(1)
 
           ! These are edge-centered
           tau2p = (kap_ep - twothirds*mu_ep) * (rp**2*vp - rc**2* vc) /dx(1)
@@ -721,8 +729,8 @@ contains
           x_em = dble(i  )*dx(1)
 
           ! These are edge-centered
-          v_ep = (vc + vp) * 0.5d0
-          v_em = (vc + vm) * 0.5d0
+          v_ep = (vc + vp) * 0.5e0_rt
+          v_em = (vc + vm) * 0.5e0_rt
 
           div_tau_u(i,j,k) = ( (x_ep**2*tau1p*v_ep) - (x_em**2*tau1m*v_em) &
                +(tau2p*v_ep)-(tau2m*v_em) ) / (rc**2 * dx(1))

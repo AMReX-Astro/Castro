@@ -78,7 +78,7 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,tang_vel_bc[lo_bc[0]]);
   bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)    
+#if (BL_SPACEDIM >= 2)
   bc.setLo(1,norm_vel_bc[lo_bc[1]]);
   bc.setHi(1,norm_vel_bc[hi_bc[1]]);
 #endif
@@ -129,21 +129,21 @@ Castro::variableSetUp ()
     const char* buildgitname = buildInfoGetBuildGitName();
 
     if (strlen(castro_hash) > 0) {
-      std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+      std::cout << "\n" << "Castro git describe: " << castro_hash << "\n";
     }
     if (strlen(boxlib_hash) > 0) {
-      std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+      std::cout << "BoxLib git describe: " << boxlib_hash << "\n";
     }
     if (strlen(microphysics_hash) > 0) {
-      std::cout << "Microphysics git hash: " << microphysics_hash << "\n";
+      std::cout << "Microphysics git describe: " << microphysics_hash << "\n";
     }
     if (strlen(buildgithash) > 0){
-      std::cout << buildgitname << " git hash: " << buildgithash << "\n";
+      std::cout << buildgitname << " git describe: " << buildgithash << "\n";
     }
-    
+
     std::cout << "\n";
   }
-  
+
   BL_ASSERT(desc_lst.size() == 0);
 
   // Get options, set phys_bc
@@ -178,13 +178,13 @@ Castro::variableSetUp ()
   Eden = cnt++;
   Eint = cnt++;
   Temp = cnt++;
-  
+
 #ifdef NUM_ADV
   NumAdv = NUM_ADV;
 #else
   NumAdv = 0;
 #endif
-    
+
   if (NumAdv > 0)
     {
       FirstAdv = cnt;
@@ -195,7 +195,7 @@ Castro::variableSetUp ()
 
   // Get the number of species from the network model.
   get_num_spec(&NumSpec);
-  
+
   if (NumSpec > 0)
     {
       FirstSpec = cnt;
@@ -204,7 +204,7 @@ Castro::variableSetUp ()
 
   // Get the number of auxiliary quantities from the network model.
   get_num_aux(&NumAux);
-  
+
   if (NumAux > 0)
     {
       FirstAux = cnt;
@@ -219,8 +219,8 @@ Castro::variableSetUp ()
 
   // Define NUM_GROW from the f90 module.
   get_method_params(&NUM_GROW);
-  
-  const Real run_strt = ParallelDescriptor::second() ; 
+
+  const Real run_strt = ParallelDescriptor::second() ;
 
 #ifndef DIFFUSION
   static Real diffuse_cutoff_density = -1.e200;
@@ -229,23 +229,23 @@ Castro::variableSetUp ()
   // we want const_grav in F90, get it here from parmparse, since it
   // it not in the Castro namespace
   ParmParse pp("gravity");
-  
+
   // Pass in the name of the gravity type we're using -- we do this
   // manually, since the Fortran parmparse doesn't support strings
   std::string gravity_type = "none";
-  pp.query("gravity_type", gravity_type);    
+  pp.query("gravity_type", gravity_type);
   int gravity_type_length = gravity_type.length();
   Array<int> gravity_type_name(gravity_type_length);
 
   for (int i = 0; i < gravity_type_length; i++)
-    gravity_type_name[i] = gravity_type[i];    
+    gravity_type_name[i] = gravity_type[i];
 
 
   // Read in the input values to Fortran.
 
   set_castro_method_params();
 
-  set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux, 
+  set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
 		    NumAdv,
 #ifdef SHOCK_VAR
 		    Shock,
@@ -259,9 +259,9 @@ Castro::variableSetUp ()
   get_nqaux(&NQAUX);
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
- 
+
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
- 
+
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in set_method_params: " << run_stop << '\n' ;
 
@@ -271,27 +271,27 @@ Castro::variableSetUp ()
   Array<Real> center(BL_SPACEDIM, 0.0);
   ParmParse ppc("castro");
   ppc.queryarr("center",center,0,BL_SPACEDIM);
-  
+
   set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
 		     Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
 		     Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
-  
+
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
-  
+
   int probin_file_length = probin_file.length();
   Array<int> probin_file_name(probin_file_length);
-  
+
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
-  
+
   get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
-  
+
 #ifdef SPONGE
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
-  
-  get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);    
+
+  get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
 #endif
 
   Interpolater* interp;
@@ -311,7 +311,7 @@ Castro::variableSetUp ()
   // We could do this for other cases too, but I'll confine it to
   // neutrino problems for now so as not to change the results of
   // other people's tests.  Better to fix cell_cons_interp!
-  
+
   if (Geometry::IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
     interp = &pc_interp;
   }
@@ -364,12 +364,12 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point, 1, 1,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
-  
+
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,3,
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
-#endif    
+#endif
 
 
 #ifdef REACTIONS
@@ -430,10 +430,10 @@ Castro::variableSetUp ()
   for (int i = 0; i < NumSpec; i++) {
     int len = 20;
     Array<int> int_spec_names(len);
-    // This call return the actual length of each string in "len" 
+    // This call return the actual length of each string in "len"
     get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];
-    for (int j = 0; j < len; j++) 
+    for (int j = 0; j < len; j++)
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
     spec_names.push_back(std::string(char_spec_names));
@@ -442,16 +442,16 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
-      for (int i = 0; i < NumSpec; i++)  
+      for (int i = 0; i < NumSpec; i++)
 	std::cout << spec_names[i] << ' ' << ' ';
       std::cout << std::endl;
-    } 
+    }
 
   for (int i=0; i<NumSpec; ++i)
     {
-      cnt++; 
-      set_scalar_bc(bc,phys_bc); 
-      bcs[cnt] = bc; 
+      cnt++;
+      set_scalar_bc(bc,phys_bc);
+      bcs[cnt] = bc;
       name[cnt] = "rho_" + spec_names[i];
     }
 
@@ -519,12 +519,12 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> sources_name(NUM_STATE);
+  Array<std::string> state_type_source_names(NUM_STATE);
 
   for (int i = 0; i < NUM_STATE; i++)
-    sources_name[i] = name[i] + "_source";
+    state_type_source_names[i] = name[i] + "_source";
 
-  desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));       
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -540,8 +540,8 @@ Castro::variableSetUp ()
 
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
-      sources_name[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+      state_type_source_names[i] = "sdc_sources_" + name[i];
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
@@ -615,7 +615,7 @@ Castro::variableSetUp ()
       desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(), StateDescriptor::Point,
 			     0, 1, &pc_interp);
       // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
-      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight", 
+      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
 			    bc, BndryFunc(ca_nullfill));
   }
 
@@ -663,7 +663,7 @@ Castro::variableSetUp ()
 #endif
 
   //
-  // Gravitational forcing 
+  // Gravitational forcing
   //
 #ifdef SELF_GRAVITY
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
@@ -775,7 +775,7 @@ Castro::variableSetUp ()
   derive_lst.add("angular_momentum_z",IndexType::TheCellType(),1,ca_derangmomz,the_same_box);
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
-    
+
 #ifdef SELF_GRAVITY
   derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
@@ -881,7 +881,7 @@ Castro::variableSetUp ()
 #endif
 
 
-  // 
+  //
   // Problem-specific adds
 #include <Problem_Derives.H>
 
@@ -889,5 +889,38 @@ Castro::variableSetUp ()
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
   ErrorSetUp();
+
+  //
+  // Construct an array holding the names of the source terms.
+  //
+
+  source_names.resize(num_src);
+
+  // Fill with an empty string to initialize.
+
+  for (int n = 0; n < num_src; ++n)
+    source_names[n] = "";
+
+  source_names[ext_src] = "user-defined external";
+
+#ifdef SPONGE
+  source_names[sponge_src] = "sponge";
+#endif
+
+#ifdef DIFFUSION
+  source_names[diff_src] = "diffusion";
+#endif
+
+#ifdef HYBRID_MOMENTUM
+  source_names[hybrid_src] = "hybrid";
+#endif
+
+#ifdef GRAVITY
+  source_names[grav_src] = "gravity";
+#endif
+
+#ifdef ROTATION
+  source_names[rot_src] = "rotation";
+#endif
 
 }

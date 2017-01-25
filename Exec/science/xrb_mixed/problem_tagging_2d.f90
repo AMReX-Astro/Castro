@@ -1,5 +1,6 @@
 module problem_tagging_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -15,14 +16,15 @@ contains
     use meth_params_module, only: URHO, NVAR, UFS
     use probdata_module, only: H_min, cutoff_density
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         ,intent(in   ) :: lo(2),hi(2)
     integer         ,intent(in   ) :: state_l1,state_l2,state_h1,state_h2
     integer         ,intent(in   ) :: tagl1,tagl2,tagh1,tagh2
-    double precision,intent(in   ) :: state(state_l1:state_h1,state_l2:state_h2, NVAR)
+    real(rt)        ,intent(in   ) :: state(state_l1:state_h1,state_l2:state_h2, NVAR)
     integer         ,intent(inout) :: tag(tagl1:tagh1,tagl2:tagh2)
-    double precision,intent(in   ) :: problo(2),dx(2),time
+    real(rt)        ,intent(in   ) :: problo(2),dx(2),time
     integer         ,intent(in   ) :: level,set,clear
 
     integer :: i, j

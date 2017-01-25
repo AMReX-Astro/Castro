@@ -1,5 +1,6 @@
 module advection_util_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -12,14 +13,14 @@ contains
   subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                      uout,uout_lo,uout_hi, &
                                      vol,vol_lo,vol_hi, &
-                                     lo,hi,mass_added,eint_added, &
-                                     eden_added,frac_change,verbose) &
+                                     lo,hi,frac_change,verbose) &
                                      bind(C, name="enforce_minimum_density")
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use bl_constants_module, only : ZERO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -27,21 +28,21 @@ contains
     integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) ::  vol_lo(3),  vol_hi(3)
 
-    double precision, intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
-    double precision, intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    double precision, intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
-    double precision, intent(inout) :: mass_added, eint_added, eden_added, frac_change
+    real(rt)        , intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+    real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    real(rt)        , intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
+    real(rt)        , intent(inout) :: frac_change
 
     ! Local variables
     integer          :: i,ii,j,jj,k,kk
     integer          :: i_set, j_set, k_set
-    double precision :: max_dens
-    double precision :: unew(NVAR)
+    real(rt)         :: max_dens
+    real(rt)         :: unew(NVAR)
     integer          :: num_positive_zones
 
-    double precision :: initial_mass, final_mass
-    double precision :: initial_eint, final_eint
-    double precision :: initial_eden, final_eden
+    real(rt)         :: initial_mass, final_mass
+    real(rt)         :: initial_eint, final_eint
+    real(rt)         :: initial_eden, final_eden
 
     logical :: have_reset
 
@@ -190,12 +191,6 @@ contains
        enddo
     enddo
 
-    if ( have_reset ) then
-       mass_added = mass_added + final_mass - initial_mass
-       eint_added = eint_added + final_eint - initial_eint
-       eden_added = eden_added + final_eden - initial_eden
-    endif
-
   end subroutine enforce_minimum_density
 
 
@@ -213,16 +208,17 @@ contains
     use meth_params_module, only: UMR, UMP
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: old_state(NVAR), new_state(NVAR)
+    real(rt)         :: old_state(NVAR), new_state(NVAR)
     integer          :: idx(3), lo(3), hi(3), verbose
 
     integer          :: n, ipassive
     type (eos_t)     :: eos_state
 
 #ifdef HYBRID_MOMENTUM
-    double precision :: loc(3)
+    real(rt)         :: loc(3)
 #endif
 
     ! If no neighboring zones are above small_dens, our only recourse
@@ -279,9 +275,10 @@ contains
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
+    real(rt)         :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
     integer          :: idx(3), lo(3), hi(3), verbose
 
     if (verbose .gt. 0) then
@@ -317,17 +314,18 @@ contains
     use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC, NQAUX
     use prob_params_module, only: dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: lo(3), hi(3)
     integer :: q_lo(3), q_hi(3), qa_lo(3), qa_hi(3)
 
-    double precision :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    double precision :: dt, dx(3), courno
+    real(rt)         :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)         :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)         :: dt, dx(3), courno
 
-    double precision :: courx, coury, courz, courmx, courmy, courmz
-    double precision :: dtdx, dtdy, dtdz
+    real(rt)         :: courx, coury, courz, courmx, courmy, courmz
+    real(rt)         :: dtdx, dtdy, dtdz
     integer          :: i, j, k
 
     ! Compute running max of Courant number over grids
@@ -416,10 +414,10 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-                                   QCG, QGAMCG, &
-                                   QRADVAR, QPTOT, QRAD, QRADHI, QREITOT, &
+                                   QCG, QGAMCG, QLAMS, &
+                                   QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
                                    npassive, upass_map, qpass_map, dual_energy_eta1, &
                                    small_dens
@@ -435,6 +433,7 @@ contains
     use rad_util_module, only : compute_ptot_ctot
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -446,30 +445,26 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    double precision, intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
 #ifdef RADIATION
-    double precision, intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    double precision, intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    real(rt)        , intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-#ifdef RADIATION
-    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
-#else
-    double precision, intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-#endif
-    double precision, intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    double precision, parameter :: small = 1.d-8
+    real(rt)        , parameter :: small = 1.e-8_rt
 
-    integer          :: i, j, k
-    integer          :: n, nq, ipassive
-    double precision :: kineng, rhoinv
-    double precision :: vel(3)
+    integer          :: i, j, k, g
+    integer          :: n, iq, ipassive
+    real(rt)         :: kineng, rhoinv
+    real(rt)         :: vel(3)
 
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
-    double precision :: ptot, ctot, gamc_tot
+    real(rt)         :: ptot, ctot, gamc_tot
 #endif
 
     do k = lo(3), hi(3)
@@ -535,11 +530,11 @@ contains
     ! Load passively advected quatities into q
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       iq = qpass_map(ipassive)
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
              enddo
           enddo
        enddo
@@ -578,6 +573,10 @@ contains
              qaux(i,j,k,QC)    = ctot
              qaux(i,j,k,QGAMC) = gamc_tot
 
+             do g = 0, ngroups-1
+                qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
+             enddo
+
              q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
 #else
              qaux(i,j,k,QGAMC)  = eos_state % gam1
@@ -604,15 +603,13 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-                                   QVAR, QRHO, QU, QV, QW, &
-#ifdef RADIATION
-                                   QRADVAR, &
-#endif
+                                   QVAR, QRHO, QU, QV, QW, NQ, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -621,18 +618,14 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: srQ_lo(3), srQ_hi(3)
 
-#ifdef RADIATION
-    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QRADVAR)
-#else
-    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-#endif
-    double precision, intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    double precision, intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision, intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
 
     integer          :: i, j, k
-    integer          :: n, nq, ipassive
-    double precision :: rhoinv
+    integer          :: n, iq, ipassive
+    real(rt)         :: rhoinv
 
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
@@ -658,12 +651,12 @@ contains
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
-       nq = qpass_map(ipassive)
+       iq = qpass_map(ipassive)
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                srcQ(i,j,k,nq) = ( src(i,j,k,n) - q(i,j,k,nq) * srcQ(i,j,k,QRHO) ) / &
+                srcQ(i,j,k,iq) = ( src(i,j,k,n) - q(i,j,k,iq) * srcQ(i,j,k,QRHO) ) / &
                                  q(i,j,k,QRHO)
              enddo
           enddo
@@ -689,16 +682,17 @@ contains
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: dir, idx(3)
-    double precision :: u(NVAR), q(QVAR), flux(NVAR)
+    real(rt)         :: u(NVAR), q(QVAR), flux(NVAR)
     logical, optional :: include_pressure
 
-    double precision :: v_adv
+    real(rt)         :: v_adv
     integer :: ipassive, n
 #ifdef HYBRID_MOMENTUM
-    double precision :: qgdnv(NGDNV)
+    real(rt)         :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
 
@@ -778,6 +772,7 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
     use eos_module, only: eos
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
@@ -795,35 +790,35 @@ contains
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
 
-    double precision, intent(in   ) :: dt, dx(3)
+    real(rt)        , intent(in   ) :: dt, dx(3)
 
-    double precision, intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    double precision, intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
-    double precision, intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision, intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    double precision, intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt)        , intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
 #if (BL_SPACEDIM >= 2)
-    double precision, intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    double precision, intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
 #if (BL_SPACEDIM == 3)
-    double precision, intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    double precision, intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
 
-    double precision, pointer :: thetap_dens(:,:,:), thetam_dens(:,:,:)
-    double precision, pointer :: thetap_rhoe(:,:,:), thetam_rhoe(:,:,:)
-    double precision, pointer :: small_rhoe(:,:,:)
+    real(rt)        , pointer :: thetap_dens(:,:,:), thetam_dens(:,:,:)
+    real(rt)        , pointer :: thetap_rhoe(:,:,:), thetam_rhoe(:,:,:)
+    real(rt)        , pointer :: small_rhoe(:,:,:)
 
     integer          :: i, j, k
 
-    double precision :: alpha_x, alpha_y, alpha_z
-    double precision :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
+    real(rt)         :: alpha_x, alpha_y, alpha_z
+    real(rt)         :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
     integer          :: dir
     logical          :: include_pressure
 
     type (eos_t) :: eos_state
-    double precision :: rhoe, drhoe, rhoeLF, drhoeLF
+    real(rt)         :: rhoe, drhoe, rhoeLF, drhoeLF
 
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
@@ -866,7 +861,7 @@ contains
                 ! No limiting in this case. Set to a value large enough that it should
                 ! never be obtained under normal circumstances.
 
-                small_rhoe(i,j,k) = -1.d200
+                small_rhoe(i,j,k) = -1.e200_rt
 
              endif
 

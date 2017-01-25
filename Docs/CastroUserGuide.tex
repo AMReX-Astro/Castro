@@ -235,7 +235,10 @@
 % Macros for indexing
 \newcommand\nott[1]{\bgroup\let\tt\relax#1\egroup}
 
-\newcommand{\runparam}[1]{\index{Runtime parameters!#1@{\tt #1}}{\tt #1}}
+\newcommand{\runparam}[1]{\index{Runtime parameters!{\tt #1}}{\tt #1}}
+
+% this variant doesn't write the name of the namespace in the latex
+% but does use it in the index
 \newcommand{\runparamNS}[2]{\index{Runtime parameters!{\tt #2.#1}}{\tt #1}}
 \newcommand{\runparamidx}[1]{\index{Runtime parameters!{\tt #1}}}
 
@@ -333,7 +336,7 @@
 \input FAQ/faq.tex
 
 \chapter{Hydrodynamics}
-\input Equations/Equations.tex
+\input Hydrodynamics/Hydrodynamics.tex
 
 \chapter{Gravity}
 \input Gravity/CastroGravity.tex

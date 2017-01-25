@@ -4,7 +4,6 @@ subroutine ca_umdrv(is_finest_level, time, &
                     uout, uout_l1, uout_h1, &
 #ifdef RADIATION
                     Erin, Erin_l1, Erin_h1, &
-                    lam, lam_l1, lam_h1, &
                     Erout, Erout_l1, Erout_h1, &
 #endif
                     q, q_l1, q_h1, &
@@ -24,8 +23,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
                     nstep_fsp, &
 #endif
-                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
@@ -40,26 +38,17 @@ subroutine ca_umdrv(is_finest_level, time, &
   use prob_params_module, only : coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use rad_advection_module, only : umeth1d_rad, consup_rad
   use flatten_module, only : rad_flaten
-#else
-  use advection_module  , only : umeth1d, consup
 #endif
+  use advection_module  , only : umeth1d, consup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-#ifdef RADIATION
-  integer, intent(in) :: nstep_fsp
-#endif
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(1), hi(1), verbose
   integer, intent(in) :: domlo(1), domhi(1)
   integer, intent(in) :: uin_l1, uin_h1
-#ifdef RADIATION
-  integer, intent(in) :: Erin_l1, Erin_h1
-  integer, intent(in) :: lam_l1, lam_h1
-  integer, intent(in) :: Erout_l1, Erout_h1
-#endif
   integer, intent(in) :: uout_l1, uout_h1
   integer, intent(in) :: q_l1, q_h1
   integer, intent(in) :: qa_l1, qa_h1
@@ -67,6 +56,9 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: updt_l1, updt_h1
   integer, intent(in) :: flux_l1, flux_h1
 #ifdef RADIATION
+  integer, intent(inout) :: nstep_fsp
+  integer, intent(in) :: Erin_l1, Erin_h1
+  integer, intent(in) :: Erout_l1, Erout_h1
   integer, intent(in) :: radflux_l1, radflux_h1
 #endif
   integer, intent(in) :: p_l1, p_h1
@@ -74,44 +66,37 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: dloga_l1, dloga_h1
   integer, intent(in) :: vol_l1, vol_h1
 
-  double precision, intent(in) ::      uin(  uin_l1:  uin_h1,NVAR)
-  double precision, intent(inout) ::  uout( uout_l1: uout_h1,NVAR)
+  real(rt)        , intent(in) ::      uin(  uin_l1:  uin_h1,NVAR)
+  real(rt)        , intent(inout) ::  uout( uout_l1: uout_h1,NVAR)
+  real(rt)        , intent(inout) ::     q(    q_l1:    q_h1,NQ)
+  real(rt)        , intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
+  real(rt)        , intent(in) ::     srcQ(  srQ_l1:  srQ_h1,QVAR)
+  real(rt)        , intent(inout) :: update(updt_l1: updt_h1,NVAR)
+  real(rt)        , intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
 #ifdef RADIATION
-  double precision, intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
-  double precision, intent(in) ::  lam( lam_l1: lam_h1, 0:ngroups-1)
+  real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
+  real(rt)        , intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
+  real(rt)        , intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
 #endif
-  double precision, intent(inout) ::     q(    q_l1:    q_h1,NQ)
-  double precision, intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
-  double precision, intent(in) ::     srcQ(  srQ_l1:  srQ_h1,QVAR)
-  double precision, intent(inout) :: update(updt_l1: updt_h1,NVAR)
-#ifdef RADIATION
-  double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
-#endif
-  double precision, intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
-#ifdef RADIATION
-  double precision, intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
-#endif
-  double precision, intent(inout) :: pradial(  p_l1:   p_h1)
-  double precision, intent(in) :: area( area_l1: area_h1     )
-  double precision, intent(in) :: dloga(dloga_l1:dloga_h1     )
-  double precision, intent(in) ::   vol(  vol_l1: vol_h1      )
-  double precision, intent(in) :: delta(1), dt, time
-  double precision, intent(inout) :: courno
+  real(rt)        , intent(inout) :: pradial(  p_l1:   p_h1)
+  real(rt)        , intent(in) :: area( area_l1: area_h1     )
+  real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1     )
+  real(rt)        , intent(in) ::   vol(  vol_l1: vol_h1      )
+  real(rt)        , intent(in) :: delta(1), dt, time
+  real(rt)        , intent(inout) :: courno
 
-  double precision, intent(inout) :: E_added_flux, mass_added_flux
-  double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
-  double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-  double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+  real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+  real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
   ! Automatic arrays for workspace
-  double precision, allocatable:: flatn(:)
-  double precision, allocatable:: div(:)
-  double precision, allocatable:: pdivu(:)
+  real(rt)        , allocatable:: flatn(:)
+  real(rt)        , allocatable:: div(:)
+  real(rt)        , allocatable:: pdivu(:)
 
   ! Edge-centered primitive variables (Riemann state)
-  double precision, allocatable :: q1(:,:)
+  real(rt)        , allocatable :: q1(:,:)
 
-  double precision :: dx
+  real(rt)         :: dx
 
   integer i,ngf, ngq
 
@@ -122,7 +107,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer :: lo_3D(3), hi_3D(3)
   integer :: q_lo_3D(3), q_hi_3D(3)
   integer :: uin_lo_3D(3), uin_hi_3D(3)
-  double precision :: dx_3D(3)
+  real(rt)         :: dx_3D(3)
 
   uin_lo  = [uin_l1]
   uin_hi  = [uin_h1]
@@ -176,29 +161,20 @@ subroutine ca_umdrv(is_finest_level, time, &
      flatn = ONE
   endif
 
-#ifdef RADIATION
-  call umeth1d_rad(lo,hi,domlo,domhi, &
-                   lam, lam_l1, lam_h1, &
-                   q, q_l1, q_h1, &
-                   qaux, qa_l1, qa_h1, &
-                   flatn, &
-                   srcQ,srQ_l1,srQ_h1, &
-                   lo(1),hi(1),dx,dt, &
-                   flux,flux_l1,flux_h1, &
-                   radflux,radflux_l1,radflux_h1, &
-                   q1,flux_l1-1,flux_h1+1, &
-                   dloga,dloga_l1,dloga_h1)
-#else
-  call umeth1d(lo,hi,domlo,domhi, &
-               q,flatn,q_l1,q_h1, &
-               qaux,qa_l1,qa_h1, &
-               srcQ,srQ_l1,srQ_h1, &
-               lo(1),hi(1),dx,dt, &
+  call umeth1d(lo, hi, domlo, domhi, &
+               q, q_l1, q_h1, &
+               flatn, &
+               qaux, qa_l1, qa_h1, &
+               srcQ, srQ_l1, srQ_h1, &
+               lo(1), hi(1), dx, dt, &
                uout, uout_l1, uout_h1, &
-               flux,flux_l1,flux_h1, &
-               q1,flux_l1-1,flux_h1+1, &
-               dloga,dloga_l1,dloga_h1)
+               flux, flux_l1, flux_h1, &
+#ifdef RADIATION
+               radflux,radflux_l1,radflux_h1, &
 #endif
+               q1, flux_l1-1, flux_h1+1, &
+               dloga, dloga_l1, dloga_h1)
+
 
   ! Define p*divu
   do i = lo(1), hi(1)
@@ -214,34 +190,24 @@ subroutine ca_umdrv(is_finest_level, time, &
 
 
   ! Conservative update
+  call consup(uin, uin_l1, uin_h1, &
+              uout, uout_l1, uout_h1, &
+              update, updt_l1, updt_h1, &
+              q, q_l1, q_h1, &
+              flux, flux_l1, flux_h1, &
+              q1, flux_l1-1, flux_h1+1, &
 #ifdef RADIATION
-  call consup_rad(uin,uin_l1,uin_h1, &
-                  uout,uout_l1,uout_h1, &
-                  Erin,Erin_l1,Erin_h1, &
-                  Erout,Erout_l1,Erout_h1, &
-                  q1,flux_l1-1,flux_h1+1, &
-                  flux,flux_l1,flux_h1, &
-                  radflux,radflux_l1,radflux_h1, &
-                  flatn,uin_l1,uin_h1, &
-                  area,area_l1,area_h1, &
-                  vol , vol_l1, vol_h1, &
-                  div ,pdivu,lo,hi,dx,dt, &
-                  nstep_fsp)
-#else
-  call consup(uin,uin_l1,uin_h1, &
-              uout,uout_l1,uout_h1, &
-              update,updt_l1,updt_h1, &
-              q,q_l1,q_h1, &
-              flux,flux_l1,flux_h1, &
-              q1,flux_l1-1,flux_h1+1, &
-              area,area_l1,area_h1, &
-              vol , vol_l1, vol_h1, &
-              div ,pdivu,lo,hi,dx,dt,mass_added_flux,E_added_flux, &
-              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
-              mass_lost,xmom_lost,ymom_lost,zmom_lost, &
-              eden_lost,xang_lost,yang_lost,zang_lost, &
-              verbose)
+              Erin, Erin_l1, Erin_h1, &
+              Erout, Erout_l1, Erout_h1, &
+              radflux, radflux_l1, radflux_h1, &
+              nstep_fsp, &
 #endif
+              area, area_l1, area_h1, &
+              vol, vol_l1, vol_h1, &
+              div, pdivu, lo, hi, dx, dt, &
+              mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+              eden_lost, xang_lost, yang_lost, zang_lost, &
+              verbose)
 
   if (coord_type .gt. 0) then
      pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES) * dt

@@ -1,11 +1,11 @@
 /* problem-specific stuff goes here */
 
-BL_FORT_PROC_DECL(PROBLEM_CHECKPOINT,problem_checkpoint)(int * int_dir_name, int * len);
-
-BL_FORT_PROC_DECL(PROBLEM_RESTART,problem_restart)(int * int_dir_name, int * len);
-
 extern "C"
 {
+
+  void problem_checkpoint(int * int_dir_name, int * len);
+
+  void problem_restart(int * int_dir_name, int * len);
 
   void flame_width_temp(BL_FORT_FAB_ARG_3D(temp), 
 			const int* lo, const int* hi,

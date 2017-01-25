@@ -1,5 +1,6 @@
 module advection_util_2d_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -17,17 +18,18 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(2),hi(2)
     integer          :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
     integer          :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
-    double precision :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-    double precision :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+    real(rt)         :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
+    real(rt)         :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
     
     ! Local variables
     integer          :: i,j,n
-    double precision :: sum,fac
+    real(rt)         :: sum,fac
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)+1
@@ -74,15 +76,16 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(2), hi(2)
     integer          :: u_l1,u_l2,u_h1,u_h2
-    double precision :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
+    real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
     
     ! Local variables
     integer          :: i,j,n
-    double precision :: fac,sum
+    real(rt)         :: fac,sum
     
     do j = lo(2),hi(2)
        do i = lo(1),hi(1)
@@ -114,19 +117,20 @@ contains
     use meth_params_module, only : QU, QV
     use bl_constants_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     integer          :: lo(2),hi(2)
     integer          :: q_l1,q_l2,q_h1,q_h2
     integer          :: div_l1,div_l2,div_h1,div_h2
-    double precision :: q(q_l1:q_h1,q_l2:q_h2,*)
-    double precision :: div(div_l1:div_h1,div_l2:div_h2)
-    double precision :: dx(2)
+    real(rt)         :: q(q_l1:q_h1,q_l2:q_h2,*)
+    real(rt)         :: div(div_l1:div_h1,div_l2:div_h2)
+    real(rt)         :: dx(2)
     
     integer          :: i, j
-    double precision :: rl, rr, rc, ul, ur
-    double precision :: vb, vt
-    double precision :: ux,vy
+    real(rt)         :: rl, rr, rc, ul, ur
+    real(rt)         :: vb, vt
+    real(rt)         :: ux,vy
     
     if (coord_type .eq. 0) then
        do j=lo(2),hi(2)+1

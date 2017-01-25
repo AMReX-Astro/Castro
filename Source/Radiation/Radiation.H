@@ -3,8 +3,6 @@
 
 #include <AmrLevel.H>
 
-#include "LHH.H"
-
 #include "Castro.H"
 #include "RadTypes.H"
 #include "RadBndry.H"
@@ -247,27 +245,27 @@ protected:
 
   // Fab versions of conversion functions.  All except frhoe use eos data.
 
-  void get_frhoe(Fab& rhoe, Fab& state, const Box& reg);
+  void get_frhoe(FArrayBox& rhoe, FArrayBox& state, const Box& reg);
 
-  void get_c_v(Fab& c_v, Fab& temp, Fab& state, const Box& reg);
+  void get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state, const Box& reg);
 
   // temp contains frhoe on input:
 
-  void get_planck_and_temp(Fab& fkp, Fab& temp,
-			   Fab& state, const Box& reg,
+  void get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
+			   FArrayBox& state, const Box& reg,
 			   int igroup = 0, Real delta_t = 0.0);
 
-  void get_rosseland_and_temp(Fab& kappa_r, Fab& temp,
-			      Fab& state, const Box& reg,
+  void get_rosseland_and_temp(FArrayBox& kappa_r, FArrayBox& temp,
+			      FArrayBox& state, const Box& reg,
 			      int igroup = 0);
 
   // temp contains temp on input:
-  void get_planck_from_temp(Fab& fkp, Fab& temp,
-			    Fab& state, const Box& reg,
+  void get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
+			    FArrayBox& state, const Box& reg,
 			    int igroup = 0);
 
-  void get_rosseland_from_temp(Fab& kappa_r, Fab& temp,
-			       Fab& state, const Box& reg,
+  void get_rosseland_from_temp(FArrayBox& kappa_r, FArrayBox& temp,
+			       FArrayBox& state, const Box& reg,
 			       int igroup = 0);
 
   // MultiFab versions of conversion functions call Fab versions for eos data:

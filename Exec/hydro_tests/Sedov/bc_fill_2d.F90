@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -11,6 +12,7 @@ contains
 
     use meth_params_module, only : NVAR
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -18,11 +20,11 @@ contains
     integer :: adv_l1,adv_l2,adv_h1,adv_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    double precision :: state(NVAR)
-    double precision :: staten(NVAR)
+    real(rt)         :: state(NVAR)
+    real(rt)         :: staten(NVAR)
 
     integer :: i, j, n
     logical rho_only
@@ -114,6 +116,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'bc_types.fi'
@@ -121,8 +124,8 @@ contains
     integer :: adv_l1,adv_l2,adv_h1,adv_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
     logical rho_only
     integer :: i,j
 
@@ -181,12 +184,13 @@ contains
     use eos_module, only : gamma_const
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: u_int(*),u_ext(*)
+    real(rt)         :: u_int(*),u_ext(*)
     logical rho_only
     integer :: dir,sgn
-    double precision :: rho, rhou(2), eden, T
+    real(rt)         :: rho, rhou(2), eden, T
     integer :: n,t1,i
 
     ! for the Sedov problem, we will always set the state to the ambient conditions
@@ -205,9 +209,9 @@ contains
        enddo
 
        u_ext(URHO)   = dens_ambient
-       u_ext(UMX)    = 0.d0
-       u_ext(UMY)    = 0.d0
-       u_ext(UEDEN)  = p_ambient/(gamma_const-1.d0)
+       u_ext(UMX)    = 0.e0_rt
+       u_ext(UMY)    = 0.e0_rt
+       u_ext(UEDEN)  = p_ambient/(gamma_const-1.e0_rt)
        u_ext(UEINT)  = u_ext(UEDEN)
 
     endif

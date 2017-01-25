@@ -6,6 +6,7 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 
   use prob_params_module, only: dim
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   include 'bc_types.fi'  
@@ -13,8 +14,8 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
   integer          :: adv_lo(3),adv_hi(3)
   integer          :: bc(dim,2)
   integer          :: domlo(3), domhi(3)
-  double precision :: delta(3), xlo(3)
-  double precision :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+  real(rt)         :: delta(3), xlo(3)
+  real(rt)         :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
 
 #if (BL_SPACEDIM == 1)
 

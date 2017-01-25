@@ -5,11 +5,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use eos_module, only : gamma_const
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
   
   integer untin,i
 
@@ -30,19 +31,19 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ! These values are based on Lee & Koo, 1995 AIAA Journal, Figure 6
 
   ! Define reference pressure
-  p_ref = 1.0d0
+  p_ref = 1.0e0_rt
 
   ! Define r_0
-  r_0   = 0.25d0
+  r_0   = 0.25e0_rt
 
   ! Define rotating mach
-  mach  = 0.0796d0
+  mach  = 0.0796e0_rt
 
   ! Define ratio_c = r_c/r_0
-  ratio_c = 0.15d0
+  ratio_c = 0.15e0_rt
 
   ! Define r_circ = circ/r_0*c_0
-  r_circ  = 1.0d0
+  r_circ  = 1.0e0_rt
 
   ! Read namelists
   untin = 9
@@ -51,7 +52,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! Define rho_0
-  rho_0 = p_ref**(1d0/gamma_const)
+  rho_0 = p_ref**(1e0_rt/gamma_const)
 
   ! Define c_0
   c_0   = sqrt(gamma_const*p_ref/rho_0)
@@ -60,7 +61,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   r_c   = ratio_c*r_0
 
   ! Define circ
-  circ  = r_circ*r_0*c_0 !4d0*M_PI*r_0*c_0*mach
+  circ  = r_circ*r_0*c_0 !4e0_rt*M_PI*r_0*c_0*mach
  
   ! Center of first vortex
   x_c1  = HALF*probhi(1)
@@ -102,17 +103,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module, only : gamma_const
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
   
-  double precision rho, u,v
-  double precision x, y, r_1, r_2, vel_theta_1, vel_theta_2
-  double precision cos_theta_1, sin_theta_1, cos_theta_2, sin_theta_2
+  real(rt)         rho, u,v
+  real(rt)         x, y, r_1, r_2, vel_theta_1, vel_theta_2
+  real(rt)         cos_theta_1, sin_theta_1, cos_theta_2, sin_theta_2
   integer i,j
   
   
@@ -128,8 +130,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         r_1 = sqrt( (x-x_c1)**2 + (y-y_c1)**2 )
         r_2 = sqrt( (x-x_c2)**2 + (y-y_c2)**2 )
 
-        vel_theta_1 = circ * r_1 / ( 2d0 * M_PI * (r_c**2 + r_1**2) )
-        vel_theta_2 = circ * r_2 / ( 2d0 * M_PI * (r_c**2 + r_2**2) )
+        vel_theta_1 = circ * r_1 / ( 2e0_rt * M_PI * (r_c**2 + r_1**2) )
+        vel_theta_2 = circ * r_2 / ( 2e0_rt * M_PI * (r_c**2 + r_2**2) )
 
         sin_theta_1 = (y-y_c1) / r_1
         cos_theta_1 = (x-x_c1) / r_1
@@ -141,7 +143,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         v = - vel_theta_1 * cos_theta_1 - vel_theta_2 * cos_theta_2
 
         ! single species for all zones
-        state(i,j,UFS) = 1.0d0
+        state(i,j,UFS) = 1.0e0_rt
            
         ! momentum field
         state(i,j,UMX) = rho * u
@@ -151,7 +153,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,URHO) = rho
        
         ! internal energy
-        state(i,j,UEINT) = p_ref / (gamma_const - 1.d0)
+        state(i,j,UEINT) = p_ref / (gamma_const - 1.e0_rt)
         
         ! Total energy
         state(i,j,UEDEN) = state(i,j,UEINT) + HALF * &

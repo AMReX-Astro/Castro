@@ -4,8 +4,14 @@
 
 module habec_module
 
+  ! habec is Hypre abec, where abec is the form of the linear equation
+  ! we are solving:
+  ! 
+  ! alpha*phi - div(beta*grad phi) + div(\vec{c}*phi) 
+
   use bl_types
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -15,16 +21,17 @@ subroutine hacoef(mat, a, &
                   DIMS(reg), &
                   alpha) bind(C, name="hacoef")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
-  real*8 :: a(DIMV(abox))
-  real*8 :: mat(0:2, DIMV(reg))
-  real*8 :: alpha
+  real(rt)         :: a(DIMV(abox))
+  real(rt)         :: mat(0:2, DIMV(reg))
+  real(rt)         :: alpha
   integer :: i, j
-  if (alpha == 0.d0) then
+  if (alpha == 0.e0_rt) then
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
-           mat(2,i,j) = 0.d0
+           mat(2,i,j) = 0.e0_rt
         enddo
      enddo
   else
@@ -41,13 +48,14 @@ subroutine hbcoef(mat, b, &
                   DIMS(reg), &
                   beta, dx, n) bind(C, name="hbcoef")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(DIMV(bbox))
-  real*8 :: mat(0:2, DIMV(reg))
-  real*8 :: beta, dx(2)
-  real*8 :: fac
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: mat(0:2, DIMV(reg))
+  real(rt)         :: beta, dx(2)
+  real(rt)         :: fac
   integer :: i, j
   if (n == 0) then
      fac = beta / (dx(1)**2)
@@ -75,15 +83,16 @@ subroutine hbmat(mat, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbmat")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: cdir, bct
-  real*8 :: bcl, beta, dx(2)
-  real*8 :: mat(0:2, DIMV(reg))
+  real(rt)         :: bcl, beta, dx(2)
+  real(rt)         :: mat(0:2, DIMV(reg))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: h, fac, bfm, bfv
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: h, fac, bfm, bfv
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -92,7 +101,7 @@ subroutine hbmat(mat, &
   endif
   fac = beta / (h**2)
   if (bct == LO_DIRICHLET) then
-     bfv = fac * h / (0.5d0 * h + bcl)
+     bfv = fac * h / (0.5e0_rt * h + bcl)
      bfm = bfv - fac
   else if (bct == LO_NEUMANN) then
      bfv = beta / h
@@ -107,7 +116,7 @@ subroutine hbmat(mat, &
      do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i,j)
-           mat(0,i,j) = 0.d0
+           mat(0,i,j) = 0.e0_rt
         endif
      enddo
   else if (cdir == 2) then
@@ -124,7 +133,7 @@ subroutine hbmat(mat, &
      do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            mat(2,i,j) = mat(2,i,j) + bfm * b(i,j)
-           mat(1,i,j) = 0.d0
+           mat(1,i,j) = 0.e0_rt
         endif
      enddo
   else if (cdir == 3) then
@@ -149,19 +158,20 @@ subroutine hbmat3(mat, &
                   beta, dx, c, r, &
                   spa, DIMS(spabox)) bind(C, name="hbmat3")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(spabox)
   integer :: cdir, bctype, tf(DIMV(bcv))
-  real*8 :: bcl, beta, dx(2), c
-  real*8 :: mat(0:2, DIMV(reg))
+  real(rt)         :: bcl, beta, dx(2), c
+  real(rt)         :: mat(0:2, DIMV(reg))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: spa(DIMV(spabox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: h, fac, bfm, bfv, r0
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: spa(DIMV(spabox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: h, fac, bfm, bfv, r0
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -186,22 +196,22 @@ subroutine hbmat3(mat, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              bfv = fac * h / (0.5d0 * h + bcl)
+              bfv = fac * h / (0.5e0_rt * h + bcl)
               bfm = bfv * b(i,j)
            else if (bct == LO_NEUMANN) then
-              bfm = 0.d0
+              bfm = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0 / h
-              bfm = 0.25d0 * c * bfv
+              bfv = 2.e0_rt * beta * r0 / h
+              bfm = 0.25e0_rt * c * bfv
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               bfm = spa(i,j) * c * bfv
            else
               print *, "hbmat3: unsupported boundary type"
               stop
            endif
            mat(2,i,j) = mat(2,i,j) + bfm - fac * b(i,j)
-           mat(0,i,j) = 0.d0
+           mat(0,i,j) = 0.e0_rt
         endif
      enddo
   else if (cdir == 2) then
@@ -215,15 +225,15 @@ subroutine hbmat3(mat, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              bfv = fac * h / (0.5d0 * h + bcl)
+              bfv = fac * h / (0.5e0_rt * h + bcl)
               bfm = bfv * b(i+1,j)
            else if (bct == LO_NEUMANN) then
-              bfm = 0.d0
+              bfm = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0 / h
-              bfm = 0.25d0 * c * bfv
+              bfv = 2.e0_rt * beta * r0 / h
+              bfm = 0.25e0_rt * c * bfv
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               bfm = spa(i,j) * c * bfv
            else
               print *, "hbmat3: unsupported boundary type"
@@ -243,22 +253,22 @@ subroutine hbmat3(mat, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              bfv = fac * h / (0.5d0 * h + bcl)
+              bfv = fac * h / (0.5e0_rt * h + bcl)
               bfm = bfv * b(i,j)
            else if (bct == LO_NEUMANN) then
-              bfm = 0.d0
+              bfm = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i) / h
-              bfm = 0.25d0 * c * bfv
+              bfv = 2.e0_rt * beta * r(i) / h
+              bfm = 0.25e0_rt * c * bfv
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               bfm = spa(i,j) * c * bfv
            else
               print *, "hbmat3: unsupported boundary type"
               stop
            endif
            mat(2,i,j) = mat(2,i,j) + bfm - fac * b(i,j)
-           mat(1,i,j) = 0.d0
+           mat(1,i,j) = 0.e0_rt
         endif
      enddo
   else if (cdir == 3) then
@@ -272,15 +282,15 @@ subroutine hbmat3(mat, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              bfv = fac * h / (0.5d0 * h + bcl)
+              bfv = fac * h / (0.5e0_rt * h + bcl)
               bfm = bfv * b(i,j+1)
            else if (bct == LO_NEUMANN) then
-              bfm = 0.d0
+              bfm = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i) / h
-              bfm = 0.25d0 * c * bfv
+              bfv = 2.e0_rt * beta * r(i) / h
+              bfm = 0.25e0_rt * c * bfv
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               bfm = spa(i,j) * c * bfv
            else
               print *, "hbmat3: unsupported boundary type"
@@ -302,18 +312,19 @@ subroutine hbvec(vec, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbvec")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
-  real*8 :: bcl, beta, dx(2)
-  real*8 :: vec(DIMV(reg))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, beta, dx(2)
+  real(rt)         :: vec(DIMV(reg))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: h, bfv
-  real*8 :: h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: h, bfv
+  real(rt)         :: h2, th2
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -322,11 +333,11 @@ subroutine hbvec(vec, &
   endif
   if (bct == LO_DIRICHLET) then
      if (bho >= 1) then
-        h2 = 0.5d0 * h
-        th2 = 3.d0 * h2
-        bfv = 2.d0 * beta / ((bcl + h2) * (bcl + th2))
+        h2 = 0.5e0_rt * h
+        th2 = 3.e0_rt * h2
+        bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
      else
-        bfv = (beta / h) / (0.5d0 * h + bcl)
+        bfv = (beta / h) / (0.5e0_rt * h + bcl)
      endif
   else if (bct == LO_NEUMANN) then
      bfv = beta / h
@@ -379,19 +390,20 @@ subroutine hbvec3(vec, &
                   b, DIMS(bbox), &
                   beta, dx, r) bind(C, name="hbvec3")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: cdir, bctype, tf(DIMV(bcv)), bho
-  real*8 :: bcl, beta, dx(2)
-  real*8 :: vec(DIMV(reg))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, beta, dx(2)
+  real(rt)         :: vec(DIMV(reg))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: h, bfv, r0
-  real*8 :: h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: h, bfv, r0
+  real(rt)         :: h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -414,18 +426,18 @@ subroutine hbvec3(vec, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta / ((bcl + h2) * (bcl + th2))
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
               endif
               bfv = bfv * b(i,j)
            else if (bct == LO_NEUMANN) then
               bfv = beta * r0 / h
            else if (bct == LO_MARSHAK .OR. &
                 bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
            else
               print *, "hbvec3: unsupported boundary type"
               stop
@@ -445,18 +457,18 @@ subroutine hbvec3(vec, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta / ((bcl + h2) * (bcl + th2))
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
               endif
               bfv = bfv * b(i+1,j)
            else if (bct == LO_NEUMANN) then
               bfv = beta * r0 / h
            else if (bct == LO_MARSHAK .OR. &
                 bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
            else
               print *, "hbvec3: unsupported boundary type"
               stop
@@ -476,18 +488,18 @@ subroutine hbvec3(vec, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta / ((bcl + h2) * (bcl + th2))
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
               endif
               bfv = bfv * b(i,j)
            else if (bct == LO_NEUMANN) then
               bfv = beta * r(i) / h
            else if (bct == LO_MARSHAK .OR. &
                 bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
            else
               print *, "hbvec3: unsupported boundary type"
               stop
@@ -507,18 +519,18 @@ subroutine hbvec3(vec, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta / ((bcl + h2) * (bcl + th2))
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
               endif
               bfv = bfv * b(i,j+1)
            else if (bct == LO_NEUMANN) then
               bfv = beta * r(i) / h
            else if (bct == LO_MARSHAK .OR. &
                 bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
            else
               print *, "hbvec3: unsupported boundary type"
               stop
@@ -541,6 +553,7 @@ subroutine hbflx(flux, &
                  b, DIMS(bbox), &
                  beta, dx, inhom) bind(C, name="hbflx")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -548,14 +561,14 @@ subroutine hbflx(flux, &
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho, inhom
-  real*8 :: bcl, beta, dx(2)
-  real*8 :: flux(DIMV(fbox))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, beta, dx(2)
+  real(rt)         :: flux(DIMV(fbox))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: h, bfm, bfv
-  real*8 :: bfm2, h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: h, bfm, bfv
+  real(rt)         :: bfm2, h2, th2
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -564,13 +577,13 @@ subroutine hbflx(flux, &
   endif
   if (bct == LO_DIRICHLET) then
      if (bho >= 1) then
-        h2 = 0.5d0 * h
-        th2 = 3.d0 * h2
-        bfv = 2.d0 * beta * h / ((bcl + h2) * (bcl + th2))
+        h2 = 0.5e0_rt * h
+        th2 = 3.e0_rt * h2
+        bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2))
         bfm = (beta / h) * (th2 - bcl) / (bcl + h2)
         bfm2 = (beta / h) * (bcl - h2) / (bcl + th2)
      else
-        bfv = beta / (0.5d0 * h + bcl)
+        bfv = beta / (0.5e0_rt * h + bcl)
         bfm = bfv
      endif
   else
@@ -578,7 +591,7 @@ subroutine hbflx(flux, &
      stop
   endif
   if (inhom == 0) then
-     bfv = 0.d0
+     bfv = 0.e0_rt
   endif
   if (cdir == 0) then
      ! Left face of grid
@@ -640,6 +653,7 @@ subroutine hbflx3(flux, &
                   beta, dx, c, r, inhom, &
                   spa, DIMS(spabox)) bind(C, name="hbflx3")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -648,16 +662,16 @@ subroutine hbflx3(flux, &
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(spabox)
   integer :: cdir, bctype, tf(DIMV(bcv)), bho, inhom
-  real*8 :: bcl, beta, dx(2), c
-  real*8 :: flux(DIMV(fbox))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, beta, dx(2), c
+  real(rt)         :: flux(DIMV(fbox))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: spa(DIMV(spabox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: h, bfm, bfv, r0
-  real*8 :: bfm2, h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: spa(DIMV(spabox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: h, bfm, bfv, r0
+  real(rt)         :: bfm2, h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -680,32 +694,32 @@ subroutine hbflx3(flux, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j)
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j)
                  bfm = (beta / h) * (th2 - bcl) / (bcl + h2)  * b(i,j)
                  bfm2 = (beta / h) * (bcl - h2) / (bcl + th2) * b(i,j)
               else
-                 bfv = beta / (0.5d0 * h + bcl) * b(i,j)
+                 bfv = beta / (0.5e0_rt * h + bcl) * b(i,j)
                  bfm = bfv
               endif
            else if (bct == LO_NEUMANN) then
               bfv  = beta * r0
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0
+              bfv = 2.e0_rt * beta * r0
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0
+              bfv = 2.e0_rt * beta * r0
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -714,7 +728,7 @@ subroutine hbflx3(flux, &
               stop
            endif
            if (inhom == 0) then
-              bfv = 0.d0
+              bfv = 0.e0_rt
            endif
            flux(i,j) = (bfv * bcval(i-1,j) - bfm * er(i,j))
            if (bho >= 1) then
@@ -734,32 +748,32 @@ subroutine hbflx3(flux, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta * h / ((bcl + h2) * (bcl + th2)) * b(i+1,j)
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2)) * b(i+1,j)
                  bfm = (beta / h) * (th2 - bcl) / (bcl + h2)  * b(i+1,j)
                  bfm2 = (beta / h) * (bcl - h2) / (bcl + th2) * b(i+1,j)
               else
-                 bfv = beta / (0.5d0 * h + bcl) * b(i+1,j)
+                 bfv = beta / (0.5e0_rt * h + bcl) * b(i+1,j)
                  bfm = bfv
               endif
            else if (bct == LO_NEUMANN) then
               bfv  = beta * r0
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0
+              bfv = 2.e0_rt * beta * r0
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0
+              bfv = 2.e0_rt * beta * r0
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -768,7 +782,7 @@ subroutine hbflx3(flux, &
               stop
            endif
            if (inhom == 0) then
-              bfv = 0.d0
+              bfv = 0.e0_rt
            endif
            flux(i+1,j) = -(bfv * bcval(i+1,j) - bfm * er(i,j))
            if (bho >= 1) then
@@ -788,32 +802,32 @@ subroutine hbflx3(flux, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j)
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j)
                  bfm = (beta / h) * (th2 - bcl) / (bcl + h2)  * b(i,j)
                  bfm2 = (beta / h) * (bcl - h2) / (bcl + th2) * b(i,j)
               else
-                 bfv = beta / (0.5d0 * h + bcl) * b(i,j)
+                 bfv = beta / (0.5e0_rt * h + bcl) * b(i,j)
                  bfm = bfv
               endif
            else if (bct == LO_NEUMANN) then
               bfv  = beta * r(i)
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i)
+              bfv = 2.e0_rt * beta * r(i)
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i)
+              bfv = 2.e0_rt * beta * r(i)
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -822,7 +836,7 @@ subroutine hbflx3(flux, &
               stop
            endif
            if (inhom == 0) then
-              bfv = 0.d0
+              bfv = 0.e0_rt
            endif
            flux(i,j) = (bfv * bcval(i,j-1) - bfm * er(i,j))
            if (bho >= 1) then
@@ -842,32 +856,32 @@ subroutine hbflx3(flux, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
-                 bfv = 2.d0 * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j+1)
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
+                 bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j+1)
                  bfm = (beta / h) * (th2 - bcl) / (bcl + h2)  * b(i,j+1)
                  bfm2 = (beta / h) * (bcl - h2) / (bcl + th2) * b(i,j+1)
               else
-                 bfv = beta / (0.5d0 * h + bcl) * b(i,j+1)
+                 bfv = beta / (0.5e0_rt * h + bcl) * b(i,j+1)
                  bfm = bfv
               endif
            else if (bct == LO_NEUMANN) then
               bfv  = beta * r(i)
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i)
+              bfv = 2.e0_rt * beta * r(i)
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i)
+              bfv = 2.e0_rt * beta * r(i)
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -876,7 +890,7 @@ subroutine hbflx3(flux, &
               stop
            endif
            if (inhom == 0) then
-              bfv = 0.d0
+              bfv = 0.e0_rt
            endif
            flux(i,j+1) = -(bfv * bcval(i,j+1) - bfm * er(i,j))
            if (bho >= 1) then
@@ -899,6 +913,7 @@ subroutine hdterm(dterm, &
                   d, DIMS(dbox), &
                   dx) bind(C, name="hdterm")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(dtbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -906,13 +921,13 @@ subroutine hdterm(dterm, &
   integer :: DIMDEC(msk)
   integer :: DIMDEC(dbox)
   integer :: cdir, bct
-  real*8 :: bcl, dx(2)
-  real*8 :: dterm(DIMV(dtbox))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, dx(2)
+  real(rt)         :: dterm(DIMV(dtbox))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: d(DIMV(dbox))
-  real*8 :: h
+  real(rt)         :: d(DIMV(dbox))
+  real(rt)         :: h
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -925,7 +940,7 @@ subroutine hdterm(dterm, &
         i = reg_l1
         do j = reg_l2, reg_h2
            if (mask(i-1,j) > 0) then
-              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i-1,j))/(0.5d0*h+bcl)
+              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i-1,j))/(0.5e0_rt*h+bcl)
            endif
         enddo
      else if (cdir == 2) then
@@ -933,7 +948,7 @@ subroutine hdterm(dterm, &
         i = reg_h1
         do j = reg_l2, reg_h2
            if (mask(i+1,j) > 0) then
-              dterm(i+1,j) = d(i+1,j)*(bcval(i+1,j)-er(i,j))/(0.5d0*h+bcl)
+              dterm(i+1,j) = d(i+1,j)*(bcval(i+1,j)-er(i,j))/(0.5e0_rt*h+bcl)
            endif
         enddo
      else if (cdir == 1) then
@@ -941,7 +956,7 @@ subroutine hdterm(dterm, &
         j = reg_l2
         do i = reg_l1, reg_h1
            if (mask(i,j-1) > 0) then
-              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i,j-1))/(0.5d0*h+bcl)
+              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i,j-1))/(0.5e0_rt*h+bcl)
            endif
         enddo
      else if (cdir == 3) then
@@ -949,7 +964,7 @@ subroutine hdterm(dterm, &
         j = reg_h2
         do i = reg_l1, reg_h1
            if (mask(i,j+1) > 0) then
-              dterm(i,j+1) = d(i,j+1)*(bcval(i,j+1)-er(i,j))/(0.5d0*h+bcl)
+              dterm(i,j+1) = d(i,j+1)*(bcval(i,j+1)-er(i,j))/(0.5e0_rt*h+bcl)
            endif
         enddo
      else
@@ -971,6 +986,7 @@ subroutine hdterm3(dterm, &
                    d, DIMS(dbox), &
                    dx) bind(C, name="hdterm3")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(dtbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -978,13 +994,13 @@ subroutine hdterm3(dterm, &
   integer :: DIMDEC(msk)
   integer :: DIMDEC(dbox)
   integer :: cdir, bctype, tf(DIMV(bcv))
-  real*8 :: bcl, dx(2)
-  real*8 :: dterm(DIMV(dtbox))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: bcval(DIMV(bcv))
+  real(rt)         :: bcl, dx(2)
+  real(rt)         :: dterm(DIMV(dtbox))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: bcval(DIMV(bcv))
   integer :: mask(DIMV(msk))
-  real*8 :: d(DIMV(dbox))
-  real*8 :: h
+  real(rt)         :: d(DIMV(dbox))
+  real(rt)         :: h
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -1002,9 +1018,9 @@ subroutine hdterm3(dterm, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i-1,j))/(0.5d0*h+bcl)
-           else if (bct == LO_NEUMANN .AND. bcval(i-1,j) == 0.d0) then
-              dterm(i,j) = 0.d0
+              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i-1,j))/(0.5e0_rt*h+bcl)
+           else if (bct == LO_NEUMANN .AND. bcval(i-1,j) == 0.e0_rt) then
+              dterm(i,j) = 0.e0_rt
            else
               print *, "hdterm3: unsupported boundary type"
               stop
@@ -1022,9 +1038,9 @@ subroutine hdterm3(dterm, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              dterm(i+1,j) = d(i+1,j)*(bcval(i+1,j)-er(i,j))/(0.5d0*h+bcl)
-           else if (bct == LO_NEUMANN .AND. bcval(i+1,j) == 0.d0) then
-              dterm(i+1,j) = 0.d0
+              dterm(i+1,j) = d(i+1,j)*(bcval(i+1,j)-er(i,j))/(0.5e0_rt*h+bcl)
+           else if (bct == LO_NEUMANN .AND. bcval(i+1,j) == 0.e0_rt) then
+              dterm(i+1,j) = 0.e0_rt
            else
               print *, "hdterm3: unsupported boundary type"
               stop
@@ -1042,9 +1058,9 @@ subroutine hdterm3(dterm, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i,j-1))/(0.5d0*h+bcl)
-           else if (bct == LO_NEUMANN .AND. bcval(i,j-1) == 0.d0) then
-              dterm(i,j) = 0.d0
+              dterm(i,j) = d(i,j)*(er(i,j)-bcval(i,j-1))/(0.5e0_rt*h+bcl)
+           else if (bct == LO_NEUMANN .AND. bcval(i,j-1) == 0.e0_rt) then
+              dterm(i,j) = 0.e0_rt
            else
               print *, "hdterm3: unsupported boundary type"
               stop
@@ -1062,9 +1078,9 @@ subroutine hdterm3(dterm, &
               bct = bctype
            endif
            if (bct == LO_DIRICHLET) then
-              dterm(i,j+1) = d(i,j+1)*(bcval(i,j+1)-er(i,j))/(0.5d0*h+bcl)
-           else if (bct == LO_NEUMANN .AND. bcval(i,j+1) == 0.d0) then
-              dterm(i,j+1) = 0.d0
+              dterm(i,j+1) = d(i,j+1)*(bcval(i,j+1)-er(i,j))/(0.5e0_rt*h+bcl)
+           else if (bct == LO_NEUMANN .AND. bcval(i,j+1) == 0.e0_rt) then
+              dterm(i,j+1) = 0.e0_rt
            else
               print *, "hdterm3: unsupported boundary type"
               stop
@@ -1081,16 +1097,17 @@ subroutine hmac(mat, a, &
                 DIMS(reg), &
                 alpha) bind(C, name="hmac")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
-  real*8 :: a(DIMV(abox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: alpha
+  real(rt)         :: a(DIMV(abox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: alpha
   integer :: i, j
-  if (alpha == 0.d0) then
+  if (alpha == 0.e0_rt) then
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
-           mat(0,i,j) = 0.d0
+           mat(0,i,j) = 0.e0_rt
         enddo
      enddo
   else
@@ -1107,13 +1124,14 @@ subroutine hmbc(mat, b, &
                 DIMS(reg), &
                 beta, dx, n) bind(C, name="hmbc")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: b(DIMV(bbox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: beta, dx(2)
-  real*8 :: fac
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: beta, dx(2)
+  real(rt)         :: fac
   integer :: i, j
   if (n == 0) then
      fac = beta / (dx(1)**2)
@@ -1141,15 +1159,16 @@ subroutine hma2c(mat, a2, &
                  DIMS(reg), &
                  alpha2, n) bind(C, name="hma2c")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: a2(DIMV(bbox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: alpha2
-  real*8 :: fac
+  real(rt)         :: a2(DIMV(bbox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: alpha2
+  real(rt)         :: fac
   integer :: i, j
-  fac = 0.25d0 * alpha2
+  fac = 0.25e0_rt * alpha2
   if (n == 0) then
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
@@ -1174,16 +1193,17 @@ subroutine hmcc(mat, c, &
                 DIMS(reg), &
                 gamma, dx, n) bind(C, name="hmcc")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: c(DIMV(bbox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: gamma, dx(2)
-  real*8 :: fac
+  real(rt)         :: c(DIMV(bbox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: gamma, dx(2)
+  real(rt)         :: fac
   integer :: i, j
   if (n == 0) then
-     fac = 0.5d0 * gamma / dx(1)
+     fac = 0.5e0_rt * gamma / dx(1)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) - fac * (c(i,j) - c(i+1,j))
@@ -1192,7 +1212,7 @@ subroutine hmcc(mat, c, &
         enddo
      enddo
   else
-     fac = 0.5d0 * gamma / dx(2)
+     fac = 0.5e0_rt * gamma / dx(2)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) - fac * (c(i,j) - c(i,j+1))
@@ -1208,16 +1228,17 @@ subroutine hmd1c(mat, d1, &
                  DIMS(reg), &
                  delta1, dx, n) bind(C, name="hmd1c")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d1(DIMV(abox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: delta1, dx(2)
-  real*8 :: fac
+  real(rt)         :: d1(DIMV(abox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: delta1, dx(2)
+  real(rt)         :: fac
   integer :: i, j
   if (n == 0) then
-     fac = 0.5d0 * delta1 / dx(1)
+     fac = 0.5e0_rt * delta1 / dx(1)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(1,i,j) = mat(1,i,j) - fac * d1(i,j)
@@ -1225,7 +1246,7 @@ subroutine hmd1c(mat, d1, &
         enddo
      enddo
   else
-     fac = 0.5d0 * delta1 / dx(2)
+     fac = 0.5e0_rt * delta1 / dx(2)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(3,i,j) = mat(3,i,j) - fac * d1(i,j)
@@ -1240,16 +1261,17 @@ subroutine hmd2c(mat, d2, &
                  DIMS(reg), &
                  delta2, dx, n) bind(C, name="hmd2c")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
-  real*8 :: d2(DIMV(bbox))
-  real*8 :: mat(0:4, DIMV(reg))
-  real*8 :: delta2, dx(2)
-  real*8 :: fac
+  real(rt)         :: d2(DIMV(bbox))
+  real(rt)         :: mat(0:4, DIMV(reg))
+  real(rt)         :: delta2, dx(2)
+  real(rt)         :: fac
   integer :: i, j
   if (n == 0) then
-     fac = 0.5d0 * delta2 / dx(1)
+     fac = 0.5e0_rt * delta2 / dx(1)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (d2(i,j) - d2(i+1,j))
@@ -1258,7 +1280,7 @@ subroutine hmd2c(mat, d2, &
         enddo
      enddo
   else
-     fac = 0.5d0 * delta2 / dx(2)
+     fac = 0.5e0_rt * delta2 / dx(2)
      do j = reg_l2, reg_h2
         do i = reg_l1, reg_h1
            mat(0,i,j) = mat(0,i,j) + fac * (d2(i,j) - d2(i,j+1))
@@ -1276,16 +1298,17 @@ subroutine hmmat(mat, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hmmat")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: cdir, bct, bho
-  real*8 :: bcl, beta, dx(2)
-  real*8 :: mat(0:4, DIMV(reg))
+  real(rt)         :: bcl, beta, dx(2)
+  real(rt)         :: mat(0:4, DIMV(reg))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: h, fac, bfm, bfv
-  real*8 :: bfm2, h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: h, fac, bfm, bfv
+  real(rt)         :: bfm2, h2, th2
   integer :: i, j
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -1295,17 +1318,17 @@ subroutine hmmat(mat, &
   fac = beta / (h**2)
   if (bct == LO_DIRICHLET) then
      if (bho >= 1) then
-        h2 = 0.5d0 * h
-        th2 = 3.d0 * h2
+        h2 = 0.5e0_rt * h
+        th2 = 3.e0_rt * h2
         bfm = fac * (th2 - bcl) / (bcl + h2) - fac
         bfm2 = fac * (bcl - h2) / (bcl + th2)
      else
-        bfv = (beta / h) / (0.5d0 * h + bcl)
+        bfv = (beta / h) / (0.5e0_rt * h + bcl)
         bfm = bfv - fac
      endif
   else if (bct == LO_NEUMANN) then
      bfm = -fac
-     bfm2 = 0.d0
+     bfm2 = 0.e0_rt
   else
      print *, "hmmat: unsupported boundary type"
      stop
@@ -1316,7 +1339,7 @@ subroutine hmmat(mat, &
      do j = reg_l2, reg_h2
         if (mask(i-1,j) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j)
-           mat(1,i,j) = 0.d0
+           mat(1,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(2,i,j) = mat(2,i,j) + bfm2 * b(i,j)
            endif
@@ -1328,7 +1351,7 @@ subroutine hmmat(mat, &
      do j = reg_l2, reg_h2
         if (mask(i+1,j) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i+1,j)
-           mat(2,i,j) = 0.d0
+           mat(2,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(1,i,j) = mat(1,i,j) + bfm2 * b(i+1,j)
            endif
@@ -1340,7 +1363,7 @@ subroutine hmmat(mat, &
      do i = reg_l1, reg_h1
         if (mask(i,j-1) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j)
-           mat(3,i,j) = 0.d0
+           mat(3,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(4,i,j) = mat(4,i,j) + bfm2 * b(i,j)
            endif
@@ -1352,7 +1375,7 @@ subroutine hmmat(mat, &
      do i = reg_l1, reg_h1
         if (mask(i,j+1) > 0) then
            mat(0,i,j) = mat(0,i,j) + bfm * b(i,j+1)
-           mat(4,i,j) = 0.d0
+           mat(4,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(3,i,j) = mat(3,i,j) + bfm2 * b(i,j+1)
            endif
@@ -1372,20 +1395,21 @@ subroutine hmmat3(mat, &
                   beta, dx, c, r, &
                   spa, DIMS(spabox)) bind(C, name="hmmat3")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(spabox)
   integer :: cdir, bctype, tf(DIMV(bcv)), bho
-  real*8 :: bcl, beta, dx(2), c
-  real*8 :: mat(0:4, DIMV(reg))
+  real(rt)         :: bcl, beta, dx(2), c
+  real(rt)         :: mat(0:4, DIMV(reg))
   integer :: mask(DIMV(msk))
-  real*8 :: b(DIMV(bbox))
-  real*8 :: spa(DIMV(spabox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: h, fac, bfm, bfv, r0
-  real*8 :: bfm2, h2, th2
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: spa(DIMV(spabox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: h, fac, bfm, bfv, r0
+  real(rt)         :: bfm2, h2, th2
   integer :: i, j, bct
   if (cdir == 0 .OR. cdir == 2) then
      h = dx(1)
@@ -1411,30 +1435,30 @@ subroutine hmmat3(mat, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
                  bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j)
                  bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j)
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
                  bfm = bfv * b(i,j)
               endif
            else if (bct == LO_NEUMANN) then
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -1443,7 +1467,7 @@ subroutine hmmat3(mat, &
               stop
            endif
            mat(0,i,j) = mat(0,i,j) + bfm - fac * b(i,j)
-           mat(1,i,j) = 0.d0
+           mat(1,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(2,i,j) = mat(2,i,j) + bfm2
            endif
@@ -1461,30 +1485,30 @@ subroutine hmmat3(mat, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
                  bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i+1,j)
                  bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i+1,j)
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
                  bfm = bfv * b(i+1,j)
               endif
            else if (bct == LO_NEUMANN) then
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r0 / h
+              bfv = 2.e0_rt * beta * r0 / h
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -1493,7 +1517,7 @@ subroutine hmmat3(mat, &
               stop
            endif
            mat(0,i,j) = mat(0,i,j) + bfm - fac * b(i+1,j)
-           mat(2,i,j) = 0.d0
+           mat(2,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(1,i,j) = mat(1,i,j) + bfm2
            endif
@@ -1511,30 +1535,30 @@ subroutine hmmat3(mat, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
                  bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j)
                  bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j)
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
                  bfm = bfv * b(i,j)
               endif
            else if (bct == LO_NEUMANN) then
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -1543,7 +1567,7 @@ subroutine hmmat3(mat, &
               stop
            endif
            mat(0,i,j) = mat(0,i,j) + bfm - fac * b(i,j)
-           mat(3,i,j) = 0.d0
+           mat(3,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(4,i,j) = mat(4,i,j) + bfm2
            endif
@@ -1561,30 +1585,30 @@ subroutine hmmat3(mat, &
            endif
            if (bct == LO_DIRICHLET) then
               if (bho >= 1) then
-                 h2 = 0.5d0 * h
-                 th2 = 3.d0 * h2
+                 h2 = 0.5e0_rt * h
+                 th2 = 3.e0_rt * h2
                  bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j+1)
                  bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j+1)
               else
-                 bfv = (beta / h) / (0.5d0 * h + bcl)
+                 bfv = (beta / h) / (0.5e0_rt * h + bcl)
                  bfm = bfv * b(i,j+1)
               endif
            else if (bct == LO_NEUMANN) then
-              bfm  = 0.d0
-              bfm2 = 0.d0
+              bfm  = 0.e0_rt
+              bfm2 = 0.e0_rt
            else if (bct == LO_MARSHAK) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               if (bho >= 1) then
-                 bfm  =  0.375d0 * c * bfv
-                 bfm2 = -0.125d0 * c * bfv
+                 bfm  =  0.375e0_rt * c * bfv
+                 bfm2 = -0.125e0_rt * c * bfv
               else
-                 bfm = 0.25d0 * c * bfv
+                 bfm = 0.25e0_rt * c * bfv
               endif
            else if (bct == LO_SANCHEZ_POMRANING) then
-              bfv = 2.d0 * beta * r(i) / h
+              bfv = 2.e0_rt * beta * r(i) / h
               if (bho >= 1) then
-                 bfm  =  1.5d0 * spa(i,j) * c * bfv
-                 bfm2 = -0.5d0 * spa(i,j) * c * bfv
+                 bfm  =  1.5e0_rt * spa(i,j) * c * bfv
+                 bfm2 = -0.5e0_rt * spa(i,j) * c * bfv
               else
                  bfm = spa(i,j) * c * bfv
               endif
@@ -1593,7 +1617,7 @@ subroutine hmmat3(mat, &
               stop
            endif
            mat(0,i,j) = mat(0,i,j) + bfm - fac * b(i,j+1)
-           mat(4,i,j) = 0.d0
+           mat(4,i,j) = 0.e0_rt
            if (bho >= 1) then
               mat(3,i,j) = mat(3,i,j) + bfm2
            endif
@@ -1612,17 +1636,18 @@ subroutine set_abec_flux( &
                          dx, &
                          flux, DIMS(flux)) bind(C, name="set_abec_flux")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(density)
   integer :: DIMDEC(dcoef)
   integer :: DIMDEC(flux)
 
-  real*8 :: density(DIMV(density))
-  real*8 :: dcoef(DIMV(dcoef))
-  real*8 :: flux(DIMV(flux))
+  real(rt)         :: density(DIMV(density))
+  real(rt)         :: dcoef(DIMV(dcoef))
+  real(rt)         :: flux(DIMV(flux))
 
   integer :: dir,i,j
-  real*8 :: beta, dx(BL_SPACEDIM), fac
+  real(rt)         :: beta, dx(BL_SPACEDIM), fac
 
 
   if( dir == 0 ) then

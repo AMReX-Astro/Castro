@@ -4,10 +4,11 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use prob_params_module, only : center
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
 
   integer :: untin,i
 
@@ -28,10 +29,10 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
          
   ! set namelist defaults
 
-  p_ambient = 1.d-5        ! ambient pressure (in erg/cc)
-  dens_ambient = 1.d0      ! ambient density (in g/cc)
-  exp_energy = 1.d0        ! absolute energy of the explosion (in erg)
-  r_init = 0.05d0          ! initial radius of the explosion (in cm)
+  p_ambient = 1.e-5_rt        ! ambient pressure (in erg/cc)
+  dens_ambient = 1.e0_rt      ! ambient density (in g/cc)
+  exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
+  r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
 
   ! Read namelists
@@ -41,9 +42,9 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   close(unit=untin)
 
   ! set local variable defaults
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
-  center(3) = (problo(3)+probhi(3))/2.d0
+  center(1) = (problo(1)+probhi(1))/2.e0_rt
+  center(2) = (problo(2)+probhi(2))/2.e0_rt
+  center(3) = (problo(3)+probhi(3))/2.e0_rt
   
 end subroutine PROBINIT
 
@@ -79,20 +80,21 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision :: state(state_l1:state_h1, &
+  real(rt)         :: xlo(3), xhi(3), time, delta(3)
+  real(rt)         :: state(state_l1:state_h1, &
                             state_l2:state_h2, &
                             state_l3:state_h3,NVAR)
 
-  double precision :: xmin,ymin,zmin
-  double precision :: xx, yy, zz
-  double precision :: dist
-  double precision :: eint, p_zone
-  double precision :: vctr, p_exp
+  real(rt)         :: xmin,ymin,zmin
+  real(rt)         :: xx, yy, zz
+  real(rt)         :: dist
+  real(rt)         :: eint, p_zone
+  real(rt)         :: vctr, p_exp
 
   integer :: i,j,k, ii, jj, kk
   integer :: npert, nambient
@@ -103,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! energy into a corresponding pressure distributed throughout the
      ! perturbed volume
      vctr  = M_PI*r_init**2
-     p_exp = (gamma_const - 1.d0)*exp_energy/vctr
+     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
      
      do k = lo(3), hi(3)
         zmin = xlo(3) + delta(3)*dble(k-lo(3)) 
@@ -118,10 +120,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               nambient = 0
               
               do jj = 0, nsub-1
-                 yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5d0)
+                 yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5e0_rt)
                  
                  do ii = 0, nsub-1
-                    xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
+                    xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
                     
                     dist = (center(1)-xx)**2 + (center(2)-yy)**2
                     
@@ -137,15 +139,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient) / &
                        (dble(npert) + dble(nambient))
 
-              eint = p_zone/(gamma_const - 1.d0)
+              eint = p_zone/(gamma_const - 1.e0_rt)
 
               state(i,j,k,URHO) = dens_ambient
-              state(i,j,k,UMX) = 0.d0
-              state(i,j,k,UMY) = 0.d0
-              state(i,j,k,UMZ) = 0.d0
+              state(i,j,k,UMX) = 0.e0_rt
+              state(i,j,k,UMY) = 0.e0_rt
+              state(i,j,k,UMZ) = 0.e0_rt
               
               state(i,j,k,UEDEN) = eint +  &
-                   0.5d0*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
+                   0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMY)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMZ)**2/state(i,j,k,URHO))
 
@@ -162,7 +164,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! set explosion pressure -- we will convert the point-explosion energy into
      ! a corresponding pressure distributed throughout the perturbed volume
      vctr  = FOUR3RD*M_PI*r_init**3
-     p_exp = (gamma_const - 1.d0)*exp_energy/vctr
+     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
 
      do k = lo(3), hi(3)
         zmin = xlo(3) + delta(3)*dble(k-lo(3)) 
@@ -177,13 +179,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               nambient = 0
 
               do kk = 0, nsub-1
-                 zz = zmin + (delta(3)/dble(nsub))*(kk + 0.5d0)
+                 zz = zmin + (delta(3)/dble(nsub))*(kk + 0.5e0_rt)
                  
                  do jj = 0, nsub-1
-                    yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5d0)
+                    yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5e0_rt)
                     
                     do ii = 0, nsub-1
-                       xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5d0)
+                       xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
                        
                        dist = (center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2
                        
@@ -200,15 +202,15 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient)/  &
                    dble(nsub*nsub*nsub)
 
-              eint = p_zone/(gamma_const - 1.d0)
+              eint = p_zone/(gamma_const - 1.e0_rt)
 
               state(i,j,k,URHO) = dens_ambient
-              state(i,j,k,UMX) = 0.d0
-              state(i,j,k,UMY) = 0.d0
-              state(i,j,k,UMZ) = 0.d0
+              state(i,j,k,UMX) = 0.e0_rt
+              state(i,j,k,UMY) = 0.e0_rt
+              state(i,j,k,UMZ) = 0.e0_rt
               
               state(i,j,k,UEDEN) = eint + &
-                   0.5d0*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
+                   0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMY)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMZ)**2/state(i,j,k,URHO))
 

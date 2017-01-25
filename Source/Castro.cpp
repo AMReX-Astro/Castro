@@ -88,6 +88,8 @@ int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
+Array<std::string> Castro::source_names;
+
 #include <castro_defaults.H>
 
 #ifdef SELF_GRAVITY
@@ -320,12 +322,6 @@ Castro::read_params ()
       }
 
 
-    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
-      {
-        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
-        BoxLib::Error();
-      }
-
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -550,6 +546,9 @@ Castro::Castro (Amr&            papa,
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
@@ -702,20 +701,24 @@ Castro::initMFs()
 	    flux_crse_scale = -1.0 / crse_ratio[0];
 	    flux_fine_scale = 1.0;
 
-	    if (level > 0) {
+	    // Now set the scaling for the level below us. All other levels will be done
+	    // in a general loop below; we cannot fuse this one because getLevel() will not
+	    // return a result for this level until after the Castro constructor completes.
 
-		getLevel(level-1).flux_crse_scale = flux_crse_scale / crse_ratio[0];
-		getLevel(level-1).flux_fine_scale = flux_fine_scale / crse_ratio[0];
+	    if (level > 1) {
+
+		getLevel(level-1).flux_crse_scale = flux_crse_scale / getLevel(level-1).crse_ratio[0];
+		getLevel(level-1).flux_fine_scale = flux_fine_scale / getLevel(level-1).fine_ratio[0];
 
 	    }
 
-	    for (int lev = level - 2; lev >= 0; --lev) {
+	    for (int lev = level - 2; lev > 0; --lev) {
 
 		// Note that we're arbitrarily using the first component of ref_ratio, on the
 		// assumption that the refinement is equal in all dimensions.
 
-		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev+1).crse_ratio[0];
-		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev+1).crse_ratio[0];
+		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev).crse_ratio[0];
+		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev).fine_ratio[0];
 
 	    }
 
@@ -734,31 +737,15 @@ Castro::initMFs()
 	    // fluxes, we want the total refluxing contribution
 	    // over the full set of fine timesteps to equal P_radial.
 
-	    pres_crse_scale = 1.0;
+#if (BL_SPACEDIM <= 2)
+	    pres_crse_scale = flux_crse_scale;
+	    pres_fine_scale = flux_fine_scale / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
-#if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
-#endif
-
-	    pres_crse_scale *= flux_crse_scale;
-	    pres_fine_scale *= flux_fine_scale;
-
-	    for (int lev = level - 1; lev >= 0; --lev) {
-
-		getLevel(lev).pres_crse_scale = 1.0;
-
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
-
-		getLevel(lev).pres_crse_scale *= getLevel(lev).flux_crse_scale;
-		getLevel(lev).pres_fine_scale *= getLevel(lev).flux_fine_scale;
-
+	    for (int lev = level - 1; lev > 0; --lev) {
+		getLevel(lev).pres_crse_scale = getLevel(lev).flux_crse_scale;
+		getLevel(lev).pres_fine_scale = getLevel(lev).flux_fine_scale / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
+#endif
 
 	}
 	else if (reflux_strategy == 2) {
@@ -770,26 +757,20 @@ Castro::initMFs()
 	    flux_crse_scale = -1.0;
 	    flux_fine_scale = 1.0;
 
-	    for (int lev = level - 1; lev >= 0; --lev) {
+	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).flux_crse_scale = -1.0;
 		getLevel(lev).flux_fine_scale = 1.0;
 	    }
 
+#if (BL_SPACEDIM <= 2)
 	    pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
-#endif
+	    pres_fine_scale = 1.0 / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 
-	    for (int lev = level - 1; lev >= 0; --lev) {
+	    for (int lev = level - 1; lev > 0; --lev) {
 		getLevel(lev).pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
+		getLevel(lev).pres_fine_scale = 1.0 / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
 	    }
+#endif
 
 	}
 	else {
@@ -1763,6 +1744,9 @@ Castro::post_restart ()
 #ifdef RADIATION
     init_godunov_indices_rad();
     get_qradvar(&QRADVAR);
+
+    // NQAUX depends on radiation groups, so get it fresh here
+    get_nqaux(&NQAUX);
 #else
     init_godunov_indices();
 #endif
@@ -2138,17 +2122,17 @@ Castro::reflux(int crse_level, int fine_level)
 	if (update_sources_after_reflux) {
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		temp_fluxes.set(i, new MultiFab(crse_lev.fluxes[i].boxArray(), crse_lev.fluxes[i].nComp(), crse_lev.fluxes[i].nGrow()));
-		temp_fluxes[i].setVal(0.0);
+                temp_fluxes.set(i, new MultiFab(crse_lev.fluxes[i].boxArray(), crse_lev.fluxes[i].nComp(), crse_lev.fluxes[i].nGrow()));
+                temp_fluxes[i].setVal(0.0);
 	    }
 	    for (OrientationIter fi; fi; ++fi) {
-		const FabSet& fs = (*reg)[fi()];
-		int idir = fi().coordDir();
-		fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
+                const FabSet& fs = (*reg)[fi()];
+                int idir = fi().coordDir();
+                fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		MultiFab::Add(crse_lev.fluxes[i], temp_fluxes[i], 0, 0, crse_lev.fluxes[i].nComp(), 0);
-		temp_fluxes.clear(i);
+                MultiFab::Add(crse_lev.fluxes[i], temp_fluxes[i], 0, 0, crse_lev.fluxes[i].nComp(), 0);
+                temp_fluxes.clear(i);
 	    }
 
 	    // Reflux into the hydro_source array so that we have the most up-to-date version of it.
@@ -2157,9 +2141,14 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-	// Zero out the flux register; it's no longer needed.
+	// Subtract out the fine part of the flux register; it's no longer needed.
+	// This assumes that we always initialize the coarse fluxes only once
+	// at the first AMR iteration. We do it this way so that we can modify
+	// the fluxes above without worrying about a modification to the fluxes
+	// MultiFab on the coarse domain affecting later refluxes.
 
-	reg->setVal(0.0);
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, -getLevel(lev).flux_fine_scale);
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
@@ -2175,27 +2164,27 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    if (update_sources_after_reflux) {
 
-		temp_fluxes.set(0, new MultiFab(crse_lev.P_radial.boxArray(), crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
-		temp_fluxes[0].setVal(0.0);
+                temp_fluxes.set(0, new MultiFab(crse_lev.P_radial.boxArray(), crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow()));
+                temp_fluxes[0].setVal(0.0);
 
-		for (OrientationIter fi; fi; ++fi) {
+                for (OrientationIter fi; fi; ++fi) {
 
-		    const FabSet& fs = (*reg)[fi()];
-		    int idir = fi().coordDir();
-		    if (idir == 0) {
-			fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
-		    }
+                    const FabSet& fs = (*reg)[fi()];
+                    int idir = fi().coordDir();
+                    if (idir == 0) {
+                        fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
+                    }
 
-		}
+                }
 
-		MultiFab::Add(crse_lev.P_radial, temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
-		temp_fluxes.clear(0);
+                MultiFab::Add(crse_lev.P_radial, temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
+                temp_fluxes.clear(0);
 
-		reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
+                reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    }
 
-	    reg->setVal(0.0);
+	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, -getLevel(lev).pres_fine_scale);
 
 	}
 #endif
@@ -2230,7 +2219,8 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    reg->setVal(0.0);
+	    for (int i = 0; i < BL_SPACEDIM; ++i)
+		reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
 
 	}
 
@@ -2290,7 +2280,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt = parent->dtLevel(lev);
 
 	    for (int n = 0; n < num_src; ++n)
-		getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
+                if (source_flag(n))
+		    getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources[n], -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
@@ -2407,10 +2398,6 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
     Real dens_change = 1.e0;
 
-    Real mass_added = 0.0;
-    Real eint_added = 0.0;
-    Real eden_added = 0.0;
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
@@ -2426,37 +2413,37 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
 				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				&mass_added, &eint_added, &eden_added, &dens_change,
-				&verbose);
+				&dens_change, &verbose);
 
     }
 
-    if (print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
 
-        Real foo[3] = {mass_added, eint_added, eden_added};
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, S_old, 0, 0, S_old.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(foo, 3, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
 
-	    if (ParallelDescriptor::IOProcessor())
-	    {
-	        mass_added = foo[0];
-		eint_added = foo[1];
-		eden_added = foo[2];
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[0]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
 
-		if (std::abs(mass_added) != 0.0)
-	        {
-		  std::cout << "   Mass added from negative density correction : " <<
-				mass_added << std::endl;
-		  std::cout << "(rho e) added from negative density correction : " <<
-				eint_added << std::endl;
-		  std::cout << "(rho E) added from negative density correction : " <<
-				eden_added << std::endl;
-	        }
+		    print_source_change(reset_update);
+		}
 	    }
+
 #ifdef BL_LAZY
         });
 #endif
@@ -2707,13 +2694,15 @@ Castro::extern_init ()
 void
 Castro::reset_internal_energy(MultiFab& S_new)
 {
-    Real sum  = 0.;
-    Real sum0 = 0.;
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    MultiFab old_state;
+
+    // Make a copy of the state so we can evaluate how much changed.
+
+    if (print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum0 = volWgtSumMF(&S_new,Eden,true);
+	old_state.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
+        MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
 
     int ng = S_new.nGrow();
@@ -2736,17 +2725,32 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (verbose)
       flush_output();
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum = volWgtSumMF(&S_new,Eden,true);
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
+
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
-	ParallelDescriptor::ReduceRealSum(sum0);
-	ParallelDescriptor::ReduceRealSum(sum);
-        if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
-            std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[Eint]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
+
+		    print_source_change(reset_update);
+		}
+	    }
+
 #ifdef BL_LAZY
 	});
 #endif

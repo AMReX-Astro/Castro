@@ -7,16 +7,17 @@
        use fundamental_constants_module, only : Gconst
        use bl_constants_module
 
+       use bl_fort_module, only : rt => c_real
        implicit none
 
        integer         , intent(in   ) :: lo(1), hi(1)
        integer         , intent(in   ) :: grav_l1,grav_h1
-       double precision, intent(in   ) :: point_mass
-       double precision, intent(inout) :: grav(grav_l1  :grav_h1)
-       double precision, intent(in   ) :: problo(1),dx(1)
+       real(rt)        , intent(in   ) :: point_mass
+       real(rt)        , intent(inout) :: grav(grav_l1  :grav_h1)
+       real(rt)        , intent(in   ) :: problo(1),dx(1)
 
        integer          :: i
-       double precision :: x
+       real(rt)         :: x
 
        ! We must be in spherical coordinates with center(1) = 0.
        !    or this doesn't make sense
@@ -44,6 +45,7 @@
       use meth_params_module, only : NVAR, URHO, UMX
       use bl_constants_module
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(1),hi(1)
@@ -51,11 +53,11 @@
       integer ::  uout_l1, uout_h1
       integer ::   vol_l1,  vol_h1
 
-      double precision   :: delta_mass
-      double precision   ::   uin( uin_l1: uin_h1, NVAR)
-      double precision   ::  uout(uout_l1:uout_h1, NVAR)
-      double precision   ::   vol( vol_l1: vol_h1)
-      double precision   :: problo(1),dx(1),time,dt
+      real(rt)           :: delta_mass
+      real(rt)           ::   uin( uin_l1: uin_h1, NVAR)
+      real(rt)           ::  uout(uout_l1:uout_h1, NVAR)
+      real(rt)           ::   vol( vol_l1: vol_h1)
+      real(rt)           :: problo(1),dx(1),time,dt
 
       integer, parameter :: box_size = 2
       integer            :: ii
@@ -80,15 +82,16 @@
 
       use meth_params_module, only : NVAR, UMX
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(1),hi(1)
       integer ::   uin_l1,  uin_h1
       integer ::  uout_l1, uout_h1
 
-      double precision   ::   uin(  uin_l1:uin_h1,  NVAR)
-      double precision   ::  uout( uout_l1:uout_h1, NVAR)
-      double precision   :: problo(1),dx(1),time,dt
+      real(rt)           ::   uin(  uin_l1:uin_h1,  NVAR)
+      real(rt)           ::  uout( uout_l1:uout_h1, NVAR)
+      real(rt)           :: problo(1),dx(1),time,dt
 
       integer, parameter :: box_size = 2
       integer            :: ii
@@ -103,7 +106,7 @@
       end do
 
       ! Linear interpolation between the point (box_size) and the origin.
-      uout(0,UMX) = 0.2d0 * uout(box_size,UMX)
-      uout(1,UMX) = 0.6d0 * uout(box_size,UMX)
+      uout(0,UMX) = 0.2e0_rt * uout(box_size,UMX)
+      uout(1,UMX) = 0.6e0_rt * uout(box_size,UMX)
 
       end subroutine pm_fix_solution

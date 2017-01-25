@@ -4,14 +4,15 @@ subroutine update_sponge_params(time) bind(C)
   use probdata_module, only: r_old_s
   use bl_error_module, only: bl_error
 
+  use bl_fort_module, only : rt => c_real
   implicit none    
   
-  double precision, intent(in) :: time
+  real(rt)        , intent(in) :: time
 
   logical          :: converged
-  double precision :: r, dr, r_guess, tol = 1.d-6
+  real(rt)         :: r, dr, r_guess, tol = 1.e-6_rt
   integer          :: n, max_iter = 25
-  double precision :: f, dfdr
+  real(rt)         :: f, dfdr
   
   ! Find the analytic solution of the radius of the collapsing
   ! object via Newton-Raphson iteration.
@@ -23,8 +24,8 @@ subroutine update_sponge_params(time) bind(C)
      dr = -f(r_guess,time) / dfdr(r_guess,time)
 
      ! We have lots of sqrt(1 - r/r_0), so r(t) has to be less than r_0.
-     if (r_guess + dr > 6.5d8) then
-        r_guess = 0.5d0*(r_guess + 6.5d8)
+     if (r_guess + dr > 6.5e8_rt) then
+        r_guess = 0.5e0_rt*(r_guess + 6.5e8_rt)
      else
         r_guess = r_guess + dr
      endif
@@ -42,41 +43,43 @@ subroutine update_sponge_params(time) bind(C)
      call bl_error("Newton iterations failed to converge in update_sponge_params.")
   endif
   
-  sponge_lower_radius = r + 2.5d7
-  sponge_upper_radius = r + 5.0d7
-  sponge_timescale    = 1.0d-3
+  sponge_lower_radius = r + 2.5e7_rt
+  sponge_upper_radius = r + 5.0e7_rt
+  sponge_timescale    = 1.0e-3_rt
   
 end subroutine update_sponge_params
 
 
 
 ! The analytic solution from Colgate and White, Eq. 5 (with everything moved
-! onto the LHS).  We use 1.d-20 to prevent against zeros in some places.
+! onto the LHS).  We use 1.e-20_rt to prevent against zeros in some places.
 
 double precision function f(r,t)
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: r, t
+  real(rt)        , intent(in) :: r, t
 
-  f = sqrt(8.d0*3.14159265358979323846d0*6.67428d-8*1.d9/3.d0)*t - &
-      sqrt(1.d0 - r/6.5d8)*sqrt(r/6.5d8) - asin(sqrt(1.0 - r/6.5d8 + 1.d-20))
+  f = sqrt(8.e0_rt*3.14159265358979323846e0_rt*6.67428e-8_rt*1.e9_rt/3.e0_rt)*t - &
+      sqrt(1.e0_rt - r/6.5e8_rt)*sqrt(r/6.5e8_rt) - asin(sqrt(1.0 - r/6.5e8_rt + 1.e-20_rt))
 
 end function f
 
 
 
 ! The derivative (wrt x) of the analytic function f, defined above.
-! We use 1.d-20 to prevent against zeros in some places.
+! We use 1.e-20_rt to prevent against zeros in some places.
 
 double precision function dfdr(r,t)
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: r, t
+  real(rt)        , intent(in) :: r, t
     
-  dfdr = (0.5d0/6.5d8)*(-sqrt(1.d0 - r/6.5d8 + 1.d-20)/sqrt(r/6.5d8) + &
-         sqrt(r/6.5d8)/sqrt(1 - r/6.5d8 + 1.d-20) + &
-         1.d0/(sqrt(r/6.5d8)*sqrt(1.d0 - r/6.5d8 + 1.d-20)))
+  dfdr = (0.5e0_rt/6.5e8_rt)*(-sqrt(1.e0_rt - r/6.5e8_rt + 1.e-20_rt)/sqrt(r/6.5e8_rt) + &
+         sqrt(r/6.5e8_rt)/sqrt(1 - r/6.5e8_rt + 1.e-20_rt) + &
+         1.e0_rt/(sqrt(r/6.5e8_rt)*sqrt(1.e0_rt - r/6.5e8_rt + 1.e-20_rt)))
 
 end function dfdr

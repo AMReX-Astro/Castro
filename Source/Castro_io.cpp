@@ -265,7 +265,7 @@ Castro::restart (Amr&     papa,
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
-	BL_FORT_PROC_CALL(PROBLEM_RESTART,problem_restart)(int_dir_name.dataPtr(), &len);      
+	problem_restart(int_dir_name.dataPtr(), &len);      
 
 	delete [] dir_for_pass;
 
@@ -509,7 +509,7 @@ Castro::checkPoint(const std::string& dir,
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
-	    BL_FORT_PROC_CALL(PROBLEM_CHECKPOINT,problem_checkpoint)(int_dir_name.dataPtr(), &len);      
+	    problem_checkpoint(int_dir_name.dataPtr(), &len);      
 
 	    delete [] dir_for_pass;
 	}
@@ -681,19 +681,19 @@ Castro::writeJobInfo (const std::string& dir)
   const char* githash2 = buildInfoGetGitHash(2);
   const char* githash3 = buildInfoGetGitHash(3);
   if (strlen(githash1) > 0) {
-    jobInfoFile << "Castro       git hash: " << githash1 << "\n";
+    jobInfoFile << "Castro       git describe: " << githash1 << "\n";
   }
   if (strlen(githash2) > 0) {
-    jobInfoFile << "BoxLib       git hash: " << githash2 << "\n";
+    jobInfoFile << "BoxLib       git describe: " << githash2 << "\n";
   }
   if (strlen(githash3) > 0) {	
-    jobInfoFile << "Microphysics git hash: " << githash3 << "\n";
+    jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
   }
 
   const char* buildgithash = buildInfoGetBuildGitHash();
   const char* buildgitname = buildInfoGetBuildGitName();
   if (strlen(buildgithash) > 0){
-    jobInfoFile << buildgitname << " git hash: " << buildgithash << "\n";
+    jobInfoFile << buildgitname << " git describe: " << buildgithash << "\n";
   }
 
   jobInfoFile << "\n\n";

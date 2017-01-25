@@ -3,7 +3,7 @@
 
 #include <RadInterpBndryData.H>
 #include <BC_TYPES.H>
-#include "LHH.H"
+
 
 enum BC_Mode { Homogeneous_BC = 0, Inhomogeneous_BC };
 

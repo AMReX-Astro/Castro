@@ -1,5 +1,6 @@
 module rotation_sources_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -9,7 +10,7 @@ contains
   subroutine ca_rsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,rot,rot_lo,rot_hi, &
                      uold,uold_lo,uold_hi, &
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
-                     dx,dt,time,E_added,mom_added) bind(C, name="ca_rsrc")
+                     dx,dt,time) bind(C, name="ca_rsrc")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
     use prob_params_module, only: center
@@ -20,6 +21,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -30,26 +32,25 @@ contains
     integer         , intent(in   ) :: src_lo(3), src_hi(3)
     integer         , intent(in   ) :: vol_lo(3), vol_hi(3)
 
-    double precision, intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    double precision, intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
-    double precision, intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    double precision, intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    double precision, intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    double precision, intent(in   ) :: dx(3), dt, time
+    real(rt)        , intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt)        , intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
+    real(rt)        , intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
+    real(rt)        , intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)        , intent(in   ) :: dx(3), dt, time
 
     integer          :: i, j ,k
-    double precision :: Sr(3),SrE
-    double precision :: rho, rhoInv
+    real(rt)         :: Sr(3),SrE
+    real(rt)         :: rho, rhoInv
 
-    double precision :: old_rhoeint, new_rhoeint, old_ke, new_ke, old_re
-    double precision :: old_mom(3), loc(3)
-    double precision :: E_added, mom_added(3)
+    real(rt)         :: old_ke, new_ke
+    real(rt)         :: loc(3)
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -63,12 +64,7 @@ contains
              src = ZERO
              snew = uold(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              Sr = rho * rot(i,j,k,:)
 
@@ -118,13 +114,6 @@ contains
 
              snew(UEDEN) = snew(UEDEN) + dt * src(UEDEN)
 
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
-
              ! Add to the outgoing source array.
 
              source(i,j,k,:) = source(i,j,k,:) + src
@@ -149,8 +138,7 @@ contains
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
-                         vol,vol_lo,vol_hi, &
-                         E_added,mom_added) bind(C, name="ca_corrrsrc")
+                         vol,vol_lo,vol_hi) bind(C, name="ca_corrrsrc")
 
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
@@ -172,6 +160,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -191,50 +180,49 @@ contains
 
     ! Old and new time rotational potential
 
-    double precision :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    double precision :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+    real(rt)         :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt)         :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
 
     ! Old and new time rotational acceleration
 
-    double precision :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),3)
-    double precision :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),3)
+    real(rt)         :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),3)
+    real(rt)         :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),3)
 
     ! Old and new time state data
 
-    double precision :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    double precision :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
     ! The source term to send back
 
-    double precision :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
     ! Hydrodynamics fluxes
 
-    double precision :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    double precision :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    double precision :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
 
-    double precision :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    double precision :: dx(3), dt, time
-    double precision :: E_added, mom_added(3)
+    real(rt)         :: dx(3), dt, time
 
     integer          :: i,j,k
-    double precision :: loc(3)
-    double precision :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
-    double precision :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
-    double precision :: rhoo, rhon, rhooinv, rhoninv
+    real(rt)         :: loc(3)
+    real(rt)         :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
+    real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
+    real(rt)         :: rhoo, rhon, rhooinv, rhoninv
 
-    double precision :: old_ke, old_rhoeint, old_re, new_ke, new_rhoeint
-    double precision :: old_mom(3), dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
+    real(rt)         :: old_ke, new_ke
+    real(rt)         :: dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
-    double precision :: src(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    double precision :: snew(NVAR)
+    real(rt)         :: snew(NVAR)
 
-    double precision, pointer :: phi(:,:,:)
+    real(rt)        , pointer :: phi(:,:,:)
 
     ! Rotation source options for how to add the work to (rho E):
     ! rot_source_type =
@@ -328,12 +316,7 @@ contains
              src = ZERO
              snew = unew(i,j,k,:)
 
-             ! **** Start Diagnostics ****
-             old_re = snew(UEDEN)
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             old_rhoeint = snew(UEDEN) - old_ke
-             old_mom = snew(UMX:UMZ)
-             ! ****   End Diagnostics ****
 
              ! Define old source terms
 
@@ -476,13 +459,6 @@ contains
              end if
 
              src(UEDEN) = SrEcorr
-
-             ! **** Start Diagnostics ****
-             new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-             new_rhoeint = snew(UEDEN) - new_ke
-             E_added =  E_added + (snew(UEDEN) - old_re) * vol(i,j,k)
-             mom_added = mom_added + (snew(UMX:UMZ) - old_mom) * vol(i,j,k)
-             ! ****   End Diagnostics ****
 
              ! Add to the outgoing source array.
 

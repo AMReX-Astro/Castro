@@ -11,26 +11,27 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
        allow_negative_energy, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
   integer          :: u_l1,u_l2,u_h1,u_h2,ncomp_u
   integer          :: lo(2), hi(2), domlo(2), domhi(2)
-  double precision :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
-  double precision :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
-  double precision :: dx(2), xlo(2), time, dt
+  real(rt)         :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
+  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
+  real(rt)         :: dx(2), xlo(2), time, dt
   integer          :: bc(2,2,ncomp_u), level, grid_no
 
-  double precision :: e, T
-  double precision :: rhoInv
+  real(rt)         :: e, T
+  real(rt)         :: rhoInv
   integer          :: i,j,npts_1d
-  double precision H,z,xn(1), const
-  double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
+  real(rt)         H,z,xn(1), const
+  real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
   type (eos_t) :: eos_state      
 
   ! first make a 1D initial model for the entire domain
-  npts_1d = (2.d0*center(2)+1.d-8) / dx(2)
+  npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
 
   allocate(pressure(0:npts_1d-1))
   allocate(density (0:npts_1d-1))
@@ -43,7 +44,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   density(0)  = dens_base
 
   ! only initialize the first species
-  xn(1) = 1.d0
+  xn(1) = 1.e0_rt
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
@@ -52,20 +53,20 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   do j=0,npts_1d-1
 
      ! initial guess
-     temp(j) = 1000.d0
+     temp(j) = 1000.e0_rt
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
         density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+             (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
      else
-        z = (dble(j)+0.5d0) * dx(2)
+        z = (dble(j)+0.5e0_rt) * dx(2)
         density(j) = dens_base * exp(-z/H)
      end if
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
+             dx(2) * 0.5e0_rt * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
@@ -82,7 +83,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   ! Compute pressure from the EOS
   do j = lo(2),hi(2)
      do i = lo(1),hi(1)
-        rhoInv = 1.d0/u(i,j,URHO)
+        rhoInv = 1.e0_rt/u(i,j,URHO)
         T = u(i,j,UTEMP)
 
         eos_state%rho = u(i,j,URHO)
@@ -92,7 +93,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
         eos_state%aux(:) = u(i,j,UFX:UFX-1+naux)/u(i,j,URHO)            
 
         ! Protect against negative internal energy
-        if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
+        if (allow_negative_energy .eq. 0 .and. e .le. 0.e0_rt) then
            call eos(eos_input_rt, eos_state)
            p(i,j,1) = eos_state%p
 
@@ -123,26 +124,27 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
   integer          :: u_l1,u_l2,u_h1,u_h2,ncomp_u
   integer          :: lo(2), hi(2), domlo(2), domhi(2)
-  double precision :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
-  double precision :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
-  double precision :: dx(2), xlo(2), time, dt
+  real(rt)         :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
+  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
+  real(rt)         :: dx(2), xlo(2), time, dt
   integer          :: bc(2,2,ncomp_u), level, grid_no
 
-  double precision :: e, T
-  double precision :: rhoInv
+  real(rt)         :: e, T
+  real(rt)         :: rhoInv
   integer          :: i,j,npts_1d
-  double precision H,z,xn(1), const
-  double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
+  real(rt)         H,z,xn(1), const
+  real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
   type (eos_t) :: eos_state      
 
   ! first make a 1D initial model for the entire domain
-  npts_1d = (2.d0*center(2)+1.d-8) / dx(2)
+  npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
 
   allocate(pressure(0:npts_1d-1))
   allocate(density (0:npts_1d-1))
@@ -155,7 +157,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   density(0)  = dens_base
 
   ! only initialize the first species
-  xn(1) = 1.d0
+  xn(1) = 1.e0_rt
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
@@ -164,20 +166,20 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   do j=0,npts_1d-1
 
      ! initial guess
-     temp(j) = 1000.d0
+     temp(j) = 1000.e0_rt
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
         density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+             (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
      else
-        z = (dble(j)+0.5d0) * dx(2)
+        z = (dble(j)+0.5e0_rt) * dx(2)
         density(j) = dens_base * exp(-z/H)
      end if
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
+             dx(2) * 0.5e0_rt * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)
@@ -194,7 +196,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   ! Compute pressure from the EOS
   do j = lo(2),hi(2)
      do i = lo(1),hi(1)
-        rhoInv = 1.d0/u(i,j,URHO)
+        rhoInv = 1.e0_rt/u(i,j,URHO)
         e = u(i,j,UEINT)*rhoInv
         T = u(i,j,UTEMP)
 
@@ -205,7 +207,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
         eos_state%e = e
 
         ! Protect against negative internal energy
-        if (allow_negative_energy .eq. 0 .and. e .le. 0.d0) then
+        if (allow_negative_energy .eq. 0 .and. e .le. 0.e0_rt) then
            call eos(eos_input_rt, eos_state)
            p(i,j,1) = eos_state%p
 
@@ -234,29 +236,30 @@ subroutine ca_derrhopert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module
   use interpolate_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
   integer          :: u_l1,u_l2,u_h1,u_h2,ncomp_u
   integer          :: lo(2), hi(2), domlo(2), domhi(2)
-  double precision :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
-  double precision :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
-  double precision :: dx(2), xlo(2), time, dt
+  real(rt)         :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
+  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
+  real(rt)         :: dx(2), xlo(2), time, dt
   integer          :: bc(2,2,ncomp_u), level, grid_no
 
   ! local
   integer :: i,j
 
-  double precision :: y,dens,H
+  real(rt)         :: y,dens,H
 
   do j=lo(2),hi(2)
 
      if (do_isentropic) then
         y = xlo(2) + dx(2)*float(j-lo(2))
         dens = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*y/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+             (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
      else
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5d0)
+        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
         dens = dens_base * exp(-y/H)
      end if
 
@@ -281,24 +284,25 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
   integer          :: u_l1,u_l2,u_h1,u_h2,ncomp_u
   integer          :: lo(2), hi(2), domlo(2), domhi(2)
-  double precision :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
-  double precision :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
-  double precision :: dx(2), xlo(2), time, dt
+  real(rt)         :: p(p_l1:p_h1,p_l2:p_h2,ncomp_p)
+  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,ncomp_u)
+  real(rt)         :: dx(2), xlo(2), time, dt
   integer          :: bc(2,2,ncomp_u), level, grid_no
 
   integer          :: i,j,npts_1d
-  double precision H,z,xn(1), const
-  double precision, allocatable :: pressure(:), density(:), temp(:), eint(:)
+  real(rt)         H,z,xn(1), const
+  real(rt)        , allocatable :: pressure(:), density(:), temp(:), eint(:)
 
   type (eos_t) :: eos_state      
 
   ! first make a 1D initial model for the entire domain
-  npts_1d = (2.d0*center(2)+1.d-8) / dx(2)
+  npts_1d = (2.e0_rt*center(2)+1.e-8_rt) / dx(2)
 
   allocate(pressure(0:npts_1d-1))
   allocate(density (0:npts_1d-1))
@@ -311,7 +315,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   density(0)  = dens_base
 
   ! only initialize the first species
-  xn(1) = 1.d0
+  xn(1) = 1.e0_rt
 
   ! compute the pressure scale height (for an isothermal, ideal-gas
   ! atmosphere)
@@ -320,20 +324,20 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   do j=0,npts_1d-1
 
      ! initial guess
-     temp(j) = 1000.d0
+     temp(j) = 1000.e0_rt
 
      if (do_isentropic) then
         z = dble(j) * dx(2)
         density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
-             (gamma_const*pres_base) + 1.d0)**(1.d0/(gamma_const - 1.d0))
+             (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
      else
-        z = (dble(j)+0.5d0) * dx(2)
+        z = (dble(j)+0.5e0_rt) * dx(2)
         density(j) = dens_base * exp(-z/H)
      end if
 
      if (j .gt. 0) then
         pressure(j) = pressure(j-1) - &
-             dx(2) * 0.5d0 * (density(j)+density(j-1)) * abs(const_grav)
+             dx(2) * 0.5e0_rt * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
      eos_state%rho = density(j)

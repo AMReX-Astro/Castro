@@ -3,6 +3,7 @@
 
 module trace_ppm_rad_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -11,17 +12,16 @@ module trace_ppm_rad_module
 
 contains
 
-  subroutine trace_ppm_rad(lam, lam_l1, lam_h1, &
-       q,c,cg,gamc,gamcg,flatn,qd_l1,qd_h1, &
-       dloga,dloga_l1,dloga_h1, &
-       srcQ,src_l1,src_h1,&
-       qxm,qxp,qpd_l1,qpd_h1, &
-       ilo,ihi,domlo,domhi,dx,dt)
+  subroutine trace_ppm_rad(q, qaux, flatn, qd_l1, qd_h1, &
+                           dloga, dloga_l1, dloga_h1, &
+                           srcQ, src_l1, src_h1,&
+                           qxm, qxp, qpd_l1, qpd_h1, &
+                           ilo, ihi, domlo, domhi, dx, dt)
 
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
-         QRADVAR, qrad, qradhi, qptot, qreitot, &
-         QGAME, &
+         NQ, NQAUX, qrad, qradhi, qptot, qreitot, &
+         QGAME, QGAMC, QGAMCG, QC, QCG, QLAMS, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_predict_gammae, ppm_reference_eigenvectors, &
@@ -30,34 +30,30 @@ contains
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo,ihi
     integer domlo(1),domhi(1)
-    integer lam_l1, lam_h1
     integer    qd_l1,   qd_h1
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    double precision dx, dt
-    double precision lam(lam_l1:lam_h1, 0:ngroups-1)
-    double precision     q( qd_l1: qd_h1,QRADVAR)
-    double precision  srcQ(src_l1:src_h1,QVAR)
-    double precision flatn(qd_l1:qd_h1)
-    double precision     c(qd_l1:qd_h1)
-    double precision    cg(qd_l1:qd_h1)
-    double precision  gamc(qd_l1:qd_h1)
-    double precision gamcg(qd_l1:qd_h1)
-    double precision dloga(dloga_l1:dloga_h1)
+    real(rt)         dx, dt
+    real(rt)             q( qd_l1: qd_h1, NQ)
+    real(rt)         :: qaux(qd_l1:qd_h1, NQAUX)
+    real(rt)         flatn(qd_l1:qd_h1)
+    real(rt)          srcQ(src_l1:src_h1,QVAR)
+    real(rt)         dloga(dloga_l1:dloga_h1)
 
-    double precision  qxm( qpd_l1: qpd_h1,QRADVAR)
-    double precision  qxp( qpd_l1: qpd_h1,QRADVAR)
+    real(rt)          qxm( qpd_l1: qpd_h1, NQ)
+    real(rt)          qxp( qpd_l1: qpd_h1, NQ)
 
     ! Local variables
     integer :: i, g
     integer :: n, ipassive
 
-    double precision :: hdt,dtdx
+    real(rt)         :: hdt,dtdx
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -77,39 +73,39 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
-    double precision :: rho, u, p, rhoe_g, h_g, tau
-    double precision :: ptot, gam_g, game
+    real(rt)         :: cc, csq, cgassq, Clag
+    real(rt)         :: rho, u, p, rhoe_g, h_g, tau
+    real(rt)         :: ptot, gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: dge, dtau
-    double precision :: dup, dptotp
-    double precision :: dum, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: dge, dtau
+    real(rt)         :: dup, dptotp
+    real(rt)         :: dum, dptotm
 
-    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: ptot_ref
-    double precision :: tau_ref
+    real(rt)         :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: ptot_ref
+    real(rt)         :: tau_ref
 
-    double precision :: gam_g_ref, game_ref, gfactor
+    real(rt)         :: gam_g_ref, game_ref, gfactor
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
-    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: sourcr, sourcp, source, courn, eta, dlogatmp
 
-    double precision :: tau_s
+    real(rt)         :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
+    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision, dimension(0:ngroups-1) :: er_ref
-    double precision :: er_foo
+    real(rt)        , dimension(0:ngroups-1) :: er_ref
+    real(rt)         :: er_foo
 
-    double precision, allocatable :: Ip(:,:,:)
-    double precision, allocatable :: Im(:,:,:)
+    real(rt)        , allocatable :: Ip(:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:)
 
-    double precision, allocatable :: Ip_src(:,:,:)
-    double precision, allocatable :: Im_src(:,:,:)
+    real(rt)        , allocatable :: Ip_src(:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:)
 
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
@@ -133,8 +129,8 @@ contains
     hdt = HALF * dt
     dtdx = dt/dx
 
-    allocate(Ip(ilo-1:ihi+1,3,QRADVAR))
-    allocate(Im(ilo-1:ihi+1,3,QRADVAR))
+    allocate(Ip(ilo-1:ihi+1,3, NQ))
+    allocate(Im(ilo-1:ihi+1,3, NQ))
 
     if (ppm_trace_sources == 1) then
        allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
@@ -171,21 +167,21 @@ contains
     ! Compute Ip and Im -- this does the parabolic reconstruction,
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
-    do n=1,QRADVAR
-       call ppm(q(:,n),qd_l1,qd_h1, &
-                q(:,QU),c, &
+    do n = 1, NQ
+       call ppm(q(:,n), qd_l1, qd_h1, &
+                q(:,QU), qaux(:,QC), &
                 flatn, &
-                Ip(:,:,n),Im(:,:,n), &
-                ilo,ihi,dx,dt)
+                Ip(:,:,n), Im(:,:,n), &
+                ilo, ihi, dx, dt)
     end do
 
     if (ppm_trace_sources == 1) then
-       do n=1,QVAR
-          call ppm(srcQ(:,n),src_l1,src_h1, &
-                   q(:,QU),c, &
+       do n = 1, QVAR
+          call ppm(srcQ(:,n), src_l1, src_h1, &
+                   q(:,QU), qaux(:,QC), &
                    flatn, &
-                   Ip_src(:,:,n),Im_src(:,:,n), &
-                   ilo,ihi,dx,dt)
+                   Ip_src(:,:,n), Im_src(:,:,n), &
+                   ilo, ihi, dx, dt)
        enddo
     endif
 
@@ -197,15 +193,15 @@ contains
     do i = ilo-1, ihi+1
 
        do g=0, ngroups-1
-          lam0(g) = lam(i,g)
-          lamp(g) = lam(i,g)
-          lamm(g) = lam(i,g)
+          lam0(g) = qaux(i,QLAMS+g)
+          lamp(g) = qaux(i,QLAMS+g)
+          lamm(g) = qaux(i,QLAMS+g)
        end do
 
        ! cgassq is the gas soundspeed **2
        ! cc is the total soundspeed **2 (gas + radiation)
-       cgassq = cg(i)**2
-       cc = c(i)
+       cgassq = qaux(i,QCG)**2
+       cc = qaux(i,QC)
        csq = cc**2
 
        rho = q(i,QRHO)
@@ -219,11 +215,11 @@ contains
        ptot = q(i,qptot)
 
        er(:) = q(i,qrad:qradhi)
-       hr(:) = (lam0+1.d0)*er/rho
+       hr(:) = (lam0+1.e0_rt)*er/rho
 
        Clag = rho*cc
 
-       gam_g = gamcg(i)
+       gam_g = qaux(i,QGAMCG)
        game = q(i,QGAME)
 
        !----------------------------------------------------------------------

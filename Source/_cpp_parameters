@@ -191,7 +191,7 @@ do_sponge                    int           0                  y
 sponge_implicit              int           1                  y
 
 # should we time center the sponge?
-time_center_sponge           int           0
+time_center_sponge           int           1
 
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
@@ -424,8 +424,12 @@ spherical_star               int           0
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
-# display breakdown of energy sources
-print_energy_diagnostics     int           (0, 1)
+# display information about updates to the state (how much mass, momentum, energy added)
+print_update_diagnostics     int           (0, 1)
+
+# if we're printing diagnostic information about the updates, should we
+# break down the information into the constitent source terms?
+coalesce_update_diagnostics  int           (0, 1)
 
 # calculate losses of material through physical grid boundaries
 track_grid_losses            int            0                    y

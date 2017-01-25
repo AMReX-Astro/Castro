@@ -9,5 +9,8 @@
   ! filter is used only when rho or time is below.
   filter_rhomax = 1.d-12
   filter_timemax = 4.d0
+
+  model_file = "model.input.87a.23"
+
 /
 

@@ -4,6 +4,7 @@
 
 module prob_params_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   ! boundary condition information
@@ -13,7 +14,7 @@ module prob_params_module
 
   ! geometry information
   integer         , save :: coord_type
-  double precision, save :: center(3), problo(3), probhi(3)
+  real(rt)        , save :: center(3), problo(3), probhi(3)
 
   ! dimension information
   integer         , save :: dim
@@ -25,7 +26,7 @@ module prob_params_module
 
   ! grid information
   integer         , save              :: max_level
-  double precision, save, allocatable :: dx_level(:,:)
+  real(rt)        , save, allocatable :: dx_level(:,:)
   integer         , save, allocatable :: domlo_level(:,:)
   integer         , save, allocatable :: domhi_level(:,:)
   integer         , save, allocatable :: ref_ratio(:,:)

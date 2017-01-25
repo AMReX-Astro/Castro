@@ -1,19 +1,20 @@
 module gravity_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
 
   ! Data for the multipole gravity
 
-  double precision, save :: volumeFactor, parityFactor
-  double precision, save :: edgeTolerance = 1.0d-2
-  double precision, save :: rmax
+  real(rt)        , save :: volumeFactor, parityFactor
+  real(rt)        , save :: edgeTolerance = 1.0e-2_rt
+  real(rt)        , save :: rmax
   logical,          save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
   logical,          save :: doReflectionLo(3), doReflectionHi(3)
   integer,          save :: lnum_max
-  double precision, allocatable, save :: factArray(:,:)
-  double precision, allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
+  real(rt)        , allocatable, save :: factArray(:,:)
+  real(rt)        , allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
 
 contains
   
@@ -27,7 +28,8 @@ contains
 
     use fundamental_constants_module, only: Gconst
 
-    double precision :: Gconst_out
+    use bl_fort_module, only : rt => c_real
+    real(rt)         :: Gconst_out
 
     Gconst_out = Gconst
 
@@ -51,29 +53,30 @@ contains
     use fundamental_constants_module, only : Gconst
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer          :: numpts_1d
-    double precision :: mass(0:numpts_1d-1)
-    double precision ::  den(0:numpts_1d-1)
-    double precision :: grav(0:numpts_1d-1)
-    double precision :: max_radius,dr
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         ::  den(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: max_radius,dr
 
     integer          :: i
-    double precision :: rc,rlo,rhi,halfdr
-    double precision :: mass_encl
-    double precision :: vol_inner_shell, vol_outer_shell
-    double precision :: vol_lower_shell, vol_upper_shell
-    double precision :: vol_total_im1, vol_total_i
+    real(rt)         :: rc,rlo,rhi,halfdr
+    real(rt)         :: mass_encl
+    real(rt)         :: vol_inner_shell, vol_outer_shell
+    real(rt)         :: vol_lower_shell, vol_upper_shell
+    real(rt)         :: vol_total_im1, vol_total_i
 
-    double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
+    real(rt)        , parameter ::  fourthirdspi = 4.e0_rt * M_PI / 3.e0_rt
 
-    halfdr = 0.5d0 * dr
+    halfdr = 0.5e0_rt * dr
 
-    mass_encl = 0.d0
+    mass_encl = 0.e0_rt
     do i = 0,numpts_1d-1
        rlo = (dble(i)      ) * dr
-       rc  = (dble(i)+0.5d0) * dr
-       rhi = (dble(i)+1.0d0) * dr
+       rc  = (dble(i)+0.5e0_rt) * dr
+       rhi = (dble(i)+1.0e0_rt) * dr
 
        if (i.eq.0) then
 
@@ -159,19 +162,20 @@ contains
 
     use fundamental_constants_module, only : Gconst
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer          :: numpts_1d
-    double precision :: mass(0:numpts_1d-1)
-    double precision :: grav(0:numpts_1d-1)
-    double precision :: phi(0:numpts_1d-1)
-    double precision :: dr
-    double precision :: gravBC, phiBC
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: phi(0:numpts_1d-1)
+    real(rt)         :: dr
+    real(rt)         :: gravBC, phiBC
 
     integer          :: i
-    double precision :: mass_encl,rhi
+    real(rt)         :: mass_encl,rhi
 
-    mass_encl = 0.d0
-    grav(0)   = 0.d0
+    mass_encl = 0.e0_rt
+    grav(0)   = 0.e0_rt
     do i = 1,numpts_1d-1
        rhi = dble(i) * dr
        mass_encl = mass_encl + mass(i-1)
@@ -205,32 +209,33 @@ contains
     use fundamental_constants_module, only : Gconst, c_light
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer          :: numpts_1d
-    double precision ::  rho(0:numpts_1d-1)
-    double precision :: mass(0:numpts_1d-1)
-    double precision :: pres(0:numpts_1d-1)
-    double precision :: grav(0:numpts_1d-1)
-    double precision :: dr
+    real(rt)         ::  rho(0:numpts_1d-1)
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         :: pres(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: dr
 
     integer          :: i
-    double precision :: mass_encl,rc,rlo,rhi,halfdr
-    double precision :: ga, gb, gc, P,R
-    double precision :: vol_inner_shell, vol_outer_shell
-    double precision :: vol_lower_shell, vol_upper_shell
-    double precision :: vol_total_im1, vol_total_i
+    real(rt)         :: mass_encl,rc,rlo,rhi,halfdr
+    real(rt)         :: ga, gb, gc, P,R
+    real(rt)         :: vol_inner_shell, vol_outer_shell
+    real(rt)         :: vol_lower_shell, vol_upper_shell
+    real(rt)         :: vol_total_im1, vol_total_i
 
-    double precision, parameter ::  fourpi       = 4.d0 * M_PI
-    double precision, parameter ::  fourthirdspi = 4.d0 * M_PI / 3.d0
-    double precision, parameter ::  sqvc         = c_light**2
+    real(rt)        , parameter ::  fourpi       = 4.e0_rt * M_PI
+    real(rt)        , parameter ::  fourthirdspi = 4.e0_rt * M_PI / 3.e0_rt
+    real(rt)        , parameter ::  sqvc         = c_light**2
 
-    halfdr = 0.5d0 * dr
+    halfdr = 0.5e0_rt * dr
 
-    mass_encl = 0.d0
+    mass_encl = 0.e0_rt
     do i = 0,numpts_1d-1
        rlo = (dble(i)      ) * dr
-       rc  = (dble(i)+0.5d0) * dr
-       rhi = (dble(i)+1.0d0) * dr
+       rc  = (dble(i)+0.5e0_rt) * dr
+       rhi = (dble(i)+1.0e0_rt) * dr
 
        if (i.eq.0) then
 
@@ -265,12 +270,12 @@ contains
 
        !!       Tolman-Oppenheimer-Volkoff(TOV) case
 
-       if (rho(i) .gt. 0.d0) then
+       if (rho(i) .gt. 0.e0_rt) then
           P =  pres(i)
           R =  rho(i)
-          ga = (1.d0 + P/(R*sqvc))
-          gb = (1.d0 + fourpi * rc**3 * P / (mass_encl*sqvc))
-          gc = 1.d0 / (1.d0 - 2.d0 * Gconst * mass_encl / (rc*sqvc))
+          ga = (1.e0_rt + P/(R*sqvc))
+          gb = (1.e0_rt + fourpi * rc**3 * P / (mass_encl*sqvc))
+          gc = 1.e0_rt / (1.e0_rt - 2.e0_rt * Gconst * mass_encl / (rc*sqvc))
 
           print *, i, grav(i), ga, gb, gc
 
@@ -294,6 +299,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: lnum, lo_bc(3), hi_bc(3)
@@ -400,12 +406,12 @@ contains
     enddo
 
     ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l,
-    ! which can overflow the double precision exponent limit if lnum is very large. Therefore,
+    ! which can overflow the real(rt)         exponent limit if lnum is very large. Therefore,
     ! we will normalize all distances to the maximum possible physical distance from the center,
     ! which is the diagonal from the center to the edge of the box. Then r^l will always be
     ! less than or equal to one. For large enough lnum, this may still result in roundoff
     ! errors that don't make your answer any more precise, but at least it avoids
-    ! possible NaN issues from having numbers that are too large for double precision.
+    ! possible NaN issues from having numbers that are too large for real(rt)        .
     ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
 
     rmax = HALF * maxval(probhi(1:dim) - problo(1:dim)) * sqrt(dble(dim))
@@ -424,24 +430,25 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: domlo(3), domhi(3)
-    double precision :: dx(3)
+    real(rt)         :: dx(3)
 
     integer          :: lnum, npts, boundary_only
-    double precision :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    double precision :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     integer          :: p_lo(3), p_hi(3)
-    double precision :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
     integer          :: i, j, k
     integer          :: l, m, n, nlo
-    double precision :: x, y, z, r, cosTheta, phiAngle
-    double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
-    double precision :: r_L, r_U
+    real(rt)         :: x, y, z, r, cosTheta, phiAngle
+    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt)         :: r_L, r_U
 
     ! If we're using this to construct boundary values, then only use
     ! the outermost bin.
@@ -502,7 +509,7 @@ contains
 
                 r = sqrt( x**2 + y**2 + z**2 )
 
-                if ( r < 1.0d-12 ) then
+                if ( r < 1.0e-12_rt ) then
                    phi(i,j,k) = ZERO
                    cycle
                 endif
@@ -573,25 +580,26 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3),hi(3)
     integer          :: domlo(3),domhi(3)
-    double precision :: dx(3)
+    real(rt)         :: dx(3)
     integer          :: boundary_only, npts, lnum
 
-    double precision :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    double precision :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)
-    double precision :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
     integer          :: nlo, index
 
-    double precision :: x, y, z, r, drInv, cosTheta, phiAngle
+    real(rt)         :: x, y, z, r, drInv, cosTheta, phiAngle
 
     ! If we're using this to construct boundary values, then only fill
     ! the outermost bin.
@@ -663,10 +671,11 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: n, i
-    double precision :: factorial
+    real(rt)         :: factorial
 
     factorial = ONE
 
@@ -682,12 +691,13 @@ contains
 
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer :: lnum
     integer :: l, m, n
-    double precision :: x
-    double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt)         :: x
+    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
     legPolyArr(:)        = ZERO
     assocLegPolyArr(:,:) = ZERO
@@ -771,23 +781,24 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer,          intent(in) :: lnum, npts, nlo, index
-    double precision, intent(in) :: x, y, z
-    double precision, intent(in) :: problo(3), probhi(3)
-    double precision, intent(in) :: rho, vol
+    real(rt)        , intent(in) :: x, y, z
+    real(rt)        , intent(in) :: problo(3), probhi(3)
+    real(rt)        , intent(in) :: rho, vol
 
     logical,          intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
 
-    double precision, intent(inout) :: qL0(0:lnum,0:npts-1)
-    double precision, intent(inout) :: qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qL0(0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
 
-    double precision, intent(inout) :: qU0(0:lnum,0:npts-1)
-    double precision, intent(inout) :: qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qU0(0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
-    double precision :: cosTheta, phiAngle, r
-    double precision :: xLo, yLo, zLo, xHi, yHi, zHi
+    real(rt)         :: cosTheta, phiAngle, r
+    real(rt)         :: xLo, yLo, zLo, xHi, yHi, zHi
 
     xLo = ( TWO * (problo(1) - center(1)) ) / rmax - x
     xHi = ( TWO * (probhi(1) - center(1)) ) / rmax - x
@@ -878,23 +889,24 @@ contains
 
     use bl_constants_module, only: ONE
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer,          intent(in)    :: lnum, npts, nlo, index
-    double precision, intent(in)    :: cosTheta, phiAngle, r, rho, vol
+    real(rt)        , intent(in)    :: cosTheta, phiAngle, r, rho, vol
 
-    double precision, intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    double precision, intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)        , intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     logical, optional, intent(in)   :: do_parity
 
     integer :: l, m, n
 
-    double precision :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
-    double precision :: rho_r_L, rho_r_U
+    real(rt)         :: rho_r_L, rho_r_U
 
-    double precision :: p0(0:lnum), pCS(0:lnum,0:lnum)
+    real(rt)         :: p0(0:lnum), pCS(0:lnum,0:lnum)
 
     call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 

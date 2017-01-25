@@ -10,16 +10,17 @@
        use prob_params_module          , only : center
        use bl_constants_module
 
+       use bl_fort_module, only : rt => c_real
        implicit none
 
        integer         , intent(in   ) :: lo(2), hi(2)
        integer         , intent(in   ) :: grav_l1,grav_l2,grav_h1,grav_h2
-       double precision, intent(in   ) :: point_mass
-       double precision, intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,2)
-       double precision, intent(in   ) :: problo(2),dx(2)
+       real(rt)        , intent(in   ) :: point_mass
+       real(rt)        , intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,2)
+       real(rt)        , intent(in   ) :: problo(2),dx(2)
 
        integer          :: i,j
-       double precision :: x,y,r,rsq,radial_force
+       real(rt)         :: x,y,r,rsq,radial_force
 
        ! We must be in r-z coordinates with problo(1) = 0. and center(1) = 0.
        !    or this doesn't make sense
@@ -57,6 +58,7 @@
       use prob_params_module, only : center
       use bl_constants_module
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(2),hi(2)
@@ -64,13 +66,13 @@
       integer :: uout_l1,uout_l2,uout_h1,uout_h2
       integer ::   vol_l1,  vol_l2,  vol_h1,  vol_h2
 
-      double precision   ::   delta_mass
-      double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  NVAR)
-      double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, NVAR)
-      double precision   ::   vol(  vol_l1:  vol_h1,  vol_l2:  vol_h2)
-      double precision   :: problo(2),dx(2),time,dt
+      real(rt)           ::   delta_mass
+      real(rt)           ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  NVAR)
+      real(rt)           ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, NVAR)
+      real(rt)           ::   vol(  vol_l1:  vol_h1,  vol_l2:  vol_h2)
+      real(rt)           :: problo(2),dx(2),time,dt
 
-      double precision   :: eps
+      real(rt)           :: eps
       integer            :: icen,istart,iend
       integer            :: jcen,jstart,jend
       integer            :: ii,jj,n
@@ -81,7 +83,7 @@
 
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
-      eps = 1.d-8
+      eps = 1.e-8_rt
  
       ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)
@@ -115,24 +117,25 @@
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
 
+      use bl_fort_module, only : rt => c_real
       implicit none
 
       integer :: lo(2),hi(2)
       integer :: uin_l1,uin_l2,uin_h1,uin_h2
       integer :: uout_l1,uout_l2,uout_h1,uout_h2
 
-      double precision   ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  NVAR)
-      double precision   ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, NVAR)
-      double precision   :: problo(2),dx(2),time,dt
+      real(rt)           ::   uin(  uin_l1:uin_h1,    uin_l2:uin_h2,  NVAR)
+      real(rt)           ::  uout( uout_l1:uout_h1,  uout_l2:uout_h2, NVAR)
+      real(rt)           :: problo(2),dx(2),time,dt
 
-      double precision   :: eps
+      real(rt)           :: eps
       integer            :: ii,icen,istart,iend
       integer            :: jj,jcen,jstart,jend
       integer, parameter :: box_size = 2
 
       ! This is just a small number to keep precision issues from making
       !   icen,jcen,kcen one cell too low.
-      eps = 1.d-8
+      eps = 1.e-8_rt
  
       ! This should be the cell whose lower left corner is at "center"
       icen = floor( (center(1)-problo(1))/dx(1) + eps)

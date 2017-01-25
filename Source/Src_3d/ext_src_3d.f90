@@ -28,6 +28,7 @@
     use bl_constants_module, only: ZERO
     use meth_params_module, only : NVAR
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         ,intent(in   ) :: lo(3),hi(3)
@@ -36,16 +37,16 @@
     integer         ,intent(in   ) :: new_state_l1,new_state_l2,new_state_l3, &
          new_state_h1,new_state_h2,new_state_h3
     integer         ,intent(in   ) :: src_l1,src_l2,src_l3,src_h1,src_h2,src_h3
-    double precision,intent(in   ) :: old_state(old_state_l1:old_state_h1, &
+    real(rt)        ,intent(in   ) :: old_state(old_state_l1:old_state_h1, &
          old_state_l2:old_state_h2, &
          old_state_l3:old_state_h3,NVAR)
-    double precision,intent(in   ) :: new_state(new_state_l1:new_state_h1, &
+    real(rt)        ,intent(in   ) :: new_state(new_state_l1:new_state_h1, &
          new_state_l2:new_state_h2, &
          new_state_l3:new_state_h3,NVAR)
-    double precision,intent(  out) :: src(src_l1:src_h1, &
+    real(rt)        ,intent(  out) :: src(src_l1:src_h1, &
          src_l2:src_h2, &
          src_l3:src_h3,NVAR)
-    double precision,intent(in   ) :: problo(3),dx(3),time,dt
+    real(rt)        ,intent(in   ) :: problo(3),dx(3),time,dt
 
     ! lo and hi specify work region
     src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO ! Fill work region only
