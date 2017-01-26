@@ -104,6 +104,18 @@ Castro::ParticleCheckPoint(const std::string& dir)
 }
 
 void
+Castro::ParticlePlotFile(const std::string& dir)
+{
+    if (level == 0)
+    {
+      //  We call TracerPC->Checkpoint instead of TracerPC->WritePlotFile
+      //  so that the particle ids also get written out.
+        if (TracerPC)
+            TracerPC->Checkpoint(dir, chk_tracer_particle_file);
+    }
+}
+
+void
 Castro::ParticlePostRestart (const std::string& restart_file)
 {
     if (level == 0)
