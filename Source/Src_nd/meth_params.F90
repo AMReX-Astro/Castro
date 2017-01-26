@@ -206,11 +206,11 @@ contains
 
   subroutine set_castro_method_params() bind(C,name="set_castro_method_params")
 
-    use parmparse_module, only: parmparse_build, parmparse_destroy, ParmParse
+    use amrex_parmparse_module, only: parmparse_build, parmparse_destroy, amrex_parmparse
 
     implicit none
 
-    type (ParmParse) :: pp
+    type (amrex_parmparse) :: pp
 
     call parmparse_build(pp, "castro")
 
