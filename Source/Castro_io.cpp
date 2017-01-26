@@ -809,7 +809,7 @@ Castro::writePlotFile (const std::string& dir,
 {
 
 #ifdef PARTICLES
-  ParticleCheckPoint(dir);
+  ParticlePlotFile(dir);
 #endif
 
     int i, n;

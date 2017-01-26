@@ -160,6 +160,10 @@ public:
     //
     void ParticleCheckPoint (const std::string& dir);
     //
+    // Write particles in plotfile directories
+    //
+    void ParticlePlotFile (const std::string& dir);
+    //
     // How to initialize at restart
     //
     void ParticlePostRestart (const std::string& restart_file);
