@@ -1124,7 +1124,7 @@ contains
              gamco = gamcl(i,j)
 
 #ifdef RADIATION
-             reo_r(:) = erl(:)
+             reo_r(0:ngroups-1) = erl(0:ngroups-1)
              reo_g = rel_g
              gamco_g = gamcgl(i,j)
 #endif
