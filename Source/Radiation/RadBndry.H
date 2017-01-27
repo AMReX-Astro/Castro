@@ -9,7 +9,7 @@ public:
   RadBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
 	   const amrex::Geometry& _geom);
   RadBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
-	   const amrex::Geometry& _geom, Real bv);
+	   const amrex::Geometry& _geom, amrex::Real bv);
 
   ~RadBndry();
 
@@ -25,7 +25,7 @@ public:
 
   void setHomogValues(const amrex::BCRec& bc, amrex::IntVect& ratio);
 
-  static void setTime(Real Time) {
+  static void setTime(amrex::Real Time) {
     time = Time;
   }
   // Warning: hidden state change, use carefully!
@@ -38,12 +38,12 @@ public:
 
 protected:
   static void init();
-  static void init(Real bv);
+  static void init(amrex::Real bv);
 
   static int first;            // only set up bcval once
   static amrex::Array<int> bcflag;    // 0 = use constant bcval; 1 = use function
-  static amrex::Array<Real> bcval;    // constant bcval across each face
-  static Real time;            // time value passed to bc function
+  static amrex::Array<amrex::Real> bcval;    // constant bcval across each face
+  static amrex::Real time;            // time value passed to bc function
   static int correction;       // ignore bcval when this is set
 };
 

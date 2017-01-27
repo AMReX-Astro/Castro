@@ -206,13 +206,13 @@ contains
 
   subroutine set_castro_method_params() bind(C,name="set_castro_method_params")
 
-    use amrex_parmparse_module, only: parmparse_build, parmparse_destroy, amrex_parmparse
+    use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
     implicit none
 
     type (amrex_parmparse) :: pp
 
-    call parmparse_build(pp, "castro")
+    call amrex_parmparse_build(pp, "castro")
 
     difmag = 0.1d0;
     small_dens = -1.d200;
@@ -467,7 +467,7 @@ contains
 
     !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    call parmparse_destroy(pp)
+    call amrex_parmparse_destroy(pp)
 
   end subroutine set_castro_method_params
 

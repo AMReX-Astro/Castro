@@ -20,16 +20,16 @@ class HypreExtMultiABec : public HypreMultiABec {
 
   ~HypreExtMultiABec();
 
-  Real& a2Multiplier() {
+  amrex::Real& a2Multiplier() {
     return alpha2;
   }
-  Real& cMultiplier() {
+  amrex::Real& cMultiplier() {
     return gamma;
   }
-  Real& d1Multiplier() {
+  amrex::Real& d1Multiplier() {
     return delta1;
   }
-  Real& d2Multiplier() {
+  amrex::Real& d2Multiplier() {
     return delta2;
   }
 
@@ -73,7 +73,7 @@ class HypreExtMultiABec : public HypreMultiABec {
   amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > ccoefs;  // face-based, 2 component
   amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > d1coefs; // cell-based but directional
   amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > d2coefs; // face-based
-  Real alpha2, gamma, delta1, delta2; // multipliers for the above
+  amrex::Real alpha2, gamma, delta1, delta2; // multipliers for the above
 };
 
 #endif

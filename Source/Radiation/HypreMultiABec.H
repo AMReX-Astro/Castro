@@ -19,11 +19,11 @@ class AuxVar {
     Connex() {
       other = NULL;
     }
-    Connex(AuxVar* p, Real r) {
+    Connex(AuxVar* p, amrex::Real r) {
       val   = r;
       other = p;
     }
-    Connex(int lev, const amrex::IntVect& iv, Real r) {
+    Connex(int lev, const amrex::IntVect& iv, amrex::Real r) {
       val   = r;
       index = iv;
       level = lev;
@@ -35,7 +35,7 @@ class AuxVar {
               : (c.other == NULL && level == c.level && index == c.index));
     }
 
-    Real val;
+    amrex::Real val;
     amrex::IntVect index;
     int level; //, grid; // may not need grid
     AuxVar *other;
@@ -46,11 +46,11 @@ class AuxVar {
   AuxVar() : slave_flag(0) {
   }
 
-  void push(AuxVar* p, Real r) {
+  void push(AuxVar* p, amrex::Real r) {
     a.push_back(Connex(p,r));
   }
 
-  void push(int lev, const amrex::IntVect& iv, Real r) {
+  void push(int lev, const amrex::IntVect& iv, amrex::Real r) {
     a.push_back(Connex(lev,iv,r));
   }
 
@@ -73,7 +73,7 @@ class AuxVar {
 
   int get_locations(amrex::Array<int>& levels, amrex::Array<amrex::IntVect>& cells);
 
-  int get_coeffs(amrex::Array<Real>& values);
+  int get_coeffs(amrex::Array<amrex::Real>& values);
 
   void clear();
 
@@ -271,11 +271,11 @@ class HypreMultiABec {
   NGBndry& bndryData(int level) {
     return *bd[level];
   }
-  static Real& fluxFactor() {
+  static amrex::Real& fluxFactor() {
     return flux_factor;
   }
 
-  static void getFaceMetric(amrex::Array<Real>& r,
+  static void getFaceMetric(amrex::Array<amrex::Real>& r,
                             const amrex::Box& reg,
                             const amrex::Orientation& ori,
                             const amrex::Geometry& geom) {
@@ -300,12 +300,12 @@ class HypreMultiABec {
 
   void buildMatrixStructure();
 
-  void setScalars(Real alpha, Real beta);
+  void setScalars(amrex::Real alpha, amrex::Real beta);
 
-  Real getAlpha() const {
+  amrex::Real getAlpha() const {
     return alpha;
   }
-  Real getBeta() const {
+  amrex::Real getBeta() const {
     return beta;
   }
 
@@ -363,12 +363,12 @@ class HypreMultiABec {
   // once and then call solve multiple times with different
   // right hand sides.
 
-  void setupSolver(Real _reltol, Real _abstol, int maxiter);
+  void setupSolver(amrex::Real _reltol, amrex::Real _abstol, int maxiter);
   void solve();
   void getSolution(int level, amrex::MultiFab& dest, int icomp);
 
   // This is the 2-norm of the complete rhs, including b.c. contributions
-  Real getAbsoluteResidual();
+  amrex::Real getAbsoluteResidual();
 
   void clearSolver();
 
@@ -403,8 +403,8 @@ class HypreMultiABec {
 
   amrex::Array<std::unique_ptr<amrex::MultiFab> > acoefs;
   amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
-  Real alpha, beta;
-  Real reltol, abstol;
+  amrex::Real alpha, beta;
+  amrex::Real reltol, abstol;
 
   amrex::Array<std::unique_ptr<amrex::MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
 
@@ -425,7 +425,7 @@ class HypreMultiABec {
   HYPRE_Solver          precond;
   int                   ObjectType;
 
-  static Real flux_factor;
+  static amrex::Real flux_factor;
 
   // static utility functions follow:
 
@@ -433,7 +433,7 @@ class HypreMultiABec {
                                  int part,
                                  const amrex::Box& reg,
                                  const amrex::BoxArray& sgr,
-                                 Real *vec);
+                                 amrex::Real *vec);
 
   static void vectorGetBoxValues(HYPRE_SStructVector x,
                                  int part,

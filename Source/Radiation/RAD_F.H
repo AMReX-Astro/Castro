@@ -25,12 +25,12 @@ extern "C"
 {
 void ca_init_radhydro_pars
     (const int & fspace_advection_type, const int & do_inelastic_scattering,
-     const int & comoving, const Real & flatten_pp_threshold);
+     const int & comoving, const amrex::Real & flatten_pp_threshold);
 
 void ca_initradconstants
-  (const Real& pi, Real& clight, Real& hplanck,
-   Real& kboltz, Real& stefbol, Real& avogadro,
-   Real& mev2erg, int& J_is_used);
+  (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
+   amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
+   amrex::Real& mev2erg, int& J_is_used);
 
 void ca_initsinglegroup
   (const int& ngroups);
@@ -40,16 +40,16 @@ void ca_initsinglegroup
 
 
 BL_FORT_PROC_DECL(CA_INITGROUPS,ca_initgroups)
-  (const Real* nugroup, const Real* dnugroup,
+  (const amrex::Real* nugroup, const amrex::Real* dnugroup,
    const int& ngroups, const int& ng0, const int& ng1);
 
 BL_FORT_PROC_DECL(CA_INITGROUPS2,ca_initgroups2)
-  (const Real* nugroup, const Real* dnugroup,
-   const Real* xnu, const int& ngroups);
+  (const amrex::Real* nugroup, const amrex::Real* dnugroup,
+   const amrex::Real* xnu, const int& ngroups);
 
 BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
-  (const Real* nugroup, const Real* dnugroup, const Real* dlognugroup,
-   const Real* xnu, const int& ngroups, const int& ng0, const int& ng1);
+  (const amrex::Real* nugroup, const amrex::Real* dnugroup, const amrex::Real* dlognugroup,
+   const amrex::Real* xnu, const int& ngroups, const int& ng0, const int& ng1);
 
 #ifdef NEUTRINO
 extern "C"
@@ -59,8 +59,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
   void ca_derrhoyl
@@ -68,8 +68,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
   void ca_deryl
@@ -77,8 +77,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
   void ca_derynue
@@ -86,8 +86,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 
   void ca_derynuae
@@ -95,8 +95,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec,
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
 }
 #endif
@@ -105,15 +105,15 @@ extern "C" {
   void ca_compute_powerlaw_kappa
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
-      const Real* kappa0, const Real* m, const Real* n,  const Real* p, 
-      const Real* Tfloor, const Real* kfloor);
+      const amrex::Real* kappa0, const amrex::Real* m, const amrex::Real* n,  const amrex::Real* p, 
+      const amrex::Real* Tfloor, const amrex::Real* kfloor);
 
   void ca_compute_powerlaw_kappa_s
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
-      const Real* kappa0, const Real* m, const Real* n, const Real* p, 
-      const Real* s0, const Real* sm, const Real* sn, const Real* sp, 
-      const Real* Tfloor, const Real* kfloor);
+      const amrex::Real* kappa0, const amrex::Real* m, const amrex::Real* n, const amrex::Real* p, 
+      const amrex::Real* s0, const amrex::Real* sm, const amrex::Real* sn, const amrex::Real* sp, 
+      const amrex::Real* Tfloor, const amrex::Real* kfloor);
 }
 
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
@@ -121,7 +121,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
 
 BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
    (const BL_FORT_FAB_ARG(Er), const BL_FORT_FAB_ARG(kap), 
-    BL_FORT_FAB_ARG(lam),  const Real* dx, const int* ngrow, const int* limiter,
+    BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
 
 extern "C" {
@@ -134,7 +134,7 @@ extern "C" {
     const BL_FORT_FAB_ARG(kr),
     const BL_FORT_FAB_ARG(kp),
     const BL_FORT_FAB_ARG(kp2),
-    const Real* dtemp, const Real* dtime, const Real* sigma, const Real* c,
+    const amrex::Real* dtemp, const amrex::Real* dtime, const amrex::Real* sigma, const amrex::Real* c,
     BL_FORT_FAB_ARG(v),
     BL_FORT_FAB_ARG(dcf));
 
@@ -152,7 +152,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
     BL_FORT_FAB_ARG(d), 
     const BL_FORT_FAB_ARG(lam), 
     const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
-    const Real* r, const int* idir);
+    const amrex::Real* r, const int* idir);
  
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
@@ -163,14 +163,14 @@ BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
     const BL_FORT_FAB_ARG(Er),
     BL_FORT_FAB_ARG(gPr), 
     const int lo[], const int hi[],
-    const Real* dx, const int* limiter, const int* comoving); 
+    const amrex::Real* dx, const int* limiter, const int* comoving); 
 
 BL_FORT_PROC_DECL(CA_SET_DTERM_FACE, ca_set_dterm_face)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Er),
     const BL_FORT_FAB_ARG(dcoef), 
     BL_FORT_FAB_ARG(dterm_face), 
-    const Real* dx, const int* idir);
+    const amrex::Real* dx, const int* idir);
 
 BL_FORT_PROC_DECL(CA_FACE2CENTER, ca_face2center)
     (const int lo[], const int hi[], 
@@ -184,7 +184,7 @@ BL_FORT_PROC_DECL(CA_CORRECT_DTERM, ca_correct_dterm)
     (D_DECL(BL_FORT_FAB_ARG(dfx),
 	    BL_FORT_FAB_ARG(dfy),
 	    BL_FORT_FAB_ARG(dfz)),
-     const Real* re, const Real* rc);
+     const amrex::Real* re, const amrex::Real* rc);
 
 // <MGFLD>
 extern "C" {
@@ -201,7 +201,7 @@ BL_FORT_PROC_DECL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
     const BL_FORT_FAB_ARG(spc),
     const BL_FORT_FAB_ARG(kap),
     BL_FORT_FAB_ARG(aco),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_ACCEL_RHS_NEUT, ca_accel_rhs_neut)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Ern),
@@ -212,7 +212,7 @@ BL_FORT_PROC_DECL(CA_ACCEL_RHS_NEUT, ca_accel_rhs_neut)
     const BL_FORT_FAB_ARG(thetaT),
     const BL_FORT_FAB_ARG(thetaY),
     BL_FORT_FAB_ARG(rhs),
-    const Real* dt);
+    const amrex::Real* dt);
 BL_FORT_PROC_DECL(CA_ACCEL_SPEC_NEUT, ca_accel_spec_neut)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Er_new),
@@ -225,7 +225,7 @@ BL_FORT_PROC_DECL(CA_ACCEL_SPEC_NEUT, ca_accel_spec_neut)
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(mugY),
     BL_FORT_FAB_ARG(spec), 
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_CHECK_CONV_ER_NEUT, ca_check_conv_er_neut)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Ern),
@@ -237,7 +237,7 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV_ER_NEUT, ca_check_conv_er_neut)
     const BL_FORT_FAB_ARG(thYz),
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(Ye),
-    Real* rel, Real* abs, Real *errr, const Real* dt);
+    amrex::Real* rel, amrex::Real* abs, amrex::Real *errr, const amrex::Real* dt);
 BL_FORT_PROC_DECL(CA_CHECK_CONV_NEUT, ca_check_conv_neut)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(rhoe_new),
@@ -254,12 +254,12 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV_NEUT, ca_check_conv_neut)
     const BL_FORT_FAB_ARG(jg),
     const BL_FORT_FAB_ARG(dedT),
     const BL_FORT_FAB_ARG(dedY),
-    Real* rel_rhoe, Real* abs_rhoe, 
-    Real* rel_FT  , Real* abs_FT, 
-    Real* rel_T   , Real* abs_T, 
-    Real* rel_FY  , Real* abs_FY, 
-    Real* rel_Ye  , Real* abs_Ye,
-    const Real* delta_t);
+    amrex::Real* rel_rhoe, amrex::Real* abs_rhoe, 
+    amrex::Real* rel_FT  , amrex::Real* abs_FT, 
+    amrex::Real* rel_T   , amrex::Real* abs_T, 
+    amrex::Real* rel_FY  , amrex::Real* abs_FY, 
+    amrex::Real* rel_Ye  , amrex::Real* abs_Ye,
+    const amrex::Real* delta_t);
 BL_FORT_PROC_DECL(CA_COMPUTE_COUPTY, ca_compute_coupty)
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(coupt), 
@@ -297,7 +297,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
      const BL_FORT_FAB_ARG(dedY),
      const BL_FORT_FAB_ARG(Er_star),
      const BL_FORT_FAB_ARG(rho),
-     const Real* delta_t, const Real* tau);
+     const amrex::Real* delta_t, const amrex::Real* tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
@@ -316,8 +316,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
     const BL_FORT_FAB_ARG(Er_star),
     const BL_FORT_FAB_ARG(rhoe_star),    
     const BL_FORT_FAB_ARG(rhoYe_star),    
-    const Real* r,
-    const Real* dt, const int* igroup, const Real* ptc_tau);
+    const amrex::Real* r,
+    const amrex::Real* dt, const int* igroup, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
@@ -337,7 +337,7 @@ BL_FORT_PROC_DECL(CA_LOCAL_ACCEL_NEUT, ca_local_accel_neut)
     const BL_FORT_FAB_ARG(theY),
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(mugY),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_OPAC_EMIS_NEUT, ca_opac_emis_neut)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Snew),
@@ -360,7 +360,7 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE_NEUT, ca_state_update_neut)
     const BL_FORT_FAB_ARG(Ye),
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(msk),
-    Real* derat, Real* dTrat, Real* dye);
+    amrex::Real* derat, amrex::Real* dTrat, amrex::Real* dye);
 BL_FORT_PROC_DECL(CA_UPDATE_MATTER_NEUT, ca_update_matter_neut)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(rhoe_new),
@@ -384,7 +384,7 @@ BL_FORT_PROC_DECL(CA_UPDATE_MATTER_NEUT, ca_update_matter_neut)
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(mugY),
     const BL_FORT_FAB_ARG(Snew),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER_NEUT, ca_ncupdate_matter_neut)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(temp_new),
@@ -400,7 +400,7 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER_NEUT, ca_ncupdate_matter_neut)
     const BL_FORT_FAB_ARG(thetaYz),
     const BL_FORT_FAB_ARG(kappa_p),
     const BL_FORT_FAB_ARG(jg),
-    const Real* dt);
+    const amrex::Real* dt);
 
 #else   // photons
 
@@ -410,7 +410,7 @@ BL_FORT_PROC_DECL(CA_ACCEL_ACOE, ca_accel_acoe)
     const BL_FORT_FAB_ARG(spc),
     const BL_FORT_FAB_ARG(kap),
     BL_FORT_FAB_ARG(aco),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_ACCEL_RHS, ca_accel_rhs)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Ern),
@@ -418,13 +418,13 @@ BL_FORT_PROC_DECL(CA_ACCEL_RHS, ca_accel_rhs)
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(etaT),
     BL_FORT_FAB_ARG(rhs),
-    const Real* dt);
+    const amrex::Real* dt);
 BL_FORT_PROC_DECL(CA_ACCEL_SPEC, ca_accel_spec)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(mugT),
     BL_FORT_FAB_ARG(spec), 
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_CHECK_CONV, ca_check_conv)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(rhoe_new),
@@ -437,10 +437,10 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV, ca_check_conv)
     const BL_FORT_FAB_ARG(kappa_p),
     const BL_FORT_FAB_ARG(jg),
     const BL_FORT_FAB_ARG(dedT),
-    Real* rel_rhoe, Real* abs_rhoe, 
-    Real* rel_FT  , Real* abs_FT, 
-    Real* rel_T   , Real* abs_T, 
-    const Real* delta_t);
+    amrex::Real* rel_rhoe, amrex::Real* abs_rhoe, 
+    amrex::Real* rel_FT  , amrex::Real* abs_FT, 
+    amrex::Real* rel_T   , amrex::Real* abs_T, 
+    const amrex::Real* delta_t);
 BL_FORT_PROC_DECL(CA_CHECK_CONV_ER, ca_check_conv_er)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Ern),
@@ -448,7 +448,7 @@ BL_FORT_PROC_DECL(CA_CHECK_CONV_ER, ca_check_conv_er)
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(etTz),
     const BL_FORT_FAB_ARG(temp),
-    Real* rel, Real* abs, Real *errr, const Real* dt);
+    amrex::Real* rel, amrex::Real* abs, amrex::Real *errr, const amrex::Real* dt);
 BL_FORT_PROC_DECL(CA_COMPUTE_COUPT, ca_compute_coupt)
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(coupt), 
@@ -465,7 +465,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETAT, ca_compute_etat)
      const BL_FORT_FAB_ARG(dedT),
      const BL_FORT_FAB_ARG(Er_star),
      const BL_FORT_FAB_ARG(rho),
-     const Real* delta_t, const Real* tau);
+     const amrex::Real* delta_t, const amrex::Real* tau);
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS, ca_compute_rhs)
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
@@ -477,8 +477,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS, ca_compute_rhs)
     const BL_FORT_FAB_ARG(rhoe_step),
     const BL_FORT_FAB_ARG(Er_star),
     const BL_FORT_FAB_ARG(rhoe_star),    
-    const Real* r,
-    const Real* dt, const int* igroup, const Real* ptc_tau);
+    const amrex::Real* r,
+    const amrex::Real* dt, const int* igroup, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_LOCAL_ACCEL, ca_local_accel)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(Ern),
@@ -486,14 +486,14 @@ BL_FORT_PROC_DECL(CA_LOCAL_ACCEL, ca_local_accel)
     const BL_FORT_FAB_ARG(kap),
     const BL_FORT_FAB_ARG(etaT),
     const BL_FORT_FAB_ARG(mugT),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(state),
     const BL_FORT_FAB_ARG(rhoe),
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(msk),
-    Real* derat, Real* dTrat);
+    amrex::Real* derat, amrex::Real* dTrat);
 BL_FORT_PROC_DECL(CA_UPDATE_MATTER, ca_update_matter)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(rhoe_new),
@@ -506,7 +506,7 @@ BL_FORT_PROC_DECL(CA_UPDATE_MATTER, ca_update_matter)
     const BL_FORT_FAB_ARG(kappa_p),
     const BL_FORT_FAB_ARG(mugT),
     const BL_FORT_FAB_ARG(Snew),
-    const Real* dt, const Real* ptc_tau);
+    const amrex::Real* dt, const amrex::Real* ptc_tau);
 BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(temp_new),
@@ -516,7 +516,7 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
     const BL_FORT_FAB_ARG(etaTz),
     const BL_FORT_FAB_ARG(kappa_p),
     const BL_FORT_FAB_ARG(jg),
-    const Real* dt);
+    const amrex::Real* dt);
 
 #endif
 
@@ -535,9 +535,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
    (const int * lo, const int* hi,
     BL_FORT_FAB_ARG_3D(kps),
     const BL_FORT_FAB_ARG_3D(state),
-    const Real* k0_p, const Real* m_p, const Real* n_p,
-    const Real* k0_r, const Real* m_r, const Real* n_r,
-    const Real* Tfloor, const Real* kfloor);
+    const amrex::Real* k0_p, const amrex::Real* m_p, const amrex::Real* n_p,
+    const amrex::Real* k0_r, const amrex::Real* m_r, const amrex::Real* n_r,
+    const amrex::Real* Tfloor, const amrex::Real* kfloor);
 
 extern "C" {
   void ca_compute_planck
@@ -552,8 +552,8 @@ extern "C" {
      BL_FORT_FAB_ARG(mask),
      const int* filter_prim_T, const int* filter_prim_S,
      const int* domlo, const int* domhi,
-     const Real* delta, const Real* xlo, const Real* problo,
-     const Real* time, const int* level);
+     const amrex::Real* delta, const amrex::Real* xlo, const amrex::Real* problo,
+     const amrex::Real* time, const int* level);
 }
 
 // photon problems solved by the neutrino solver need these
@@ -564,9 +564,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(kappa_p),
     const BL_FORT_FAB_ARG(dkdT),
-    const Real* PFcoef, 
+    const amrex::Real* PFcoef, 
     const int& use_WiensLaw, const int& integrate_Planck,
-    const Real& Tf);
+    const amrex::Real& Tf);
 BL_FORT_PROC_DECL(CA_OPACS, ca_opacs)
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Snew),
@@ -584,19 +584,19 @@ BL_FORT_PROC_DECL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
     BL_FORT_FAB_ARG(kappa_r),
     BL_FORT_FAB_ARG(dkdT),
     const int* do_kappa_stm_emission, const int* use_dkdT, 
-    const Real* const_kappa_p,
-    const Real* kappa_p_exp_m,
-    const Real* kappa_p_exp_n,
-    const Real* kappa_p_exp_p,
-    const Real* const_kappa_r,
-    const Real* kappa_r_exp_m,
-    const Real* kappa_r_exp_n,
-    const Real* kappa_r_exp_p,
-    const Real* const_scattering,
-    const Real* scattering_exp_m,
-    const Real* scattering_exp_n,
-    const Real* scattering_exp_p,
-    const Real* prop_temp_floor);
+    const amrex::Real* const_kappa_p,
+    const amrex::Real* kappa_p_exp_m,
+    const amrex::Real* kappa_p_exp_n,
+    const amrex::Real* kappa_p_exp_p,
+    const amrex::Real* const_kappa_r,
+    const amrex::Real* kappa_r_exp_m,
+    const amrex::Real* kappa_r_exp_n,
+    const amrex::Real* kappa_r_exp_p,
+    const amrex::Real* const_scattering,
+    const amrex::Real* scattering_exp_m,
+    const amrex::Real* scattering_exp_n,
+    const amrex::Real* scattering_exp_p,
+    const amrex::Real* prop_temp_floor);
 #ifdef MG_SU_OLSON
 BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
    (const int* lo, const int *hi, 
@@ -608,8 +608,8 @@ BL_FORT_PROC_DECL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
     const BL_FORT_FAB_ARG(Er_step),
     const BL_FORT_FAB_ARG(rhoe_step),
     const BL_FORT_FAB_ARG(rhoe_star),    
-    const Real* x,
-    const Real* t, const Real* dt, const int* igroup);
+    const amrex::Real* x,
+    const amrex::Real* t, const amrex::Real* dt, const int* igroup);
 #endif
 
 // other functions that work for both neutrino and photons
@@ -618,12 +618,12 @@ BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
     const BL_FORT_FAB_ARG(bcgr),
     const BL_FORT_FAB_ARG(spec),
     BL_FORT_FAB_ARG(ccoe),
-    const Real* dx, const int* idim, const int* igroup);
+    const amrex::Real* dx, const int* idim, const int* igroup);
 BL_FORT_PROC_DECL(CA_FLUX_FACE2CENTER, ca_flux_face2center)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(test), 
     const BL_FORT_FAB_ARG(flx),
-    const Real* x, const int* xlo, const int* xhi, 
+    const amrex::Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* iflx);
 
 BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
@@ -636,7 +636,7 @@ BL_FORT_PROC_DECL(CA_SPALPHA, ca_spalpha)
 BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG(rhs),
-    const Real* r, const Real* dt);
+    const amrex::Real* r, const amrex::Real* dt);
 
 // in RadDerive_?d.f90
 extern "C"
@@ -646,24 +646,24 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
   void ca_derenue
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
   void ca_derenuae
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 }
 // </ MGFLD>
@@ -692,9 +692,9 @@ extern "C"
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(temp), 
      const BL_FORT_FAB_ARG(state),
-     const Real* const_c_v,
-     const Real* c_v_exp_m,
-     const Real* c_v_exp_n);
+     const amrex::Real* const_c_v,
+     const amrex::Real* c_v_exp_m,
+     const amrex::Real* c_v_exp_n);
 }
 
 #ifdef NEUTRINO
@@ -729,7 +729,7 @@ BL_FORT_PROC_DECL(CA_COMPUTE_FCC, ca_compute_fcc)
      BL_FORT_FAB_ARG(fcc));
 
 BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
-    (const int lo[], const int hi[], const Real& flag,
+    (const int lo[], const int hi[], const amrex::Real& flag,
      const BL_FORT_FAB_ARG(Snew),
      const BL_FORT_FAB_ARG(f),
      const BL_FORT_FAB_ARG(Er), 
@@ -737,170 +737,170 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
 extern "C" {
-  void multrs(Real* d, intS, intS, Real* r, Real* s);
+  void multrs(amrex::Real* d, intS, intS, amrex::Real* r, amrex::Real* s);
 
-  void sphc(Real* r, Real* s, intS, const Real* dx);
+  void sphc(amrex::Real* r, amrex::Real* s, intS, const amrex::Real* dx);
 
-  void sphe(Real* r, Real* s, const int& idim, intS, const Real* dx);
+  void sphe(amrex::Real* r, amrex::Real* s, const int& idim, intS, const amrex::Real* dx);
 
-  void lacoef(Real* acoefs, intS, intS,
-	      Real* fkp, Real* eta, Real* etainv,
-	      Real* r, Real* s,
-	      const Real& c, const Real& dt, const Real& theta);
+  void lacoef(amrex::Real* acoefs, intS, intS,
+	      amrex::Real* fkp, amrex::Real* eta, amrex::Real* etainv,
+	      amrex::Real* r, amrex::Real* s,
+	      const amrex::Real& c, const amrex::Real& dt, const amrex::Real& theta);
 
-  Real FORT_KAVG(const Real& a, const Real& b, const Real& d, const int& iopt);
+  amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
-  void bclim(Real* bcoefs, Real* lambda, intS, intS, const int& idim,
-	     Real* kappa_r, intS,
-	     Real* r, Real* s,
-	     const Real& c, const Real* dx);
+  void bclim(amrex::Real* bcoefs, amrex::Real* lambda, intS, intS, const int& idim,
+	     amrex::Real* kappa_r, intS,
+	     amrex::Real* r, amrex::Real* s,
+	     const amrex::Real& c, const amrex::Real* dx);
 
-  void flxlim(Real* lambda, intS, intS, const int& limiter);
+  void flxlim(amrex::Real* lambda, intS, intS, const int& limiter);
 
-  void eddfac(Real* efact, intS, intS, const int& limiter, const int& idim);
+  void eddfac(amrex::Real* efact, intS, intS, const int& limiter, const int& idim);
 
-  void scgrd1(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, const Real* dx);
+  void scgrd1(amrex::Real* R, intS, intS, const int& idim,
+	      amrex::Real* kappa_r, intS, amrex::Real* Er, const amrex::Real* dx);
 
-  void scgrd2(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, 
+  void scgrd2(amrex::Real* R, intS, intS, const int& idim,
+	      amrex::Real* kappa_r, intS, amrex::Real* Er, 
 #if (BL_SPACEDIM >= 2)
-	      intS, Real* dtmp1, 
+	      intS, amrex::Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
-	      Real* dtmp2,
+	      amrex::Real* dtmp2,
 #endif
-	      const Real* dx);
+	      const amrex::Real* dx);
 
-  void scgrd3(Real* R, intS, intS, const int& idim,
-	      Real* kappa_r, intS, Real* Er, 
+  void scgrd3(amrex::Real* R, intS, intS, const int& idim,
+	      amrex::Real* kappa_r, intS, amrex::Real* Er, 
 #if (BL_SPACEDIM >= 2)
-	      intS, Real* dtmp1, 
+	      intS, amrex::Real* dtmp1, 
 #endif
 #if (BL_SPACEDIM == 3)
-	      Real* dtmp2,
+	      amrex::Real* dtmp2,
 #endif
-	      const Real* dx);
+	      const amrex::Real* dx);
 
-  void lrhs(Real* rhs, intS, intS,
-	    Real* temp, Real* fkp, Real* eta, Real* etainv,
-	    Real* rhoem, Real* rhoes,
-	    Real* dflux_old, Real* Er_old, intS, Real* Edot,
-	    Real* r, Real* s, const Real& delta_t, const Real& sigma,
-	    const Real& c, const Real& theta);
+  void lrhs(amrex::Real* rhs, intS, intS,
+	    amrex::Real* temp, amrex::Real* fkp, amrex::Real* eta, amrex::Real* etainv,
+	    amrex::Real* rhoem, amrex::Real* rhoes,
+	    amrex::Real* dflux_old, amrex::Real* Er_old, intS, amrex::Real* Edot,
+	    amrex::Real* r, amrex::Real* s, const amrex::Real& delta_t, const amrex::Real& sigma,
+	    const amrex::Real& c, const amrex::Real& theta);
 
-  void anatw2(Real* test, intS,
-	      Real* temp,
-	      const Real& p, const Real& xf, const Real& Tc,
-	      const Real* dx, const Real* xlo, const int* lo);
+  void anatw2(amrex::Real* test, intS,
+	      amrex::Real* temp,
+	      const amrex::Real& p, const amrex::Real& xf, const amrex::Real& Tc,
+	      const amrex::Real* dx, const amrex::Real* xlo, const int* lo);
 
-  void cfrhoe(intS, Real* frhoe, intS, Real* state, intS);
+  void cfrhoe(intS, amrex::Real* frhoe, intS, amrex::Real* state, intS);
 
   void gtemp(intS,
-	     Real* temp, intS,
-	     Real* con, Real* em, Real* en,
-	     Real* state, intS);
+	     amrex::Real* temp, intS,
+	     amrex::Real* con, amrex::Real* em, amrex::Real* en,
+	     amrex::Real* state, intS);
 
   void gcv(intS,
-	   Real* c_v, intS, const Real* temp, intS,
-	   const Real* con, const Real* em, const Real* en, const Real* tf,
-	   const Real* state, intS);
+	   amrex::Real* c_v, intS, const amrex::Real* temp, intS,
+	   const amrex::Real* con, const amrex::Real* em, const amrex::Real* en, const amrex::Real* tf,
+	   const amrex::Real* state, intS);
 
   void cexch(intS,
-	     Real* exch, intS,
-	     Real* er, intS, 
-	     Real* fkp, intS,
-	     const Real& sigma, const Real& c);
+	     amrex::Real* exch, intS,
+	     amrex::Real* er, intS, 
+	     amrex::Real* fkp, intS,
+	     const amrex::Real& sigma, const amrex::Real& c);
 
   void ceta2(intS,
-	     Real* eta, Real* etainv, intS,
-	     Real* frho, intS, 
-	     Real* temp, intS,
-	     Real* c_v, intS,
-	     Real* fkp, intS,
-	     Real* er, intS,
-	     const Real& dT, const Real& delta_t, const Real& sigma,
-	     const Real& c, const Real& underr, const int& lagpla);
+	     amrex::Real* eta, amrex::Real* etainv, intS,
+	     amrex::Real* frho, intS, 
+	     amrex::Real* temp, intS,
+	     amrex::Real* c_v, intS,
+	     amrex::Real* fkp, intS,
+	     amrex::Real* er, intS,
+	     const amrex::Real& dT, const amrex::Real& delta_t, const amrex::Real& sigma,
+	     const amrex::Real& c, const amrex::Real& underr, const int& lagpla);
 
-  void ceup(intS, Real& relres, Real& absres,
-	    Real* frhoes, intS,
-	    Real* frhoem, Real* eta, Real* etainv,
-	    Real* dflux_old, Real* dflux_new,
-	    Real* exch,
-	    const Real& delta_t, const Real& theta);
+  void ceup(intS, amrex::Real& relres, amrex::Real& absres,
+	    amrex::Real* frhoes, intS,
+	    amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
+	    amrex::Real* dflux_old, amrex::Real* dflux_new,
+	    amrex::Real* exch,
+	    const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void ceupdterm(intS, Real& relres, Real& absres,
-		 Real* frhoes, intS,
-		 Real* frhoem, Real* eta, Real* etainv,
-		 Real* dflux_old, Real* dflux_new,
-		 Real* exch, Real* dterm, 
-		 const Real& delta_t, const Real& theta);
+  void ceupdterm(intS, amrex::Real& relres, amrex::Real& absres,
+		 amrex::Real* frhoes, intS,
+		 amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
+		 amrex::Real* dflux_old, amrex::Real* dflux_new,
+		 amrex::Real* exch, amrex::Real* dterm, 
+		 const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void nceup(intS, Real& relres, Real& absres,
-	     Real* frhoes, intS,
-	     Real* frhoem, Real* eta, Real* etainv,
-	     Real* er, intS, Real* dflux_old, Real* dflux_new,
-	     Real* temp, Real* fkp, Real* cv, Real* state, intS,
-	     const Real& sigma, const Real& c,
-	     const Real& delta_t, const Real& theta);
+  void nceup(intS, amrex::Real& relres, amrex::Real& absres,
+	     amrex::Real* frhoes, intS,
+	     amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
+	     amrex::Real* er, intS, amrex::Real* dflux_old, amrex::Real* dflux_new,
+	     amrex::Real* temp, amrex::Real* fkp, amrex::Real* cv, amrex::Real* state, intS,
+	     const amrex::Real& sigma, const amrex::Real& c,
+	     const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void cetot(intS, Real* state, intS, Real* rhoe, intS);
+  void cetot(intS, amrex::Real* state, intS, amrex::Real* rhoe, intS);
 
   void fkpn(intS,
-	    Real* fkp, intS,
-	    Real* con, Real* em, Real* en,
-	    Real* ep, const Real& xnu, Real* tf,
-	    Real* temp, intS, 
-	    Real* state, intS);
+	    amrex::Real* fkp, intS,
+	    amrex::Real* con, amrex::Real* em, amrex::Real* en,
+	    amrex::Real* ep, const amrex::Real& xnu, amrex::Real* tf,
+	    amrex::Real* temp, intS, 
+	    amrex::Real* state, intS);
 
   void rosse1(intS,
-	      Real* kappar, intS,
-	      Real* con, Real* em, Real* en,
-	      Real* ep, const Real& xnu,
-	      Real* tf, const Real& kfloor,
-	      Real* temp, intS, Real* state, intS);
+	      amrex::Real* kappar, intS,
+	      amrex::Real* con, amrex::Real* em, amrex::Real* en,
+	      amrex::Real* ep, const amrex::Real& xnu,
+	      amrex::Real* tf, const amrex::Real& kfloor,
+	      amrex::Real* temp, intS, amrex::Real* state, intS);
 
   void rosse1s(intS,
-	       Real* kappar, intS,
-	       Real* con, Real* em, Real* en,
-	       Real* ep, 
-	       Real* scon, Real* sem, Real* sen,
-	       Real* sep, 
-	       const Real& xnu,
-	       Real* tf, const Real& kfloor,
-	       Real* temp, intS, Real* state, intS);
+	       amrex::Real* kappar, intS,
+	       amrex::Real* con, amrex::Real* em, amrex::Real* en,
+	       amrex::Real* ep, 
+	       amrex::Real* scon, amrex::Real* sem, amrex::Real* sen,
+	       amrex::Real* sep, 
+	       const amrex::Real& xnu,
+	       amrex::Real* tf, const amrex::Real& kfloor,
+	       amrex::Real* temp, intS, amrex::Real* state, intS);
   
-  void nfloor(Real* dest, intS, intS,
-	      int& nflr, const Real& flr, const int& nvar);
+  void nfloor(amrex::Real* dest, intS, intS,
+	      int& nflr, const amrex::Real& flr, const int& nvar);
 
-  void lacoefmgfld(Real* a, intS, intS,
-		   Real* kappa, intS,
-		   Real* r, Real* s,
-		   const Real& delta_t, const Real& c);
+  void lacoefmgfld(amrex::Real* a, intS, intS,
+		   amrex::Real* kappa, intS,
+		   amrex::Real* r, amrex::Real* s,
+		   const amrex::Real& delta_t, const amrex::Real& c);
 
-  void rfface(Real* fine, intS, Real* cres, intS,
+  void rfface(amrex::Real* fine, intS, amrex::Real* cres, intS,
 	      const int& idim, const int* irat);
 
-  void FORT_RADBNDRY(Real* bf, intS, intS,
-		     const Real* dx, const Real* xlo, const Real& time,
+  void FORT_RADBNDRY(amrex::Real* bf, intS, intS,
+		     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time,
                      const int& dir, const int& face);
 
-  void FORT_RADBNDRY2(Real* bf, intS, int* tfab, intS,
-		      const Real* dx, const Real* xlo, const Real& time);
+  void FORT_RADBNDRY2(amrex::Real* bf, intS, int* tfab, intS,
+		      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);
 
-  void bextrp(Real* f, intS, intS);
+  void bextrp(amrex::Real* f, intS, intS);
 
   // neutrino routines below
 
   void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
-  void lbcoefna(Real* bcoef, Real* bcgrp, intS, intS,
-		Real* spec, intS,
+  void lbcoefna(amrex::Real* bcoef, amrex::Real* bcgrp, intS, intS,
+		amrex::Real* spec, intS,
 		const int& idim);
 
-  void ljupna(Real* jnew, intS, intS,
-	      Real* spec, intS,
-	      Real* accel, intS,
+  void ljupna(amrex::Real* jnew, intS, intS,
+	      amrex::Real* spec, intS,
+	      amrex::Real* accel, intS,
 	      const int& nTotal);
 };
 

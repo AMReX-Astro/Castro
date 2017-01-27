@@ -69,7 +69,7 @@ public:
 			int bnd_start, int num_comp, amrex::IntVect& ratio, 
 			const amrex::BCRec& phys_bc);
 //@ManDoc: set bndry values to provided value
-    void setBndryValues(Real bv);
+    void setBndryValues(amrex::Real bv);
 };
 
 

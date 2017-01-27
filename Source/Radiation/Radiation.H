@@ -31,7 +31,7 @@ public:
   enum Radiation_Type {Unknown = 0, Neutrino = 1, Photon = 2};
   static Radiation_Type radiation_type;
 
-  static Real radtoE, Etorad, radfluxtoF;
+  static amrex::Real radtoE, Etorad, radfluxtoF;
 
   static int do_multigroup;
   static int nGroups;
@@ -66,30 +66,30 @@ public:
   // so that other modules such as RadSolve can get to them easily.
   // Values are set in the Radiation constructor.
 
-  static Real convert_MeV_erg, clight, hPlanck, kBoltz, Avogadro;
+  static amrex::Real convert_MeV_erg, clight, hPlanck, kBoltz, Avogadro;
 
   // Values used internally for speed of light, Stefan-Boltzmann constant,
   // radiation constant.  (For contrived test problems, these may differ
   // from the proper physical values, so be careful if you use them!)
 
-  static Real c, sigma, aRad;
+  static amrex::Real c, sigma, aRad;
 
   static int current_group_number;
   static std::string current_group_name;
 
-  static Real flatten_pp_threshold;
+  static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
   static int do_real_eos;  // if 0,  c_v = const_c_v * (rho**m) * (temp**(-n))
 
 
-  static Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
-  static Real c_v_exp_m, c_v_exp_n;
-  static Real kappa_p_exp_m, kappa_p_exp_n;
-  static Real kappa_r_exp_m, kappa_r_exp_n;
-  static Real scattering_exp_m, scattering_exp_n;
-  static Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
-  static Real prop_temp_floor;
+  static amrex::Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
+  static amrex::Real c_v_exp_m, c_v_exp_n;
+  static amrex::Real kappa_p_exp_m, kappa_p_exp_n;
+  static amrex::Real kappa_r_exp_m, kappa_r_exp_n;
+  static amrex::Real scattering_exp_m, scattering_exp_n;
+  static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
+  static amrex::Real prop_temp_floor;
 
   amrex::Array<std::unique_ptr<amrex::MultiFab> > plotvar;
 
@@ -112,37 +112,37 @@ public:
 
   // access to group information:
 
-  Real group_center(int i) {
+  amrex::Real group_center(int i) {
     return nugroup[i];
   }
 
-  Real group_weight(int i) {
+  amrex::Real group_weight(int i) {
     return dnugroup[i];
   }
 
   // diagnostics for adjusting timestep:
 
-  Real deltaEnergyRatMax(int lev) {
+  amrex::Real deltaEnergyRatMax(int lev) {
     return delta_e_rat_level[lev];
   }
 
-  Real deltaTRatMax(int lev) {
+  amrex::Real deltaTRatMax(int lev) {
     return delta_T_rat_level[lev];
   }
 
-  Real deltaYeMax(int lev) {
+  amrex::Real deltaYeMax(int lev) {
     return delta_Ye_level[lev];
   }
 
-  Real deltaEnergyTol() {
+  amrex::Real deltaEnergyTol() {
     return delta_e_rat_dt_tol;
   }
 
-  Real deltaTTol() {
+  amrex::Real deltaTTol() {
     return delta_T_rat_dt_tol;
   }
 
-  Real deltaYeTol() {
+  amrex::Real deltaYeTol() {
     return delta_Ye_dt_tol;
   }
 
@@ -180,9 +180,9 @@ public:
 		       amrex::MultiFab &lamborder);
 
   void estimate_gamrPr(const amrex::FArrayBox& state, const amrex::FArrayBox& Er, 
-		       amrex::FArrayBox& gPr, const Real* dx, const amrex::Box& box);
+		       amrex::FArrayBox& gPr, const amrex::Real* dx, const amrex::Box& box);
 
-  void EstTimeStep(Real& estdt, int level);
+  void EstTimeStep(amrex::Real& estdt, int level);
 
   void filter_prim(int level, amrex::MultiFab& State);
 
@@ -195,39 +195,39 @@ protected:
 
   void compute_eta(amrex::MultiFab& eta, amrex::MultiFab& etainv, amrex::MultiFab& state,
 		   amrex::MultiFab& temp, amrex::MultiFab& fkp, amrex::MultiFab& Er,
-		   Real delta_t, Real c, Real underrel, int lag_planck,
+		   amrex::Real delta_t, amrex::Real c, amrex::Real underrel, int lag_planck,
 		   int igroup = 0);
 
-  void internal_energy_update(Real& relative, Real& absolute,
+  void internal_energy_update(amrex::Real& relative, amrex::Real& absolute,
 			      amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
 			      amrex::MultiFab& eta, amrex::MultiFab& etainv,
 			      amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
-                              amrex::MultiFab& exchange, Real delta_t);
+                              amrex::MultiFab& exchange, amrex::Real delta_t);
 
-  void internal_energy_update(Real& relative, Real& absolute,
+  void internal_energy_update(amrex::Real& relative, amrex::Real& absolute,
 			      amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
 			      amrex::MultiFab& eta, amrex::MultiFab& etainv,
 			      amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
 			      amrex::MultiFab& exchange, amrex::MultiFab& Dterm,
-			      Real delta_t);
+			      amrex::Real delta_t);
 
-  void nonconservative_energy_update(Real& relative, Real& absolute,
+  void nonconservative_energy_update(amrex::Real& relative, amrex::Real& absolute,
 				     amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
 				     amrex::MultiFab& eta, amrex::MultiFab& etainv,
 				     amrex::MultiFab& Er_new,
 				     amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
 				     amrex::MultiFab& temp, amrex::MultiFab& fkp,
-				     amrex::MultiFab& state, Real delta_t);
+				     amrex::MultiFab& state, amrex::Real delta_t);
 
   void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes, amrex::MultiFab& temp);
 
-  void getBndryData(RadBndry& bd, amrex::MultiFab& Er, Real time, int level);
+  void getBndryData(RadBndry& bd, amrex::MultiFab& Er, amrex::Real time, int level);
 
   // multigroup version
-  void getBndryDataMG(MGRadBndry& mgbd, amrex::MultiFab& Er, Real time, int level);
+  void getBndryDataMG(MGRadBndry& mgbd, amrex::MultiFab& Er, amrex::Real time, int level);
   void getBndryDataMG_ga(MGRadBndry& mgbd, amrex::MultiFab& Er, int level);
 
-  void filBndry(amrex::BndryRegister& bdry, int level, Real time);
+  void filBndry(amrex::BndryRegister& bdry, int level, amrex::Real time);
 
   // Flux limiter functions, potentially for use by all update modules
 
@@ -256,7 +256,7 @@ protected:
 
   void get_planck_and_temp(Fab& fkp, Fab& temp,
 			   Fab& state, const amrex::Box& reg,
-			   int igroup = 0, Real delta_t = 0.0);
+			   int igroup = 0, amrex::Real delta_t = 0.0);
 
   void get_rosseland_and_temp(Fab& kappa_r, Fab& temp,
 			      Fab& state, const amrex::Box& reg,
@@ -280,7 +280,7 @@ protected:
   // temp contains frhoe on input:
 
   void get_planck_and_temp(amrex::MultiFab& fkp, amrex::MultiFab& temp, amrex::MultiFab& state,
-			   int igroup = 0, Real delta_t = 0.0);
+			   int igroup = 0, amrex::Real delta_t = 0.0);
 
   // Rosseland mean is needed on an extended region (nGrow == 1).
   // Fills patches with state information on extended region:
@@ -299,7 +299,7 @@ protected:
 
   // RadHydro
   void get_rosseland_v_dcf(amrex::MultiFab& kappa_r, amrex::MultiFab& v, amrex::MultiFab& dcf, 
-			   Real delta_t, Real c,
+			   amrex::Real delta_t, amrex::Real c,
 			   amrex::AmrLevel* hclaw,
 			   int igroup = 0);  
 
@@ -319,17 +319,17 @@ protected:
 
   // <Shestakov-Bolstad>
   int use_WiensLaw;
-  Real Tf_Wien;
+  amrex::Real Tf_Wien;
   // </ Shestakov-Bolstad>
   int integrate_Planck;
 
-  void check_convergence_er(Real& relative_in, Real& absolute_in, Real& error_er,
+  void check_convergence_er(amrex::Real& relative_in, amrex::Real& absolute_in, amrex::Real& error_er,
   			    const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi, 
 			    const amrex::MultiFab& kappa_p, 
 			    const amrex::MultiFab& etaTz, const amrex::MultiFab& etaYz, 
 			    const amrex::MultiFab& theTz, const amrex::MultiFab& theYz,
 			    const amrex::MultiFab& temp_new, const amrex::MultiFab& Ye_new,
-			    const amrex::BoxArray& grids, Real delta_t);
+			    const amrex::BoxArray& grids, amrex::Real delta_t);
   void check_convergence_matt(const amrex::MultiFab& rhoe_new, const amrex::MultiFab& rhoe_star, 
 			      const amrex::MultiFab& rhoe_step, const amrex::MultiFab& Er_new, 
 			      const amrex::MultiFab& temp_new, const amrex::MultiFab& temp_star, 
@@ -337,12 +337,12 @@ protected:
 			      const amrex::MultiFab& rhoYe_step, const amrex::MultiFab& rho,
 			      const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
 			      const amrex::MultiFab& dedT, const amrex::MultiFab& dedY,
-			      Real& rel_rhoe, Real& abs_rhoe, 
-			      Real& rel_FT,   Real& abs_FT, 
-			      Real& rel_T,    Real& abs_T, 
-			      Real& rel_FY,   Real& abs_FY, 
-			      Real& rel_Ye,   Real& abs_Ye,
-			      const amrex::BoxArray& grids, Real delta_t);
+			      amrex::Real& rel_rhoe, amrex::Real& abs_rhoe, 
+			      amrex::Real& rel_FT,   amrex::Real& abs_FT, 
+			      amrex::Real& rel_T,    amrex::Real& abs_T, 
+			      amrex::Real& rel_FY,   amrex::Real& abs_FY, 
+			      amrex::Real& rel_Ye,   amrex::Real& abs_Ye,
+			      const amrex::BoxArray& grids, amrex::Real delta_t);
   void compute_coupling(amrex::MultiFab& coupT, amrex::MultiFab& coupY, 
 			const amrex::MultiFab& kappa_p, const amrex::MultiFab& Er_pi,
 			const amrex::MultiFab& jg);
@@ -354,7 +354,7 @@ protected:
 			 const amrex::MultiFab& dkdT, const amrex::MultiFab& dkdY, 
 			 const amrex::MultiFab& dedT, const amrex::MultiFab& dedY, 
 			 const amrex::MultiFab& Er_star, const amrex::MultiFab& rho, 
-			 const amrex::BoxArray& grids, Real delta_t, Real ptc_tau);
+			 const amrex::BoxArray& grids, amrex::Real delta_t, amrex::Real ptc_tau);
   void eos_opacity_emissivity(const amrex::MultiFab& S_new, 
 			      const amrex::MultiFab& temp_new, const amrex::MultiFab& Ye_new,
 			      const amrex::MultiFab& temp_star, const amrex::MultiFab& Ye_star,
@@ -370,16 +370,16 @@ protected:
 		  amrex::MultiFab& mugT, amrex::MultiFab& mugY, 
 		  amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda,
 		  RadSolve& solver, MGRadBndry& mgbd, 
-		  const amrex::BoxArray& grids, int level, Real time, Real delta_t, Real ptc_tau);
+		  const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
   void local_accel(amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi, 
 		   const amrex::MultiFab& kappa_p, 
 		   const amrex::MultiFab& etaT, const amrex::MultiFab& etaY, 
 		   const amrex::MultiFab& thetaT, const amrex::MultiFab& thetaY, 
 		   const amrex::MultiFab& mugT, const amrex::MultiFab& mugY, 
-		   Real delta_t, Real ptc_tau);
+		   amrex::Real delta_t, amrex::Real ptc_tau);
   void state_energy_update(amrex::MultiFab& state, const amrex::MultiFab& rhoe, const amrex::MultiFab& Ye,
 			   const amrex::MultiFab& temp, const amrex::BoxArray& grids, 
-			   Real& derat, Real& dT, Real&dye, int level);
+			   amrex::Real& derat, amrex::Real& dT, amrex::Real&dye, int level);
   void update_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new, 
 		     amrex::MultiFab& rhoYe_new, amrex::MultiFab& Ye_new, 
 		     const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
@@ -395,8 +395,8 @@ protected:
 		     const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg, 
 		     const amrex::MultiFab& mugT, const amrex::MultiFab& mugY, 
 		     const amrex::MultiFab& S_new, 
-		     int level, Real delta_t, 
-		     Real ptc_tau, int it, bool conservative_update);
+		     int level, amrex::Real delta_t, 
+		     amrex::Real ptc_tau, int it, bool conservative_update);
   void bisect_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new, 
 		     amrex::MultiFab& rhoYe_new, amrex::MultiFab& Ye_new, 
 		     const amrex::MultiFab& rhoe_star, const amrex::MultiFab& temp_star, 
@@ -409,7 +409,7 @@ protected:
 
   void MGFLD_compute_scattering(amrex::FArrayBox& kappa_s, const amrex::FArrayBox& state);
 
-  void rhstoEr(amrex::MultiFab& rhs, Real dt, int level);
+  void rhstoEr(amrex::MultiFab& rhs, amrex::Real dt, int level);
 
   // </ MGFLD>
 
@@ -427,14 +427,14 @@ protected:
 
   amrex::Amr* parent;
   amrex::BCRec rad_bc;          // types defined in LO_BCTYPES.H, not BCTYPES.H
-  Real reltol, abstol;   // tolerances for implicit update loop
+  amrex::Real reltol, abstol;   // tolerances for implicit update loop
   int maxiter;           // iteration limit for implicit update loop
   int miniter;
   int convergence_check_type; // 0 (default): both 2 and 3, 
                               // 1: rhoe,  
                               // 2: residue of Eq. rhoe,  
                               // 3: T & Ye
-  Real relInTol, absInTol; // tolerance for inner iternation of J equation
+  amrex::Real relInTol, absInTol; // tolerance for inner iternation of J equation
   int maxInIter;           // iteration limit for inner iteration of J equation
   int minInIter;
   int skipAccelAllowed;   // Skip acceleration if it doesn't help
@@ -443,13 +443,13 @@ protected:
                           // The last outer iteration is always conservative.
 
   int n_bisect;  // Bisection after n_bisect iterations
-  Real dedT_fac, dedY_fac; // Make dedT and dedY larger for safety in Newton iteration
+  amrex::Real dedT_fac, dedY_fac; // Make dedT and dedY larger for safety in Newton iteration
 
   int inner_convergence_check; 
 
-  Real delta_e_rat_dt_tol; // energy change tolerance for adjusting timestep
-  Real delta_T_rat_dt_tol; // T change tolerance for adjusting timestep
-  Real delta_Ye_dt_tol;    // Ye change tolerance for adjusting timestep
+  amrex::Real delta_e_rat_dt_tol; // energy change tolerance for adjusting timestep
+  amrex::Real delta_T_rat_dt_tol; // T change tolerance for adjusting timestep
+  amrex::Real delta_Ye_dt_tol;    // Ye change tolerance for adjusting timestep
 
   int limiter;           // 0: no limiter, 2: Lev-Pom limiter
                          // 12: Bruenn, 22: square root, 32: Minerbo
@@ -463,20 +463,20 @@ protected:
   int inner_update_limiter; // This is for MGFLD solver. 
                             // Stop updating limiter after ? inner iterations
                             // 0 means lagging by one outer iteration
-  Real dT;               // temperature step for derivative estimate
+  amrex::Real dT;               // temperature step for derivative estimate
   int surface_average;   // 0 = arithmetic, 1 = harmonic, 2 = surface formula
 
-  Real underfac;         // factor controlling progressive underrelaxation
+  amrex::Real underfac;         // factor controlling progressive underrelaxation
 
   int do_sync;               // perform sync (if false zero out sync source)
 
-  Real kappa_r_floor, temp_floor;
+  amrex::Real kappa_r_floor, temp_floor;
 
   int use_opacity_table_module;  // Use opacity_table_module?
 
   int do_kappa_stm_emission;
 
-  amrex::Array<Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
+  amrex::Array<amrex::Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
 
   // arrays of flux registers 
   // flux_cons[level] is a amrex::FluxRegister, which contains fluxes for all groups
@@ -485,14 +485,14 @@ protected:
   amrex::Array <std::unique_ptr<amrex::FluxRegister> > flux_trial;
 
   // for deferred sync
-  amrex::Array<Real> delta_t_old;
+  amrex::Array<amrex::Real> delta_t_old;
 
   // divergence of flux
   amrex::Array<std::unique_ptr<amrex::MultiFab> > dflux;
 
-  amrex::Array<Real> xnu, nugroup, dnugroup;
+  amrex::Array<amrex::Real> xnu, nugroup, dnugroup;
   std::string group_units;
-  Real group_print_factor;
+  amrex::Real group_print_factor;
 
   amrex::IntVect spot;
 

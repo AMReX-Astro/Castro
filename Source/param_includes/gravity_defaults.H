@@ -4,7 +4,7 @@
 // mk_params.sh
 
 std::string Gravity::gravity_type = "fillme";
-Real        Gravity::const_grav = 0.0;
+amrex::Real Gravity::const_grav = 0.0;
 int         Gravity::direct_sum_bcs = 0;
 int         Gravity::drdxfac = 1;
 int         Gravity::lnum = 0;

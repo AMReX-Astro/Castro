@@ -39,8 +39,8 @@ class XGFrame {
 static const int XGPtMXGY=256; // Man is weak...
 class XGPt {
 public:
-   Real x;
-   Real y[XGPtMXGY];
+   amrex::Real x;
+   amrex::Real y[XGPtMXGY];
 };
 class XGGrid {
 public:
@@ -63,7 +63,7 @@ class XGraph1d {
 
       void addVar(std::string& file_nm, std::string& var_nm, int freq, int lev);
 
-      void draw(int nstep, Real time, int force_draw = 0);
+      void draw(int nstep, amrex::Real time, int force_draw = 0);
 
       void dumpXGraph(amrex::MultiFab& q, amrex::MultiFab& qf, int comp,
          std::list<XGGrid>& xgg, int& lev, int& maxlev);
@@ -71,9 +71,9 @@ class XGraph1d {
    private:
 
       // each file contains a single variable
-      void draw_single(int nstep, Real time, int force_draw);
+      void draw_single(int nstep, amrex::Real time, int force_draw);
       // all variables at the time are stored in file
-      void draw_all(int nstep, Real time, int force_draw);
+      void draw_all(int nstep, amrex::Real time, int force_draw);
 
       std::list<XGFrame> frames;
       amrex::Amr *amrptr;

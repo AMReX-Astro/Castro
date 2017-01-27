@@ -26,7 +26,7 @@ public:
 
   void GetCrsePhi(int level, 
                   amrex::MultiFab& phi_crse,
-                  Real time);
+                  amrex::Real time);
 
   void zeroPhiFluxReg (int level);
 

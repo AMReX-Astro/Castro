@@ -25,7 +25,7 @@ public:
 
   void setHomogValues(const amrex::BCRec& bc, amrex::IntVect& ratio);
 
-  static void setTime(Real Time) {
+  static void setTime(amrex::Real Time) {
     time = Time;
   }
   // Warning: hidden state change, use carefully!
@@ -42,8 +42,8 @@ protected:
 
   static int first;            // only set up bcval once
   static amrex::Array<int> bcflag;    // 0 = use constant bcval; 1 = use function
-  static amrex::Array< amrex::Array<Real> > bcval;
-  static Real time;            // time value passed to bc function
+  static amrex::Array< amrex::Array<amrex::Real> > bcval;
+  static amrex::Real time;            // time value passed to bc function
   static int correction;       // ignore bcval when this is set
 };
 

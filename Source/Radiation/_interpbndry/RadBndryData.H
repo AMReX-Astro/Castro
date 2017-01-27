@@ -84,7 +84,7 @@ protected:
 //@ManDoc: Array (on orientation) of boundary condition type specifiers
     amrex::Array<RadBoundCond>   bcond[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition locations
-    amrex::Array<Real>        bcloc[2*BL_SPACEDIM];
+    amrex::Array<amrex::Real>    bcloc[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
     amrex::Array<std::unique_ptr<amrex::Mask> > masks[2*BL_SPACEDIM];
 //@ManDoc: Domain used for mask defintions
@@ -114,7 +114,7 @@ public:
 	return bndry[_face];
     }
 //@ManDoc: return boundary location on given face
-    const amrex::Array<Real>& bndryLocs(const amrex::Orientation& _face) const
+    const amrex::Array<amrex::Real>& bndryLocs(const amrex::Orientation& _face) const
     {
 	return bcloc[_face];
     }
@@ -139,7 +139,7 @@ public:
 	return geom;
     }
 //@ManDoc: set values of boundary Fab for given orientation on nth grid
-    void setValue(const amrex::Orientation& _face, int _n, Real _val)
+    void setValue(const amrex::Orientation& _face, int _n, amrex::Real _val)
     {
 	bndry[_face][_n].setVal(_val);
     }
@@ -154,7 +154,7 @@ public:
 	bcond[_face][_n] = _bcn;
     }
 //@ManDoc: set boundary location for given orientation on nth grid
-    void setBoundLoc(const amrex::Orientation& _face, int _n, Real _val)
+    void setBoundLoc(const amrex::Orientation& _face, int _n, amrex::Real _val)
     {
 	bcloc[_face][_n] = _val;
     }
