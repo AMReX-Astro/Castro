@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 0.1
+stop_time    = 5.e-3
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0   
@@ -22,12 +22,17 @@ castro.hi_bc       =  2
 castro.do_hydro = 1
 castro.do_react = 1
 
+castro.small_temp = 1.e6
+castro.small_dens = 1.e-5
+
+castro.ppm_type = 1
+castro.ppm_reference_eigenvectors = 1
+
+castro.allow_negative_energy = 0
+
 castro.diffuse_temp = 1
 castro.diffuse_cutoff_density = 1.e-2
 
-castro.ppm_type = 1
-
-castro.allow_negative_energy = 0
 
 # TIME STEP CONTROL
 castro.cfl            = 0.6     # cfl number for hyperbolic system
@@ -56,7 +61,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_int        = 1000
+amr.plot_per        = 5.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
