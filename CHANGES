@@ -1,5 +1,8 @@
 # changes since the last release:
 
+
+# 17.02
+
   -- diagnostic information about how source terms update the state
      has been overhauled and made uniform. All source terms, including
      hydro and resets, print their changes to the state in the same
@@ -25,7 +28,6 @@
      are from the tag, and an abbreviated hash.  It also indicates if
      your working directory is dirty
 
-# previous changes:
 
 * 17.01
 
