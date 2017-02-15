@@ -57,6 +57,10 @@ Then do:
 
 You will need to keep this file up to date with the PGI compiler you are trying to use.
 
+Finally, to use OpenACC, you need to make the CUDA libraries available to the PGI compiler:
+\begin{verbatim}
+module load craype-accel-nvidia35
+\end{verbatim}
 
 \subsection{Automatic Restarting and Archiving of Data}
 
