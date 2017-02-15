@@ -17,6 +17,12 @@ that has compatible \cpp~11 support is GCC 4.9.4.
 
 \section{Working at OLCF (ORNL)}
 
+The build system needs python 2.7+ or 3.5+.  The default python at OLCF
+is too old, so you will need to manually load a newer python as:
+\begin{verbatim}
+module load python
+\end{verbatim}
+
 The preferred compilers on titan at OLCF are the Cray compilers.  The
 8.4.x and 8.5.0 compilers work well.  Note, you will need to swap
 the default PGI environment to use Cray:
