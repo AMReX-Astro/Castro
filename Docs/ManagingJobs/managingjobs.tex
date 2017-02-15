@@ -23,6 +23,7 @@ is too old, so you will need to manually load a newer python as:
 module load python
 \end{verbatim}
 
+\subsection{Cray}
 The preferred compilers on titan at OLCF are the Cray compilers.  The
 8.4.x and 8.5.0 compilers work well.  Note, you will need to swap
 the default PGI environment to use Cray:
@@ -30,9 +31,31 @@ the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
-If you are using OpenACC on the GPUs, then you need to use the PGI
-compilers instead.
+\subsection{PGI}
 
+If you are using OpenACC on the GPUs, then you need to use the PGI
+compilers instead.  It is best to use the latest available PGI
+compilers, which are 16.10 at this writing.  
+\begin{verbatim}
+module swap pgi pgi/16.10.0
+\end{verbatim}
+
+Unfortunately, those are set to use GCC 4.3 header files, which don't
+support the latest \cpp\ standard, so you will need to write your
+own config file.  First load a newer gcc:
+\begin{verbatim}
+module load gcc/4.9.3
+\end{verbatim}
+
+Then do:
+\begin{verbatim}
+/opt/pgi/16.10.0/linux86-64/16.7/bin/makelocalrc -o /opt/pgi/16.10.0/linux86-64/16.10/bin \
+  -gcc /opt/gcc/4.9.3/bin/gcc -gpp /opt/gcc/4.9.3/bin/g++ \
+  -g77 /opt/gcc/4.9.3/bin/gfortran -x -net > ~/.mypgcpprc
+\end{verbatim}
+(Note this is a one-line command)
+
+You will need to keep this file up to date with the PGI compiler you are trying to use.
 
 
 \subsection{Automatic Restarting and Archiving of Data}
