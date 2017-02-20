@@ -678,8 +678,10 @@ Castro::variableSetUp ()
   //
   // thermal conductivity (k_th)
   //
-  derive_lst.add("thermal_conductivity",IndexType::TheCellType(),1,ca_dercond,the_same_box);
-  derive_lst.addComponent("thermal_conductivity",desc_lst,State_Type,Density,NUM_STATE);
+  if (diffuse_temp) {
+    derive_lst.add("thermal_conductivity",IndexType::TheCellType(),1,ca_dercond,the_same_box);
+    derive_lst.addComponent("thermal_conductivity",desc_lst,State_Type,Density,NUM_STATE);
+  }
 #endif
 
   //
