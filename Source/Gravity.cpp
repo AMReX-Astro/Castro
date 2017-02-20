@@ -583,6 +583,24 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 	}
     }
 
+    // Construct a container for the right-hand-side (4 * pi * G * drho + dphi).
+    // dphi appears in the construction of the boundary conditions because it
+    // indirectly represents a change in mass on the domain (the mass motion that
+    // occurs on the fine grid, whose gravitational effects are now indirectly
+    // being propagated to the coarse grid).
+
+    // We will temporarily leave the RHS divided by (4 * pi * G) because that
+    // is the form expected by the boundary condition routine.
+
+    PArray<MultiFab> rhs(nlevs, PArrayManage);
+
+    for (int lev = crse_level; lev <= fine_level; ++lev) {
+	rhs.set(lev - crse_level, new MultiFab(LevelData[lev].boxArray(), 1, 0));
+	MultiFab::Copy(rhs[lev - crse_level], dphi[lev - crse_level], 0, 0, 1, 0);
+	rhs[lev - crse_level].mult(1.0 / Ggravity);
+	MultiFab::Add(rhs[lev - crse_level], drho[lev - crse_level], 0, 0, 1, 0);
+    }
+
     // Construct the boundary conditions for the Poisson solve.
 
     if (crse_level == 0 && !crse_geom.isAllPeriodic()) {
@@ -592,34 +610,28 @@ Gravity::gravity_sync (int crse_level, int fine_level, const PArray<MultiFab>& d
 
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
-        fill_direct_sum_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
+        fill_direct_sum_BCs(crse_level,fine_level,rhs,delta_phi[crse_level]);
       else {
-        fill_multipole_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
+        fill_multipole_BCs(crse_level,fine_level,rhs,delta_phi[crse_level]);
       }
 #elif (BL_SPACEDIM == 2)
       if (lnum > 0) {
-	fill_multipole_BCs(crse_level,fine_level,drho,delta_phi[crse_level]);
+	fill_multipole_BCs(crse_level,fine_level,rhs,delta_phi[crse_level]);
       } else {
 	int fill_interior = 0;
-	make_radial_phi(crse_level,drho[0],delta_phi[crse_level],fill_interior);
+	make_radial_phi(crse_level,rhs[0],delta_phi[crse_level],fill_interior);
       }
 #else
       int fill_interior = 0;
-      make_radial_phi(crse_level,drho[0],delta_phi[crse_level],fill_interior);
+      make_radial_phi(crse_level,rhs[0],delta_phi[crse_level],fill_interior);
 #endif
 
     }
 
-    // Construct a container for the right-hand-side (4 * pi * G * drho + dphi).
+    // Restore the factor of (4 * pi * G) for the Poisson solve.
 
-    PArray<MultiFab> rhs(nlevs, PArrayManage);
-
-    for (int lev = crse_level; lev <= fine_level; ++lev) {
-	rhs.set(lev - crse_level, new MultiFab(LevelData[lev].boxArray(), 1, 0));
-	MultiFab::Copy(rhs[lev - crse_level], drho[lev - crse_level], 0, 0, 1, 0);
+    for (int lev = crse_level; lev <= fine_level; ++lev)
 	rhs[lev - crse_level].mult(Ggravity);
-	MultiFab::Add(rhs[lev - crse_level], dphi[lev - crse_level], 0, 0, 1, 0);
-    }
 
     // In the all-periodic case we enforce that the RHS sums to zero.
     // We only do this if we're periodic and the coarse level covers the whole domain.
