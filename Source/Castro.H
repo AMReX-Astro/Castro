@@ -725,15 +725,6 @@ protected:
 
     static Real getCPUTime();
 
-#ifdef DIFFUSION
-    static int       diffuse_temp;
-    static int       diffuse_enth;
-    static int       diffuse_spec;
-    static int       diffuse_vel;
-    static Real      diffuse_cutoff_density;
-#endif
-
-
 #ifdef PARTICLES
     static int       do_tracer_particles;
 #endif

@@ -63,8 +63,6 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
 
-  real(rt)        , save :: diffuse_cutoff_density
-
   character(len=:), allocatable :: gravity_type
 
   ! these flags are for interpreting the EXT_DIR BCs

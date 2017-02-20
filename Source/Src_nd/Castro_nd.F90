@@ -350,8 +350,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef SHOCK_VAR
      Shock, &
 #endif
-     gravity_type_in, gravity_type_len, &
-     diffuse_cutoff_density_in) &
+     gravity_type_in, gravity_type_len) &
      bind(C, name="set_method_params")
 
   use meth_params_module
@@ -375,7 +374,6 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
-  real(rt)        , intent(in) :: diffuse_cutoff_density_in
   integer :: iadv, ispec
 
   integer :: QLAST
@@ -573,8 +571,6 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   do i = 1, gravity_type_len
      gravity_type(i:i) = char(gravity_type_in(i))
   enddo
-
-  diffuse_cutoff_density       = diffuse_cutoff_density_in
 
 #ifdef ROTATION
   rot_vec = ZERO

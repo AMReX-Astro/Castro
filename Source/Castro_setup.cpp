@@ -222,9 +222,6 @@ Castro::variableSetUp ()
 
   const Real run_strt = ParallelDescriptor::second() ;
 
-#ifndef DIFFUSION
-  static Real diffuse_cutoff_density = -1.e200;
-#endif
 
   // we want const_grav in F90, get it here from parmparse, since it
   // it not in the Castro namespace
@@ -250,8 +247,7 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		    Shock,
 #endif
-		    gravity_type_name.dataPtr(), gravity_type_length,
-		    diffuse_cutoff_density);
+		    gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
 
