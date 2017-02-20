@@ -80,6 +80,21 @@ Real        Castro::react_T_max = 1.e200;
 Real        Castro::react_rho_min = 0.0;
 Real        Castro::react_rho_max = 1.e200;
 int         Castro::disable_shock_burning = 0;
+#ifdef DIFFUSION
+int         Castro::diffuse_temp = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_enth = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_spec = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_vel = 0;
+#endif
+#ifdef DIFFUSION
+Real        Castro::diffuse_cutoff_density = -1.e200;
+#endif
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;

@@ -117,6 +117,52 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  diffusion
+ parameters]{castro :  diffusion
+ parameters} \label{table: castro :  diffusion
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{diffuse\_cutoff\_density}{castro} &  set a cutoff density for diffusion -- we zero the term out below this density & -1.e200 \\
+\runparamNS{diffuse\_enth}{castro} &  enable enthalpy diffusion & 0 \\
+\rowcolor{tableShade}
+\runparamNS{diffuse\_spec}{castro} &  enable species diffusion & 0 \\
+\runparamNS{diffuse\_temp}{castro} &  enable thermal diffusion & 0 \\
+\rowcolor{tableShade}
+\runparamNS{diffuse\_vel}{castro} &  enable velocity diffusion & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
 \caption[castro :  embiggening
  parameters]{castro :  embiggening
  parameters} \label{table: castro :  embiggening

@@ -146,10 +146,12 @@ contains
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
-             ! Note that we want to update the total energy by taking the difference of the old
-             ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,
-             ! this reset should be enforced through an appropriate choice for the dual energy 
-             ! formalism parameter dual_energy_eta2 in reset_internal_energy.
+             ! Note that we want to update the total energy by taking
+             ! the difference of the old rho*e and the new rho*e. If
+             ! the user wants to ensure that rho * E = rho * e + rho *
+             ! K, this reset should be enforced through an appropriate
+             ! choice for the dual energy formalism parameter
+             ! dual_energy_eta2 in reset_internal_energy.
 
              delta_e     = burn_state_out % e - burn_state_in % e
              delta_rho_e = burn_state_out % rho * delta_e

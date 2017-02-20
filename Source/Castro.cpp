@@ -100,12 +100,6 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 // the diffusion object
 Diffusion*    Castro::diffusion  = 0;
-
-int           Castro::diffuse_temp = 0;
-int           Castro::diffuse_enth = 0;
-int           Castro::diffuse_spec = 0;
-int           Castro::diffuse_vel = 0;
-Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
 #ifdef RADIATION
@@ -294,13 +288,6 @@ Castro::read_params ()
 #endif
 
 
-#ifdef DIFFUSION
-    pp.query("diffuse_temp",diffuse_temp);
-    pp.query("diffuse_enth",diffuse_enth);
-    pp.query("diffuse_spec",diffuse_spec);
-    pp.query("diffuse_vel",diffuse_vel);
-    pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
-#endif
 
     // sanity checks
 
