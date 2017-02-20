@@ -94,7 +94,7 @@ where the density rapidly drops and the mean free path becomes
 large.  In those instances, you should use the flux limited diffusion
 module in Castro to evolve a radiation field.  However, if your
 interest is only on the diffusion in the interior, you can use
-the {\tt castro.diff\_cutoff\_density} parameter to specify a density,
+the \runparam{castro.diffuse\_cutoff\_density} parameter to specify a density,
 below which, diffusion is not modeled.  This is implemented in the
 code by zeroing out the conductivity and skipping the estimation
 of the timestep limit in these zones.
