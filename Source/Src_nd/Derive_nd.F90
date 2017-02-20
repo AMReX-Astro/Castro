@@ -1144,6 +1144,144 @@ contains
     enddo
 
   end subroutine ca_dercond
+
+
+  subroutine ca_derdiffcoeff(diff,u_lo,u_hi,nd, &
+                             state,d_lo,d_hi,nc, &
+                             lo,hi,domlo,domhi,delta, &
+                             xlo,time,dt,bc,level,grid_no) &
+                             bind(C, name="ca_derdiffcoeff")
+    !
+    ! This routine will calculate the thermal conductivity
+    !
+
+    use bl_constants_module
+    use meth_params_module, only: diffuse_cutoff_density, &
+                                  URHO, UEINT, UTEMP, UFS, UFX
+    use eos_type_module
+    use eos_module
+    use network
+    use conductivity_module
+
+    use bl_fort_module, only : rt => c_real
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
+    real(rt)         :: coeff
+    integer          :: i, j, k
+
+    type(eos_t) :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             eos_state%rho    = state(i,j,k,URHO)
+             eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
+             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
+             call eos(eos_input_re,eos_state)
+
+             if (eos_state%rho > diffuse_cutoff_density) then
+                call thermal_conductivity(eos_state, coeff)
+             else
+                coeff = ZERO
+             endif
+
+             diff(i,j,k,1) = coeff/(eos_state%rho * eos_state%cv)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_derdiffcoeff
+
+
+  subroutine ca_derdiffterm(diff,u_lo,u_hi,nd, &
+                            state,d_lo,d_hi,nc, &
+                            lo,hi,domlo,domhi,delta, &
+                            xlo,time,dt,bc,level,grid_no) &
+                            bind(C, name="ca_derdiffterm")
+    !
+    ! This routine will calculate the thermal conductivity
+    !
+
+    use bl_constants_module
+    use meth_params_module, only: UTEMP
+    use prob_params_module, only: dim
+    use diffusion_module
+    
+    use bl_fort_module, only : rt => c_real
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
+    real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
+    real(rt) :: diff_term
+    integer          :: i, j, k
+
+
+    ! allocate space for edge-centered conductivities
+    allocate(coeff_x(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
+    allocate(coeff_y(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
+    allocate(coeff_z(d_lo(1):d_hi(1), d_lo(2):d_hi(2), d_lo(3):d_hi(3)))
+
+    call ca_fill_temp_cond(lo, hi, &
+                           state, d_lo, d_hi, &
+                           coeff_x, d_lo, d_hi, &
+                           coeff_y, d_lo, d_hi, &
+                           coeff_z, d_lo, d_hi)
+
+    ! create the diff term
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! x
+             diff_term = &
+                  coeff_x(i+1,j,k)*(state(i+1,j,k,UTEMP) - state(i,  j,k,UTEMP))/delta(1) - &
+                  coeff_x(i  ,j,k)*(state(i  ,j,k,UTEMP) - state(i-1,j,k,UTEMP))/delta(1)
+
+             ! y
+             if (dim >= 2) then
+                diff_term = diff_term + &
+                     coeff_y(i,j+1,k)*(state(i,j+1,k,UTEMP) - state(i,j  ,k,UTEMP))/delta(2) - &
+                     coeff_y(i,j  ,k)*(state(i,j,  k,UTEMP) - state(i,j-1,k,UTEMP))/delta(2)
+             endif
+             
+             ! z
+             if (dim == 3) then
+                diff_term = diff_term + &
+                     coeff_z(i,j,k+1)*(state(i,j,k+1,UTEMP) - state(i,j,k  ,UTEMP))/delta(3) - &
+                     coeff_z(i,j,k  )*(state(i,j,k  ,UTEMP) - state(i,j,k-1,UTEMP))/delta(3)
+             endif
+
+             diff(i,j,k,1) = diff_term
+
+          enddo
+       enddo
+    enddo
+
+    deallocate(coeff_x, coeff_y, coeff_z)
+    
+  end subroutine ca_derdiffterm
+  
 #endif
 
 

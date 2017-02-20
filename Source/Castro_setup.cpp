@@ -675,12 +675,28 @@ Castro::variableSetUp ()
   derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
 
 #ifdef DIFFUSION
-  //
-  // thermal conductivity (k_th)
-  //
   if (diffuse_temp) {
-    derive_lst.add("thermal_conductivity",IndexType::TheCellType(),1,ca_dercond,the_same_box);
-    derive_lst.addComponent("thermal_conductivity",desc_lst,State_Type,Density,NUM_STATE);
+    //
+    // thermal conductivity (k_th)
+    //
+    derive_lst.add("thermal_cond",IndexType::TheCellType(),1,ca_dercond,the_same_box);
+    derive_lst.addComponent("thermal_cond",desc_lst,State_Type,Density,NUM_STATE);
+
+
+    //
+    // thermal diffusivity (k_th/(rho c_v))
+    //    
+    derive_lst.add("diff_coeff",IndexType::TheCellType(),1,ca_derdiffcoeff,the_same_box);
+    derive_lst.addComponent("diff_coeff",desc_lst,State_Type,Density,NUM_STATE);
+
+
+    //
+    // diffusion term (the divergence of thermal flux)
+    //    
+    derive_lst.add("diff_term",IndexType::TheCellType(),1,ca_derdiffterm,grow_box_by_one);
+    derive_lst.addComponent("diff_term",desc_lst,State_Type,Density,NUM_STATE);
+    
+
   }
 #endif
 
