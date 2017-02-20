@@ -511,78 +511,42 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     }
 
-    // Store the fluxes in the flux registers. In the old method,
-    // we just store the current level's fluxes; in the new method,
-    // we need to add the contribution from all coarser levels.
-    // Note that in the new method we only want to update the flux
-    // registers on the finest level for consistency purposes,
-    // so we'll skip the loop on coarser levels.
+    // Store the fluxes in the flux registers.
 
-    if (do_reflux && level > 0) {
-
-	int fine_level = level;
-	int crse_level = level - 1;
-
-	if (reflux_strategy == 1) {
-	    if (level == parent->finestLevel())
-		crse_level = 0;
-	    else
-		crse_level = fine_level+1;
-	}
+    if (do_reflux) {
 
 	FluxRegister* reg;
 
-	// For all of the following, we only add the coarse fluxes in the first
-	// subcycled timestep. This is mainly so we can update the coarse fluxes
-	// MultiFab in later subcycles without affecting what happens here.
-
-	for (int lev = fine_level; lev > crse_level; --lev) {
-
-	    reg = &getLevel(lev).flux_reg;
-
-	    Castro& crse_lev = getLevel(lev-1);
-	    Castro& fine_lev = getLevel(lev);
-
-	    bool update_coarse_fluxes;
-
-	    update_coarse_fluxes = true;
-	    for (int temp_lev = lev; temp_lev <= fine_level; ++temp_lev)
-		if (getLevel(temp_lev).iteration > 1)
-		    update_coarse_fluxes = false;
-
-	    for (int i = 0; i < BL_SPACEDIM; ++i) {
-		if (update_coarse_fluxes)
-		    reg->CrseInit(crse_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_crse_scale);
-		reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, getLevel(lev).flux_fine_scale);
-	    }
+	for (int i = 0; i < BL_SPACEDIM; ++i) {
+	    if (level < parent->finestLevel())
+		getLevel(level+1).flux_reg.CrseInit(fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+	    if (level > 0)
+	        getLevel(level).flux_reg.FineAdd(fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+	}
 
 #if (BL_SPACEDIM <= 2)
-	    if (!Geometry::IsCartesian()) {
+	if (!Geometry::IsCartesian()) {
 
-		reg = &getLevel(lev).pres_reg;
+	    if (level < parent->finestLevel())
+		getLevel(level+1).pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+	    if (level > 0)
+		getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
 
-		if (update_coarse_fluxes)
-		    reg->CrseInit(crse_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_crse_scale);
-		reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, getLevel(lev).pres_fine_scale);
-
-	    }
+	}
 #endif
 
 #ifdef RADIATION
-	    if (Radiation::rad_hydro_combined) {
+	if (Radiation::rad_hydro_combined) {
 
-		reg = &getLevel(lev).rad_flux_reg;
-
-		for (int i = 0; i < BL_SPACEDIM; ++i) {
-		    if (update_coarse_fluxes)
-			reg->CrseInit(crse_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_crse_scale);
-		    reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, getLevel(lev).flux_fine_scale);
-		}
-
+	    for (int i = 0; i < BL_SPACEDIM; ++i) {
+		if (level < parent->finestLevel())
+		    getLevel(level+1).rad_flux_reg.CrseInit(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+		if (level > 0)
+		    getLevel(level).rad_flux_reg.FineAdd(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
 	    }
-#endif
 
 	}
+#endif
 
     }
 

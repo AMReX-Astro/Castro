@@ -667,103 +667,35 @@ Castro::initMFs()
 
     }
 
-    // Update the flux register scalings, only if we're on the finest level
-    // since that is what sets the scale for reflux_strategy == 1.
-    // The scaling depends on when we're refluxing. We always want
-    // to reflux with the full value of the fine fluxes on the fine level, but the
-    // contribution from the coarse fluxes depends on where we're at in the
-    // subcycling. For example, if we have two subcycles per coarse timestep on
-    // this level, and we're still in the first iteration, then we only want the
-    // coarse grid to contribute 1/2 of its total flux, leaving the other half
-    // for the next iteration.
+    // Set the flux register scalings.
 
-    if (do_reflux && level == parent->finestLevel()) {
+    if (do_reflux) {
 
-	if (reflux_strategy == 1) {
+	flux_crse_scale = -1.0;
+	flux_fine_scale = 1.0;
 
-	    // In this mode, we reflux on each timestep on the finest level, so
-	    // we can use the crse_ratio to know how many fine timesteps there
-	    // are per coarse timestep.
+	// The fine pressure scaling depends on dimensionality,
+	// as the dimensionality determines the number of
+	// adjacent zones. In 1D the face is a point so
+	// there's only one fine neighbor for a given coarse
+	// face; in 2D there's crse_ratio[1] faces adjacent
+	// to a face perpendicular to the radial dimension;
+	// and in 3D there would be crse_ratio**2, though
+	// we do not separate the pressure out in 3D. Note
+	// that the scaling by dt has already been handled
+	// in the construction of the P_radial array.
 
-	    flux_crse_scale = -1.0 / crse_ratio[0];
-	    flux_fine_scale = 1.0;
+	// The coarse pressure scaling is the same as for the
+	// fluxes, we want the total refluxing contribution
+	// over the full set of fine timesteps to equal P_radial.
 
-	    // Now set the scaling for the level below us. All other levels will be done
-	    // in a general loop below; we cannot fuse this one because getLevel() will not
-	    // return a result for this level until after the Castro constructor completes.
-
-	    if (level > 1) {
-
-		getLevel(level-1).flux_crse_scale = flux_crse_scale / getLevel(level-1).crse_ratio[0];
-		getLevel(level-1).flux_fine_scale = flux_fine_scale / getLevel(level-1).fine_ratio[0];
-
-	    }
-
-	    for (int lev = level - 2; lev > 0; --lev) {
-
-		// Note that we're arbitrarily using the first component of ref_ratio, on the
-		// assumption that the refinement is equal in all dimensions.
-
-		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev).crse_ratio[0];
-		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev).fine_ratio[0];
-
-	    }
-
-	    // The fine pressure scaling depends on dimensionality,
-	    // as the dimensionality determines the number of
-	    // adjacent zones. In 1D the face is a point so
-	    // there's only one fine neighbor for a given coarse
-	    // face; in 2D there's crse_ratio[1] faces adjacent
-	    // to a face perpendicular to the radial dimension;
-	    // and in 3D there would be crse_ratio**2, though
-	    // we do not separate the pressure out in 3D. Note
-	    // that the scaling by dt has already been handled
-	    // in the construction of the P_radial array.
-
-	    // The coarse pressure scaling is the same as for the
-	    // fluxes, we want the total refluxing contribution
-	    // over the full set of fine timesteps to equal P_radial.
-
-#if (BL_SPACEDIM <= 2)
-	    pres_crse_scale = flux_crse_scale;
-	    pres_fine_scale = flux_fine_scale / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-		getLevel(lev).pres_crse_scale = getLevel(lev).flux_crse_scale;
-		getLevel(lev).pres_fine_scale = getLevel(lev).flux_fine_scale / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
-	    }
+#if (BL_SPACEDIM == 1)
+	pres_crse_scale = 1.0;
+	pres_fine_scale = 1.0;
+#elif (BL_SPACEDIM == 2)
+	pres_crse_scale = 1.0;
+	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
-
-	}
-	else if (reflux_strategy == 2) {
-
-	    // In this mode, we reflux at the end of the coarse timestep after
-	    // all fine level timesteps have passed, so we want the full contribution
-	    // from each set of fluxes.
-
-	    flux_crse_scale = -1.0;
-	    flux_fine_scale = 1.0;
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-		getLevel(lev).flux_crse_scale = -1.0;
-		getLevel(lev).flux_fine_scale = 1.0;
-	    }
-
-#if (BL_SPACEDIM <= 2)
-	    pres_crse_scale = 1.0;
-	    pres_fine_scale = 1.0 / std::pow(crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-		getLevel(lev).pres_crse_scale = 1.0;
-		getLevel(lev).pres_fine_scale = 1.0 / std::pow(getLevel(lev).crse_ratio[BL_SPACEDIM-1], BL_SPACEDIM-1);
-	    }
-#endif
-
-	}
-	else {
-	    BoxLib::Abort("Unknown reflux_strategy.");
-	}
-
 
     }
 
@@ -1524,18 +1456,11 @@ Castro::post_timestep (int iteration)
     }
 #endif
 
-    // Now do the refluxing. Note that for reflux_strategy == 1 this is
-    // correcting the flux mismatch on all levels below this one simultaneously,
-    // while for reflux_strategy == 2, this is only correcting the mismatch on
-    // this level and the one immediately below it. If we're using gravity it
+    // Now do the refluxing. If we're using gravity it
     // will also do the sync solve associated with the reflux.
 
-    if (do_reflux) {
-	if (reflux_strategy == 1 && level == parent->finestLevel() && level > 0)
-	    reflux(0, level);
-	else if (reflux_strategy == 2 && level < parent->finestLevel())
-	    reflux(level, level+1);
-    }
+    if (do_reflux && level < parent->finestLevel())
+	reflux(level, level+1);
 
     // Ensure consistency with finer grids.
 
@@ -2128,14 +2053,9 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-	// Subtract out the fine part of the flux register; it's no longer needed.
-	// This assumes that we always initialize the coarse fluxes only once
-	// at the first AMR iteration. We do it this way so that we can modify
-	// the fluxes above without worrying about a modification to the fluxes
-	// MultiFab on the coarse domain affecting later refluxes.
+	// We no longer need the flux register data, so clear it out.
 
-	for (int i = 0; i < BL_SPACEDIM; ++i)
-	    reg->FineAdd(fine_lev.fluxes[i], i, 0, 0, NUM_STATE, -getLevel(lev).flux_fine_scale);
+	reg->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
@@ -2171,7 +2091,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, -getLevel(lev).pres_fine_scale);
+	    reg->setVal(0.0);
 
 	}
 #endif
@@ -2206,8 +2126,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    for (int i = 0; i < BL_SPACEDIM; ++i)
-		reg->FineAdd(fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
+	    reg->setVal(0.0);
 
 	}
 

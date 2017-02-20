@@ -44,12 +44,10 @@
 \runparamNS{do\_reflux}{castro} &  do we do the hyperbolic reflux at coarse-fine interfaces? & 1 \\
 \runparamNS{lin\_limit\_state\_interp}{castro} &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
 \rowcolor{tableShade}
-\runparamNS{reflux\_strategy}{castro} &  refluxing strategy. Ordered in descending level of accuracy and descending computational expense. 1 = reflux during every finest level timestep 2 = reflux at the end of every timestep on every level & 2 \\
 \runparamNS{state\_interp\_order}{castro} &  highest order used in interpolation & 1 \\
-\rowcolor{tableShade}
 \runparamNS{state\_nghost}{castro} &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
-\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
 \rowcolor{tableShade}
+\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
 \runparamNS{use\_custom\_knapsack\_weights}{castro} &  should we have state data for custom load-balancing weighting? & 0 \\
 
 
