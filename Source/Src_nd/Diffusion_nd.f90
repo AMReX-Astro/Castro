@@ -342,7 +342,6 @@ contains
              else
                 cond = ZERO
              endif
-
              coef_cc(i,j,k) = cond
           enddo
        enddo
