@@ -5,7 +5,7 @@
 Castro incorporates explicit thermal diffusion into the energy equation.  
 In terms of the specific internal energy, $e$, this appears as:
 \begin{equation}
-\rho \frac{De}{Dt} + p \nabla \cdot U = \nabla \cdot \kth \nabla T
+\rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot \kth \nabla T
 \end{equation}
 where $\kth$ is the thermal conductivity, with units
 $\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}$.
@@ -13,7 +13,7 @@ $\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}$.
 To see the similarity to the thermal diffusion equation, consider the special
 case of constant conductivity, $\kth$, and density, and assume an
 ideal gas, so $e = c_v T$, where $c_v$ is the specific heat at constant volume.
-Finally, ignore hydrodynamics, so $U = 0$.  This gives:
+Finally, ignore hydrodynamics, so $\ub = 0$.  This gives:
 \begin{equation}
 \frac{\partial T}{\partial t} = D \nabla^2 T
 \end{equation}
