@@ -222,9 +222,6 @@ Castro::variableSetUp ()
 
   const Real run_strt = ParallelDescriptor::second() ;
 
-#ifndef DIFFUSION
-  static Real diffuse_cutoff_density = -1.e200;
-#endif
 
   // we want const_grav in F90, get it here from parmparse, since it
   // it not in the Castro namespace
@@ -250,8 +247,7 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		    Shock,
 #endif
-		    gravity_type_name.dataPtr(), gravity_type_length,
-		    diffuse_cutoff_density);
+		    gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
 
@@ -677,6 +673,16 @@ Castro::variableSetUp ()
   //
   derive_lst.add("entropy",IndexType::TheCellType(),1,ca_derentropy,the_same_box);
   derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
+
+#ifdef DIFFUSION
+  //
+  // thermal conductivity (k_th)
+  //
+  if (diffuse_temp) {
+    derive_lst.add("thermal_conductivity",IndexType::TheCellType(),1,ca_dercond,the_same_box);
+    derive_lst.addComponent("thermal_conductivity",desc_lst,State_Type,Density,NUM_STATE);
+  }
+#endif
 
   //
   // Vorticity

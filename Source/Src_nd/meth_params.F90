@@ -68,8 +68,6 @@ module meth_params_module
   logical         , save :: outflow_data_allocated
   real(rt)        , save :: max_dist
 
-  real(rt)        , save :: diffuse_cutoff_density
-
   character(len=:), allocatable :: gravity_type
 
   ! these flags are for interpreting the EXT_DIR BCs
@@ -155,6 +153,7 @@ module meth_params_module
   real(rt), save :: react_rho_min
   real(rt), save :: react_rho_max
   integer         , save :: disable_shock_burning
+  real(rt), save :: diffuse_cutoff_density
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
@@ -191,13 +190,13 @@ module meth_params_module
   !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
   !$acc create(dxnuc, do_react, react_T_min) &
   !$acc create(react_T_max, react_rho_min, react_rho_max) &
-  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
-  !$acc create(do_acc, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(disable_shock_burning, diffuse_cutoff_density, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -271,6 +270,7 @@ contains
     react_rho_min = 0.0d0;
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
+    diffuse_cutoff_density = -1.d200;
     do_grav = -1;
     grav_source_type = 4;
     do_rotation = -1;
@@ -345,6 +345,9 @@ contains
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
+#ifdef DIFFUSION
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+#endif
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
@@ -403,13 +406,13 @@ contains
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
     !$acc device(dxnuc, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(disable_shock_burning, diffuse_cutoff_density, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags

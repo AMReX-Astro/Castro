@@ -80,6 +80,21 @@ static Real react_T_max;
 static Real react_rho_min;
 static Real react_rho_max;
 static int disable_shock_burning;
+#ifdef DIFFUSION
+static int diffuse_temp;
+#endif
+#ifdef DIFFUSION
+static int diffuse_enth;
+#endif
+#ifdef DIFFUSION
+static int diffuse_spec;
+#endif
+#ifdef DIFFUSION
+static int diffuse_vel;
+#endif
+#ifdef DIFFUSION
+static Real diffuse_cutoff_density;
+#endif
 static int do_grav;
 static int moving_center;
 static int grav_source_type;

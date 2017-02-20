@@ -326,6 +326,26 @@ react_rho_max                Real          1.e200             y
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0                  y
 
+
+#-----------------------------------------------------------------------------
+# category: diffusion
+#-----------------------------------------------------------------------------
+
+# enable thermal diffusion
+diffuse_temp                 int           0                  n     DIFFUSION
+
+# enable enthalpy diffusion
+diffuse_enth                 int           0                  n     DIFFUSION
+
+# enable species diffusion
+diffuse_spec                 int           0                  n     DIFFUSION
+
+# enable velocity diffusion
+diffuse_vel                  int           0                  n     DIFFUSION
+
+# set a cutoff density for diffusion -- we zero the term out below this density
+diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
+
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
 #-----------------------------------------------------------------------------

@@ -12,7 +12,7 @@ f90EXE_sources += interpolate.f90
 
 f90EXE_sources += sums_nd.f90
 F90EXE_sources += timestep.F90
-f90EXE_sources += Derive_nd.f90
+F90EXE_sources += Derive_nd.F90
 f90EXE_sources += problem_derive_nd.f90
 F90EXE_sources += sponge_nd.F90
 f90EXE_sources += riemann_util.f90
