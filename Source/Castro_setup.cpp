@@ -674,6 +674,14 @@ Castro::variableSetUp ()
   derive_lst.add("entropy",IndexType::TheCellType(),1,ca_derentropy,the_same_box);
   derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
 
+#ifdef DIFFUSION
+  //
+  // thermal conductivity (k_th)
+  //
+  derive_lst.add("thermal_conductivity",IndexType::TheCellType(),1,ca_dercond,the_same_box);
+  derive_lst.addComponent("thermal_conductivity",desc_lst,State_Type,Density,NUM_STATE);
+#endif
+
   //
   // Vorticity
   //

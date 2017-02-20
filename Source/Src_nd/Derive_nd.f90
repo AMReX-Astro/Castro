@@ -1061,7 +1061,7 @@ contains
 
 
 
-  subroutine ca_dernull(kineng,k_lo,k_hi,nk, &
+  subroutine ca_dernull(dnull,k_lo,k_hi,nk, &
                         dat,d_lo,d_hi,nc, &
                         lo,hi,domlo,domhi,delta, &
                         xlo,time,dt,bc,level,grid_no) &
@@ -1078,10 +1078,73 @@ contains
     integer          :: domlo(3), domhi(3)
     integer          :: bc(3,2,nc)
     real(rt)         :: delta(3), xlo(3), time, dt
-    real(rt)         :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+    real(rt)         :: dnull(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
     real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
   end subroutine ca_dernull
+
+
+#ifdef DIFFUSION
+  subroutine ca_dercond(cond,u_lo,u_hi,nd, &
+                        state,d_lo,d_hi,nc, &
+                        lo,hi,domlo,domhi,delta, &
+                        xlo,time,dt,bc,level,grid_no) &
+                        bind(C, name="ca_dercond")
+    !
+    ! This routine will calculate the thermal conductivity
+    !
+
+    use bl_constants_module
+    use meth_params_module, only: diffuse_cutoff_density, &
+                                  URHO, UEINT, UTEMP, UFS, UFX
+    use eos_type_module
+    use eos_module
+    use network
+    use conductivity_module
+
+    use bl_fort_module, only : rt => c_real
+    implicit none
+
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
+    real(rt)         :: coeff
+    integer          :: i, j, k
+
+    type(eos_t) :: eos_state
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             eos_state%rho    = state(i,j,k,URHO)
+             eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
+             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
+             call eos(eos_input_re,eos_state)
+
+             if (eos_state%rho > diffuse_cutoff_density) then
+                call thermal_conductivity(eos_state, coeff)
+             else
+                coeff = ZERO
+             endif
+
+             cond(i,j,k,1) = coeff
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_dercond
+#endif
+
 
 end module derive_module
