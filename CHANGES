@@ -3,6 +3,10 @@
   -- the new refluxing method introduced in 16.11 has been removed,
      as it was determined to not provide any benefit in accuracy.
 
+  -- new derived plot variables are available when using thermal
+     diffusion, including the conductivity, diffusion coefficient, and
+     the entire diffusion term to the energy equation.  (issue #104)
+
 # 17.02
 
   -- diagnostic information about how source terms update the state
