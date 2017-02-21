@@ -197,7 +197,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     // solve then subtract off the (composite - level) contribution, as it
     // interferes with the sync solve.
 
-    if (gravity->NoComposite() == 0 && level < parent->finestLevel()) {
+    if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() == 0 && level < parent->finestLevel()) {
 
 	if (gravity->NoSync() == 0) {
 
@@ -214,8 +214,6 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	comp_minus_level_grad_phi.clear();
 
     }
-
-
 
 }
 
