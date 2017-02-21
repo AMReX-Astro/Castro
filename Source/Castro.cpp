@@ -456,6 +456,14 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
+#ifdef SELF_GRAVITY
+      if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
+      {
+	  std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
+	  BoxLib::Error();
+      }
+#endif
+
        // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
        // ghost cells because they are only multiplying them by a zero coefficient.
        MultiFab& phi_new = get_new_data(PhiGrav_Type);
