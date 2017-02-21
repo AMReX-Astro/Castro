@@ -168,15 +168,11 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	    // if we are not doing a sync solve, then we still get the difference
 	    // between the composite and level solves added to the force we
 	    // calculate, so it is slightly more accurate than it would have been.
-	    // If we are doing the sync solve, it should make that faster.
 
 	    phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-	    gravity->plus_grad_phi_curr(level, comp_minus_level_grad_phi);
 
-	    // We can clear this memory, we no longer need it.
-
-	    comp_minus_level_phi.clear();
-	    comp_minus_level_grad_phi.clear();
+	    for (int n = 0; n < BL_SPACEDIM; ++n)
+		gravity->get_grad_phi_curr(level)[n].plus(comp_minus_level_grad_phi[n], 0, 1, 0);
 
 	    if (gravity->test_results_of_solves() == 1) {
 
@@ -196,6 +192,30 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     // Define new gravity vector.
 
     gravity->get_new_grav_vector(level, grav_new, time);
+
+    // Now that we have calculated the force, if we are going to do a sync
+    // solve then subtract off the (composite - level) contribution, as it
+    // interferes with the sync solve.
+
+    if (gravity->NoComposite() == 0 && level < parent->finestLevel()) {
+
+	if (gravity->NoSync() == 0) {
+
+	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+
+	    for (int n = 0; n < BL_SPACEDIM; ++n)
+		gravity->get_grad_phi_curr(level)[n].minus(comp_minus_level_grad_phi[n], 0, 1, 0);
+
+	}
+
+	// In any event we can now clear this memory, as we no longer need it.
+
+	comp_minus_level_phi.clear();
+	comp_minus_level_grad_phi.clear();
+
+    }
+
+
 
 }
 
