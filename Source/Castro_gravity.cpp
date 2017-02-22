@@ -216,12 +216,15 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
     }
 
 }
+#endif
 
 void Castro::construct_old_gravity_source(Real time, Real dt)
 {
 
+#ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& grav_old = get_old_data(Gravity_Type);
+#endif
 
     old_sources[grav_src].setVal(0.0);
 
@@ -242,11 +245,12 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
+		BL_TO_FORTRAN_3D(Sborder[mfi]),
+#ifdef SELF_GRAVITY
 		BL_TO_FORTRAN_3D(phi_old[mfi]),
 		BL_TO_FORTRAN_3D(grav_old[mfi]),
-		BL_TO_FORTRAN_3D(Sborder[mfi]),
+#endif
 		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
-		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
 
     }
@@ -258,11 +262,13 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
+#endif
 
     new_sources[grav_src].setVal(0.0);
 
@@ -282,80 +288,22 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 
 	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
+			BL_TO_FORTRAN_3D(S_old[mfi]),
+			BL_TO_FORTRAN_3D(S_new[mfi]),
+#ifdef SELF_GRAVITY
 			BL_TO_FORTRAN_3D(phi_old[mfi]),
 			BL_TO_FORTRAN_3D(phi_new[mfi]),
 			BL_TO_FORTRAN_3D(grav_old[mfi]),
 			BL_TO_FORTRAN_3D(grav_new[mfi]),
-			BL_TO_FORTRAN_3D(S_old[mfi]),
-			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-			ZFILL(dx),dt,&time,
-			BL_TO_FORTRAN_3D(volume[mfi]));
-
-	}
-    }
-
-}
-#else
-// This is the constant gravity version
-void Castro::construct_old_gravity_source(Real time, Real dt)
-{
-    old_sources[grav_src].setVal(0.0);
-
-    if (!do_grav) return;
-
-    // Gravitational source term for the time-level n data.
-
-    const Real* dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
-
-    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
-    {
-	const Box& bx = mfi.growntilebox();
-
-	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		ARLIM_3D(domlo), ARLIM_3D(domhi),
-		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D(old_sources[grav_src][mfi]),
-		BL_TO_FORTRAN_3D(volume[mfi]),
-		ZFILL(dx),dt,&time);
-    }
-}
-
-// This is the constant gravity version
-void Castro::construct_new_gravity_source(Real time, Real dt)
-{
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
-    new_sources[grav_src].setVal(0.0);
-
-    if (!do_grav) return;
-
-    const Real *dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
-
-    {
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	{
-	    const Box& bx = mfi.tilebox();
-
-	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			ARLIM_3D(domlo), ARLIM_3D(domhi),
-			BL_TO_FORTRAN_3D(S_old[mfi]),
-			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
-			ZFILL(dx),dt,&time,
-			BL_TO_FORTRAN_3D(volume[mfi]));
-	}
-    }
-}
 #endif
+			BL_TO_FORTRAN_3D(volume[mfi]),
+			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
+			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
+			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
+			ZFILL(dx),dt,&time);
+
+	}
+    }
+
+}

@@ -1,58 +1,81 @@
 module gravity_sources_module
 
-  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
 
 contains
 
-#ifdef SELF_GRAVITY
-  subroutine ca_gsrc(lo,hi,domlo,domhi,phi,phi_lo,phi_hi,grav,grav_lo,grav_hi, &
+  subroutine ca_gsrc(lo,hi,domlo,domhi, &
                      uold,uold_lo,uold_hi, &
-                     source,src_lo,src_hi,vol,vol_lo,vol_hi, &
+#ifdef SELF_GRAVITY
+                     phi,phi_lo,phi_hi, &
+                     grav,grav_lo,grav_hi, &
+#endif
+                     source,src_lo,src_hi, &
                      dx,dt,time) bind(C, name="ca_gsrc")
 
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
-    use bl_constants_module
+    use bl_fort_module, only: rt => c_real
+    use bl_constants_module, only: ZERO, HALF, ONE
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use math_module, only: cross_product
     use castro_util_module, only: position
+    use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
-    use prob_params_module, only: center
+#ifndef SELF_GRAVITY
+    use meth_params_module, only: const_grav
+    use prob_params_module, only: dim
+#endif
 
-    use bl_fort_module, only : rt => c_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: domlo(3), domhi(3)
-    integer          :: phi_lo(3), phi_hi(3)
-    integer          :: grav_lo(3), grav_hi(3)
-    integer          :: uold_lo(3), uold_hi(3)
-    integer          :: src_lo(3), src_hi(3)
-    integer          :: vol_lo(3), vol_hi(3)
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: uold_lo(3), uold_hi(3)
+#ifdef SELF_GRAVITY
+    integer, intent(in)     :: phi_lo(3), phi_hi(3)
+    integer, intent(in)     :: grav_lo(3), grav_hi(3)
+#endif
+    integer, intent(in)     :: src_lo(3), src_hi(3)
 
-    real(rt)         :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt)         :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
-    real(rt)         :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)         :: dx(3), dt, time
+    real(rt), intent(in)    :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
+#ifdef SELF_GRAVITY
+    real(rt), intent(in)    :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
+    real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
+#endif
+    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(in)    :: dx(3), dt, time
 
-    real(rt)         :: rho, rhoInv
-    real(rt)         :: Sr(3), SrE
-    real(rt)         :: old_ke, new_ke
-    real(rt)         :: loc(3)
+    real(rt) :: rho, rhoInv
+    real(rt) :: Sr(3), SrE
+    real(rt) :: old_ke, new_ke
+    real(rt) :: loc(3)
 
-    integer          :: i, j, k
+    integer  :: i, j, k
 
-    real(rt)         :: src(NVAR)
+    ! Temporary array for holding the update to the state.
+    
+    real(rt) :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    real(rt)         :: snew(NVAR)
+    real(rt) :: snew(NVAR)
+
+    ! Initialize the update and temporary state to zero. We only need to do this once outside
+    ! the loop, since the array access pattern is consistent across loop iterations.
+
+    Sr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
+
+    ! For constant gravity, we can just initialize the gravitational acceleration here.
+
+#ifndef SELF_GRAVITY
+    Sr(dim) = const_grav
+#endif
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -61,10 +84,10 @@ contains
     ! 3: Puts all gravitational work into KE, not (rho e)
     ! 4: Conservative energy formulation
 
-    ! Add gravitational source terms
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
              rho    = uold(i,j,k,URHO)
              rhoInv = ONE / rho
 
@@ -75,7 +98,11 @@ contains
 
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
 
+#ifdef SELF_GRAVITY
              Sr = rho * grav(i,j,k,:)
+#else
+             Sr(dim) = rho * const_grav
+#endif
 
              src(UMX:UMZ) = Sr
 
@@ -112,7 +139,9 @@ contains
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              else
+
                 call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+
              end if
 
              src(UEDEN) = SrE
@@ -134,99 +163,121 @@ contains
   ! :::
 
   subroutine ca_corrgsrc(lo,hi,domlo,domhi, &
+                         uold,uo_lo,uo_hi, &
+                         unew,un_lo,un_hi, &
+#ifdef SELF_GRAVITY
                          pold,po_lo,po_hi, &
                          pnew,pn_lo,pn_hi, &
                          gold,go_lo,go_hi, &
                          gnew,gn_lo,gn_hi, &
-                         uold,uo_lo,uo_hi, &
-                         unew,un_lo,un_hi, &
-                         source,sr_lo,sr_hi, &
+#endif
+                         vol,vol_lo,vol_hi, &
                          flux1,f1_lo,f1_hi, &
                          flux2,f2_lo,f2_hi, &
                          flux3,f3_lo,f3_hi, &
-                         dx,dt,time, &
-                         vol,vol_lo,vol_hi) bind(C, name="ca_corrgsrc")
+                         source,sr_lo,sr_hi, &
+                         dx,dt,time) bind(C, name="ca_corrgsrc")
 
-    use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
-                                   grav_source_type, gravity_type, get_g_from_phi
-    use prob_params_module, only : dg, center
-    use bl_constants_module
-    use multifab_module
+    use bl_fort_module, only: rt => c_real
+    use bl_constants_module, only: ZERO, HALF, ONE
+    use mempool_module, only: bl_allocate, bl_deallocate
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
+                                  grav_source_type, gravity_type, get_g_from_phi
+    use prob_params_module, only: dg, center
     use fundamental_constants_module, only: Gconst
-    use castro_util_module, only : position
+    use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
-    use hybrid_advection_module, only : add_hybrid_momentum_source
+    use hybrid_advection_module, only: add_hybrid_momentum_source
+#endif
+#ifndef SELF_GRAVITY
+    use meth_params_module, only: const_grav
+    use prob_params_module, only: dim
 #endif
 
-    use bl_fort_module, only : rt => c_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: domlo(3), domhi(3)
+    integer, intent(in)     :: lo(3), hi(3)
+    integer, intent(in)     :: domlo(3), domhi(3)
+    integer, intent(in)     :: uo_lo(3), uo_hi(3)
+    integer, intent(in)     :: un_lo(3), un_hi(3)
+#ifdef SELF_GRAVITY
+    integer, intent(in)     :: po_lo(3), po_hi(3)
+    integer, intent(in)     :: pn_lo(3), pn_hi(3)
+    integer, intent(in)     :: go_lo(3), go_hi(3)
+    integer, intent(in)     :: gn_lo(3), gn_hi(3)
+#endif
+    integer, intent(in)     :: vol_lo(3), vol_hi(3)
+    integer, intent(in)     :: f1_lo(3), f1_hi(3)
+    integer, intent(in)     :: f2_lo(3), f2_hi(3)
+    integer, intent(in)     :: f3_lo(3), f3_hi(3)
 
-    integer          :: po_lo(3), po_hi(3)
-    integer          :: pn_lo(3), pn_hi(3)
-    integer          :: go_lo(3), go_hi(3)
-    integer          :: gn_lo(3), gn_hi(3)
-    integer          :: uo_lo(3), uo_hi(3)
-    integer          :: un_lo(3), un_hi(3)
-    integer          :: sr_lo(3), sr_hi(3)
-    integer          :: f1_lo(3), f1_hi(3)
-    integer          :: f2_lo(3), f2_hi(3)
-    integer          :: f3_lo(3), f3_hi(3)
-    integer          :: vol_lo(3), vol_hi(3)
-
-    ! Old and new time gravitational potential
-
-    real(rt)         :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    real(rt)         :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
-
-    ! Old and new time gravitational acceleration
-
-    real(rt)         :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
-    real(rt)         :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
+    integer, intent(in)     :: sr_lo(3), sr_hi(3)
 
     ! Old and new time state data
 
-    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt), intent(in)    :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt), intent(in)    :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
-    ! The source term to send back
+#ifdef SELF_GRAVITY
+    ! Old and new time gravitational potential
 
-    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt), intent(in)    :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt), intent(in)    :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+
+    ! Old and new time gravitational acceleration
+
+    real(rt), intent(in)    :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
+    real(rt), intent(in)    :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
+#endif
+
+    ! Cell volume
+
+    real(rt), intent(in)    :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
     ! Hydrodynamics fluxes
 
-    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt), intent(in)    :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
+    real(rt), intent(in)    :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
+    real(rt), intent(in)    :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
 
-    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)         :: dx(3), dt, time
+    ! The source term to send back
 
-    integer          :: i, j, k
+    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
-    real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3)
-    real(rt)         :: vold(3), vnew(3)
-    real(rt)         :: SrE_old, SrE_new, SrEcorr
-    real(rt)         :: rhoo, rhooinv, rhon, rhoninv
+    real(rt), intent(in)    :: dx(3), dt, time
 
-    real(rt)         :: old_ke, new_ke
-    real(rt)         :: loc(3)
+    integer  :: i, j, k
 
-    real(rt)         :: src(NVAR)
+    real(rt) :: Sr_old(3), Sr_new(3), Srcorr(3)
+    real(rt) :: vold(3), vnew(3)
+    real(rt) :: SrE_old, SrE_new, SrEcorr
+    real(rt) :: rhoo, rhooinv, rhon, rhoninv
+
+    real(rt) :: old_ke, new_ke
+    real(rt) :: loc(3)
+
+    real(rt) :: hdtInv
+
+    real(rt) :: src(NVAR)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
-    real(rt)         :: snew(NVAR)
+    real(rt) :: snew(NVAR)
 
-    real(rt)        , pointer :: phi(:,:,:)
-    real(rt)        , pointer :: grav(:,:,:,:)
-    real(rt)        , pointer :: gravx(:,:,:)
-    real(rt)        , pointer :: gravy(:,:,:)
-    real(rt)        , pointer :: gravz(:,:,:)
+    real(rt), pointer :: phi(:,:,:)
+    real(rt), pointer :: grav(:,:,:,:)
+    real(rt), pointer :: gravx(:,:,:)
+    real(rt), pointer :: gravy(:,:,:)
+    real(rt), pointer :: gravz(:,:,:)
+
+    Sr_old(:) = ZERO
+    Sr_new(:) = ZERO
+    Srcorr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
+
+    hdtInv = HALF / dt
 
     ! Gravitational source options for how to add the work to (rho E):
     ! grav_source_type =
@@ -235,6 +286,7 @@ contains
     ! 3: Puts all gravitational work into KE, not (rho e)
     ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
+#ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
 
        call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
@@ -331,6 +383,7 @@ contains
        endif
 
     endif
+#endif
 
     do k = lo(3),hi(3)
        do j = lo(2),hi(2)
@@ -344,7 +397,6 @@ contains
              rhon    = unew(i,j,k,URHO)
              rhoninv = ONE / unew(i,j,k,URHO)
 
-             src = ZERO
              snew = unew(i,j,k,:)
 
              old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
@@ -353,14 +405,22 @@ contains
 
              vold = uold(i,j,k,UMX:UMZ) * rhooinv
 
+#ifdef SELF_GRAVITY
              Sr_old = rhoo * gold(i,j,k,:)
+#else
+             Sr_old(dim) = rhoo * const_grav
+#endif
              SrE_old = dot_product(vold, Sr_old)
 
              ! Define new source terms
 
              vnew = snew(UMX:UMZ) * rhoninv
 
+#ifdef SELF_GRAVITY
              Sr_new = rhon * gnew(i,j,k,:)
+#else
+             Sr_new(dim) = rhon * const_grav
+#endif
              SrE_new = dot_product(vnew, Sr_new)
 
              ! Define corrections to source terms
@@ -430,14 +490,15 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
+#ifdef SELF_GRAVITY
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
-                   SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                       flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                       flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                       flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                       flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                       flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr - hdtInv * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                  flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                  flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                  flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                  flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                  flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 else
 
@@ -446,14 +507,28 @@ contains
                    ! gravitational acceleration. It relies on the concept that, to second order,
                    ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
 
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
-                                                       flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
-                                                       flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
-                                                       flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
-                                                       flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                                                       flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                                                  flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
+                                                  flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
+                                                  flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
+                                                  flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
+                                                  flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
 
                 endif
+#else
+                ! For constant gravity, the only contribution is from
+
+                if (dim .eq. 1) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * const_grav * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k,URHO) * const_grav * dx(1) ) / vol(i,j,k)
+                else if (dim .eq. 2) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k,URHO) * const_grav * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k,URHO) * const_grav * dx(2) ) / vol(i,j,k) 
+                else if (dim .eq. 3) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ,URHO) * const_grav * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3),URHO) * const_grav * dx(3) ) / vol(i,j,k)
+                end if
+#endif
 
              else
                 call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
@@ -471,6 +546,7 @@ contains
        enddo
     enddo
 
+#ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
        call bl_deallocate(phi)
        call bl_deallocate(grav)
@@ -478,328 +554,8 @@ contains
        call bl_deallocate(gravy)
        call bl_deallocate(gravz)
     endif
+#endif
 
   end subroutine ca_corrgsrc
-
-#else
-
-  subroutine ca_gsrc(lo,hi,domlo,domhi,uold,uold_lo,uold_hi, &
-                     source,src_lo,src_hi,dx,dt,time) bind(C, name="ca_gsrc")
-
-    use prob_params_module, only : dim
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, const_grav
-    use bl_constants_module
-    use math_module, only: cross_product
-#ifdef HYBRID_MOMENTUM
-    use meth_params_module, only: UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
-#endif
-
-    use bl_fort_module, only : rt => c_real
-    implicit none
-
-    integer          :: lo(3), hi(3)
-    integer          :: domlo(3), domhi(3)
-    integer          :: uold_lo(3), uold_hi(3)
-    integer          :: src_lo(3), src_hi(3)
-
-    real(rt)         :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)         :: dx(3), dt, time
-
-    real(rt)         :: rho, rhoInv
-    real(rt)         :: Sr(3), SrE
-    real(rt)         :: old_ke, new_ke
-
-    integer          :: i, j, k
-
-    real(rt)         :: src(NVAR)
-
-    ! Temporary array for seeing what the new state would be if the update were applied here.
-
-    real(rt)         :: snew(NVAR)
-
-    ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type =
-    ! 1: Original version ("does work")
-    ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
-    ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative energy formulation
-
-    ! Add gravitational source terms
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             rho    = uold(i,j,k,URHO)
-             rhoInv = ONE / rho
-
-             src = ZERO
-             snew = uold(i,j,k,:)
-
-             old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-
-             Sr(:)   = 0.e0_rt
-             Sr(dim) = rho * const_grav
-
-             src(UMX:UMZ) = Sr
-
-             snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
-
-#ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
- 
-             snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
-#endif 
-
-             if (grav_source_type == 1 .or. grav_source_type == 2) then
-
-                ! Src = rho u dot g, evaluated with all quantities at t^n
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-             else if (grav_source_type .eq. 3) then
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-                SrE = new_ke - old_ke
-
-             else if (grav_source_type .eq. 4) then
-
-                ! The conservative energy formulation does not strictly require
-                ! any energy source-term here, because it depends only on the
-                ! fluid motions from the hydrodynamical fluxes which we will only
-                ! have when we get to the 'corrector' step. Nevertheless we add a
-                ! predictor energy source term in the way that the other methods
-                ! do, for consistency. We will fully subtract this predictor value
-                ! during the corrector step, so that the final result is correct.
-                ! Here we use the same approach as grav_source_type == 2.
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-             else
-                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-             end if
-
-             src(UEDEN) = SrE
-
-             ! Add to the outgoing source array.
-
-             source(i,j,k,:) = src
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_gsrc
-
-  ! :::
-  ! ::: ------------------------------------------------------------------
-  ! :::
-
-  subroutine ca_corrgsrc(lo,hi,domlo,domhi, &
-                         uold,uo_lo,uo_hi, &
-                         unew,un_lo,un_hi, &
-                         source,sr_lo,sr_hi, &
-                         flux1,f1_lo,f1_hi, &
-                         flux2,f2_lo,f2_hi, &
-                         flux3,f3_lo,f3_hi, &
-                         dx,dt,time, &
-                         vol,vol_lo,vol_hi) bind(C, name="ca_corrgsrc")
-
-    use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, &
-                                   grav_source_type, const_grav
-    use prob_params_module, only : dg, dim
-    use bl_constants_module
-    use multifab_module
-#ifdef HYBRID_MOMENTUM
-    use meth_params_module, only: UMR, UMP
-    use hybrid_advection_module, only : add_hybrid_momentum_source
-#endif
-
-    use bl_fort_module, only : rt => c_real
-    implicit none
-
-    integer          :: lo(3), hi(3)
-    integer          :: domlo(3), domhi(3)
-
-    integer          :: uo_lo(3), uo_hi(3)
-    integer          :: un_lo(3), un_hi(3)
-    integer          :: sr_lo(3), sr_hi(3)
-    integer          :: f1_lo(3), f1_hi(3)
-    integer          :: f2_lo(3), f2_hi(3)
-    integer          :: f3_lo(3), f3_hi(3)
-    integer          :: vol_lo(3), vol_hi(3)
-
-
-    ! Old and new time state data
-
-    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
-
-    ! The source term to send back
-
-    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
-
-    ! Hydrodynamics fluxes
-
-    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
-
-    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)         :: dx(3), dt, time
-
-    integer          :: i, j, k
-
-    real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3)
-    real(rt)         :: vold(3), vnew(3)
-    real(rt)         :: SrE_old, SrE_new, SrEcorr
-    real(rt)         :: rhoo, rhooinv, rhon, rhoninv
-
-    real(rt)         :: old_ke, new_ke
-
-    real(rt)         :: src(NVAR)
-
-    ! Temporary array for seeing what the new state would be if the update were applied here.
-
-    real(rt)         :: snew(NVAR)
-
-    ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type =
-    ! 1: Original version ("does work")
-    ! 2: Modification of type 1 that updates the U before constructing SrEcorr
-    ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
-
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             rhoo    = uold(i,j,k,URHO)
-             rhooinv = ONE / uold(i,j,k,URHO)
-
-             rhon    = unew(i,j,k,URHO)
-             rhoninv = ONE / unew(i,j,k,URHO)
-
-             src = ZERO
-             snew = unew(i,j,k,:)
-
-             old_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-
-             ! Define old source terms
-
-             vold = uold(i,j,k,UMX:UMZ) * rhooinv
-
-             Sr_old(1:3) = 0.e0_rt
-             Sr_old(dim) = rhoo * const_grav
-             SrE_old     = dot_product(vold, Sr_old)
-
-             ! Define new source terms
-
-             vnew = snew(UMX:UMZ) * rhoninv
-
-             Sr_new(1:3) = 0.e0_rt
-             Sr_new(dim) = rhon * const_grav
-             SrE_new     = dot_product(vnew, Sr_new)
-
-             ! Define corrections to source terms
-
-             Srcorr = HALF * (Sr_new - Sr_old)
-
-             ! Correct momenta
-
-             src(UMX:UMZ) = Srcorr
-
-             snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
-
-#ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
- 
-             snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
-#endif
-
-             ! Correct energy
-
-             if (grav_source_type .eq. 1) then
-
-                ! If grav_source_type == 1, then we calculated SrEcorr before updating the velocities.
-
-                SrEcorr = HALF * (SrE_new - SrE_old)
-
-             else if (grav_source_type .eq. 2) then
-
-                ! For this source type, we first update the momenta
-                ! before we calculate the energy source term.
-
-                vnew = snew(UMX:UMZ) * rhoninv
-                SrE_new = dot_product(vnew, Sr_new)
-
-                SrEcorr = HALF * (SrE_new - SrE_old)
-
-             else if (grav_source_type .eq. 3) then
-
-                ! Instead of calculating the energy source term explicitly,
-                ! we simply update the kinetic energy.
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-                SrEcorr = new_ke - old_ke
-
-             else if (grav_source_type .eq. 4) then
-
-                ! First, subtract the predictor step we applied earlier.
-
-                SrEcorr = - SrE_old
-
-                ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                ! the change in the gravitational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
-                ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
-                ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
-                ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
-                ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in
-                ! the other source options, which effectively are equal to
-                ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
-                ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
-
-                ! Note that in the hydrodynamics step, the fluxes used here were already
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to
-                ! get the density change (flux * dt * dA / dV). We then divide by dt
-                ! so that we get the source term and not the actual update, which will
-                ! be applied later by multiplying by dt.
-
-                ! However, at present phi is usually only actually filled for Poisson gravity.
-                ! Here's an alternate version that only requires the use of the
-                ! gravitational acceleration. It relies on the concept that, to second order,
-                ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
-
-                if (dim .eq. 1) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * const_grav * dx(1) + &
-                                                       flux1(i+1*dg(1),j,k,URHO) * const_grav * dx(1) ) / vol(i,j,k)
-                else if (dim .eq. 2) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k,URHO) * const_grav * dx(2) + &
-                                                       flux2(i,j+1*dg(2),k,URHO) * const_grav * dx(2) ) / vol(i,j,k) 
-                else if (dim .eq. 3) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ,URHO) * const_grav * dx(3) + &
-                                                       flux3(i,j,k+1*dg(3),URHO) * const_grav * dx(3) ) / vol(i,j,k)
-                end if
-
-             else
-                call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-             end if
-
-             src(UEDEN) = SrEcorr
-
-             ! Add to the outgoing source array.
-
-             source(i,j,k,:) = src
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_corrgsrc
-#endif
 
 end module gravity_sources_module
