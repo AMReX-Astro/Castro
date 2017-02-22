@@ -666,7 +666,7 @@ Castro::initMFs()
 	}
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    phi_reg.define(grids, crse_ratio, level, 1);
 	    phi_reg.setVal(0.0);

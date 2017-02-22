@@ -538,55 +538,34 @@ extern "C"
 #endif
 
 #ifdef GRAVITY
-#ifdef SELF_GRAVITY
   void ca_gsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(s_old),
+#ifdef SELF_GRAVITY
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
-     const BL_FORT_FAB_ARG_3D(s_old),
+#endif
      BL_FORT_FAB_ARG_3D(source),
-     const BL_FORT_FAB_ARG_3D(vol),
      const Real* dx, const Real& dt, const Real* time);
 
   void ca_corrgsrc
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(S_old),
+     const BL_FORT_FAB_ARG_3D(S_new),
+#ifdef SELF_GRAVITY
      const BL_FORT_FAB_ARG_3D(phi_old),
      const BL_FORT_FAB_ARG_3D(phi_new),
      const BL_FORT_FAB_ARG_3D(grav_old),
      const BL_FORT_FAB_ARG_3D(grav_new),
-     const BL_FORT_FAB_ARG_3D(S_old),
-     const BL_FORT_FAB_ARG_3D(S_new),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     const Real* dx, const Real& dt, const Real* time,
-     const BL_FORT_FAB_ARG_3D(volume));
-
-#else
-
-  void ca_gsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(s_old),
-     BL_FORT_FAB_ARG_3D(source),
-     const BL_FORT_FAB_ARG_3D(vol),
-     const Real* dx, const Real& dt, const Real* time);
-
-  void ca_corrgsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(S_old),
-     const BL_FORT_FAB_ARG_3D(S_new),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     const Real* dx, const Real& dt, const Real* time,
-     const BL_FORT_FAB_ARG_3D(volume)); 
 #endif
+     const BL_FORT_FAB_ARG_3D(volume),
+     BL_FORT_FAB_ARG_3D(xflux),
+     BL_FORT_FAB_ARG_3D(yflux),
+     BL_FORT_FAB_ARG_3D(zflux),
+     BL_FORT_FAB_ARG_3D(source),
+     const Real* dx, const Real& dt, const Real* time);
 #endif
 
 #ifdef ROTATION
