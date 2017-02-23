@@ -1746,9 +1746,9 @@ Castro::post_init (Real stop_time)
 
 #ifdef SELF_GRAVITY
 
-    Real cur_time = state[State_Type].curTime();
-
     if (do_grav) {
+
+       Real cur_time = state[State_Type].curTime();
 
        if (gravity->get_gravity_type() == "PoissonGrav") {
 
@@ -1780,8 +1780,10 @@ Castro::post_init (Real stop_time)
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation)
+    if (do_rotation) {
+      Real cur_time = state[State_Type].curTime();
       fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    }
     else {
       phirot_new.setVal(0.0);
       rot_new.setVal(0.0);
