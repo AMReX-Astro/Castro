@@ -881,11 +881,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-  for (int i = 0; i < NumSpec; i++)  {
-    derive_lst.add(spec_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(spec_names[i],desc_lst,State_Type,Density,1);
-    derive_lst.addComponent(spec_names[i],desc_lst,State_Type,FirstSpec+i,1);
-  }
 
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
