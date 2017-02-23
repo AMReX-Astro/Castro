@@ -275,13 +275,17 @@ Gravity::install_level (int                   level,
 
     if (gravity_type == "PoissonGrav") {
 
+       // For code cleanliness purposes, we'll define grad_phi to have components
+       // in three spatial dimensions, but there's no need to actually allocate space
+       // here for unused dimensions.
+
        grad_phi_prev[level].clear();
-       grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
+       grad_phi_prev[level].resize(3,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_prev[level].set(n,new MultiFab(level_data->getEdgeBoxArray(n),1,1));
 
        grad_phi_curr[level].clear();
-       grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
+       grad_phi_curr[level].resize(3,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_curr[level].set(n,new MultiFab(level_data->getEdgeBoxArray(n),1,1));
 
