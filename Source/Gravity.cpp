@@ -280,12 +280,12 @@ Gravity::install_level (int                   level,
        // here for unused dimensions.
 
        grad_phi_prev[level].clear();
-       grad_phi_prev[level].resize(3,PArrayManage);
+       grad_phi_prev[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_prev[level].set(n,new MultiFab(level_data->getEdgeBoxArray(n),1,1));
 
        grad_phi_curr[level].clear();
-       grad_phi_curr[level].resize(3,PArrayManage);
+       grad_phi_curr[level].resize(BL_SPACEDIM,PArrayManage);
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_curr[level].set(n,new MultiFab(level_data->getEdgeBoxArray(n),1,1));
 

@@ -7,6 +7,11 @@
      diffusion, including the conductivity, diffusion coefficient, and
      the entire diffusion term to the energy equation.  (issue #104)
 
+  -- when all derived variables were stored in the plotfile, we were
+     storing the mass fractions twice.  E.g. for he4, we were saving
+     "he4" and "X(he4)".  Now only the latter is stored.
+
+
 # 17.02
 
   -- diagnostic information about how source terms update the state
