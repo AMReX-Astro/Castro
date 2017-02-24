@@ -323,7 +323,7 @@ contains
 
                 else
 
-                   gravx(i,j,k) = FOURTH * (gold(i,j,k,1) + gnew(i,j,k,1) + gold(i-1,j,k,1) + gnew(i-1,j,k,1))
+                   gravx(i,j,k) = FOURTH * (gold(i,j,k,1) + gnew(i,j,k,1) + gold(i-1*dg(1),j,k,1) + gnew(i-1*dg(1),j,k,1))
 
                 endif
 #else
@@ -352,7 +352,7 @@ contains
 
                 else
 
-                   gravy(i,j,k) = FOURTH * (gold(i,j,k,2) + gnew(i,j,k,2) + gold(i,j-1,k,2) + gnew(i,j-1,k,2))
+                   gravy(i,j,k) = FOURTH * (gold(i,j,k,2) + gnew(i,j,k,2) + gold(i,j-1*dg(2),k,2) + gnew(i,j-1*dg(2),k,2))
 
                 endif
 #else
@@ -378,7 +378,7 @@ contains
 
                 else
 
-                   gravz(i,j,k) = FOURTH * (gold(i,j,k,3) + gnew(i,j,k,3) + gold(i,j,k-1,3) + gnew(i,j,k-1,3))
+                   gravz(i,j,k) = FOURTH * (gold(i,j,k,3) + gnew(i,j,k,3) + gold(i,j,k-1*dg(3),3) + gnew(i,j,k-1*dg(3),3))
 
                 endif
 #else
