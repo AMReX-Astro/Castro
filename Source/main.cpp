@@ -30,6 +30,7 @@
 #include <XGraph1d.H>
 #endif
 
+#include "Castro.H"
 #include "Castro_io.H"
 
 std::string inputs_name = "";
@@ -160,6 +161,9 @@ main (int   argc,
 #endif
 
     }
+
+    Castro* castro = dynamic_cast<Castro*>(&amrptr->getAmrLevels()[0]);
+    castro->post_simulation(amrptr->getAmrLevels());
 
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);
