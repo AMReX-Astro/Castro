@@ -374,6 +374,11 @@ public:
     //
     void post_grown_restart ();
     //
+    // Do work at the end of the simulation -- before the last outputs
+    //
+    static void post_simulation (PArray<AmrLevel>& amr_level);
+
+    //
     // Error estimation for regridding.
     //
     virtual void errorEst (TagBoxArray& tb,
