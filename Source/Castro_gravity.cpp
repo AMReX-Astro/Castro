@@ -297,10 +297,10 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     // of gravity type.
 
     for (int n = BL_SPACEDIM; n < 3; ++n) {
-	grad_phi_prev.set(n, new MultiFab(get_new_data(State_Type).boxArray(), NUM_STATE, 0));
+	grad_phi_prev.set(n, new MultiFab(grids, 1, 0));
 	grad_phi_prev[n].setVal(0.0);
 
-	grad_phi_curr.set(n, new MultiFab(get_new_data(State_Type).boxArray(), NUM_STATE, 0));
+	grad_phi_curr.set(n, new MultiFab(grids, 1, 0));
 	grad_phi_curr[n].setVal(0.0);
     }
 
