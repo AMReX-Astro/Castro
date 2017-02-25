@@ -660,16 +660,18 @@
 \runparamNS{const\_grav}{gravity} &  if doing constant gravity, what is the acceleration & 0.0 \\
 \runparamNS{direct\_sum\_bcs}{gravity} &  Check if the user wants to compute the boundary conditions using the brute force method.  Default is false, since this method is slow. & 0 \\
 \rowcolor{tableShade}
+\runparamNS{do\_composite\_phi\_correction}{gravity} &  should we apply a lagged correction to the potential that gets us closer to the composite solution? This makes the resulting fine grid calculation slightly more accurate, at the cost of an additional Poisson solve per timestep. & 1 \\
 \runparamNS{drdxfac}{gravity} &  ratio of dr for monopole gravity binning to grid resolution & 1 \\
+\rowcolor{tableShade}
 \runparamNS{get\_g\_from\_phi}{gravity} &  For non-Poisson gravity, do we want to construct the gravitational acceleration by taking the gradient of the potential, rather than constructing it directly? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{gravity\_type}{gravity} &  what type & "fillme" \\
+\rowcolor{tableShade}
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
-\rowcolor{tableShade}
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
-\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 
