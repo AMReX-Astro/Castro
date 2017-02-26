@@ -24,16 +24,15 @@ subroutine ca_deranalytic(a,a_l1,a_l2,a_h1,a_h2,ncomp_a, &
   integer :: i, j
 
   do j = lo(2), hi(2)
-     yc = problo(2) + dx(2)*(dble(j) + HALF)                                                                    
+     yc = problo(2) + dx(2)*(dble(j) + HALF)
 
      do i = lo(1), hi(1)
-        xc = problo(1) + dx(1)*(dble(i) + HALF)                                                                 
+        xc = problo(1) + dx(1)*(dble(i) + HALF)
 
-        call analytic(xc, yc, temp)
+        call analytic(xc, yc, time, temp)
         a(i,j,1) = temp
 
      enddo
   enddo
 
 end subroutine ca_deranalytic
-

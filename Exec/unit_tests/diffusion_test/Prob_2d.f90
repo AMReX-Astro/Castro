@@ -135,7 +135,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,URHO) = rho0
 
-        call analytic(xc, yc, temp)
+        call analytic(xc, yc, ZERO, temp)
 
         state(i,j,UTEMP) = temp
 
