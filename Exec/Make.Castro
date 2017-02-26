@@ -31,8 +31,12 @@ endif
 
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
-  USE_SELF_GRAV = TRUE
-  DEFINES += -DSELF_GRAVITY
+  ifndef USE_SELF_GRAV
+    USE_SELF_GRAV = TRUE
+  endif
+  ifeq ($(USE_SELF_GRAV), TRUE)
+    DEFINES += -DSELF_GRAVITY
+  endif
 endif
 
 ifeq ($(USE_GR), TRUE)

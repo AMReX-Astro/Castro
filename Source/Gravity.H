@@ -22,6 +22,7 @@ public:
   Real get_const_grav ();
   int NoSync();
   int NoComposite();
+  int DoCompositeCorrection();
   int test_results_of_solves ();
   
   void set_mass_offset(Real time, bool multi_level=true);

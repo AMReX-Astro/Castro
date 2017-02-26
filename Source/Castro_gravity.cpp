@@ -35,7 +35,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	MultiFab comp_phi;
 	PArray<MultiFab> comp_gphi(BL_SPACEDIM, PArrayManage);
 
-        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel()) {
 
 	    comp_phi.define(phi_old.boxArray(), phi_old.nComp(), phi_old.nGrow(), Fab_allocate);
 	    MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
@@ -63,7 +63,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 			       gravity->get_grad_phi_prev(level),
 			       is_new);
 
-        if (gravity->NoComposite() != 1 && level < parent->finestLevel()) {
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel()) {
 
 	    // Subtract the level solve from the composite solution.
 
@@ -136,7 +136,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 	// Subtract off the (composite - level) contribution for the purposes
 	// of the level solve. We'll add it back later.
 
-	if (level < parent->finestLevel() && gravity->NoComposite() != 1)
+	if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel())
 	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -151,7 +151,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 			       gravity->get_grad_phi_curr(level),
 			       is_new);
 
-	if (level < parent->finestLevel() && gravity->NoComposite() != 1) {
+	if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 
 	    if (gravity->test_results_of_solves() == 1) {
 
@@ -193,25 +193,29 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
     gravity->get_new_grav_vector(level, grav_new, time);
 
-    // Now that we have calculated the force, if we are going to do a sync
-    // solve then subtract off the (composite - level) contribution, as it
-    // interferes with the sync solve.
+    if (gravity->get_gravity_type() == "PoissonGrav") {
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() == 0 && level < parent->finestLevel()) {
+	if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 
-	if (gravity->NoSync() == 0) {
+	    // Now that we have calculated the force, if we are going to do a sync
+	    // solve then subtract off the (composite - level) contribution, as it
+	    // interferes with the sync solve.
 
-	    phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+	    if (gravity->NoSync() == 0) {
 
-	    for (int n = 0; n < BL_SPACEDIM; ++n)
-		gravity->get_grad_phi_curr(level)[n].minus(comp_minus_level_grad_phi[n], 0, 1, 0);
+		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+
+		for (int n = 0; n < BL_SPACEDIM; ++n)
+		    gravity->get_grad_phi_curr(level)[n].minus(comp_minus_level_grad_phi[n], 0, 1, 0);
+
+	    }
+
+	    // In any event we can now clear this memory, as we no longer need it.
+
+	    comp_minus_level_phi.clear();
+	    comp_minus_level_grad_phi.clear();
 
 	}
-
-	// In any event we can now clear this memory, as we no longer need it.
-
-	comp_minus_level_phi.clear();
-	comp_minus_level_grad_phi.clear();
 
     }
 
@@ -293,10 +297,10 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     // of gravity type.
 
     for (int n = BL_SPACEDIM; n < 3; ++n) {
-	grad_phi_prev.set(n, new MultiFab(get_new_data(State_Type).boxArray(), NUM_STATE, 0));
+	grad_phi_prev.set(n, new MultiFab(grids, 1, 0));
 	grad_phi_prev[n].setVal(0.0);
 
-	grad_phi_curr.set(n, new MultiFab(get_new_data(State_Type).boxArray(), NUM_STATE, 0));
+	grad_phi_curr.set(n, new MultiFab(grids, 1, 0));
 	grad_phi_curr[n].setVal(0.0);
     }
 
