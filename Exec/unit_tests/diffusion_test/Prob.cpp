@@ -10,6 +10,8 @@ void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
 
   int nlevels = amr_level.size();
 
+  Real err = -1.e30;
+
   for (int n = 0; n < nlevels; ++n) {
 
     // the Castro object for this level
@@ -23,12 +25,19 @@ void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
     MultiFab *analytic = castro->derive("analytic", time, 0);
     
     // compute the norm of the error
-    std::cout << "norms: " << S.norm0(Temp, 0) << " " << analytic->norm0() << std::endl;
+    MultiFab::Subtract(*analytic, S, Temp, 0, 1, 0);
+
+    err = std::max(err, analytic->norm0());
     
     // cleanup
     delete analytic;
 
   }
    
+  std::cout << std::string(78, '*') << std::endl;
+  std::cout << " diffusion problem post_simulation() " << std::endl;
+  std::cout << " L-inf error against analytic solution: " << err << std::endl;
+  std::cout << std::string(78, '*') << std::endl;
+
 
 }
