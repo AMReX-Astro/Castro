@@ -22,15 +22,13 @@ void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
     MultiFab& S = castro->get_new_data(State_Type);
 
     // derive the analytic solution
-    MultiFab *analytic = castro->derive("analytic", time, 0);
+    std::unique_ptr<MultiFab> analytic(castro->derive("analytic", time, 0));
     
     // compute the norm of the error
     MultiFab::Subtract(*analytic, S, Temp, 0, 1, 0);
 
     err = std::max(err, analytic->norm0());
     
-    // cleanup
-    delete analytic;
 
   }
    
