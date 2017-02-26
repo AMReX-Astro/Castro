@@ -6,43 +6,30 @@
 
 void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
 
-  // here we have all of the amr_level data -- this is essentially a
-  // Castro object for each level
+  // this is a stub post_simulation() routine
 
-  // get the variable info
-  Castro* castro = dynamic_cast<Castro*>(&amr_level[0]);
-  MultiFab& S = castro->get_new_data(State_Type);
+  // you can put this in your problem directory to create a custom
+  // diagnostic to run at the end of a simulation
 
-  const StateDescriptor* desc = &castro->desc_lst[State_Type];
+  // all of the needed data comes in though the amr_level array,
+  // which is a PArray of AmrLevel objects.  The number of levels
+  // is simply the size of this array:
 
-  int nvar = S.nComp();
+  // int nlevels = amr_level.size();
 
-  int nlevels = amr_level.size();
+  // To access data, cast a level to a Castro object, e.g. for
+  // level 0:
 
-  // storage of min / max of each state variable over levels
-  Array<Real> vmin(nvar);
-  Array<Real> vmax(nvar);
+  // Castro* castro = dynamic_cast<Castro*>(&amr_level[0]);
 
-  for (int n = 0; n < nlevels; ++n) {
+  // then you can get the data, e.g. for state data as:
+  
+  // MultiFab& S = castro->get_new_data(State_Type);
 
-    Castro* castro = dynamic_cast<Castro*>(&amr_level[n]);
-    MultiFab& S = castro->get_new_data(State_Type);
+  // and if needed, the state descriptor:
 
-    for (int k = 0; k < S.nComp(); ++k) {
-      if (n == 0) {
-	vmin[k] = S.min(k);
-	vmax[k] = S.max(k);
-      } else {
-	vmin[k] = std::min(vmin[k], S.min(k));
-	vmax[k] = std::max(vmax[k], S.max(k));
-      }
-    }
-  }
-   
-  if (ParallelDescriptor::IOProcessor())  {
-    for (int k = 0; k < S.nComp(); ++k) {
-      std::cout << desc->name(k) << " " << vmin[k] << " " << vmax[k] << std::endl;
-    }
-  }
+  // const StateDescriptor* desc = &castro->desc_lst[State_Type];
+
+  // and then you can get the names of the state data as desc->name(comp)
 
 }
