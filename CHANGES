@@ -11,6 +11,11 @@
      storing the mass fractions twice.  E.g. for he4, we were saving
      "he4" and "X(he4)".  Now only the latter is stored.
 
+  -- created a post_simulation() function that is called at the end of
+     a simulation.  An example is provided by test_diffusion where we
+     output the norm of the error against the analytic solution.
+     (issue #107, 108)
+
 
 # 17.02
 
