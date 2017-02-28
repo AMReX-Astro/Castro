@@ -22,7 +22,7 @@ contains
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
 #ifndef SELF_GRAVITY
     use meth_params_module, only: const_grav
@@ -106,7 +106,7 @@ contains
              snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
+             call set_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
 
              snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif
@@ -189,7 +189,7 @@ contains
     use castro_util_module, only: position
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
 #ifndef SELF_GRAVITY
     use meth_params_module, only: const_grav
@@ -444,7 +444,7 @@ contains
              snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
+             call set_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
 
              snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif

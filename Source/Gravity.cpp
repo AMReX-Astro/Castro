@@ -349,6 +349,11 @@ int Gravity::NoComposite()
   return no_composite;
 }
 
+int Gravity::DoCompositeCorrection()
+{
+  return do_composite_phi_correction;
+}
+
 int Gravity::test_results_of_solves()
 {
   return test_solves;
