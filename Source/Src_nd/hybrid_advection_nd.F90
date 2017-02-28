@@ -165,6 +165,26 @@ contains
 
   end subroutine add_hybrid_momentum_source
 
+  subroutine set_hybrid_momentum_source(loc, mom, source)
+
+    use bl_fort_module, only : rt => c_real
+    implicit none
+
+    real(rt), intent(in   ) :: loc(3), source(3)
+    real(rt), intent(inout) :: mom(3)
+
+    real(rt) :: R
+
+    R = sqrt( loc(1)**2 + loc(2)**2 )
+
+    ! This is analogous to the conversion of linear momentum to hybrid momentum.
+
+    mom(1) = -source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
+    mom(2) =  source(2) * loc(2) - source(2) * loc(1)
+    mom(3) =  source(3)
+
+  end subroutine set_hybrid_momentum_source
+
 
 
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
