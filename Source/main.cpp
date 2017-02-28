@@ -162,9 +162,9 @@ main (int   argc,
 
     }
 
-    //Castro* castro = dynamic_cast<Castro*>(&amrptr->getAmrLevels()[0]);
-    //castro->post_simulation(amrptr->getAmrLevels());
-    Castro::post_simulation(amrptr->getAmrLevels());
+#ifdef DO_PROBLEM_POST_SIMULATION
+    Castro::problem_post_simulation(amrptr->getAmrLevels());
+#endif
 
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);

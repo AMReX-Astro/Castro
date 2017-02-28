@@ -4,7 +4,8 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
-void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
+#ifdef DO_PROBLEM_POST_SIMULATION
+void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
 
   // compute the norm of the solution vs. the analytic solution
 
@@ -39,3 +40,4 @@ void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
 
 
 }
+#endif

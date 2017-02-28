@@ -373,10 +373,11 @@ public:
     // Do work after restart with grown_factor > 1
     //
     void post_grown_restart ();
-    //
+
+#ifdef DO_PROBLEM_POST_SIMULATION
     // Do work at the end of the simulation -- before the last outputs
-    //
-    static void post_simulation (PArray<AmrLevel>& amr_level);
+    static void problem_post_simulation (PArray<AmrLevel>& amr_level);
+#endif
 
     //
     // Error estimation for regridding.

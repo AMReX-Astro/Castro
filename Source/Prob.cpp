@@ -4,7 +4,8 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
-void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
+#ifdef DO_PROBLEM_POST_SIMULATION
+void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
 
   // this is a stub post_simulation() routine
 
@@ -33,3 +34,5 @@ void Castro::post_simulation(PArray<AmrLevel>& amr_level) {
   // and then you can get the names of the state data as desc->name(comp)
 
 }
+#endif
+
