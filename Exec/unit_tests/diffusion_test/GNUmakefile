@@ -12,6 +12,8 @@ USE_OMP    = FALSE
 
 USE_DIFFUSION = TRUE
 
+USE_POST_SIM = TRUE
+
 CASTRO_HOME := ../../..
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS

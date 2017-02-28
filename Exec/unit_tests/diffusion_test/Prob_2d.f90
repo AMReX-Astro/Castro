@@ -104,8 +104,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only : problo, center
-  
+  use prob_params_module, only : problo
+  use prob_util_module, only : analytic
+
   use bl_fort_module, only : rt => c_real
   implicit none
 
@@ -117,7 +118,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   real(rt)         :: xc, yc
   real(rt)         :: X(nspec), temp
-  real(rt)         :: dist2
+
   integer :: i,j
 
   type (eos_t) :: eos_state
@@ -134,9 +135,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,URHO) = rho0
 
-        dist2 = (xc - center(1))**2 + (yc - center(2))**2
+        call analytic(xc, yc, ZERO, temp)
 
-        temp = (T2 - T1)*exp(-0.25_rt*dist2/(diff_coeff*t_0) ) + T1
         state(i,j,UTEMP) = temp
 
         ! compute the internal energy and temperature
