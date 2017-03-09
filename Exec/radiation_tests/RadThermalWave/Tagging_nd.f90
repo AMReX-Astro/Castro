@@ -1,6 +1,6 @@
 module tagging_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , save ::    denerr,   dengrad
@@ -52,7 +52,7 @@ contains
 
     use prob_params_module, only: dim
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, np, level

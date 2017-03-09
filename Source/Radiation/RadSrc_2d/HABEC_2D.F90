@@ -11,7 +11,7 @@ module habec_module
 
   use bl_types
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -21,7 +21,7 @@ subroutine hacoef(mat, a, &
                   DIMS(reg), &
                   alpha) bind(C, name="hacoef")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   real(rt)         :: a(DIMV(abox))
@@ -48,7 +48,7 @@ subroutine hbcoef(mat, b, &
                   DIMS(reg), &
                   beta, dx, n) bind(C, name="hbcoef")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -83,7 +83,7 @@ subroutine hbmat(mat, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbmat")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
@@ -158,7 +158,7 @@ subroutine hbmat3(mat, &
                   beta, dx, c, r, &
                   spa, DIMS(spabox)) bind(C, name="hbmat3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
@@ -312,7 +312,7 @@ subroutine hbvec(vec, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hbvec")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
@@ -390,7 +390,7 @@ subroutine hbvec3(vec, &
                   b, DIMS(bbox), &
                   beta, dx, r) bind(C, name="hbvec3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
@@ -553,7 +553,7 @@ subroutine hbflx(flux, &
                  b, DIMS(bbox), &
                  beta, dx, inhom) bind(C, name="hbflx")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -653,7 +653,7 @@ subroutine hbflx3(flux, &
                   beta, dx, c, r, inhom, &
                   spa, DIMS(spabox)) bind(C, name="hbflx3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -913,7 +913,7 @@ subroutine hdterm(dterm, &
                   d, DIMS(dbox), &
                   dx) bind(C, name="hdterm")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(dtbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -986,7 +986,7 @@ subroutine hdterm3(dterm, &
                    d, DIMS(dbox), &
                    dx) bind(C, name="hdterm3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(dtbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -1097,7 +1097,7 @@ subroutine hmac(mat, a, &
                 DIMS(reg), &
                 alpha) bind(C, name="hmac")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   real(rt)         :: a(DIMV(abox))
@@ -1124,7 +1124,7 @@ subroutine hmbc(mat, b, &
                 DIMS(reg), &
                 beta, dx, n) bind(C, name="hmbc")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -1159,7 +1159,7 @@ subroutine hma2c(mat, a2, &
                  DIMS(reg), &
                  alpha2, n) bind(C, name="hma2c")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -1193,7 +1193,7 @@ subroutine hmcc(mat, c, &
                 DIMS(reg), &
                 gamma, dx, n) bind(C, name="hmcc")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -1228,7 +1228,7 @@ subroutine hmd1c(mat, d1, &
                  DIMS(reg), &
                  delta1, dx, n) bind(C, name="hmd1c")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -1261,7 +1261,7 @@ subroutine hmd2c(mat, d2, &
                  DIMS(reg), &
                  delta2, dx, n) bind(C, name="hmd2c")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: n
@@ -1298,7 +1298,7 @@ subroutine hmmat(mat, &
                  b, DIMS(bbox), &
                  beta, dx) bind(C, name="hmmat")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(msk)
   integer :: DIMDEC(bbox)
@@ -1395,7 +1395,7 @@ subroutine hmmat3(mat, &
                   beta, dx, c, r, &
                   spa, DIMS(spabox)) bind(C, name="hmmat3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(bcv)
   integer :: DIMDEC(msk)
@@ -1636,7 +1636,7 @@ subroutine set_abec_flux( &
                          dx, &
                          flux, DIMS(flux)) bind(C, name="set_abec_flux")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(density)
   integer :: DIMDEC(dcoef)

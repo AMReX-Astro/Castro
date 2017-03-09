@@ -1398,12 +1398,12 @@ void HypreMultiABec::loadMatrix()
       // build matrix interior
 
       hmac(mat,
-	   BL_TO_FORTRAN(acoefs[level][mfi]),
+	   BL_TO_FORTRAN((*acoefs[level])[mfi]),
 	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
 	hmbc(mat, 
-	     BL_TO_FORTRAN(bcoefs[level][idim][mfi]),
+	     BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
 	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta,
 	     geom[level].CellSize(), idim);
       }
@@ -1449,7 +1449,7 @@ void HypreMultiABec::loadMatrix()
 		   cdir, bctype, tfp, bho, bcl,
 		   ARLIM(fs.loVect()), ARLIM(fs.hiVect()),
 		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN(bcoefs[level][idim][mfi]),
+		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
 		   beta, geom[level].CellSize(),
 		   flux_factor, r.dataPtr(),
 		   pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
@@ -1458,7 +1458,7 @@ void HypreMultiABec::loadMatrix()
             hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		  cdir, bct, bho, bcl,
 		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN(bcoefs[level][idim][mfi]),
+		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
 		  beta, geom[level].CellSize());
           }
         }
@@ -1472,7 +1472,7 @@ void HypreMultiABec::loadMatrix()
 	  hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct_coarse, bho, bcl,
 		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN(bcoefs[level][idim][mfi]),
+		BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
 		beta, geom[level].CellSize());
         }
       }
@@ -1628,7 +1628,7 @@ void HypreMultiABec::loadMatrix()
           const Box& reg = (*c_cintrp[level])(ori,i,j).box(); // adjacent cells
           const Box& creg = (*c_entry[level])(ori,i,j).box(); // adjacent cells
           const Mask& msk = c_cintrp[level]->mask(ori,i,j); // fine mask
-          const Fab& fbcoefs = c_entry[level]->faceData(ori,i,j);
+          const FArrayBox& fbcoefs = c_entry[level]->faceData(ori,i,j);
           for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
@@ -1779,7 +1779,7 @@ void HypreMultiABec::loadLevelVectors(int level,
 	const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
 	const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
 	const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-	const Mask      &msk = bd[level]->bndryMasks(oitr())[i];
+	const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
 	const Box &bbox = (*bcoefs[level])[idim][mfi].box();
 
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
@@ -1886,7 +1886,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
 	const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
 	const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
 	const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-	const Mask      &msk = bd[level]->bndryMasks(oitr())[i];
+	const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
 	const Box &bbox = (*bcoefs[level])[idim][mfi].box();
 	const Box &msb  = msk.box();
 	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
@@ -3102,7 +3102,7 @@ void HypreMultiABec::boundaryFlux(int level,
 		const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
 		const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
 		const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-		const Mask      &msk = bd[level]->bndryMasks(oitr())[i];
+		const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
 		const Box &fbox = Flux[idim][mfi].box();
 		const Box &sbox = Soln[mfi].box();
 		const Box &msb  = msk.box();
@@ -3279,7 +3279,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
               BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
 	      beta, geom[level].CellSize());
 	if (inhom) {
-	  const FArrayBox &fs  = bd[level].bndryValues(oitr())[mfi];
+	  const FArrayBox &fs  = bd[level]->bndryValues(oitr())[mfi];
 	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		cdir, bct, bho, bcl,
 		BL_TO_FORTRAN_N(fs, bdcomp),

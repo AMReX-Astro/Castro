@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -18,7 +18,7 @@ contains
     use network, only: nspec
     use model_parser_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -257,7 +257,7 @@ contains
     use model_parser_module
     use bl_error_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -320,7 +320,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -343,7 +343,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -366,7 +366,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -389,7 +389,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -410,7 +410,7 @@ contains
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'

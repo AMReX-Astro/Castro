@@ -6,7 +6,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only : nspec
   use bl_error_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: init, namlen
@@ -87,7 +87,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal
@@ -133,7 +133,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use fundamental_constants_module, only : hplanck, c_light, k_B
   use bl_constants_module, only : ZERO, ONE, HALF, M_PI
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nrad

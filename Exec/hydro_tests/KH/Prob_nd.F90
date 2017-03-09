@@ -6,7 +6,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
    use meth_params_module, only: small_temp, small_pres, small_dens
    use eos_module
    
-   use amrex_fort_module, only : rt => c_real
+   use amrex_fort_module, only : rt => amrex_real
    implicit none
 
    integer :: init, namlen
@@ -99,7 +99,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module
   use prob_params_module, only: problo, center, probhi
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: level, nscal

@@ -255,7 +255,7 @@ protected:
 
   void get_planck_and_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
 			   amrex::FArrayBox& state, const amrex::Box& reg,
-			   int igroup = 0, Real delta_t = 0.0);
+			   int igroup = 0, amrex::Real delta_t = 0.0);
 
   void get_rosseland_and_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
 			      amrex::FArrayBox& state, const amrex::Box& reg,

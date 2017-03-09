@@ -2,7 +2,7 @@
      
      use probdata_module, only: initialize
 
-     use amrex_fort_module, only : rt => c_real
+     use amrex_fort_module, only : rt => amrex_real
      implicit none
 
      integer :: init, namlen
@@ -49,7 +49,7 @@
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center
 
-     use amrex_fort_module, only : rt => c_real
+     use amrex_fort_module, only : rt => amrex_real
      implicit none
 
      integer :: level, nscal

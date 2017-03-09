@@ -1,6 +1,6 @@
 module problem_tagging_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -19,7 +19,7 @@ contains
 
     use meth_params_module, only : NVAR
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)

@@ -8,7 +8,7 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
         
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
         
   integer lo(2), hi(2), MAESTRO_init_type, level
@@ -171,7 +171,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   use network, only: nspec
   use eos_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer model_size,MAESTRO_npts_model
@@ -433,7 +433,7 @@ subroutine ca_initdata_overwrite(lo,hi, &
   use network, only: nspec
   use eos_module
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   integer lo(2), hi(2), r_model_start

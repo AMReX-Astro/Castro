@@ -9,7 +9,7 @@ subroutine ca_accel_acoe( lo, hi,  &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -51,7 +51,7 @@ subroutine ca_accel_rhs( lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -91,7 +91,7 @@ subroutine ca_accel_spec(lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -143,7 +143,7 @@ subroutine ca_check_conv( lo, hi, &
      dt)
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in)::lo(3),hi(3)
@@ -214,7 +214,7 @@ subroutine ca_check_conv_er( lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in):: lo(3), hi(3)
@@ -268,7 +268,7 @@ subroutine ca_compute_coupt( lo, hi,  &
   
   use rad_params_module, only : ngroups
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -311,7 +311,7 @@ subroutine ca_compute_etat( lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -373,7 +373,7 @@ subroutine ca_compute_emissivity( lo, hi, &
        pi, clight, hplanck, kboltz, arad
   use blackbody_module, only : BdBdTIndefInteg
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in)  :: lo(3), hi(3) 
@@ -531,7 +531,7 @@ subroutine ca_compute_kappas(lo, hi, &
   use fundamental_constants_module, only : hplanck, k_B
   use meth_params_module, only : NVAR, URHO
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3) 
@@ -610,7 +610,7 @@ subroutine ca_compute_rhs( lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in):: lo(3), hi(3) 
@@ -667,7 +667,7 @@ subroutine ca_compute_rhs_so( lo, hi, & ! MG Su-Olson
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in):: lo(3), hi(3) 
@@ -724,7 +724,7 @@ subroutine ca_local_accel( lo, hi,  &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in):: lo(3), hi(3)
@@ -776,7 +776,7 @@ subroutine ca_state_update( lo, hi, &
 
   use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3) 
@@ -828,7 +828,7 @@ subroutine ca_update_matter( lo, hi,  &
   use rad_params_module, only : ngroups, clight
   use meth_params_module, only : NVAR
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in)::lo(3),hi(3)
@@ -891,7 +891,7 @@ subroutine ca_ncupdate_matter( lo, hi,  &
 
   use rad_params_module, only : ngroups, clight
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in)::lo(3),hi(3)
@@ -957,7 +957,7 @@ subroutine ca_opacs( lo, hi,  &
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UFX
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1049,7 +1049,7 @@ subroutine ca_compute_rosseland( lo, hi,   &
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1100,7 +1100,7 @@ subroutine ca_compute_planck( lo, hi,  &
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1155,7 +1155,7 @@ subroutine ca_accel_ccoe( lo, hi, &
 
   use rad_params_module, only : ngroups
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1208,7 +1208,7 @@ subroutine ca_flux_face2center( lo, hi, &
      x, x_l1, x_h1, nt, idim, iflx) bind(C, name="ca_flux_face2center")
 
   use rad_params_module, only : ngroups
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,intent(in):: lo(3), hi(3)
@@ -1255,7 +1255,7 @@ end subroutine ca_flux_face2center
 subroutine ca_rhstoer( lo, hi, &
      rhs, rhs_l1, rhs_l2, rhs_l3, rhs_h1, rhs_h2, rhs_h3, &
      r, dt)
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer,intent(in):: lo(3), hi(3)
   integer,intent(in):: rhs_l1, rhs_h1, rhs_l2, rhs_h2, rhs_l3, rhs_h3
@@ -1285,7 +1285,7 @@ subroutine ca_compute_powerlaw_kappa_s( lo, hi,  &
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1332,7 +1332,7 @@ subroutine ca_compute_powerlaw_kappa( lo, hi,  &
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1377,7 +1377,7 @@ subroutine ca_spalpha( lo, hi, &
 
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDalpha
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: spa_l1, spa_h1, spa_l2, spa_h2, spa_l3, spa_h3

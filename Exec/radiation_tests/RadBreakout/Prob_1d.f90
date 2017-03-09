@@ -5,7 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only : network_init
   use bl_error_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -105,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use interpolate_module
   use fundamental_constants_module, only: k_B, n_A
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   integer :: level, nscal
@@ -241,7 +241,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: level, nrad
   integer :: lo(1), hi(1)

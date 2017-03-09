@@ -623,7 +623,7 @@ void HypreExtMultiABec::loadMatrix()
                     msk, reg, vin, rat[idir], bho, level);
           // fcoefs contains a2coefs, then ccoefs, then d2coefs, in order, but
           // only the ones that exist.  pc array does component translation.
-          const Fab& fcoefs = c_entry[level]->faceData(ori,i,j);
+          const FArrayBox& fcoefs = c_entry[level]->faceData(ori,i,j);
           for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
@@ -949,7 +949,7 @@ void HypreExtMultiABec::boundaryDterm(int level,
       const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
       const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
       const FArrayBox       &bcv  = bd[level]->bndryValues(oitr())[mfi];
-      const Mask      &msk = bd[level]->bndryMasks(oitr())[i];
+      const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
 
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;

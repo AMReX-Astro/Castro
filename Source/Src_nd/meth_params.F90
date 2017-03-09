@@ -14,7 +14,7 @@ module meth_params_module
 
   use bl_error_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
@@ -208,7 +208,7 @@ contains
 
     use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     type (amrex_parmparse) :: pp
@@ -479,7 +479,7 @@ contains
 #ifdef RADIATION
   subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(inout) :: qradvar_in
@@ -493,7 +493,7 @@ contains
 
     use rad_params_module, only : ngroups
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
 

@@ -1,6 +1,6 @@
 module castro_util_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -16,7 +16,7 @@ contains
     use bl_constants_module, only: ZERO, HALF
 
     ! Input arguments
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer :: i, j, k
     logical, optional :: ccx, ccy, ccz
 
@@ -85,7 +85,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -129,7 +129,7 @@ contains
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3), verbose
@@ -335,7 +335,7 @@ contains
          UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3),hi(3)
@@ -412,7 +412,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -451,7 +451,7 @@ contains
     use bl_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -490,7 +490,7 @@ contains
     use amrinfo_module, only: amr_level
     use prob_params_module, only: dx_level, dim
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)         :: loc(3)
 
     integer :: index(3)
@@ -515,7 +515,7 @@ contains
     use bl_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: i, j, k, dir
@@ -645,7 +645,7 @@ contains
     use bl_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: i, j, k
@@ -722,7 +722,7 @@ contains
 
     use prob_params_module, only : center
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)        , intent(inout) :: center_out(3)
@@ -737,7 +737,7 @@ contains
 
     use prob_params_module, only : center
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: center_in(3)
@@ -754,7 +754,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg, dim
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
@@ -827,7 +827,7 @@ contains
     use prob_params_module, only : center, dim
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3),nc
@@ -894,7 +894,7 @@ contains
 
   function linear_to_angular_momentum(loc, mom) result(ang_mom)
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: loc(3), mom(3)

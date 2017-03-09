@@ -1,6 +1,6 @@
 module prescribe_grav_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -14,7 +14,7 @@ contains
     use prob_params_module, only: dim
     ! use prob_params_module, only: problo, center
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)

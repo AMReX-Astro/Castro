@@ -1,6 +1,6 @@
 module trace_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -21,7 +21,7 @@ contains
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2

@@ -1,6 +1,6 @@
 module sponge_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , save :: sponge_lower_factor, sponge_upper_factor
@@ -22,7 +22,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)

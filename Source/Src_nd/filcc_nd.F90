@@ -6,7 +6,7 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 
   use prob_params_module, only: dim
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   include 'AMReX_bc_types.fi'  

@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -14,7 +14,7 @@ contains
     use meth_params_module, only : NVAR,UMX,UMY,UMZ
     use prob_params_module, only : center
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -238,7 +238,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C,name="ca_denfill")
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -263,7 +263,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     include 'AMReX_bc_types.fi'
 
@@ -284,7 +284,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -306,7 +306,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -326,7 +326,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_l2,phi_l3, &
                             phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) bind(C,name="ca_phigravfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'

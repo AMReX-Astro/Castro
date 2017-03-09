@@ -22,7 +22,7 @@
 #define KAVG(a,b,d) kavg(a,b,d,-1)
 
 real*8 function kavg(a, b, d, iopt)
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   real(rt)         :: a, b, d
   integer :: iopt

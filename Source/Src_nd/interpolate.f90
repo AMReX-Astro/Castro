@@ -1,6 +1,6 @@
 module interpolate_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   contains
@@ -11,7 +11,7 @@ module interpolate_module
 !     find the value of model_var at point r using linear interpolation.
 !     Eventually, we can do something fancier here.
       
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in   ) :: r
       integer         , intent(in   ) :: npts_model
       real(rt)        , intent(in   ) :: model_r(npts_model), model_var(npts_model)
@@ -91,7 +91,7 @@ module interpolate_module
       ! tri-linear interpolation; useful for EOS tables
       ! this is stricly interpolation, so if the point (x,y,z) is outside
       ! the bounds of model_x,model_y,model_z, then we abort
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in   ) :: x,y,z
       integer,          intent(in   ) :: npts_x, npts_y, npts_z
       real(rt)        , intent(in   ) :: model_x(npts_x), &
@@ -161,7 +161,7 @@ module interpolate_module
 
 
     function locate(x, n, xs)
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       integer, intent(in) :: n
       real(rt)        , intent(in) :: x, xs(n)
       integer :: locate      

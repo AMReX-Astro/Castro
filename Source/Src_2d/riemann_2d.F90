@@ -23,7 +23,7 @@ module riemann_module
     use fluxlimiter_module, only : Edd_factor
 #endif
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -52,7 +52,7 @@ contains
     use eos_module
     use network, only: nspec, naux
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
     integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
     integer, intent(in) :: qg_l1,qg_l2,qg_h1,qg_h2
@@ -310,7 +310,7 @@ contains
 
     use prob_params_module, only : coord_type
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
     integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
@@ -423,7 +423,7 @@ contains
     use eos_module
     use prob_params_module, only : coord_type
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
     real(rt)        , parameter :: small_u = 1.e-10_rt
 
@@ -960,7 +960,7 @@ contains
 
     use prob_params_module, only : coord_type
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
@@ -1387,7 +1387,7 @@ contains
     ! to know the pressure and velocity on the interface for the grad p
     ! term in momentum and for an internal energy update
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2

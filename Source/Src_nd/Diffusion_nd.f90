@@ -1,6 +1,6 @@
 module diffusion_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -15,7 +15,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: lo(3), hi(3)
@@ -212,7 +212,7 @@ contains
     use conductivity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -299,7 +299,7 @@ contains
     use conductivity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -392,7 +392,7 @@ contains
     use conductivity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -479,7 +479,7 @@ contains
     use viscosity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -559,7 +559,7 @@ contains
     use viscosity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -642,7 +642,7 @@ contains
     use viscosity_module
     use eos_type_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) ::   lo(3),   hi(3)

@@ -9,7 +9,7 @@ module rad_module
 
   use rad_util_module, only : FLDlambda
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , parameter :: tiny = 1.e-50_rt
@@ -21,7 +21,7 @@ subroutine multrs(d, &
                   DIMS(dbox), &
                   DIMS(reg), &
                   r, s) bind(C, name="multrs")
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: DIMDEC(dbox)
   integer :: DIMDEC(reg)
@@ -39,7 +39,7 @@ end subroutine multrs
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   real(rt)         :: r(reg_l1:reg_h1)
   real(rt)         :: s(reg_l2:reg_h2)
@@ -61,7 +61,7 @@ end subroutine sphc
 subroutine sphe(r, s, n, &
                 DIMS(reg), dx) bind(C, name="sphe")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   real(rt)         :: r(reg_l1:reg_h1)
   real(rt)         :: s(reg_l2:reg_h2)
@@ -95,7 +95,7 @@ subroutine lacoef(a, &
                   DIMS(reg), &
                   fkp, eta, etainv, r, s, c, dt, theta) bind(C, name="lacoef")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   real(rt)         :: a(DIMV(abox))
@@ -123,7 +123,7 @@ subroutine bclim(b, &
                  n, kappar, DIMS(kbox), &
                  r, s, c, dx) bind(C, name="bclim")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
@@ -158,7 +158,7 @@ subroutine flxlim(lambda, &
                   DIMS(rbox), &
                   DIMS(reg), limiter) bind(C, name="flxlim")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: limiter
@@ -175,7 +175,7 @@ subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n) bind(C, name="eddfac")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: n, limiter
@@ -207,7 +207,7 @@ subroutine scgrd1(r, &
                   n, kappar, DIMS(kbox), &
                   er, dx) bind(C, name="scgrd1")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
@@ -274,7 +274,7 @@ subroutine scgrd2(r, &
                   n, kappar, DIMS(kbox), er, &
                   DIMS(dbox), d, dx) bind(C, name="scgrd2")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
@@ -417,7 +417,7 @@ subroutine scgrd3(r, &
                   n, kappar, DIMS(kbox), er, &
                   DIMS(dbox), d, dx) bind(C, name="scgrd3")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
@@ -565,7 +565,7 @@ subroutine lrhs(rhs, &
                 ero, DIMS(ebox), edot, &
                 r, s, dt, sigma, c, theta) bind(C, name="lrhs")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
@@ -605,7 +605,7 @@ subroutine anatw2(test, &
                   DIMS(reg), &
                   temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   real(rt)         :: test(DIMV(reg), 0:1)
   real(rt)         :: temp(DIMV(reg))
@@ -630,7 +630,7 @@ subroutine cfrhoe(DIMS(reg), &
                   state, &
                   DIMS(sb)) bind(C, name="cfrhoe")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(fb)
   integer :: DIMDEC(sb)
@@ -656,7 +656,7 @@ subroutine gtemp(DIMS(reg), &
                  const, em, en, &
                  state, DIMS(sb)) bind(C, name="gtemp")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(tb)
   integer :: DIMDEC(sb)
@@ -696,7 +696,7 @@ subroutine gcv(DIMS(reg), &
      const, em, en, tf, &
      state, DIMS(sbox)) bind(C, name="gcv")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(cbox)
   integer :: DIMDEC(tbox)
@@ -734,7 +734,7 @@ subroutine cexch( DIMS(reg), &
      fkp , DIMS(kbox), &
      sigma, c) bind(C, name="cexch")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(xbox)
   integer :: DIMDEC(ebox)
@@ -762,7 +762,7 @@ subroutine ceta2(DIMS(reg), &
                  er, DIMS(ebox), &
                  dtemp, dtime, sigma, c, underr, lagpla) bind(C, name="ceta2")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(etab)
   integer :: DIMDEC(sb)
@@ -821,7 +821,7 @@ subroutine ceup(DIMS(reg), relres, absres, &
                 frhoem, eta, etainv, dfo, dfn, exch, &
                 dt, theta) bind(C, name="ceup")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
   real(rt)         :: frhoes(DIMV(grd))
@@ -858,7 +858,7 @@ subroutine ceupdterm( DIMS(reg), relres, absres, &
      frhoem, eta, etainv, dfo, dfn, exch, dterm, &
      dt, theta) bind(C, name="ceupdterm")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
   real(rt)         :: frhoes(DIMV(grd))
@@ -901,7 +901,7 @@ subroutine nceup(DIMS(reg), relres, absres, &
                  state, DIMS(sb), &
                  sigma, c, dt, theta) bind(C, name="nceup")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
   integer :: DIMDEC(sb)
@@ -956,7 +956,7 @@ subroutine cetot(DIMS(reg), &
                  state, DIMS(sb), &
                  frhoe, DIMS(fb)) bind(C, name="cetot")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(sb)
   integer :: DIMDEC(fb)
@@ -983,7 +983,7 @@ subroutine fkpn( DIMS(reg), &
      temp, DIMS(tb), &
      state, DIMS(sb)) bind(C, name="fkpn")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(fb)
   integer :: DIMDEC(tb)
@@ -1015,7 +1015,7 @@ subroutine rosse1(DIMS(reg), &
                   temp, DIMS(tb), &
                   state, DIMS(sb)) bind(C, name="rosse1")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: DIMDEC(tb)
@@ -1052,7 +1052,7 @@ subroutine rosse1s(DIMS(reg), &
                    temp, DIMS(tb), &
                    state, DIMS(sb)) bind(C, name="rosse1s")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: DIMDEC(tb)
@@ -1088,7 +1088,7 @@ subroutine nfloor(dest, &
                   DIMS(reg), &
                   nflr, flr, nvar) bind(C, name="nfloor")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(dbox)
   integer :: DIMDEC(reg)
   integer :: nvar, nflr
@@ -1120,7 +1120,7 @@ subroutine lacoefmgfld(a, &
                        r, s, &
                        dt, c) bind(C, name="lacoefmgfld")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
@@ -1153,7 +1153,7 @@ subroutine rfface(fine, &
                   DIMS(cbox), &
                   idim, irat) bind(C, name="rfface")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(cbox)
   real(rt)         :: fine(DIMV(fbox))
@@ -1175,7 +1175,7 @@ end subroutine rfface
 subroutine bextrp(f, fbox_l1, fbox_l2, fbox_h1, fbox_h2, &
                   reg_l1, reg_l2, reg_h1, reg_h2) bind(C, name="bextrp")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: fbox_l1, fbox_l2, fbox_h1, fbox_h2
   integer ::  reg_l1,  reg_l2,  reg_h1,  reg_h2
   real(rt)         :: f(fbox_l1:fbox_h1,fbox_l2:fbox_h2)
@@ -1207,7 +1207,7 @@ subroutine lbcoefna(bcoef, &
                     spec, sboxl0, sboxl1, sboxh0, sboxh1, &
                     idim) bind(C, name="lbcoefna")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: idim
   integer ::  reg_l1,  reg_l2,  reg_h1,  reg_h2
@@ -1242,7 +1242,7 @@ subroutine ljupna(jnew, jboxl0, jboxl1, jboxh0, jboxh1, &
                   accel, aboxl0, aboxl1, aboxh0, aboxh1, &
                   nTotal) bind(C, name="ljupna")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: nTotal
   integer ::  reg_l1,  reg_l2,  reg_h1, reg_h2
   integer :: jboxl0, jboxl1, jboxh0, jboxh1

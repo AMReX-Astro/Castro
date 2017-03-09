@@ -11,7 +11,7 @@
         use rad_params_module, only: hplanck, mev2erg
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer n_lo(3),n_hi(3),nv
@@ -51,7 +51,7 @@
         use rad_params_module, only: hplanck, avogadro
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer y_lo(3),y_hi(3),nv
@@ -96,7 +96,7 @@
         use rad_params_module, only: hplanck, avogadro
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer y_lo(3),y_hi(3),nv
@@ -142,7 +142,7 @@
         use rad_params_module, only: hplanck, avogadro
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer y_lo(3),y_hi(3),nv
@@ -185,7 +185,7 @@
         use rad_params_module, only: hplanck, avogadro
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer y_lo(3),y_hi(3),nv
@@ -226,7 +226,7 @@
 
         use rad_params_module, only: radtoE
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer Et_lo(3),Et_hi(3),ncomp_Et
@@ -267,7 +267,7 @@
 
         use rad_params_module, only: radtoE, ng0
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer Enue_lo(3),Enue_hi(3),ncomp_Enue
@@ -309,7 +309,7 @@
 
         use rad_params_module, only: radtoE, ng0, ng1
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer Enuae_lo(3),Enuae_hi(3),ncomp_Enuae

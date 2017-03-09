@@ -1,7 +1,7 @@
 module probdata_module
 
   ! Probin file
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   character (len=:), allocatable :: probin
 
   ! Determine if we are the I/O processor
@@ -29,7 +29,7 @@ contains
     use bl_constants_module, only: ZERO
     use bl_error_module, only: bl_error
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: namlen, i
@@ -61,7 +61,7 @@ contains
 
   subroutine read_namelist
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: untin
@@ -93,7 +93,7 @@ contains
 
   subroutine get_ioproc
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     ! For outputting -- determine if we are the IO processor
@@ -112,7 +112,7 @@ contains
     use eos_module, only: eos_input_rt, eos
     use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     type (eos_t) :: eos_state

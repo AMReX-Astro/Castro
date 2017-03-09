@@ -19,7 +19,7 @@ void Radiation::save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACED
 		       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
 			      BL_TO_FORTRAN(lambda[1][mfi]),
 			      BL_TO_FORTRAN(lambda[2][mfi])),
-		       BL_TO_FORTRAN(*plotvar[level][mfi]));
+		       BL_TO_FORTRAN((*plotvar[level])[mfi]));
     }
 }
 

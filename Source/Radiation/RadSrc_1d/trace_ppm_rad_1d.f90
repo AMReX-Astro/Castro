@@ -3,7 +3,7 @@
 
 module trace_ppm_rad_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -30,7 +30,7 @@ contains
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer ilo,ihi

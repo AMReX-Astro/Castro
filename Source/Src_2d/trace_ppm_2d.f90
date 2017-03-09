@@ -3,7 +3,7 @@
 
 module trace_ppm_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -32,7 +32,7 @@ contains
          npassive, qpass_map
     use ppm_module, only : ppm
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2

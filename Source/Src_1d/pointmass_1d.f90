@@ -7,7 +7,7 @@
        use fundamental_constants_module, only : Gconst
        use bl_constants_module
 
-       use amrex_fort_module, only : rt => c_real
+       use amrex_fort_module, only : rt => amrex_real
        implicit none
 
        integer         , intent(in   ) :: lo(1), hi(1)
@@ -45,7 +45,7 @@
       use meth_params_module, only : NVAR, URHO, UMX
       use bl_constants_module
 
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(1),hi(1)
@@ -82,7 +82,7 @@
 
       use meth_params_module, only : NVAR, UMX
 
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(1),hi(1)

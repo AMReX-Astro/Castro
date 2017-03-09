@@ -7,7 +7,7 @@
 module rad_params_module
 
   ! radiation energy group information
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer         , save :: ngroups, current_group, ng0, ng1, nnuspec
   integer, save :: nradspec = 1
   real(rt)        , save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
@@ -29,7 +29,7 @@ module rad_params_module
 contains
 
   function get_ispec(g) result(ispec)
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: g
     integer ispec
 

@@ -1,6 +1,6 @@
 module io_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -11,7 +11,7 @@ contains
 
     use iso_fortran_env, only: output_unit
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     flush(output_unit)

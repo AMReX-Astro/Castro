@@ -1,6 +1,6 @@
 module ppm_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private 
@@ -19,7 +19,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          s_l1,s_l2,s_h1,s_h2

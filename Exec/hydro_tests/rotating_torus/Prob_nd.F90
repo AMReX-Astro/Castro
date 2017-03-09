@@ -8,7 +8,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use meth_params_module, only: point_mass
   use rotation_frequency_module, only: get_omega
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none 
 
   integer :: init,namlen,untin,i
@@ -68,7 +68,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only: center
   use castro_util_module, only: position
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: level, nscal

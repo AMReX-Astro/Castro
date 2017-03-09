@@ -4,7 +4,7 @@ module hse_bc_module
   use bl_error_module
   use prob_params_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, parameter :: MAX_ITER = 100
@@ -22,7 +22,7 @@ contains
     use eos_module
     use network, only: nspec
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer :: adv_l1, adv_l2, adv_h1, adv_h2
     integer :: bc(2,2,*)
@@ -177,7 +177,7 @@ contains
     use eos_module
     use network, only: nspec
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)

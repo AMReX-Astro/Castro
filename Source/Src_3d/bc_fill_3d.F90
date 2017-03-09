@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -13,7 +13,7 @@ contains
 
     use meth_params_module, only: NVAR
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -40,7 +40,7 @@ contains
                         adv_h3,domlo,domhi,delta,xlo,time,bc) &
                         bind(C, name="ca_denfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -63,7 +63,7 @@ contains
                             phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -85,7 +85,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravxfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -107,7 +107,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravyfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -129,7 +129,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravzfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -153,7 +153,7 @@ contains
                            phi_h1,phi_h2,phi_h3,domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -175,7 +175,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotxfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -197,7 +197,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotyfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -219,7 +219,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotzfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -243,7 +243,7 @@ contains
        react_h1,react_h2,react_h3,domlo,domhi,delta,xlo,time,bc) &
        bind(C, name="ca_reactfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -267,7 +267,7 @@ contains
                         rad_h1,rad_h2,rad_h3,domlo,domhi,delta,xlo,time,bc) &
                         bind(C, name="ca_radfill")
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'

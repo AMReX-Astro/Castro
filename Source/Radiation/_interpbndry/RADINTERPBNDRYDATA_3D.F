@@ -2,7 +2,7 @@
 #include "AMReX_REAL.H"
 #include "AMReX_CONSTANTS.H"
 #include "RADINTERPBNDRYDATA_F.H"
-#include "ArrayLim.H"
+#include "AMReX_ArrayLim.H"
 
 #define SDIM 3
 #define NUMDERIV 5

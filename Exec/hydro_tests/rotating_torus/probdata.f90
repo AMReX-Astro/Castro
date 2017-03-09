@@ -1,6 +1,6 @@
 module probdata_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)        , save :: inner_radius = 0.75e0_rt
   real(rt)        , save :: outer_radius = 1.50e0_rt
 

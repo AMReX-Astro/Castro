@@ -6,7 +6,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use riemann_module
   use meth_params_module
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: init, namlen
@@ -159,7 +159,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: level, nscal

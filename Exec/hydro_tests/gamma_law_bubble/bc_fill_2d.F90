@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -17,7 +17,7 @@ contains
     use eos_type_module
     use network, only: nspec
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -270,7 +270,7 @@ contains
     use eos_module, only: gamma_const
     use meth_params_module, only : const_grav
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -377,7 +377,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -399,7 +399,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -421,7 +421,7 @@ contains
 
     use probdata_module
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -441,7 +441,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'

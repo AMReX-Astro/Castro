@@ -1,6 +1,7 @@
 module trace_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_error_module, only : amrex_error
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -20,7 +21,7 @@ contains
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)
@@ -435,7 +436,7 @@ contains
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)

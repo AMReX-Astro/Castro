@@ -1,6 +1,6 @@
 module advection_util_2d_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -18,7 +18,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(2),hi(2)
@@ -76,7 +76,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(2), hi(2)
@@ -117,7 +117,7 @@ contains
     use meth_params_module, only : QU, QV
     use bl_constants_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     integer          :: lo(2),hi(2)

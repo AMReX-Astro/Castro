@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -21,7 +21,7 @@ contains
     use eos_type_module, only: eos_t
     use network, only: nspec
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -86,7 +86,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     include 'AMReX_bc_types.fi'

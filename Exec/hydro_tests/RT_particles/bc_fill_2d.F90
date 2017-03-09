@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -14,7 +14,7 @@ contains
     use eos_module, only : gamma_const
     use probdata_module, only: p0_base
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -77,7 +77,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                         domlo,domhi,delta,xlo,time,bc) bind(C)
 
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -124,7 +124,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -146,7 +146,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -168,7 +168,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -190,7 +190,7 @@ contains
 
     use probdata_module
     
-    use amrex_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     include 'AMReX_bc_types.fi'

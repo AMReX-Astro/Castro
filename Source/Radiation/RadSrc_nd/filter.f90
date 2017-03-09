@@ -3,7 +3,7 @@
 module filter_module
 
   ! 3-point filter: T=1, R=S=0
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)        , dimension(0:1), parameter :: ff1 = &
        (/ 0.5e0_rt, 0.25e0_rt /)
   ! For boundary cell

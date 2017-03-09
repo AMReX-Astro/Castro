@@ -1,8 +1,8 @@
 #ifndef _HABEC_F_H_
 #define _HABEC_F_H_
 
-#include <ArrayLim.H>
-#include <BLFort.H>
+#include <AMReX_ArrayLim.H>
+#include <AMReX_BLFort.H>
 
 extern "C" {
   void hacoef(amrex::Real* mat, 

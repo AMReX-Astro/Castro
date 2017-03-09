@@ -1,6 +1,6 @@
 module slope_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -13,7 +13,7 @@ contains
 !      use meth_params_module, only : QPRES
       use bl_constants_module
 
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer ilo, ihi, nv
@@ -74,7 +74,7 @@ contains
       use bl_constants_module
       use meth_params_module, only: QU, QVAR
       
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer ilo, ihi

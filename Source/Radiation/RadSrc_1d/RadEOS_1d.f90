@@ -8,7 +8,7 @@ subroutine ca_compute_c_v(lo, hi, &
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer, intent(in)           :: lo(1), hi(1)
   integer, intent(in)           :: cv_l1, cv_h1
@@ -48,7 +48,7 @@ subroutine ca_get_rhoe(lo, hi, &
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: rhoe_l1, rhoe_h1
@@ -86,7 +86,7 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UFS, UFX, UTEMP, small_temp, allow_negative_energy
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1),hi(1)
   integer         , intent(in) :: temp_l1,temp_h1, state_l1,state_h1
@@ -123,7 +123,7 @@ subroutine ca_compute_temp_given_cv(lo,hi,  &
 
   use meth_params_module, only : NVAR, URHO
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1),hi(1)
   integer         , intent(in) :: temp_l1,temp_h1, state_l1,state_h1
@@ -170,7 +170,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UFS, UFX, &
        small_temp, allow_negative_energy
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: temp_l1, temp_h1
@@ -228,7 +228,7 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(1), hi(1)
   integer         , intent(in) :: re_l1, re_h1

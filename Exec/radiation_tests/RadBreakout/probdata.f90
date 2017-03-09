@@ -1,6 +1,6 @@
 module probdata_module
   
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)        , save :: rwind0, rwind1, rhowind1, Twind1, rbasefac
 
   real(rt)        , save :: xmin,xmax,ymin,ymax,zmin,zmax

@@ -32,7 +32,7 @@
      (issue #58)
 
   -- to support both single and double precision, all of the floating
-     point declarations use the c_real type defined in the
+     point declarations use the amrex_real type defined in the
      amrex_fort_module -- this is set to single or double precision at
      compile time.  All constants also now use this type.  For
      brevity, we rename it to 'rt' in the use statement.  (issue #34)

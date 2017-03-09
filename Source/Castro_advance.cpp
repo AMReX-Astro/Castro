@@ -528,9 +528,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	if (!Geometry::IsCartesian()) {
 
 	    if (level < parent->finestLevel())
-		getLevel(level+1).pres_reg.CrseInit(*P_radial, 0, 0, 0, 1, pres_crse_scale);
+		getLevel(level+1).pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
 	    if (level > 0)
-		getLevel(level).pres_reg.FineAdd(*P_radial, 0, 0, 0, 1, pres_fine_scale);
+		getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
 
 	}
 #endif

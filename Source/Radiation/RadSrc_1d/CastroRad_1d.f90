@@ -8,7 +8,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
   use fluxlimiter_module, only : FLDlambda
   use filter_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: Er_l1, Er_h1, kap_l1, kap_h1, lam_l1, lam_h1
@@ -233,7 +233,7 @@ subroutine ca_get_v_dcf( lo, hi, &
 
   use meth_params_module, only : NVAR, URHO, UMX
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -280,7 +280,7 @@ subroutine ca_compute_dcoefs( lo, hi, &
      dcf, dcf_l1, dcf_h1, &
      r, idir) bind(C, name="ca_compute_dcoefs")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -317,7 +317,7 @@ subroutine ca_update_dcf(lo, hi, &
      etainv, eti_l1, eti_h1, &
      kp, kp_l1, kp_h1, kr, kr_l1, kr_h1) bind(C, name="ca_update_dcf")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -340,7 +340,7 @@ subroutine ca_set_dterm_face( lo, hi, &
      Er, Er_l1, Er_h1, dc, dc_l1, dc_h1, &
      dtf, dtf_l1, dtf_h1, dx, idir) bind(C, name="ca_set_dterm_face")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -362,7 +362,7 @@ subroutine ca_face2center( lo, hi, &
      foox, foox_l1, foox_h1, &
      fooc, fooc_l1, fooc_h1) bind(C, name="ca_face2center")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1), scomp,dcomp,ncomp,nx,nc
@@ -385,7 +385,7 @@ end subroutine ca_face2center
 subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
      re, rc) bind(C, name="ca_correct_dterm")
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: dfx_l1, dfx_h1
@@ -407,7 +407,7 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer u_l1,u_h1
@@ -457,7 +457,7 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_h1, gPr, gPr_l1, gPr_h1)
 
   use rad_params_module, only : ngroups
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: Er_l1, Er_h1, gpr_l1, gpr_h1
@@ -484,7 +484,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_h1, Er, Er_l1, Er_h1, &
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: kap_l1, kap_h1

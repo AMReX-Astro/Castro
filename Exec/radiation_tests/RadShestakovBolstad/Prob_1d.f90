@@ -3,7 +3,7 @@
 
       use probdata_module
       use network, only : network_init
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: init, namlen
@@ -84,7 +84,7 @@
       use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
       use network, only : nspec, naux
       
-      use amrex_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
       
       integer level, nscal
@@ -148,7 +148,7 @@
 
         use probdata_module
 
-        use amrex_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
         integer level, nrad
         integer lo(1), hi(1)

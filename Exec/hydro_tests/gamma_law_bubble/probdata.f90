@@ -1,6 +1,6 @@
 module probdata_module
 
-  use amrex_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)        , save :: pert_factor, dens_base, pres_base, y_pert_center
   real(rt)        , save :: pert_width
   
