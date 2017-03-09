@@ -7,27 +7,34 @@ of the tools as well as some examples.
 There are a few options that can be set at runtime to control what
 variables appear in the plotfile.
 
-{\bf amr.plot\_vars} = \\
+\begin{itemize}
 
-\noindent and  \\
+  \item \runparam{amr.plot\_vars} : this controls which of the main
+    state variables appear in the plotfile.  The default is for all of
+    them to be stored.  But you can specify a subset by name, e.g.
+    \begin{verbatim}
+      amr.plot_vars = density
+    \end{verbatim}
+    to only store that subset.
 
-\noindent {\bf amr.derive\_plot\_vars} = \\
+  \item \runparam{amr.derive\_plot\_vars} : this controls which of the
+    derived variables to be stored in the plotfile.  Derived variables
+    are created only when the plotfile is being created, using the
+    infrastructure provided by \boxlib\ to register variables and the
+    associated Fortran routine to do the deriving
+    (\code{Derive\_nd.F90}).
 
-\noindent are used to control which variables are included in the plotfiles.  The default for {\bf amr.plot\_vars}
-is all of the state variables.  The default for {\bf amr.derive\_plot\_vars} is none of
-the derived variables.  So if you include neither of these lines then the plotfile
-will contain all of the state variables and none of the derived variables. \\
+    By default, no derived variables are stored.  You can store all
+    derived variables that \castro\ knows about by doing:
+    \begin{verbatim}
+      amr.derive_plot_vars = ALL
+    \end{verbatim}
+    or a subset by explicitly listing them, e.g., 
+    \begin{verbatim}
+      amr.derive_plot_vars = entropy pressure
+    \end{verbatim}
 
-\noindent If you want all of the state variables plus entropy and pressure, for example, then set \\
-
-\noindent {\bf amr.derive\_plot\_vars} = entropy pressure \\
-
-\noindent If you just want density and pressure, for example, then set \\
-
-\noindent {\bf amr.plot\_vars} =  density \\
-
-\noindent {\bf amr.derive\_plot\_vars} = pressure \\
-
+\end{itemize}
 
 
 \section{amrvis}

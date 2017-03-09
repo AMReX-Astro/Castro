@@ -40,7 +40,7 @@ def process(castro_exec_dir, plotfile):
     os.system("./{} -s {} {}".format(os.path.basename(analysis_routine), "test3-helm.out", plotfile))
 
 
-    analytic = castro_exec_dir + "Exec/Sod_stellar/Verification/test3.exact.128.out"
+    analytic = castro_exec_dir + "Exec/hydro_tests/Sod_stellar/Verification/test3.exact.128.out"
     analytic_data = np.loadtxt(analytic)
 
     # need to be more flexible with the data from the simulations, as the 

@@ -97,6 +97,15 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     for (int n = 0; n < num_src; ++n)
 	if (source_flag(n))
 	    apply_source_to_state(S_new, *old_sources[n], dt);
+
+    // Optionally print out diagnostic information about how much
+    // these source terms changed the state.
+
+    if (print_update_diagnostics) {
+      bool is_new = false;
+      print_all_source_changes(dt, is_new);
+    }
+
 }
 
 void
@@ -136,6 +145,15 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	clean_state(S_new);
 
     }
+
+    // Optionally print out diagnostic information about how much
+    // these source terms changed the state.
+
+    if (print_update_diagnostics) {
+      bool is_new = true;
+      print_all_source_changes(dt, is_new);
+    }
+
 
 }
 
@@ -232,6 +250,144 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
     } // end switch
 }
+
+// Evaluate diagnostics quantities describing the effect of an
+// update on the state. The optional parameter local determines
+// whether we want to do this calculation globally over all processes
+// or locally just on this processor. The latter is useful if you
+// are evaluating the contribution from multiple source changes at once
+// and want to amortize the cost of the parallel reductions.
+// Note that the resultant output is volume-weighted.
+
+Array<Real>
+Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
+{
+
+  Array<Real> update(source.nComp(), 0.0);
+
+  // Create a temporary array which will hold a single component
+  // at a time of the volume-weighted source.
+
+  MultiFab weighted_source(source.boxArray(), 1, 0);
+
+  for (int n = 0; n < source.nComp(); ++n) {
+
+    weighted_source.setVal(0.0);
+
+    // Fill weighted_source with source x volume.
+
+    MultiFab::AddProduct(weighted_source, source, n, volume, 0, 0, 1, 0);
+
+    update[n] = weighted_source.sum(0, local) * dt;
+
+  }
+
+  return update;
+
+}
+
+// Print the change due to a given source term update.
+// We assume here that the input array is lined up with
+// the NUM_STATE components of State_Type because we are
+// interested in printing changes to energy, mass, etc.
+
+void
+Castro::print_source_change(Array<Real> update)
+{
+
+  BL_ASSERT(update.size() == NUM_STATE);
+
+  if (ParallelDescriptor::IOProcessor()) {
+
+    std::cout << "       mass added: " << update[Density] << std::endl;
+    std::cout << "       xmom added: " << update[Xmom] << std::endl;
+#if (BL_SPACEDIM >= 2)
+    std::cout << "       ymom added: " << update[Ymom] << std::endl;
+#endif
+#if (BL_SPACEDIM == 3)
+    std::cout << "       zmom added: " << update[Zmom] << std::endl;
+#endif
+    std::cout << "       eint added: " << update[Eint] << std::endl;
+    std::cout << "       ener added: " << update[Eden] << std::endl;
+
+    std::cout << std::endl;
+
+  }
+
+
+}
+
+// For the old-time or new-time sources update, evaluate the change in the state
+// for all source terms, then pring the results.
+
+void
+Castro::print_all_source_changes(Real dt, bool is_new)
+{
+
+  Array< Array<Real> > summed_updates;
+
+  summed_updates.resize(num_src);
+
+  bool local = true;
+
+  for (int n = 0; n < num_src; ++n) {
+
+    if (!source_flag(n)) continue;
+
+    MultiFab& source = is_new ? new_sources[n] : old_sources[n];
+
+    summed_updates[n] = evaluate_source_change(source, dt, local);
+
+  }
+
+#ifdef BL_LAZY
+  Lazy::QueueReduction( [=] () mutable {
+#endif
+      if (coalesce_update_diagnostics) {
+
+	  Array<Real> coalesced_update(NUM_STATE, 0.0);
+
+	  for (int n = 0; n < num_src; ++n) {
+	      if (!source_flag(n)) continue;
+
+	      for (int s = 0; s < NUM_STATE; ++s) {
+		  coalesced_update[s] += summed_updates[n][s];
+	      }
+	  }
+
+	  ParallelDescriptor::ReduceRealSum(coalesced_update.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+
+	  std::string time = is_new ? "new" : "old";
+
+	  if (ParallelDescriptor::IOProcessor())
+	      std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
+
+	  print_source_change(coalesced_update);
+
+      } else {
+
+	  for (int n = 0; n < num_src; ++n) {
+
+	      if (!source_flag(n)) continue;
+
+	      ParallelDescriptor::ReduceRealSum(summed_updates[n].dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+
+	      std::string time = is_new ? "new" : "old";
+
+	      if (ParallelDescriptor::IOProcessor())
+		  std::cout << std::endl << "  Contributions to the state from the " << time << "-time " << source_names[n] << " source:" << std::endl;
+
+	      print_source_change(summed_updates[n]);
+
+	  }
+
+      }
+
+#ifdef BL_LAZY
+    });
+#endif
+
+} 
 
 // Obtain the sum of all source terms.
 

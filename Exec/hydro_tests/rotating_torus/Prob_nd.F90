@@ -8,11 +8,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use meth_params_module, only: point_mass
   use rotation_frequency_module, only: get_omega
   
+  use bl_fort_module, only : rt => c_real
   implicit none 
 
   integer :: init,namlen,untin,i
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
   
   namelist /fortin/ inner_radius, outer_radius, density_maximum_radius, ambient_density
 
@@ -20,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 127
   character :: probin*(maxlen)
 
-  double precision :: omega(3)
+  real(rt)         :: omega(3)
   
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -67,22 +68,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only: center
   use castro_util_module, only: position
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: level, nscal
   integer          :: lo(3), hi(3)
   integer          :: state_lo(3), state_hi(3)
-  double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-  double precision :: time, dx(3)
-  double precision :: xlo(3), xhi(3)
+  real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  real(rt)         :: time, dx(3)
+  real(rt)         :: xlo(3), xhi(3)
   
-  double precision :: loc(3), vel(3), R, Z, dist
-  double precision :: rho, rho_s, fac
+  real(rt)         :: loc(3), vel(3), R, Z, dist
+  real(rt)         :: rho, rho_s, fac
   integer          :: i, j, k
 
   type (eos_t)     :: eos_state
 
-  double precision :: omega(3)
+  real(rt)         :: omega(3)
 
   omega = get_omega(time)
 

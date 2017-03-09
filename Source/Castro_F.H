@@ -61,8 +61,8 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
-     const int* gravity_type, const int& gravity_type_len,
-     const amrex::Real& diffuse_cutoff_density);
+     const int* gravity_type, const int& gravity_type_len);
+
 
   void set_castro_method_params();
 
@@ -141,9 +141,7 @@ extern "C"
      const amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
      const int* lo, const int* hi,
-     const amrex::Real* mass_added, const amrex::Real* e_added,
-     const amrex::Real* E_added, const amrex::Real* frac_change,
-     const int* verbose);
+     const amrex::Real* frac_change, const int* verbose);
 
   void ca_normalize_species
     (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);
@@ -488,11 +486,6 @@ extern "C"
 #ifdef RADIATION
      const int* priv_nstep_fsp,
 #endif
-     amrex::Real& mass_added_flux,
-     amrex::Real& xmom_added_flux,
-     amrex::Real& ymom_added_flux,
-     amrex::Real& zmom_added_flux,
-     amrex::Real& E_added_flux,
      amrex::Real& mass_lost,
      amrex::Real& xmom_lost,
      amrex::Real& ymom_lost,
@@ -518,8 +511,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const amrex::Real& E_added, const amrex::Real* mom_added);
+     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
 
   void update_sponge_params(const amrex::Real* time);
 #endif
@@ -546,43 +538,14 @@ extern "C"
 #endif
 
 #ifdef GRAVITY
+  void ca_gsrc
+    (const int* lo, const int* hi,
+     const int* domlo, const int* domhi,
+     const BL_FORT_FAB_ARG_3D(s_old),
 #ifdef SELF_GRAVITY
-  void ca_gsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
-     const BL_FORT_FAB_ARG_3D(s_old),
+#endif
      BL_FORT_FAB_ARG_3D(source),
-     const BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const amrex::Real& E_added, const amrex::Real* mom_added);
-
-  void ca_corrgsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
-     const BL_FORT_FAB_ARG_3D(grav_old),
-     const BL_FORT_FAB_ARG_3D(grav_new),
-     const BL_FORT_FAB_ARG_3D(S_old),
-     const BL_FORT_FAB_ARG_3D(S_new),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const BL_FORT_FAB_ARG_3D(volume), 
-     const amrex::Real& E_added, const amrex::Real* mom_added);
-
-#else
-
-  void ca_gsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(s_old),
-     BL_FORT_FAB_ARG_3D(source),
-     const BL_FORT_FAB_ARG_3D(vol),
      const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
 
   void ca_corrgsrc
@@ -590,13 +553,22 @@ extern "C"
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(S_old),
      const BL_FORT_FAB_ARG_3D(S_new),
-     BL_FORT_FAB_ARG_3D(source),
+#ifdef SELF_GRAVITY
+     const BL_FORT_FAB_ARG_3D(grav_old),
+     const BL_FORT_FAB_ARG_3D(grav_new),
+     const BL_FORT_FAB_ARG_3D(gpo1),
+     const BL_FORT_FAB_ARG_3D(gpo2),
+     const BL_FORT_FAB_ARG_3D(gpo3),
+     const BL_FORT_FAB_ARG_3D(gpn1),
+     const BL_FORT_FAB_ARG_3D(gpn2),
+     const BL_FORT_FAB_ARG_3D(gpn3),
+#endif
+     const BL_FORT_FAB_ARG_3D(volume),
      BL_FORT_FAB_ARG_3D(xflux),
      BL_FORT_FAB_ARG_3D(yflux),
      BL_FORT_FAB_ARG_3D(zflux),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const BL_FORT_FAB_ARG_3D(volume)); 
-#endif
+     BL_FORT_FAB_ARG_3D(source),
+     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
 #endif
 
 #ifdef ROTATION
@@ -620,8 +592,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(s_old),
      BL_FORT_FAB_ARG_3D(source),
      const BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const amrex::Real& E_added, const amrex::Real* mom_added);
+     const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
 
   void ca_corrrsrc
     (const int* lo, const int* hi,
@@ -637,8 +608,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(yflux),
      const BL_FORT_FAB_ARG_3D(zflux),
      const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time,
-     const BL_FORT_FAB_ARG_3D(volume),
-     const amrex::Real& E_added, const amrex::Real* mom_added);
+     const BL_FORT_FAB_ARG_3D(volume));
 
 #endif
 

@@ -1,5 +1,6 @@
 module ppm_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -19,6 +20,7 @@ contains
 
     use meth_params_module, only : ppm_type
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -28,14 +30,14 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
-    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt)        , intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    real(rt)        , intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    real(rt)        , intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision, intent(in) :: dx(3), dt
+    real(rt)        , intent(in) :: dx(3), dt
 
     integer, intent(in), optional :: force_type_in
 
@@ -78,6 +80,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -87,33 +90,33 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt)        , intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    real(rt)        , intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
 
-    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision, intent(in) :: dx(3), dt
+    real(rt)        , intent(in) :: dx(3), dt
 
     ! local
     integer i,j,k
 
-    double precision dtdx, dtdy, dtdz
+    real(rt)         dtdx, dtdy, dtdz
 
-    double precision dsl, dsr, dsc
-    double precision sigma, s6
+    real(rt)         dsl, dsr, dsc
+    real(rt)         sigma, s6
 
     ! s_{\ib,+}, s_{\ib,-}
-    double precision :: sm, sp
+    real(rt)         :: sm, sp
 
     ! \delta s_{\ib}^{vL}
-    double precision, pointer :: dsvl(:,:)
-    double precision :: dsvlm, dsvl0, dsvlp
+    real(rt)        , pointer :: dsvl(:,:)
+    real(rt)         :: dsvlm, dsvl0, dsvlp
 
     ! s_{i+\half}^{H.O.}
-    double precision, pointer :: sedge(:,:)
+    real(rt)        , pointer :: sedge(:,:)
 
     dtdx = dt/dx(1)
     dtdy = dt/dx(2)
@@ -537,6 +540,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -546,37 +550,40 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    double precision, intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    double precision, intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    double precision, intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
-    double precision, intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    double precision, intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
-    double precision, intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt)        , intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    real(rt)        , intent(in) ::  cspd(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt)        , intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt)        , intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
+    real(rt)        , intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3)
 
-    double precision, intent(in) :: dx(3), dt
+    real(rt)        , intent(in) :: dx(3), dt
 
 
     ! local
     integer i,j,k
     logical extremum, bigp, bigm
 
-    double precision dtdx, dtdy, dtdz
+    real(rt)         dtdx, dtdy, dtdz
 
-    double precision D2, D2C, D2L, D2R, D2LIM, alphap, alpham
-    double precision sgn, sigma, s6
-    double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
-    double precision dachkm, dachkp
-    double precision amax, delam, delap
+    real(rt)         D2, D2C, D2L, D2R, D2LIM, alphap, alpham
+    real(rt)         sgn, sigma, s6
+    real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
+    real(rt)         dachkm, dachkp
+    real(rt)         amax, delam, delap
 
     ! s_{\ib,+}, s_{\ib,-}
-    double precision :: sm, sp
+    real(rt)         :: sm, sp
 
     ! s_{i+\half}^{H.O.}
-    double precision, pointer :: sedge(:,:)
-    double precision, pointer :: sedgez(:,:,:)
+    real(rt)        , pointer :: sedge(:,:)
+    real(rt)        , pointer :: sedgez(:,:,:)
 
     ! constant used in Colella 2008
-    double precision, parameter :: C = 1.25d0
+    real(rt)        , parameter :: C = 1.25e0_rt
+
+    ! a constant used for testing extrema
+    real(rt), parameter :: SMALL = 1.e-10_rt    
 
     dtdx = dt/dx(1)
     dtdy = dt/dx(2)
@@ -671,15 +678,15 @@ contains
              D2C    = s(i-1,j,k3d)-TWO*s(i,j,k3d)+s(i+1,j,k3d)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-             alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.d-10) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -691,7 +698,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1,j,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.d-10) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap
@@ -836,15 +843,15 @@ contains
              D2C    = s(i,j-1,k3d)-TWO*s(i,j,k3d)+s(i,j+1,k3d)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-             alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j-1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.d-10) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -856,7 +863,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j+1,k3d) - s(i,j,k3d)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.d-10) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap
@@ -1006,15 +1013,15 @@ contains
              D2C    = s(i,j,k-1)-TWO*s(i,j,k)+s(i,j,k+1)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-             alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+             alpham = alpham*D2LIM/max(abs(D2), SMALL)
+             alphap = alphap*D2LIM/max(abs(D2), SMALL)
           else
              if (bigp) then
                 sgn   = sign(ONE,alpham)
                 amax  = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i,j,k-1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.d-10) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else
                       alphap = -TWO*alpham
@@ -1026,7 +1033,7 @@ contains
                 amax  = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i,j,k+1) - s(i,j,k)
                 if (sgn*amax .ge. sgn*delap) then
-                   if (sgn*(delap - alphap).ge.1.d-10) then
+                   if (sgn*(delap - alphap).ge. SMALL) then
                       alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                    else
                       alpham = -TWO*alphap

@@ -1,153 +1,155 @@
 #ifndef _HABEC_F_H_
 #define _HABEC_F_H_
 
+#include <ArrayLim.H>
+#include <BLFort.H>
 
 extern "C" {
-  void hacoef(amrex::Real* mat, amrex::Real* acoefs, intS, intS,
+  void hacoef(amrex::Real* mat, 
+	      BL_FORT_FAB_ARG(acoefs),
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const amrex::Real& alpha);
 
-  void hbcoef(amrex::Real* mat, amrex::Real* bcoefs, intS, intS,
+  void hbcoef(amrex::Real* mat, 
+	      BL_FORT_FAB_ARG(bcoefs),
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const amrex::Real& beta, const amrex::Real* dx, const int& n);
 
-  void hbmat(amrex::Real* mat, intS,
+  void hbmat(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const amrex::Real& bcl,
-	     const int* mask, intS,
-	     amrex::Real* bcoefs, intS,
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const amrex::Real& beta, const amrex::Real* dx);
 
-  void hbmat2(amrex::Real* mat, intS,
-	      const int& cdir, const int* tf, const amrex::Real& bcl, intS,
-	      const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
-	      const amrex::Real& beta, const amrex::Real* dx);
-
-  void hbmat3(amrex::Real* mat, intS,
+  void hbmat3(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype,
-	      const int* tf, const amrex::Real& bcl, intS,
-	      const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
+	      const int* tf, const amrex::Real& bcl, ARLIM_P(flo), ARLIM_P(fhi),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const amrex::Real& beta, const amrex::Real* dx,
 	      const amrex::Real& flux_factor, const amrex::Real* r,
-	      const amrex::Real* spa, intS);
+	      const amrex::Real* spa, ARLIM_P(slo), ARLIM_P(shi));
 
-  void hbvec(amrex::Real* vec, intS,
+  void hbvec(amrex::Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const int& bho,
 	     const amrex::Real& bcl,
-	     const amrex::Real* bcval, intS, const int* mask, intS,
-	     amrex::Real* bcoefs, intS,
+	     const BL_FORT_FAB_ARG(bcval),
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const amrex::Real& beta, const amrex::Real* dx);
 
-  void hbvec2(amrex::Real* vec, intS,
-	      const int& cdir, const int* tf,
-	      const int& bho, const amrex::Real& bcl,
-	      const amrex::Real* bcval, intS, const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
-	      const amrex::Real& beta, const amrex::Real* dx);
-
-  void hbvec3(amrex::Real* vec, intS,
+  void hbvec3(amrex::Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const amrex::Real& bcl,
-	      const amrex::Real* bcval, intS, const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
+	      const BL_FORT_FAB_ARG(bcval),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const amrex::Real& beta, const amrex::Real* dx, const amrex::Real* r);
 
-  void hbflx(amrex::Real* flux, intS,
-	     amrex::Real* soln, intS, intS,
+  void hbflx(BL_FORT_FAB_ARG(flux),
+	     BL_FORT_FAB_ARG(soln),
+	     ARLIM_P(reglo), ARLIM_P(reghi), 
 	     const int& cdir, const RadBoundCond& bct,
 	     const int& bho, const amrex::Real& bcl,
-	     const amrex::Real* bcval, intS, const int* mask, intS,
-	     amrex::Real* bcoefs, intS,
+	     const amrex::Real* bcval, ARLIM_P(fslo), ARLIM_P(fshi), 
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const amrex::Real& beta, const amrex::Real* dx, const int& inhom);
 
-  void hbflx2(amrex::Real* flux, intS,
-	      amrex::Real* soln, intS, intS,
-	      const int& cdir, const int* tf,
-	      const int& bho, const amrex::Real& bcl,
-	      const amrex::Real* bcval, intS, const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
-	      const amrex::Real& beta, const amrex::Real* dx, const int& inhom);
-
-  void hbflx3(amrex::Real* flux, intS,
-	      amrex::Real* soln, intS, intS,
+  void hbflx3(BL_FORT_FAB_ARG(flux),
+	      BL_FORT_FAB_ARG(soln),
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
 	      const int& bho, const amrex::Real& bcl,
-	      const amrex::Real* bcval, intS, const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
+	      const BL_FORT_FAB_ARG(bcval),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const amrex::Real& beta, const amrex::Real* dx,
 	      const amrex::Real& flux_factor, const amrex::Real* r,
 	      const int& inhom,
-	      const amrex::Real* spa, intS);
+	      const amrex::Real* spa, ARLIM_P(splo), ARLIM_P(sphi));
 
-  void hdterm(amrex::Real* dterm, intS,
-	      amrex::Real* soln, intS, intS,
+  void hdterm(BL_FORT_FAB_ARG(dterm),
+	      BL_FORT_FAB_ARG(soln),
+	      ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const RadBoundCond& bct,
 	      const amrex::Real& bcl,
-	      const amrex::Real* bcval, intS, const int* mask, intS,
-	      amrex::Real* dcoefs, intS,
+	      const BL_FORT_FAB_ARG(bcval),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(dcoefs),
 	      const amrex::Real* dx);
 
-  void hdterm3(amrex::Real* dterm, intS,
-	       amrex::Real* soln, intS, intS,
+  void hdterm3(BL_FORT_FAB_ARG(dterm),
+	       BL_FORT_FAB_ARG(soln),
+	       ARLIM_P(reglo), ARLIM_P(reghi),
 	       const int& cdir, const int& bctype, const int* tf,
 	       const amrex::Real& bcl,
-	       const amrex::Real* bcval, intS, const int* mask, intS,
-	       amrex::Real* dcoefs, intS,
+	       const BL_FORT_FAB_ARG(bcval),
+	       const BL_FORT_IFAB_ARG(mask),
+	       BL_FORT_FAB_ARG(dcoefs),
 	       const amrex::Real* dx);
 
-  void hmac(amrex::Real* mat, amrex::Real* acoefs, intS, intS,
+  void hmac(amrex::Real* mat, 
+	    BL_FORT_FAB_ARG(acoefs),
+	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const amrex::Real& alpha);
 
-  void hmbc(amrex::Real* mat, amrex::Real* bcoefs, intS, intS,
+  void hmbc(amrex::Real* mat,
+	    BL_FORT_FAB_ARG(bcoefs),
+	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const amrex::Real& beta, const amrex::Real* dx, const int& n);
 
-  void hma2c(amrex::Real* mat, amrex::Real* a2coefs, intS, intS,
+  void hma2c(amrex::Real* mat, 
+	     BL_FORT_FAB_ARG(a2coefs), 
+	     ARLIM_P(reglo), ARLIM_P(reghi), 
 	     const amrex::Real& alpha2, const int& n);
 
-  void hmcc(amrex::Real* mat, amrex::Real* ccoefs, intS, intS,
+  void hmcc(amrex::Real* mat, 
+	    BL_FORT_FAB_ARG(ccoefs),
+	    ARLIM_P(reglo), ARLIM_P(reghi),
 	    const amrex::Real& gamma, const amrex::Real* dx, const int& n);
 
-  void hmd1c(amrex::Real* mat, amrex::Real* d1coefs, intS, intS,
+  void hmd1c(amrex::Real* mat,
+	     BL_FORT_FAB_ARG(d1coefs),
+	     ARLIM_P(reglo), ARLIM_P(reghi),
 	     const amrex::Real& delta1, const amrex::Real* dx, const int& n);
 
-  void hmd2c(amrex::Real* mat, amrex::Real* d2coefs, intS, intS,
+  void hmd2c(amrex::Real* mat,
+	     BL_FORT_FAB_ARG(d2coefs),
+	     ARLIM_P(reglo), ARLIM_P(reghi),
 	     const amrex::Real& delta2, const amrex::Real* dx, const int& n);
 
-  void hmmat(amrex::Real* mat, intS,
+  void hmmat(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct,
 	     const int& bho, const amrex::Real& bcl,
-	     const int* mask, intS,
-	     amrex::Real* bcoefs, intS,
+	     const BL_FORT_IFAB_ARG(mask),
+	     BL_FORT_FAB_ARG(bcoefs),
 	     const amrex::Real& beta, const amrex::Real* dx);
 
-  void hmmat2(amrex::Real* mat, intS,
-	      const int& cdir, const int* tf,
-	      const int& bho, const amrex::Real& bcl, intS,
-	      const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
-	      const amrex::Real& beta, const amrex::Real* dx);
-
-  void hmmat3(amrex::Real* mat, intS,
+  void hmmat3(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	      const int& cdir, const int& bctype, const int* tf,
-	      const int& bho, const amrex::Real& bcl, intS,
-	      const int* mask, intS,
-	      amrex::Real* bcoefs, intS,
+	      const int& bho, const amrex::Real& bcl, ARLIM_P(fslo), ARLIM_P(fshi),
+	      const BL_FORT_IFAB_ARG(mask),
+	      BL_FORT_FAB_ARG(bcoefs),
 	      const amrex::Real& beta, const amrex::Real* dx,
 	      const amrex::Real& flux_factor, const amrex::Real* r,
-	      amrex::Real* spa, intS);
+	      amrex::Real* spa, ARLIM_P(splo), ARLIM_P(sphi));
 
+  // not used?
   void add_ccoef_flux(const int& n,
-		      amrex::Real* Erborder, intS,
-		      amrex::Real* ccoef, intS,
+		      amrex::Real* Erborder, ARLIM_P(erlo), ARLIM_P(erhi),
+		      amrex::Real* ccoef, ARLIM_P(cclo), ARLIM_P(cchi),
 		      const amrex::Real& gamma,
 		      const amrex::Real* dx,
-		      amrex::Real* Flux, intS);
+		      amrex::Real* Flux, ARLIM_P(flo), ARLIM_P(fhi));
 
-  void set_abec_flux(intS, int*,
-		     amrex::Real*, intS,
-		     amrex::Real*, intS,
+  void set_abec_flux(ARLIM_P(reglo), ARLIM_P(reghi), 
+		     int*,
+		     BL_FORT_FAB_ARG(c), 
+		     BL_FORT_FAB_ARG(d), 
 		     const amrex::Real*,
 		     const amrex::Real*,
-		     amrex::Real*, intS);
+		     BL_FORT_FAB_ARG(flux));
 };
 
 #endif

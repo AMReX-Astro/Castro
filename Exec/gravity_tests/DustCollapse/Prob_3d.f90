@@ -7,13 +7,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use meth_params_module, only : small_temp
   use prob_params_module, only : center
 
+  use bl_fort_module, only : rt => c_real
   implicit none 
 
   integer :: init,namlen,untin,i,k
   integer :: name(namlen)
 
-  double precision :: center_x, center_y, center_z
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: center_x, center_y, center_z
+  real(rt)         :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
@@ -35,12 +36,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   is_3d_fullstar = .false.
 
-  rho_0 = 1.d9
-  r_0 = 6.5d8
+  rho_0 = 1.e9_rt
+  r_0 = 6.5e8_rt
   r_old = r_0
-  p_0 = 1.d10
-  rho_ambient = 1.d0
-  smooth_delta = 1.d-5
+  p_0 = 1.e10_rt
+  rho_ambient = 1.e0_rt
+  smooth_delta = 1.e-5_rt
 
   ! Read namelists in probin file
   untin = 9
@@ -122,24 +123,25 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
   use prob_params_module, only : center
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: level, nscal
   integer          :: lo(3), hi(3)
   integer          :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
-  double precision :: time, delta(3)
-  double precision :: xlo(3), xhi(3)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  real(rt)         :: time, delta(3)
+  real(rt)         :: xlo(3), xhi(3)
   
-  double precision :: xl,yl,zl,xx,yy,zz,dist,pres,eint,temp,avg_rho,rho_n,volinv
-  double precision :: dx_sub,dy_sub,dz_sub
+  real(rt)         :: xl,yl,zl,xx,yy,zz,dist,pres,eint,temp,avg_rho,rho_n,volinv
+  real(rt)         :: dx_sub,dy_sub,dz_sub
   integer          :: i,j,k,ii,jj,kk,n
 
   type (eos_t) :: eos_state
 
   integer, parameter :: nsub = 5
 
-  volinv = 1.d0/dble(nsub*nsub*nsub)
+  volinv = 1.e0_rt/dble(nsub*nsub*nsub)
 
   dx_sub = delta(1)/dble(nsub)
   dy_sub = delta(2)/dble(nsub)
@@ -154,23 +156,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         do i = lo(1), hi(1)
            xl = xmin + dble(i) * delta(1)
 
-           avg_rho = 0.d0
+           avg_rho = 0.e0_rt
            
            do kk = 0, nsub-1
-              zz = zl + (dble(kk) + 0.5d0) * dz_sub
+              zz = zl + (dble(kk) + 0.5e0_rt) * dz_sub
 
               do jj = 0, nsub-1
-                 yy = yl + (dble(jj) + 0.5d0) * dy_sub
+                 yy = yl + (dble(jj) + 0.5e0_rt) * dy_sub
 
                  do ii = 0, nsub-1
-                    xx = xl + (dble(ii) + 0.5d0) * dx_sub
+                    xx = xl + (dble(ii) + 0.5e0_rt) * dx_sub
                     
                     dist = sqrt((xx-center(1))**2 + (yy-center(2))**2 + (zz-center(3))**2)
                     
                     ! use a tanh profile to smooth the transition between rho_0 
                     ! and rho_ambient
-                    rho_n = rho_0 - 0.5d0*(rho_0 - rho_ambient)* &
-                         (1.d0 + tanh((dist - r_0)/smooth_delta))
+                    rho_n = rho_0 - 0.5e0_rt*(rho_0 - rho_ambient)* &
+                         (1.e0_rt + tanh((dist - r_0)/smooth_delta))
 
                     avg_rho = avg_rho + rho_n
                     
@@ -191,9 +193,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eint = eos_state % e
            
            state(i,j,k,UTEMP) = temp
-           state(i,j,k,UMX) = 0.d0
-           state(i,j,k,UMY) = 0.d0
-           state(i,j,k,UMZ) = 0.d0
+           state(i,j,k,UMX) = 0.e0_rt
+           state(i,j,k,UMY) = 0.e0_rt
+           state(i,j,k,UMZ) = 0.e0_rt
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eint
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eint
            state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * X_0(1:nspec)

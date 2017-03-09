@@ -26,12 +26,6 @@ state_nghost                 int           0
 # do we do the hyperbolic reflux at coarse-fine interfaces?
 do_reflux                    int           1
 
-# refluxing strategy. Ordered in descending level of accuracy
-# and descending computational expense.
-# 1 = reflux during every finest level timestep
-# 2 = reflux at the end of every timestep on every level
-reflux_strategy              int           2
-
 # whether to re-compute new-time source terms after a reflux
 update_sources_after_reflux  int           1
 
@@ -191,7 +185,7 @@ do_sponge                    int           0                  y
 sponge_implicit              int           1                  y
 
 # should we time center the sponge?
-time_center_sponge           int           0
+time_center_sponge           int           1
 
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
@@ -326,6 +320,26 @@ react_rho_max                Real          1.e200             y
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0                  y
 
+
+#-----------------------------------------------------------------------------
+# category: diffusion
+#-----------------------------------------------------------------------------
+
+# enable thermal diffusion
+diffuse_temp                 int           0                  n     DIFFUSION
+
+# enable enthalpy diffusion
+diffuse_enth                 int           0                  n     DIFFUSION
+
+# enable species diffusion
+diffuse_spec                 int           0                  n     DIFFUSION
+
+# enable velocity diffusion
+diffuse_vel                  int           0                  n     DIFFUSION
+
+# set a cutoff density for diffusion -- we zero the term out below this density
+diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
+
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
 #-----------------------------------------------------------------------------
@@ -424,8 +438,12 @@ spherical_star               int           0
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
-# display breakdown of energy sources
-print_energy_diagnostics     int           (0, 1)
+# display information about updates to the state (how much mass, momentum, energy added)
+print_update_diagnostics     int           (0, 1)
+
+# if we're printing diagnostic information about the updates, should we
+# break down the information into the constitent source terms?
+coalesce_update_diagnostics  int           (0, 1)
 
 # calculate losses of material through physical grid boundaries
 track_grid_losses            int            0                    y
@@ -477,6 +495,12 @@ no_sync                     int            0
 
 # do we do a composite solve?
 no_composite                int            0
+
+# should we apply a lagged correction to the potential that
+# gets us closer to the composite solution? This makes the
+# resulting fine grid calculation slightly more accurate,
+# at the cost of an additional Poisson solve per timestep.
+do_composite_phi_correction int            1
 
 #  For all gravity types, we can choose a maximum level for explicitly
 #  calculating the gravity and associated potential. Above that level,

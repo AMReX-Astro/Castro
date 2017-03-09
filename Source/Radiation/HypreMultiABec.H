@@ -439,7 +439,7 @@ class HypreMultiABec {
                                  int part,
                                  const amrex::Box& reg,
                                  const amrex::BoxArray& sgr,
-                                 Fab& f, int fcomp);
+                                 amrex::FArrayBox& f, int fcomp);
 
 #if (BL_SPACEDIM == 1)
   static int vl[2];

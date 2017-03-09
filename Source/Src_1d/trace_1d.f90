@@ -1,5 +1,6 @@
 module trace_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -23,6 +24,7 @@ contains
     use slope_module, only : uslope, pslope
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer domlo(1),domhi(1)
@@ -31,31 +33,31 @@ contains
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    double precision dx, dt
-    double precision     q( qd_l1: qd_h1,QVAR)
-    double precision  srcQ(src_l1:src_h1,QVAR)
-    double precision flatn(qd_l1:qd_h1)
-    double precision     c(qd_l1:qd_h1)
-    double precision dloga(dloga_l1:dloga_h1)
+    real(rt)         dx, dt
+    real(rt)             q( qd_l1: qd_h1,QVAR)
+    real(rt)          srcQ(src_l1:src_h1,QVAR)
+    real(rt)         flatn(qd_l1:qd_h1)
+    real(rt)             c(qd_l1:qd_h1)
+    real(rt)         dloga(dloga_l1:dloga_h1)
 
-    double precision   dq( qpd_l1: qpd_h1,QVAR)
-    double precision  qxm( qpd_l1: qpd_h1,QVAR)
-    double precision  qxp( qpd_l1: qpd_h1,QVAR)
+    real(rt)           dq( qpd_l1: qpd_h1,QVAR)
+    real(rt)          qxm( qpd_l1: qpd_h1,QVAR)
+    real(rt)          qxp( qpd_l1: qpd_h1,QVAR)
 
     !     Local variables
     integer          :: i
     integer          :: n, ipassive
 
-    double precision :: hdt,dtdx
-    double precision :: cc, csq, rho, u, p, rhoe
-    double precision :: drho, du, dp, drhoe
+    real(rt)         :: hdt,dtdx
+    real(rt)         :: cc, csq, rho, u, p, rhoe
+    real(rt)         :: drho, du, dp, drhoe
 
-    double precision :: enth, alpham, alphap, alpha0r, alpha0e
-    double precision :: spminus, spplus, spzero
-    double precision :: apright, amright, azrright, azeright
-    double precision :: apleft, amleft, azrleft, azeleft
-    double precision :: acmprght, acmpleft
-    double precision :: sourcr,sourcp,source,courn,eta,dlogatmp
+    real(rt)         :: enth, alpham, alphap, alpha0r, alpha0e
+    real(rt)         :: spminus, spplus, spzero
+    real(rt)         :: apright, amright, azrright, azeright
+    real(rt)         :: apleft, amleft, azrleft, azeleft
+    real(rt)         :: acmprght, acmpleft
+    real(rt)         :: sourcr,sourcp,source,courn,eta,dlogatmp
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 

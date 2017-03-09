@@ -14,6 +14,7 @@ module meth_params_module
 
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
@@ -44,7 +45,7 @@ module meth_params_module
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
 
-  double precision, save :: flatten_pp_threshold = -1.d0
+  real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
 #endif
 
   integer, save :: npassive
@@ -60,14 +61,12 @@ module meth_params_module
 
   integer         , save :: numpts_1d
 
-  double precision, save, allocatable :: outflow_data_old(:,:)
-  double precision, save, allocatable :: outflow_data_new(:,:)
-  double precision, save :: outflow_data_old_time
-  double precision, save :: outflow_data_new_time
+  real(rt)        , save, allocatable :: outflow_data_old(:,:)
+  real(rt)        , save, allocatable :: outflow_data_new(:,:)
+  real(rt)        , save :: outflow_data_old_time
+  real(rt)        , save :: outflow_data_new_time
   logical         , save :: outflow_data_allocated
-  double precision, save :: max_dist
-
-  double precision, save :: diffuse_cutoff_density
+  real(rt)        , save :: max_dist
 
   character(len=:), allocatable :: gravity_type
 
@@ -99,11 +98,11 @@ module meth_params_module
 
   ! Begin the declarations of the ParmParse parameters
 
-  double precision, save :: difmag
-  double precision, save :: small_dens
-  double precision, save :: small_temp
-  double precision, save :: small_pres
-  double precision, save :: small_ener
+  real(rt), save :: difmag
+  real(rt), save :: small_dens
+  real(rt), save :: small_temp
+  real(rt), save :: small_pres
+  real(rt), save :: small_ener
   integer         , save :: do_hydro
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
@@ -115,16 +114,16 @@ module meth_params_module
   integer         , save :: hybrid_riemann
   integer         , save :: riemann_solver
   integer         , save :: cg_maxiter
-  double precision, save :: cg_tol
+  real(rt), save :: cg_tol
   integer         , save :: cg_blend
   integer         , save :: use_flattening
   integer         , save :: transverse_use_eos
   integer         , save :: transverse_reset_density
   integer         , save :: transverse_reset_rhoe
   integer         , save :: dual_energy_update_E_from_e
-  double precision, save :: dual_energy_eta1
-  double precision, save :: dual_energy_eta2
-  double precision, save :: dual_energy_eta3
+  real(rt), save :: dual_energy_eta1
+  real(rt), save :: dual_energy_eta2
+  real(rt), save :: dual_energy_eta3
   integer         , save :: use_pslope
   integer         , save :: fix_mass_flux
   integer         , save :: limit_fluxes_on_small_dens
@@ -143,22 +142,23 @@ module meth_params_module
   integer         , save :: hse_zero_vels
   integer         , save :: hse_interp_temp
   integer         , save :: hse_reflect_vels
-  double precision, save :: cfl
-  double precision, save :: dtnuc_e
-  double precision, save :: dtnuc_X
+  real(rt), save :: cfl
+  real(rt), save :: dtnuc_e
+  real(rt), save :: dtnuc_X
   integer         , save :: dtnuc_mode
-  double precision, save :: dxnuc
+  real(rt), save :: dxnuc
   integer         , save :: do_react
-  double precision, save :: react_T_min
-  double precision, save :: react_T_max
-  double precision, save :: react_rho_min
-  double precision, save :: react_rho_max
+  real(rt), save :: react_T_min
+  real(rt), save :: react_T_max
+  real(rt), save :: react_rho_min
+  real(rt), save :: react_rho_max
   integer         , save :: disable_shock_burning
+  real(rt), save :: diffuse_cutoff_density
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
-  double precision, save :: rot_period
-  double precision, save :: rot_period_dot
+  real(rt), save :: rot_period
+  real(rt), save :: rot_period_dot
   integer         , save :: rotation_include_centrifugal
   integer         , save :: rotation_include_coriolis
   integer         , save :: rotation_include_domegadt
@@ -166,11 +166,11 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
-  double precision, save :: point_mass
+  real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
   integer         , save :: track_grid_losses
-  double precision, save :: const_grav
+  real(rt), save :: const_grav
   integer         , save :: get_g_from_phi
 
   !$acc declare &
@@ -190,17 +190,17 @@ module meth_params_module
   !$acc create(dtnuc_e, dtnuc_X, dtnuc_mode) &
   !$acc create(dxnuc, do_react, react_T_min) &
   !$acc create(react_T_max, react_rho_min, react_rho_max) &
-  !$acc create(disable_shock_burning, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
-  !$acc create(do_acc, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(disable_shock_burning, diffuse_cutoff_density, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
-  double precision, save :: rot_vec(3)
+  real(rt)        , save :: rot_vec(3)
 
 contains
 
@@ -208,6 +208,7 @@ contains
 
     use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     type (amrex_parmparse) :: pp
@@ -269,6 +270,7 @@ contains
     react_rho_min = 0.0d0;
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
+    diffuse_cutoff_density = -1.d200;
     do_grav = -1;
     grav_source_type = 4;
     do_rotation = -1;
@@ -343,6 +345,9 @@ contains
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
+#ifdef DIFFUSION
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+#endif
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
@@ -401,13 +406,13 @@ contains
     !$acc device(dtnuc_e, dtnuc_X, dtnuc_mode) &
     !$acc device(dxnuc, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(disable_shock_burning, diffuse_cutoff_density, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -474,6 +479,7 @@ contains
 #ifdef RADIATION
   subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(inout) :: qradvar_in
@@ -487,8 +493,9 @@ contains
 
     use rad_params_module, only : ngroups
 
+    use bl_fort_module, only : rt => c_real
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
-    double precision, intent(in) :: fppt
+    real(rt)        , intent(in) :: fppt
 
     QPTOT  = QVAR+1
     QREITOT = QVAR+2
@@ -532,7 +539,7 @@ contains
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold = -1.d0)
+    !$acc device(flatten_pp_threshold = -1.e0_rt)
 
   end subroutine ca_init_radhydro_pars
 #endif

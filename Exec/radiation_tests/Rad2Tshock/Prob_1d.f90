@@ -3,11 +3,12 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use probdata_module
   use network, only : network_init
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
   
   integer untin,i
   
@@ -62,28 +63,29 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec, naux
   use eos_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: state(state_l1:state_h1,NVAR)
-  double precision :: time, delta(1)
-  double precision :: xlo(1), xhi(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: time, delta(1)
+  real(rt)         :: xlo(1), xhi(1)
   
   integer :: i
-  double precision :: xcell, rhoInv
+  real(rt)         :: xcell, rhoInv
   type(eos_t) :: eos_state
 
   do i = lo(1), hi(1)
   
-     xcell = xmin + delta(1) * (dble(i) + 0.5d0)
+     xcell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
 
-     if (xcell < 0.d0) then
+     if (xcell < 0.e0_rt) then
         state(i,URHO) = rho0
         
         ! set the composition to be all in the first species
-        state(i,UFS:UFS-1+nspec) = 0.d0
+        state(i,UFS:UFS-1+nspec) = 0.e0_rt
         state(i,UFS  ) = state(i,URHO)
 
         state(i,UTEMP) = T0
@@ -92,7 +94,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,URHO) = rho1
         
         ! set the composition to be all in the first species
-        state(i,UFS:UFS-1+nspec) = 0.d0
+        state(i,UFS:UFS-1+nspec) = 0.e0_rt
         state(i,UFS  ) = state(i,URHO)
 
         state(i,UTEMP) = T1
@@ -106,7 +108,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % rho = state(i,URHO)
      eos_state % T   = state(i,UTEMP)
 
-     rhoInv = 1.d0 / state(i,URHO)
+     rhoInv = 1.e0_rt / state(i,URHO)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
      eos_state % aux = state(i,UFX:UFX+naux-1) * rhoInv
 
@@ -133,22 +135,23 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: level, nrad
   integer :: lo(1), hi(1)
   integer :: rad_state_l1,rad_state_h1
-  double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision ::  rad_state(rad_state_l1:rad_state_h1, 0:nrad-1)
+  real(rt)         :: xlo(1), xhi(1), time, delta(1)
+  real(rt)         ::  rad_state(rad_state_l1:rad_state_h1, 0:nrad-1)
 
   ! local variables
   integer :: i, igroup
-  double precision xcell, t
+  real(rt)         xcell, t
 
   do i = lo(1), hi(1)
 
-     xcell = xmin + delta(1) * (dble(i) + 0.5d0)
+     xcell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
    
-     if (xcell < 0.d0) then
+     if (xcell < 0.e0_rt) then
         T = T0
      else
         T = T1

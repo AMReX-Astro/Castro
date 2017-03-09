@@ -1,13 +1,14 @@
 module tagging_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, save ::    denerr,   dengrad
-  double precision, save ::    enterr,   entgrad
-  double precision, save ::    velerr,   velgrad
-  double precision, save ::   temperr,  tempgrad
-  double precision, save ::  presserr, pressgrad
-  double precision, save ::    raderr,   radgrad
+  real(rt)        , save ::    denerr,   dengrad
+  real(rt)        , save ::    enterr,   entgrad
+  real(rt)        , save ::    velerr,   velgrad
+  real(rt)        , save ::   temperr,  tempgrad
+  real(rt)        , save ::  presserr, pressgrad
+  real(rt)        , save ::    raderr,   radgrad
   integer         , save ::  max_denerr_lev,   max_dengrad_lev
   integer         , save ::  max_enterr_lev,   max_entgrad_lev
   integer         , save ::  max_velerr_lev,   max_velgrad_lev
@@ -53,6 +54,7 @@ contains
 
     use prob_params_module, only: dg, dim
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nd, level
@@ -60,18 +62,18 @@ contains
     integer          :: varlo(3), varhi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: var(varlo(1):varhi(1),varlo(2):varhi(2),varlo(3):varhi(3))
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: var(varlo(1):varhi(1),varlo(2):varhi(2),varlo(3):varhi(3))
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
     integer          :: i, j, k
-    double precision ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
-    double precision :: delua(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
-    double precision :: delu2(9), delu3(9), delu4(9)
-    double precision :: num, denom, error
+    real(rt)         ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
+    real(rt)         :: delua(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
+    real(rt)         :: delu2(9), delu3(9), delu4(9)
+    real(rt)         :: num, denom, error
 
     ! This value is  taken from FLASH
-    double precision, parameter :: ctore=0.8
-    double precision, parameter :: epsil=0.02
+    real(rt)        , parameter :: ctore=0.8
+    real(rt)        , parameter :: epsil=0.02
 
     ! adapted from ref_marking.f90 in FLASH2.5
 
@@ -164,7 +166,7 @@ contains
              ! compute the error
              num   = sum(delu2**2)
 
-             denom = sum((delu3 + (epsil*delu4+1.d-99))**2)
+             denom = sum((delu3 + (epsil*delu4+1.e-99_rt))**2)
 
              error = sqrt(num/denom)
 
@@ -189,6 +191,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nd, level
@@ -196,10 +199,10 @@ contains
     integer          :: denlo(3), denhi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high density
@@ -249,6 +252,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, np, level
@@ -256,10 +260,10 @@ contains
     integer          :: templo(3), temphi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high temperature
@@ -309,6 +313,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, np, level
@@ -316,10 +321,10 @@ contains
     integer          :: presslo(3), presshi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high pressure
@@ -369,6 +374,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nv, level
@@ -376,10 +382,10 @@ contains
     integer          :: vello(3), velhi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high velocity
@@ -429,6 +435,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nr, level
@@ -436,10 +443,10 @@ contains
     integer          :: radlo(3), radhi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high radiation
@@ -489,6 +496,7 @@ contains
 
     use prob_params_module, only: dg
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nr, level
@@ -496,10 +504,10 @@ contains
     integer          :: entlo(3), enthi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nr)
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nr)
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
-    double precision :: ax, ay, az
+    real(rt)         :: ax, ay, az
     integer          :: i, j, k
 
     !     Tag on regions of high radiation
@@ -552,6 +560,7 @@ contains
 
     use meth_params_module, only: dxnuc
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: set, clear, nr, level
@@ -559,14 +568,14 @@ contains
     integer          :: tlo(3), thi(3)
     integer          :: lo(3), hi(3), domlo(3), domhi(3)
     integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    double precision :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
-    double precision :: delta(3), xlo(3), problo(3), time
+    real(rt)         :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
+    real(rt)         :: delta(3), xlo(3), problo(3), time
 
     integer          :: i, j, k
 
     ! Disable if we're not utilizing this tagging
 
-    if (dxnuc > 1.d199) return
+    if (dxnuc > 1.e199_rt) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

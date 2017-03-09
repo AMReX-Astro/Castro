@@ -3,8 +3,6 @@
 
 #include <AMReX_AmrLevel.H>
 
-#include "LHH.H"
-
 #include "Castro.H"
 #include "RadTypes.H"
 #include "RadBndry.H"
@@ -248,27 +246,28 @@ protected:
 
   // Fab versions of conversion functions.  All except frhoe use eos data.
 
-  void get_frhoe(Fab& rhoe, Fab& state, const amrex::Box& reg);
+  void get_frhoe(amrex::FArrayBox& rhoe, amrex::FArrayBox& state, const amrex::Box& reg);
 
-  void get_c_v(Fab& c_v, Fab& temp, Fab& state, const amrex::Box& reg);
+  void get_c_v(amrex::FArrayBox& c_v, amrex::FArrayBox& temp,
+               amrex::FArrayBox& state, const amrex::Box& reg);
 
   // temp contains frhoe on input:
 
-  void get_planck_and_temp(Fab& fkp, Fab& temp,
-			   Fab& state, const amrex::Box& reg,
-			   int igroup = 0, amrex::Real delta_t = 0.0);
+  void get_planck_and_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
+			   amrex::FArrayBox& state, const amrex::Box& reg,
+			   int igroup = 0, Real delta_t = 0.0);
 
-  void get_rosseland_and_temp(Fab& kappa_r, Fab& temp,
-			      Fab& state, const amrex::Box& reg,
+  void get_rosseland_and_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
+			      amrex::FArrayBox& state, const amrex::Box& reg,
 			      int igroup = 0);
 
   // temp contains temp on input:
-  void get_planck_from_temp(Fab& fkp, Fab& temp,
-			    Fab& state, const amrex::Box& reg,
+  void get_planck_from_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
+                            amrex::FArrayBox& state, const amrex::Box& reg,
 			    int igroup = 0);
 
-  void get_rosseland_from_temp(Fab& kappa_r, Fab& temp,
-			       Fab& state, const amrex::Box& reg,
+  void get_rosseland_from_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
+			       amrex::FArrayBox& state, const amrex::Box& reg,
 			       int igroup = 0);
 
   // MultiFab versions of conversion functions call Fab versions for eos data:

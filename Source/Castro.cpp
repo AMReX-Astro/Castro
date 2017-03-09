@@ -89,6 +89,8 @@ int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
+Array<std::string> Castro::source_names;
+
 #include <castro_defaults.H>
 
 #ifdef SELF_GRAVITY
@@ -99,12 +101,6 @@ Gravity*     Castro::gravity  = 0;
 #ifdef DIFFUSION
 // the diffusion object
 Diffusion*    Castro::diffusion  = 0;
-
-int           Castro::diffuse_temp = 0;
-int           Castro::diffuse_enth = 0;
-int           Castro::diffuse_spec = 0;
-int           Castro::diffuse_vel = 0;
-Real          Castro::diffuse_cutoff_density = -1.e200;
 #endif
 
 #ifdef RADIATION
@@ -293,13 +289,6 @@ Castro::read_params ()
 #endif
 
 
-#ifdef DIFFUSION
-    pp.query("diffuse_temp",diffuse_temp);
-    pp.query("diffuse_enth",diffuse_enth);
-    pp.query("diffuse_spec",diffuse_spec);
-    pp.query("diffuse_vel",diffuse_vel);
-    pp.query("diffuse_cutoff_density",diffuse_cutoff_density);
-#endif
 
     // sanity checks
 
@@ -320,12 +309,6 @@ Castro::read_params ()
 	pp.add("ppm_trace_sources",ppm_trace_sources);
       }
 
-
-    if (ppm_temp_fix > 0 && BL_SPACEDIM == 1)
-      {
-        std::cerr << "ppm_temp_fix > 0 not implemented in 1-d \n";
-        amrex::Error();
-      }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
@@ -460,6 +443,14 @@ Castro::Castro (Amr&            papa,
 
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+
+#ifdef SELF_GRAVITY
+      if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
+      {
+	  std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
+	  BoxLib::Error();
+      }
+#endif
 
        // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
        // ghost cells because they are only multiplying them by a zero coefficient.
@@ -667,7 +658,7 @@ Castro::initMFs()
 	}
 #endif
 
-#ifdef GRAVITY
+#ifdef SELF_GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    phi_reg.define(grids, dmap, crse_ratio, level, 1);
 	    phi_reg.setVal(0.0);
@@ -676,125 +667,35 @@ Castro::initMFs()
 
     }
 
-    // Update the flux register scalings, only if we're on the finest level
-    // since that is what sets the scale for reflux_strategy == 1.
-    // The scaling depends on when we're refluxing. We always want
-    // to reflux with the full value of the fine fluxes on the fine level, but the
-    // contribution from the coarse fluxes depends on where we're at in the
-    // subcycling. For example, if we have two subcycles per coarse timestep on
-    // this level, and we're still in the first iteration, then we only want the
-    // coarse grid to contribute 1/2 of its total flux, leaving the other half
-    // for the next iteration.
+    // Set the flux register scalings.
 
-    if (do_reflux && level == parent->finestLevel()) {
+    if (do_reflux) {
 
-	if (reflux_strategy == 1) {
+	flux_crse_scale = -1.0;
+	flux_fine_scale = 1.0;
 
-	    // In this mode, we reflux on each timestep on the finest level, so
-	    // we can use the crse_ratio to know how many fine timesteps there
-	    // are per coarse timestep.
+	// The fine pressure scaling depends on dimensionality,
+	// as the dimensionality determines the number of
+	// adjacent zones. In 1D the face is a point so
+	// there's only one fine neighbor for a given coarse
+	// face; in 2D there's crse_ratio[1] faces adjacent
+	// to a face perpendicular to the radial dimension;
+	// and in 3D there would be crse_ratio**2, though
+	// we do not separate the pressure out in 3D. Note
+	// that the scaling by dt has already been handled
+	// in the construction of the P_radial array.
 
-	    flux_crse_scale = -1.0 / crse_ratio[0];
-	    flux_fine_scale = 1.0;
-
-	    // Now set the scaling for the level below us. All other levels will be done
-	    // in a general loop below; we cannot fuse this one because getLevel() will not
-	    // return a result for this level until after the Castro constructor completes.
-
-	    if (level > 1) {
-
-		getLevel(level-1).flux_crse_scale = flux_crse_scale / getLevel(level-1).crse_ratio[0];
-		getLevel(level-1).flux_fine_scale = flux_fine_scale / getLevel(level-1).fine_ratio[0];
-
-	    }
-
-	    for (int lev = level - 2; lev > 0; --lev) {
-
-		// Note that we're arbitrarily using the first component of ref_ratio, on the
-		// assumption that the refinement is equal in all dimensions.
-
-		getLevel(lev).flux_crse_scale = getLevel(lev+1).flux_crse_scale / getLevel(lev).crse_ratio[0];
-		getLevel(lev).flux_fine_scale = getLevel(lev+1).flux_fine_scale / getLevel(lev).fine_ratio[0];
-
-	    }
-
-	    // The fine pressure scaling depends on dimensionality,
-	    // as the dimensionality determines the number of
-	    // adjacent zones. In 1D the face is a point so
-	    // there's only one fine neighbor for a given coarse
-	    // face; in 2D there's crse_ratio[1] faces adjacent
-	    // to a face perpendicular to the radial dimension;
-	    // and in 3D there would be crse_ratio**2, though
-	    // we do not separate the pressure out in 3D. Note
-	    // that the scaling by dt has already been handled
-	    // in the construction of the P_radial array.
-
-	    // The coarse pressure scaling is the same as for the
-	    // fluxes, we want the total refluxing contribution
-	    // over the full set of fine timesteps to equal P_radial.
-
-	    pres_crse_scale = 1.0;
+	// The coarse pressure scaling is the same as for the
+	// fluxes, we want the total refluxing contribution
+	// over the full set of fine timesteps to equal P_radial.
 
 #if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
+	pres_crse_scale = 1.0;
+	pres_fine_scale = 1.0;
 #elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
+	pres_crse_scale = 1.0;
+	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
-
-	    pres_crse_scale *= flux_crse_scale;
-	    pres_fine_scale *= flux_fine_scale;
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-
-		getLevel(lev).pres_crse_scale = 1.0;
-
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
-
-		getLevel(lev).pres_crse_scale *= getLevel(lev).flux_crse_scale;
-		getLevel(lev).pres_fine_scale *= getLevel(lev).flux_fine_scale;
-
-	    }
-
-	}
-	else if (reflux_strategy == 2) {
-
-	    // In this mode, we reflux at the end of the coarse timestep after
-	    // all fine level timesteps have passed, so we want the full contribution
-	    // from each set of fluxes.
-
-	    flux_crse_scale = -1.0;
-	    flux_fine_scale = 1.0;
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-		getLevel(lev).flux_crse_scale = -1.0;
-		getLevel(lev).flux_fine_scale = 1.0;
-	    }
-
-	    pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-	    pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-	    pres_fine_scale = 1.0 / crse_ratio[1];
-#endif
-
-	    for (int lev = level - 1; lev > 0; --lev) {
-		getLevel(lev).pres_crse_scale = 1.0;
-#if (BL_SPACEDIM == 1)
-		getLevel(lev).pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
-		getLevel(lev).pres_fine_scale = 1.0 / getLevel(lev).crse_ratio[1];
-#endif
-	    }
-
-	}
-	else {
-	    amrex::Abort("Unknown reflux_strategy.");
-	}
-
 
     }
 
@@ -1555,18 +1456,11 @@ Castro::post_timestep (int iteration)
     }
 #endif
 
-    // Now do the refluxing. Note that for reflux_strategy == 1 this is
-    // correcting the flux mismatch on all levels below this one simultaneously,
-    // while for reflux_strategy == 2, this is only correcting the mismatch on
-    // this level and the one immediately below it. If we're using gravity it
+    // Now do the refluxing. If we're using gravity it
     // will also do the sync solve associated with the reflux.
 
-    if (do_reflux) {
-	if (reflux_strategy == 1 && level == parent->finestLevel() && level > 0)
-	    reflux(0, level);
-	else if (reflux_strategy == 2 && level < parent->finestLevel())
-	    reflux(level, level+1);
-    }
+    if (do_reflux && level < parent->finestLevel())
+	reflux(level, level+1);
 
     // Ensure consistency with finer grids.
 
@@ -1844,9 +1738,9 @@ Castro::post_init (Real stop_time)
 
 #ifdef SELF_GRAVITY
 
-    Real cur_time = state[State_Type].curTime();
-
     if (do_grav) {
+
+       Real cur_time = state[State_Type].curTime();
 
        if (gravity->get_gravity_type() == "PoissonGrav") {
 
@@ -1878,8 +1772,10 @@ Castro::post_init (Real stop_time)
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation)
+    if (do_rotation) {
+      Real cur_time = state[State_Type].curTime();
       fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+    }
     else {
       phirot_new.setVal(0.0);
       rot_new.setVal(0.0);
@@ -2165,14 +2061,9 @@ Castro::reflux(int crse_level, int fine_level)
 
 	}
 
-	// Subtract out the fine part of the flux register; it's no longer needed.
-	// This assumes that we always initialize the coarse fluxes only once
-	// at the first AMR iteration. We do it this way so that we can modify
-	// the fluxes above without worrying about a modification to the fluxes
-	// MultiFab on the coarse domain affecting later refluxes.
+	// We no longer need the flux register data, so clear it out.
 
-	for (int i = 0; i < BL_SPACEDIM; ++i)
-	    reg->FineAdd(*fine_lev.fluxes[i], i, 0, 0, NUM_STATE, -getLevel(lev).flux_fine_scale);
+	reg->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
@@ -2209,7 +2100,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    reg->FineAdd(fine_lev.P_radial, 0, 0, 0, 1, -getLevel(lev).pres_fine_scale);
+	    reg->setVal(0.0);
 
 	}
 #endif
@@ -2246,8 +2137,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    }
 
-	    for (int i = 0; i < BL_SPACEDIM; ++i)
-		reg->FineAdd(*fine_lev.rad_fluxes[i], i, 0, 0, Radiation::nGroups, -getLevel(lev).flux_fine_scale);
+	    reg->setVal(0.0);
 
 	}
 
@@ -2307,7 +2197,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt = parent->dtLevel(lev);
 
 	    for (int n = 0; n < num_src; ++n)
-		getLevel(lev).apply_source_to_state(S_new, *getLevel(lev).new_sources[n], -dt);
+                if (source_flag(n))
+		    getLevel(lev).apply_source_to_state(S_new, *getLevel(lev).new_sources[n], -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
@@ -2424,10 +2315,6 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
     Real dens_change = 1.e0;
 
-    Real mass_added = 0.0;
-    Real eint_added = 0.0;
-    Real eden_added = 0.0;
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
@@ -2443,37 +2330,37 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
 				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				&mass_added, &eint_added, &eden_added, &dens_change,
-				&verbose);
+				&dens_change, &verbose);
 
     }
 
-    if (print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
 
-        Real foo[3] = {mass_added, eint_added, eden_added};
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, S_old, 0, 0, S_old.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(foo, 3, ParallelDescriptor::IOProcessorNumber());
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
 
-	    if (ParallelDescriptor::IOProcessor())
-	    {
-	        mass_added = foo[0];
-		eint_added = foo[1];
-		eden_added = foo[2];
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[0]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
 
-		if (std::abs(mass_added) != 0.0)
-	        {
-		  std::cout << "   Mass added from negative density correction : " <<
-				mass_added << std::endl;
-		  std::cout << "(rho e) added from negative density correction : " <<
-				eint_added << std::endl;
-		  std::cout << "(rho E) added from negative density correction : " <<
-				eden_added << std::endl;
-	        }
+		    print_source_change(reset_update);
+		}
 	    }
+
 #ifdef BL_LAZY
         });
 #endif
@@ -2723,13 +2610,15 @@ Castro::extern_init ()
 void
 Castro::reset_internal_energy(MultiFab& S_new)
 {
-    Real sum  = 0.;
-    Real sum0 = 0.;
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    MultiFab old_state;
+
+    // Make a copy of the state so we can evaluate how much changed.
+
+    if (print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum0 = volWgtSumMF(S_new,Eden,true);
+	old_state.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
+        MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
 
     int ng = S_new.nGrow();
@@ -2752,17 +2641,32 @@ Castro::reset_internal_energy(MultiFab& S_new)
     if (verbose)
       flush_output();
 
-    if (parent->finestLevel() == 0 && print_energy_diagnostics)
+    if (print_update_diagnostics)
     {
-        // Pass in the multifab and the component
-        sum = volWgtSumMF(S_new,Eden,true);
+	// Evaluate what the effective reset source was.
+
+	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+	MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
+
+	bool local = true;
+	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
+
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
-	ParallelDescriptor::ReduceRealSum(sum0);
-	ParallelDescriptor::ReduceRealSum(sum);
-        if (ParallelDescriptor::IOProcessor() && std::abs(sum-sum0) > 0)
-            std::cout << "(rho E) added from reset terms                 : " << sum-sum0 << " out of " << sum0 << std::endl;
+	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
+
+	    if (ParallelDescriptor::IOProcessor()) {
+		if (std::abs(reset_update[Eint]) != 0.0) {
+		    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
+
+		    print_source_change(reset_update);
+		}
+	    }
+
 #ifdef BL_LAZY
 	});
 #endif

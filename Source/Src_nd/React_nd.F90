@@ -1,5 +1,6 @@
 module reactions_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -33,6 +34,7 @@ contains
     use burn_type_module
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -40,14 +42,14 @@ contains
     integer          :: r_lo(3), r_hi(3)
     integer          :: w_lo(3), w_hi(3)
     integer          :: m_lo(3), m_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
-    double precision :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    real(rt)         :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
     integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    double precision :: time, dt_react
+    real(rt)         :: time, dt_react
 
     integer          :: i, j, k, n
-    double precision :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
+    real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
 
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
@@ -144,10 +146,12 @@ contains
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
-             ! Note that we want to update the total energy by taking the difference of the old
-             ! rho*e and the new rho*e. If the user wants to ensure that rho * E = rho * e + rho * K,
-             ! this reset should be enforced through an appropriate choice for the dual energy 
-             ! formalism parameter dual_energy_eta2 in reset_internal_energy.
+             ! Note that we want to update the total energy by taking
+             ! the difference of the old rho*e and the new rho*e. If
+             ! the user wants to ensure that rho * E = rho * e + rho *
+             ! K, this reset should be enforced through an appropriate
+             ! choice for the dual energy formalism parameter
+             ! dual_energy_eta2 in reset_internal_energy.
 
              delta_e     = burn_state_out % e - burn_state_in % e
              delta_rho_e = burn_state_out % rho * delta_e
@@ -224,6 +228,7 @@ contains
     use bl_constants_module, only : ZERO, HALF, ONE
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -232,15 +237,15 @@ contains
     integer          :: as_lo(3), as_hi(3)
     integer          :: r_lo(3), r_hi(3)
     integer          :: m_lo(3), m_hi(3)
-    double precision :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    double precision :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
-    double precision :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
-    double precision :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt)         :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
+    real(rt)         :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    double precision :: time, dt_react
+    real(rt)         :: time, dt_react
 
     integer          :: i, j, k, n
-    double precision :: rhooInv, rhonInv, rho_e_K, delta_e, delta_rho_e
+    real(rt)         :: rhooInv, rhonInv, rho_e_K, delta_e, delta_rho_e
 
     type (sdc_t) :: burn_state_in, burn_state_out
 

@@ -49,11 +49,9 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-#ifdef SPONGE
-enum sources { sponge_src = 0,
-               ext_src,
-#else
 enum sources { ext_src = 0,
+#ifdef SPONGE
+               sponge_src,
 #endif
 #ifdef DIFFUSION
                diff_src,
@@ -162,6 +160,10 @@ public:
     //
     void ParticleCheckPoint (const std::string& dir);
     //
+    // Write particles in plotfile directories
+    //
+    void ParticlePlotFile (const std::string& dir);
+    //
     // How to initialize at restart
     //
     void ParticlePostRestart (const std::string& restart_file);
@@ -263,6 +265,12 @@ public:
     void do_new_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
     void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+
+    amrex::Array<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
+
+    void print_source_change(amrex::Array<amrex::Real> update);
+
+    void print_all_source_changes(amrex::Real dt, bool is_new);
 
     void sum_of_sources(amrex::MultiFab& source);
 
@@ -367,6 +375,12 @@ public:
     // Do work after restart with grown_factor > 1
     //
     void post_grown_restart ();
+
+#ifdef DO_PROBLEM_POST_SIMULATION
+    // Do work at the end of the simulation -- before the last outputs
+    static void problem_post_simulation (PArray<AmrLevel>& amr_level);
+#endif
+
     //
     // Error estimation for regridding.
     //
@@ -536,6 +550,8 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
+    static Array<std::string> source_names;
+
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
     // to mask out the finer level.  We only build this when it is needed.
@@ -605,8 +621,10 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
+#if (BL_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
+#endif
 
     //
     // Non-hydro source terms.
@@ -710,15 +728,6 @@ protected:
     static amrex::Real      startCPUTime;
 
     static amrex::Real getCPUTime();
-
-#ifdef DIFFUSION
-    static int       diffuse_temp;
-    static int       diffuse_enth;
-    static int       diffuse_spec;
-    static int       diffuse_vel;
-    static amrex::Real      diffuse_cutoff_density;
-#endif
-
 
 #ifdef PARTICLES
     static int       do_tracer_particles;

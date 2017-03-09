@@ -5,7 +5,6 @@
 
 #include <AMReX_FluxRegister.H>
 
-#include "LHH.H"
 #include "RadBndry.H"
 #include "MGRadBndry.H"
 

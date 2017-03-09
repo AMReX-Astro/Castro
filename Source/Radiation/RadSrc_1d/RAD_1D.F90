@@ -9,10 +9,11 @@ module rad_module
 
   use rad_util_module, only : FLDlambda
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, parameter :: tiny = 1.d-50
-  double precision, parameter :: BIGKR = 1.e25_dp_t
+  real(rt)        , parameter :: tiny = 1.e-50_rt
+  real(rt)        , parameter :: BIGKR = 1.e25_rt
 
 contains
 
@@ -21,11 +22,12 @@ subroutine multrs(d, &
                   DIMS(reg), &
                   r, s) bind(C, name="multrs")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(dbox)
   integer :: DIMDEC(reg)
-  real*8 :: d(DIMV(dbox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
+  real(rt)         :: d(DIMV(dbox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
   integer :: i
   do i = reg_l1, reg_h1
      d(i) = d(i) * r(i)
@@ -34,15 +36,16 @@ end subroutine multrs
 
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
-  real*8 :: dx(1)
-  real*8 :: h1, d1
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
+  real(rt)         :: dx(1)
+  real(rt)         :: h1, d1
   integer :: i
-  h1 = 0.5d0 * dx(1)
-  d1 = 1.d0 / (3.d0 * dx(1))
+  h1 = 0.5e0_rt * dx(1)
+  d1 = 1.e0_rt / (3.e0_rt * dx(1))
   do i = reg_l1, reg_h1
      r(i) = d1 * ((r(i) + h1)**3 - (r(i) - h1)**3)
   enddo
@@ -50,12 +53,13 @@ end subroutine sphc
 
 subroutine sphe(r, s, n, &
                 DIMS(reg), dx) bind(C, name="sphe")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
   integer :: n
-  real*8 :: dx(1)
+  real(rt)         :: dx(1)
   integer :: i
   do i = reg_l1, reg_h1
      r(i) = r(i)**2
@@ -66,23 +70,24 @@ subroutine lacoef(a, &
                   DIMS(abox), &
                   DIMS(reg), &
                   fkp, eta, etainv, r, s, c, dt, theta) bind(C, name="lacoef")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
-  real*8 :: a(DIMV(abox))
-  real*8 :: fkp(DIMV(abox))
-  real*8 :: eta(DIMV(abox))
-  real*8 :: etainv(DIMV(abox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
-  real*8 :: c, dt, theta
+  real(rt)         :: a(DIMV(abox))
+  real(rt)         :: fkp(DIMV(abox))
+  real(rt)         :: eta(DIMV(abox))
+  real(rt)         :: etainv(DIMV(abox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
+  real(rt)         :: c, dt, theta
   integer :: i
-  real*8 :: dtm
-  dtm = 1.d0 / dt
+  real(rt)         :: dtm
+  dtm = 1.e0_rt / dt
   do i = reg_l1, reg_h1
      a(i) = r(i) * &
           (fkp(i) * etainv(i) * c + dtm) / &
-          (1.d0 - (1.d0 - theta) * eta(i))
+          (1.e0_rt - (1.e0_rt - theta) * eta(i))
   enddo
 end subroutine lacoef
 
@@ -91,20 +96,21 @@ subroutine bclim(b, &
                  DIMS(reg), &
                  n, kappar, DIMS(kbox), &
                  r, s, c, dx) bind(C, name="bclim")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(bbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: n
-  real*8 :: b(DIMV(bbox))
-  real*8 :: lambda(DIMV(bbox))
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: r(reg_l1:reg_h1+1)
-  real*8 :: s(1)
-  real*8 :: c, dx(1)
-  real*8 :: kavg
+  real(rt)         :: b(DIMV(bbox))
+  real(rt)         :: lambda(DIMV(bbox))
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: r(reg_l1:reg_h1+1)
+  real(rt)         :: s(1)
+  real(rt)         :: c, dx(1)
+  real(rt)         :: kavg
   integer :: i
-  real*8 :: kap
+  real(rt)         :: kap
   do i = reg_l1, reg_h1 + 1
      kap = kavg(kappar(i-1), kappar(i), dx(1),-1)
      b(i) = r(i) * c * lambda(i) / kap
@@ -114,11 +120,12 @@ end subroutine bclim
 subroutine flxlim(lambda, &
                   DIMS(rbox), &
                   DIMS(reg), limiter) bind(C, name="flxlim")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: limiter
-  real*8 :: lambda(DIMV(rbox))
+  real(rt)         :: lambda(DIMV(rbox))
   integer :: i
   do i = reg_l1, reg_h1
      lambda(i) = FLDlambda(lambda(i),limiter)
@@ -128,13 +135,14 @@ end subroutine flxlim
 subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n)
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: n, limiter
-  real*8 :: efact(DIMV(rbox))
+  real(rt)         :: efact(DIMV(rbox))
   integer :: i
-  real*8 :: r, lambda
+  real(rt)         :: r, lambda
   do i = reg_l1, reg_h1 + 1
      r = efact(i)
      lambda = FLDlambda(r,limiter)
@@ -147,28 +155,29 @@ subroutine scgrd1(r, &
                   DIMS(reg), &
                   n, kappar, DIMS(kbox), &
                   er, dx) bind(C, name="scgrd1")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: n
-  real*8 :: r(DIMV(rbox))
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: er(DIMV(kbox))
-  real*8 :: dx(1)
-  real*8 :: kavg
+  real(rt)         :: r(DIMV(rbox))
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: er(DIMV(kbox))
+  real(rt)         :: dx(1)
+  real(rt)         :: kavg
   integer :: i
-  real*8 :: kap
+  real(rt)         :: kap
   ! gradient assembly:
   do i = reg_l1, reg_h1 + 1
      r(i) = abs(er(i) - er(i-1)) / dx(1)
   enddo
   i = reg_l1
-  if (er(i-1) == -1.d0) then
+  if (er(i-1) == -1.e0_rt) then
      r(i) = abs(er(i+1) - er(i)) / dx(1)
   endif
   i = reg_h1 + 1
-  if (er(i) == -1.d0) then
+  if (er(i) == -1.e0_rt) then
      r(i) = abs(er(i-1) - er(i-2)) / dx(1)
   endif
   ! construct scaled gradient:
@@ -184,28 +193,29 @@ subroutine scgrd2(r, &
                   DIMS(reg), &
                   n, kappar, DIMS(kbox), &
                   er, dx) bind(C, name="scgrd2")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: n
-  real*8 :: r(DIMV(rbox))
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: er(DIMV(kbox))
-  real*8 :: dx(1)
-  real*8 :: kavg
+  real(rt)         :: r(DIMV(rbox))
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: er(DIMV(kbox))
+  real(rt)         :: dx(1)
+  real(rt)         :: kavg
   integer :: i
-  real*8 :: kap
+  real(rt)         :: kap
   ! gradient assembly:
   do i = reg_l1, reg_h1 + 1
      r(i) = abs(er(i) - er(i-1)) / dx(1)
   enddo
   i = reg_l1
-  if (er(i-1) == -1.d0) then
+  if (er(i-1) == -1.e0_rt) then
      r(i) = abs(er(i+1) - er(i)) / dx(1)
   endif
   i = reg_h1 + 1
-  if (er(i) == -1.d0) then
+  if (er(i) == -1.e0_rt) then
      r(i) = abs(er(i-1) - er(i-2)) / dx(1)
   endif
   ! construct scaled gradient:
@@ -221,28 +231,29 @@ subroutine scgrd3(r, &
                   DIMS(reg), &
                   n, kappar, DIMS(kbox), &
                   er, dx) bind(C, name="scgrd3")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: n
-  real*8 :: r(DIMV(rbox))
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: er(DIMV(kbox))
-  real*8 :: dx(1)
-  real*8 :: kavg
+  real(rt)         :: r(DIMV(rbox))
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: er(DIMV(kbox))
+  real(rt)         :: dx(1)
+  real(rt)         :: kavg
   integer :: i
-  real*8 :: kap
+  real(rt)         :: kap
   ! gradient assembly:
   do i = reg_l1, reg_h1 + 1
      r(i) = abs(er(i) - er(i-1)) / dx(1)
   enddo
   i = reg_l1
-  if (er(i-1) == -1.d0) then
+  if (er(i-1) == -1.e0_rt) then
      r(i) = abs(er(i+1) - er(i)) / dx(1)
   endif
   i = reg_h1 + 1
-  if (er(i) == -1.d0) then
+  if (er(i) == -1.e0_rt) then
      r(i) = abs(er(i-1) - er(i-2)) / dx(1)
   endif
   ! construct scaled gradient:
@@ -259,55 +270,57 @@ subroutine lrhs(rhs, &
                 temp, fkp, eta, etainv, frhoem, frhoes, dfo, &
                 ero, DIMS(ebox), edot, &
                 r, s, dt, sigma, c, theta) bind(C, name="lrhs")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(rbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(reg)
-  real*8 :: rhs(DIMV(rbox))
-  real*8 :: temp(DIMV(rbox))
-  real*8 :: fkp(DIMV(rbox))
-  real*8 :: eta(DIMV(rbox))
-  real*8 :: etainv(DIMV(rbox))
-  real*8 :: frhoem(DIMV(rbox))
-  real*8 :: frhoes(DIMV(rbox))
-  real*8 :: dfo(DIMV(rbox))
-  real*8 :: ero(DIMV(ebox))
-  real*8 :: edot(DIMV(rbox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
-  real*8 :: dt, sigma, c, theta
+  real(rt)         :: rhs(DIMV(rbox))
+  real(rt)         :: temp(DIMV(rbox))
+  real(rt)         :: fkp(DIMV(rbox))
+  real(rt)         :: eta(DIMV(rbox))
+  real(rt)         :: etainv(DIMV(rbox))
+  real(rt)         :: frhoem(DIMV(rbox))
+  real(rt)         :: frhoes(DIMV(rbox))
+  real(rt)         :: dfo(DIMV(rbox))
+  real(rt)         :: ero(DIMV(ebox))
+  real(rt)         :: edot(DIMV(rbox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
+  real(rt)         :: dt, sigma, c, theta
   integer :: i
-  real*8 :: dtm, ek, bs, es, ekt
-  dtm = 1.d0 / dt
+  real(rt)         :: dtm, ek, bs, es, ekt
+  dtm = 1.e0_rt / dt
   do i = reg_l1, reg_h1
      ek = fkp(i) * eta(i)
      bs = etainv(i) * &
-          &         4.d0 * sigma * fkp(i) * temp(i)**4
+          &         4.e0_rt * sigma * fkp(i) * temp(i)**4
      es = eta(i) * (frhoem(i) - frhoes(i))
-     ekt = (1.d0 - theta) * eta(i)
+     ekt = (1.e0_rt - theta) * eta(i)
      rhs(i) = (rhs(i) + r(i) * &
           (bs + dtm * (ero(i) + es) + &
           ek * c * edot(i) - &
           ekt * dfo(i))) / &
-          (1.d0 - ekt)
+          (1.e0_rt - ekt)
   enddo
 end subroutine lrhs
 
 subroutine anatw2(test, &
                   DIMS(reg), &
                   temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
-  real*8 :: test(DIMV(reg), 0:1)
-  real*8 :: temp(DIMV(reg))
-  real*8 :: p, xf, Tc, dx(1), xlo(1)
+  real(rt)         :: test(DIMV(reg), 0:1)
+  real(rt)         :: temp(DIMV(reg))
+  real(rt)         :: p, xf, Tc, dx(1), xlo(1)
   integer :: lo(1)
   integer :: i
-  real*8 :: x, r2
+  real(rt)         :: x, r2
   do i = reg_l1, reg_h1
-     x  = xlo(1) + dx(1) * ((i-lo(1)) + 0.5d0)
+     x  = xlo(1) + dx(1) * ((i-lo(1)) + 0.5e0_rt)
      r2 = x*x
-     test(i,0) = Tc * max((1.d0-r2/xf**2), 0.d0)**(1.d0/p)
+     test(i,0) = Tc * max((1.e0_rt-r2/xf**2), 0.e0_rt)**(1.e0_rt/p)
      test(i,1) = temp(i) - test(i,0)
   enddo
 end subroutine anatw2
@@ -318,15 +331,16 @@ subroutine cfrhoe(DIMS(reg), &
                   state, &
                   DIMS(sb)) bind(C, name="cfrhoe")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(fb)
   integer :: DIMDEC(sb)
-  real*8 :: frhoe(DIMV(fb))
-  real*8 :: state(DIMV(sb), NVAR)
-  !      real*8 kin
+  real(rt)         :: frhoe(DIMV(fb))
+  real(rt)         :: state(DIMV(sb), NVAR)
+  !      real(rt)         kin
   integer :: i
   do i = reg_l1, reg_h1
-     !         kin = 0.5d0 * (state(i,XMOM) ** 2) /
+     !         kin = 0.5e0_rt * (state(i,XMOM) ** 2) /
      !     @                 state(i,DEN)
      !         frhoe(i) = state(i,EDEN) - kin
      frhoe(i) = state(i,UEINT)
@@ -340,31 +354,32 @@ subroutine gtemp(DIMS(reg), &
                  const, em, en, &
                  state, DIMS(sb)) bind(C, name="gtemp")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(tb)
   integer :: DIMDEC(sb)
-  real*8 :: temp(DIMV(tb))
-  real*8 :: const(0:1), em(0:1), en(0:1)
-  real*8 :: state(DIMV(sb), NVAR)
-  real*8 :: alpha, teff, ex, frhoal
+  real(rt)         :: temp(DIMV(tb))
+  real(rt)         :: const(0:1), em(0:1), en(0:1)
+  real(rt)         :: state(DIMV(sb), NVAR)
+  real(rt)         :: alpha, teff, ex, frhoal
   integer :: i
-  if (en(0) >= 1.d0) then
+  if (en(0) >= 1.e0_rt) then
      print *, "Bad exponent for cv calculation"
      stop
   endif
-  ex = 1.d0 / (1.d0 - en(0))
+  ex = 1.e0_rt / (1.e0_rt - en(0))
   do i = reg_l1, reg_h1
-     if (em(0) == 0.d0) then
+     if (em(0) == 0.e0_rt) then
         alpha = const(0)
      else
         alpha = const(0) * state(i,URHO) ** em(0)
      endif
      frhoal = state(i, URHO) * alpha + tiny
-     if (en(0) == 0.d0) then
+     if (en(0) == 0.e0_rt) then
         temp(i) = temp(i) / frhoal
      else
         teff = max(temp(i), tiny)
-        temp(i) = ((1.d0 - en(0)) * teff / frhoal) ** ex
+        temp(i) = ((1.e0_rt - en(0)) * teff / frhoal) ** ex
      endif
   enddo
 end subroutine gtemp
@@ -377,24 +392,25 @@ subroutine gcv(DIMS(reg), &
                const, em, en, tf, &
                state, DIMS(sbox)) bind(C, name="gcv")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(cbox)
   integer :: DIMDEC(tbox)
   integer :: DIMDEC(sbox)
-  real*8 :: cv(DIMV(cbox))
-  real*8 :: temp(DIMV(tbox))
-  real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: state(DIMV(sbox),  NVAR)
-  real*8 :: alpha, teff, frhoal
+  real(rt)         :: cv(DIMV(cbox))
+  real(rt)         :: temp(DIMV(tbox))
+  real(rt)         :: const(0:1), em(0:1), en(0:1), tf(0:1)
+  real(rt)         :: state(DIMV(sbox),  NVAR)
+  real(rt)         :: alpha, teff, frhoal
   integer :: i
   do i = reg_l1, reg_h1
-     if (em(0) == 0.d0) then
+     if (em(0) == 0.e0_rt) then
         alpha = const(0)
      else
         alpha = const(0) * state(i, URHO) ** em(0)
      endif
      frhoal = state(i, URHO) * alpha + tiny
-     if (en(0) == 0.d0) then
+     if (en(0) == 0.e0_rt) then
         cv(i) = alpha
      else
         teff = max(temp(i), tiny)
@@ -411,19 +427,20 @@ subroutine cexch(DIMS(reg), &
                  er  , DIMS(ebox), &
                  fkp , DIMS(kbox), &
                  sigma, c) bind(C, name="cexch")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
   integer :: DIMDEC(xbox)
   integer :: DIMDEC(ebox)
   integer :: DIMDEC(kbox)
-  real*8 :: exch(DIMV(xbox))
-  real*8 :: er  (DIMV(ebox))
-  real*8 :: fkp (DIMV(kbox))
-  real*8 :: sigma, c
+  real(rt)         :: exch(DIMV(xbox))
+  real(rt)         :: er  (DIMV(ebox))
+  real(rt)         :: fkp (DIMV(kbox))
+  real(rt)         :: sigma, c
   integer :: i
   do i = reg_l1, reg_h1
      exch(i) = fkp(i) * &
-          (4.d0 * sigma * exch(i)**4 &
+          (4.e0_rt * sigma * exch(i)**4 &
           - c * er(i))
   enddo
 end subroutine cexch
@@ -436,6 +453,7 @@ subroutine ceta2(DIMS(reg), &
                  fkp, DIMS(fb), &
                  er, DIMS(ebox), &
                  dtemp, dtime, sigma, c, underr, lagpla) bind(C, name="ceta2")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
   integer :: DIMDEC(etab)
@@ -444,20 +462,20 @@ subroutine ceta2(DIMS(reg), &
   integer :: DIMDEC(cb)
   integer :: DIMDEC(fb)
   integer :: DIMDEC(ebox)
-  real*8 :: eta(DIMV(etab))
-  real*8 :: etainv(DIMV(etab))
-  real*8 :: frho(DIMV(sb))
-  real*8 :: temp(DIMV(tb))
-  real*8 :: cv(DIMV(cb))
-  real*8 :: fkp(DIMV(fb))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: dtemp, dtime, sigma, c, underr
+  real(rt)         :: eta(DIMV(etab))
+  real(rt)         :: etainv(DIMV(etab))
+  real(rt)         :: frho(DIMV(sb))
+  real(rt)         :: temp(DIMV(tb))
+  real(rt)         :: cv(DIMV(cb))
+  real(rt)         :: fkp(DIMV(fb))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: dtemp, dtime, sigma, c, underr
   integer :: lagpla
-  real*8 :: d, frc, fac0, fac1, fac2
+  real(rt)         :: d, frc, fac0, fac1, fac2
   integer :: i
-  fac1 = 16.d0 * sigma * dtime
+  fac1 = 16.e0_rt * sigma * dtime
   if (lagpla == 0) then
-     fac0 = 0.25d0 * fac1 / dtemp
+     fac0 = 0.25e0_rt * fac1 / dtemp
      fac2 = dtime * c / dtemp
   endif
   do i = reg_l1, reg_h1
@@ -473,8 +491,8 @@ subroutine ceta2(DIMS(reg), &
         !     @          fac0 * (eta(i) - fkp(i)) * temp(i) ** 4 -
         !     @          fac2 * (eta(i) - fkp(i)) * er(i)
         ! analytic derivatives for specific test problem:
-        !            d = (1.2d+6 * sigma * temp(i) ** 2 +
-        !     @           1.d+5 * c * er(i) * (temp(i) + tiny) ** (-2)) * dtime
+        !            d = (1.2e+6_rt * sigma * temp(i) ** 2 +
+        !     @           1.e+5_rt * c * er(i) * (temp(i) + tiny) ** (-2)) * dtime
         ! another alternate form (much worse):
         !            d = fac1 * fkp(i) * (temp(i) + dtemp) ** 3 +
         !     @          fac0 * (eta(i) - fkp(i)) * (temp(i) + dtemp) ** 4 -
@@ -483,8 +501,8 @@ subroutine ceta2(DIMS(reg), &
      frc = frho(i) * cv(i) + tiny
      eta(i) = d / (d + frc)
      etainv(i) = underr * frc / (d + frc)
-     eta(i) = 1.d0 - etainv(i)
-     !         eta(i) = 1.d0 - underr * (1.d0 - eta(i))
+     eta(i) = 1.e0_rt - etainv(i)
+     !         eta(i) = 1.e0_rt - underr * (1.e0_rt - eta(i))
   enddo
 end subroutine ceta2
 
@@ -492,26 +510,27 @@ subroutine ceup(DIMS(reg), relres, absres, &
                 frhoes, DIMS(grd), &
                 frhoem, eta, etainv, dfo, dfn, exch, &
                 dt, theta) bind(C, name="ceup")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
-  real*8 :: frhoes(DIMV(grd))
-  real*8 :: frhoem(DIMV(grd))
-  real*8 :: eta(DIMV(grd))
-  real*8 :: etainv(DIMV(grd))
-  real*8 :: dfo(DIMV(grd))
-  real*8 :: dfn(DIMV(grd))
-  real*8 :: exch(DIMV(grd))
-  real*8 :: dt, theta, relres, absres
-  real*8 :: tmp, chg, tot
+  real(rt)         :: frhoes(DIMV(grd))
+  real(rt)         :: frhoem(DIMV(grd))
+  real(rt)         :: eta(DIMV(grd))
+  real(rt)         :: etainv(DIMV(grd))
+  real(rt)         :: dfo(DIMV(grd))
+  real(rt)         :: dfn(DIMV(grd))
+  real(rt)         :: exch(DIMV(grd))
+  real(rt)         :: dt, theta, relres, absres
+  real(rt)         :: tmp, chg, tot
   integer :: i
   do i = reg_l1, reg_h1
-     chg = 0.d0
-     tot = 0.d0
+     chg = 0.e0_rt
+     tot = 0.e0_rt
      tmp = eta(i) * frhoes(i) + &
           etainv(i) * &
           (frhoem(i) - &
-          dt * ((1.d0 - theta) * &
+          dt * ((1.e0_rt - theta) * &
           (dfo(i) - dfn(i)) + &
           exch(i)))
      chg = abs(tmp - frhoes(i))
@@ -526,27 +545,28 @@ subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
                      frhoem, eta, etainv, dfo, dfn, exch, dterm, &
                      dt, theta) bind(C, name="ceupdterm")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
-  real*8 :: frhoes(DIMV(grd))
-  real*8 :: frhoem(DIMV(grd))
-  real*8 :: eta(DIMV(grd))
-  real*8 :: etainv(DIMV(grd))
-  real*8 :: dfo(DIMV(grd))
-  real*8 :: dfn(DIMV(grd))
-  real*8 :: exch(DIMV(grd))
-  real*8 :: dterm(DIMV(grd))
-  real*8 :: dt, theta, relres, absres
-  real*8 :: tmp, chg, tot
+  real(rt)         :: frhoes(DIMV(grd))
+  real(rt)         :: frhoem(DIMV(grd))
+  real(rt)         :: eta(DIMV(grd))
+  real(rt)         :: etainv(DIMV(grd))
+  real(rt)         :: dfo(DIMV(grd))
+  real(rt)         :: dfn(DIMV(grd))
+  real(rt)         :: exch(DIMV(grd))
+  real(rt)         :: dterm(DIMV(grd))
+  real(rt)         :: dt, theta, relres, absres
+  real(rt)         :: tmp, chg, tot
   integer :: i
   do i = reg_l1, reg_h1
-     chg = 0.d0
-     tot = 0.d0
+     chg = 0.e0_rt
+     tot = 0.e0_rt
      tmp = eta(i) * frhoes(i) + &
           etainv(i) * &
           (frhoem(i) - &
-          dt * ((1.d0 - theta) * &
+          dt * ((1.e0_rt - theta) * &
           (dfo(i) - dfn(i)) + &
           exch(i))) &
           + dt * dterm(i)
@@ -567,43 +587,44 @@ subroutine nceup(DIMS(reg), relres, absres, &
      state, DIMS(sb), &
      sigma, c, dt, theta) bind(C, name="nceup")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(grd)
   integer :: DIMDEC(sb)
   integer :: DIMDEC(ebox)
-  real*8 :: frhoes(DIMV(grd))
-  real*8 :: frhoem(DIMV(grd))
-  real*8 :: eta(DIMV(grd))
-  real*8 :: etainv(DIMV(grd))
-  real*8 :: er(DIMV(ebox))
-  real*8 :: dfo(DIMV(grd))
-  real*8 :: dfn(DIMV(grd))
-  real*8 :: temp(DIMV(grd))
-  real*8 :: fkp(DIMV(grd))
-  real*8 :: cv(DIMV(reg))
-  real*8 :: state(DIMV(sb),  NVAR)
-  real*8 :: sigma, c, dt, theta, relres, absres
-  real*8 :: tmp, chg, tot, exch, b, db, dbdt, frhocv
+  real(rt)         :: frhoes(DIMV(grd))
+  real(rt)         :: frhoem(DIMV(grd))
+  real(rt)         :: eta(DIMV(grd))
+  real(rt)         :: etainv(DIMV(grd))
+  real(rt)         :: er(DIMV(ebox))
+  real(rt)         :: dfo(DIMV(grd))
+  real(rt)         :: dfn(DIMV(grd))
+  real(rt)         :: temp(DIMV(grd))
+  real(rt)         :: fkp(DIMV(grd))
+  real(rt)         :: cv(DIMV(reg))
+  real(rt)         :: state(DIMV(sb),  NVAR)
+  real(rt)         :: sigma, c, dt, theta, relres, absres
+  real(rt)         :: tmp, chg, tot, exch, b, db, dbdt, frhocv
   integer :: i
   do i = reg_l1, reg_h1
-     chg = 0.d0
-     tot = 0.d0
+     chg = 0.e0_rt
+     tot = 0.e0_rt
      frhocv = state(i, URHO) * cv(i)
-     dbdt = 16.d0 * sigma * temp(i)**3
-     b = 4.d0 * sigma * temp(i)**4
+     dbdt = 16.e0_rt * sigma * temp(i)**3
+     b = 4.e0_rt * sigma * temp(i)**4
      exch = fkp(i) * (b - c * er(i))
      tmp = eta(i) * frhoes(i) + etainv(i) * &
           (frhoem(i) - &
-          dt * ((1.d0 - theta) * &
+          dt * ((1.e0_rt - theta) * &
           (dfo(i) - dfn(i)) + &
           exch))
 #if 1
      if (frhocv > tiny .AND. tmp > frhoes(i)) then
         db = (tmp - frhoes(i)) * dbdt / frhocv
-        if (b + db <= 0.d0) then
+        if (b + db <= 0.e0_rt) then
            print *, i, b, db, b+db
         endif
-        tmp = ((b + db) / (4.d0 * sigma))**0.25d0
+        tmp = ((b + db) / (4.e0_rt * sigma))**0.25e0_rt
         tmp = frhoes(i) + frhocv * (tmp - temp(i))
      endif
 #endif
@@ -619,15 +640,16 @@ subroutine cetot(DIMS(reg), &
                  state, DIMS(sb), &
                  frhoe, DIMS(fb)) bind(C, name="cetot")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(sb)
   integer :: DIMDEC(fb)
-  real*8 :: state(DIMV(sb), NVAR)
-  real*8 :: frhoe(DIMV(fb))
-  real*8 :: kin
+  real(rt)         :: state(DIMV(sb), NVAR)
+  real(rt)         :: frhoe(DIMV(fb))
+  real(rt)         :: kin
   integer :: i
   do i = reg_l1, reg_h1
-     !         kin = 0.5d0 * (state(i,XMOM) ** 2) /
+     !         kin = 0.5e0_rt * (state(i,XMOM) ** 2) /
      !     @                 state(i,DEN)
      kin = state(i, UEDEN) - state(i, UEINT)
      state(i, UEINT) = frhoe(i)
@@ -642,16 +664,17 @@ subroutine fkpn(DIMS(reg), &
                 temp, DIMS(tb), &
                 state, DIMS(sb)) bind(C, name="fkpn")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(fb)
   integer :: DIMDEC(tb)
   integer :: DIMDEC(sb)
-  real*8 :: fkp(DIMV(fb))
-  real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: ep(0:1), nu
-  real*8 :: temp(DIMV(tb))
-  real*8 :: state(DIMV(sb),  NVAR)
-  real*8 :: teff
+  real(rt)         :: fkp(DIMV(fb))
+  real(rt)         :: const(0:1), em(0:1), en(0:1), tf(0:1)
+  real(rt)         :: ep(0:1), nu
+  real(rt)         :: temp(DIMV(tb))
+  real(rt)         :: state(DIMV(sb),  NVAR)
+  real(rt)         :: teff
   integer :: i
   do i = reg_l1, reg_h1
      teff = max(temp(i), tiny)
@@ -671,17 +694,18 @@ subroutine rosse1( DIMS(reg), &
      temp, DIMS(tb), &
      state, DIMS(sb)) bind(C, name="rosse1")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: DIMDEC(tb)
   integer :: DIMDEC(sb)
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: ep(0:1), nu
-  real*8 :: temp(DIMV(tb))
-  real*8 :: state(DIMV(sb),  NVAR)
-  real*8 :: kfloor
-  real*8 :: kf, teff
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: const(0:1), em(0:1), en(0:1), tf(0:1)
+  real(rt)         :: ep(0:1), nu
+  real(rt)         :: temp(DIMV(tb))
+  real(rt)         :: state(DIMV(sb),  NVAR)
+  real(rt)         :: kfloor
+  real(rt)         :: kf, teff
   integer :: i
   do i = reg_l1, reg_h1
      teff = max(temp(i), tiny)
@@ -705,18 +729,19 @@ subroutine rosse1s(DIMS(reg), &
                    temp, DIMS(tb), &
                    state, DIMS(sb)) bind(C, name="rosse1s")
 
+  use bl_fort_module, only : rt => c_real
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
   integer :: DIMDEC(tb)
   integer :: DIMDEC(sb)
-  real*8 :: kappar(DIMV(kbox))
-  real*8 :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real*8 :: ep(0:1), nu
-  real*8 :: sconst(0:1), sem(0:1), sen(0:1), sep(0:1)
-  real*8 :: temp(DIMV(tb))
-  real*8 :: state(DIMV(sb),  NVAR)
-  real*8 :: kfloor
-  real*8 :: kf, teff, sct
+  real(rt)         :: kappar(DIMV(kbox))
+  real(rt)         :: const(0:1), em(0:1), en(0:1), tf(0:1)
+  real(rt)         :: ep(0:1), nu
+  real(rt)         :: sconst(0:1), sem(0:1), sen(0:1), sep(0:1)
+  real(rt)         :: temp(DIMV(tb))
+  real(rt)         :: state(DIMV(sb),  NVAR)
+  real(rt)         :: kfloor
+  real(rt)         :: kf, teff, sct
   integer :: i
   do i = reg_l1, reg_h1
      teff = max(temp(i), tiny)
@@ -737,12 +762,13 @@ subroutine nfloor(dest, &
                   DIMS(dbox), &
                   DIMS(reg), &
                   nflr, flr, nvar) bind(C, name="nfloor")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(dbox)
   integer :: DIMDEC(reg)
   integer :: nvar, nflr
-  real*8 :: dest(DIMV(dbox), 0:nvar-1)
-  real*8 :: flr
+  real(rt)         :: dest(DIMV(dbox), 0:nvar-1)
+  real(rt)         :: flr
   integer :: i, n
   nflr = 0
   do n = 0, nvar-1
@@ -766,18 +792,19 @@ subroutine lacoefmgfld(a, &
                        DIMS(kbox), &
                        r, s, &
                        dt, c) bind(C, name="lacoefmgfld")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(abox)
   integer :: DIMDEC(reg)
   integer :: DIMDEC(kbox)
-  real*8 :: a(DIMV(abox))
-  real*8 :: kappa(DIMV(kbox))
-  real*8 :: r(reg_l1:reg_h1)
-  real*8 :: s(1)
-  real*8 :: dt, c
+  real(rt)         :: a(DIMV(abox))
+  real(rt)         :: kappa(DIMV(kbox))
+  real(rt)         :: r(reg_l1:reg_h1)
+  real(rt)         :: s(1)
+  real(rt)         :: dt, c
   integer :: i
   do i = reg_l1, reg_h1
-     a(i) = c*kappa(i) + 1.d0/dt
+     a(i) = c*kappa(i) + 1.e0_rt/dt
      a(i) = r(i) * a(i)
   enddo
 end subroutine lacoefmgfld
@@ -791,27 +818,29 @@ subroutine rfface(fine, &
                   crse, &
                   DIMS(cbox), &
                   idim, irat) bind(C, name="rfface")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: DIMDEC(fbox)
   integer :: DIMDEC(cbox)
-  real*8 :: fine(DIMV(fbox))
-  real*8 :: crse(DIMV(cbox))
+  real(rt)         :: fine(DIMV(fbox))
+  real(rt)         :: crse(DIMV(cbox))
   integer :: idim, irat(0:0)
   fine(fbox_l1) = crse(cbox_l1)
 end subroutine rfface
 
 subroutine bextrp(f, fbox_l1, fbox_h1, reg_l1, reg_h1) bind(C, name="bextrp")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: fbox_l1, fbox_h1
   integer ::  reg_l1,  reg_h1
-  real*8 :: f(fbox_l1:fbox_h1)
+  real(rt)         :: f(fbox_l1:fbox_h1)
   integer :: i
 
   !     i direction first:
   i = reg_l1
-  f(i-1) = 2.d0 * f(i) - f(i+1)
+  f(i-1) = 2.e0_rt * f(i) - f(i+1)
   i = reg_h1
-  f(i+1) = 2.d0 * f(i) - f(i-1)
+  f(i+1) = 2.e0_rt * f(i) - f(i-1)
 end subroutine bextrp
 
 
@@ -820,19 +849,20 @@ subroutine lbcoefna(bcoef, &
                     reg_l1, reg_h1, &
                     spec, sbox_l1, sbox_h1, &
                     idim) bind(C, name="lbcoefna")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: idim
   integer ::  reg_l1,  reg_h1
   integer :: bbox_l1, bbox_h1
   integer :: sbox_l1, sbox_h1
-  real*8 :: bcoef(bbox_l1:bbox_h1)
-  real*8 :: bcgrp(bbox_l1:bbox_h1)
-  real*8 :: spec(sbox_l1:sbox_h1)
+  real(rt)         :: bcoef(bbox_l1:bbox_h1)
+  real(rt)         :: bcgrp(bbox_l1:bbox_h1)
+  real(rt)         :: spec(sbox_l1:sbox_h1)
   integer :: i
   if (idim == 0) then
      do i = reg_l1, reg_h1
         bcoef(i) = bcoef(i) &
-             + 0.5d0 * (spec(i-1) + spec(i)) * bcgrp(i)
+             + 0.5e0_rt * (spec(i-1) + spec(i)) * bcgrp(i)
      enddo
   endif
 end subroutine lbcoefna
@@ -843,15 +873,16 @@ subroutine ljupna(jnew, jbox_l1, jbox_h1, &
                   spec, sbox_l1, sbox_h1, &
                   accel, abox_l1, abox_h1, &
                   nTotal) bind(C, name="ljupna")
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: nTotal
   integer ::  reg_l1,  reg_h1
   integer :: jbox_l1, jbox_h1
   integer :: sbox_l1, sbox_h1
   integer :: abox_l1, abox_h1
-  real*8 :: jnew(jbox_l1:jbox_h1, 0:nTotal-1)
-  real*8 :: spec(sbox_l1:sbox_h1, 0:nTotal-1)
-  real*8 :: accel(abox_l1:abox_h1)
+  real(rt)         :: jnew(jbox_l1:jbox_h1, 0:nTotal-1)
+  real(rt)         :: spec(sbox_l1:sbox_h1, 0:nTotal-1)
+  real(rt)         :: accel(abox_l1:abox_h1)
   integer :: i, n
   do n = 0, nTotal - 1
      do i = reg_l1, reg_h1

@@ -5,11 +5,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only : network_init
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
   
   integer untin,i
   character(1) dummy
@@ -36,14 +37,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   
   ! set namelist defaults
   
-  rbasefac = 0.99d0
-  rwind0 = 0.7d14
-  rwind1 = 1.d14
-  rhowind1 = 1.d-14
-  Twind1 = 1.1d3
+  rbasefac = 0.99e0_rt
+  rwind0 = 0.7e14_rt
+  rwind1 = 1.e14_rt
+  rhowind1 = 1.e-14_rt
+  Twind1 = 1.1e3_rt
 
-  filter_rhomax = -1.d20
-  filter_timemax = -1.d20
+  filter_rhomax = -1.e20_rt
+  filter_timemax = -1.e20_rt
 
   xmin = problo(1)
   xmax = probhi(1)
@@ -104,22 +105,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use interpolate_module
   use fundamental_constants_module, only: k_B, n_A
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: state(state_l1:state_h1,NVAR)
-  double precision :: time, delta(1)
-  double precision :: xlo(1), xhi(1)
+  real(rt)         :: state(state_l1:state_h1,NVAR)
+  real(rt)         :: time, delta(1)
+  real(rt)         :: xlo(1), xhi(1)
   
   integer :: i, ii
-  double precision :: rhoInv, xcl, xx, vtot, vsub, rho, T, u, rhosub, Tsub, usub, dx_sub
-  double precision :: rhowind0, rlast, rholast, Twind0, Tlast
+  real(rt)         :: rhoInv, xcl, xx, vtot, vsub, rho, T, u, rhosub, Tsub, usub, dx_sub
+  real(rt)         :: rhowind0, rlast, rholast, Twind0, Tlast
   integer, parameter :: nsub = 16
-  double precision :: rho_tmp, rbase, T_tmp
-  double precision :: Ye, Abar, invmu
-  double precision, parameter :: Tindex=0.5
+  real(rt)         :: rho_tmp, rbase, T_tmp
+  real(rt)         :: Ye, Abar, invmu
+  real(rt)        , parameter :: Tindex=0.5
   type(eos_t) :: eos_state
 
   if (naux .ne. 2) then
@@ -145,14 +147,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   
      xcl = xlo(1) + delta(1) * float(i-lo(1))
      
-     vtot = 0.d0
-     rho = 0.d0
-     T = 0.d0
-     u = 0.d0
-     Ye = 0.d0
-     Abar = 0.d0
+     vtot = 0.e0_rt
+     rho = 0.e0_rt
+     T = 0.e0_rt
+     u = 0.e0_rt
+     Ye = 0.e0_rt
+     Abar = 0.e0_rt
      do ii=0,nsub-1
-        xx = xcl + (dble(ii)+0.5d0) * dx_sub
+        xx = xcl + (dble(ii)+0.5e0_rt) * dx_sub
         vsub = xx**2
         vtot = vtot + vsub
         if (xx .ge. model_r(npts_model)) then
@@ -175,11 +177,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            Ye = Ye + model_Ye(npts_model) * vsub
            Abar = Abar + model_Abar(npts_model) * vsub
 
-           u = u + 0.d0
+           u = u + 0.e0_rt
         else if (xx .le. model_r(1)) then
            rho = rho + model_rho(1) * vsub
            T = T + model_T(1) * vsub
-           u = u + 0.d0
+           u = u + 0.e0_rt
            Ye = Ye + model_Ye(1) * vsub
            Abar = Abar + model_Abar(1) * vsub
         else
@@ -196,20 +198,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      Ye = Ye / vtot
      Abar = Abar / vtot
 
-     invmu = (1.d0+Abar*Ye)/Abar
+     invmu = (1.e0_rt+Abar*Ye)/Abar
 
      state(i,URHO)  = rho
      state(i,UTEMP)  = T
      state(i,UMX)   = rho * u
 
      ! set the composition to be all in the first species
-     state(i,UFS:UFS-1+nspec) = 0.d0
+     state(i,UFS:UFS-1+nspec) = 0.e0_rt
      state(i,UFS  ) = state(i,URHO)
      state(i,UFX) = Ye*rho
      state(i,UFX+1) = invmu*rho
 
      ! set the internal energy via the EOS
-     rhoInv = 1.d0 / state(i,URHO)
+     rhoInv = 1.e0_rt / state(i,URHO)
      eos_state % rho = state(i,URHO)
      eos_state % T   = state(i,UTEMP)
      eos_state % xn  = state(i,UFS:UFS+nspec-1) * rhoInv
@@ -239,20 +241,21 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer :: level, nrad
   integer :: lo(1), hi(1)
   integer :: rad_state_l1,rad_state_h1
-  double precision :: xlo(1), xhi(1), time, delta(1)
-  double precision ::  rad_state(rad_state_l1:rad_state_h1, 0:nrad-1)
+  real(rt)         :: xlo(1), xhi(1), time, delta(1)
+  real(rt)         ::  rad_state(rad_state_l1:rad_state_h1, 0:nrad-1)
 
   ! local variables
   integer :: i,ii,igroup
-  double precision xcl, T, Tsub, xx, vtot, vsub, dx_sub
+  real(rt)         xcl, T, Tsub, xx, vtot, vsub, dx_sub
   integer, parameter :: nsub = 16
 
-  double precision :: rlast, rbase, T_tmp, Twind0, Tlast
-  double precision, parameter :: Tindex=0.5
+  real(rt)         :: rlast, rbase, T_tmp, Twind0, Tlast
+  real(rt)        , parameter :: Tindex=0.5
 
   dx_sub = delta(1) / dble(nsub)
 
@@ -266,10 +269,10 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
 
      xcl = xlo(1) + delta(1) * float(i-lo(1))
      
-     vtot = 0.d0
-     T = 0.d0
+     vtot = 0.e0_rt
+     T = 0.e0_rt
      do ii=0,nsub-1
-        xx = xcl + (dble(ii)+0.5d0) * dx_sub
+        xx = xcl + (dble(ii)+0.5e0_rt) * dx_sub
         vsub = xx**2
         vtot = vtot + vsub
         if (xx .ge. model_r(npts_model)) then

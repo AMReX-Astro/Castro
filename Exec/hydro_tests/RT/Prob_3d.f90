@@ -3,11 +3,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use eos_module, only : gamma_const
   use bl_error_module
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
 
   integer untin,i
 
@@ -27,10 +28,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end do
          
   ! set namelist defaults here
-  frac = 0.5d0
-  rho_1 = 1.0d0
-  rho_2 = 2.0d0
-  p0_base = 5.0d0
+  frac = 0.5e0_rt
+  rho_1 = 1.0e0_rt
+  rho_2 = 2.0e0_rt
+  p0_base = 5.0e0_rt
 
   ! Read namelists
   untin = 9
@@ -80,16 +81,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: ZERO, HALF, M_PI
   use eos_module, only : gamma_const
   
+  use bl_fort_module, only : rt => c_real
   implicit none
         
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  real(rt)         :: xlo(3), xhi(3), time, delta(3)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
   
   integer :: i,j,k
-  double precision :: x,y,z,r2d,pres,presmid,pertheight
+  real(rt)         :: x,y,z,r2d,pres,presmid,pertheight
   
   presmid  = p0_base - rho_1*split(3)
         
@@ -106,12 +108,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            
            if (z .lt. split(3)) then
               pres = p0_base - rho_1*z
-              state(i,j,k,UEDEN) = pres / (gamma_const - 1.0d0)
-              state(i,j,k,UEINT) = pres / (gamma_const - 1.0d0)
+              state(i,j,k,UEDEN) = pres / (gamma_const - 1.0e0_rt)
+              state(i,j,k,UEINT) = pres / (gamma_const - 1.0e0_rt)
            else
               pres = presmid - rho_2*(z-split(3))
-              state(i,j,k,UEDEN) = pres / (gamma_const - 1.0d0)
-              state(i,j,k,UEINT) = pres / (gamma_const - 1.0d0)
+              state(i,j,k,UEDEN) = pres / (gamma_const - 1.0e0_rt)
+              state(i,j,k,UEINT) = pres / (gamma_const - 1.0e0_rt)
            end if
            
         enddo
@@ -127,10 +129,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         do i = lo(1), hi(1)
            x = (i+HALF)*delta(1)
      
-           r2d = min(sqrt((x-split(1))**2+(y-split(2))**2), 0.5d0*L_x)
-           pertheight = 0.5d0 - 0.01d0*cos(2.0d0*M_PI*r2d/L_x)
-           state(i,j,k,URHO) = rho_1 + ((rho_2-rho_1)/2.0d0)* &
-                (1+tanh((z-pertheight)/0.005d0))
+           r2d = min(sqrt((x-split(1))**2+(y-split(2))**2), 0.5e0_rt*L_x)
+           pertheight = 0.5e0_rt - 0.01e0_rt*cos(2.0e0_rt*M_PI*r2d/L_x)
+           state(i,j,k,URHO) = rho_1 + ((rho_2-rho_1)/2.0e0_rt)* &
+                (1+tanh((z-pertheight)/0.005e0_rt))
            state(i,j,k,UFS) = state(i,j,k,URHO)
            
         enddo

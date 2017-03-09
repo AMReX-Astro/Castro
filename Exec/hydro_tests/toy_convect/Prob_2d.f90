@@ -5,13 +5,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
-  double precision offset
+  real(rt)         offset
   integer untin,i
 
   namelist /fortin/ model_name, apply_vel_field, &
@@ -33,14 +34,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! Namelist defaults
   apply_vel_field = .false.
-  velpert_scale = 1.0d2
-  velpert_amplitude = 1.0d2
-  velpert_height_loc = 6.5d3
+  velpert_scale = 1.0e2_rt
+  velpert_amplitude = 1.0e2_rt
+  velpert_height_loc = 6.5e3_rt
   num_vortices = 1
 
   ! these are used in tagging
-  H_min = 1.d-4
-  cutoff_density = 50.d0
+  H_min = 1.e-4_rt
+  cutoff_density = 50.e0_rt
 
   interp_BC = .false.
   zero_vels = .false.
@@ -68,7 +69,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   allocate(xloc_vortices(num_vortices))
 
   do i = 1, num_vortices
-     xloc_vortices(i) = (dble(i-1) + 0.5d0) * offset + problo(1)
+     xloc_vortices(i) = (dble(i-1) + 0.5e0_rt) * offset + problo(1)
   enddo
 
 end subroutine amrex_probinit
@@ -106,23 +107,24 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use model_parser_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision xdist,ydist,x,y,r,upert(2)
+  real(rt)         xdist,ydist,x,y,r,upert(2)
   integer i,j,n,vortex
 
-  double precision temppres(state_l1:state_h1,state_l2:state_h2)
+  real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
 
      do i = lo(1), hi(1)
 
@@ -166,19 +168,19 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.d0
+  state(:,:,UMX:UMZ) = 0.e0_rt
 
   ! Now add the velocity perturbation
   if (apply_vel_field) then
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
         ydist = y - velpert_height_loc
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5d0)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
 
-           upert = 0.d0
+           upert = 0.e0_rt
 
            ! loop over each vortex
            do vortex = 1, num_vortices
@@ -188,12 +190,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               r = sqrt(xdist**2 + ydist**2)
 
               upert(1) = upert(1) - (ydist/velpert_scale) * &
-                   velpert_amplitude * exp( -r**2/(2.d0*velpert_scale**2)) &
-                   * (-1.d0)**vortex
+                   velpert_amplitude * exp( -r**2/(2.e0_rt*velpert_scale**2)) &
+                   * (-1.e0_rt)**vortex
 
               upert(2) = upert(2) + (xdist/velpert_scale) * &
-                   velpert_amplitude * exp(-r**2/(2.d0*velpert_scale**2)) &
-                   * (-1.d0)**vortex
+                   velpert_amplitude * exp(-r**2/(2.e0_rt*velpert_scale**2)) &
+                   * (-1.e0_rt)**vortex
            enddo
 
            state(i,j,UMX) = state(i,j,URHO) * upert(1)

@@ -262,7 +262,7 @@ class Param(object):
         if self.f90_dtype == "int":
             tstr = "integer         , save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "Real":
-            tstr = "double precision, save :: {}\n".format(self.f90_name)
+            tstr = "real(rt), save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "logical":
             tstr = "logical         , save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "string":

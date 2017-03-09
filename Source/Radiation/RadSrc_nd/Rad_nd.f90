@@ -16,9 +16,10 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   use rad_params_module, only: radtoE  !, radtoJ, Etorad, radfluxtoF
   use rad_params_module, only: etafactor
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision p, c, h, k, s, a, m
+  real(rt)         p, c, h, k, s, a, m
   integer J_is_used
 
   c = c_fcm
@@ -26,7 +27,7 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   k = k_fcm
   s = s_fcm
   a = a_fcm
-  m = 1.d6 * ev2erg_fcm
+  m = 1.e6_rt * ev2erg_fcm
 
   pi       = p
   clight   = c
@@ -37,20 +38,20 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   avogadro = a
   mev2erg  = m
   Hz2MeV   = h / m
-  tiny     = 1.d-50
+  tiny     = 1.e-50_rt
 
   if (J_is_used > 0) then
-     radtoE = 4.d0*pi/clight
-     !           radtoJ = 1.0d0
-     !           Etorad = 1.d0/radtoE
-     !           radfluxtoF = 4.d0*pi
-     etafactor = 1.d0
+     radtoE = 4.e0_rt*pi/clight
+     !           radtoJ = 1.0e0_rt
+     !           Etorad = 1.e0_rt/radtoE
+     !           radfluxtoF = 4.e0_rt*pi
+     etafactor = 1.e0_rt
   else
-     radtoE = 1.0d0
-     !           radtoJ = clight/(4.d0*pi)
-     !           Etorad = 1.0d0
-     !           radfluxtoF = 1.d0
-     etafactor = 4.d0*pi/clight
+     radtoE = 1.0e0_rt
+     !           radtoJ = clight/(4.e0_rt*pi)
+     !           Etorad = 1.0e0_rt
+     !           radfluxtoF = 1.e0_rt
+     etafactor = 4.e0_rt*pi/clight
   end if
 
 end subroutine ca_initradconstants
@@ -59,6 +60,7 @@ end subroutine ca_initradconstants
 subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
 
   use rad_params_module, only : ngroups, nugroup, dnugroup, ng0, ng1
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer ngr
 
@@ -73,8 +75,8 @@ subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
   allocate(dnugroup(0:ngroups-1))
 
   do i = 0, ngroups-1
-     nugroup(i)  = 1.d0  ! dummy
-     dnugroup(i) = 1.d0
+     nugroup(i)  = 1.e0_rt  ! dummy
+     dnugroup(i) = 1.e0_rt
   enddo
 end subroutine ca_initsinglegroup
 
@@ -89,9 +91,10 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision nugr(0:ngr-1), dnugr(0:ngr-1)
+  real(rt)         nugr(0:ngr-1), dnugr(0:ngr-1)
   integer ngr, ngr0, ngr1
 
   ! Local variables
@@ -115,9 +118,10 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), xnugr(0:ngr)
+  real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), xnugr(0:ngr)
   integer ngr
 
   ! Local variables
@@ -146,9 +150,10 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
        xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
-  double precision, intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
+  real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
   integer ngr, ngr0, ngr1
 
   ! Local variables
@@ -185,11 +190,11 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   dlognu(:) = dlognugr(:)
   lognugroup(:) = log(nugroup)
 
-  erg2rhoYe = 0.d0
+  erg2rhoYe = 0.e0_rt
   if (ng0 > 0) then
-     erg2rhoYe(0:ng0-1) = 1.d0 / (avogadro*hplanck*nugroup(0:ng0-1))
+     erg2rhoYe(0:ng0-1) = 1.e0_rt / (avogadro*hplanck*nugroup(0:ng0-1))
      if (ng1 > 0) then
-        erg2rhoYe(ng0:ng0+ng1-1) = -1.d0 / (avogadro*hplanck*nugroup(ng0:ng0+ng1-1))
+        erg2rhoYe(ng0:ng0+ng1-1) = -1.e0_rt / (avogadro*hplanck*nugroup(ng0:ng0+ng1-1))
      end if
   end if
 
@@ -201,6 +206,7 @@ subroutine ca_setgroup(igroup)
 
   use rad_params_module, only: current_group
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer igroup
 
@@ -220,18 +226,19 @@ subroutine ca_inelastic_sct (lo, hi, &
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
 
+  use bl_fort_module, only : rt => c_real
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3
   integer, intent(in) :: Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3
   integer, intent(in) :: ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3
-  double precision, intent(inout) :: uu(uu_l1:uu_h1,uu_l2:uu_h2,uu_l3:uu_h3,NVAR)
-  double precision, intent(inout) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,0:ngroups-1)
-  double precision, intent(in   ) :: ks(ks_l1:ks_h1,ks_l2:ks_h2,ks_l3:ks_h3)
-  double precision, intent(in) :: dt
+  real(rt)        , intent(inout) :: uu(uu_l1:uu_h1,uu_l2:uu_h2,uu_l3:uu_h3,NVAR)
+  real(rt)        , intent(inout) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,0:ngroups-1)
+  real(rt)        , intent(in   ) :: ks(ks_l1:ks_h1,ks_l2:ks_h2,ks_l3:ks_h3)
+  real(rt)        , intent(in) :: dt
 
   integer :: i, j, k
-  double precision :: Ertotold, Ertmp(0:ngroups-1), dEr
-  double precision :: Erscale(0:ngroups-1)
+  real(rt)         :: Ertotold, Ertmp(0:ngroups-1), dEr
+  real(rt)         :: Erscale(0:ngroups-1)
 
   Erscale = nugroup*dlognu
 
@@ -266,16 +273,17 @@ subroutine ca_compute_scattering(lo, hi, &
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
   integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
-  double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
-  double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
+  real(rt)        , intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
+  real(rt)        , intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
 
   integer :: i, j, k
-  double precision :: kp, kr, nu, rho, temp, Ye
+  real(rt)         :: kp, kr, nu, rho, temp, Ye
   logical, parameter :: comp_kp = .true.
   logical, parameter :: comp_kr = .true.
 
@@ -292,12 +300,12 @@ subroutine ca_compute_scattering(lo, hi, &
            if (naux > 0) then
               Ye = sta(i,j,k,UFX)
            else
-              Ye = 0.d0
+              Ye = 0.e0_rt
            end if
 
            call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
 
-           kps(i,j,k) = max(kr - kp, 0.d0)
+           kps(i,j,k) = max(kr - kp, 0.e0_rt)
         end do
      end do
   end do
@@ -314,25 +322,26 @@ subroutine ca_compute_scattering_2(lo, hi, &
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
   integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
-  double precision, intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
-  double precision, intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
-  double precision, intent(in) :: k0_p, m_p, n_p
-  double precision, intent(in) :: k0_r, m_r, n_r
-  double precision, intent(in) :: Tfloor, kfloor
+  real(rt)        , intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
+  real(rt)        , intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
+  real(rt)        , intent(in) :: k0_p, m_p, n_p
+  real(rt)        , intent(in) :: k0_r, m_r, n_r
+  real(rt)        , intent(in) :: Tfloor, kfloor
 
   integer :: i, j, k
-  double precision, parameter :: tiny = 1.0d-50
-  double precision :: Teff, k_p, k_r
+  real(rt)        , parameter :: tiny = 1.0e-50_rt
+  real(rt)         :: Teff, k_p, k_r
 
   ! scattering is assumed to be independent of nu.
 
-  if ( m_p.eq.0.d0 .and. n_p.eq.0.d0 .and. &
-       m_r.eq.0.d0 .and. n_r.eq.0.d0 ) then
+  if ( m_p.eq.0.e0_rt .and. n_p.eq.0.e0_rt .and. &
+       m_r.eq.0.e0_rt .and. n_r.eq.0.e0_rt ) then
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -363,6 +372,7 @@ subroutine init_godunov_indices_rad() bind(C)
        QU, QV, QW
   use rad_params_module, only: ngroups
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   ngdnv = 6 + 2*ngroups

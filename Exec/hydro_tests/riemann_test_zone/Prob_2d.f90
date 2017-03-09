@@ -6,16 +6,17 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use riemann_module
   use meth_params_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(2), probhi(2)
+  real(rt)         :: problo(2), probhi(2)
 
-  double precision, allocatable :: ql(:,:,:), qr(:,:,:)
-  double precision, allocatable :: gamcl(:,:), gamcr(:,:)
-  double precision, allocatable :: cav(:,:), smallc(:,:)
-  double precision, allocatable :: uflx(:,:,:), qint(:,:,:)
+  real(rt)        , allocatable :: ql(:,:,:), qr(:,:,:)
+  real(rt)        , allocatable :: gamcl(:,:), gamcr(:,:)
+  real(rt)        , allocatable :: cav(:,:), smallc(:,:)
+  real(rt)        , allocatable :: uflx(:,:,:), qint(:,:,:)
 
   integer :: ilo, ihi, jlo, jhi
   integer :: idir
@@ -51,10 +52,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   u_r = 1.0
   p_r = 1.0
   re_r = 1.0
-  gc_r = 4.0d0/3.0d0
+  gc_r = 4.0e0_rt/3.0e0_rt
   
   cav_s = 1.0
-  smallc_s = 1.d-10
+  smallc_s = 1.e-10_rt
   
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
@@ -158,13 +159,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(2), hi(2)
   integer :: state_l1,state_l2,state_h1,state_h2
-  double precision :: xlo(2), xhi(2), time, delta(2)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         :: xlo(2), xhi(2), time, delta(2)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
   
 
 end subroutine ca_initdata

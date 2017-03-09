@@ -6,13 +6,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use meth_params_module, only: small_temp
   use prob_params_module, only : center
   use network, only : nspec
+  use bl_fort_module, only : rt => c_real
   implicit none 
 
   integer :: init,namlen,untin,i,k
   integer :: name(namlen)
 
-  double precision :: center_x, center_y, center_z
-  double precision :: problo(2), probhi(2)
+  real(rt)         :: center_x, center_y, center_z
+  real(rt)         :: problo(2), probhi(2)
 
   type (eos_t) :: eos_state
 
@@ -34,12 +35,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
          
 ! set namelist defaults
 
-  rho_0 = 1.d9
-  r_0 = 6.5d8
+  rho_0 = 1.e9_rt
+  r_0 = 6.5e8_rt
   r_old = r_0
-  p_0 = 1.d10
-  rho_ambient = 1.d0
-  smooth_delta = 1.d-5
+  p_0 = 1.e10_rt
+  rho_ambient = 1.e0_rt
+  smooth_delta = 1.e-5_rt
 
 !     Read namelists in probin file
   untin = 9
@@ -54,12 +55,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center(2) = center_y
 
   xmin = problo(1)
-  if (xmin /= 0.d0) call bl_error("ERROR: xmin should be 0!")
+  if (xmin /= 0.e0_rt) call bl_error("ERROR: xmin should be 0!")
 
   xmax = probhi(1)
 
   ymin = problo(2)
-  if (ymin /= 0.d0) call bl_error("ERROR: ymin should be 0!")
+  if (ymin /= 0.e0_rt) call bl_error("ERROR: ymin should be 0!")
 
   ymax = probhi(2)
 
@@ -121,17 +122,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
   use prob_params_module, only : center
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: level, nscal
   integer          :: lo(2), hi(2)
   integer          :: state_l1,state_l2,state_h1,state_h2
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision :: time, delta(2)
-  double precision :: xlo(2), xhi(2)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         :: time, delta(2)
+  real(rt)         :: xlo(2), xhi(2)
   
-  double precision :: xl,yl,xx,yy,dist,pres,eint,temp,avg_rho, rho_n
-  double precision :: dx_sub,dy_sub
+  real(rt)         :: xl,yl,xx,yy,dist,pres,eint,temp,avg_rho, rho_n
+  real(rt)         :: dx_sub,dy_sub
   integer          :: i,j,ii,jj,n
 
   type (eos_t) :: eos_state
@@ -147,20 +149,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i = lo(1), hi(1)
         xl = xmin + dble(i) * delta(1)
 
-        avg_rho = 0.d0
+        avg_rho = 0.e0_rt
 
         do jj = 0, nsub-1
-           yy = yl + (dble(jj) + 0.5d0) * dy_sub
+           yy = yl + (dble(jj) + 0.5e0_rt) * dy_sub
 
            do ii = 0, nsub-1
-              xx = xl + (dble(ii) + 0.5d0) * dx_sub
+              xx = xl + (dble(ii) + 0.5e0_rt) * dx_sub
 
               dist = sqrt((xx-center(1))**2 + (yy-center(2))**2)
 
               ! use a tanh profile to smooth the transition between rho_0 
               ! and rho_ambient
-              rho_n = rho_0 - 0.5d0*(rho_0 - rho_ambient)* &
-                   (1.d0 + tanh((dist - r_0)/smooth_delta))
+              rho_n = rho_0 - 0.5e0_rt*(rho_0 - rho_ambient)* &
+                   (1.e0_rt + tanh((dist - r_0)/smooth_delta))
 
               avg_rho = avg_rho + rho_n
 
@@ -180,8 +182,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eint = eos_state % e
 
         state(i,j,UTEMP) = temp
-        state(i,j,UMX) = 0.d0
-        state(i,j,UMY) = 0.d0
+        state(i,j,UMX) = 0.e0_rt
+        state(i,j,UMY) = 0.e0_rt
         state(i,j,UEDEN) = state(i,j,URHO) * eint
         state(i,j,UEINT) = state(i,j,URHO) * eint
         state(i,j,UFS:UFS+nspec-1) = state(i,j,URHO) * X_0(1:nspec)

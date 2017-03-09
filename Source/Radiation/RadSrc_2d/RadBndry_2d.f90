@@ -14,15 +14,16 @@ subroutine rbndry(  &
 
   use rad_params_module, only : ngroups
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: b_l1,b_l2,b_h1,b_h2
   integer, intent(in) :: d_l1,d_l2,d_h1,d_h2 ! computational domain index
   integer, intent(in) :: dir         ! 0: x    1: y-direction
   integer, intent(in) :: face        ! 0: low  1: high
-  double precision, intent(out) :: bf(b_l1:b_h1,b_l2:b_h2,0:ngroups-1)
-  double precision, intent(in) :: dx(2), xlo(2), t
+  real(rt)        , intent(out) :: bf(b_l1:b_h1,b_l2:b_h2,0:ngroups-1)
+  real(rt)        , intent(in) :: dx(2), xlo(2), t
 
-  bf = 0.5d0
+  bf = 0.5e0_rt
 
 end subroutine rbndry

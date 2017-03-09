@@ -44,12 +44,10 @@
 \runparamNS{do\_reflux}{castro} &  do we do the hyperbolic reflux at coarse-fine interfaces? & 1 \\
 \runparamNS{lin\_limit\_state\_interp}{castro} &  how to do limiting of the state data when interpolating 0: only prevent new extrema 1: preserve linear combinations of state variables & 0 \\
 \rowcolor{tableShade}
-\runparamNS{reflux\_strategy}{castro} &  refluxing strategy. Ordered in descending level of accuracy and descending computational expense. 1 = reflux during every finest level timestep 2 = reflux at the end of every timestep on every level & 2 \\
 \runparamNS{state\_interp\_order}{castro} &  highest order used in interpolation & 1 \\
-\rowcolor{tableShade}
 \runparamNS{state\_nghost}{castro} &  Number of ghost zones for state data to have. Note that if you are using radiation, choosing this to be zero will be overridden since radiation needs at least one ghost zone. & 0 \\
-\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
 \rowcolor{tableShade}
+\runparamNS{update\_sources\_after\_reflux}{castro} &  whether to re-compute new-time source terms after a reflux & 1 \\
 \runparamNS{use\_custom\_knapsack\_weights}{castro} &  should we have state data for custom load-balancing weighting? & 0 \\
 
 
@@ -90,17 +88,65 @@
 
 
 \rowcolor{tableShade}
+\runparamNS{coalesce\_update\_diagnostics}{castro} &  if we're printing diagnostic information about the updates, should we break down the information into the constitent source terms? & (0, 1) \\
 \runparamNS{hard\_cfl\_limit}{castro} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
-\runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
 \rowcolor{tableShade}
-\runparamNS{print\_energy\_diagnostics}{castro} &  display breakdown of energy sources & (0, 1) \\
+\runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
 \rowcolor{tableShade}
+\runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
-\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \rowcolor{tableShade}
+\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
+\rowcolor{tableShade}
 \runparamNS{track\_grid\_losses}{castro} &  calculate losses of material through physical grid boundaries & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  diffusion
+ parameters]{castro :  diffusion
+ parameters} \label{table: castro :  diffusion
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{diffuse\_cutoff\_density}{castro} &  set a cutoff density for diffusion -- we zero the term out below this density & -1.e200 \\
+\runparamNS{diffuse\_enth}{castro} &  enable enthalpy diffusion & 0 \\
+\rowcolor{tableShade}
+\runparamNS{diffuse\_spec}{castro} &  enable species diffusion & 0 \\
+\runparamNS{diffuse\_temp}{castro} &  enable thermal diffusion & 0 \\
+\rowcolor{tableShade}
+\runparamNS{diffuse\_vel}{castro} &  enable velocity diffusion & 0 \\
 
 
 \end{longtable}
@@ -296,7 +342,7 @@
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
 \rowcolor{tableShade}
-\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 0 \\
+\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 1 \\
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
 \rowcolor{tableShade}
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
@@ -614,16 +660,18 @@
 \runparamNS{const\_grav}{gravity} &  if doing constant gravity, what is the acceleration & 0.0 \\
 \runparamNS{direct\_sum\_bcs}{gravity} &  Check if the user wants to compute the boundary conditions using the brute force method.  Default is false, since this method is slow. & 0 \\
 \rowcolor{tableShade}
+\runparamNS{do\_composite\_phi\_correction}{gravity} &  should we apply a lagged correction to the potential that gets us closer to the composite solution? This makes the resulting fine grid calculation slightly more accurate, at the cost of an additional Poisson solve per timestep. & 1 \\
 \runparamNS{drdxfac}{gravity} &  ratio of dr for monopole gravity binning to grid resolution & 1 \\
+\rowcolor{tableShade}
 \runparamNS{get\_g\_from\_phi}{gravity} &  For non-Poisson gravity, do we want to construct the gravitational acceleration by taking the gradient of the potential, rather than constructing it directly? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{gravity\_type}{gravity} &  what type & "fillme" \\
+\rowcolor{tableShade}
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
-\rowcolor{tableShade}
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
-\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

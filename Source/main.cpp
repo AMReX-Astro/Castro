@@ -29,6 +29,7 @@
 #include <XGraph1d.H>
 #endif
 
+#include "Castro.H"
 #include "Castro_io.H"
 
 using namespace amrex;
@@ -161,6 +162,10 @@ main (int   argc,
 #endif
 
     }
+
+#ifdef DO_PROBLEM_POST_SIMULATION
+    Castro::problem_post_simulation(amrptr->getAmrLevels());
+#endif
 
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);

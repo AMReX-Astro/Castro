@@ -8,18 +8,19 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
         
+  use bl_fort_module, only : rt => c_real
   implicit none
         
   integer lo(2), hi(2), MAESTRO_init_type, level
   integer MAESTRO_npts_model
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), dx(2), dr
-  double precision p0(0:MAESTRO_npts_model-1)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), dx(2), dr
+  real(rt)         p0(0:MAESTRO_npts_model-1)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
   
   ! local variables
-  double precision ekin
-  double precision pressure,entropy,minpres
+  real(rt)         ekin
+  real(rt)         pressure,entropy,minpres
   
   integer i,j,n
 
@@ -170,39 +171,40 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   use network, only: nspec
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer model_size,MAESTRO_npts_model
-  double precision model(model_size,0:MAESTRO_npts_model-1)
-  double precision rho0   (0:MAESTRO_npts_model-1)
-  double precision tempbar(0:MAESTRO_npts_model-1)
-  double precision dx(2), dr
+  real(rt)         model(model_size,0:MAESTRO_npts_model-1)
+  real(rt)         rho0   (0:MAESTRO_npts_model-1)
+  real(rt)         tempbar(0:MAESTRO_npts_model-1)
+  real(rt)         dx(2), dr
   integer r_model_start
         
   ! local
   integer i,n,iter,comp
   integer MAX_ITER
   
-  double precision TOL
+  real(rt)         TOL
 
-  double precision pres(0:MAESTRO_npts_model-1)
-  double precision entropy_want,entropy
-  double precision dens_zone,temp_zone,xn(nspec)
+  real(rt)         pres(0:MAESTRO_npts_model-1)
+  real(rt)         entropy_want,entropy
+  real(rt)         dens_zone,temp_zone,xn(nspec)
   
   logical converged_hse,isentropic,fluff
-  double precision g_zone,low_density_cutoff,temp_fluff
+  real(rt)         g_zone,low_density_cutoff,temp_fluff
   
-  double precision p_want,pres_zone,dpt,dpd,dst,dsd,A,B,drho,dtemp
+  real(rt)         p_want,pres_zone,dpt,dpd,dst,dsd,A,B,drho,dtemp
 
   type (eos_t) eos_state
 
   MAX_ITER = 250
   TOL = 1.e-10
 
-  g_zone = -1.5d10
+  g_zone = -1.5e10_rt
 
-  low_density_cutoff = 1.d-4
-  temp_fluff = 1.d7
+  low_density_cutoff = 1.e-4_rt
+  temp_fluff = 1.e7_rt
 
   !-----------------------------------------------------------------------------
   ! put the model onto our new uniform grid
@@ -211,9 +213,9 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   fluff = .false.
 
   ! hard code species
-  xn(1) = 0.3d0
-  xn(2) = 0.7d0
-  xn(3) = 0.d0
+  xn(1) = 0.3e0_rt
+  xn(2) = 0.7e0_rt
+  xn(3) = 0.e0_rt
   
   eos_state % rho  = rho0(r_model_start)
   eos_state % T    = tempbar(r_model_start)
@@ -308,11 +310,11 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
 
               drho = (A - dpt*dtemp)/(dpd - 0.5*dr*g_zone)
 
-              dens_zone = max(0.9d0*dens_zone, &
-                   min(dens_zone + drho, 1.1d0*dens_zone))
+              dens_zone = max(0.9e0_rt*dens_zone, &
+                   min(dens_zone + drho, 1.1e0_rt*dens_zone))
 
-              temp_zone = max(0.9d0*temp_zone, &
-                   min(temp_zone + dtemp, 1.1d0*temp_zone))
+              temp_zone = max(0.9e0_rt*temp_zone, &
+                   min(temp_zone + dtemp, 1.1e0_rt*temp_zone))
 
 
               ! check if the density falls below our minimum cut-off -- 
@@ -431,18 +433,19 @@ subroutine ca_initdata_overwrite(lo,hi, &
   use network, only: nspec
   use eos_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
   
   integer lo(2), hi(2), r_model_start
   integer model_size,MAESTRO_npts_model
   integer state_l1,state_l2,state_h1,state_h2
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  double precision model(model_size,0:MAESTRO_npts_model-1)
-  double precision dx(2), xlo(2), xhi(2), dr
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         model(model_size,0:MAESTRO_npts_model-1)
+  real(rt)         dx(2), xlo(2), xhi(2), dr
   
   ! local
   integer i,j,n
-  double precision ekin,radius,temppres
+  real(rt)         ekin,radius,temppres
 
   type (eos_t) eos_state
   
@@ -453,14 +456,14 @@ subroutine ca_initdata_overwrite(lo,hi, &
         do i=lo(1),hi(1)
            ! need to zero momentum since we're going to be
            ! lowering the density by many orders of magnitude
-           state(i,j,UMX:UMY) = 0.d0
+           state(i,j,UMX:UMY) = 0.e0_rt
            
            state(i,j,URHO) = model(1,j)
            state(i,j,UTEMP) = model(2,j)
            
-           state(i,j,UFS  ) = 0.3d0
-           state(i,j,UFS+1) = 0.7d0
-           state(i,j,UFS+2) = 0.0d0
+           state(i,j,UFS  ) = 0.3e0_rt
+           state(i,j,UFS+1) = 0.7e0_rt
+           state(i,j,UFS+2) = 0.0e0_rt
            
            ! compute e
            eos_state % rho = state(i,j,URHO)

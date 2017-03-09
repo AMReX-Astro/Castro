@@ -3,11 +3,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use eos_module, only : gamma_const
   use bl_error_module
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(2), probhi(2)
+  real(rt)         :: problo(2), probhi(2)
 
   integer untin,i
 
@@ -27,10 +28,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end do
 
   ! set namelist defaults here
-  frac = 0.5d0
-  rho_1 = 1.0d0
-  rho_2 = 2.0d0
-  p0_base = 5.0d0
+  frac = 0.5e0_rt
+  rho_1 = 1.0e0_rt
+  rho_2 = 2.0e0_rt
+  p0_base = 5.0e0_rt
 
   ! Read namelists
   untin = 9
@@ -79,16 +80,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: ZERO, HALF, M_PI
   use eos_module, only : gamma_const
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(2), hi(2)
   integer :: state_l1,state_l2,state_h1,state_h2
-  double precision :: xlo(2), xhi(2), time, delta(2)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         :: xlo(2), xhi(2), time, delta(2)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   integer :: i,j
-  double precision :: x,y,pres,presmid,pertheight
+  real(rt)         :: x,y,pres,presmid,pertheight
 
   presmid  = p0_base - rho_1*split(2)
 
@@ -103,12 +105,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         if (y .lt. split(2)) then
            pres = p0_base - rho_1*y
-           state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
-           state(i,j,UEINT) = pres / (gamma_const - 1.0d0)
+           state(i,j,UEDEN) = pres / (gamma_const - 1.0e0_rt)
+           state(i,j,UEINT) = pres / (gamma_const - 1.0e0_rt)
         else
            pres = presmid - rho_2*(y-split(2))
-           state(i,j,UEDEN) = pres / (gamma_const - 1.0d0)
-           state(i,j,UEINT) = pres / (gamma_const - 1.0d0)
+           state(i,j,UEDEN) = pres / (gamma_const - 1.0e0_rt)
+           state(i,j,UEINT) = pres / (gamma_const - 1.0e0_rt)
         end if
 
      enddo
@@ -122,10 +124,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         ! we explicitly make the perturbation symmetric here
         ! -- this prevents the RT from bending.
-        pertheight = 0.01d0*HALF*(cos(2.0d0*M_PI*x/L_x) + &
-                                  cos(2.0d0*M_PI*(L_x-x)/L_x)) + 0.5d0
-        state(i,j,URHO) = rho_1 + ((rho_2-rho_1)/2.0d0)* &
-             (1+tanh((y-pertheight)/0.005d0))
+        pertheight = 0.01e0_rt*HALF*(cos(2.0e0_rt*M_PI*x/L_x) + &
+                                  cos(2.0e0_rt*M_PI*(L_x-x)/L_x)) + 0.5e0_rt
+        state(i,j,URHO) = rho_1 + ((rho_2-rho_1)/2.0e0_rt)* &
+             (1+tanh((y-pertheight)/0.005e0_rt))
         state(i,j,UFS) = state(i,j,URHO)
 
      enddo

@@ -27,8 +27,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #ifdef RADIATION
                     nstep_fsp, &
 #endif
-                    mass_added_flux, xmom_added_flux, ymom_added_flux, zmom_added_flux, &
-                    E_added_flux, mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
 
   use mempool_module, only : bl_allocate, bl_deallocate
@@ -48,6 +47,7 @@ subroutine ca_umdrv(is_finest_level, time, &
 #endif
   use advection_module, only : umeth3d, consup
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 #ifdef RADIATION
@@ -79,48 +79,46 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer, intent(in) :: area3_l1, area3_l2, area3_l3, area3_h1, area3_h2, area3_h3
   integer, intent(in) :: vol_l1, vol_l2, vol_l3, vol_h1, vol_h2, vol_h3
 
-  double precision, intent(in) :: uin(uin_l1:uin_h1, uin_l2:uin_h2, uin_l3:uin_h3, NVAR)
-  double precision, intent(inout) :: uout(uout_l1:uout_h1, uout_l2:uout_h2, uout_l3:uout_h3, NVAR)
+  real(rt)        , intent(in) :: uin(uin_l1:uin_h1, uin_l2:uin_h2, uin_l3:uin_h3, NVAR)
+  real(rt)        , intent(inout) :: uout(uout_l1:uout_h1, uout_l2:uout_h2, uout_l3:uout_h3, NVAR)
 #ifdef RADIATION
-  double precision, intent(in) :: Erin(Erin_l1:Erin_h1, Erin_l2:Erin_h2, Erin_l3:Erin_h3, 0:ngroups-1)
-  double precision, intent(inout) :: Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3, 0:ngroups-1)
+  real(rt)        , intent(in) :: Erin(Erin_l1:Erin_h1, Erin_l2:Erin_h2, Erin_l3:Erin_h3, 0:ngroups-1)
+  real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1, Erout_l2:Erout_h2, Erout_l3:Erout_h3, 0:ngroups-1)
 #endif
-  double precision, intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQ)
-  double precision, intent(inout) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
-  double precision, intent(in) :: srcQ(srQ_l1:srQ_h1, srQ_l2:srQ_h2, srQ_l3:srQ_h3, QVAR)
-  double precision, intent(inout) :: update(updt_l1:updt_h1, updt_l2:updt_h2, updt_l3:updt_h3, NVAR)
-  double precision, intent(inout) :: flux1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, flux1_l3:flux1_h3, NVAR)
-  double precision, intent(inout) :: flux2(flux2_l1:flux2_h1, flux2_l2:flux2_h2, flux2_l3:flux2_h3, NVAR)
-  double precision, intent(inout) :: flux3(flux3_l1:flux3_h1, flux3_l2:flux3_h2, flux3_l3:flux3_h3, NVAR)
+  real(rt)        , intent(inout) :: q(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQ)
+  real(rt)        , intent(inout) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
+  real(rt)        , intent(in) :: srcQ(srQ_l1:srQ_h1, srQ_l2:srQ_h2, srQ_l3:srQ_h3, QVAR)
+  real(rt)        , intent(inout) :: update(updt_l1:updt_h1, updt_l2:updt_h2, updt_l3:updt_h3, NVAR)
+  real(rt)        , intent(inout) :: flux1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, flux1_l3:flux1_h3, NVAR)
+  real(rt)        , intent(inout) :: flux2(flux2_l1:flux2_h1, flux2_l2:flux2_h2, flux2_l3:flux2_h3, NVAR)
+  real(rt)        , intent(inout) :: flux3(flux3_l1:flux3_h1, flux3_l2:flux3_h2, flux3_l3:flux3_h3, NVAR)
 #ifdef RADIATION
-  double precision, intent(inout) :: radflux1(radflux1_l1:radflux1_h1, radflux1_l2:radflux1_h2, &
+  real(rt)        , intent(inout) :: radflux1(radflux1_l1:radflux1_h1, radflux1_l2:radflux1_h2, &
                                               radflux1_l3:radflux1_h3, 0:ngroups-1)
-  double precision, intent(inout) :: radflux2(radflux2_l1:radflux2_h1, radflux2_l2:radflux2_h2, &
+  real(rt)        , intent(inout) :: radflux2(radflux2_l1:radflux2_h1, radflux2_l2:radflux2_h2, &
                                               radflux2_l3:radflux2_h3, 0:ngroups-1)
-  double precision, intent(inout) :: radflux3(radflux3_l1:radflux3_h1, radflux3_l2:radflux3_h2, &
+  real(rt)        , intent(inout) :: radflux3(radflux3_l1:radflux3_h1, radflux3_l2:radflux3_h2, &
                                               radflux3_l3:radflux3_h3, 0:ngroups-1)
 #endif
-  double precision, intent(in) :: area1(area1_l1:area1_h1, area1_l2:area1_h2, area1_l3:area1_h3)
-  double precision, intent(in) :: area2(area2_l1:area2_h1, area2_l2:area2_h2, area2_l3:area2_h3)
-  double precision, intent(in) :: area3(area3_l1:area3_h1, area3_l2:area3_h2, area3_l3:area3_h3)
-  double precision, intent(in) :: vol(vol_l1:vol_h1, vol_l2:vol_h2, vol_l3:vol_h3)
-  double precision, intent(in) :: delta(3), dt, time
-  double precision, intent(inout) :: courno
+  real(rt)        , intent(in) :: area1(area1_l1:area1_h1, area1_l2:area1_h2, area1_l3:area1_h3)
+  real(rt)        , intent(in) :: area2(area2_l1:area2_h1, area2_l2:area2_h2, area2_l3:area2_h3)
+  real(rt)        , intent(in) :: area3(area3_l1:area3_h1, area3_l2:area3_h2, area3_l3:area3_h3)
+  real(rt)        , intent(in) :: vol(vol_l1:vol_h1, vol_l2:vol_h2, vol_l3:vol_h3)
+  real(rt)        , intent(in) :: delta(3), dt, time
+  real(rt)        , intent(inout) :: courno
 
-  double precision, intent(inout) :: E_added_flux, mass_added_flux
-  double precision, intent(inout) :: xmom_added_flux, ymom_added_flux, zmom_added_flux
-  double precision, intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
-  double precision, intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
+  real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
+  real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
   ! Automatic arrays for workspace
-  double precision, pointer:: flatn(:,:,:)
-  double precision, pointer:: div(:,:,:)
-  double precision, pointer:: pdivu(:,:,:)
+  real(rt)        , pointer:: flatn(:,:,:)
+  real(rt)        , pointer:: div(:,:,:)
+  real(rt)        , pointer:: pdivu(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
-  double precision, pointer:: q1(:,:,:,:)
-  double precision, pointer:: q2(:,:,:,:)
-  double precision, pointer:: q3(:,:,:,:)
+  real(rt)        , pointer:: q1(:,:,:,:)
+  real(rt)        , pointer:: q2(:,:,:,:)
+  real(rt)        , pointer:: q3(:,:,:,:)
 
   integer :: ngq, ngf
   integer :: uin_lo(3), uin_hi(3)
@@ -297,8 +295,7 @@ subroutine ca_umdrv(is_finest_level, time, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt,mass_added_flux,E_added_flux, &
-              xmom_added_flux,ymom_added_flux,zmom_added_flux, &
+              div,pdivu,lo,hi,delta,dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)

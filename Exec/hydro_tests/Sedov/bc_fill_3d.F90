@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -11,6 +12,7 @@ contains
 
     use meth_params_module, only : NVAR
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -18,14 +20,14 @@ contains
     integer :: adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer :: bc(3,2,*)
     integer :: domlo(3), domhi(3)
-    double precision :: delta(3), xlo(3), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
+    real(rt)         :: delta(3), xlo(3), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
-    double precision :: state(NVAR)
-    double precision :: staten(NVAR)
+    real(rt)         :: state(NVAR)
+    real(rt)         :: staten(NVAR)
 
     integer :: i, j, k, n, lo(3), hi(3)
-    double precision :: x, y, z
+    real(rt)         :: x, y, z
     logical rho_only
 
     lo(1) = adv_l1
@@ -160,6 +162,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2, &
                         adv_h3,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     
     include 'AMReX_bc_types.fi'
@@ -167,8 +170,8 @@ contains
     integer :: adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
     integer :: bc(3,2,*)
     integer :: domlo(3), domhi(3)
-    double precision :: delta(3), xlo(3), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
+    real(rt)         :: delta(3), xlo(3), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
     logical rho_only
     integer :: i,j,k
 
@@ -258,12 +261,13 @@ contains
     use eos_module, only : gamma_const
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: u_int(*),u_ext(*)
+    real(rt)         :: u_int(*),u_ext(*)
     logical rho_only
     integer :: dir,sgn
-    double precision :: rho, rhou(3), eden, T, Y
+    real(rt)         :: rho, rhou(3), eden, T, Y
     integer :: n,t1,t2,i
 
     ! for the Sedov problem, we will always set the state to the ambient conditions
@@ -283,10 +287,10 @@ contains
        enddo
 
        u_ext(URHO)   = dens_ambient
-       u_ext(UMX)    = 0.d0
-       u_ext(UMY)    = 0.d0
-       u_ext(UMZ)    = 0.d0
-       u_ext(UEDEN)  = p_ambient/(gamma_const-1.d0)
+       u_ext(UMX)    = 0.e0_rt
+       u_ext(UMY)    = 0.e0_rt
+       u_ext(UMZ)    = 0.e0_rt
+       u_ext(UEDEN)  = p_ambient/(gamma_const-1.e0_rt)
        u_ext(UEINT)  = u_ext(UEDEN)
 
     endif

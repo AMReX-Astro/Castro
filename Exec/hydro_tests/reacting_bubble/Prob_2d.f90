@@ -4,11 +4,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
   integer untin,i
 
@@ -74,25 +75,26 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use model_parser_module
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision dist,x,y
+  real(rt)         dist,x,y
   integer i,j,n
 
-  double precision t0,x1,y1,r1,x2,y2,r2,x3,y3,r3,x4,y4,r4,temp
+  real(rt)         t0,x1,y1,r1,x2,y2,r2,x3,y3,r3,x4,y4,r4,temp
 
-  double precision temppres(state_l1:state_h1,state_l2:state_h2)
+  real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
      do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
@@ -134,32 +136,32 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.d0
+  state(:,:,UMX:UMZ) = 0.e0_rt
 
   ! Now add the perturbation
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
+     y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
      do i = lo(1), hi(1)
-        x = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+        x = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
 
         t0 = state(i,j,UTEMP)
 
-        x1 = 5.0d7
-        y1 = 6.5d7
-        r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / (2.5d6*pert_rad_factor)
+        x1 = 5.0e7_rt
+        y1 = 6.5e7_rt
+        r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / (2.5e6_rt*pert_rad_factor)
 
-        x2 = 1.2d8
-        y2 = 8.5d7
-        r2 = sqrt( (x-x2)**2 +(y-y2)**2 ) / (2.5d6*pert_rad_factor)
+        x2 = 1.2e8_rt
+        y2 = 8.5e7_rt
+        r2 = sqrt( (x-x2)**2 +(y-y2)**2 ) / (2.5e6_rt*pert_rad_factor)
 
-        x3 = 2.0d8
-        y3 = 7.5d7
-        r3 = sqrt( (x-x3)**2 +(y-y3)**2 ) / (2.5d6*pert_rad_factor)
+        x3 = 2.0e8_rt
+        y3 = 7.5e7_rt
+        r3 = sqrt( (x-x3)**2 +(y-y3)**2 ) / (2.5e6_rt*pert_rad_factor)
 
-        state(i,j,UTEMP) = t0 * (1.d0 + pert_temp_factor* &
-             (0.150d0 * (1.d0 + tanh(2.d0-r1)) + &
-              0.300d0 * (1.d0 + tanh(2.d0-r2)) + &
-              0.225d0 * (1.d0 + tanh(2.d0-r3))))
+        state(i,j,UTEMP) = t0 * (1.e0_rt + pert_temp_factor* &
+             (0.150e0_rt * (1.e0_rt + tanh(2.e0_rt-r1)) + &
+              0.300e0_rt * (1.e0_rt + tanh(2.e0_rt-r2)) + &
+              0.225e0_rt * (1.e0_rt + tanh(2.e0_rt-r3))))
 
         state(i,j,UEINT) = state(i,j,UEINT) / state(i,j,URHO)
 

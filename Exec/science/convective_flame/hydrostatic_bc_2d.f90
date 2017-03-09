@@ -4,10 +4,11 @@ module hse_bc_module
   use bl_error_module
   use prob_params_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer, parameter :: MAX_ITER = 100
-  double precision, parameter :: TOL = 1.e-8_dp_t
+  real(rt)        , parameter :: TOL = 1.e-8_rt
   
 contains
 
@@ -21,18 +22,19 @@ contains
     use eos_module
     use network, only: nspec
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer :: adv_l1, adv_l2, adv_h1, adv_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
-    double precision :: delta(2), xlo(2), time
-    double precision :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         :: delta(2), xlo(2), time
+    real(rt)         :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
     logical, intent(in), optional :: density_only
 
     integer :: i, j, iter
-    double precision :: y, y0, slope
-    double precision :: pres_above, p_want, pres_zone, A
-    double precision :: drho,dpdr, temp_zone, eint, X_zone(nspec), dens_zone
+    real(rt)         :: y, y0, slope
+    real(rt)         :: pres_above, p_want, pres_zone, A
+    real(rt)         :: drho,dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
     logical :: just_density
 
@@ -111,8 +113,8 @@ contains
              A = p_want - pres_zone
              drho = A/(dpdr + HALF*delta(2)*const_grav)
 
-             dens_zone = max(0.9_dp_t*dens_zone, &
-                             min(dens_zone + drho, 1.1_dp_t*dens_zone))
+             dens_zone = max(0.9_rt*dens_zone, &
+                             min(dens_zone + drho, 1.1_rt*dens_zone))
 
              ! convergence?
              if (abs(drho) < TOL*dens_zone) then
@@ -175,12 +177,13 @@ contains
     use eos_module
     use network, only: nspec
 
+    use bl_fort_module, only : rt => c_real
     implicit none
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
     logical, intent(in), optional :: density_only
 
     integer i,j

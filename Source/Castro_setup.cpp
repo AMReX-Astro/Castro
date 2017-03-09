@@ -129,16 +129,16 @@ Castro::variableSetUp ()
     const char* buildgitname = buildInfoGetBuildGitName();
 
     if (strlen(castro_hash) > 0) {
-      std::cout << "\n" << "Castro git hash: " << castro_hash << "\n";
+      std::cout << "\n" << "Castro git describe: " << castro_hash << "\n";
     }
     if (strlen(boxlib_hash) > 0) {
-      std::cout << "BoxLib git hash: " << boxlib_hash << "\n";
+      std::cout << "BoxLib git describe: " << boxlib_hash << "\n";
     }
     if (strlen(microphysics_hash) > 0) {
-      std::cout << "Microphysics git hash: " << microphysics_hash << "\n";
+      std::cout << "Microphysics git describe: " << microphysics_hash << "\n";
     }
     if (strlen(buildgithash) > 0){
-      std::cout << buildgitname << " git hash: " << buildgithash << "\n";
+      std::cout << buildgitname << " git describe: " << buildgithash << "\n";
     }
 
     std::cout << "\n";
@@ -222,9 +222,6 @@ Castro::variableSetUp ()
 
   const Real run_strt = ParallelDescriptor::second() ;
 
-#ifndef DIFFUSION
-  static Real diffuse_cutoff_density = -1.e200;
-#endif
 
   // we want const_grav in F90, get it here from parmparse, since it
   // it not in the Castro namespace
@@ -250,8 +247,7 @@ Castro::variableSetUp ()
 #ifdef SHOCK_VAR
 		    Shock,
 #endif
-		    gravity_type_name.dataPtr(), gravity_type_length,
-		    diffuse_cutoff_density);
+		    gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
 
@@ -519,12 +515,12 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> sources_name(NUM_STATE);
+  Array<std::string> state_type_source_names(NUM_STATE);
 
   for (int i = 0; i < NUM_STATE; i++)
-    sources_name[i] = name[i] + "_source";
+    state_type_source_names[i] = name[i] + "_source";
 
-  desc_lst.setComponent(Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -540,8 +536,8 @@ Castro::variableSetUp ()
 
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
-      sources_name[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,sources_name,bcs,BndryFunc(ca_denfill,ca_hypfill));
+      state_type_source_names[i] = "sdc_sources_" + name[i];
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
@@ -677,6 +673,32 @@ Castro::variableSetUp ()
   //
   derive_lst.add("entropy",IndexType::TheCellType(),1,ca_derentropy,the_same_box);
   derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
+
+#ifdef DIFFUSION
+  if (diffuse_temp) {
+    //
+    // thermal conductivity (k_th)
+    //
+    derive_lst.add("thermal_cond",IndexType::TheCellType(),1,ca_dercond,the_same_box);
+    derive_lst.addComponent("thermal_cond",desc_lst,State_Type,Density,NUM_STATE);
+
+
+    //
+    // thermal diffusivity (k_th/(rho c_v))
+    //    
+    derive_lst.add("diff_coeff",IndexType::TheCellType(),1,ca_derdiffcoeff,the_same_box);
+    derive_lst.addComponent("diff_coeff",desc_lst,State_Type,Density,NUM_STATE);
+
+
+    //
+    // diffusion term (the divergence of thermal flux)
+    //    
+    derive_lst.add("diff_term",IndexType::TheCellType(),1,ca_derdiffterm,grow_box_by_one);
+    derive_lst.addComponent("diff_term",desc_lst,State_Type,Density,NUM_STATE);
+    
+
+  }
+#endif
 
   //
   // Vorticity
@@ -859,11 +881,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-  for (int i = 0; i < NumSpec; i++)  {
-    derive_lst.add(spec_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(spec_names[i],desc_lst,State_Type,Density,1);
-    derive_lst.addComponent(spec_names[i],desc_lst,State_Type,FirstSpec+i,1);
-  }
 
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
@@ -889,5 +906,38 @@ Castro::variableSetUp ()
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
   ErrorSetUp();
+
+  //
+  // Construct an array holding the names of the source terms.
+  //
+
+  source_names.resize(num_src);
+
+  // Fill with an empty string to initialize.
+
+  for (int n = 0; n < num_src; ++n)
+    source_names[n] = "";
+
+  source_names[ext_src] = "user-defined external";
+
+#ifdef SPONGE
+  source_names[sponge_src] = "sponge";
+#endif
+
+#ifdef DIFFUSION
+  source_names[diff_src] = "diffusion";
+#endif
+
+#ifdef HYBRID_MOMENTUM
+  source_names[hybrid_src] = "hybrid";
+#endif
+
+#ifdef GRAVITY
+  source_names[grav_src] = "gravity";
+#endif
+
+#ifdef ROTATION
+  source_names[rot_src] = "rotation";
+#endif
 
 }

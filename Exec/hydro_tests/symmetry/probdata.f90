@@ -1,5 +1,6 @@
 module probdata_module
 
-  double precision, save ::  rho_ambient, rho_peak, t_ambient, sigma
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save ::  rho_ambient, rho_peak, t_ambient, sigma
 
 end module probdata_module

@@ -2,13 +2,14 @@
       subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
       use probdata_module
       use network, only : network_init
+      use bl_fort_module, only : rt => c_real
       implicit none
       integer init, namlen
       integer name(namlen)
-      double precision problo(1), probhi(1)
+      real(rt)         problo(1), probhi(1)
 
       integer untin,i
-      double precision rn
+      real(rt)         rn
 
       namelist /fortin/ rhocv, T0, Eexp, rexp
 
@@ -31,10 +32,10 @@
       end do
 
 !     Set defaults
-      rhocv = -1.0d50
-      T0 = -1.0d50
-      Eexp = -1.d-50
-      rexp = -1.d50
+      rhocv = -1.0e50_rt
+      T0 = -1.0e50_rt
+      Eexp = -1.e-50_rt
+      rexp = -1.e50_rt
 
       ! domain extrema and center
       xmin = problo(1)
@@ -79,29 +80,30 @@
 
       use network, only : nspec
 
+      use bl_fort_module, only : rt => c_real
       implicit none
       integer level, nscal
       integer lo(1), hi(1)
       integer state_l1,state_h1
-      double precision xlo(1), xhi(1), time, delta(1)
-      double precision state(state_l1:state_h1, nscal)
+      real(rt)         xlo(1), xhi(1), time, delta(1)
+      real(rt)         state(state_l1:state_h1, nscal)
 
       integer i
       type(eos_t) :: eos_state
-      double precision :: rho, cv, T, p, eint, xcell
-      double precision :: rhoeexp, Vexp, rhoe0
+      real(rt)         :: rho, cv, T, p, eint, xcell
+      real(rt)         :: rhoeexp, Vexp, rhoe0
 
-      Vexp = 4.d0/3.d0*Pi * rexp**3
+      Vexp = 4.e0_rt/3.e0_rt*Pi * rexp**3
 
       rhoeexp = Eexp / Vexp
 
-      rho = 1.0d0
-      T = 1.0d0
+      rho = 1.0e0_rt
+      T = 1.0e0_rt
 
       eos_state % rho = rho
       eos_state % T   = T
-      eos_state % xn  = 0.d0
-      eos_state % xn(1)  = 1.d0
+      eos_state % xn  = 0.e0_rt
+      eos_state % xn(1)  = 1.e0_rt
 
       call eos(eos_input_rt, eos_state)
 
@@ -115,10 +117,10 @@
       rhoe0 = rho * cv * T0
 
       do i = lo(1), hi(1)   
-         xcell = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+         xcell = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
 
          state(i,URHO) = rho
-         state(i,UMX)  = 0.d0
+         state(i,UMX)  = 0.e0_rt
 
          if (abs(xcell) .lt. rexp) then
             state(i,UTEMP) = T
@@ -144,6 +146,7 @@
 
         use probdata_module
 
+        use bl_fort_module, only : rt => c_real
         implicit none
         integer level, nrad
         integer lo(1), hi(1)
@@ -155,7 +158,7 @@
         integer i
 
         do i = lo(1), hi(1)
-           rad_state(i,:) = 0.d0
+           rad_state(i,:) = 0.e0_rt
         end do
       end subroutine ca_initrad
 

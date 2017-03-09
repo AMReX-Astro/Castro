@@ -1,5 +1,6 @@
 module ppm_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -13,43 +14,49 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
        
     integer          qd_l1,qd_h1
     integer          ilo,ihi
-    double precision s(qd_l1:qd_h1)
-    double precision u(qd_l1:qd_h1)
-    double precision cspd(qd_l1:qd_h1)
-    double precision flatn(qd_l1:qd_h1)
-    double precision Ip(ilo-1:ihi+1,1:3)
-    double precision Im(ilo-1:ihi+1,1:3)
-    double precision dx,dt
+    real(rt)         s(qd_l1:qd_h1)
+    real(rt)         u(qd_l1:qd_h1)
+    real(rt)         cspd(qd_l1:qd_h1)
+    real(rt)         flatn(qd_l1:qd_h1)
+    real(rt)         Ip(ilo-1:ihi+1,1:3)
+    real(rt)         Im(ilo-1:ihi+1,1:3)
+    real(rt)         dx,dt
 
     ! local
     integer i
     logical extremum, bigp, bigm
 
-    double precision dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, C, alphap, alpham
-    double precision sgn, sigma, s6, amax, delam, delap
-    double precision dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
+    real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
+    real(rt)         sgn, sigma, s6, amax, delam, delap
+    real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
 
     ! s_{\ib,+}, s_{\ib,-}
-    double precision, allocatable :: sp(:)
-    double precision, allocatable :: sm(:)
+    real(rt)        , allocatable :: sp(:)
+    real(rt)        , allocatable :: sm(:)
     
     ! \delta s_{\ib}^{vL}
-    double precision, allocatable :: dsvl(:)
+    real(rt)        , allocatable :: dsvl(:)
     
     ! s_{i+\half}^{H.O.}
-    double precision, allocatable :: sedge(:)
+    real(rt)        , allocatable :: sedge(:)
+
+    ! constant used in Colella 2008
+    real(rt), parameter :: C = 1.25e0_rt
+
+    ! a constant used for testing extrema
+    real(rt), parameter :: SMALL = 1.e-10_rt    
+
 
     ! cell-centered indexing
     allocate(sp(ilo-1:ihi+1))
     allocate(sm(ilo-1:ihi+1))
     
-    ! constant used in Colella 2008
-    C = 1.25d0
-    
+
     ! cell-centered indexing w/extra x-ghost cell
     allocate(dsvl(ilo-2:ihi+2))
 
@@ -172,15 +179,15 @@ contains
              D2C = s(i-1)-TWO*s(i)+s(i+1)
              sgn = sign(ONE,D2)
              D2LIM = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
-             alpham = alpham*D2LIM/max(abs(D2),1.d-10)
-             alphap = alphap*D2LIM/max(abs(D2),1.d-10)
+             alpham = alpham*D2LIM/max(abs(D2),SMALL)
+             alphap = alphap*D2LIM/max(abs(D2),SMALL)
           else
              if (bigp) then
                 sgn = sign(ONE,alpham)
                 amax = -alphap**2 / (4*(alpham + alphap))
                 delam = s(i-1) - s(i)
                 if (sgn*amax .ge. sgn*delam) then
-                   if (sgn*(delam - alpham).ge.1.d-10) then
+                   if (sgn*(delam - alpham).ge. SMALL) then
                       alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
                    else 
                       alphap = -TWO*alpham
@@ -192,7 +199,7 @@ contains
                 amax = -alpham**2 / (4*(alpham + alphap))
                 delap = s(i+1) - s(i)
                if (sgn*amax .ge. sgn*delap) then
-                  if (sgn*(delap - alphap).ge.1.d-10) then
+                  if (sgn*(delap - alphap).ge. SMALL) then
                      alpham = (-TWO*delap - TWO*sgn*sqrt(delap**2 - delap*alphap))
                   else
                      alpham = -TWO*alphap

@@ -2,11 +2,12 @@
      
      use probdata_module, only: initialize
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: init, namlen
      integer :: name(namlen)
-     double precision :: problo(3), probhi(3)
+     real(rt)         :: problo(3), probhi(3)
 
      call initialize(name, namlen)
 
@@ -48,16 +49,17 @@
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center
 
+     use bl_fort_module, only : rt => c_real
      implicit none
 
      integer :: level, nscal
      integer :: lo(3), hi(3)
      integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     double precision :: xlo(3), xhi(3), time, delta(3)
-     double precision :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+     real(rt)         :: xlo(3), xhi(3), time, delta(3)
+     real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
-     double precision :: loc(3)
-     double precision :: radius
+     real(rt)         :: loc(3)
+     real(rt)         :: radius
 
      type (eos_t) :: zone_state
 

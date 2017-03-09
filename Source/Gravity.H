@@ -22,6 +22,7 @@ public:
   amrex::Real get_const_grav ();
   int NoSync();
   int NoComposite();
+  int DoCompositeCorrection();
   int test_results_of_solves ();
   
   void set_mass_offset(amrex::Real time, bool multi_level=true);
@@ -193,4 +194,3 @@ public:
     virtual void FillBoundary (amrex::MultiFab& mf, int dcomp, int ncomp, amrex::Real time);
 };
 #endif
-

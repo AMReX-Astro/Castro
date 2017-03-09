@@ -1,13 +1,14 @@
 module probdata_module
 
-  double precision, save :: inner_radius = 0.75d0
-  double precision, save :: outer_radius = 1.50d0
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save :: inner_radius = 0.75e0_rt
+  real(rt)        , save :: outer_radius = 1.50e0_rt
 
-  double precision, save :: density_maximum_radius
+  real(rt)        , save :: density_maximum_radius
 
-  double precision, save :: torus_width
-  double precision, save :: torus_center
+  real(rt)        , save :: torus_width
+  real(rt)        , save :: torus_center
 
-  double precision, save :: ambient_density = 1.0d-8
+  real(rt)        , save :: ambient_density = 1.0e-8_rt
   
 end module probdata_module

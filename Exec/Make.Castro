@@ -31,7 +31,12 @@ endif
 
 ifeq ($(USE_GRAV), TRUE)
   DEFINES += -DGRAVITY
-  DEFINES += -DSELF_GRAVITY
+  ifndef USE_SELF_GRAV
+    USE_SELF_GRAV = TRUE
+  endif
+  ifeq ($(USE_SELF_GRAV), TRUE)
+    DEFINES += -DSELF_GRAVITY
+  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -71,6 +76,10 @@ endif
 
 ifeq ($(USE_POINTMASS), TRUE)
   DEFINES += -DPOINTMASS
+endif
+
+ifeq ($(USE_POST_SIM), TRUE)
+  DEFINES += -DDO_PROBLEM_POST_SIMULATION
 endif
 
 ifeq ($(USE_RAD), TRUE)

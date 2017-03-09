@@ -1,7 +1,8 @@
 module probdata_module
   
-  double precision, save :: const_c_v, c_v_exp_n
+  use bl_fort_module, only : rt => c_real
+  real(rt)        , save :: const_c_v, c_v_exp_n
   
-  double precision, save :: xmin,xmax,ymin,ymax,zmin,zmax
+  real(rt)        , save :: xmin,xmax,ymin,ymax,zmin,zmax
   
 end module probdata_module

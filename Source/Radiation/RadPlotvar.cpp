@@ -14,13 +14,12 @@ void Radiation::save_lambda_in_plotvar(int level, const Tuple<MultiFab,BL_SPACED
     for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.tilebox();
 	int scomp = 0;
-	BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	    (bx.loVect(), bx.hiVect(),
-	     scomp, icomp_lambda, nlambda, nlambda, nplotvar,
-	     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-		    BL_TO_FORTRAN(lambda[1][mfi]),
-		    BL_TO_FORTRAN(lambda[2][mfi])),
-	     BL_TO_FORTRAN((*plotvar[level])[mfi]));
+	ca_face2center(bx.loVect(), bx.hiVect(),
+		       scomp, icomp_lambda, nlambda, nlambda, nplotvar,
+		       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+			      BL_TO_FORTRAN(lambda[1][mfi]),
+			      BL_TO_FORTRAN(lambda[2][mfi])),
+		       BL_TO_FORTRAN(*plotvar[level][mfi]));
     }
 }
 

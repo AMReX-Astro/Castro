@@ -6,11 +6,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
    use meth_params_module, only: small_temp, small_pres, small_dens
    use eos_module
    
+   use bl_fort_module, only : rt => c_real
    implicit none
 
    integer :: init, namlen
    integer :: name(namlen)
-   double precision :: problo(3), probhi(3)
+   real(rt)         :: problo(3), probhi(3)
 
    integer :: untin
    integer :: i
@@ -98,25 +99,26 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module
   use prob_params_module, only: problo, center, probhi
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_lo(3), state_hi(3)
-  double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  real(rt)         :: xlo(3), xhi(3), time, delta(3)
+  real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  double precision :: xx, yy, zz
+  real(rt)         :: xx, yy, zz
 
   type (eos_t) :: eos_state
 
   integer :: i, j, k, n
 
-  double precision :: dens, velx, vely, velz
-  double precision :: w0, sigma, ramp, delta_y
-  double precision :: vel1, vel2
-  double precision :: y1, y2
-  double precision :: dye
+  real(rt)         :: dens, velx, vely, velz
+  real(rt)         :: w0, sigma, ramp, delta_y
+  real(rt)         :: vel1, vel2
+  real(rt)         :: y1, y2
+  real(rt)         :: dye
   
   integer :: sine_n
 
@@ -148,8 +150,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      vel2 = ONE
   endif
 
-  y1 = center(2) - (probhi(2) - problo(2)) * 0.25d0
-  y2 = center(2) + (probhi(2) - problo(2)) * 0.25d0  
+  y1 = center(2) - (probhi(2) - problo(2)) * 0.25e0_rt
+  y2 = center(2) + (probhi(2) - problo(2)) * 0.25e0_rt  
   
   velz = 0.0
   

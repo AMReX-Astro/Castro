@@ -3,6 +3,7 @@
 
 module trace_ppm_rad_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -29,6 +30,7 @@ contains
     use rad_params_module, only : ngroups
     use ppm_module, only : ppm
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo,ihi
@@ -37,21 +39,21 @@ contains
     integer dloga_l1,dloga_h1
     integer   qpd_l1,  qpd_h1
     integer   src_l1,  src_h1
-    double precision dx, dt
-    double precision     q( qd_l1: qd_h1, NQ)
-    double precision :: qaux(qd_l1:qd_h1, NQAUX)
-    double precision flatn(qd_l1:qd_h1)
-    double precision  srcQ(src_l1:src_h1,QVAR)
-    double precision dloga(dloga_l1:dloga_h1)
+    real(rt)         dx, dt
+    real(rt)             q( qd_l1: qd_h1, NQ)
+    real(rt)         :: qaux(qd_l1:qd_h1, NQAUX)
+    real(rt)         flatn(qd_l1:qd_h1)
+    real(rt)          srcQ(src_l1:src_h1,QVAR)
+    real(rt)         dloga(dloga_l1:dloga_h1)
 
-    double precision  qxm( qpd_l1: qpd_h1, NQ)
-    double precision  qxp( qpd_l1: qpd_h1, NQ)
+    real(rt)          qxm( qpd_l1: qpd_h1, NQ)
+    real(rt)          qxp( qpd_l1: qpd_h1, NQ)
 
     ! Local variables
     integer :: i, g
     integer :: n, ipassive
 
-    double precision :: hdt,dtdx
+    real(rt)         :: hdt,dtdx
 
     ! To allow for easy integration of radiation, we adopt the
     ! following conventions:
@@ -71,39 +73,39 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    double precision :: cc, csq, cgassq, Clag
-    double precision :: rho, u, p, rhoe_g, h_g, tau
-    double precision :: ptot, gam_g, game
+    real(rt)         :: cc, csq, cgassq, Clag
+    real(rt)         :: rho, u, p, rhoe_g, h_g, tau
+    real(rt)         :: ptot, gam_g, game
 
-    double precision :: drho, dptot, drhoe_g
-    double precision :: dge, dtau
-    double precision :: dup, dptotp
-    double precision :: dum, dptotm
+    real(rt)         :: drho, dptot, drhoe_g
+    real(rt)         :: dge, dtau
+    real(rt)         :: dup, dptotp
+    real(rt)         :: dum, dptotm
 
-    double precision :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
-    double precision :: ptot_ref
-    double precision :: tau_ref
+    real(rt)         :: rho_ref, u_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt)         :: ptot_ref
+    real(rt)         :: tau_ref
 
-    double precision :: gam_g_ref, game_ref, gfactor
+    real(rt)         :: gam_g_ref, game_ref, gfactor
 
-    double precision :: alpham, alphap, alpha0r, alpha0e_g
-    double precision :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt)         :: sourcr, sourcp, source, courn, eta, dlogatmp
 
-    double precision :: tau_s
+    real(rt)         :: tau_s
 
     logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
-    double precision, dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
-    double precision, dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, sourcer, qrtmp, hr
+    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    double precision, dimension(0:ngroups-1) :: er_ref
-    double precision :: er_foo
+    real(rt)        , dimension(0:ngroups-1) :: er_ref
+    real(rt)         :: er_foo
 
-    double precision, allocatable :: Ip(:,:,:)
-    double precision, allocatable :: Im(:,:,:)
+    real(rt)        , allocatable :: Ip(:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:)
 
-    double precision, allocatable :: Ip_src(:,:,:)
-    double precision, allocatable :: Im_src(:,:,:)
+    real(rt)        , allocatable :: Ip_src(:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:)
 
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
@@ -213,7 +215,7 @@ contains
        ptot = q(i,qptot)
 
        er(:) = q(i,qrad:qradhi)
-       hr(:) = (lam0+1.d0)*er/rho
+       hr(:) = (lam0+1.e0_rt)*er/rho
 
        Clag = rho*cc
 

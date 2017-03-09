@@ -7,6 +7,7 @@ module bc_ext_fill_module
                                  xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
   use interpolate_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   include 'AMReX_bc_types.fi'
@@ -32,20 +33,21 @@ contains
     use network, only: nspec
     use model_parser_module
 
+    use bl_fort_module, only : rt => c_real
     integer adv_l1, adv_l2, adv_h1, adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
     integer i, j, q, n, iter, m
-    double precision y
-    double precision :: dens_above, dens_base, temp_above
-    double precision :: pres_above, p_want, pres_zone, A
-    double precision :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
+    real(rt)         y
+    real(rt)         :: dens_above, dens_base, temp_above
+    real(rt)         :: pres_above, p_want, pres_zone, A
+    real(rt)         :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
     integer, parameter :: MAX_ITER = 100
-    double precision, parameter :: TOL = 1.d-8
+    real(rt)        , parameter :: TOL = 1.e-8_rt
     logical :: converged_hse
 
     type (eos_t) :: eos_state
@@ -153,8 +155,8 @@ contains
                          A = p_want - pres_zone
                          drho = A/(dpdr + HALF*delta(2)*const_grav)
 
-                         dens_zone = max(0.9_dp_t*dens_zone, &
-                              min(dens_zone + drho, 1.1_dp_t*dens_zone))
+                         dens_zone = max(0.9_rt*dens_zone, &
+                              min(dens_zone + drho, 1.1_rt*dens_zone))
 
                          ! convergence?
                          if (abs(drho) < TOL*dens_zone) then
@@ -353,14 +355,15 @@ contains
     use model_parser_module
     use bl_error_module
 
+    use bl_fort_module, only : rt => c_real
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
-    double precision delta(2), xlo(2), time
-    double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    real(rt)         delta(2), xlo(2), time
+    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
     integer i,j
-    double precision y
+    real(rt)         y
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm

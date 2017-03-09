@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -15,6 +16,7 @@ contains
          hse_eint_top, hse_p_top
     use network, only: nspec
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -22,11 +24,11 @@ contains
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1,NVAR)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1,NVAR)
 
     integer n, i
-    double precision :: vel
+    real(rt)         :: vel
 
     ! call the generic ghostcell filling routine
     do n = 1,NVAR
@@ -40,7 +42,7 @@ contains
        if (bc(1,2,UMX).eq.FOEXTRAP) then
           do i = domhi(1)+1,adv_h1
              !adv(i,UMX) = adv(domhi(1),UMX)
-             vel = max(adv(i,UMX)/adv(i,URHO),0.d0)
+             vel = max(adv(i,UMX)/adv(i,URHO),0.e0_rt)
              adv(i,URHO)  = hse_rho_top
              adv(i,UMX)   = adv(i,URHO)*vel
              adv(i,UMY)   = ZERO
@@ -61,13 +63,14 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1)
     logical          :: rho_only
 
     call filcc(adv,adv_l1,adv_h1, &
@@ -83,13 +86,14 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -102,13 +106,14 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -121,13 +126,14 @@ contains
 
     use probdata_module
     
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -138,6 +144,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
                             domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -145,8 +152,8 @@ contains
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: phi(phi_l1:phi_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: phi(phi_l1:phi_h1)
 
     call filcc(phi,phi_l1,phi_h1, &
                domlo,domhi,delta,xlo,bc)
@@ -159,13 +166,14 @@ contains
   subroutine ca_reactfill(adv,adv_l1,adv_h1, &
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1)
     logical          :: rho_only
 
     call filcc(adv,adv_l1,adv_h1, &

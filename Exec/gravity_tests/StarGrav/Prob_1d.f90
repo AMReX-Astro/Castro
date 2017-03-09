@@ -5,10 +5,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use bl_error_module
   use prob_params_module, only : center
 
+  use bl_fort_module, only : rt => c_real
   implicit none
   integer init, namlen
   integer name(namlen)
-  double precision problo(1), probhi(1)
+  real(rt)         problo(1), probhi(1)
 
   integer untin,i,j,k,dir
 
@@ -39,7 +40,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! read initial model
   call read_model_file(model_name)
 
-  center(1) = 0.d0
+  center(1) = 0.e0_rt
 
 end subroutine amrex_probinit
 
@@ -78,21 +79,22 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(1), hi(1)
   integer state_l1,state_h1
-  double precision xlo(1), xhi(1), time, delta(1)
-  double precision state(state_l1:state_h1,NVAR)
+  real(rt)         xlo(1), xhi(1), time, delta(1)
+  real(rt)         state(state_l1:state_h1,NVAR)
 
-  double precision xcen,dist,pres
+  real(rt)         xcen,dist,pres
   integer i,n
 
   type(eos_t) :: eos_state
 
   do i = lo(1), hi(1)   
-     dist = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+     dist = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
 
      state(i,URHO)  = interpolate(dist,npts_model,model_r,model_state(:,idens_model))
      state(i,UTEMP) = interpolate(dist,npts_model,model_r,model_state(:,itemp_model))
@@ -121,6 +123,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,UMX) = 0.d0
+  state(:,UMX) = 0.e0_rt
 
 end subroutine ca_initdata

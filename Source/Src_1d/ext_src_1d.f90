@@ -26,16 +26,17 @@
     use meth_params_module, only : NVAR
     use bl_constants_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer         ,intent(in   ) :: lo(1),hi(1)
     integer         ,intent(in   ) :: old_state_l1,old_state_h1
     integer         ,intent(in   ) :: new_state_l1,new_state_h1
     integer         ,intent(in   ) :: src_l1,src_h1
-    double precision,intent(in   ) :: old_state(old_state_l1:old_state_h1,NVAR)
-    double precision,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
-    double precision,intent(  out) :: src(src_l1:src_h1,NVAR)
-    double precision,intent(in   ) :: problo(1),dx(1),time,dt
+    real(rt)        ,intent(in   ) :: old_state(old_state_l1:old_state_h1,NVAR)
+    real(rt)        ,intent(in   ) :: new_state(new_state_l1:new_state_h1,NVAR)
+    real(rt)        ,intent(  out) :: src(src_l1:src_h1,NVAR)
+    real(rt)        ,intent(in   ) :: problo(1),dx(1),time,dt
 
     ! lo and hi specify work region
     src(lo(1):hi(1),:) = ZERO ! Fill work region only

@@ -7,7 +7,6 @@ pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
 pp.query("do_reflux", do_reflux);
-pp.query("reflux_strategy", reflux_strategy);
 pp.query("update_sources_after_reflux", update_sources_after_reflux);
 pp.query("use_custom_knapsack_weights", use_custom_knapsack_weights);
 pp.query("difmag", difmag);
@@ -80,6 +79,21 @@ pp.query("react_T_max", react_T_max);
 pp.query("react_rho_min", react_rho_min);
 pp.query("react_rho_max", react_rho_max);
 pp.query("disable_shock_burning", disable_shock_burning);
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_enth", diffuse_enth);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_spec", diffuse_spec);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_vel", diffuse_vel);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+#endif
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);
@@ -124,7 +138,8 @@ pp.query("star_at_center", star_at_center);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
 pp.query("print_fortran_warnings", print_fortran_warnings);
-pp.query("print_energy_diagnostics", print_energy_diagnostics);
+pp.query("print_update_diagnostics", print_update_diagnostics);
+pp.query("coalesce_update_diagnostics", coalesce_update_diagnostics);
 pp.query("track_grid_losses", track_grid_losses);
 pp.query("sum_interval", sum_interval);
 pp.query("sum_per", sum_per);

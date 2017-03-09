@@ -9,11 +9,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
   integer untin,i
 
@@ -23,7 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
-  real (kind=dp_t) :: X(nspec)
+  real(rt)         :: X(nspec)
 
   type (eos_t) :: eos_state
 
@@ -34,14 +35,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end do
          
   ! Set namelist defaults
-  T1 = 1.0_dp_t
-  T2 = 2.0_dp_t
-  t_0 = 0.001_dp_t
-  diff_coeff = 1.0_dp_t
+  T1 = 1.0_rt
+  T2 = 2.0_rt
+  t_0 = 0.001_rt
+  diff_coeff = 1.0_rt
 
   ! set center, domain extrema
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
+  center(1) = (problo(1)+probhi(1))/2.e0_rt
+  center(2) = (problo(2)+probhi(2))/2.e0_rt
 
   ! Read namelists
   untin = 9
@@ -56,8 +57,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! free parameter we have to play with is rho.  Note that for an
   ! ideal gas, c_v does not depend on rho, so we can call it the EOS
   ! with any density.
-  X(:) = 0.d0
-  X(1) = 1.d0
+  X(:) = 0.e0_rt
+  X(1) = 1.e0_rt
 
   eos_state%T = T1
   eos_state%rho = 1.0
@@ -103,26 +104,28 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only : problo, center
-  
+  use prob_params_module, only : problo
+  use prob_util_module, only : analytic
+
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(2), hi(2)
   integer :: state_l1,state_l2,state_h1,state_h2
-  double precision :: xlo(2), xhi(2), time, delta(2)
-  double precision :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         :: xlo(2), xhi(2), time, delta(2)
+  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision :: xc, yc
-  double precision :: X(nspec), temp
-  double precision :: dist2
+  real(rt)         :: xc, yc
+  real(rt)         :: X(nspec), temp
+
   integer :: i,j
 
   type (eos_t) :: eos_state
 
   ! set the composition
-  X(:) = 0.d0
-  X(1) = 1.d0
+  X(:) = 0.e0_rt
+  X(1) = 1.e0_rt
 
   do j = lo(2), hi(2)
      yc = problo(2) + delta(2)*(dble(j) + HALF)
@@ -132,9 +135,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,URHO) = rho0
 
-        dist2 = (xc - center(1))**2 + (yc - center(2))**2
+        call analytic(xc, yc, ZERO, temp)
 
-        temp = (T2 - T1)*exp(-0.25_dp_t*dist2/(diff_coeff*t_0) ) + T1
         state(i,j,UTEMP) = temp
 
         ! compute the internal energy and temperature
@@ -148,7 +150,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UMY) = ZERO
 
         state(i,j,UEDEN) = rho0*eos_state%e +  &
-             0.5d0*(state(i,j,UMX)**2/state(i,j,URHO) + &
+             0.5e0_rt*(state(i,j,UMX)**2/state(i,j,URHO) + &
                     state(i,j,UMY)**2/state(i,j,URHO))
 
         state(i,j,UEINT) = rho0*eos_state%e

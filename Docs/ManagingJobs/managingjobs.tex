@@ -5,7 +5,7 @@ a Fortran compiler with 2003+ support.
 
 \subsection{GCC}
 The GCC compilers are the preferred compilers on Linux machines.
-\castro\ runs without issue with GCC 5.3 and GCC 6.1.
+\castro\ runs without issue with GCC 5.3, GCC 6.1, 6.2, and 6.3.
 
 \subsection{PGI}
 
@@ -17,6 +17,13 @@ that has compatible \cpp~11 support is GCC 4.9.4.
 
 \section{Working at OLCF (ORNL)}
 
+The build system needs python 2.7+ or 3.5+.  The default python at OLCF
+is too old, so you will need to manually load a newer python as:
+\begin{verbatim}
+module load python
+\end{verbatim}
+
+\subsection{Cray}
 The preferred compilers on titan at OLCF are the Cray compilers.  The
 8.4.x and 8.5.0 compilers work well.  Note, you will need to swap
 the default PGI environment to use Cray:
@@ -24,10 +31,36 @@ the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
+\subsection{PGI}
+
 If you are using OpenACC on the GPUs, then you need to use the PGI
-compilers instead.
+compilers instead.  It is best to use the latest available PGI
+compilers, which are 16.10 at this writing.  
+\begin{verbatim}
+module swap pgi pgi/16.10.0
+\end{verbatim}
 
+Unfortunately, those are set to use GCC 4.3 header files, which don't
+support the latest \cpp\ standard, so you will need to write your
+own config file.  First load a newer gcc:
+\begin{verbatim}
+module load gcc/4.9.3
+\end{verbatim}
 
+Then do:
+\begin{verbatim}
+/opt/pgi/16.10.0/linux86-64/16.10/bin/makelocalrc -o /opt/pgi/16.10.0/linux86-64/16.10/bin \
+  -gcc /opt/gcc/4.9.3/bin/gcc -gpp /opt/gcc/4.9.3/bin/g++ \
+  -g77 /opt/gcc/4.9.3/bin/gfortran -x -net > ~/.mypgcpprc
+\end{verbatim}
+(Note this is a one-line command)
+
+You will need to keep this file up to date with the PGI compiler you are trying to use.
+
+Finally, to use OpenACC, you need to make the CUDA libraries available to the PGI compiler:
+\begin{verbatim}
+module load craype-accel-nvidia35
+\end{verbatim}
 
 \subsection{Automatic Restarting and Archiving of Data}
 

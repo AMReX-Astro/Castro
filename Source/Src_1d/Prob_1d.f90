@@ -1,10 +1,11 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer          :: init, namlen
   integer          :: name(namlen)
-  double precision :: problo(1), probhi(1)
+  real(rt)         :: problo(1), probhi(1)
 
 end subroutine amrex_probinit
 
@@ -36,13 +37,14 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
 
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nvar
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  double precision :: xlo(1), xhi(1), time, dx(1)
-  double precision :: state(state_l1:state_h1,nvar)
+  real(rt)         :: xlo(1), xhi(1), time, dx(1)
+  real(rt)         :: state(state_l1:state_h1,nvar)
 
   ! Remove this call if you're defining your own problem; it is here to 
   ! ensure that you cannot run Castro if you haven't got your own copy of this function.

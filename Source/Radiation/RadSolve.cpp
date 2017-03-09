@@ -14,8 +14,6 @@
 #include <omp.h>
 #endif
 
-#undef BL_USE_ARLIM
-
 #include "RAD_F.H"
 
 #include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?
@@ -195,7 +193,8 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 	  
-	  multrs(cc[mfi].dataPtr(), dimlist(cc[mfi].box()), dimlist(reg),
+	  multrs(BL_TO_FORTRAN(cc[mfi]), 
+		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
 		 r.dataPtr(), s.dataPtr());
       }
   }
@@ -253,12 +252,12 @@ void RadSolve::levelACoeffs(int level,
       Array<Real> r, s;
 
       for (MFIter mfi(fkp,true); mfi.isValid(); ++mfi) {
-	  const Box &abox = acoefs[mfi].box();
 	  const Box &reg  = mfi.tilebox();
 
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 
-	  lacoef(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
+	  lacoef(BL_TO_FORTRAN(acoefs[mfi]),
+		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 		 fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
 		 r.dataPtr(), s.dataPtr(), c, delta_t, theta);
       }
@@ -304,13 +303,12 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
       }
     
       if (nexttoboundary) {
-	  BL_FORT_PROC_CALL(CA_SPALPHA, ca_spalpha)
-	      (reg.loVect(), reg.hiVect(),
-	       BL_TO_FORTRAN(spa[mfi]),
-	       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-		      BL_TO_FORTRAN(lambda[1][mfi]),
-		      BL_TO_FORTRAN(lambda[2][mfi])),
-	       &igroup);
+	  ca_spalpha(reg.loVect(), reg.hiVect(),
+		     BL_TO_FORTRAN(spa[mfi]),
+		     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+			    BL_TO_FORTRAN(lambda[1][mfi]),
+			    BL_TO_FORTRAN(lambda[2][mfi])),
+		     &igroup);
       }
   }
 
@@ -347,16 +345,15 @@ void RadSolve::levelBCoeffs(int level,
 	Array<Real> r, s;
 
 	for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	    const Box &bbox = lambda[idim][mfi].box();
-	    const Box &kbox = kappa_r[mfi].box();
-
 	    const Box &ndbox  = mfi.tilebox();
 	    getEdgeMetric(idim, geom, ndbox, r, s);
 
 	    const Box& reg = amrex::enclosedCells(ndbox);
-	    bclim(bcoefs[mfi].dataPtr(), lambda[idim][mfi].dataPtr(lamcomp),
-		  dimlist(bbox), dimlist(reg),
-		  idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+	    bclim(bcoefs[mfi].dataPtr(), 
+		  BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
+		  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+		  idim, 
+		  BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
 		  r.dataPtr(), s.dataPtr(), c, dx);
 	}
     }
@@ -392,11 +389,10 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 
 		getEdgeMetric(idim, parent->Geom(level), ndbx, r, s);
 
-		BL_FORT_PROC_CALL(CA_COMPUTE_DCOEFS, ca_compute_dcoefs)
-		    (ndbx.loVect(), ndbx.hiVect(),
-		     BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
-		     BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
-		     r.dataPtr(), &idim);
+		ca_compute_dcoefs(ndbx.loVect(), ndbx.hiVect(),
+				  BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
+				  BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
+				  r.dataPtr(), &idim);
 	    }
 	}
 
@@ -441,18 +437,17 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
       Array<Real> r, s;
       
       for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
-	  const Box &rbox = rhs[ri].box();
-	  const Box &ebox = Er_old[ri].box();
 	  const Box &reg  = ri.tilebox();
 	  
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 	  
-	  lrhs(rhs[ri].dataPtr(), dimlist(rbox), dimlist(reg),
+	  lrhs(BL_TO_FORTRAN(rhs[ri]), 
+	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
 	       temp[ri].dataPtr(),
 	       fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
 	       rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
 	       dflux_old[ri].dataPtr(),
-	       Er_old[ri].dataPtr(0), dimlist(ebox),
+	       BL_TO_FORTRAN_N(Er_old[ri], 0), 
 	       Edot[ri].dataPtr(),
 	       r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
       }
@@ -531,12 +526,11 @@ void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDI
 		int rlo = ndbx.smallEnd(0);
 		int rhi = rlo + r.size() - 1;
 
-		BL_FORT_PROC_CALL(CA_FLUX_FACE2CENTER,ca_flux_face2center)
-		    (ccbx.loVect(), ccbx.hiVect(),
-		     BL_TO_FORTRAN(flx[mfi]),
-		     BL_TO_FORTRAN(Flux[idim][mfi]),
-		     r.dataPtr(), &rlo, &rhi, 
-		     &nflx, &idim, &iflx);
+		ca_flux_face2center(ccbx.loVect(), ccbx.hiVect(),
+				    BL_TO_FORTRAN(flx[mfi]),
+				    BL_TO_FORTRAN(Flux[idim][mfi]),
+				    r.dataPtr(), &rlo, &rhi, 
+				    &nflx, &idim, &iflx);
 	    }
 	}
     }
@@ -582,12 +576,12 @@ void RadSolve::levelFlux(int level,
 
     for (MFIter fi(Flux[n],true); fi.isValid(); ++fi) {
 	const Box& reg = fi.tilebox();
-	set_abec_flux(dimlist(reg), &n,
-		      Erborder[fi].dataPtr(), dimlist(Erborder[fi].box()),
-		      bcoef[fi].dataPtr(),    dimlist(bcoef[fi].box()),
+	set_abec_flux(ARLIM(reg.loVect()), ARLIM(reg.hiVect()), &n,
+		      BL_TO_FORTRAN(Erborder[fi]), 
+		      BL_TO_FORTRAN(bcoef[fi]), 
 		      &beta,
 		      dx,
-		      Flux[n][fi].dataPtr(),  dimlist(Flux[n][fi].box()));
+		      BL_TO_FORTRAN(Flux[n][fi]));
     }
   }
 
@@ -674,12 +668,11 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       
       for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
 	  const Box& bx = fi.tilebox();
-	  BL_FORT_PROC_CALL(CA_SET_DTERM_FACE, ca_set_dterm_face)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(Erborder[fi]),
-	       BL_TO_FORTRAN(dcoef[fi]), 
-	       BL_TO_FORTRAN(Dterm_face[n][fi]), 
-	     dx, &n);
+	  ca_set_dterm_face(bx.loVect(), bx.hiVect(),
+			    BL_TO_FORTRAN(Erborder[fi]),
+			    BL_TO_FORTRAN(dcoef[fi]), 
+			    BL_TO_FORTRAN(Dterm_face[n][fi]), 
+			    dx, &n);
       }
   }
 
@@ -700,13 +693,13 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 	      parent->Geom(level).GetCellLoc(rc, reg, 0);
 	      parent->Geom(level).GetCellLoc(s, reg, 0);
 	      const Box &dbox = Dterm_face[0][fi].box();
-	      sphe(re.dataPtr(), s.dataPtr(), 0, dimlist(dbox), dx);
+	      sphe(re.dataPtr(), s.dataPtr(), 0,
+		   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx);
 	      
-	      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-		  (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-			  BL_TO_FORTRAN(Dterm_face[1][fi]),
-			  BL_TO_FORTRAN(Dterm_face[2][fi])),
-		   re.dataPtr(), rc.dataPtr());
+	      ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+				      BL_TO_FORTRAN(Dterm_face[1][fi]),
+				      BL_TO_FORTRAN(Dterm_face[2][fi])),
+			       re.dataPtr(), rc.dataPtr());
 	  }
 #ifdef _OPENMP
 #pragma omp barrier
@@ -719,11 +712,10 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
 	      parent->Geom(level).GetCellLoc(rc, reg, 0);
 	      
-	      BL_FORT_PROC_CALL(CA_CORRECT_DTERM, ca_correct_dterm)
-		  (D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-			  BL_TO_FORTRAN(Dterm_face[1][fi]),
-			  BL_TO_FORTRAN(Dterm_face[2][fi])),
-		   re.dataPtr(), rc.dataPtr());
+	      ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+				      BL_TO_FORTRAN(Dterm_face[1][fi]),
+				      BL_TO_FORTRAN(Dterm_face[2][fi])),
+			       re.dataPtr(), rc.dataPtr());
 	  }
 #ifdef _OPENMP
 #pragma omp barrier
@@ -737,12 +729,11 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 	  int ncomp = 1;
 	  int nf = 1;
 	  int nc = 1;
-	  BL_FORT_PROC_CALL(CA_FACE2CENTER, ca_face2center)
-	      (bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
-	       D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-		      BL_TO_FORTRAN(Dterm_face[1][fi]),
-		      BL_TO_FORTRAN(Dterm_face[2][fi])),
-	       BL_TO_FORTRAN(Dterm[fi]));
+	  ca_face2center(bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
+			 D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+				BL_TO_FORTRAN(Dterm_face[1][fi]),
+				BL_TO_FORTRAN(Dterm_face[2][fi])),
+			 BL_TO_FORTRAN(Dterm[fi]));
       }
   }
 }
@@ -765,7 +756,6 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
       Array<Real> r, s;
 
       for (MFIter mfi(lambda,true); mfi.isValid(); ++mfi) {
-	  const Box &bbox = lambda[mfi].box();
 	  const Box &kbox = kappa_r[mfi].box();
 
 	  const Box &ndbx  = mfi.tilebox();
@@ -773,9 +763,11 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 
 	  getEdgeMetric(idim, geom, ndbx, r, s);
     
-	  bclim(bcoefs[mfi].dataPtr(), lambda[mfi].dataPtr(lamcomp),
-		dimlist(bbox), dimlist(reg),
-		idim, kappa_r[mfi].dataPtr(kcomp), dimlist(kbox),
+	  bclim(bcoefs[mfi].dataPtr(), 
+		BL_TO_FORTRAN_N(lambda[mfi], lamcomp),
+		ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+		idim, 
+		BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
 		r.dataPtr(), s.dataPtr(), c, dx);
       }
   }
@@ -801,15 +793,14 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
       Array<Real> r, s;
 
       for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
-	  const Box &abox = acoefs[mfi].box();
 	  const Box &reg = mfi.tilebox();
 	  
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 	  
-	  const Box &kbox = kpp[mfi].box();
 	  Real dt_ptc = delta_t/(1.0+ptc_tau);
-	  lacoefmgfld(acoefs[mfi].dataPtr(), dimlist(abox), dimlist(reg),
-		      kpp[mfi].dataPtr(igroup), dimlist(kbox),
+	  lacoefmgfld(BL_TO_FORTRAN(acoefs[mfi]), 
+		      ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
+		      BL_TO_FORTRAN_N(kpp[mfi], igroup), 
 		      r.dataPtr(), s.dataPtr(), dt_ptc, c);
       }
   }
@@ -851,57 +842,54 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
 	  parent->Geom(level).GetCellLoc(r, reg, 0);
 
-	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS_SO, ca_compute_rhs_so)
-	      (reg.loVect(), reg.hiVect(),
-	       BL_TO_FORTRAN(rhs[ri]),
-	       BL_TO_FORTRAN(jg[ri]),
-	       BL_TO_FORTRAN(mugT[ri]),
-	       BL_TO_FORTRAN(coupT[ri]),
-	       BL_TO_FORTRAN(etaT[ri]),
-	       BL_TO_FORTRAN(Er_step[ri]),
-	       BL_TO_FORTRAN(rhoe_step[ri]),
-	       BL_TO_FORTRAN(rhoe_star[ri]),
-	       r.dataPtr(), 
-	       &time, &delta_t, &igroup);
+	  ca_compute_rhs_so(reg.loVect(), reg.hiVect(),
+			    BL_TO_FORTRAN(rhs[ri]),
+			    BL_TO_FORTRAN(jg[ri]),
+			    BL_TO_FORTRAN(mugT[ri]),
+			    BL_TO_FORTRAN(coupT[ri]),
+			    BL_TO_FORTRAN(etaT[ri]),
+			    BL_TO_FORTRAN(Er_step[ri]),
+			    BL_TO_FORTRAN(rhoe_step[ri]),
+			    BL_TO_FORTRAN(rhoe_star[ri]),
+			    r.dataPtr(), 
+			    &time, &delta_t, &igroup);
 
 #else
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 
 #ifdef NEUTRINO
-	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS_NEUT, ca_compute_rhs_neut)
-	      (reg.loVect(), reg.hiVect(),
-	       BL_TO_FORTRAN(rhs[ri]),
-	       BL_TO_FORTRAN(jg[ri]),
-	       BL_TO_FORTRAN(mugT[ri]),
-	       BL_TO_FORTRAN(mugY[ri]),
-	       BL_TO_FORTRAN(coupT[ri]),
-	       BL_TO_FORTRAN(coupY[ri]),
-	       BL_TO_FORTRAN(etaT[ri]),
-	       BL_TO_FORTRAN(etaY[ri]),
-	       BL_TO_FORTRAN(thetaT[ri]),
-	       BL_TO_FORTRAN(thetaY[ri]),
-	       BL_TO_FORTRAN(Er_step[ri]),
-	       BL_TO_FORTRAN(rhoe_step[ri]),
-	       BL_TO_FORTRAN(rhoYe_step[ri]),
-	       BL_TO_FORTRAN(Er_star[ri]),
-	       BL_TO_FORTRAN(rhoe_star[ri]),
-	       BL_TO_FORTRAN(rhoYe_star[ri]),
-	       r.dataPtr(), 
-	       &delta_t, &igroup, &ptc_tau);
+	  ca_compute_rhs_neut(reg.loVect(), reg.hiVect(),
+			      BL_TO_FORTRAN(rhs[ri]),
+			      BL_TO_FORTRAN(jg[ri]),
+			      BL_TO_FORTRAN(mugT[ri]),
+			      BL_TO_FORTRAN(mugY[ri]),
+			      BL_TO_FORTRAN(coupT[ri]),
+			      BL_TO_FORTRAN(coupY[ri]),
+			      BL_TO_FORTRAN(etaT[ri]),
+			      BL_TO_FORTRAN(etaY[ri]),
+			      BL_TO_FORTRAN(thetaT[ri]),
+			      BL_TO_FORTRAN(thetaY[ri]),
+			      BL_TO_FORTRAN(Er_step[ri]),
+			      BL_TO_FORTRAN(rhoe_step[ri]),
+			      BL_TO_FORTRAN(rhoYe_step[ri]),
+			      BL_TO_FORTRAN(Er_star[ri]),
+			      BL_TO_FORTRAN(rhoe_star[ri]),
+			      BL_TO_FORTRAN(rhoYe_star[ri]),
+			      r.dataPtr(), 
+			      &delta_t, &igroup, &ptc_tau);
 #else
-	  BL_FORT_PROC_CALL(CA_COMPUTE_RHS, ca_compute_rhs)
-	      (reg.loVect(), reg.hiVect(),
-	       BL_TO_FORTRAN(rhs[ri]),
-	       BL_TO_FORTRAN(jg[ri]),
-	       BL_TO_FORTRAN(mugT[ri]),
-	       BL_TO_FORTRAN(coupT[ri]),
-	       BL_TO_FORTRAN(etaT[ri]),
-	       BL_TO_FORTRAN(Er_step[ri]),
-	       BL_TO_FORTRAN(rhoe_step[ri]),
-	       BL_TO_FORTRAN(Er_star[ri]),
-	       BL_TO_FORTRAN(rhoe_star[ri]),
-	       r.dataPtr(), 
-	       &delta_t, &igroup, &ptc_tau);
+	  ca_compute_rhs(reg.loVect(), reg.hiVect(),
+			 BL_TO_FORTRAN(rhs[ri]),
+			 BL_TO_FORTRAN(jg[ri]),
+			 BL_TO_FORTRAN(mugT[ri]),
+			 BL_TO_FORTRAN(coupT[ri]),
+			 BL_TO_FORTRAN(etaT[ri]),
+			 BL_TO_FORTRAN(Er_step[ri]),
+			 BL_TO_FORTRAN(rhoe_step[ri]),
+			 BL_TO_FORTRAN(Er_star[ri]),
+			 BL_TO_FORTRAN(rhoe_star[ri]),
+			 r.dataPtr(), 
+			 &delta_t, &igroup, &ptc_tau);
 #endif
 #endif
       }
@@ -945,7 +933,8 @@ void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<R
 	geom.GetCellLoc(r, reg, 0);
 	geom.GetCellLoc(s, reg, I);
 	const Real *dx = geom.CellSize();
-	sphc(r.dataPtr(), s.dataPtr(), dimlist(reg), dx);
+	sphc(r.dataPtr(), s.dataPtr(),
+	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), dx);
     }
 }
 	
@@ -977,7 +966,8 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
         geom.GetEdgeLoc(s, reg, I);
       }
       const Real *dx = geom.CellSize();
-      sphe(r.dataPtr(), s.dataPtr(), idim, dimlist(edgebox), dx);
+      sphe(r.dataPtr(), s.dataPtr(), idim,
+	   ARLIM(edgebox.loVect()), ARLIM(edgebox.hiVect()), dx);
     }
 }
 

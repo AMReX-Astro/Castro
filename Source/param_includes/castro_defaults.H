@@ -7,7 +7,6 @@ int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
 int         Castro::do_reflux = 1;
-int         Castro::reflux_strategy = 2;
 int         Castro::update_sources_after_reflux = 1;
 int         Castro::use_custom_knapsack_weights = 0;
 amrex::Real Castro::difmag = 0.1;
@@ -46,7 +45,7 @@ int         Castro::allow_negative_energy = 0;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-int         Castro::time_center_sponge = 0;
+int         Castro::time_center_sponge = 1;
 int         Castro::update_state_between_sources = 1;
 int         Castro::keep_sources_until_end = 0;
 int         Castro::source_term_predictor = 0;
@@ -80,6 +79,21 @@ amrex::Real Castro::react_T_max = 1.e200;
 amrex::Real Castro::react_rho_min = 0.0;
 amrex::Real Castro::react_rho_max = 1.e200;
 int         Castro::disable_shock_burning = 0;
+#ifdef DIFFUSION
+int         Castro::diffuse_temp = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_enth = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_spec = 0;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_vel = 0;
+#endif
+#ifdef DIFFUSION
+Real        Castro::diffuse_cutoff_density = -1.e200;
+#endif
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;
@@ -129,9 +143,14 @@ int         Castro::print_fortran_warnings = 1;
 int         Castro::print_fortran_warnings = 0;
 #endif
 #ifdef DEBUG
-int         Castro::print_energy_diagnostics = 1;
+int         Castro::print_update_diagnostics = 1;
 #else
-int         Castro::print_energy_diagnostics = 0;
+int         Castro::print_update_diagnostics = 0;
+#endif
+#ifdef DEBUG
+int         Castro::coalesce_update_diagnostics = 1;
+#else
+int         Castro::coalesce_update_diagnostics = 0;
 #endif
 int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;

@@ -5,11 +5,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use bl_constants_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
   integer untin,i
 
@@ -29,8 +30,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set namelist defaults
 
   ! set center, domain extrema
-  center(1) = (problo(1)+probhi(1))/2.d0
-  center(2) = (problo(2)+probhi(2))/2.d0
+  center(1) = (problo(1)+probhi(1))/2.e0_rt
+  center(2) = (problo(2)+probhi(2))/2.e0_rt
   
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -72,16 +73,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only: center
   
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
-  double precision xcen, ycen
-  double precision dens, eint, xvel, X(nspec), temp
+  real(rt)         xcen, ycen
+  real(rt)         dens, eint, xvel, X(nspec), temp
   
   integer i,j, icen, jcen
 

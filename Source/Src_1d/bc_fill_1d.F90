@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -12,6 +13,7 @@ contains
 
     use meth_params_module, only: NVAR  
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -19,8 +21,8 @@ contains
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1,NVAR)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1,NVAR)
 
     integer          :: n
 
@@ -36,6 +38,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,time,bc) &
        bind(C, name="ca_denfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -43,8 +46,8 @@ contains
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: adv(adv_l1:adv_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: adv(adv_l1:adv_h1)
 
     call filcc(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,bc)
 
@@ -57,6 +60,7 @@ contains
                             domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -64,8 +68,8 @@ contains
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: phi(phi_l1:phi_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: phi(phi_l1:phi_h1)
 
     call filcc(phi,phi_l1,phi_h1, &
                domlo,domhi,delta,xlo,bc)
@@ -78,6 +82,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravxfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -85,8 +90,8 @@ contains
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -98,6 +103,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravyfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -105,8 +111,8 @@ contains
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -118,6 +124,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravzfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -125,8 +132,8 @@ contains
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: grav(grav_l1:grav_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: grav(grav_l1:grav_h1)
 
     call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
 
@@ -140,6 +147,7 @@ contains
                            domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -147,8 +155,8 @@ contains
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: phi(phi_l1:phi_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: phi(phi_l1:phi_h1)
 
     call filcc(phi,phi_l1,phi_h1, &
                domlo,domhi,delta,xlo,bc)
@@ -161,6 +169,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotxfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -168,8 +177,8 @@ contains
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: rot(rot_l1:rot_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: rot(rot_l1:rot_h1)
 
     call filcc(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,bc)
 
@@ -181,6 +190,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotyfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -188,8 +198,8 @@ contains
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: rot(rot_l1:rot_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: rot(rot_l1:rot_h1)
 
     call filcc(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,bc)
 
@@ -201,6 +211,7 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotzfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -208,8 +219,8 @@ contains
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: rot(rot_l1:rot_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: rot(rot_l1:rot_h1)
 
     call filcc(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,bc)
 
@@ -223,6 +234,7 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_reactfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -230,8 +242,8 @@ contains
     integer          :: react_l1,react_h1
     integer          :: bc(1,2,*)
     integer          :: domlo(1), domhi(1)
-    double precision :: delta(1), xlo(1), time
-    double precision :: react(react_l1:react_h1)
+    real(rt)         :: delta(1), xlo(1), time
+    real(rt)         :: react(react_l1:react_h1)
 
     call filcc(react,react_l1,react_h1, &
                domlo,domhi,delta,xlo,bc)
@@ -246,6 +258,7 @@ contains
                         domlo,domhi,delta,xlo,time,bc) &
                         bind(C, name="ca_radfill")
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -253,8 +266,8 @@ contains
     integer rad_l1,rad_h1
     integer bc(1,2,*)
     integer domlo(1), domhi(1)
-    double precision delta(1), xlo(1), time
-    double precision rad(rad_l1:rad_h1)
+    real(rt)         delta(1), xlo(1), time
+    real(rt)         rad(rad_l1:rad_h1)
 
     call filcc(rad,rad_l1,rad_h1,domlo,domhi,delta,xlo,bc)
 

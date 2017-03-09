@@ -1,3 +1,166 @@
+\section{Introduction}
+
+The hydrodynamics scheme in \castro\ implements an unsplit
+second-order Godunov method.  Characteristic tracing is used to
+time-center the input states to the Riemann solver.  The same
+hydrodynamics routines are used for pure hydro and radiation
+hydrodynamics.
+
+Some general notes:
+\begin{itemize}
+\item Regardless of the dimensionality, we always carry around all 3
+  components of velocity/momentum---this allows for rotation sources easily.
+
+\item When radiation is enabled (via \ifdef{RADIATION}), we discuss
+  the gas and radiation quantities separately.  This generally applies
+  to the temperature, pressure, internal energy, various adiabatic
+  indices, and sound speed.  When we refer to the ``total'' value of
+  one of these, it means that both gas and radiation contributions
+  are included.  When we refer to the ``gas'' quantity, this is what
+  the equation of state would return.
+
+  For continuity, we continue to use the ``gas'' qualifier even if we
+  are not solving the radiation hydrodynamics equations.  In this
+  case, it still means that it comes through the equation of state,
+  but note some of our equations of state (like the helmeos) include a
+  radiation pressure contribution when we are running without
+  radiation hydrodynamics enabled.  In this case, we still refer to
+  this as the ``gas''.
+
+\end{itemize}
+
+\section{Hydrodynamics Data Structures}
+
+Within the Fortran routines that implement the hydrodynamics, there are
+several main data structures that hold the state.  
+
+\begin{itemize}
+\item conserved state: these arrays generally begin with {\tt u},
+  e.g., \variable{uin}, \variable{uout}.  The \variable{NVAR}
+  components for the state data in the array are accessed using
+  integer keys defined in \ref{table:consints}.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt URHO} & $\rho$ \\
+          {\tt UMX} & $\rho u$ \\
+          {\tt UMY} & $\rho v$ \\
+          {\tt UMZ} & $\rho w$ \\
+          {\tt UEDEN} & $\rho E$ \\
+          {\tt UEINT} & $\rho e$ & this is computed from the other quantities using
+          $\rho e = \rho E - \rho \ub \cdot \ub / 2$ \\
+          {\tt UTEMP} & $T$  & this is computed from the other quantities using the EOS \\
+          {\tt UFA} & $\rho A_1$ & the first advected quantity \\
+          {\tt UFS} & $\rho X_1$ & the first species \\
+          {\tt UFX} & $\rho Y_1$ & the first auxiliary variable \\
+          {\tt USHK}& a shock flag & (used for shock detection) \\
+          {\tt UMR} & radial momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+          {\tt UML} & angular momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+          {\tt UMP} & vertical momentum & (if \ifdef{HYBRID\_MOMENTUM} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:consints} The integer variables to index the conservative state array}
+  \end{table}
+
+\item primitive variable state: these arrays generally simply called
+  {\tt q}, and has \variable{NQ} components.  Note: if
+  \ifdef{RADIATION} is defined, then there are \variable{QVAR}
+  components that are pure hydro out of the total {\tt NQ} components,
+  and the pure hydro components always come first in the state array.
+
+  Table~\ref{table:primlist} gives the names of the primitive variable integer
+  keys for accessing these arrays.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QRHO} & $\rho$ \\
+          {\tt  QU} & $u$ \\
+          {\tt  QV} & $v$ \\
+          {\tt  QW} & $w$ \\
+          {\tt  QPRES} & $p$ \\
+          {\tt  QREINT} & $\rho e$ \\
+          {\tt  QTEMP} & $T$ \\
+          {\tt  QGAME} & $p/(\rho e) + 1$ \\
+          {\tt  QFA} & $A_1$ & the first advected quantity \\
+          {\tt  QFS} & $X_1$ & the first species \\
+          {\tt  QFX} & $Y_1$ & the first auxiliary variable \\
+          {\tt QPTOT} & $p_\mathrm{tot}$ & the total pressure, gas + radiation \\
+          {\tt QREITOT} & $e_\mathrm{tot}$ & the total specific internal energy, gas + radiation  \\
+          {\tt QRAD} & $E_r$ & the radiation energy (there are \variable{ngroups} of these) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:primlist} The integer variable keys for
+      accessing the primitive state vector.  Note, unless otherwise
+      specified the quantities without a subscript are ``gas'' only
+      and those with the ``tot'' subscript are ``gas + radiation''.}
+  \end{table}
+
+\item auxillary primitive variables: these arrays are generally called
+  \variable{qaux}.  The main difference between these and the regular
+  primitive variables is that we do not attempt to do any
+  reconstruction on their profiles.  There are \variable{NQAUX} quantities, indexed
+  by the integer keys listed in table~\ref{table:qauxlist}.
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QGAMC} & $\gamma_1$ & the first adiabatic exponent, as returned from the EOS \\
+          {\tt  QC} & $c_s$ & the sound speed, as returned from the EOS \\
+          {\tt  QCSML} & & a small sound speed used for cutoffs \\
+          {\tt  QDPDR} & $\partial p/\partial \rho |_e$ & computed via the EOS \\
+          {\tt  QDPDE} & $\partial p/\partial e|_\rho$ & computed via the EOS \\
+          {\tt  QGAMCG} & ${\Gamma_1}_\mathrm{tot}$ & includes radiation components (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QCG} & ${c_s}_\mathrm{tot}$ & total sound speed including radiation (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QLAMS} & $\lambda_f$ & the \variable{ngroups} flux limiters (defined only if \ifdef{RADIATION} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:qauxlist} The integer variable keys for
+      accessing the auxillary primitive state vector, {\tt quax}.
+      Note, unless otherwise specified the quantities without a
+      subscript are ``gas'' only and those with the ``tot'' subscript
+      are ``gas + radiation''.}
+  \end{table}
+
+\item interface variable: these are the time-centered interface states
+  returned by the Riemann solver.  They are used to discretize some
+  non-conservative terms in the equations.  These arrays are generally
+  called {\tt qx}, {\tt qy}, and {\tt qz} for the x, y, and z
+  interfaces respectively (in some places the numbers 1, 2, and 3 are
+  used instead).  There are \variable{NGDNV} components accessed with
+  the integer keys defined in table~\ref{table:gdlist}
+
+  \begin{table}[t]
+    \centering
+    \begin{tabular}{llp{3.5in}}
+      {\bf variable} & {\bf quantity} & {\bf note} \\
+      \hline
+          {\tt  QGDRHO} & $\rho$ \\
+          {\tt  QDU} & $u$ \\
+          {\tt  QDV} & $v$ \\
+          {\tt  QDW} & $w$ \\ 
+          {\tt  QDPRES} & $p$ & regardless of whether \ifdef{RADIATION} is defined, this is always just the gas pressure \\
+          {\tt  QDGAME} & $\gamma_e = p/(\rho e) + 1$ & regardless of whether \ifdef{RADIATION} is defined, this is always just the gas contribution \\
+          {\tt  QDLAMS} & ${\lambda_f}$ & the starting index for the flux limiter---there are \variable{ngroups} components (defined only if \ifdef{RADIATION} is defined) \\
+          {\tt  QDERADS} & $E_r$ & the starting index for the radiation energy---there are \variable{ngroups} components (defined only if \ifdef{RADIATION} is defined) \\
+      \hline
+    \end{tabular}
+    \caption{\label{table:gdlist} The integer variable keys for
+      accessing the Godunov interface state vectors.
+      Note, unless otherwise specified the quantities without a
+      subscript are ``gas'' only and those with the ``tot'' subscript
+      are ``gas + radiation''.}
+  \end{table}
+
+\end{itemize}
+
 \section{Conservation Forms}
 We begin with the fully compressible equations for the conserved state vector, 
 $\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):$
@@ -25,27 +188,6 @@ state vector even though they are derived from the other conserved
 quantities.  The ordering of the elements within $\Ub$ is defined
 by integer variables into the array---see
 Table~\ref{table:consints}
-\begin{table}[t]
-  \centering
-\begin{tabular}{llp{3.5in}}
-  \hline
-      {\bf variable} & {\bf quantity} & {\bf note} \\
-  \hline
-{\tt URHO} & $\rho$ \\
-{\tt UMX} & $\rho u$ \\
-{\tt UMY} & $\rho v$ \\
-{\tt UMZ} & $\rho w$ \\
-{\tt UEDEN} & $\rho E$ \\
-{\tt UEINT} & $\rho e$ & this is computed from the other quantities using
-             $\rho e = \rho E - \rho \ub \cdot \ub / 2$ \\
-{\tt UTEMP} & $T$  & this is computed from the other quantities using the EOS \\
-{\tt UFA} & $\rho A_1$ & the first advected quantity \\
-{\tt UFS} & $\rho X_1$ & the first species \\
-{\tt UFX} & $\rho Y_1$ & the first auxiliary variable \\
-\hline
-\end{tabular}
-\caption{\label{table:consints} The integer variables to index the conservative state array}
-\end{table}
 
 Some notes:
 \begin{itemize}
@@ -57,19 +199,20 @@ Some notes:
   You should always initialize all velocity components to zero, and
   always construct the kinetic energy with all three velocity components.
 
-\item There are {\tt nadv} advected quantities, which range from {\tt
+\item There are \variable{NADV} advected quantities, which range from {\tt
   UFA: UFA+nadv-1}.  The advected quantities have no effect at all on
   the rest of the solution but can be useful as tracer quantities.
 
-\item There are {\tt nspec} species (defined in the {\tt network}
+\item There are \variable{NSPEC} species (defined in the {\tt network}
   directory), which range from {\tt UFS: UFS+nspec-1}.
 
-\item There are {\tt naux} auxiliary variables, from {\tt
+\item There are \variable{NAUX} auxiliary variables, from {\tt
   UFX:UFX+naux-1} The auxiliary variables are passed into the equation
   of state routines along with the species; An example of an auxiliary
   variable is the electron fraction, $Y_e$, in core collapse simulations.
 \end{itemize}
 
+\MarginPar{note about qpass\_map here}
 
 \section{Source Terms}
 
@@ -137,44 +280,6 @@ The primitive variable equations for density, velocity, and pressure are:
 && +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
 && \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] 
 \end{eqnarray}
-We augment these with an internal energy equation:
-\begin{eqnarray}
-\frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
-                                        + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-&& -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
-\end{eqnarray}
-This has two benefits. First, for a general equation of state,
-carrying around an additional thermodynamic quantity allows us to
-avoid equation of state calls. Second, it is sometimes the case that
-the internal energy calculated as $e_T \equiv E - \mathbf{v}^2 / 2$ is
-unreliable.  This has two usual causes: one, for high Mach number
-flows, the kinetic energy can dominate the total gas energy, making
-the subtraction numerically unreliable; two, if you use gravity or
-other source terms, these can indirectly alter the value of the
-internal energy if obtained from the total energy. For this reason, we
-have implemented the dual energy formalism from ENZO
-\cite{bryan:1995,bryan:2014}, where we switch between $(\rho e)$ and
-$(\rho e_T)$ depending on the local state of the fluid. To do so, we
-define parameters $\eta_1$, $\eta_2$, and $\eta_3$, corresponding to
-the code parameters {\tt castro.dual\_energy\_eta1}, {\tt
-  castro.dual\_energy\_eta2}, and {\tt castro.dual\_energy\_eta3}. We
-then consider the ratio $e_T / E$, the ratio of the internal energy
-(derived from the total energy) to the total energy. If $e_T > \eta_1
-E$, then we use $e_T$ for the purpose of calculating the pressure in
-the hydrodynamics update. Otherwise, we use the $e$ from the internal
-energy equation in our EOS call to get the pressure. Similarly, if
-$e_T > \eta_3 E$, we use $e_T$ for the purposes of our nuclear
-reactions, otherwise, we use $e$.
-
-At the end of each hydro advance, we examine whether $e_T > \eta_2 E$. If so, we reset
-$e$ to be equal to $e_T$, discarding the results of the internal energy equation. Otherwise,
-we keep $e$ as it is. Optionally we can also update $E$ so that it gains the difference of the
-old and and new $e$, by setting {\tt castro.dual\_energy\_update\_E\_from\_e} to 1.
-
-Note that our version of the internal energy equation does not require an artificial viscosity,
-as used in some other hydrodynamics codes. The update for $(\rho e)$ uses information from
-the Riemann solve to calculate the fluxes, which contains the information intrinsic to the
-shock-capturing part of the scheme.
 
 The advected quantities appear as:
 \begin{eqnarray}
@@ -186,35 +291,80 @@ The advected quantities appear as:
                                      ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).
 \end{eqnarray}
 
-In the code we also carry around $T$ in the primitive state vector.
 All of the primitive variables are derived from the conservative state
 vector, as described in Section \ref{Sec:Compute Primitive Variables}.
 When accessing the primitive variable state vector, the integer variable
 keys for the different quantities are listed in Table~\ref{table:primlist}.
 
-\begin{table}[t]
-  \centering
-\begin{tabular}{llp{3.5in}}
-  \hline
-      {\bf variable} & {\bf quantity} & {\bf note} \\
-  \hline
-{\tt  QRHO} & $\rho$ \\
-{\tt  QU} & $u$ \\
-{\tt  QV} & $v$ \\
-{\tt  QW} & $w$ \\
-{\tt  QPRES} & $p$ \\
-{\tt  QREINT} & $\rho e$ \\
-{\tt  QTEMP} & $T$ \\
-{\tt  QFA} & $A_1$ & the first advected quantity \\
-{\tt  QFS} & $X_1$ & the first species \\
-{\tt  QFX} & $Y_1$ & the first auxiliary variable \\
- \hline
-\end{tabular}
-\caption{\label{table:primlist} The integer variable keys for accessing the
-  primitive state vector}
-\end{table}
+\subsection{Internal energy and temperature}
 
-The full primitive variable form (without the advected or auxiliary quantities) is
+We augment the above system with an internal energy equation:
+\begin{eqnarray}
+\frac{\partial(\rho e)}{\partial t} &=& - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
+                                        + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
+&& -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right), 
+\end{eqnarray}\MarginPar{Since $(rho e)$ is in the conserved state, I don't think we derive the internal energy source from total and momentum sources anymore}
+This has two benefits. First, for a general equation of state,
+carrying around an additional thermodynamic quantity allows us to
+avoid equation of state calls (in particular, in the Riemann solver,
+see e.g.~\cite{colglaz}). Second, it is sometimes the case that the
+internal energy calculated as 
+\begin{equation}
+e_T \equiv E - \frac{1}{2} \mathbf{v}^2
+\end{equation}
+ is
+unreliable.  This has two usual causes: one, for high Mach number
+flows, the kinetic energy can dominate the total gas energy, making
+the subtraction numerically unreliable; two, if you use gravity or
+other source terms, these can indirectly alter the value of the
+internal energy if obtained from the total energy. 
+
+To provide a more reasonable internal energy for defining the
+thermodynamic state, we have implemented the dual energy formalism
+from ENZO \cite{bryan:1995,bryan:2014}, where we switch between $(\rho
+e)$ and $(\rho e_T)$ depending on the local state of the fluid. To do
+so, we define parameters $\eta_1$, $\eta_2$, and $\eta_3$,
+corresponding to the code parameters
+\runparam{castro.dual\_energy\_eta1},
+\runparam{castro.dual\_energy\_eta2}, and
+\runparam{castro.dual\_energy\_eta3}. We then consider the ratio $e_T
+/ E$, the ratio of the internal energy (derived from the total energy)
+to the total energy.  These parameters are used as follows:
+\begin{itemize}
+\item $\eta_1$: If $e_T > \eta_1 E$, then we use $e_T$ for the purpose
+  of calculating the pressure in the hydrodynamics update. Otherwise,
+  we use the $e$ from the internal energy equation in our EOS call to
+  get the pressure. 
+
+\item $\eta_2$: At the end of each hydro advance, we examine whether
+  $e_T > \eta_2 E$. If so, we reset $e$ to be equal to $e_T$,
+  discarding the results of the internal energy equation. Otherwise,
+  we keep $e$ as it is. 
+
+  Optionally we can also update $E$ so that it gains the difference of
+  the old and and new $e$, by setting
+  \runparam{castro.dual\_energy\_update\_E\_from\_e} to 1.
+
+\item $\eta_3$: Similar to $\eta_1$, if $e_T > \eta_3 E$, we use
+  $e_T$ for the purposes of our nuclear reactions, otherwise, we use
+  $e$.
+
+\end{itemize}
+
+Note that our version of the internal energy equation does not require
+an artificial viscosity, as used in some other hydrodynamics
+codes. The update for $(\rho e)$ uses information from the Riemann
+solve to calculate the fluxes, which contains the information
+intrinsic to the shock-capturing part of the scheme.
+
+
+In the code we also carry around $T$ in the primitive state vector.
+
+
+\subsection{Primitive Variable System}
+
+The full primitive variable form (without the advected or auxiliary
+quantities) is
 \begin{equation}
 \frac{\partial\Qb}{\partial t} + \sum_d \Ab_d\frac{\partial\Qb}{\partial x_d} = \Sb_{\Qb}.
 \end{equation}
@@ -329,33 +479,33 @@ Each of these steps has a variety of runtime parameters that
 affect their behavior.  Additionally, there are some general
 runtime parameters for hydrodynamics:
 \begin{itemize}
-\item {\tt castro.do\_hydro}: time-advance the fluid dynamical
+\item \runparam{castro.do\_hydro}: time-advance the fluid dynamical
   equations (0 or 1; must be set)
 
-\item {\tt castro.add\_ext\_src}: include additional user-specified
+\item \runparam{castro.add\_ext\_src}: include additional user-specified
   source term (0 or 1; default 0)
   
-\item {\tt castro.do\_sponge}: call the sponge routine
+\item \runparam{castro.do\_sponge}: call the sponge routine
   after the solution update (0 or 1; default: 0)
 
   The purpose of the sponge is to damp velocities outside of a star, to
   prevent them from dominating the timestep constraint. The sponge parameters
-  are set in your probin file, in the {\tt sponge} namelist. You can sponge either
-  on radius from the center (using {\tt sponge\_lower\_radius} and
-  {\tt sponge\_lower\_radius}) or on density (using {\tt sponge\_lower\_density}
-  and {\tt sponge\_upper\_density}). The timescale of the damping is
-  set through {\tt sponge\_timescale}.
+  are set in your probin file, in the {\tt \&sponge} namelist. You can sponge either
+  on radius from the center (using \runparam{sponge\_lower\_radius} and
+  \runparam{sponge\_upper\_radius}) or on density (using \runparam{sponge\_lower\_density}
+  and \runparam{sponge\_upper\_density}). The timescale of the damping is
+  set through \runparam{sponge\_timescale}.
   
-\item {\tt castro.normalize\_species}: enforce that $\sum_i X_i = 1$
+\item \runparam{castro.normalize\_species}: enforce that $\sum_i X_i = 1$
   (0 or 1; default: 0)
   
-\item {\tt castro.fix\_mass\_flux}: enforce constant mass flux at
+\item \runparam{castro.fix\_mass\_flux}: enforce constant mass flux at
   domain boundary (0 or 1; default: 1)
   
-\item {\tt castro.allow\_negative\_energy}: is internal energy allowed to be
+\item \runparam{castro.allow\_negative\_energy}: is internal energy allowed to be
   negative? (0 or 1; default: 1)
   
-\item {\tt castro.spherical\_star}: this is used to set the boundary
+\item \runparam{castro.spherical\_star}: this is used to set the boundary
   conditions by assuming the star is spherically symmetric in
   the outer regions (0 or 1; default: 0)
 
@@ -364,15 +514,15 @@ runtime parameters for hydrodynamics:
   function is then used to set the values outside the domain in
   implementing the boundary conditions.
   
-\item {\tt castro.show\_center\_of\_mass}: (0 or 1; default: 0)
+\item \runparam{castro.show\_center\_of\_mass}: (0 or 1; default: 0)
 \end{itemize}
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
 \begin{itemize}
-\item {\tt castro.small\_dens}: (Real; default: -1.e20)
-\item {\tt castro.small\_temp}: (Real; default: -1.e20)
-\item {\tt castro.small\_pres}: (Real; default: -1.e20)
+\item \runparam{castro.small\_dens}: (Real; default: -1.e20)
+\item \runparam{castro.small\_temp}: (Real; default: -1.e20)
+\item \runparam{castro.small\_pres}: (Real; default: -1.e20)
 \end{itemize}
 
 
@@ -386,8 +536,8 @@ We compute the primtive variables from the conserved variables.
   vector, dividing by $\rho$
 \item $p,T$: use the EOS.
 
-  First, if {\tt castro.allow\_negative\_energy = 0} (it defaults to
-  1) and $e < 0$, we do the following:
+  First, if \runparam{castro.allow\_negative\_energy} is {\tt 0} (it defaults to
+  {\tt 1}) and $e < 0$, we do the following:
 
   \begin{enumerate}
   \item Use the EOS to set $e = e(\rho,T_{\rm small},X_k)$.
@@ -436,7 +586,7 @@ where $c=1/3$ is a tunable parameter, then set $\tilde\chi_i=0$.
 
 The following runtime parameters affect the behavior here:
 \begin{itemize}
-  \item {\tt castro.use\_flattening} turns on/off the flattening of parabola
+  \item \runparam{castro.use\_flattening} turns on/off the flattening of parabola
   near shocks (0 or 1; default 1)
 \end{itemize}
 
@@ -448,7 +598,7 @@ are several reconstruction techniques, a piecewise
 linear method that follows the description in Colella (1990)~\cite{colella:1990},
 the classic PPM limiters~\cite{ppm}, and the new PPM limiters introduced
 in Colella \& Sekora (2008)~\cite{colellasekora}.  The choice of
-limiters is determined by {\tt castro.ppm\_type}.
+limiters is determined by \runparam{castro.ppm\_type}.
 
 For the new PPM limiters, we have further modified the method
 of~\cite{colellasekora} to eliminate sensitivity due to roundoff error
@@ -563,7 +713,7 @@ s = \text{sign}(\alpha_{i,\mp})
 \end{equation}
 \begin{equation}
 \delta\mathcal{I}_{\text{ext}} = \frac{-\alpha_{i,\pm}^2}{4\left(\alpha_{j,+}+\alpha_{j,-}\right)},
-\end{equation}
+\end{equation} \MarginPar{bad notation--shouldn't reuse $\mathcal{I}$ here}
 \begin{equation}
 \delta s = s_{i\mp 1} - s_i,
 \end{equation}
@@ -596,21 +746,21 @@ s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
   $\lambda_k$.\\ \\ Define the following integrals, where $\sigma_k =
   |\lambda_k|\Delta t/h$:
 \begin{eqnarray}
-\mathcal{I}_{i,+}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
-\mathcal{I}_{i,-}(\sigma_k) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
+\mathcal{I}^{(k)}_{+}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
+\mathcal{I}^{(k)}_{-}(s_i) &=& \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
 \end{eqnarray}
 Plugging in (\ref{Quadratic Interp}) gives:
 \begin{eqnarray}
-\mathcal{I}_{i,+}(\sigma_k) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
-\mathcal{I}_{i,-}(\sigma_k) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
+\mathcal{I}^{(k)}_{+}(s_i) &=& s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
+\mathcal{I}^{(k)}_{-}(s_i) &=& s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
 \end{eqnarray}
 \item {\bf Step 4:} Obtain 1D edge states by performing a 1D
   extrapolation to get left and right edge states.  Note that we
   include an explicit source term contribution.
 \begin{eqnarray}
-s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,+}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
-s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}_{i,-}(\sigma_k)\right]\rb_k + \frac{\dt}{2}S_i^n.
-\end{eqnarray}
+s_{L,i+\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
+s_{R,i-\myhalf} &=& s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.
+\end{eqnarray} \MarginPar{this is old---we don't do flattening this way, nor is this the reference state we use}
 Here, $\rb_k$ is the $k^{\rm th}$ right column eigenvector of
 $\Rb(\Ab_d)$ and $\lb_k$ is the $k^{\rm th}$ left row eigenvector lf
 $\Lb(\Ab_d)$.  The flattening coefficient is $\chi_i$.
@@ -623,32 +773,29 @@ which are given below.
 
 For the reconstruction of the interface states, the following apply:
 \begin{itemize}
-\item {\tt castro.ppm\_type}: use piecewise linear vs PPM algorithm
+\item \runparam{castro.ppm\_type}: use piecewise linear vs PPM algorithm
   (0, 1, 2; default: 1)
 
   Values of 1 and 2 are both piecewise parabolic reconstruction, with
   2 using updated limiters that better preserve extrema.
 
-\item {\tt castro.ppm\_trace\_sources} reconstructs the gravitational
+\item \runparam{castro.ppm\_trace\_sources} reconstructs the gravitational
   and rotational acceleration as a parabola and then constructs the
   integrals under this parabola for the three characteristic waves and
   then puts the gravitational and rotational source term into the
   characteristic projection when doing the interface states (0 or 1;
   default: 1)
 
-\item {\tt castro.ppm\_temp\_fix} does various attempts to use the
+\item \runparam{castro.ppm\_temp\_fix} does various attempts to use the
   temperature in the reconstruction of the interface states.  This
   is experimental.
 
-\item {\tt castro.ppm\_tau\_in\_tracing} uses $\tau = 1/\rho$ instead of
-  $\rho$ in the characteristic projection (0 or 1; default 0)
-
-\item {\tt castro.ppm\_predict\_gammae} reconstructs $\gamma_e = p/(\rho e) + 1$
+\item \runparam{castro.ppm\_predict\_gammae} reconstructs $\gamma_e = p/(\rho e) + 1$
   to the interfaces and does the necessary transverse terms to aid in
   the conversion between the conserved and primitive interface states
   in the transverse flux routines (0 or 1; default 0)
 
-\item {\tt castro.ppm\_reference\_eigenvectors} uses the reference states in
+\item \runparam{castro.ppm\_reference\_eigenvectors} uses the reference states in
   the evaluation of the eigenvectors for the characteristic projection
   (0 or 1; default 0)
 \end{itemize}
@@ -661,17 +808,17 @@ transverse directions involve separate Riemann solves.  Sometimes, the
 update to the interface state from the transverse directions can make
 the state ill-posed.  There are several parameters that help fix this:
 \begin{itemize}
-  \item {\tt transverse\_use\_eos}: If this is {\tt 1}, then we call
+  \item \runparam{castro.transverse\_use\_eos}: If this is {\tt 1}, then we call
     the equation of state on the interface, using $\rho$, $e$, and
     $X_k$, to get the interface pressure.  This should result in a
     thermodynamically consistent interface state.
 
-  \item {\tt transverse\_reset\_density}: If the transverse
+  \item \runparam{castro.transverse\_reset\_density}: If the transverse
     corrections result in a negative density on the interface, then we
     reset all of the interface states to their values before the
     transverse corrections.
 
-  \item {\tt transverse\_reset\_rhoe}: The transverse updates operate
+  \item \runparam{castro.transverse\_reset\_rhoe}: The transverse updates operate
     on the conserved state.  Usually, we construct the interface
     $(\rho e)$ in the transverse update from total energy and the
     kinetic energy, however, if the interface $(rho e)$ is negative,
@@ -780,7 +927,7 @@ described in the original paper.
 For the construction of the fluxes in the Riemann solver, the following
 parameters apply:
 \begin{itemize}
-\item {\tt riemann\_solver}: this can be one of the following values:
+\item \runparam{castro.riemann\_solver}: this can be one of the following values:
   \begin{itemize}
     \item {\tt 0}: the Colella, Glaz, \& Ferguson solver.  
 
@@ -798,13 +945,13 @@ parameters apply:
   The Colella \& Glaz solver is iterative, and two runtime parameters are used
   to control its behavior:
   \begin{itemize}
-  \item {\tt castro.cg\_maxiter}: number of iterations for CG algorithm
+  \item \runparam{castro.cg\_maxiter}: number of iterations for CG algorithm
     (Integer; default: 12)
     
-  \item {\tt castro.cg\_tol}: tolerance for CG solver when solving
+  \item \runparam{castro.cg\_tol}: tolerance for CG solver when solving
      for the ``star'' state (Real; default: 1.0e-5)
 
-  \item {\tt castro.cg\_blend}: this controls what happens if the root
+  \item \runparam{castro.cg\_blend}: this controls what happens if the root
      finding in the CG solver fails.  There is a nonlinear equation to find
      the pressure in the {\em star} region from the jump conditions for a 
      shock (this is the two-shock approximation---the left and right states
@@ -847,6 +994,43 @@ advance the solution:
 Again, note that since the source term is not time centered, this is
 not a second-order method.  After the advective update, we correct the
 solution, effectively time-centering the source term.
+
+
+\section{Temperature Fixes}
+
+There are a number of experimental options for improving the behavior
+of the temperature in the reconstruction and interface state
+prediction.  The options are controlled by \runparam{castro.ppm\_temp\_fix},
+which takes values:
+\begin{itemize}
+  \item {\tt 0}: the default method---temperature is not considered
+
+  \item {\tt 1}: do parabolic reconstruction on $T$, giving
+    $\mathcal{I}_{+}^{(k)}(T_i)$.  We then derive the pressure and
+    internal energy (gas portion) via the equation of state as:
+    \begin{align}
+      \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
+      \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
+    \end{align}
+
+    The remainder of the hydrodynamics algorithm then proceeds unchanged.
+
+  \item {\tt 2}: on entering the Riemann solver, we recompute the
+    thermodynamics on the interfaces to ensure that they are all
+    consistent.  This is done by taking the interface values of
+    $\rho$, $e$, $X_k$, and computing the corresponding pressure, $p$
+    from this.
+
+  \item {\tt 3}: This does the characteristic tracing using the
+    $(\tau, u, T)$ eigensystem.  Note: this is not widely
+    implemented---see the \problem{Sod\_stellar} for an
+    implementation.
+
+\end{itemize}
+
+
+
+
 
 
 \section{Resets}

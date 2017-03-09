@@ -5,11 +5,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use prob_params_module, only : center
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
 
   integer :: untin,i
 
@@ -29,10 +30,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! set namelist defaults
 
-  rho_ambient = 1.d0
-  rho_peak = 2.d0
-  t_ambient = 1.d0
-  sigma = 0.1d0
+  rho_ambient = 1.e0_rt
+  rho_peak = 2.e0_rt
+  t_ambient = 1.e0_rt
+  sigma = 0.1e0_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), &
@@ -79,17 +80,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision :: xlo(3), xhi(3), time, delta(3)
-  double precision :: state(state_l1:state_h1, &
+  real(rt)         :: xlo(3), xhi(3), time, delta(3)
+  real(rt)         :: state(state_l1:state_h1, &
                             state_l2:state_h2, &
                             state_l3:state_h3,NVAR)
 
-  double precision :: xx, yy, zz
+  real(rt)         :: xx, yy, zz
 
   integer :: i, j, k
 

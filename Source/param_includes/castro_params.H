@@ -7,7 +7,6 @@ static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
 static int do_reflux;
-static int reflux_strategy;
 static int update_sources_after_reflux;
 static int use_custom_knapsack_weights;
 static amrex::Real difmag;
@@ -80,6 +79,21 @@ static amrex::Real react_T_max;
 static amrex::Real react_rho_min;
 static amrex::Real react_rho_max;
 static int disable_shock_burning;
+#ifdef DIFFUSION
+static int diffuse_temp;
+#endif
+#ifdef DIFFUSION
+static int diffuse_enth;
+#endif
+#ifdef DIFFUSION
+static int diffuse_spec;
+#endif
+#ifdef DIFFUSION
+static int diffuse_vel;
+#endif
+#ifdef DIFFUSION
+static Real diffuse_cutoff_density;
+#endif
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
@@ -124,7 +138,8 @@ static int star_at_center;
 static int do_special_tagging;
 static int spherical_star;
 static int print_fortran_warnings;
-static int print_energy_diagnostics;
+static int print_update_diagnostics;
+static int coalesce_update_diagnostics;
 static int track_grid_losses;
 static int sum_interval;
 static amrex::Real sum_per;

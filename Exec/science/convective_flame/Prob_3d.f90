@@ -7,11 +7,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use prob_params_module, only: center
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
   integer :: name(namlen)
-  double precision :: problo(3), probhi(3)
+  real(rt)         :: problo(3), probhi(3)
 
   integer :: untin,i
 
@@ -33,7 +34,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set namelist defaults here
   zero_vels = .false.
   x_pert_loc = ONE
-  pert_width = 0.1_dp_t
+  pert_width = 0.1_rt
   pert_factor = ONE
 
   ! Read namelists
@@ -87,19 +88,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use network, only: nspec, network_species_index
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  double precision xlo(3), xhi(3), time, delta(3)
-  double precision state(state_l1:state_h1, &
+  real(rt)         xlo(3), xhi(3), time, delta(3)
+  real(rt)         state(state_l1:state_h1, &
                          state_l2:state_h2, &
                          state_l3:state_h3,NVAR)
 
   integer :: i, j, k, n
-  double precision :: x, y, z
-  double precision :: dens, temp, pres
+  real(rt)         :: x, y, z
+  real(rt)         :: dens, temp, pres
 
   type (eos_t) :: eos_state
 
@@ -130,7 +132,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                    interpolate(z,npts_model,model_r, model_state(:,ispec_model-1+n))
            enddo
 
-           if (dens > cutoff_density .and. state(i,j,k,UFS-1+ifuel) > 0.99d0) then
+           if (dens > cutoff_density .and. state(i,j,k,UFS-1+ifuel) > 0.99e0_rt) then
               state(i,j,k,UTEMP) = temp * (ONE + (pert_factor * &
                    (ONE + tanh((x_pert_loc-x)/pert_width)) ) )
            else

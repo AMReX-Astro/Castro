@@ -4,11 +4,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use bl_error_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
   integer name(namlen)
-  double precision problo(2), probhi(2)
+  real(rt)         problo(2), probhi(2)
 
   integer untin,i
 
@@ -35,8 +36,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
 
   ! model composition
-  xn_model(:) = 0.0d0
-  xn_model(1) = 1.0d0
+  xn_model(:) = 0.0e0_rt
+  xn_model(1) = 1.0e0_rt
 
   ! Read namelists
   untin = 9
@@ -45,17 +46,17 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   ! set local variable defaults
-  center(1) = 0.5d0*(problo(1)+probhi(1))
-  center(2) = 0.5d0*(problo(2)+probhi(2))
+  center(1) = 0.5e0_rt*(problo(1)+probhi(1))
+  center(2) = 0.5e0_rt*(problo(2)+probhi(2))
 
   ymin = problo(2)
   ymax = probhi(2)
 
   if (single) then
-     left_bubble_x_center = problo(1) + 0.5d0*(probhi(1)-problo(1))
+     left_bubble_x_center = problo(1) + 0.5e0_rt*(probhi(1)-problo(1))
   else
-     left_bubble_x_center = problo(1) + (probhi(1)-problo(1))/3.d0
-     right_bubble_x_center = problo(1) + 2.d0*(probhi(1)-problo(1))/3.d0
+     left_bubble_x_center = problo(1) + (probhi(1)-problo(1))/3.e0_rt
+     right_bubble_x_center = problo(1) + 2.e0_rt*(probhi(1)-problo(1))/3.e0_rt
   endif
 
 end subroutine amrex_probinit
@@ -95,18 +96,19 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use model_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
-  double precision xlo(2), xhi(2), time, delta(2)
-  double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+  real(rt)         xlo(2), xhi(2), time, delta(2)
+  real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
 
   integer i,j,npts_1d
-  double precision z,xn(nspec),x,y,x1,y1,x2,y2,r1,r2,const
+  real(rt)         z,xn(nspec),x,y,x1,y1,x2,y2,r1,r2,const
 
-  double precision, allocatable :: r_model(:), rho_model(:), T_model(:), &
+  real(rt)        , allocatable :: r_model(:), rho_model(:), T_model(:), &
                                    e_model(:), p_model(:)
 
   integer :: lo_model, hi_model
@@ -137,10 +139,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      y2 = y_pert_center
 
      do j=lo(2),hi(2)
-        y = (dble(j)+0.5d0)*delta(2) + ymin
+        y = (dble(j)+0.5e0_rt)*delta(2) + ymin
 
         do i=lo(1),hi(1)
-           x = (dble(i)+0.5d0)*delta(1)
+           x = (dble(i)+0.5e0_rt)*delta(1)
 
            r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / pert_width
            r2 = sqrt( (x-x2)**2 +(y-y2)**2 ) / pert_width
@@ -151,16 +153,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            ! which bubble are we in? -- we want their rho perturbations to be the
            ! same so they have the same buoyancy
-           if (r1 < 2.0d0) then
-              state(i,j,URHO) = rho_model(j) * (1.d0 - (pert_factor * (1.d0 + tanh(2.d0-r1))))
-              eos_state % xn(:) = 0.0d0
-              eos_state % xn(2) = 1.0d0
+           if (r1 < 2.0e0_rt) then
+              state(i,j,URHO) = rho_model(j) * (1.e0_rt - (pert_factor * (1.e0_rt + tanh(2.e0_rt-r1))))
+              eos_state % xn(:) = 0.0e0_rt
+              eos_state % xn(2) = 1.0e0_rt
            endif
 
-           if (r2 < 2.0d0) then
-              state(i,j,URHO) = rho_model(j) * (1.d0 - (pert_factor * (1.d0 + tanh(2.d0-r2))))
-              eos_state % xn(:) = 0.0d0
-              eos_state % xn(3) = 1.0d0
+           if (r2 < 2.0e0_rt) then
+              state(i,j,URHO) = rho_model(j) * (1.e0_rt - (pert_factor * (1.e0_rt + tanh(2.e0_rt-r2))))
+              eos_state % xn(:) = 0.0e0_rt
+              eos_state % xn(3) = 1.0e0_rt
            endif
 
            eos_state % p = p_model(j)
@@ -179,7 +181,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            ! assumes ke=0
            state(i,j,UEDEN) = state(i,j,UEINT)
 
-           state(i,j,UMX:UMY) = 0.d0
+           state(i,j,UMX:UMY) = 0.e0_rt
 
         end do
      end do
@@ -190,10 +192,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      y1 = y_pert_center
 
      do j=lo(2),hi(2)
-        y = (dble(j)+0.5d0)*delta(2) + ymin
+        y = (dble(j)+0.5e0_rt)*delta(2) + ymin
 
         do i=lo(1),hi(1)
-           x = (dble(i)+0.5d0)*delta(1)
+           x = (dble(i)+0.5e0_rt)*delta(1)
 
            r1 = sqrt( (x-x1)**2 +(y-y1)**2 ) / pert_width
 
@@ -203,10 +205,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            ! which bubble are we in? -- we want their rho perturbations to be the
            ! same so they have the same buoyancy
-           if (r1 < 2.0d0) then
-              state(i,j,URHO) = rho_model(j) * (1.d0 - (pert_factor * (1.d0 + tanh(2.d0-r1))))
-              eos_state % xn(:) = 0.0d0
-              eos_state % xn(2) = 1.0d0
+           if (r1 < 2.0e0_rt) then
+              state(i,j,URHO) = rho_model(j) * (1.e0_rt - (pert_factor * (1.e0_rt + tanh(2.e0_rt-r1))))
+              eos_state % xn(:) = 0.0e0_rt
+              eos_state % xn(2) = 1.0e0_rt
            endif
 
            eos_state % p = p_model(j)
@@ -225,7 +227,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            ! assumes ke=0
            state(i,j,UEDEN) = state(i,j,UEINT)
 
-           state(i,j,UMX:UMY) = 0.d0
+           state(i,j,UMX:UMY) = 0.e0_rt
 
         end do
      end do

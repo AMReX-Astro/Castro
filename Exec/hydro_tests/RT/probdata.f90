@@ -1,12 +1,13 @@
 module probdata_module
 
-  double precision , save :: frac
+  use bl_fort_module, only : rt => c_real
+  real(rt)         , save :: frac
 
-  double precision , save :: split(3)
+  real(rt)         , save :: split(3)
 
   ! RT parameters
-  double precision, save :: rho_1, rho_2
-  double precision, save :: p0_base
-  double precision, save :: L_x
+  real(rt)        , save :: rho_1, rho_2
+  real(rt)        , save :: p0_base
+  real(rt)        , save :: L_x
 
 end module probdata_module

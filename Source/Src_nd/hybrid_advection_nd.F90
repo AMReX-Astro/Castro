@@ -1,5 +1,6 @@
 module hybrid_advection_module
 
+  use bl_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -13,14 +14,15 @@ contains
     use castro_util_module, only: position
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     integer          :: i, j, k
-    double precision :: loc(3)
+    real(rt)         :: loc(3)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -48,16 +50,17 @@ contains
     use network, only: nspec, naux
     use eos_module
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: s_lo(3), s_hi(3)
     integer          :: e_lo(3), e_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    double precision :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
 
     integer          :: i, j, k
-    double precision :: loc(3), R, rhoInv
+    real(rt)         :: loc(3), R, rhoInv
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -86,12 +89,13 @@ contains
 
     use bl_constants_module, only: ZERO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision, intent(in) :: loc(3), mom_in(3)
-    double precision :: mom_out(3)
+    real(rt)        , intent(in) :: loc(3), mom_in(3)
+    real(rt)         :: mom_out(3)
 
-    double precision :: R
+    real(rt)         :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -119,12 +123,13 @@ contains
 
     use bl_constants_module, only: ZERO
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision, intent(in) :: loc(3), mom_in(3)
-    double precision :: mom_out(3)
+    real(rt)        , intent(in) :: loc(3), mom_in(3)
+    real(rt)         :: mom_out(3)
 
-    double precision :: R
+    real(rt)         :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -142,12 +147,13 @@ contains
 
   subroutine add_hybrid_momentum_source(loc, mom, source)
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision, intent(in   ) :: loc(3), source(3)
-    double precision, intent(inout) :: mom(3)
+    real(rt)        , intent(in   ) :: loc(3), source(3)
+    real(rt)        , intent(inout) :: mom(3)
 
-    double precision :: R
+    real(rt)         :: R
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -159,6 +165,26 @@ contains
 
   end subroutine add_hybrid_momentum_source
 
+  subroutine set_hybrid_momentum_source(loc, mom, source)
+
+    use bl_fort_module, only : rt => c_real
+    implicit none
+
+    real(rt), intent(in   ) :: loc(3), source(3)
+    real(rt), intent(inout) :: mom(3)
+
+    real(rt) :: R
+
+    R = sqrt( loc(1)**2 + loc(2)**2 )
+
+    ! This is analogous to the conversion of linear momentum to hybrid momentum.
+
+    mom(1) = -source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
+    mom(2) =  source(2) * loc(2) - source(2) * loc(1)
+    mom(3) =  source(3)
+
+  end subroutine set_hybrid_momentum_source
+
 
 
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
@@ -168,17 +194,18 @@ contains
     use prob_params_module, only: center
     use castro_util_module, only: position
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
-    double precision :: state(NGDNV)
-    double precision :: flux(NVAR)
+    real(rt)         :: state(NGDNV)
+    real(rt)         :: flux(NVAR)
     integer          :: idir, idx(3)
     logical, optional :: cell_centered
 
-    double precision :: linear_mom(3), hybrid_mom(3)
-    double precision :: loc(3), R
+    real(rt)         :: linear_mom(3), hybrid_mom(3)
+    real(rt)         :: loc(3), R
 
-    double precision :: u_adv
+    real(rt)         :: u_adv
     logical :: cc
 
     cc = .false.
@@ -247,6 +274,7 @@ contains
     use castro_util_module, only: position
     use amrinfo_module, only: amr_level
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -254,14 +282,14 @@ contains
     integer          :: qx_lo(3), qx_hi(3)
     integer          :: qy_lo(3), qy_hi(3)
     integer          :: qz_lo(3), qz_hi(3)
-    double precision :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    double precision :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    double precision :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    double precision :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    double precision :: dt
+    real(rt)         :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)         :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt)         :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt)         :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt)         :: dt
 
     integer          :: i, j, k
-    double precision :: loc(3), R, dx(3)
+    real(rt)         :: loc(3), R, dx(3)
 
     dx = dx_level(:,amr_level)
 
@@ -293,14 +321,15 @@ contains
     use castro_util_module, only: position
     use prob_params_module, only: center
 
+    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: state_lo(3), state_hi(3)
-    double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     integer          :: i, j, k
-    double precision :: loc(3)
+    real(rt)         :: loc(3)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

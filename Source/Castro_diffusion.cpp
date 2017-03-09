@@ -122,7 +122,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
     MultiFab *S;
-    
+
     if (is_old == 1) {
       S = &get_old_data(State_Type);
     } else if (is_old == 0) {
