@@ -624,11 +624,11 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
           fill_multipole_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
       } else {
 	int fill_interior = 0;
-	make_radial_phi(crse_level,rhs[0],*delta_phi[crse_level],fill_interior);
+	make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
       }
 #else
       int fill_interior = 0;
-      make_radial_phi(crse_level,rhs[0],*delta_phi[crse_level],fill_interior);
+      make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
 #endif
 
     }
