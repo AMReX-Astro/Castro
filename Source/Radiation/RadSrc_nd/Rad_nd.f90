@@ -16,7 +16,7 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   use rad_params_module, only: radtoE  !, radtoJ, Etorad, radfluxtoF
   use rad_params_module, only: etafactor
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)         p, c, h, k, s, a, m
@@ -60,7 +60,7 @@ end subroutine ca_initradconstants
 subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
 
   use rad_params_module, only : ngroups, nugroup, dnugroup, ng0, ng1
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer ngr
 
@@ -91,7 +91,7 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)         nugr(0:ngr-1), dnugr(0:ngr-1)
@@ -118,7 +118,7 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), xnugr(0:ngr)
@@ -150,7 +150,7 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
        xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
@@ -206,7 +206,7 @@ subroutine ca_setgroup(igroup)
 
   use rad_params_module, only: current_group
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer igroup
 
@@ -226,7 +226,7 @@ subroutine ca_inelastic_sct (lo, hi, &
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3
   integer, intent(in) :: Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3
@@ -273,7 +273,7 @@ subroutine ca_compute_scattering(lo, hi, &
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -322,7 +322,7 @@ subroutine ca_compute_scattering_2(lo, hi, &
   use rad_params_module, only : ngroups, nugroup
   use meth_params_module, only : NVAR, URHO, UTEMP
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -372,7 +372,7 @@ subroutine init_godunov_indices_rad() bind(C)
        QU, QV, QW
   use rad_params_module, only: ngroups
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   ngdnv = 6 + 2*ngroups

@@ -11,7 +11,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use bl_constants_module
   use bl_error_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
@@ -89,7 +89,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : center, problo
   use network, only: nspec
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal

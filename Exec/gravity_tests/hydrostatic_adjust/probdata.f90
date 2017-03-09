@@ -1,7 +1,7 @@
 module probdata_module
 
   ! make the model name enter through the probin file
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   character (len=80), save  :: model_name
 
   ! arrange storage for read_in model-- not worrying about efficiency, 

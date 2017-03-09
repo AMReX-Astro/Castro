@@ -12,7 +12,7 @@ subroutine ca_filt_prim(lo, hi, &
        UFA, UFS, UFX, small_temp, small_dens, nadv
   use filter_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3), level

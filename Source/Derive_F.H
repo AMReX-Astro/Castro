@@ -91,8 +91,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
   void ca_derdiffcoeff
@@ -100,8 +100,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
   void ca_derdiffterm
@@ -109,8 +109,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
      const int* lo, const int* hi,
      const int* domain_lo, const int* domain_hi,
-     const Real* delta, const Real* xlo,
-     const Real* time, const Real* dt, const int* bcrec, 
+     const amrex::Real* delta, const amrex::Real* xlo,
+     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
   void ca_derenuctimescale

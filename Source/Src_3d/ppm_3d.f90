@@ -1,6 +1,6 @@
 module ppm_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -20,7 +20,7 @@ contains
 
     use meth_params_module, only : ppm_type
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -80,7 +80,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -540,7 +540,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)

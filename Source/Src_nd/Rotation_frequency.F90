@@ -1,6 +1,6 @@
 module rotation_frequency_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -15,7 +15,7 @@ contains
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)         :: time
@@ -59,7 +59,7 @@ contains
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
     use bl_constants_module, only: ZERO, TWO, M_PI
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)         :: time

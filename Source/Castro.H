@@ -550,7 +550,7 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    static Array<std::string> source_names;
+    static amrex::Array<std::string> source_names;
 
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level

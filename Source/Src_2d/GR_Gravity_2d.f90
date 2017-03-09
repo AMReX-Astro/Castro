@@ -12,7 +12,7 @@
       use network, only : nspec, naux
       use bl_constants_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       implicit none
 
       integer          :: lo(2),hi(2)

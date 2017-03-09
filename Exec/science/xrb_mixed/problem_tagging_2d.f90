@@ -1,6 +1,6 @@
 module problem_tagging_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,7 +16,7 @@ contains
     use meth_params_module, only: URHO, NVAR, UFS
     use probdata_module, only: H_min, cutoff_density
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer         ,intent(in   ) :: lo(2),hi(2)

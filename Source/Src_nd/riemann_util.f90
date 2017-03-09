@@ -3,7 +3,7 @@ module riemann_util_module
   use bl_types
   use bl_constants_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -197,7 +197,7 @@ contains
                                    npassive, upass_map, qpass_map
     use prob_params_module, only : coord_type
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
     real(rt)        , intent(inout) :: f(NVAR)
     integer, intent(in) :: idir, ndim

@@ -6,7 +6,7 @@ module blackbody_module
 
   use fundamental_constants_module, only : a_rad, k_B, hplanck
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   
   real(rt)        , parameter :: pi = 3.1415926535897932384626e0_rt
@@ -30,7 +30,7 @@ module blackbody_module
   contains
 
     subroutine BdBdTIndefInteg(T, nu, B, dBdT)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       real(rt)        , intent(in) :: T, nu
       real(rt)        , intent(out) :: B, dBdT
       real(rt)         :: x, integ, part
@@ -56,7 +56,7 @@ module blackbody_module
     end subroutine BdBdTIndefInteg
 
     function BIndefInteg(T, nu)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       real(rt)         BIndefInteg
       real(rt)        , intent(in) :: T, nu
       real(rt)         :: x, integ
@@ -78,14 +78,14 @@ module blackbody_module
     end function BIndefInteg
 
     function BGroup(T, nu0, nu1)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       real(rt)         BGroup
       real(rt)        , intent(in) :: T, nu0, nu1
       BGroup = BIndefInteg(T,nu1) - BIndefInteg(T,nu0)
     end function BGroup
     
     function Li(n, z)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       integer, intent(in) :: n
       real(rt)        , intent(in) :: z
       real(rt)         :: Li, t
@@ -102,7 +102,7 @@ module blackbody_module
     end function Li
 
     function integlarge(x)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       real(rt)        , intent(in) :: x
       real(rt)         :: integlarge, z
       z = exp(-x)
@@ -112,7 +112,7 @@ module blackbody_module
     end function integlarge
 
     function integsmall(x)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       real(rt)        , intent(in) :: x
       real(rt)         :: integsmall, t
       integer :: i

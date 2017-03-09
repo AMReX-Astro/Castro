@@ -9,7 +9,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
@@ -107,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : problo
   use prob_util_module, only : analytic
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal

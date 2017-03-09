@@ -3,7 +3,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use probdata_module
   use network, only : network_init
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer init, namlen
@@ -66,7 +66,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec, naux
   use eos_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   
   integer :: level, nscal
@@ -143,7 +143,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer :: level, nrad
   integer :: lo(2), hi(2)

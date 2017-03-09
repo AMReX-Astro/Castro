@@ -14,7 +14,7 @@ contains
                      source,src_lo,src_hi, &
                      dx,dt,time) bind(C, name="ca_gsrc")
 
-    use bl_fort_module, only: rt => c_real
+    use amrex_fort_module, only: rt => c_real
     use bl_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use math_module, only: cross_product
@@ -179,7 +179,7 @@ contains
                          source,sr_lo,sr_hi, &
                          dx,dt,time) bind(C, name="ca_corrgsrc")
 
-    use bl_fort_module, only: rt => c_real
+    use amrex_fort_module, only: rt => c_real
     use bl_constants_module, only: ZERO, FOURTH, HALF, ONE
     use mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &

@@ -8,7 +8,7 @@ subroutine ca_ext_src(lo,hi, &
   use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UTEMP, UFS
   use network, only: network_species_index
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer         , intent(in   ) :: lo(2),hi(2)
   integer         , intent(in   ) :: old_state_l1,old_state_l2,old_state_h1,old_state_h2

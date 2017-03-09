@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,7 +16,7 @@ contains
     use meth_params_module, only: NVAR
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -42,7 +42,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -65,7 +65,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -87,7 +87,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -109,7 +109,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -131,7 +131,7 @@ contains
 
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -155,7 +155,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -177,7 +177,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -199,7 +199,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -221,7 +221,7 @@ contains
 
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -244,7 +244,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -268,7 +268,7 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'

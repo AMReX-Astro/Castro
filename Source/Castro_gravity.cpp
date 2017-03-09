@@ -173,7 +173,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 
 	    phi_new.plus(comp_minus_level_phi, 0, 1, 0);
 	    for (int n = 0; n < BL_SPACEDIM; ++n)
-		gravity->get_grad_phi_curr(level)[n].plus(comp_minus_level_grad_phi[n], 0, 1, 0);
+		gravity->get_grad_phi_curr(level)[n]->plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
 	    if (gravity->test_results_of_solves() == 1) {
 
@@ -207,7 +207,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 		phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
 		for (int n = 0; n < BL_SPACEDIM; ++n)
-		    gravity->get_grad_phi_curr(level)[n].minus(comp_minus_level_grad_phi[n], 0, 1, 0);
+		    gravity->get_grad_phi_curr(level)[n]->minus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
 	    }
 
@@ -251,9 +251,9 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
 #ifdef SELF_GRAVITY
-		BL_TO_FORTRAN_3D(*grav_old[mfi]),
+		BL_TO_FORTRAN_3D(grav_old[mfi]),
 #endif
-		BL_TO_FORTRAN_3D(*old_sources[grav_src][mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[grav_src])[mfi]),
 		ZFILL(dx),dt,&time);
 
     }
@@ -285,11 +285,11 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     Array<std::unique_ptr<MultiFab> > grad_phi_curr(3);
             
     for (int n = 0; n < BL_SPACEDIM; ++n) {
-	grad_phi_prev.set(n, new MultiFab(getEdgeBoxArray(n), 1, 0));
-	grad_phi_prev[n].setVal(0.0);
+	grad_phi_prev[n].reset( new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
+	grad_phi_prev[n]->setVal(0.0);
 
-	grad_phi_curr.set(n, new MultiFab(getEdgeBoxArray(n), 1, 0));
-	grad_phi_curr[n].setVal(0.0);
+	grad_phi_curr[n].reset( new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
+	grad_phi_curr[n]->setVal(0.0);
     }
 
     // For non-simulated dimensions, we'll do the same thing
@@ -298,10 +298,10 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     // of gravity type.
 
     for (int n = BL_SPACEDIM; n < 3; ++n) {
-	grad_phi_prev.set(n, new MultiFab(grids, 1, 0));
-	grad_phi_prev[n].setVal(0.0);
-	grad_phi_curr.set(n, new MultiFab(grids, 1, 0));
-	grad_phi_curr[n].setVal(0.0);
+	grad_phi_prev[n].reset( new MultiFab(grids, dmap, 1, 0));
+	grad_phi_prev[n]->setVal(0.0);
+	grad_phi_curr[n].reset( new MultiFab(grids, dmap, 1, 0));
+	grad_phi_curr[n]->setVal(0.0);
     }
 
     // Now if we actually have Poisson gravity, copy the data over.
@@ -310,8 +310,8 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     if (gravity->get_gravity_type() == "PoissonGrav") {
 
 	for (int n = 0; n < BL_SPACEDIM; ++n) {
-	    MultiFab::Copy(grad_phi_prev[n], gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
-	    MultiFab::Copy(grad_phi_curr[n], gravity->get_grad_phi_curr(level)[n], 0, 0, 1, 0);
+	    MultiFab::Copy(*grad_phi_prev[n], *(gravity->get_grad_phi_prev(level)[n]), 0, 0, 1, 0);
+	    MultiFab::Copy(*grad_phi_curr[n], *(gravity->get_grad_phi_curr(level)[n]), 0, 0, 1, 0);
 	}
 
     }
@@ -343,7 +343,7 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[grav_src][mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
 			ZFILL(dx),dt,&time);
 
 	}

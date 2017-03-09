@@ -1,13 +1,13 @@
 module model_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
 contains
 
   subroutine get_model_size(ymin, ymax, dy, lo, hi)
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     real(rt)        , intent(in) :: ymin, ymax, dy
     integer, intent(out) :: lo, hi
     
@@ -33,7 +33,7 @@ contains
     use eos_type_module
     use meth_params_module, only: const_grav
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer, intent(in) :: lo, hi
     real(rt)        , intent(in) :: ymin, ymax, dy
     real(rt)        , intent(in) :: pres_base, dens_base

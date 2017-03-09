@@ -11,7 +11,7 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
@@ -69,7 +69,7 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
@@ -127,7 +127,7 @@ subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p
@@ -174,7 +174,7 @@ subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
   use interpolate_module
   use model_parser_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer          :: p_lo(3),p_hi(3),ncomp_p

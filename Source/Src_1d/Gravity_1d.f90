@@ -1,6 +1,6 @@
 module gravity_1D_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -14,7 +14,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(1),hi(1)
@@ -77,7 +77,7 @@ contains
     use prob_params_module, only: center, Symmetry, physbc_lo, coord_type
     use meth_params_module, only: NVAR, URHO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(1), hi(1)
@@ -164,7 +164,7 @@ contains
     use prob_params_module, only: center
     use bl_constants_module, only: HALF, TWO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(1), hi(1)
@@ -256,7 +256,7 @@ contains
     use prob_params_module, only: center
     use bl_constants_module, only: HALF, TWO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
     integer          :: lo(1), hi(1)
     integer          :: domlo(1), domhi(1)

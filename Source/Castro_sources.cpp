@@ -268,7 +268,7 @@ Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
   // Create a temporary array which will hold a single component
   // at a time of the volume-weighted source.
 
-  MultiFab weighted_source(source.boxArray(), 1, 0);
+  MultiFab weighted_source(source.boxArray(), source.DistributionMap(), 1, 0);
 
   for (int n = 0; n < source.nComp(); ++n) {
 
@@ -334,7 +334,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
     if (!source_flag(n)) continue;
 
-    MultiFab& source = is_new ? new_sources[n] : old_sources[n];
+    MultiFab& source = is_new ? *new_sources[n] : *old_sources[n];
 
     summed_updates[n] = evaluate_source_change(source, dt, local);
 

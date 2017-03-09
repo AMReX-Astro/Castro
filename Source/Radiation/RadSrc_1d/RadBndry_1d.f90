@@ -14,7 +14,7 @@ subroutine rbndry(  &
 
   use rad_params_module, only : ngroups
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: b_l1, b_h1

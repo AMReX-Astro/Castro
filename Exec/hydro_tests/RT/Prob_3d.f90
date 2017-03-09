@@ -3,7 +3,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use eos_module, only : gamma_const
   use bl_error_module
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
@@ -81,7 +81,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module, only: ZERO, HALF, M_PI
   use eos_module, only : gamma_const
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
         
   integer :: level, nscal

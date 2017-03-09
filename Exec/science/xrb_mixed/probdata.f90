@@ -1,6 +1,6 @@
 module probdata_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   real(rt)        , save :: H_min, cutoff_density
 
   character(len=80), save :: model_name

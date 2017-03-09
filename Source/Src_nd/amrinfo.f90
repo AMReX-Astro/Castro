@@ -3,7 +3,7 @@
 
 module amrinfo_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: amr_level = 0

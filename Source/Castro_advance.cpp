@@ -519,18 +519,18 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int i = 0; i < BL_SPACEDIM; ++i) {
 	    if (level < parent->finestLevel())
-		getLevel(level+1).flux_reg.CrseInit(fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+		getLevel(level+1).flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
 	    if (level > 0)
-	        getLevel(level).flux_reg.FineAdd(fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+	        getLevel(level).flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
 	}
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
 
 	    if (level < parent->finestLevel())
-		getLevel(level+1).pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+		getLevel(level+1).pres_reg.CrseInit(*P_radial, 0, 0, 0, 1, pres_crse_scale);
 	    if (level > 0)
-		getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+		getLevel(level).pres_reg.FineAdd(*P_radial, 0, 0, 0, 1, pres_fine_scale);
 
 	}
 #endif
@@ -540,9 +540,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		if (level < parent->finestLevel())
-		    getLevel(level+1).rad_flux_reg.CrseInit(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+		    getLevel(level+1).rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
 		if (level > 0)
-		    getLevel(level).rad_flux_reg.FineAdd(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+		    getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
 	    }
 
 	}

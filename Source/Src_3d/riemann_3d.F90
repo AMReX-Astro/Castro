@@ -24,7 +24,7 @@ module riemann_module
   use rad_params_module, only : ngroups
 #endif
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -53,7 +53,7 @@ contains
     use eos_module
     use network, only: nspec, naux
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -313,7 +313,7 @@ contains
     use prob_params_module, only : coord_type
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: lo(3), hi(3)
@@ -438,7 +438,7 @@ contains
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer :: qpd_lo(3),qpd_hi(3)
@@ -1071,7 +1071,7 @@ contains
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer :: qpd_lo(3),qpd_hi(3)
@@ -1535,7 +1535,7 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use prob_params_module, only : physbc_lo, physbc_hi, Symmetry, SlipWall, NoSlipWall
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer :: qpd_lo(3),qpd_hi(3)

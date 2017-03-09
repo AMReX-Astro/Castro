@@ -448,7 +448,7 @@ Castro::Castro (Amr&            papa,
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
       {
 	  std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
-	  BoxLib::Error();
+	  amrex::Error();
       }
 #endif
 
@@ -2339,7 +2339,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	// Evaluate what the effective reset source was.
 
-	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+	MultiFab reset_source(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
 
 	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
 
@@ -2617,7 +2617,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
     if (print_update_diagnostics)
     {
-	old_state.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
+	old_state.define(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
         MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
 
@@ -2645,7 +2645,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
 	// Evaluate what the effective reset source was.
 
-	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
+	MultiFab reset_source(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
 
 	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
 

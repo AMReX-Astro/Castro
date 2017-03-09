@@ -600,10 +600,10 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
     Array<std::unique_ptr<MultiFab> > rhs(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-	rhs.set(lev - crse_level, new MultiFab(LevelData[lev].boxArray(), 1, 0));
-	MultiFab::Copy(rhs[lev - crse_level], dphi[lev - crse_level], 0, 0, 1, 0);
-	rhs[lev - crse_level].mult(1.0 / Ggravity);
-	MultiFab::Add(rhs[lev - crse_level], drho[lev - crse_level], 0, 0, 1, 0);
+	rhs[lev - crse_level].reset( new MultiFab(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0));
+	MultiFab::Copy(*rhs[lev - crse_level], *dphi[lev - crse_level], 0, 0, 1, 0);
+	rhs[lev - crse_level]->mult(1.0 / Ggravity);
+	MultiFab::Add(*rhs[lev - crse_level], *drho[lev - crse_level], 0, 0, 1, 0);
     }
 
     // Construct the boundary conditions for the Poisson solve.
@@ -615,13 +615,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
 
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
-        fill_direct_sum_BCs(crse_level,fine_level,rhs,*delta_phi[crse_level]);
+          fill_direct_sum_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
       else {
-        fill_multipole_BCs(crse_level,fine_level,rhs,*delta_phi[crse_level]);
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
       }
 #elif (BL_SPACEDIM == 2)
       if (lnum > 0) {
-	fill_multipole_BCs(crse_level,fine_level,rhs,*delta_phi[crse_level]);
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
       } else {
 	int fill_interior = 0;
 	make_radial_phi(crse_level,rhs[0],*delta_phi[crse_level],fill_interior);
@@ -635,7 +635,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
 
     // Restore the factor of (4 * pi * G) for the Poisson solve.
     for (int lev = crse_level; lev <= fine_level; ++lev)
-	rhs[lev - crse_level].mult(Ggravity);
+	rhs[lev - crse_level]->mult(Ggravity);
 
     // In the all-periodic case we enforce that the RHS sums to zero.
     // We only do this if we're periodic and the coarse level covers the whole domain.

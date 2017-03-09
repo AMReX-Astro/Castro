@@ -5,7 +5,7 @@ module rotation_module
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
                                 rotation_include_domegadt
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -22,7 +22,7 @@ contains
     use prob_params_module, only: center
     use castro_util_module, only: position
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: idx(3)
@@ -65,7 +65,7 @@ contains
     use bl_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)         :: r(3), v(3), time
@@ -177,7 +177,7 @@ contains
     use bl_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)         :: r(3), time
@@ -215,7 +215,7 @@ contains
     use prob_params_module, only: problo, center
     use bl_constants_module, only: HALF
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -253,7 +253,7 @@ contains
     use prob_params_module, only: problo, center
     use bl_constants_module, only: HALF
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)

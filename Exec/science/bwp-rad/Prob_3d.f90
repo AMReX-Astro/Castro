@@ -5,7 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use bl_error_module
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer init, namlen
   integer name(namlen)
@@ -86,7 +86,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer level, nscal
@@ -168,7 +168,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use model_parser_module
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   integer level, nrad
   integer lo(3), hi(3)
   integer rad_state_l1,rad_state_l2, rad_state_l3

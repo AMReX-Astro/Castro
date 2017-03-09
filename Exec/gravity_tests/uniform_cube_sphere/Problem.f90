@@ -4,7 +4,7 @@ subroutine problem_checkpoint(int_dir_name, len) bind(c)
 
   ! called by the IO processor during checkpoint
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -18,7 +18,7 @@ subroutine problem_restart(int_dir_name, len) bind(c)
 
   ! called by ALL processors during restart 
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: len
@@ -34,7 +34,7 @@ subroutine get_problem_number(problem_out) bind(C,name='get_problem_number')
 
   use probdata_module, only: problem
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: problem_out
@@ -51,7 +51,7 @@ subroutine get_diameter(diameter_out) bind(C,name='get_diameter')
 
   use probdata_module, only: diameter
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)         :: diameter_out
@@ -68,7 +68,7 @@ subroutine get_density(density_out) bind(C,name='get_density')
 
   use probdata_module, only: density
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)         :: density_out
@@ -93,7 +93,7 @@ subroutine update_density(lo, hi, dx, &
   use prob_params_module, only: problo, center
   use probdata_module, only: problem, diameter
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer         , intent(in   ) :: lo(3), hi(3)

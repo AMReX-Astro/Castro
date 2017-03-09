@@ -3,7 +3,7 @@
 
 module trace_ppm_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -27,7 +27,7 @@ contains
          npassive, qpass_map
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -975,7 +975,7 @@ contains
          npassive, qpass_map
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)

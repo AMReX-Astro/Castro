@@ -12,7 +12,7 @@
 module constants_module
 
   ! fundamental constants
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   real(rt)        , parameter :: h_planck = 6.62606957e-27_rt   ! erg s
   real(rt)        , parameter :: k_B = 1.3806488e-16_rt  ! erg / K
   real(rt)        , parameter :: c_light = 2.99792458e10_rt  ! cm / s
@@ -39,7 +39,7 @@ function planck(nu,T) result (B)
   ! have units of erg / cm^3 / MeV.  As a result, we have one
   ! less factor of h_planck.
   use constants_module
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   real(rt)        , intent(in) :: nu, T

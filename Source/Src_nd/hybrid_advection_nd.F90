@@ -1,6 +1,6 @@
 module hybrid_advection_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
 contains
@@ -14,7 +14,7 @@ contains
     use castro_util_module, only: position
     use prob_params_module, only: center
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -50,7 +50,7 @@ contains
     use network, only: nspec, naux
     use eos_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -89,7 +89,7 @@ contains
 
     use bl_constants_module, only: ZERO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)        , intent(in) :: loc(3), mom_in(3)
@@ -123,7 +123,7 @@ contains
 
     use bl_constants_module, only: ZERO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)        , intent(in) :: loc(3), mom_in(3)
@@ -147,7 +147,7 @@ contains
 
   subroutine add_hybrid_momentum_source(loc, mom, source)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)        , intent(in   ) :: loc(3), source(3)
@@ -167,7 +167,7 @@ contains
 
   subroutine set_hybrid_momentum_source(loc, mom, source)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt), intent(in   ) :: loc(3), source(3)
@@ -194,7 +194,7 @@ contains
     use prob_params_module, only: center
     use castro_util_module, only: position
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     real(rt)         :: state(NGDNV)
@@ -274,7 +274,7 @@ contains
     use castro_util_module, only: position
     use amrinfo_module, only: amr_level
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -321,7 +321,7 @@ contains
     use castro_util_module, only: position
     use prob_params_module, only: center
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)

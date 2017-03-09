@@ -9,7 +9,7 @@ subroutine ca_accel_acoe_neut( lo, hi,  &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -63,7 +63,7 @@ subroutine ca_accel_rhs_neut( lo, hi, &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -121,7 +121,7 @@ subroutine ca_accel_spec_neut( lo, hi, &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in) :: lo(1), hi(1)
@@ -208,7 +208,7 @@ subroutine ca_check_conv_neut( lo, hi, &
      dt)
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in)::lo(1),hi(1)
@@ -298,7 +298,7 @@ subroutine ca_check_conv_er_neut( lo, hi, &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -360,7 +360,7 @@ subroutine ca_compute_coupty( lo, hi, &
   
   use rad_params_module, only : ngroups, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -406,7 +406,7 @@ subroutine ca_compute_dedx( lo, hi,  &
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -511,7 +511,7 @@ subroutine ca_compute_eta_the( lo, hi, &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -627,7 +627,7 @@ subroutine ca_compute_rhs_neut( lo, hi, &
 
   use rad_params_module, only : ngroups, clight
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in):: lo(1), hi(1)
@@ -700,7 +700,7 @@ subroutine ca_local_accel_neut( lo, hi,  &
 
   use rad_params_module, only : ngroups, clight, erg2rhoYe
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in):: lo(1), hi(1)
@@ -773,7 +773,7 @@ subroutine ca_opac_emis_neut( lo, hi,  &
   use opacity_table_module, only : prep_opacity, get_opacity_emissivity
   use meth_params_module, only : NVAR, URHO
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -921,7 +921,7 @@ subroutine ca_state_update_neut( lo, hi, &
 
   use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, UFX
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1) 
@@ -986,7 +986,7 @@ subroutine ca_update_matter_neut( lo, hi,  &
   use rad_params_module, only : ngroups, erg2rhoYe, clight
   use meth_params_module, only : NVAR, URHO
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in)::lo(1),hi(1)
@@ -1093,7 +1093,7 @@ subroutine ca_ncupdate_matter_neut( lo, hi,  &
 
   use rad_params_module, only : ngroups, erg2rhoYe, clight
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer,intent(in)::lo(1),hi(1)
@@ -1170,7 +1170,7 @@ subroutine ca_compute_rosseland_neut( lo, hi,  &
   use opacity_table_module, only : prep_opacity, get_opacity_emissivity
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)
@@ -1216,7 +1216,7 @@ subroutine ca_compute_planck_neut( lo, hi,  &
   use opacity_table_module, only : prep_opacity, get_opacity_emissivity
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(1), hi(1)

@@ -1,6 +1,6 @@
 module MGutils_1D_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -12,7 +12,7 @@ contains
        rhs, rl1, rh1,  &
        ecx, ecxl1, ecxh1, dx, coord_type) bind(C, name="ca_apply_metric")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1),xlo(1),xhi(1)
@@ -75,7 +75,7 @@ contains
        cc, cl1, ch1,  &
        dx, coord_type) bind(C, name="ca_weight_cc")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)
@@ -116,7 +116,7 @@ contains
        cc, cl1, ch1,  &
        dx, coord_type) bind(C, name="ca_unweight_cc")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)
@@ -157,7 +157,7 @@ contains
        ecx, ecxl1, ecxh1, dx, coord_type, idir) &
        bind(C, name="ca_unweight_edges")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
     
     integer lo(1),hi(1)

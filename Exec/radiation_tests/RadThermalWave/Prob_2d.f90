@@ -2,7 +2,7 @@
       subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
       use probdata_module
       use network, only : network_init
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       implicit none
       integer init, namlen
       integer name(namlen)
@@ -83,7 +83,7 @@
 
       use network, only : nspec
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => c_real
       implicit none
       integer level, nscal
       integer lo(2), hi(2)
@@ -202,7 +202,7 @@
 
         use probdata_module
 
-        use bl_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => c_real
         implicit none
         integer level, nrad
         integer lo(2), hi(2)

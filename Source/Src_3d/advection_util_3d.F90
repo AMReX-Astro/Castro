@@ -1,6 +1,6 @@
 module advection_util_3d_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -22,7 +22,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -105,7 +105,7 @@ contains
     use meth_params_module, only : QU, QV, QW, QVAR
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)

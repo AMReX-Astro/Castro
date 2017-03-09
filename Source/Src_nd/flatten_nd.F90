@@ -3,7 +3,7 @@ module flatten_module
   use mempool_module, only : bl_allocate, bl_deallocate
   use bl_constants_module, only : ZERO
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -25,7 +25,7 @@ contains
     use prob_params_module, only : dg
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -169,7 +169,7 @@ contains
 
     use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)

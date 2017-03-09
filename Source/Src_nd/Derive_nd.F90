@@ -1,6 +1,6 @@
 module derive_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -18,7 +18,7 @@ contains
     ! The incoming   "dat" vector contains (rho,T,(rho X)_1)
     ! The outgoing "state" vector contains (rho,T,X_1)
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none 
 
     integer          :: lo(3), hi(3)
@@ -68,7 +68,7 @@ contains
     !
     ! This routine will derive the velocity from the momentum.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -105,7 +105,7 @@ contains
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -155,7 +155,7 @@ contains
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -202,7 +202,7 @@ contains
     !
     ! This routine will derive magnitude of velocity.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -240,7 +240,7 @@ contains
     !
     ! This routine will derive magnitude of the gravity vector.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none 
 
     integer          :: lo(3), hi(3)
@@ -279,7 +279,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -320,7 +320,7 @@ contains
     !
     ! This routine will derive magnitude of momentum.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -356,7 +356,7 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
@@ -400,7 +400,7 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
@@ -444,7 +444,7 @@ contains
     use bl_constants_module, only: HALF
     use math_module, only: cross_product
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
@@ -489,7 +489,7 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -536,7 +536,7 @@ contains
     use bl_constants_module
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -576,7 +576,7 @@ contains
 
     use meth_params_module, only: URHO, UEINT
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -614,7 +614,7 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -663,7 +663,7 @@ contains
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -712,7 +712,7 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -762,7 +762,7 @@ contains
     use prob_params_module, only: dim
     use eos_module, only: eos_t, eos_input_re, eos
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -828,7 +828,7 @@ contains
     !
     ! This routine derives the mass fractions of the species.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -861,7 +861,7 @@ contains
                           xlo,time,dt,bc,level,grid_no) &
                           bind(C, name="ca_derlogden")
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -899,7 +899,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -981,7 +981,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1032,7 +1032,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1069,7 +1069,7 @@ contains
     !
     ! This routine is used by particle_count.  Yes it does nothing.
     !
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1103,7 +1103,7 @@ contains
     use network
     use conductivity_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1163,7 +1163,7 @@ contains
     use network
     use conductivity_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -1220,7 +1220,7 @@ contains
     use prob_params_module, only: dim
     use diffusion_module
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: lo(3), hi(3)

@@ -6,7 +6,7 @@ subroutine ca_er_com2lab(lo, hi, &
      Elab, El_l1, El_l2, El_h1, El_h2, ier, npv)
   use meth_params_module, only : NVAR, URHO, UMX, UMY
   use rad_params_module, only : ngroups, clight, nnuspec, ng0, ng1, dlognu
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)
@@ -121,7 +121,7 @@ subroutine ca_compute_fcc(lo, hi, &
      Eddf, Eddf_l1, Eddf_l2, Eddf_h1, Eddf_h2)
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   integer, intent(in) :: lo(2), hi(2)
   integer, intent(in) :: lamx_l1, lamx_l2, lamx_h1, lamx_h2
@@ -154,7 +154,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      Fo,   Fo_l1, Fo_l2, Fo_h1, Fo_h2, ifo, nfo)
   use meth_params_module, only : NVAR, URHO, UMX, UMY
   use rad_params_module, only : ngroups, nnuspec, ng0, ng1, dlognu
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer, intent(in) :: lo(2), hi(2)

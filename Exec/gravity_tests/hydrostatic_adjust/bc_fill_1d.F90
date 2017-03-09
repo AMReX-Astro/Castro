@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   public
@@ -16,7 +16,7 @@ contains
          hse_eint_top, hse_p_top
     use network, only: nspec
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -63,7 +63,7 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: adv_l1,adv_h1
@@ -86,7 +86,7 @@ contains
 
     use probdata_module
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
@@ -106,7 +106,7 @@ contains
 
     use probdata_module
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
@@ -126,7 +126,7 @@ contains
 
     use probdata_module
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: grav_l1,grav_h1
@@ -144,7 +144,7 @@ contains
   subroutine ca_phigravfill(phi,phi_l1,phi_h1, &
                             domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -166,7 +166,7 @@ contains
   subroutine ca_reactfill(adv,adv_l1,adv_h1, &
                           domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     implicit none
 
     integer          :: adv_l1,adv_h1

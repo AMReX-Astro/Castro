@@ -7,7 +7,7 @@ subroutine update_sponge_params(time) bind(C, name="update_sponge_params")
 
   use sponge_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
   
   real(rt)        , intent(in) :: time

@@ -1,6 +1,6 @@
 module probdata_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   real(rt)        , save :: wref_l1, wref_l2
 
   ! rad shock parameters

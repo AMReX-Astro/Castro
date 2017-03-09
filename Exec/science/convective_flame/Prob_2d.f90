@@ -9,7 +9,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use eos_type_module
   use eos_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: init, namlen
@@ -106,7 +106,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use network, only: nspec, network_species_index
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   integer :: level, nscal

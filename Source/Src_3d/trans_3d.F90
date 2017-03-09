@@ -25,7 +25,7 @@ module transverse_module
 
   use eos_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => c_real
   implicit none
 
   private
@@ -35,7 +35,7 @@ contains
 
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
@@ -108,7 +108,7 @@ contains
     ! Note that what we call jlo here is jlo = lo(2) - 1
     ! Note that what we call jhi here is jhi = hi(2) + 1
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -465,7 +465,7 @@ contains
                      qx, qx_lo, qx_hi, &
                      cdtdx, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -865,7 +865,7 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -1218,7 +1218,7 @@ contains
                      qy, qy_lo, qy_hi, &
                      cdtdy, ilo, ihi, jlo, jhi, kc, km, k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
@@ -1617,7 +1617,7 @@ contains
                     qz,qz_lo,qz_hi, &
                     cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fz_lo(3),fz_hi(3)
@@ -2171,7 +2171,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdy,ilo,ihi,jlo,jhi,kc,km,k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -2653,7 +2653,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdx,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fx_lo(3),fx_hi(3)
@@ -3070,7 +3070,7 @@ contains
                      srcQ,src_lo,src_hi, &
                      hdt,cdtdy,cdtdz,ilo,ihi,jlo,jhi,km,kc,k3d)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => c_real
     integer :: qd_lo(3),qd_hi(3)
     integer :: qa_lo(3),qa_hi(3)
     integer :: fy_lo(3),fy_hi(3)
