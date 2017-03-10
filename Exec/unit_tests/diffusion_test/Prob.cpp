@@ -4,8 +4,10 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
+using namespace amrex;
+
 #ifdef DO_PROBLEM_POST_SIMULATION
-void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
+void Castro::problem_post_simulation(Array<std::unique_ptr<AmrLevel> >& amr_level) {
 
   // compute the norm of the solution vs. the analytic solution
 
@@ -16,14 +18,14 @@ void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
   for (int n = 0; n < nlevels; ++n) {
 
     // the Castro object for this level
-    Castro* castro = dynamic_cast<Castro*>(&amr_level[n]);
-    Real time = castro->get_state_data(State_Type).curTime();
+    Castro& castro = dynamic_cast<Castro&>(*amr_level[n]);
+    Real time = castro.get_state_data(State_Type).curTime();
 
     // the state data
-    MultiFab& S = castro->get_new_data(State_Type);
+    MultiFab& S = castro.get_new_data(State_Type);
 
     // derive the analytic solution
-    std::unique_ptr<MultiFab> analytic(castro->derive("analytic", time, 0));
+    auto analytic = castro.derive("analytic", time, 0);
     
     // compute the norm of the error
     MultiFab::Subtract(*analytic, S, Temp, 0, 1, 0);
@@ -32,12 +34,11 @@ void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
     
 
   }
-   
-  std::cout << std::string(78, '*') << std::endl;
-  std::cout << " diffusion problem post_simulation() " << std::endl;
-  std::cout << " L-inf error against analytic solution: " << err << std::endl;
-  std::cout << std::string(78, '*') << std::endl;
 
-
+  const std::string stars(78,'*');
+  amrex::Print() << stars << "\n"
+                 << " diffusion problem post_simulation() \n"
+                 << " L-inf error against analytic solution: " << err << "\n"
+                 << stars << "\n";
 }
 #endif

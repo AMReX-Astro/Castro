@@ -378,7 +378,7 @@ public:
 
 #ifdef DO_PROBLEM_POST_SIMULATION
     // Do work at the end of the simulation -- before the last outputs
-    static void problem_post_simulation (PArray<AmrLevel>& amr_level);
+    static void problem_post_simulation (amrex::Array<std::unique_ptr<AmrLevel> >& amr_level);
 #endif
 
     //

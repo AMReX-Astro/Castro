@@ -92,7 +92,7 @@ static int diffuse_spec;
 static int diffuse_vel;
 #endif
 #ifdef DIFFUSION
-static Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density;
 #endif
 static int do_grav;
 static int moving_center;
