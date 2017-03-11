@@ -133,10 +133,9 @@ HypreABec::HypreABec(const BoxArray& grids,
     // parallel section:
     BL_ASSERT(ParallelDescriptor::NProcs() == num_procs);
     BL_ASSERT(ParallelDescriptor::MyProc() == myid);
-    DistributionMapping distributionMap(grids, num_procs);
 
     for (i = 0; i < grids.size(); i++) {
-      if (distributionMap[i] == myid) {
+      if (dmap[i] == myid) {
 	HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
       }
     }
