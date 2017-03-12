@@ -4,7 +4,7 @@ amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
 #max_step = 10
-stop_time = 100
+stop_time = 10
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -14,7 +14,7 @@ geometry.prob_hi   =  2.48e10 4.96e10
 
 amr.n_cell         = 256 512
 
-amr.max_level      = 2       #  maximum level number allowed
+amr.max_level      = 0       #  maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -36,7 +36,7 @@ castro.small_dens = 1.e-6
 castro.small_pres = 1.e0
 
 
-castro.sponge_implicit = 1
+#castro.sponge_implicit = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
@@ -113,8 +113,8 @@ radiation.v               = 2    # verbosity
 # 101 = LO_DIRICHLET           102 = LO_NEUMANN
 # 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
 
-radiation.lo_bc     = 102 101 102
-radiation.hi_bc     = 105 101 102
+radiation.lo_bc     = 101 105 
+radiation.hi_bc     = 101 102 
 
 # For each boundary, we can specify either a constant boundary value
 # or use a Fortran function FORT_RADBNDRY to specify values that vary
@@ -131,8 +131,8 @@ radiation.hi_bcflag = 0 0 0
 # 104 = LO_MARSHAK             bcval is incident flux
 # 105 = LO_SANCHEZ_POMRANING   bcval is incident flux
 
-radiation.lo_bcval = 0.0 0.0 0.0
-radiation.hi_bcval = 5.3e9 0.0  0.0
+radiation.lo_bcval = 0.0 5.3e15 
+radiation.hi_bcval = 0.0 0.0 
 
 radiation.do_real_eos = 1
 
@@ -155,6 +155,15 @@ radiation.const_kappa_r =  3.8e22  #3.8e22
 radiation.kappa_r_exp_m =  2.0
 radiation.kappa_r_exp_n = 3.5
 
+#extra ploting
+radiation.plot_kappa_p = 1
+radiation.plot_kappa_r = 1
+radiation.plot_lambda = 1
+radiation.plot_com_flux = 1
+radiation.plot_lab_flux = 1
+
+
+
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
 # solver flag values <  100 use HypreABec, support symmetric matrices only
@@ -175,7 +184,7 @@ radiation.kappa_r_exp_n = 3.5
 # 1002  PCG   using ParCSR ObjectType
 # 1003  PCG   using SStruct ObjectType
 
-radsolve.level_solver_flag = 100  # can be any supported hypre solver flag
+radsolve.level_solver_flag = 1  # can be any supported hypre solver flag
 
 radsolve.reltol     = 1.0e-11 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)

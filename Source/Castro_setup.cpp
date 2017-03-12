@@ -311,6 +311,14 @@ Castro::variableSetUp ()
   if (Geometry::IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
     interp = &pc_interp;
   }
+
+  //Let's start with reading the inputs parameters for BC here
+  ParmParse ppr("radiation");
+  Array<Real> lo_bcval(BL_SPACEDIM, 0.0), hi_bcval(BL_SPACEDIM, 0.0);
+  ppr.queryarr("lo_bcval",lo_bcval,0,BL_SPACEDIM);
+  ppr.queryarr("hi_bcval",hi_bcval,0,BL_SPACEDIM);
+  set_problem_rad_params(dm,lo_bcval.dataPtr(),hi_bcval.dataPtr());
+
 #endif
 
   // Note that the default is state_data_extrap = false,

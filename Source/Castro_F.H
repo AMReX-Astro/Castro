@@ -82,6 +82,13 @@ extern "C"
      const Real* problo, const Real* probhi,
      const Real* center);
 
+#ifdef RADIATION
+   void set_problem_rad_params
+     (const int& dm,
+      const Real* bcval_lo, const Real* bcval_hi
+     );
+#endif
+
   void set_grid_info
     (const int& max_level, const Real* dx_level,
      const int* domlo_level, const int* domhi_level,
