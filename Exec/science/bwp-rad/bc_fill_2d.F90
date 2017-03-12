@@ -187,7 +187,7 @@ contains
        rad_h1,rad_h2,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
 
     use bl_fort_module, only : rt => c_real
-    use prob_params_module, only : bcval_lo, bcval_hi
+    use prob_rad_params_module, only : bcval_lo, bcval_hi
     integer :: rad_l1,rad_l2,rad_h1,rad_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
