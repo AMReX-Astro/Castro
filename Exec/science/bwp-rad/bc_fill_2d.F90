@@ -188,28 +188,32 @@ contains
 
     use bl_fort_module, only : rt => c_real
     use prob_rad_params_module, only : bcval_lo, bcval_hi
+    use fluxlimiter_module, only : FLDlambda, limiter
+
     integer :: rad_l1,rad_l2,rad_h1,rad_h2
     integer :: bc(2,2,*)
     integer :: domlo(2), domhi(2)
     real(rt)         delta(2), xlo(2), time
     real(rt)         rad(rad_l1:rad_h1,rad_l2:rad_h2)
+    
+    real(rt):: r(rad_l1:rad_h1,rad_l2:rad_h2)  
 
     integer :: bc_temp(2,2)
 
- 
+    integer :: i, j
 
 
     !temporary values just to see if things compile
      real:: c_light = 2.99e10
-     !real:: F_in = 5.3e9
      real:: F_in 
-     real:: D = 5.3
+     real:: D = 5.3 !will change, now is just to have something compiling
       
      F_in = bcval_lo(2)
 
      print *, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
      print *, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
      print *, F_in
+     
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:,1)
@@ -219,6 +223,32 @@ contains
     endif
 
     call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
+
+    !computing the gradient of Er to then get R ??  .... based on function scgrgd1
+     do j = rad_l2, rad_h2
+        ! x derivatives, gradient assembly:
+        do i = rad_l1, rad_h1 + 1
+           r(i,j) = abs(rad(i,j) - rad(i-1,j)) / delta(1)
+        enddo
+     enddo
+
+        ! y derivative
+     do j = rad_l2, rad_h2 
+        do i = rad_l1, rad_h1
+           r(i,j) = sqrt( r(i,j) ** 2 + ( abs(rad(i,j) - rad(i,j-1)) / delta(2) )**2 )
+        enddo
+     enddo
+        ! construct coefficients:
+        !do i = reg_l1, reg_h1 + 1
+        !   kap = kavg(kappar(i-1,j), kappar(i,j), delta(1), -1)
+        !   r(i,j) = r(i,j) / &
+        !       (kap * max(er(i-1,j), er(i,j), tiny))
+        !enddo
+     
+
+
+     print *, r(rad_l1:rad_h1,rad_l2+1)
+     !then use FLDlambda(r, limiter)
 
     rad(rad_l1:rad_h1,rad_l2) = 2.0*D/(2.0*D + delta(2)) * (2.0*delta(2)/(c_light*D)*F_in + rad(rad_l1:rad_h1,rad_l2+1))
 
