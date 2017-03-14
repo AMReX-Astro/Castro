@@ -16,18 +16,18 @@ contains
                        gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
-    use network, only : nspec
+    use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use bl_constants_module, ONLY: ONE, ZERO, HALF
     use meth_params_module, only : QVAR, QRHO, QU, QV, &
-         QREINT, QPRES, QTEMP, QFS, QGAME, &
+         QREINT, QPRES, QTEMP, QFS, QFX, QGAME, &
          small_dens, small_pres, small_temp,  &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_reference_eigenvectors, &
          ppm_predict_gammae, &
          npassive, qpass_map
-    use ppm_module, only : ppm
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
     use bl_fort_module, only : rt => c_real
     implicit none
@@ -58,7 +58,7 @@ contains
     integer          :: i, j, iwave, idim
     integer          :: n, ipassive
 
-    real(rt)         :: dtdx, dtdy
+    real(rt)         :: hdt, dtdx, dtdy
     real(rt)         :: cc, csq, Clag, rho, u, v, p, rhoe_g, enth, temp
     real(rt)         :: drho, dptot, drhoe_g, dT0, dtau
     real(rt)         :: dup, dvp, du, dptotp, dTp, dtaup
@@ -79,8 +79,6 @@ contains
     real(rt)         :: azu1left, azv1left
     real(rt)         :: sourcr,sourcp,source,courn,eta,dlogatmp
 
-    real(rt)         :: halfdt
-
     integer, parameter :: isx = 1
     integer, parameter :: isy = 2
 
@@ -97,6 +95,9 @@ contains
     real(rt)        , allocatable :: tau(:,:)
     real(rt)        , allocatable :: Ip_tau(:,:,:,:,:)
     real(rt)        , allocatable :: Im_tau(:,:,:,:,:)
+
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:,:), sxp(:,:), sym(:,:), syp(:,:)
 
     real(rt)         :: eval(3), beta(3), rvec(3,3), lvec(3,3), dq(3)
 
@@ -139,7 +140,12 @@ contains
     allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
     allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
-    halfdt = HALF * dt
+    hdt = HALF * dt
+
+    allocate(sxm(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(sxp(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(sym(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(syp(qd_l1:qd_h1, qd_l2:qd_h2))
 
 
     !=========================================================================
@@ -173,11 +179,16 @@ contains
     ! limiting, and returns the integral of each profile under
     ! each wave to each interface
     do n=1,QVAR
-       call ppm(q(:,:,n),qd_l1,qd_l2,qd_h1,qd_h2, &
-                q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                flatn, &
-                Ip(:,:,:,:,n),Im(:,:,:,:,n), &
-                ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call ppm_reconstruct(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+       call ppm_int_profile(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            Ip(:,:,:,:,n), Im(:,:,:,:,n), &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
     end do
 
     ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -190,6 +201,7 @@ contains
                    eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
                    eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state%aux   = Ip(i,j,idim,iwave,QFX:QFX-1+naux)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -200,6 +212,7 @@ contains
                    eos_state%rho   = Im(i,j,idim,iwave,QRHO)
                    eos_state%T     = Im(i,j,idim,iwave,QTEMP)
                    eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
+                   eos_state%aux   = Im(i,j,idim,iwave,QFX:QFX-1+naux)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -216,35 +229,50 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
-       call ppm(gamc(:,:),gc_l1,gc_l2,gc_h1,gc_h2, &
-                q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                flatn, &
-                Ip_gc(:,:,:,:,1),Im_gc(:,:,:,:,1), &
-                ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call ppm_reconstruct(gamc(:,:), gc_l1, gc_l2, gc_h1, gc_h2, &
+                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+       call ppm_int_profile(gamc(:,:), gc_l1, gc_l2, gc_h1, gc_h2, &
+                            q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
     endif
 
 
     if (ppm_temp_fix == 3) then
-       call ppm(tau(:,:),qd_l1,qd_l2,qd_h1,qd_h2, &
-                q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                flatn, &
-                Ip_tau(:,:,:,:,1),Im_tau(:,:,:,:,1), &
-                ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call ppm_reconstruct(tau(:,:), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+       call ppm_int_profile(tau(:,:), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            Ip_tau(:,:,:,:,1), Im_tau(:,:,:,:,1), &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
     endif
 
     ! if desired, do parabolic reconstruction of the momentum sources
     ! -- we'll use this for the force on the velocity
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm(srcQ(:,:,n),src_l1,src_l2,src_h1,src_h2, &
-                   q(:,:,QU:QV),c,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   flatn, &
-                   Ip_src(:,:,:,:,n),Im_src(:,:,:,:,n), &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+          call ppm_reconstruct(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
+                               flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                               sxm, sxp, sym, syp, &
+                               ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+          call ppm_int_profile(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
+                               q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+                               sxm, sxp, sym, syp, &
+                               Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
+                               ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
        enddo
-    endif    
+    endif
 
-
+    deallocate(sxm, sxp, sym, syp)
 
     !-------------------------------------------------------------------------
     ! x-direction
@@ -296,7 +324,7 @@ contains
           endif
 
           gam_ref = Im_gc(i,j,1,1,1)
-          
+
           game_ref = Im(i,j,1,1,QGAME)
 
 
@@ -341,9 +369,9 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,isx)
-             du  = du  - halfdt*Im_src(i,j,1,2,isx)
-             dup = dup - halfdt*Im_src(i,j,1,3,isx)
+             dum = dum - hdt*Im_src(i,j,1,1,isx)
+             du  = du  - hdt*Im_src(i,j,1,2,isx)
+             dup = dup - hdt*Im_src(i,j,1,3,isx)
           endif
 
 
@@ -563,7 +591,7 @@ contains
           qxp(i,j,QV) = Im(i,j,1,2,QV)
 
           if (ppm_trace_sources == 1) then
-             qxp(i,j,QV) = qxp(i,j,QV) + halfdt*Im_src(i,j,1,2,QV)
+             qxp(i,j,QV) = qxp(i,j,QV) + hdt*Im_src(i,j,1,2,QV)
           endif
 
 
@@ -590,9 +618,9 @@ contains
              ! use the parabolic reconstruction of rho
              tau_ref  = ONE/Ip(i,j,1,3,QRHO)
           endif
-          
+
           gam_ref = Ip_gc(i,j,1,3,1)
-          
+
           game_ref = Ip(i,j,1,3,QGAME)
 
 
@@ -636,11 +664,11 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dum = dum - halfdt*Im_src(i,j,1,1,isx)
-             du  = du  - halfdt*Im_src(i,j,1,2,isx)
-             dup = dup - halfdt*Im_src(i,j,1,3,isx)
-          endif          
-          
+             dum = dum - hdt*Im_src(i,j,1,1,isx)
+             du  = du  - hdt*Im_src(i,j,1,2,isx)
+             dup = dup - hdt*Im_src(i,j,1,3,isx)
+          endif
+
 
           ! optionally use the reference state in evaluating the
           ! eigenvectors
@@ -848,7 +876,7 @@ contains
 
           endif
 
- 
+
           ! transverse velocity -- there is no projection here, so
           ! we don't need a reference state.  We only care about
           ! the state traced under the middle wave
@@ -856,7 +884,7 @@ contains
              qxm(i+1,j,QV) = Ip(i,j,1,2,QV)
 
              if (ppm_trace_sources == 1) then
-                qxm(i+1,j,QV) = qxm(i+1,j,QV) + halfdt*Ip_src(i,j,1,2,QV)
+                qxm(i+1,j,QV) = qxm(i+1,j,QV) + hdt*Ip_src(i,j,1,2,QV)
              endif
 
           endif
@@ -898,7 +926,7 @@ contains
              endif
 
           endif
-          
+
 
           !-------------------------------------------------------------------
           ! geometry source terms
@@ -1045,7 +1073,7 @@ contains
           dptot    = p_ref    - Im(i,j,2,2,QPRES)
           drhoe_g = rhoe_g_ref - Im(i,j,2,2,QREINT)
           dtau  = tau_ref  - ONE/Im(i,j,2,2,QRHO)
-          
+
           dvp    = v_ref    - Im(i,j,2,3,QV)
           dptotp    = p_ref    - Im(i,j,2,3,QPRES)
 
@@ -1056,8 +1084,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Im_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Im_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Im_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Im_src(i,j,2,3,QV)
           endif
 
 
@@ -1095,7 +1123,7 @@ contains
           else
 
              ! (tau, u, p, game) eigensystem
-             
+
              ! this is the way things were done in the original PPM
              ! paper -- here we work with tau in the characteristic
              ! system.
@@ -1117,7 +1145,7 @@ contains
           else
              amright = -HALF*alpham
           endif
-          
+
           if (v+cc > ZERO) then
              apright = ZERO
           else if (v+cc < ZERO) then
@@ -1125,7 +1153,7 @@ contains
           else
              apright = -HALF*alphap
           endif
-          
+
           if (v > ZERO) then
              azrright = ZERO
              azeright = ZERO
@@ -1168,7 +1196,7 @@ contains
              qyp(i,j,QU)     = Im(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
-                qyp(i,j,QU) = qyp(i,j,QU) + halfdt*Im_src(i,j,2,2,QU)
+                qyp(i,j,QU) = qyp(i,j,QU) + hdt*Im_src(i,j,2,2,QU)
              endif
 
           endif
@@ -1212,7 +1240,7 @@ contains
           dptot    = p_ref    - Ip(i,j,2,2,QPRES)
           drhoe_g = rhoe_g_ref - Ip(i,j,2,2,QREINT)
           dtau  = tau_ref  - ONE/Ip(i,j,2,2,QRHO)
-          
+
           dvp    = v_ref    - Ip(i,j,2,3,QV)
           dptotp    = p_ref    - Ip(i,j,2,3,QPRES)
 
@@ -1223,8 +1251,8 @@ contains
           ! the velocity here, otherwise we will deal with this in the
           ! trans_X routines
           if (ppm_trace_sources == 1) then
-             dvm = dvm - halfdt*Ip_src(i,j,2,1,QV)
-             dvp = dvp - halfdt*Ip_src(i,j,2,3,QV)
+             dvm = dvm - hdt*Ip_src(i,j,2,1,QV)
+             dvp = dvp - hdt*Ip_src(i,j,2,3,QV)
           endif
 
           ! optionally use the reference state in evaluating the
@@ -1316,12 +1344,12 @@ contains
 
                 qym(i,j+1,QV)     = v_ref + (amleft - apleft)*Clag_ev
                 qym(i,j+1,QPRES)  = p_ref + (-apleft - amleft)*Clag_ev**2
-                
+
                 qym(i,j+1,QGAME) = game_ref + gfactor*(amleft + apleft)/tau_ev + azeleft
                 qym(i,j+1,QREINT) = qym(i,j+1,QPRES )/(qym(i,j+1,QGAME) - ONE)
              endif
 
-             
+
              ! enforce small_*
              qym(i,j+1,QRHO) = max(small_dens, qym(i,j+1,QRHO))
              qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
@@ -1333,9 +1361,9 @@ contains
              qym(i,j+1,QU)   = Ip(i,j,2,2,QU)
 
              if (ppm_trace_sources == 1) then
-                qym(i,j+1,QU) = qym(i,j+1,QU) + halfdt*Ip_src(i,j,2,2,QU)
+                qym(i,j+1,QU) = qym(i,j+1,QU) + hdt*Ip_src(i,j,2,2,QU)
              endif
-                          
+
           endif
 
        end do
