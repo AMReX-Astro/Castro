@@ -447,7 +447,7 @@ extern "C"
      const int* lo, const int* hi,
      const Real* dx, const Real* dt_old, Real* dt);
 
-  void ca_umdrv
+  void ca_ctu_update
     (const int* is_finest_level,
      const Real* time,
      const int    lo[], const int    hi[],

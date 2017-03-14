@@ -199,7 +199,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  }
 #endif
 
-	  ca_umdrv
+	  ca_ctu_update
 	    (&is_finest_level, &time,
 	     lo, hi, domain_lo, domain_hi,
 	     BL_TO_FORTRAN(statein), 
