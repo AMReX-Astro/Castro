@@ -1,3 +1,5 @@
+! advection routines in support of the CTU unsplit advection scheme
+
 subroutine ca_ctu_update(is_finest_level, time, &
                     lo, hi, domlo, domhi, &
                     uin, uin_l1, uin_l2, uin_h1, uin_h2, &
@@ -113,7 +115,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , allocatable :: q1(:,:,:)
   real(rt)        , allocatable :: q2(:,:,:)
 
-  integer ngq, ngf
+  integer :: ngf
   real(rt)         dx,dy
 
   integer ::  uin_lo(2),  uin_hi(2)
@@ -131,7 +133,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   uout_lo = [uout_l1, uout_l2]
   uout_hi = [uout_h1, uout_h2]
   
-  ngq = NHYP
   ngf = 1
 
   q_lo = [q_l1, q_l2]
