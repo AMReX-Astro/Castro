@@ -1,51 +1,52 @@
 module ppm_module
 
   use bl_fort_module, only : rt => c_real
+  use bl_constants_module
+
   implicit none
 
-  private 
+  private
 
-  public ppm
+  public ppm_reconstruct, ppm_int_profile
 
 contains
 
   ! characteristics based on u
-  subroutine ppm(s,s_l1,s_l2,s_h1,s_h2, &
-                 u,cspd,qd_l1,qd_l2,qd_h1,qd_h2, &
-                 flatn, &
-                 Ip,Im, &
-                 ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+  subroutine ppm_reconstruct(s, s_l1, s_l2, s_h1, s_h2, &
+                             flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                             sxm, sxp, sym, syp, &
+                             ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+    !  s : the state array
+    !  flatn : the flattening coefficient
+    !  sxm, sxp : the minus and plus x edge states -- these are with
+    !             respect to zone center indexing
+    !  sym, syp : the minus and plus y edge states -- these are with
+    !             respect to zone center indexing
 
     use meth_params_module, only : ppm_type
-    use bl_constants_module
-
-    use bl_fort_module, only : rt => c_real
     implicit none
 
-    integer          s_l1,s_l2,s_h1,s_h2
-    integer          qd_l1,qd_l2,qd_h1,qd_h2
-    integer          ilo1,ilo2,ihi1,ihi2
-    real(rt)         s(s_l1:s_h1,s_l2:s_h2)
-    real(rt)             u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
-    real(rt)          cspd(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)         flatn(s_l1:s_h1,s_l2:s_h2)
-    real(rt)         Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
-    real(rt)         Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
-    real(rt)         dx,dy,dt
+    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
+    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    real(rt), intent(in) :: s(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: flatn(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(inout) :: sxm(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(inout) :: sxp(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(inout) :: sym(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(inout) :: syp(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: dx, dy
 
     ! local
-    integer i,j
+    integer :: i,j
 
-    logical extremum, bigp, bigm
+    logical :: extremum, bigp, bigm
 
-    real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
-    real(rt)         sgn, sigma, s6, amax, delam, delap
-    real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
-    real(rt)         dachkm, dachkp
-
-    ! s_{\ib,+}, s_{\ib,-}
-    real(rt)        , allocatable :: sp(:,:)
-    real(rt)        , allocatable :: sm(:,:)
+    real(rt) :: dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
+    real(rt) :: sgn, amax, delam, delap
+    real(rt) :: dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
+    real(rt) :: dachkm, dachkp
 
     ! \delta s_{\ib}^{vL}
     real(rt)        , allocatable :: dsvl(:,:)
@@ -57,17 +58,12 @@ contains
     real(rt), parameter :: C = 1.25e0_rt
 
     ! a constant used for testing extrema
-    real(rt), parameter :: SMALL = 1.e-10_rt    
-
-    ! cell-centered indexing
-    allocate(sp(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
-    allocate(sm(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+    real(rt), parameter :: SMALL = 1.e-10_rt
 
 
-
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !-------------------------------------------------------------------------
     ! x-direction
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !-------------------------------------------------------------------------
 
     ! cell-centered indexing w/extra x-ghost cell
     allocate(dsvl(ilo1-2:ihi1+2,ilo2-1:ihi2+1))
@@ -112,8 +108,8 @@ contains
        ! copy sedge into sp and sm
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sp(i,j) = sedge(i+1,j)
-             sm(i,j) = sedge(i  ,j)
+             sxp(i,j) = sedge(i+1,j)
+             sxm(i,j) = sedge(i  ,j)
           end do
        end do
 
@@ -121,8 +117,8 @@ contains
        ! monotonization -- this is the method that Flash does
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sm(i,j) = flatn(i,j)*sm(i,j) + (ONE-flatn(i,j))*s(i,j)
-             sp(i,j) = flatn(i,j)*sp(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sxm(i,j) = flatn(i,j)*sxm(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sxp(i,j) = flatn(i,j)*sxp(i,j) + (ONE-flatn(i,j))*s(i,j)
           enddo
        enddo
 
@@ -132,13 +128,13 @@ contains
        ! 15)
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             if ((sp(i,j)-s(i,j))*(s(i,j)-sm(i,j)) .le. ZERO) then
-                sp(i,j) = s(i,j)
-                sm(i,j) = s(i,j)
-             else if (abs(sp(i,j)-s(i,j)) .ge. TWO*abs(sm(i,j)-s(i,j))) then
-                sp(i,j) = THREE*s(i,j) - TWO*sm(i,j)
-             else if (abs(sm(i,j)-s(i,j)) .ge. TWO*abs(sp(i,j)-s(i,j))) then
-                sm(i,j) = THREE*s(i,j) - TWO*sp(i,j)
+             if ((sxp(i,j)-s(i,j))*(s(i,j)-sxm(i,j)) .le. ZERO) then
+                sxp(i,j) = s(i,j)
+                sxm(i,j) = s(i,j)
+             else if (abs(sxp(i,j)-s(i,j)) .ge. TWO*abs(sxm(i,j)-s(i,j))) then
+                sxp(i,j) = THREE*s(i,j) - TWO*sxm(i,j)
+             else if (abs(sxm(i,j)-s(i,j)) .ge. TWO*abs(sxp(i,j)-s(i,j))) then
+                sxm(i,j) = THREE*s(i,j) - TWO*sxp(i,j)
              end if
           end do
        end do
@@ -163,7 +159,7 @@ contains
        end do
 
        ! use Colella 2008 limiters
-       ! This is a new version of the algorithm 
+       ! This is a new version of the algorithm
        ! to eliminate sensitivity to roundoff.
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
@@ -214,7 +210,7 @@ contains
                    if (sgn*amax .ge. sgn*delam) then
                       if (sgn*(delam - alpham).ge. SMALL) then
                          alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                      else 
+                      else
                          alphap = -TWO*alpham
                       endif
                    endif
@@ -233,8 +229,8 @@ contains
                 end if
              end if
 
-             sm(i,j) = s(i,j) + alpham
-             sp(i,j) = s(i,j) + alphap
+             sxm(i,j) = s(i,j) + alpham
+             sxp(i,j) = s(i,j) + alphap
 
           end do
        end do
@@ -243,82 +239,18 @@ contains
        ! (ppm_type = 2 is here)
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sm(i,j) = flatn(i,j)*sm(i,j) + (ONE-flatn(i,j))*s(i,j)
-             sp(i,j) = flatn(i,j)*sp(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sxm(i,j) = flatn(i,j)*sxm(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sxp(i,j) = flatn(i,j)*sxp(i,j) + (ONE-flatn(i,j))*s(i,j)
           enddo
        enddo
 
     end if
 
-    ! compute x-component of Ip and Im
-    do j=ilo2-1,ihi2+1
-       do i=ilo1-1,ihi1+1
-          ! Ip/m is the integral under the parabola for the extent
-          ! that a wave can travel over a timestep
-          !
-          ! Ip integrates to the right edge of a cell
-          ! Im integrates to the left edge of a cell
+    deallocate(dsvl, sedge)
 
-          s6 = SIX*s(i,j) - THREE*(sm(i,j)+sp(i,j))
-
-          ! u-c wave
-          sigma = abs(u(i,j,1)-cspd(i,j))*dt/dx
-
-          if (u(i,j,1)-cspd(i,j) <= ZERO) then
-             Ip(i,j,1,1) = sp(i,j)
-          else
-             Ip(i,j,1,1) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i,j,1)-cspd(i,j) >= ZERO) then
-             Im(i,j,1,1) = sm(i,j)
-          else
-             Im(i,j,1,1) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          ! u wave
-          sigma = abs(u(i,j,1))*dt/dx
-
-          if (u(i,j,1) <= ZERO) then
-             Ip(i,j,1,2) = sp(i,j)
-          else
-             Ip(i,j,1,2) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i,j,1) >= ZERO) then
-             Im(i,j,1,2) = sm(i,j)
-          else
-             Im(i,j,1,2) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          ! u + c wave
-          sigma = abs(u(i,j,1)+cspd(i,j))*dt/dx
-
-          if (u(i,j,1) + cspd(i,j) <= ZERO) then
-             Ip(i,j,1,3) = sp(i,j)
-          else
-             Ip(i,j,1,3) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i,j,1) + cspd(i,j) >= ZERO) then
-             Im(i,j,1,3) = sm(i,j)
-          else
-             Im(i,j,1,3) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
-          endif
-       end do
-    end do
-
-    deallocate(sedge,dsvl)
-
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !-------------------------------------------------------------------------
     ! y-direction
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !-------------------------------------------------------------------------
 
     ! cell-centered indexing w/extra y-ghost cell
     allocate( dsvl(ilo1-1:ihi1+1,ilo2-2:ihi2+2))
@@ -358,8 +290,8 @@ contains
        ! copy sedge into sp and sm
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sp(i,j) = sedge(i,j+1)
-             sm(i,j) = sedge(i,j  )
+             syp(i,j) = sedge(i,j+1)
+             sym(i,j) = sedge(i,j  )
           end do
        end do
 
@@ -367,21 +299,21 @@ contains
        ! monotonization -- this is the method that Flash does
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sm(i,j) = flatn(i,j)*sm(i,j) + (ONE-flatn(i,j))*s(i,j)
-             sp(i,j) = flatn(i,j)*sp(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sym(i,j) = flatn(i,j)*sym(i,j) + (ONE-flatn(i,j))*s(i,j)
+             syp(i,j) = flatn(i,j)*syp(i,j) + (ONE-flatn(i,j))*s(i,j)
           enddo
        enddo
 
        ! modify using quadratic limiters
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             if ((sp(i,j)-s(i,j))*(s(i,j)-sm(i,j)) .le. ZERO) then
-                sp(i,j) = s(i,j)
-                sm(i,j) = s(i,j)
-             else if (abs(sp(i,j)-s(i,j)) .ge. TWO*abs(sm(i,j)-s(i,j))) then
-                sp(i,j) = THREE*s(i,j) - TWO*sm(i,j)
-             else if (abs(sm(i,j)-s(i,j)) .ge. TWO*abs(sp(i,j)-s(i,j))) then
-                sm(i,j) = THREE*s(i,j) - TWO*sp(i,j)
+             if ((syp(i,j)-s(i,j))*(s(i,j)-sym(i,j)) .le. ZERO) then
+                syp(i,j) = s(i,j)
+                sym(i,j) = s(i,j)
+             else if (abs(syp(i,j)-s(i,j)) .ge. TWO*abs(sym(i,j)-s(i,j))) then
+                syp(i,j) = THREE*s(i,j) - TWO*sym(i,j)
+             else if (abs(sym(i,j)-s(i,j)) .ge. TWO*abs(syp(i,j)-s(i,j))) then
+                sym(i,j) = THREE*s(i,j) - TWO*syp(i,j)
              end if
           end do
        end do
@@ -405,7 +337,7 @@ contains
        end do
 
        ! use Colella 2008 limiters
-       ! This is a new version of the algorithm 
+       ! This is a new version of the algorithm
        ! to eliminate sensitivity to roundoff.
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
@@ -456,7 +388,7 @@ contains
                    if (sgn*amax .ge. sgn*delam) then
                       if (sgn*(delam - alpham).ge. SMALL) then
                          alphap = (-TWO*delam - TWO*sgn*sqrt(delam**2 - delam*alpham))
-                      else 
+                      else
                          alphap = -TWO*alpham
                       endif
                    endif
@@ -475,8 +407,8 @@ contains
                 end if
              end if
 
-             sm(i,j) = s(i,j) + alpham
-             sp(i,j) = s(i,j) + alphap
+             sym(i,j) = s(i,j) + alpham
+             syp(i,j) = s(i,j) + alphap
 
           end do
        end do
@@ -485,75 +417,179 @@ contains
        ! (ppm_type = 2 is here)
        do j=ilo2-1,ihi2+1
           do i=ilo1-1,ihi1+1
-             sm(i,j) = flatn(i,j)*sm(i,j) + (ONE-flatn(i,j))*s(i,j)
-             sp(i,j) = flatn(i,j)*sp(i,j) + (ONE-flatn(i,j))*s(i,j)
+             sym(i,j) = flatn(i,j)*sym(i,j) + (ONE-flatn(i,j))*s(i,j)
+             syp(i,j) = flatn(i,j)*syp(i,j) + (ONE-flatn(i,j))*s(i,j)
           enddo
        enddo
 
     end if
 
+    deallocate(dsvl, sedge)
+
+  end subroutine ppm_reconstruct
+
+
+  subroutine ppm_int_profile(s, s_l1, s_l2, s_h1, s_h2, &
+                             u, cspd, qd_l1, qd_l2, qd_h1, qd_h2, &
+                             sxm, sxp, sym, syp, &
+                             Ip, Im, &
+                             ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+
+    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
+    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+
+    real(rt), intent(in) :: s(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: sxm(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: sxp(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: sym(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: syp(s_l1:s_h1,s_l2:s_h2)
+
+    real(rt), intent(in) :: u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
+    real(rt), intent(in) :: cspd(qd_l1:qd_h1,qd_l2:qd_h2)
+
+    real(rt), intent(inout) ::  Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
+    real(rt), intent(inout) ::  Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
+
+    real(rt), intent(in) :: dx, dy, dt
+
+    ! local
+    real(rt) :: s6, sigma
+    integer :: i, j
+
+    !-------------------------------------------------------------------------
+    ! x-direction
+    !-------------------------------------------------------------------------
+
+    ! compute x-component of Ip and Im
+    do j=ilo2-1,ihi2+1
+       do i=ilo1-1,ihi1+1
+          ! Ip/m is the integral under the parabola for the extent
+          ! that a wave can travel over a timestep
+          !
+          ! Ip integrates to the right edge of a cell
+          ! Im integrates to the left edge of a cell
+
+          s6 = SIX*s(i,j) - THREE*(sxm(i,j)+sxp(i,j))
+
+          ! u-c wave
+          sigma = abs(u(i,j,1)-cspd(i,j))*dt/dx
+
+          if (u(i,j,1)-cspd(i,j) <= ZERO) then
+             Ip(i,j,1,1) = sxp(i,j)
+          else
+             Ip(i,j,1,1) = sxp(i,j) - &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,1)-cspd(i,j) >= ZERO) then
+             Im(i,j,1,1) = sxm(i,j)
+          else
+             Im(i,j,1,1) = sxm(i,j) + &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! u wave
+          sigma = abs(u(i,j,1))*dt/dx
+
+          if (u(i,j,1) <= ZERO) then
+             Ip(i,j,1,2) = sxp(i,j)
+          else
+             Ip(i,j,1,2) = sxp(i,j) - &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,1) >= ZERO) then
+             Im(i,j,1,2) = sxm(i,j)
+          else
+             Im(i,j,1,2) = sxm(i,j) + &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          ! u + c wave
+          sigma = abs(u(i,j,1)+cspd(i,j))*dt/dx
+
+          if (u(i,j,1) + cspd(i,j) <= ZERO) then
+             Ip(i,j,1,3) = sxp(i,j)
+          else
+             Ip(i,j,1,3) = sxp(i,j) - &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)-(ONE-TWO3RD*sigma)*s6)
+          endif
+
+          if (u(i,j,1) + cspd(i,j) >= ZERO) then
+             Im(i,j,1,3) = sxm(i,j)
+          else
+             Im(i,j,1,3) = sxm(i,j) + &
+                  HALF*sigma*(sxp(i,j)-sxm(i,j)+(ONE-TWO3RD*sigma)*s6)
+          endif
+       end do
+    end do
+
+
+    !-------------------------------------------------------------------------
+    ! y-direction
+    !-------------------------------------------------------------------------
+
     ! compute y-component of Ip and Im
     do j=ilo2-1,ihi2+1
        do i=ilo1-1,ihi1+1
 
-          s6 = SIX*s(i,j) - THREE*(sm(i,j)+sp(i,j))
+          s6 = SIX*s(i,j) - THREE*(sym(i,j)+syp(i,j))
 
           ! v-c wave
           sigma = abs(u(i,j,2)-cspd(i,j))*dt/dy
 
           if (u(i,j,2)-cspd(i,j) <= ZERO) then
-             Ip(i,j,2,1) = sp(i,j)
+             Ip(i,j,2,1) = syp(i,j)
           else
-             Ip(i,j,2,1) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+             Ip(i,j,2,1) = syp(i,j) - &
+                  HALF*sigma*(syp(i,j)-sym(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,2)-cspd(i,j) >= ZERO) then
-             Im(i,j,2,1) = sm(i,j) 
+             Im(i,j,2,1) = sym(i,j)
           else
-             Im(i,j,2,1) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+             Im(i,j,2,1) = sym(i,j) + &
+                  HALF*sigma*(syp(i,j)-sym(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v wave
           sigma = abs(u(i,j,2))*dt/dy
 
           if (u(i,j,2) <= ZERO) then
-             Ip(i,j,2,2) = sp(i,j) 
+             Ip(i,j,2,2) = syp(i,j)
           else
-             Ip(i,j,2,2) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+             Ip(i,j,2,2) = syp(i,j) - &
+                  HALF*sigma*(syp(i,j)-sym(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,2) >= ZERO) then
-             Im(i,j,2,2) = sm(i,j) 
+             Im(i,j,2,2) = sym(i,j)
           else
-             Im(i,j,2,2) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+             Im(i,j,2,2) = sym(i,j) + &
+                  HALF*sigma*(syp(i,j)-sym(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
           ! v+c wave
           sigma = abs(u(i,j,2)+cspd(i,j))*dt/dy
 
           if (u(i,j,2)+cspd(i,j) <= ZERO) then
-             Ip(i,j,2,3) = sp(i,j) 
+             Ip(i,j,2,3) = syp(i,j)
           else
-             Ip(i,j,2,3) = sp(i,j) - &
-                  HALF*sigma*(sp(i,j)-sm(i,j)-(ONE-TWO3RD*sigma)*s6)
+             Ip(i,j,2,3) = syp(i,j) - &
+                  HALF*sigma*(syp(i,j)-sym(i,j)-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,2)+cspd(i,j) >= ZERO) then
-             Im(i,j,2,3) = sm(i,j) 
+             Im(i,j,2,3) = sym(i,j)
           else
-             Im(i,j,2,3) = sm(i,j) + &
-                  HALF*sigma*(sp(i,j)-sm(i,j)+(ONE-TWO3RD*sigma)*s6)
+             Im(i,j,2,3) = sym(i,j) + &
+                  HALF*sigma*(syp(i,j)-sym(i,j)+(ONE-TWO3RD*sigma)*s6)
           endif
 
        end do
     end do
 
-    deallocate(sp,sm,dsvl,sedge)
-
-  end subroutine ppm
+  end subroutine ppm_int_profile
 
 end module ppm_module
