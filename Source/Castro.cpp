@@ -1551,7 +1551,7 @@ Castro::post_timestep (int iteration)
 	{
 	    int ngrow = (level == 0) ? 0 : iteration;
 
-	    TracerPC->Redistribute(false, true, level, ngrow);
+	    TracerPC->Redistribute(level, parent->finestLevel(), ngrow);
 
 	    TimestampParticles(ngrow+1);
 	}
@@ -1694,7 +1694,7 @@ Castro::post_regrid (int lbase,
 
 #ifdef PARTICLES
     if (TracerPC && level == lbase) {
-	TracerPC->Redistribute(false, false, lbase);
+	TracerPC->Redistribute(lbase);
     }
 #endif
 
