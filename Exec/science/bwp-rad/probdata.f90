@@ -4,5 +4,7 @@ module probdata_module
       use bl_fort_module, only : rt => c_real
       character (len=80), save  :: model_name
       
-      !double precision,   save  :: D
+      real(rt)    , allocatable, save :: rho_0(:)
+      real(rt)    , allocatable, save :: T_0(:)
+      integer       , save :: npts
 end module probdata_module

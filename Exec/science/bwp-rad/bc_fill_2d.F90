@@ -189,6 +189,11 @@ contains
     use bl_fort_module, only : rt => c_real
     use prob_rad_params_module, only : bcval_lo, bcval_hi
     use fluxlimiter_module, only : FLDlambda, limiter
+    use probdata_module
+    use parmparse_module, only : parmparse_build, parmparse_destroy, ParmParse
+    
+    
+    type (ParmParse) :: pp 
 
     integer :: rad_l1,rad_l2,rad_h1,rad_h2
     integer :: bc(2,2,*)
@@ -205,15 +210,20 @@ contains
 
     !temporary values just to see if things compile
      real:: c_light = 2.99e10
-     real:: F_in 
+     real:: F_in
+     real(rt) :: const_k, exp_m, exp_n 
      real:: D = 5.3 !will change, now is just to have something compiling
-      
+     real:: T, rho, k
+
+     call parmparse_build(pp,"radiation")
+     
+     call pp%query("const_kappa_r", const_k)
+     call pp%query("kappa_r_exp_m", exp_m)
+     call pp%query("kappa_r_exp_n", exp_n)
+
+     call parmparse_destroy(pp)
      F_in = bcval_lo(2)
 
-     print *, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-     print *, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-     print *, F_in
-     
 
     ! handle an external BC via extrapolation here 
     bc_temp(:,:) = bc(:,:,1)
@@ -225,32 +235,32 @@ contains
     call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
 
     !computing the gradient of Er to then get R ??  .... based on function scgrgd1
-     do j = rad_l2, rad_h2
+     !do j = rad_l2, rad_h2
         ! x derivatives, gradient assembly:
-        do i = rad_l1, rad_h1 + 1
-           r(i,j) = abs(rad(i,j) - rad(i-1,j)) / delta(1)
-        enddo
-     enddo
+      !  do i = rad_l1, rad_h1 + 1
+       !    r(i,j) = abs(rad(i,j) - rad(i-1,j)) / delta(1)
+       ! enddo
+     !enddo
 
         ! y derivative
-     do j = rad_l2, rad_h2 
-        do i = rad_l1, rad_h1
-           r(i,j) = sqrt( r(i,j) ** 2 + ( abs(rad(i,j) - rad(i,j-1)) / delta(2) )**2 )
-        enddo
-     enddo
-        ! construct coefficients:
-        !do i = reg_l1, reg_h1 + 1
-        !   kap = kavg(kappar(i-1,j), kappar(i,j), delta(1), -1)
-        !   r(i,j) = r(i,j) / &
-        !       (kap * max(er(i-1,j), er(i,j), tiny))
+     !do j = rad_l2, rad_h2 
+      !  do i = rad_l1, rad_h1
+       !    r(i,j) = sqrt( r(i,j) ** 2 + ( abs(rad(i,j) - rad(i,j-1)) / delta(2) )**2 )
         !enddo
+     !enddo
+
      
 
+      !for now using the last one? cause it is the same at initial time at end of domain
+      !maybe do an interpolation and find opacity in each cell?
+      T = T_0(npts)
+      rho = rho_0(npts)
+      k = const_k * rho**exp_m * T**(-exp_n) !rosseland mean opacity
 
-     print *, r(rad_l1:rad_h1,rad_l2+1)
-     !then use FLDlambda(r, limiter)
+      D = FLDlambda(0.0e0_rt, limiter) / k  !R is 0? at initialization  
 
-    rad(rad_l1:rad_h1,rad_l2) = 2.0*D/(2.0*D + delta(2)) * (2.0*delta(2)/(c_light*D)*F_in + rad(rad_l1:rad_h1,rad_l2+1))
+      !fill ghost cell 
+      rad(rad_l1:rad_h1,rad_l2) = 2.0*D/(2.0*D + delta(2)) * (2.0*delta(2)/(c_light*D)*F_in + rad(rad_l1:rad_h1,rad_l2+1))
 
 
   end subroutine ca_radfill

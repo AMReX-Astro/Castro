@@ -46,6 +46,12 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = 0.e0_rt
   center(2) = 0.5e0_rt*(problo(2)+probhi(2))
 
+  allocate(rho_0(npts_model))
+  allocate(T_0(npts_model))
+  !get initial Temperature and density from initial model
+  rho_0 = model_state(:,idens_model)
+  T_0 = model_state(:,itemp_model)
+  npts = npts_model
 end subroutine PROBINIT
 
 ! ::: -----------------------------------------------------------
