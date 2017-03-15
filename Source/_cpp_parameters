@@ -56,6 +56,9 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
+# do we do the CTU unsplit method or a method-of-lines approach?
+do_ctu                       int           1                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 

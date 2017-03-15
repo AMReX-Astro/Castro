@@ -348,8 +348,6 @@ subroutine ca_mol_single_stage(time, &
      enddo
   enddo
 
-
-
   ! Scale the fluxes for the form we expect later in refluxing.
   do n = 1, NVAR
      do j = lo(2), hi(2)
@@ -366,7 +364,6 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
-
 
   ! Store fluxes for flux correction
   if (coord_type .eq. 1) then

@@ -195,8 +195,12 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
+      if (do_ctu) {
         construct_hydro_source(time, dt);
-	apply_source_to_state(S_new, hydro_source, dt);
+      } else {
+        construct_mol_hydro_source(time, dt);
+      }
+      apply_source_to_state(S_new, hydro_source, dt);
     }
 
     // Sync up state after old sources and hydro source.

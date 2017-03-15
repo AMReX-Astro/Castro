@@ -15,6 +15,7 @@ static Real small_temp;
 static Real small_pres;
 static Real small_ener;
 static int do_hydro;
+static int do_ctu;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
