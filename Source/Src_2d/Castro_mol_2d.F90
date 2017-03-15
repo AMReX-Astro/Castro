@@ -224,7 +224,7 @@ subroutine ca_mol_single_stage(time, &
            ! y-edges
 
            ! left state at j-1/2 interface
-           qym(i,j,n) = syp(i-1,j)
+           qym(i,j,n) = syp(i,j-1)
 
            ! right state at j-1/2 interface
            qyp(i,j,n) = sym(i,j)
