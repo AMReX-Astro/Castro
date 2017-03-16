@@ -590,6 +590,11 @@ protected:
     MultiFab Sborder;
 
     //
+    // A state array for the post burn state to be used in MOL integration
+    //
+    MultiFab Sburn;
+
+    //
     // Source terms to the hydrodynamics solve.
     //
     MultiFab sources_for_hydro;

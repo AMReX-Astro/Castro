@@ -256,7 +256,8 @@ Castro::do_advance (Real time,
 
 
 void
-Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, 
+			      int sub_iteration, int sub_ncycle)
 {
 
     // Reset the change from density resets
@@ -302,10 +303,34 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
 
-    Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
-    const Real prev_time = state[State_Type].prevTime();
-    expand_state(Sborder, prev_time, NUM_GROW);
+    if (do_ctu) {
+      // for the CTU unsplit method, we always start with the old state
+      Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+      const Real prev_time = state[State_Type].prevTime();
+      expand_state(Sborder, prev_time, NUM_GROW);
 
+    } else {
+      // for Method of lines, our initialization of Sborder depends on
+      // which stage in the RK update we are working on
+      
+      if (sub_iteration == 0) {
+
+	// first MOL stage
+	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+	const Real prev_time = state[State_Type].prevTime();
+	expand_state(Sborder, prev_time, NUM_GROW);
+
+      } else {
+
+	// the initial state for the kth stage follows the Butcher
+	// tableau.  We need to create the proper state starting with
+	// the result after the first dt/2 burn (which we copied into
+	// Sburn) and we need to fill ghost cells.  We'll build this
+	// state temporarily in S_new (which is State_Data) to allow for
+	// ghost filling.  
+
+      }
+    }
 }
 
 
@@ -441,7 +466,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     clean_state(get_old_data(State_Type));
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
-
+    
     if (use_retry) {
 
       // Store the old and new time levels.
@@ -479,6 +504,19 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // compute the time derivative of the source terms.
 
     sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+
+
+    if (!do_ctu) {
+      // if we are not doing CTU advection, then we are doing a method
+      // of lines, and need storage for hte intermediate stages
+      PArray<MultiFab> k_mol(MOL_STAGES, PArrayManage);
+      for (int n = 0; n < MOL_STAGES; ++n) {
+	k_mol.set(n, new MultiFab(grids, NUM_STATE, 0, Fab_allocate));
+      }
+
+      // for the post-burn state
+      Sburn.define(grids, NUM_STATE, 0, Fab_allocate);
+    }
 
     // Zero out the current fluxes.
 
@@ -568,6 +606,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     sources_for_hydro.clear();
 
     prev_state.clear();
+
+    if (!do_ctu) {
+      k_mol.clear();
+      Sburn.clear();
+    }
 
 }
 
