@@ -642,6 +642,18 @@ protected:
     PArray<StateData> prev_state;
 
     //
+    // Storage for the method of lines stages
+    PArray<MultiFab> k_mol;
+    //
+
+    // MOL Butcher tableau
+    static int MOL_STAGES;
+  
+    static Array< Array<Real> > a_mol;
+    static Array<Real> b_mol;
+    static Array<Real> c_mol;
+
+    //
     //  Call extern/networks/.../network.f90::network_init()
     //
     static void extern_init ();

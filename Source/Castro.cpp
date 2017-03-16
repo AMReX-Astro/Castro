@@ -90,6 +90,12 @@ int          Castro::NQ            = -1;
 
 Array<std::string> Castro::source_names;
 
+int          Castro::MOL_STAGES;
+Array< Array<Real> > Castro::a_mol;
+Array<Real> Castro::b_mol;
+Array<Real> Castro::c_mol;
+
+
 #include <castro_defaults.H>
 
 #ifdef SELF_GRAVITY
