@@ -274,10 +274,11 @@ Castro::do_advance (Real time,
       // Construct S_new now using the weighted sum of the k_mol
       // updates
       
-      // Snew is already initialized with Sburn, so loop over the
-      // stages and add weighted results
+      // S_new is just Sburn, since it was set at the top of stage 0
+      // and never modified.  So, loop over the stages and add
+      // weighted results
       for (int n = 0; n < MOL_STAGES; ++n) {
-	MultiFab::Saxpy(S_new, b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
+	MultiFab::Saxpy(S_new, dt*b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
       }
 
     }
@@ -371,10 +372,19 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// the initial state for the kth stage follows the Butcher
 	// tableau.  We need to create the proper state starting with
 	// the result after the first dt/2 burn (which we copied into
-	// Sburn) and we need to fill ghost cells.  We'll build this
-	// state temporarily in S_new (which is State_Data) to allow for
-	// ghost filling.  
+	// Sburn) and we need to fill ghost cells.  
 
+	// We'll overwrite S_old with this information, since we don't
+	// need it anymorebuild this state temporarily in S_new (which
+	// is State_Data) to allow for ghost filling.
+	MultiFab& S_old = get_old_data(State_Type);
+	MultiFab::Copy(S_old, Sburn, 0, 0, S_old.nComp(), 0);
+	for (int i = 0; i <= sub_iteration; ++i)
+	  MultiFab::Saxpy(S_old, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_old.nComp(), 0);
+
+	const Real prev_time = state[State_Type].prevTime();
+	expand_state(Sborder, prev_time, NUM_GROW);
+	
       }
     }
 }
