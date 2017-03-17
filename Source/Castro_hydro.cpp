@@ -359,7 +359,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 void
-Castro::construct_mol_hydro_source(Real time, Real dt)
+Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 {
 
   // this constructs the hydrodynamic source (essentially the flux
@@ -443,7 +443,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  FArrayBox &stateout = S_new[mfi];
 
 	  FArrayBox &source_in  = sources_for_hydro[mfi];
-	  FArrayBox &source_out = hydro_source[mfi];
+
+	  // the output of this will be stored in the correct stage MF
+	  FArrayBox &source_out = k_mol[istage][mfi];
 
 #ifdef RADIATION
 	  FArrayBox &Er = Erborder[mfi];
@@ -487,6 +489,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
 	  }
 #endif
+	  
 
 	  ca_mol_single_stage
 	    (&time,

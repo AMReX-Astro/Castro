@@ -166,22 +166,35 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_old);
 
-    // Since we are Strang splitting the reactions, do them now.
+    // Since we are Strang splitting the reactions, do them now (only
+    // for first stage of MOL)
+
+    if (do_ctu || (!do_ctu && sub_iteration == 0)) {
 
 #ifdef REACTIONS
 #ifndef SDC
-    // this operates on Sborder (which is initially S_old).  The result
-    // of the reactions is added directly back to Sborder.
-    strang_react_first_half(prev_time, 0.5 * dt);
+      // this operates on Sborder (which is initially S_old).  The result
+      // of the reactions is added directly back to Sborder.
+      strang_react_first_half(prev_time, 0.5 * dt);
 #endif
 #endif
 
-    // Initialize the new-time data. This copy needs to come after the
-    // reactions.
+      // Initialize the new-time data. This copy needs to come after the
+      // reactions.
 
-    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+      MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-    // Construct and apply the old-time source terms to S_new.
+      if (!do_ctu) {
+	// store the result of the burn in Sburn for later stages
+	MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
+      }
+    }
+
+
+    // Construct the old-time sources from Sborder.  For CTU
+    // integration, this will already be applied to S_new (with full
+    // dt weighting), to be correctly later.  For MOL, this is not
+    // applied to any state.
 
 #ifdef SELF_GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time);
@@ -197,55 +210,73 @@ Castro::do_advance (Real time,
     {
       if (do_ctu) {
         construct_hydro_source(time, dt);
+	apply_source_to_state(S_new, hydro_source, dt);      
       } else {
-        construct_mol_hydro_source(time, dt);
+        construct_mol_hydro_source(time, dt, sub_iteration, sub_ncycle);
       }
-      apply_source_to_state(S_new, hydro_source, dt);
     }
 
-    // Sync up state after old sources and hydro source.
+    // For MOL integration, we are done with this stage, unless it is
+    // the last stage
+    if (do_ctu) {
 
-    frac_change = clean_state(S_new, Sborder);
+      // Sync up state after old sources and hydro source.
 
-    // Check for NaN's.
+      frac_change = clean_state(S_new, Sborder);
 
-    check_for_nan(S_new);
+      // Check for NaN's.
+
+      check_for_nan(S_new);
 
 #ifdef SELF_GRAVITY
-    // Must define new value of "center" before we call new gravity
-    // solve or external source routine
-    if (moving_center == 1)
+      // Must define new value of "center" before we call new gravity
+      // solve or external source routine
+      if (moving_center == 1)
         define_new_center(S_new, time);
 #endif
 
 #ifdef SELF_GRAVITY
-    // We need to make the new radial data now so that we can use it when we
-    // FillPatch in creating the new source.
+      // We need to make the new radial data now so that we can use it when we
+      // FillPatch in creating the new source.
 
 #if (BL_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
+      if ( (level == 0) && (spherical_star == 1) ) {
         int is_new = 1;
 	make_radial_data(is_new);
-    }
+      }
 #endif
 #endif
 
-    // Construct and apply new-time source terms.
+      // Construct and apply new-time source terms.
 
 #ifdef SELF_GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, cur_time);
+      construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, 
+			    cur_time);
 #endif
 
-    do_new_sources(cur_time, dt, amr_iteration, amr_ncycle,
-		   sub_iteration, sub_ncycle);
+      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle,
+		     sub_iteration, sub_ncycle);
 
-    // Do the second half of the reactions.
+      // Do the second half of the reactions.
+    }
+
+    if (!do_ctu && sub_iteration == sub_ncycle-1) {
+      // we just finished the last stage of the MOL integration.
+      // Construct S_new now using the weighted sum of the k_mol
+      // updates
+
+    }
+
+    if (do_ctu || sub_iteration == sub_ncycle-1) {
+      // last part of reactions for CTU and if we are done with the
+      // MOL stages
 
 #ifdef REACTIONS
 #ifndef SDC
-    strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+      strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
 #endif
 #endif
+      }
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 

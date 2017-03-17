@@ -248,7 +248,7 @@ public:
 
     void construct_hydro_source(Real time, Real dt);
 
-    void construct_mol_hydro_source(Real time, Real dt);
+    void construct_mol_hydro_source(Real time, Real dt, int istage, int nstages);
 
     void check_for_nan(MultiFab& state, int check_ghost=0);
 
