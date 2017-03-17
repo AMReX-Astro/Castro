@@ -89,10 +89,19 @@ Castro::advance (Real time,
 #else
     // no SDC
 
-    int sub_iteration = 0;
-    int sub_ncycle = 0;
+    if (do_ctu) {
 
-    dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+      // CTU method is just a single update
+      int sub_iteration = 0;
+      int sub_ncycle = 0;
+
+      dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
+			  sub_iteration, sub_ncycle);
+    } else {
+      for (int iter = 0; iter < MOL_STAGES; ++iter)
+	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
+			    iter, MOL_STAGES);
+    }
 
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
