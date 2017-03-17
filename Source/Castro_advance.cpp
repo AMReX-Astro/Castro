@@ -264,6 +264,12 @@ Castro::do_advance (Real time,
       // we just finished the last stage of the MOL integration.
       // Construct S_new now using the weighted sum of the k_mol
       // updates
+      
+      // Snew is already initialized with Sburn, so loop over the
+      // stages and add weighted results
+      for (int n = 0; n < MOL_STAGES; ++n) {
+	MultiFab::Saxpy(S_new, b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
+      }
 
     }
 
