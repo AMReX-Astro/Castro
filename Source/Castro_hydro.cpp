@@ -370,15 +370,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
     hydro_source.setVal(0.0);
 
-    // Set up the source terms to go into the hydro.
+    // Set up the source terms to go into the hydro -- note: the
+    // sources_for_hydro MF has ghost zones, but we don't need them
+    // here, since sources don't explicitly enter into the prediction
+    // for MOL integration
 
     sources_for_hydro.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
-
-    sources_for_hydro.FillBoundary(geom.periodicity());
-
+	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, 0);
 
     int finest_level = parent->finestLevel();
 
