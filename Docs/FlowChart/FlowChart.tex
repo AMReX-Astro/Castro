@@ -213,10 +213,9 @@ In the code, the objective is to evolve the state from the old time,
   The reaction data needs to be valid in the ghost cells.  The logic
   in this routine (accomplished throuh the use of a mask) will burn
   only in the valid interior cells or in any ghost cells that are on a
-  coarse-fine interface or physical boundary\MarginPar{physical
-    boundary too?}  This allows us to just use a level {\tt
-    FillBoundary} call to fill all of the ghost cells on the same
-  level with valid data.
+  coarse-fine interface or physical boundary.  This allows us to just
+  use a level {\tt FillBoundary()} call to fill all of the ghost cells
+  on the same level with valid data.
 
   An experimental option (enabled via
   \runparam{use\_custom\_knapsack\_weights}) will create a custom
