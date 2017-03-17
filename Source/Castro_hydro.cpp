@@ -379,20 +379,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
     sources_for_hydro.FillBoundary(geom.periodicity());
 
-    // Optionally we can predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
-
-    if (source_term_predictor == 1) {
-
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-
-      dSdt_new.FillBoundary(geom.periodicity());
-
-      MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
-
-    }
 
     int finest_level = parent->finestLevel();
 
@@ -401,22 +387,31 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef RADIATION
+    MultiFab& Er_new = get_new_data(Rad_Type);
 
-    // note: the radiation consup currently does not fill these
-    Real mass_lost       = 0.;
-    Real xmom_lost       = 0.;
-    Real ymom_lost       = 0.;
-    Real zmom_lost       = 0.;
-    Real eden_lost       = 0.;
-    Real xang_lost       = 0.;
-    Real yang_lost       = 0.;
-    Real zang_lost       = 0.;
+    if (!Radiation::rad_hydro_combined) {
+      BoxLib::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
+    }
+
+    FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+    MultiFab& Erborder = fpi_rad.get_mf();
+
+    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+    if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+    }
+    else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+    }
+
+    int nstep_fsp = -1;
+#endif
 
     BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#pragma omp parallel
 #endif
     {
 
@@ -424,12 +419,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #if (BL_SPACEDIM <= 2)
       FArrayBox pradial(Box::TheUnitBox(),1);
 #endif
-      FArrayBox q, qaux, src_q;
+#ifdef RADIATION
+      FArrayBox rad_flux[BL_SPACEDIM];
+#endif
+      FArrayBox q, qaux;
 
       int priv_nstep_fsp = -1;
 
       Real cflLoc = -1.0e+200;
-      int is_finest_level = (level == finest_level) ? 1 : 0;
+
       const int*  domain_lo = geom.Domain().loVect();
       const int*  domain_hi = geom.Domain().hiVect();
 
@@ -447,34 +445,41 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  FArrayBox &source_in  = sources_for_hydro[mfi];
 	  FArrayBox &source_out = hydro_source[mfi];
 
+#ifdef RADIATION
+	  FArrayBox &Er = Erborder[mfi];
+	  FArrayBox &lam = lamborder[mfi];
+	  FArrayBox &Erout = Er_new[mfi];
+#endif
+
 	  FArrayBox& vol      = volume[mfi];
 
+#ifdef RADIATION
+	  q.resize(qbx, QRADVAR);
+#else
 	  q.resize(qbx, QVAR);
+#endif
 	  qaux.resize(qbx, NQAUX);
-	  src_q.resize(qbx, QVAR);
 
 	  // convert the conservative state to the primitive variable state.
 	  // this fills both q and qaux.
 
 	  ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		  statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
+#ifdef RADIATION
+		  Er.dataPtr(), ARLIM_3D(Er.loVect()), ARLIM_3D(Er.hiVect()),
+		  lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
+#endif
 		  q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
 		  qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
-
-	  // convert the source terms expressed as sources to the conserved state to those
-	  // expressed as sources for the primitive state.
-
-	  srctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
-		    q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
-		    qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()),
-		    source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
-		    src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
 
 
 	  // Allocate fabs for fluxes
 	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
 	    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
 	    flux[i].resize(bxtmp,NUM_STATE);
+#ifdef RADIATION
+	    rad_flux[i].resize(bxtmp,Radiation::nGroups);
+#endif
 	  }
 
 #if (BL_SPACEDIM <= 2)
@@ -483,14 +488,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  }
 #endif
 
-	  ca_ctu_update
-	    (&is_finest_level, &time,
+	  ca_mol_single_stage
+	    (&time,
 	     lo, hi, domain_lo, domain_hi,
 	     BL_TO_FORTRAN(statein), 
 	     BL_TO_FORTRAN(stateout),
 	     BL_TO_FORTRAN(q),
 	     BL_TO_FORTRAN(qaux),
-	     BL_TO_FORTRAN(src_q),
+	     BL_TO_FORTRAN(source_in),
 	     BL_TO_FORTRAN(source_out),
 	     dx, &dt,
 	     D_DECL(BL_TO_FORTRAN(flux[0]),
@@ -506,9 +511,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	     BL_TO_FORTRAN(dLogArea[0][mfi]),
 #endif
 	     BL_TO_FORTRAN(volume[mfi]),
-	     &cflLoc, verbose,
-	     mass_lost, xmom_lost, ymom_lost, zmom_lost,
-	     eden_lost, xang_lost, yang_lost, zang_lost);
+	     &cflLoc, verbose);
 
 	  // Store the fluxes from this advance.
 	  // For normal integration we want to add the fluxes from this advance
@@ -518,6 +521,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+#ifdef RADIATION
+	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+#endif
 	  }
 
 #if (BL_SPACEDIM <= 2)
@@ -545,17 +551,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     if (verbose)
       flush_output();
 
-    if (track_grid_losses)
-    {
-	material_lost_through_boundary_temp[0] += mass_lost;
-	material_lost_through_boundary_temp[1] += xmom_lost;
-	material_lost_through_boundary_temp[2] += ymom_lost;
-	material_lost_through_boundary_temp[3] += zmom_lost;
-	material_lost_through_boundary_temp[4] += eden_lost;
-	material_lost_through_boundary_temp[5] += xang_lost;
-	material_lost_through_boundary_temp[6] += yang_lost;
-	material_lost_through_boundary_temp[7] += zang_lost;
-    }
 
     if (print_update_diagnostics)
     {

@@ -76,6 +76,10 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , allocatable :: q1(:,:,:)
   real(rt)        , allocatable :: q2(:,:,:)
 
+  ! radiation fluxes (need these to get things to compile)
+  real(rt)        , allocatable :: rflx(:,:,:)
+  real(rt)        , allocatable :: rfly(:,:,:)
+
   real(rt)        , allocatable :: shk(:,:)
 
   ! temporary interface values of the parabola
@@ -126,6 +130,10 @@ subroutine ca_mol_single_stage(time, &
 
   allocate(q1(flux1_l1-1:flux1_h1+1, flux1_l2-1:flux1_h2+1, NGDNV))
   allocate(q2(flux2_l1-1:flux2_h1+1, flux2_l2-1:flux2_h2+1, NGDNV))
+
+  ! when we do radiation, these would be passed out
+  allocate(rflx(flux1_l1-1:flux1_h1+1, flux1_l2-1:flux1_h2+1, NGDNV))
+  allocate(rfly(flux2_l1-1:flux2_h1+1, flux2_l2-1:flux2_h2+1, NGDNV))
 
   allocate(shk(lo(1)-1:hi(1)+1, lo(2)-1:hi(2)+1))
   allocate(pdivu(lo(1):hi(1), lo(2):hi(2)))
@@ -240,6 +248,9 @@ subroutine ca_mol_single_stage(time, &
   call cmpflx(qxm, qxp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
               flux1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
               q1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
+#ifdef RADIATION
+              rflx, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
+#endif
               qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
               1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
@@ -248,6 +259,9 @@ subroutine ca_mol_single_stage(time, &
   call cmpflx(qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
               flux2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
               q2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
+#ifdef RADIATION
+              rfly, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
+#endif
               qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
               shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
               2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
