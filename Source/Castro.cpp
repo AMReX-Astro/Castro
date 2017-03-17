@@ -400,7 +400,8 @@ Castro::Castro ()
 #endif
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(num_state_type, PArrayManage)
+    prev_state(num_state_type, PArrayManage),
+    k_mol(MOL_STAGES, PArrayManage)
 {
 }
 
@@ -420,7 +421,8 @@ Castro::Castro (Amr&            papa,
 #endif
     old_sources(num_src, PArrayManage),
     new_sources(num_src, PArrayManage),
-    prev_state(num_state_type, PArrayManage)
+    prev_state(num_state_type, PArrayManage),
+    k_mol(MOL_STAGES, PArrayManage)
 {
     buildMetrics();
 

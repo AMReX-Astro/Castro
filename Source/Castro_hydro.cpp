@@ -387,6 +387,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    MultiFab& k_stage = k_mol[istage];
+
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
 
@@ -445,7 +447,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 	  FArrayBox &source_in  = sources_for_hydro[mfi];
 
 	  // the output of this will be stored in the correct stage MF
-	  FArrayBox &source_out = k_mol[istage][mfi];
+	  FArrayBox &source_out = k_stage[mfi];
 
 #ifdef RADIATION
 	  FArrayBox &Er = Erborder[mfi];
