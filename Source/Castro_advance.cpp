@@ -382,6 +382,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	for (int i = 0; i <= sub_iteration; ++i)
 	  MultiFab::Saxpy(S_old, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_old.nComp(), 0);
 
+	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
 	const Real prev_time = state[State_Type].prevTime();
 	expand_state(Sborder, prev_time, NUM_GROW);
 	
