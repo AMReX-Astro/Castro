@@ -98,9 +98,10 @@ Castro::advance (Real time,
       dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
 			  sub_iteration, sub_ncycle);
     } else {
-      for (int iter = 0; iter < MOL_STAGES; ++iter)
+      for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
 			    iter, MOL_STAGES);
+      }
     }
 
     // Check to see if this advance violated certain stability criteria.
@@ -378,16 +379,31 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// need it anymorebuild this state temporarily in S_new (which
 	// is State_Data) to allow for ghost filling.
 	MultiFab& S_old = get_old_data(State_Type);
+
+	// debugging
+	if (0) {
+	  for (int k = 0; k <  Sburn.nComp(); ++k)
+	    {
+	      std::cout << "Sburn[" << k << "]: " << Sburn.min(k) << " " << Sburn.max(k) << std::endl;
+	    }
+
+	  for (int k = 0; k <  Sburn.nComp(); ++k)
+	    {
+	      std::cout << "kmol[" << k << "]: " << k_mol[0].min(k) << " " << k_mol[0].max(k) << std::endl;
+	    }
+	}
+
 	MultiFab::Copy(S_old, Sburn, 0, 0, S_old.nComp(), 0);
-	for (int i = 0; i <= sub_iteration; ++i)
+	for (int i = 0; i < sub_iteration; ++i)
 	  MultiFab::Saxpy(S_old, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_old.nComp(), 0);
 
 	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
 	const Real prev_time = state[State_Type].prevTime();
 	expand_state(Sborder, prev_time, NUM_GROW);
-	
+
       }
     }
+
 }
 
 
@@ -569,6 +585,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       //PArray<MultiFab> k_mol(MOL_STAGES, PArrayManage);
       for (int n = 0; n < MOL_STAGES; ++n) {
 	k_mol.set(n, new MultiFab(grids, NUM_STATE, 0, Fab_allocate));
+	k_mol[n].setVal(0.0);
       }
 
       // for the post-burn state
