@@ -368,8 +368,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
-    hydro_source.setVal(0.0);
-
     // Set up the source terms to go into the hydro -- note: the
     // sources_for_hydro MF has ghost zones, but we don't need them
     // here, since sources don't explicitly enter into the prediction
@@ -561,7 +559,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
     {
 
 	bool local = true;
-	Array<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
+	Array<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
 
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
