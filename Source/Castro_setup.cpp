@@ -942,6 +942,7 @@ Castro::variableSetUp ()
 
 
   // method of lines Butcher tableau
+#ifdef THIRD_ORDER
   MOL_STAGES = 3;
 
   a_mol.resize(MOL_STAGES);
@@ -955,5 +956,33 @@ Castro::variableSetUp ()
   b_mol = {1./6., 2./3., 1./6.};
 
   c_mol = {0, 0.5, 1};
+#endif
+  
+//#ifdef SECONDORDER
+  MOL_STAGES = 2;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {0,   0,};
+  a_mol[1] = {0.5, 0,};
+
+  b_mol = {0.0, 1.0};
+
+  c_mol = {0, 0.5};
+//#endif
+
+#ifdef FIRSTORDER
+  MOL_STAGES = 1;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {1};
+  b_mol = {1.0};
+  c_mol = {0.0};
+#endif
 
 }

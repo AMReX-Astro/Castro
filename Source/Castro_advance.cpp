@@ -275,9 +275,9 @@ Castro::do_advance (Real time,
       // Construct S_new now using the weighted sum of the k_mol
       // updates
       
-      // S_new is just Sburn, since it was set at the top of stage 0
-      // and never modified.  So, loop over the stages and add
-      // weighted results
+      // We need to build on Sburn, so start with that state
+      MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
+
       for (int n = 0; n < MOL_STAGES; ++n) {
 	MultiFab::Saxpy(S_new, dt*b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
       }
