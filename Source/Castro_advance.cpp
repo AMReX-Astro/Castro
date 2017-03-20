@@ -282,6 +282,8 @@ Castro::do_advance (Real time,
 	MultiFab::Saxpy(S_new, dt*b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
       }
 
+      // we need to define the temperature now
+      clean_state(S_new);
     }
 
     if (do_ctu || sub_iteration == sub_ncycle-1) {
@@ -378,7 +380,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// We'll overwrite S_old with this information, since we don't
 	// need it anymorebuild this state temporarily in S_new (which
 	// is State_Data) to allow for ghost filling.
-	MultiFab& S_old = get_old_data(State_Type);
+	MultiFab& S_new = get_new_data(State_Type);
 
 	// debugging
 	if (0) {
@@ -393,13 +395,19 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	    }
 	}
 
-	MultiFab::Copy(S_old, Sburn, 0, 0, S_old.nComp(), 0);
+	MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
 	for (int i = 0; i < sub_iteration; ++i)
-	  MultiFab::Saxpy(S_old, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_old.nComp(), 0);
+	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_new.nComp(), 0);
+
+	  for (int k = 0; k <  Sburn.nComp(); ++k)
+	    {
+	      std::cout << "S_new[" << k << "]: " << S_new.min(k) << " " << S_new.max(k) << std::endl;
+	    }
+
 
 	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
-	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, NUM_GROW);
+	const Real new_time = state[State_Type].curTime();
+	expand_state(Sborder, new_time, NUM_GROW);
 
       }
     }
