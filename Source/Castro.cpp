@@ -2322,6 +2322,19 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
     Real dens_change = 1.e0;
 
+    MultiFab reset_source;
+
+    if (print_update_diagnostics)
+    {
+
+	// Before we do anything, make a copy of the state.
+
+	reset_source.define(S_new.boxArray(), S_new.nComp(), 0, Fab_allocate);
+
+	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+
+    }
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
@@ -2346,11 +2359,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	// Evaluate what the effective reset source was.
 
-	MultiFab reset_source(S_new.boxArray(), S_new.nComp(), 0);
-
-	MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
-
-	MultiFab::Subtract(reset_source, S_old, 0, 0, S_old.nComp(), 0);
+	MultiFab::Subtract(reset_source, S_new, 0, 0, S_old.nComp(), 0);
 
 	bool local = true;
 	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
