@@ -128,8 +128,8 @@ subroutine ca_mol_single_stage(time, &
 
   allocate(flatn(qd_l1:qd_h1, qd_l2:qd_h2))
 
-  allocate(q1(flux1_l1-1:flux1_h1+1, flux1_l2-1:flux1_h2+1, NGDNV))
-  allocate(q2(flux2_l1-1:flux2_h1+1, flux2_l2-1:flux2_h2+1, NGDNV))
+  allocate(q1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, NGDNV))
+  allocate(q2(flux2_l1:flux2_h1, flux2_l2:flux2_h2, NGDNV))
 
   ! when we do radiation, these would be passed out
   allocate(rflx(flux1_l1-1:flux1_h1+1, flux1_l2-1:flux1_h2+1, NGDNV))
@@ -279,7 +279,6 @@ subroutine ca_mol_single_stage(time, &
              (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
      enddo
   enddo
-
 
   ! Compute the artifical viscosity
 
