@@ -576,6 +576,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 #endif
     }
 
+
     if (courno > 1.0) {
 	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
 	if (hard_cfl_limit == 1)
