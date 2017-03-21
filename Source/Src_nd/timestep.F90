@@ -13,7 +13,7 @@ contains
 
     use network, only: nspec, naux
     use eos_module
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
     use prob_params_module, only: dim
     use bl_constants_module
 #ifdef ROTATION
@@ -28,7 +28,7 @@ contains
     integer          :: lo(3), hi(3)
     integer          :: u_lo(3), u_hi(3)
     real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt)         :: dx(3), dt
+    real(rt)         :: dx(3), dt, dt_tmp
 
     real(rt)         :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
     integer          :: i, j, k
@@ -61,7 +61,7 @@ contains
              uz = u(i,j,k,UMZ) * rhoInv
 
 #ifdef ROTATION
-             if (do_rotation .eq. 1 .and. state_in_rotating_frame .ne. 1) then
+             if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
                 vel = [ux, uy, uz]
                 call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
                 ux = vel(1)
@@ -73,18 +73,30 @@ contains
              c = eos_state % cs
 
              dt1 = dx(1)/(c + abs(ux))
-             if (dim .ge. 2) then
+             if (dim >= 2) then
                 dt2 = dx(2)/(c + abs(uy))
              else
                 dt2 = dt1
              endif
-             if (dim .eq. 3) then
+             if (dim == 3) then
                 dt3 = dx(3)/(c + abs(uz))
              else
                 dt3 = dt1
              endif
 
-             dt  = min(dt,dt1,dt2,dt3)
+             if (do_ctu == 1) then
+                dt  = min(dt,dt1,dt2,dt3)
+             else
+                ! method of lines constraint is tougher
+                dt_tmp = ONE/dt1
+                if (dim >= 2) then
+                   dt_tmp = dt_tmp + ONE/dt2
+                endif
+                if (dim == 3) then
+                   dt_tmp = dt_tmp + ONE/dt3
+                endif
+                dt = min(dt, ONE/dt_tmp)
+             endif
 
           enddo
        enddo
