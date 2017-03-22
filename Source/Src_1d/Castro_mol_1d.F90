@@ -115,7 +115,7 @@ subroutine ca_mol_single_stage(time, &
 
   allocate( flatn(q_l1:q_h1))
 
-  allocate(    q1(flux_l1-1:flux_h1+1, NGDNV))
+  allocate(    q1(flux_l1:flux_h1, NGDNV))
 
   ! when we do radiation, these would be passed out
   allocate(rflx(flux_l1-1:flux_h1+1, NGDNV))
@@ -175,12 +175,12 @@ subroutine ca_mol_single_stage(time, &
   allocate(sxm(q_l1:q_h1))
   allocate(sxp(q_l1:q_h1))
 
-  ! qm and qp are the left and right states for an interface -- they 
+  ! qm and qp are the left and right states for an interface -- they
   ! are defined for a particular interface, with the convention that
   ! qm(i) and qp(i) correspond to the i-1/2 interface
-  allocate ( qxm(lo(1)-1:hi(1)+2,NQ) ) 
-  allocate ( qxp(lo(1)-1:hi(1)+2,NQ) ) 
-  
+  allocate ( qxm(lo(1)-1:hi(1)+2,NQ) )
+  allocate ( qxp(lo(1)-1:hi(1)+2,NQ) )
+
   ! Do PPM reconstruction
   do n = 1, QVAR
      call ppm_reconstruct(q(:,n), q_l1, q_h1, &
@@ -202,9 +202,9 @@ subroutine ca_mol_single_stage(time, &
 
   ! Get the fluxes from the Riemann solver
   call cmpflx(lo, hi, domlo, domhi, &
-              qxm, qxp, lo(1)-1, hi(1)+1, &
+              qxm, qxp, lo(1)-1, hi(1)+2, &
               flux, flux_l1, flux_h1, &
-              q1, flux_l1-1, flux_h1+1, &
+              q1, flux_l1, flux_h1, &
 #ifdef RADIATION
               rflux, rfd_l1,rfd_h1, &
 #endif
@@ -265,7 +265,7 @@ subroutine ca_mol_single_stage(time, &
         if (n == UEINT) then
            update(i,n) = update(i,n) - pdivu(i)
         else if (n == UMX) then
-           update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx        
+           update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx
         endif
 
         ! include source terms
