@@ -1,44 +1,41 @@
 module ppm_module
 
   use bl_fort_module, only : rt => c_real
+  use bl_constants_module
+
   implicit none
+
+  private 
+
+  public ppm_reconstruct, ppm_int_profile
 
 contains
 
   ! characteristics based on u
-  subroutine ppm(s,qd_l1,qd_h1, &
-                 u,cspd, &
-                 flatn, &
-                 Ip,Im,ilo,ihi,dx,dt)
+  subroutine ppm_reconstruct(s, qd_l1, qd_h1, &
+                             flatn, &
+                             sxm, sxp, &
+                             ilo, ihi, dx)
        
     use meth_params_module, only : ppm_type
-    use bl_constants_module
-
-    use bl_fort_module, only : rt => c_real
     implicit none
        
-    integer          qd_l1,qd_h1
-    integer          ilo,ihi
-    real(rt)         s(qd_l1:qd_h1)
-    real(rt)         u(qd_l1:qd_h1)
-    real(rt)         cspd(qd_l1:qd_h1)
-    real(rt)         flatn(qd_l1:qd_h1)
-    real(rt)         Ip(ilo-1:ihi+1,1:3)
-    real(rt)         Im(ilo-1:ihi+1,1:3)
-    real(rt)         dx,dt
+    integer, intent(in) :: qd_l1, qd_h1
+    integer, intent(in) :: ilo, ihi
+    real(rt), intent(in) :: s(qd_l1:qd_h1)
+    real(rt), intent(in) :: flatn(qd_l1:qd_h1)
+    real(rt), intent(inout) :: sxm(qd_l1:qd_h1)
+    real(rt), intent(inout) :: sxp(qd_l1:qd_h1)
+    real(rt), intent(in) :: dx
 
     ! local
-    integer i
-    logical extremum, bigp, bigm
+    integer :: i
+    logical :: extremum, bigp, bigm
 
-    real(rt)         dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
-    real(rt)         sgn, sigma, s6, amax, delam, delap
-    real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
+    real(rt) :: dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
+    real(rt) :: sgn, sigma, s6, amax, delam, delap
+    real(rt) :: dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
 
-    ! s_{\ib,+}, s_{\ib,-}
-    real(rt)        , allocatable :: sp(:)
-    real(rt)        , allocatable :: sm(:)
-    
     ! \delta s_{\ib}^{vL}
     real(rt)        , allocatable :: dsvl(:)
     
@@ -51,11 +48,6 @@ contains
     ! a constant used for testing extrema
     real(rt), parameter :: SMALL = 1.e-10_rt    
 
-
-    ! cell-centered indexing
-    allocate(sp(ilo-1:ihi+1))
-    allocate(sm(ilo-1:ihi+1))
-    
 
     ! cell-centered indexing w/extra x-ghost cell
     allocate(dsvl(ilo-2:ihi+2))
@@ -90,37 +82,28 @@ contains
 
        ! copy sedge into sp and sm
        do i=ilo-1,ihi+1
-          sp(i) = sedge(i+1)
-          sm(i) = sedge(i  )
+          sxp(i) = sedge(i+1)
+          sxm(i) = sedge(i  )
        end do
 
-       ! flatten the parabola BEFORE doing the other
-       ! monotonozation -- this is the method that Flash does
+       ! flatten the parabola BEFORE doing the other monotonozation
        do i=ilo-1,ihi+1
-          sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
-          sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
+          sxm(i) = flatn(i)*sxm(i) + (ONE-flatn(i))*s(i)
+          sxp(i) = flatn(i)*sxp(i) + (ONE-flatn(i))*s(i)
        enddo
 
        ! modify using quadratic limiters (CW 1.10) -- with a slightly
        ! different form from Colella & Sekora (Eqs. 14, 15)
        do i=ilo-1,ihi+1
-          if ((sp(i)-s(i))*(s(i)-sm(i)) .le. ZERO) then
-             sp(i) = s(i)
-             sm(i) = s(i)
-          else if (abs(sp(i)-s(i)) .ge. TWO*abs(sm(i)-s(i))) then
-             sp(i) = THREE*s(i) - TWO*sm(i)
-          else if (abs(sm(i)-s(i)) .ge. TWO*abs(sp(i)-s(i))) then
-             sm(i) = THREE*s(i) - TWO*sp(i)
+          if ((sxp(i)-s(i))*(s(i)-sxm(i)) .le. ZERO) then
+             sxp(i) = s(i)
+             sxm(i) = s(i)
+          else if (abs(sxp(i)-s(i)) .ge. TWO*abs(sxm(i)-s(i))) then
+             sxp(i) = THREE*s(i) - TWO*sxm(i)
+          else if (abs(sxm(i)-s(i)) .ge. TWO*abs(sxp(i)-s(i))) then
+             sxm(i) = THREE*s(i) - TWO*sxp(i)
           end if
        end do
-
-       ! flatten the parabola AFTER doing the monotonization --
-       ! this is the method that Miller & Colella do
-       !do i=ilo-1,ihi+1
-       !      sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
-       !      sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
-       !enddo
-
 
     else if (ppm_type .eq. 2) then
        
@@ -208,85 +191,111 @@ contains
              end if
           end if
 
-          sm(i) = s(i) + alpham
-          sp(i) = s(i) + alphap
+          sxm(i) = s(i) + alpham
+          sxp(i) = s(i) + alphap
 
        end do
 
        ! flatten the parabola AFTER doing the monotonization --
        ! this is the method that Miller & Colella do
        do i=ilo-1,ihi+1
-             sm(i) = flatn(i)*sm(i) + (ONE-flatn(i))*s(i)
-             sp(i) = flatn(i)*sp(i) + (ONE-flatn(i))*s(i)
+          sxm(i) = flatn(i)*sxm(i) + (ONE-flatn(i))*s(i)
+          sxp(i) = flatn(i)*sxp(i) + (ONE-flatn(i))*s(i)
        enddo
 
     end if
-
-        ! compute x-component of Ip and Im
-       do i=ilo-1,ihi+1
-
-          ! Ip/m is the integral under the parabola for the extent
-          ! that a wave can travel over a timestep
-          !                                              
-          ! Ip integrates to the right edge of a cell   
-          ! Im integrates to the left edge of a cell
-        
-          s6 = SIX*s(i) - THREE*(sm(i)+sp(i))
-
-          ! u-c wave
-          sigma = abs(u(i)-cspd(i))*dt/dx
-
-          if (u(i)-cspd(i) <= ZERO) then
-             Ip(i,1) = sp(i)
-          else
-             Ip(i,1) = sp(i) - &
-                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i)-cspd(i) >= ZERO) then
-             Im(i,1) = sm(i)
-          else
-             Im(i,1) = sm(i) + &
-                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          ! u wave
-          sigma = abs(u(i))*dt/dx
-
-          if (u(i) <= ZERO) then
-             Ip(i,2) = sp(i)
-          else
-             Ip(i,2) = sp(i) - &
-                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i) >= ZERO) then
-             Im(i,2) = sm(i)
-          else
-             Im(i,2) = sm(i) + &
-                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          ! u+c wave
-          sigma = abs(u(i)+cspd(i))*dt/dx
-
-          if (u(i) + cspd(i) <= ZERO) then
-             Ip(i,3) = sp(i)
-          else
-             Ip(i,3) = sp(i) - &
-                  HALF*sigma*(sp(i)-sm(i)-(ONE-TWO3RD*sigma)*s6)
-          endif
-
-          if (u(i) + cspd(i) >= ZERO) then
-             Im(i,3) = sm(i)
-          else
-             Im(i,3) = sm(i) + &
-                  HALF*sigma*(sp(i)-sm(i)+(ONE-TWO3RD*sigma)*s6)
-          endif
-       end do
        
-       deallocate(sedge,dsvl,sp,sm)
+    deallocate(sedge, dsvl)
 
-     end subroutine ppm
+  end subroutine ppm_reconstruct
+
+
+  ! characteristics based on u
+  subroutine ppm_int_profile(s, qd_l1, qd_h1, &
+                             u, cspd, &
+                             sxm, sxp, &
+                             Ip, Im, ilo, ihi, dx, dt)
+       
+    implicit none
+       
+    integer, intent(in) :: qd_l1, qd_h1
+    integer, intent(in) :: ilo, ihi
+    real(rt), intent(in) :: s(qd_l1:qd_h1)
+    real(rt), intent(in) :: u(qd_l1:qd_h1)
+    real(rt), intent(in) :: cspd(qd_l1:qd_h1)
+    real(rt), intent(in) :: sxm(qd_l1:qd_h1)
+    real(rt), intent(in) :: sxp(qd_l1:qd_h1)
+    real(rt), intent(inout) :: Ip(ilo-1:ihi+1,1:3)
+    real(rt), intent(inout) :: Im(ilo-1:ihi+1,1:3)
+    real(rt), intent(in) :: dx, dt
+
+    ! local
+    integer :: i
+    real(rt) :: sigma, s6
+
+    ! compute x-component of Ip and Im
+    do i = ilo-1, ihi+1
+
+       ! Ip/m is the integral under the parabola for the extent
+       ! that a wave can travel over a timestep
+       !                                              
+       ! Ip integrates to the right edge of a cell   
+       ! Im integrates to the left edge of a cell
+        
+       s6 = SIX*s(i) - THREE*(sxm(i)+sxp(i))
+
+       ! u-c wave
+       sigma = abs(u(i)-cspd(i))*dt/dx
+
+       if (u(i)-cspd(i) <= ZERO) then
+          Ip(i,1) = sxp(i)
+       else
+          Ip(i,1) = sxp(i) - &
+               HALF*sigma*(sxp(i)-sxm(i)-(ONE-TWO3RD*sigma)*s6)
+       endif
+
+       if (u(i)-cspd(i) >= ZERO) then
+          Im(i,1) = sxm(i)
+       else
+          Im(i,1) = sxm(i) + &
+               HALF*sigma*(sxp(i)-sxm(i)+(ONE-TWO3RD*sigma)*s6)
+       endif
+
+       ! u wave
+       sigma = abs(u(i))*dt/dx
+       
+       if (u(i) <= ZERO) then
+          Ip(i,2) = sxp(i)
+       else
+          Ip(i,2) = sxp(i) - &
+               HALF*sigma*(sxp(i)-sxm(i)-(ONE-TWO3RD*sigma)*s6)
+       endif
+
+       if (u(i) >= ZERO) then
+          Im(i,2) = sxm(i)
+       else
+          Im(i,2) = sxm(i) + &
+               HALF*sigma*(sxp(i)-sxm(i)+(ONE-TWO3RD*sigma)*s6)
+       endif
+
+       ! u+c wave
+       sigma = abs(u(i)+cspd(i))*dt/dx
+       
+       if (u(i) + cspd(i) <= ZERO) then
+          Ip(i,3) = sxp(i)
+       else
+          Ip(i,3) = sxp(i) - &
+               HALF*sigma*(sxp(i)-sxm(i)-(ONE-TWO3RD*sigma)*s6)
+       endif
+       
+       if (u(i) + cspd(i) >= ZERO) then
+          Im(i,3) = sxm(i)
+       else
+          Im(i,3) = sxm(i) + &
+               HALF*sigma*(sxp(i)-sxm(i)+(ONE-TWO3RD*sigma)*s6)
+       endif
+    end do
+       
+  end subroutine ppm_int_profile
 
 end module ppm_module

@@ -29,7 +29,7 @@ contains
          ppm_predict_gammae, ppm_reference_eigenvectors, &
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ppm
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
     use bl_fort_module, only : rt => c_real
     implicit none
@@ -107,6 +107,9 @@ contains
     real(rt)        , allocatable :: Ip_gc(:,:,:)
     real(rt)        , allocatable :: Im_gc(:,:,:)
 
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:), sxp(:)
+
     type (eos_t) :: eos_state
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
@@ -132,6 +135,9 @@ contains
        allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
        allocate(Im_src(ilo-1:ihi+1,3,QVAR))
     endif
+
+    allocate(sxm(qd_l1:qd_h1))
+    allocate(sxp(qd_l1:qd_h1))
 
     !=========================================================================
     ! PPM CODE
@@ -164,11 +170,16 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, QVAR
-       call ppm(q(:,n),qd_l1,qd_h1, &
-                q(:,QU),c, &
-                flatn, &
-                Ip(:,:,n),Im(:,:,n), &
-                ilo,ihi,dx,dt)
+       call ppm_reconstruct(q(:,n), qd_l1, qd_h1, &
+                            flatn, &
+                            sxm, sxp, &
+                            ilo, ihi, dx)
+
+       call ppm_int_profile(q(:,n), qd_l1, qd_h1, &
+                            q(:,QU), c, &
+                            sxm, sxp, &
+                            Ip(:,:,n), Im(:,:,n), &
+                            ilo, ihi, dx, dt)
     enddo
 
     ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -206,22 +217,34 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
-       call ppm(gamc(:),qd_l1,qd_h1, &
-                 q(:,QU),c, &
-                 flatn, &
-                 Ip_gc(:,:,1),Im_gc(:,:,1), &
-                 ilo,ihi,dx,dt)
+       call ppm_reconstruct(gamc(:), qd_l1, qd_h1, &
+                            flatn, &
+                            sxm, sxp, &
+                            ilo, ihi, dx)
+
+       call ppm_int_profile(gamc(:), qd_l1, qd_h1, &
+                            q(:,QU), c, &
+                            sxm, sxp, &
+                            Ip_gc(:,:,1), Im_gc(:,:,1), &
+                            ilo, ihi, dx, dt)
     endif
 
     if (ppm_trace_sources == 1) then
-       do n=1,QVAR
-          call ppm(srcQ(:,n),src_l1,src_h1, &
-                   q(:,QU),c, &
-                   flatn, &
-                   Ip_src(:,:,n),Im_src(:,:,n), &
-                   ilo,ihi,dx,dt)
+       do n = 1, QVAR
+          call ppm_reconstruct(srcQ(:,n), src_l1, src_h1, &
+                               flatn, &
+                               sxm, sxp, &
+                               ilo, ihi, dx)
+
+          call ppm_int_profile(srcQ(:,n), src_l1, src_h1, &
+                               q(:,QU), c, &
+                               sxm, sxp, &
+                               Ip_src(:,:,n), Im_src(:,:,n), &
+                               ilo, ihi, dx, dt)
        enddo
     endif
+
+    deallocate(sxm, sxp)
 
     !-------------------------------------------------------------------------
     ! x-direction
