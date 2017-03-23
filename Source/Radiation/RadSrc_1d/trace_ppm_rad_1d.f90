@@ -28,9 +28,8 @@ contains
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use rad_params_module, only : ngroups
-    use ppm_module, only : ppm
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
-    use bl_fort_module, only : rt => c_real
     implicit none
 
     integer ilo,ihi
@@ -107,6 +106,9 @@ contains
     real(rt)        , allocatable :: Ip_src(:,:,:)
     real(rt)        , allocatable :: Im_src(:,:,:)
 
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:), sxp(:)
+
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (ilo == domlo(1))
@@ -136,6 +138,10 @@ contains
        allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
        allocate(Im_src(ilo-1:ihi+1,3,QVAR))
     endif
+
+    allocate(sxm(qd_l1:qd_h1))
+    allocate(sxp(qd_l1:qd_h1))
+
 
     !=========================================================================
     ! PPM CODE
@@ -168,22 +174,34 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, NQ
-       call ppm(q(:,n), qd_l1, qd_h1, &
-                q(:,QU), qaux(:,QC), &
-                flatn, &
-                Ip(:,:,n), Im(:,:,n), &
-                ilo, ihi, dx, dt)
+       call ppm_reconstruct(q(:,n), qd_l1, qd_h1, &
+                            flatn, &
+                            sxm, sxp, &
+                            ilo, ihi, dx)
+
+       call ppm_int_profile(q(:,n), qd_l1, qd_h1, &
+                            q(:,QU), qaux(:,QC), &
+                            sxm, sxp, &
+                            Ip(:,:,n), Im(:,:,n), &
+                            ilo, ihi, dx, dt)
     end do
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm(srcQ(:,n), src_l1, src_h1, &
-                   q(:,QU), qaux(:,QC), &
-                   flatn, &
-                   Ip_src(:,:,n), Im_src(:,:,n), &
-                   ilo, ihi, dx, dt)
+          call ppm_reconstruct(srcQ(:,n), src_l1, src_h1, &
+                               flatn, &
+                               sxm, sxp, &
+                               ilo, ihi, dx)
+
+          call ppm_int_profile(srcQ(:,n), src_l1, src_h1, &
+                               q(:,QU), qaux(:,QC), &
+                               sxm, sxp, &
+                               Ip_src(:,:,n), Im_src(:,:,n), &
+                               ilo, ihi, dx, dt)
        enddo
     endif
+
+    deallocate(sxm, sxp)
 
     !-------------------------------------------------------------------------
     ! x-direction

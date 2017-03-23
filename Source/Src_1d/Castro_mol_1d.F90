@@ -118,7 +118,7 @@ subroutine ca_mol_single_stage(time, &
   allocate(    q1(flux_l1:flux_h1, NGDNV))
 
   ! when we do radiation, these would be passed out
-  allocate(rflx(flux_l1-1:flux_h1+1, NGDNV))
+  allocate(rflx(flux_l1:flux_h1, NGDNV))
 
   allocate( pdivu(lo(1):hi(1)  ))
   allocate( shk(lo(1)-1:hi(1)+1))
@@ -206,7 +206,7 @@ subroutine ca_mol_single_stage(time, &
               flux, flux_l1, flux_h1, &
               q1, flux_l1, flux_h1, &
 #ifdef RADIATION
-              rflux, rfd_l1,rfd_h1, &
+              rflx, flux_l1, flux_h1, &
 #endif
               qaux, qa_l1, qa_h1, lo(1), hi(1))
 
