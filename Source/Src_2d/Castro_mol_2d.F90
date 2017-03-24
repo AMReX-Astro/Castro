@@ -18,18 +18,17 @@ subroutine ca_mol_single_stage(time, &
                                vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                                courno, verbose) bind(C, name="ca_mol_single_stage")
 
-  use meth_params_module, only : NQ, QVAR, NVAR, NHYP, NGDNV, GDPRES, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
                                  use_flattening, QU, QV, QW, QPRES, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann
-  use advection_util_2d_module, only : divu
+  use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
-  use advection_util_2d_module, only : normalize_species_fluxes
   use bl_fort_module, only : rt => c_real
 
   implicit none
