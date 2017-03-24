@@ -184,6 +184,8 @@ subroutine ca_mol_single_stage(time, &
 
   call bl_allocate(qint, It_lo, It_hi, NQ)
 
+  call bl_allocate(shk, shk_lo, shk_hi)
+  
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
@@ -372,6 +374,8 @@ subroutine ca_mol_single_stage(time, &
   call bl_deallocate(qzm)
   call bl_deallocate(qzp)
 
+  call bl_deallocate(qint)
+  call bl_deallocate(shk)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,dx,div,lo,hi+1)
