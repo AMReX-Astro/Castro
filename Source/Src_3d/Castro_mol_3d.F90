@@ -106,6 +106,7 @@ subroutine ca_mol_single_stage(time, &
   integer :: qa_lo(3), qa_hi(3)
   integer :: srU_lo(3), srU_hi(3)
   integer :: It_lo(3), It_hi(3)
+  integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1
@@ -156,6 +157,9 @@ subroutine ca_mol_single_stage(time, &
   It_lo = [lo(1) - 1, lo(2) - 1, 1]
   It_hi = [hi(1) + 1, hi(2) + 1, 2]
 
+  st_lo = [lo(1) - 2, lo(2) - 2, 1]
+  st_hi = [hi(1) + 2, hi(2) + 2, 2]
+
   shk_lo(:) = lo(:) - 1
   shk_hi(:) = hi(:) + 1
 
@@ -166,12 +170,12 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
 
-  call bl_allocate(sxm, It_lo, It_hi)
-  call bl_allocate(sxp, It_lo, It_hi)
-  call bl_allocate(sym, It_lo, It_hi)
-  call bl_allocate(syp, It_lo, It_hi)
-  call bl_allocate(szm, It_lo, It_hi)
-  call bl_allocate(szp, It_lo, It_hi)
+  call bl_allocate(sxm, st_lo, st_hi)
+  call bl_allocate(sxp, st_lo, st_hi)
+  call bl_allocate(sym, st_lo, st_hi)
+  call bl_allocate(syp, st_lo, st_hi)
+  call bl_allocate(szm, st_lo, st_hi)
+  call bl_allocate(szp, st_lo, st_hi)
 
   call bl_allocate ( qxm, It_lo, It_hi, NQ)
   call bl_allocate ( qxp, It_lo, It_hi, NQ)
@@ -182,7 +186,7 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate ( qzm, It_lo, It_hi, NQ)
   call bl_allocate ( qzp, It_lo, It_hi, NQ)
 
-  call bl_allocate(qint, It_lo, It_hi, NQ)
+  call bl_allocate(qint, It_lo, It_hi, NGDNV)
 
   call bl_allocate(shk, shk_lo, shk_hi)
   
@@ -261,7 +265,7 @@ subroutine ca_mol_single_stage(time, &
      do n = 1, NQ
         call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
                              flatn, q_lo, q_hi, &
-                             sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                             sxm, sxp, sym, syp, szm, szp, st_lo, st_hi, &
                              lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
         ! Construct the interface states -- this is essentially just a
@@ -299,39 +303,41 @@ subroutine ca_mol_single_stage(time, &
            enddo
 
            ! Compute F^x at kc (k3d)
-           call cmpflx(qxm, qxp, It_lo, It_hi, &
-                       flux1, flux1_lo, flux1_hi, &
-                       qint, It_lo, It_hi, &  ! temporary
+           if (k3d <= hi(3)) then
+              call cmpflx(qxm, qxp, It_lo, It_hi, &
+                          flux1, flux1_lo, flux1_hi, &
+                          qint, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-                       rflux1, rfd1_lo, rfd1_hi, &
+                          rflux1, rfd1_lo, rfd1_hi, &
 #endif
-                       qaux, qa_lo, qa_hi, &
-                       shk, shk_lo, shk_hi, &
-                       1, lo(1), hi(1)+1, lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
+                          qaux, qa_lo, qa_hi, &
+                          shk, shk_lo, shk_hi, &
+                          1, lo(1), hi(1)+1, lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
 
-           do j = lo(2)-1, hi(2)+1
-              do i = lo(1)-1, hi(1)+2
-                 q1(i,j,k3d,:) = qint(i,j,kc,:)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)+1
+                    q1(i,j,k3d,:) = qint(i,j,kc,:)
+                 enddo
               enddo
-           enddo
+              
 
-
-           ! Compute F^y at kc (k3d)
-           call cmpflx(qym, qyp, It_lo, It_hi, &
-                       flux2, flux2_lo, flux2_hi, &
-                       qint, It_lo, It_hi, &  ! temporary
+              ! Compute F^y at kc (k3d)
+              call cmpflx(qym, qyp, It_lo, It_hi, &
+                          flux2, flux2_lo, flux2_hi, &
+                          qint, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-                       rflux2, rfd2_lo, rfd2_hi, &
+                          rflux2, rfd2_lo, rfd2_hi, &
 #endif
-                       qaux, qa_lo, qa_hi, &
-                       shk, shk_lo, shk_hi, &
-                       2, lo(1), hi(1), lo(2), hi(2)+1, kc, k3d, k3d, domlo, domhi)
+                          qaux, qa_lo, qa_hi, &
+                          shk, shk_lo, shk_hi, &
+                          2, lo(1), hi(1), lo(2), hi(2)+1, kc, k3d, k3d, domlo, domhi)
 
-           do j = lo(2)-1, hi(2)+2
-              do i = lo(1)-1, hi(1)+1
-                 q2(i,j,k3d,:) = qint(i,j,kc,:)
+              do j = lo(2), hi(2)+1
+                 do i = lo(1), hi(1)
+                    q2(i,j,k3d,:) = qint(i,j,kc,:)
+                 enddo
               enddo
-           enddo
+           endif
            
            ! Compute F^z at kc (k3d)
            call cmpflx(qzm, qzp, It_lo, It_hi, &
@@ -344,8 +350,8 @@ subroutine ca_mol_single_stage(time, &
                        shk, shk_lo, shk_hi, &
                        3, lo(1), hi(1), lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
 
-           do j=lo(2)-1,hi(2)+1
-              do i=lo(1)-1,hi(1)+1
+           do j=lo(2), hi(2)
+              do i=lo(1), hi(1)
                  q3(i,j,k3d,:) = qint(i,j,kc,:)
               enddo
            enddo
