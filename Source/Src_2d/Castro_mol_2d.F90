@@ -27,7 +27,6 @@ subroutine ca_mol_single_stage(time, &
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflaten
   use prob_params_module, only : coord_type
-  use ctu_advection_module, only : umeth2d, consup
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
   use advection_util_2d_module, only : normalize_species_fluxes
