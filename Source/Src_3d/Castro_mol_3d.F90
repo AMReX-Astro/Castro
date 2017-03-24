@@ -22,9 +22,10 @@ subroutine ca_mol_single_stage(time, &
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, GDW, &
                                  use_flattening, QU, QV, QW, QPRES, NQAUX, &
-                                 first_order_hydro, difmag, hybrid_riemann
+                                 first_order_hydro, difmag, hybrid_riemann, &
+                                 limit_fluxes_on_small_dens
   use advection_util_3d_module, only : divu, normalize_species_fluxes
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflaten
   use riemann_module, only: cmpflx, shock
@@ -81,7 +82,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer:: rfly(:,:,:,:)
   real(rt)        , pointer:: rflz(:,:,:,:)
 
-  real(rt)        , pointer:: shk(:,:,:,:)
+  real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
   real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
@@ -105,6 +106,7 @@ subroutine ca_mol_single_stage(time, &
   integer :: qa_lo(3), qa_hi(3)
   integer :: srU_lo(3), srU_hi(3)
   integer :: It_lo(3), It_hi(3)
+  integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1
   integer :: i, j, k, n
@@ -154,6 +156,9 @@ subroutine ca_mol_single_stage(time, &
   It_lo = [lo(1) - 1, lo(2) - 1, 1]
   It_hi = [hi(1) + 1, hi(2) + 1, 2]
 
+  shk_lo(:) = lo(:) - 1
+  shk_hi(:) = hi(:) + 1
+
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
@@ -182,7 +187,7 @@ subroutine ca_mol_single_stage(time, &
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
-    call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
 
     ! Store the shock data for future use in the burning step.
 
@@ -203,7 +208,7 @@ subroutine ca_mol_single_stage(time, &
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q,qd_lo,qd_hi,shk,shk_lo,shk_hi,lo,hi,dx)
+       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
     else
        shk(:,:,:) = ZERO
     endif
@@ -252,8 +257,8 @@ subroutine ca_mol_single_stage(time, &
      kc = kt
 
      do n = 1, NQ
-        call ppm_reconstruct(q(:,:,:,n  ), qd_lo, qd_hi, &
-                             flatn, qd_lo, qd_hi, &
+        call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
+                             flatn, q_lo, q_hi, &
                              sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                              lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
@@ -469,13 +474,11 @@ subroutine ca_mol_single_stage(time, &
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
-
-              volinv = ONE / vol(i,j,k)
               
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
-                    flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) * volinv
+                    flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 
               ! Add the p div(u) source term to (rho e).
               if (n .eq. UEINT) then
