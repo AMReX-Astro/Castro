@@ -23,7 +23,7 @@ subroutine ca_mol_single_stage(time, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, GDW, &
                                  use_flattening, QU, QV, QW, QPRES, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens
+                                 limit_fluxes_on_small_dens, ppm_type
   use advection_util_3d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -189,6 +189,10 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(qint, It_lo, It_hi, NGDNV)
 
   call bl_allocate(shk, shk_lo, shk_hi)
+
+  if (ppm_type == 0) then
+     call bl_error("ERROR: method of lines integration does not support ppm_type = 0")
+  endif
   
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
