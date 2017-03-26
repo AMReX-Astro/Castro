@@ -271,94 +271,94 @@ subroutine ca_mol_single_stage(time, &
         ! Construct the interface states -- this is essentially just a
         ! reshuffling of interface states from zone-center indexing to
         ! edge-centered indexing
-        if (k3d >= lo(3)) then
-           do j = lo(2)-1, hi(2)+1
-              do i = lo(1)-1, hi(1)+1
+        do j = lo(2), hi(2)+1
+           do i = lo(1), hi(1)+1
 
-                 ! x-edges
+              ! x-edges
 
-                 ! left state at i-1/2 interface
-                 qxm(i,j,kc,n) = sxp(i-1,j,kc)
+              ! left state at i-1/2 interface
+              qxm(i,j,kc,n) = sxp(i-1,j,kc)
 
-                 ! right state at i-1/2 interface
-                 qxp(i,j,kc,n) = sxm(i,j,kc)
+              ! right state at i-1/2 interface
+              qxp(i,j,kc,n) = sxm(i,j,kc)
 
-                 ! y-edges
+              ! y-edges
 
-                 ! left state at j-1/2 interface
-                 qym(i,j,kc,n) = syp(i,j-1,kc)
+              ! left state at j-1/2 interface
+              qym(i,j,kc,n) = syp(i,j-1,kc)
 
-                 ! right state at j-1/2 interface
-                 qyp(i,j,kc,n) = sym(i,j,kc)
+              ! right state at j-1/2 interface
+              qyp(i,j,kc,n) = sym(i,j,kc)
 
-                 ! z-edges
+              ! z-edges
 
-                 ! left state at k3d-1/2 interface
-                 qzm(i,j,kc,n) = szp(i,j,km)
+              ! left state at k3d-1/2 interface
+              qzm(i,j,kc,n) = szp(i,j,km)
 
-                 ! right state at k3d-1/2 interface
-                 qzp(i,j,kc,n) = szm(i,j,kc)
+              ! right state at k3d-1/2 interface
+              qzp(i,j,kc,n) = szm(i,j,kc)
 
-              enddo
            enddo
+        enddo
+     enddo
 
-           ! Compute F^x at kc (k3d)
-           if (k3d <= hi(3)) then
-              call cmpflx(qxm, qxp, It_lo, It_hi, &
-                          flux1, flux1_lo, flux1_hi, &
-                          qint, It_lo, It_hi, &  ! temporary
+     if (k3d >= lo(3)) then
+
+        ! Compute F^x at kc (k3d)
+        if (k3d <= hi(3)) then
+           call cmpflx(qxm, qxp, It_lo, It_hi, &
+                       flux1, flux1_lo, flux1_hi, &
+                       qint, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-                          rflux1, rfd1_lo, rfd1_hi, &
-#endif
-                          qaux, qa_lo, qa_hi, &
-                          shk, shk_lo, shk_hi, &
-                          1, lo(1), hi(1)+1, lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
-
-              do j = lo(2), hi(2)
-                 do i = lo(1), hi(1)+1
-                    q1(i,j,k3d,:) = qint(i,j,kc,:)
-                 enddo
-              enddo
-              
-
-              ! Compute F^y at kc (k3d)
-              call cmpflx(qym, qyp, It_lo, It_hi, &
-                          flux2, flux2_lo, flux2_hi, &
-                          qint, It_lo, It_hi, &  ! temporary
-#ifdef RADIATION
-                          rflux2, rfd2_lo, rfd2_hi, &
-#endif
-                          qaux, qa_lo, qa_hi, &
-                          shk, shk_lo, shk_hi, &
-                          2, lo(1), hi(1), lo(2), hi(2)+1, kc, k3d, k3d, domlo, domhi)
-
-              do j = lo(2), hi(2)+1
-                 do i = lo(1), hi(1)
-                    q2(i,j,k3d,:) = qint(i,j,kc,:)
-                 enddo
-              enddo
-           endif
-           
-           ! Compute F^z at kc (k3d)
-           call cmpflx(qzm, qzp, It_lo, It_hi, &
-                       flux3, flux3_lo, flux3_hi, &
-                       qint, It_lo, It_hi, &
-#ifdef RADIATION
-                       rflux3, rfd3_lo, rfd3_hi, &
+                       rflux1, rfd1_lo, rfd1_hi, &
 #endif
                        qaux, qa_lo, qa_hi, &
                        shk, shk_lo, shk_hi, &
-                       3, lo(1), hi(1), lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
+                       1, lo(1), hi(1)+1, lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
 
-           do j=lo(2), hi(2)
-              do i=lo(1), hi(1)
-                 q3(i,j,k3d,:) = qint(i,j,kc,:)
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)+1
+                 q1(i,j,k3d,:) = qint(i,j,kc,:)
               enddo
            enddo
 
-        endif
+           ! Compute F^y at kc (k3d)
+           call cmpflx(qym, qyp, It_lo, It_hi, &
+                       flux2, flux2_lo, flux2_hi, &
+                       qint, It_lo, It_hi, &  ! temporary
+#ifdef RADIATION
+                       rflux2, rfd2_lo, rfd2_hi, &
+#endif
+                       qaux, qa_lo, qa_hi, &
+                       shk, shk_lo, shk_hi, &
+                       2, lo(1), hi(1), lo(2), hi(2)+1, kc, k3d, k3d, domlo, domhi)
 
-     enddo
+           do j = lo(2), hi(2)+1
+              do i = lo(1), hi(1)
+                 q2(i,j,k3d,:) = qint(i,j,kc,:)
+              enddo
+           enddo
+        endif  ! hi(3) check
+
+        ! Compute F^z at kc (k3d)
+        call cmpflx(qzm, qzp, It_lo, It_hi, &
+                    flux3, flux3_lo, flux3_hi, &
+                    qint, It_lo, It_hi, &
+#ifdef RADIATION
+                    rflux3, rfd3_lo, rfd3_hi, &
+#endif
+                    qaux, qa_lo, qa_hi, &
+                    shk, shk_lo, shk_hi, &
+                    3, lo(1), hi(1), lo(2), hi(2), kc, k3d, k3d, domlo, domhi)
+
+        do j=lo(2), hi(2)
+           do i=lo(1), hi(1)
+              q3(i,j,k3d,:) = qint(i,j,kc,:)
+           enddo
+        enddo
+
+     endif
+
   enddo
 
 
