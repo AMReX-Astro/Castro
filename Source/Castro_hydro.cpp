@@ -490,7 +490,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 	  }
 #endif
 	  
-
+	  std::cout << "calling mol_single_stage " << lo[2] << " " << hi[2] << std::endl;
 	  ca_mol_single_stage
 	    (&time,
 	     lo, hi, domain_lo, domain_hi,

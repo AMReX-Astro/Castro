@@ -91,10 +91,9 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
 
-  integer :: ngq, ngf
+  integer :: ngf
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
-  integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
   integer :: flux2_lo(3), flux2_hi(3)
   integer :: flux3_lo(3), flux3_hi(3)
@@ -104,7 +103,6 @@ subroutine ca_mol_single_stage(time, &
   integer :: vol_lo(3), vol_hi(3)
   integer :: q_lo(3), q_hi(3)
   integer :: qa_lo(3), qa_hi(3)
-  integer :: srU_lo(3), srU_hi(3)
   integer :: It_lo(3), It_hi(3)
   integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
@@ -121,17 +119,11 @@ subroutine ca_mol_single_stage(time, &
   qa_lo = [ qa_l1, qa_l2, qa_l3 ]
   qa_hi = [ qa_h1, qa_h2, qa_h3 ]
 
-  srU_lo = [ srU_l1, srU_l2, srU_l3 ]
-  srU_hi = [ srU_h1, srU_h2, srU_h3 ]
-
   uin_lo = [ uin_l1, uin_l2, uin_l3 ]
   uin_hi = [ uin_h1, uin_h2, uin_h3 ]
 
   uout_lo = [ uout_l1, uout_l2, uout_l3 ]
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
-
-  updt_lo = [ updt_l1, updt_l2, updt_l3 ]
-  updt_hi = [ updt_h1, updt_h2, updt_h3 ]
 
   flux1_lo = [ flux1_l1, flux1_l2, flux1_l3 ]
   flux1_hi = [ flux1_h1, flux1_h2, flux1_h3 ]
@@ -256,6 +248,7 @@ subroutine ca_mol_single_stage(time, &
   km = 2
 
   do k3d = lo(3)-1, hi(3)+1
+     print *, 'k3d = ', k3d, lo(3), hi(3)
 
      ! Swap pointers to levels
      kt = km
@@ -271,8 +264,8 @@ subroutine ca_mol_single_stage(time, &
         ! Construct the interface states -- this is essentially just a
         ! reshuffling of interface states from zone-center indexing to
         ! edge-centered indexing
-        do j = lo(2), hi(2)+1
-           do i = lo(1), hi(1)+1
+        do j = lo(2)-1, hi(2)+1
+           do i = lo(1)-1, hi(1)+1
 
               ! x-edges
 
@@ -341,6 +334,10 @@ subroutine ca_mol_single_stage(time, &
         endif  ! hi(3) check
 
         ! Compute F^z at kc (k3d)
+        !print *, 'z states in, k = ', k3d
+        !print *, 'qzm = ', qzm(lo(1),lo(2),kc,:)
+        !print *, 'qzp = ', qzp(lo(1),lo(2),kc,:)
+
         call cmpflx(qzm, qzp, It_lo, It_hi, &
                     flux3, flux3_lo, flux3_hi, &
                     qint, It_lo, It_hi, &
