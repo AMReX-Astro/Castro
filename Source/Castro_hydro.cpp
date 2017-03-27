@@ -433,7 +433,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
       {
-	  const Box& bx    = mfi.tilebox();
+	  const Box& bx  = mfi.tilebox();
 	  const Box& qbx = BoxLib::grow(bx, NUM_GROW);
 
 	  const int* lo = bx.loVect();
@@ -453,7 +453,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 	  FArrayBox &Erout = Er_new[mfi];
 #endif
 
-	  FArrayBox& vol      = volume[mfi];
+	  FArrayBox& vol = volume[mfi];
 
 #ifdef RADIATION
 	  q.resize(qbx, QRADVAR);
