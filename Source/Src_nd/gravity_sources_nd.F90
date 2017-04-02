@@ -179,7 +179,7 @@ contains
                          dx,dt,time) bind(C, name="ca_corrgsrc")
 
     use bl_fort_module, only: rt => c_real
-    use bl_constants_module, only: ZERO, HALF, ONE
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
@@ -471,34 +471,24 @@ contains
 
                 SrEcorr = - SrE_old
 
-                ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                ! the change in the gravitational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
-                ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
-                ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
-                ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
-                ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in
-                ! the other source options, which effectively are equal to
-                ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
-                ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
-
-                ! Note that in the hydrodynamics step, the fluxes used here were already
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to
-                ! get the density change (flux * dt * dA / dV). We then divide by dt
-                ! so that we get the source term and not the actual update, which will
-                ! be applied later by multiplying by dt.
+                ! For an explanation of this approach, see wdmerger paper I.
+                ! The main idea is that we are evaluating the change of the
+                ! potential energy at zone edges and applying that in an equal
+                ! and opposite sense to the gas energy. The physics is described
+                ! in Section 2.4; the particular form of the equation we are using
+                ! is found in Appendix B, as it provides the best numerical conservation
+                ! properties when using AMR.
 
 #ifdef SELF_GRAVITY
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
-                   SrEcorr = SrEcorr - hdtInv * ( flux1(i        ,j,k,URHO)  * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                  flux1(i+1*dg(1),j,k,URHO)  * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                  flux2(i,j        ,k,URHO)  * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                  flux2(i,j+1*dg(2),k,URHO)  * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                  flux3(i,j,k        ,URHO)  * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                  flux3(i,j,k+1*dg(3),URHO)  * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k,URHO) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
+                                                      flux1(i+1*dg(1),j,k,URHO) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
+                                                      flux2(i,j        ,k,URHO) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
+                                                      flux2(i,j+1*dg(2),k,URHO) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
+                                                      flux3(i,j,k        ,URHO) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
+                                                      flux3(i,j,k+1*dg(3),URHO) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
+                                                      (rhon - rhoo) * phi(i,j,k))
 
                 else
 
@@ -516,7 +506,7 @@ contains
 
                 endif
 #else
-                ! For constant gravity, the only contribution is from
+                ! For constant gravity, the only contribution is from the dimension that the gravity points in.
 
                 if (dim .eq. 1) then
                    SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * const_grav * dx(1) + &
