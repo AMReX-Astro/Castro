@@ -275,10 +275,6 @@ Gravity::install_level (int                   level,
 
        const DistributionMapping& dm = level_data->DistributionMap();
 
-       // For code cleanliness purposes, we'll define grad_phi to have components
-       // in three spatial dimensions, but there's no need to actually allocate space
-       // here for unused dimensions.
-
        grad_phi_prev[level].resize(BL_SPACEDIM);
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_prev[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));

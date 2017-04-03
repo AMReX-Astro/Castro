@@ -9,6 +9,7 @@ contains
   subroutine ca_gsrc(lo,hi,domlo,domhi, &
                      uold,uold_lo,uold_hi, &
 #ifdef SELF_GRAVITY
+                     phi,phi_lo,phi_hi, &
                      grav,grav_lo,grav_hi, &
 #endif
                      source,src_lo,src_hi, &
@@ -35,12 +36,14 @@ contains
     integer, intent(in)     :: domlo(3), domhi(3)
     integer, intent(in)     :: uold_lo(3), uold_hi(3)
 #ifdef SELF_GRAVITY
+    integer, intent(in)     :: phi_lo(3), phi_hi(3)
     integer, intent(in)     :: grav_lo(3), grav_hi(3)
 #endif
     integer, intent(in)     :: src_lo(3), src_hi(3)
 
     real(rt), intent(in)    :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
 #ifdef SELF_GRAVITY
+    real(rt), intent(in)    :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in)    :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
     real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
@@ -163,14 +166,10 @@ contains
                          uold,uo_lo,uo_hi, &
                          unew,un_lo,un_hi, &
 #ifdef SELF_GRAVITY
+                         pold,po_lo,po_hi, &
+                         pnew,pn_lo,pn_hi, &
                          gold,go_lo,go_hi, &
                          gnew,gn_lo,gn_hi, &
-                         gpold1,gpo1_lo,gpo1_hi, &
-                         gpold2,gpo2_lo,gpo2_hi, &
-                         gpold3,gpo3_lo,gpo3_hi, &
-                         gpnew1,gpn1_lo,gpn1_hi, &
-                         gpnew2,gpn2_lo,gpn2_hi, &
-                         gpnew3,gpn3_lo,gpn3_hi, &
 #endif
                          vol,vol_lo,vol_hi, &
                          flux1,f1_lo,f1_hi, &
@@ -180,7 +179,7 @@ contains
                          dx,dt,time) bind(C, name="ca_corrgsrc")
 
     use amrex_fort_module, only: rt => amrex_real
-    use bl_constants_module, only: ZERO, FOURTH, HALF, ONE
+    use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
@@ -203,14 +202,10 @@ contains
     integer, intent(in)     :: uo_lo(3), uo_hi(3)
     integer, intent(in)     :: un_lo(3), un_hi(3)
 #ifdef SELF_GRAVITY
+    integer, intent(in)     :: po_lo(3), po_hi(3)
+    integer, intent(in)     :: pn_lo(3), pn_hi(3)
     integer, intent(in)     :: go_lo(3), go_hi(3)
     integer, intent(in)     :: gn_lo(3), gn_hi(3)
-    integer, intent(in)     :: gpo1_lo(3), gpo1_hi(3)
-    integer, intent(in)     :: gpo2_lo(3), gpo2_hi(3)
-    integer, intent(in)     :: gpo3_lo(3), gpo3_hi(3)
-    integer, intent(in)     :: gpn1_lo(3), gpn1_hi(3)
-    integer, intent(in)     :: gpn2_lo(3), gpn2_hi(3)
-    integer, intent(in)     :: gpn3_lo(3), gpn3_hi(3)
 #endif
     integer, intent(in)     :: vol_lo(3), vol_hi(3)
     integer, intent(in)     :: f1_lo(3), f1_hi(3)
@@ -225,20 +220,15 @@ contains
     real(rt), intent(in)    :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
 #ifdef SELF_GRAVITY
+    ! Old and new time gravitational potential
+
+    real(rt), intent(in)    :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt), intent(in)    :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+
     ! Old and new time gravitational acceleration
 
     real(rt), intent(in)    :: gold(go_lo(1):go_hi(1),go_lo(2):go_hi(2),go_lo(3):go_hi(3),3)
     real(rt), intent(in)    :: gnew(gn_lo(1):gn_hi(1),gn_lo(2):gn_hi(2),gn_lo(3):gn_hi(3),3)
-
-    ! Edge centered gravitational acceleration
-
-    real(rt), intent(in)    :: gpold1(gpo1_lo(1):gpo1_hi(1),gpo1_lo(2):gpo1_hi(2),gpo1_lo(3):gpo1_hi(3))
-    real(rt), intent(in)    :: gpold2(gpo2_lo(1):gpo2_hi(1),gpo2_lo(2):gpo2_hi(2),gpo2_lo(3):gpo2_hi(3))
-    real(rt), intent(in)    :: gpold3(gpo3_lo(1):gpo3_hi(1),gpo3_lo(2):gpo3_hi(2),gpo3_lo(3):gpo3_hi(3))
-
-    real(rt), intent(in)    :: gpnew1(gpn1_lo(1):gpn1_hi(1),gpn1_lo(2):gpn1_hi(2),gpn1_lo(3):gpn1_hi(3))
-    real(rt), intent(in)    :: gpnew2(gpn2_lo(1):gpn2_hi(1),gpn2_lo(2):gpn2_hi(2),gpn2_lo(3):gpn2_hi(3))
-    real(rt), intent(in)    :: gpnew3(gpn3_lo(1):gpn3_hi(1),gpn3_lo(2):gpn3_hi(2),gpn3_lo(3):gpn3_hi(3))
 #endif
 
     ! Cell volume
@@ -275,6 +265,8 @@ contains
 
     real(rt) :: snew(NVAR)
 
+    real(rt), pointer :: phi(:,:,:)
+    real(rt), pointer :: grav(:,:,:,:)
     real(rt), pointer :: gravx(:,:,:)
     real(rt), pointer :: gravy(:,:,:)
     real(rt), pointer :: gravz(:,:,:)
@@ -292,112 +284,110 @@ contains
     ! 1: Original version ("does work")
     ! 2: Modification of type 1 that updates the U before constructing SrEcorr
     ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative gravity approach (discussed in Katz et al. (2016), ApJ, 819, 94).
+    ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
 
+#ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
 
-       ! Allocate space for time-centered, edge-centered gravity.
+       call bl_allocate(phi,   lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+       call bl_allocate(grav,  lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1,1,3)
+       call bl_allocate(gravx, lo(1),hi(1)+1,lo(2),hi(2),lo(3),hi(3))
+       call bl_allocate(gravy, lo(1),hi(1),lo(2),hi(2)+1,lo(3),hi(3))
+       call bl_allocate(gravz, lo(1),hi(1),lo(2),hi(2),lo(3),hi(3)+1)
 
-       call bl_allocate(gravx, lo(1), hi(1)+1*dg(1), lo(2), hi(2), lo(3), hi(3))
-       gravx(:,:,:) = ZERO
+       ! For our purposes, we want the time-level n+1/2 phi because we are
+       ! using fluxes evaluated at that time. To second order we can
+       ! average the new and old potentials.
 
-       call bl_allocate(gravy, lo(1), hi(1), lo(2), hi(2)+1*dg(2), lo(3), hi(3))
-       gravy(:,:,:) = ZERO
+       phi = ZERO
+       grav = ZERO
+       gravx = ZERO
+       gravy = ZERO
+       gravz = ZERO
 
-       call bl_allocate(gravz, lo(1), hi(1), lo(2), hi(2), lo(3), hi(3)+1*dg(3))
-       gravz(:,:,:) = ZERO
-
-       ! Construct the gravity array. Note that for Poisson gravity,
-       ! grad(phi) is equal to -g. For non-Poisson gravity, the edge-centered
-       ! gravity array is not filled with valid data, so we must rely on the
-       ! cell-centered gravity and construct a second-order approximation.
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)+1*dg(1)
-
-#ifdef SELF_GRAVITY
-                if (gravity_type == "PoissonGrav") then
-
-                   gravx(i,j,k) = -HALF * (gpold1(i,j,k) + gpnew1(i,j,k))
-
-                else
-
-                   gravx(i,j,k) = FOURTH * (gold(i,j,k,1) + gnew(i,j,k,1) + gold(i-1*dg(1),j,k,1) + gnew(i-1*dg(1),j,k,1))
-
-                endif
-#else
-                ! For constant gravity, the only contribution is from the direction the gravity is
-                ! pointing in (which, by convention, is the last spatial dimension).
-
-                if (dim .eq. 1) then
-
-                   gravx(i,j,k) = const_grav
-
-                endif
-#endif
-
+       do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+          do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+             do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                phi(i,j,k) = HALF * (pnew(i,j,k) + pold(i,j,k))
+                grav(i,j,k,:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
              enddo
           enddo
        enddo
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1*dg(2)
-             do i = lo(1), hi(1)
+       ! We need to perform the following hack to deal with the fact that
+       ! the potential is defined on cell edges, not cell centers, for ghost
+       ! zones. We redefine the boundary zone values as equal to the adjacent
+       ! cell minus the original value. Then later when we do the adjacent zone
+       ! minus the boundary zone, we'll get the boundary value, which is what we want.
+       ! We don't need to reset this at the end because phi is a temporary array.
+       ! Note that this is needed for Poisson gravity only; the other gravity methods
+       ! generally define phi on cell centers even outside the domain.
 
-#ifdef SELF_GRAVITY
-                if (gravity_type == "PoissonGrav") then
+       if (gravity_type == "PoissonGrav") then
 
-                   gravy(i,j,k) = -HALF * (gpold2(i,j,k) + gpnew2(i,j,k))
-
-                else
-
-                   gravy(i,j,k) = FOURTH * (gold(i,j,k,2) + gnew(i,j,k,2) + gold(i,j-1*dg(2),k,2) + gnew(i,j-1*dg(2),k,2))
-
-                endif
-#else
-                if (dim .eq. 2) then
-
-                   gravy(i,j,k) = const_grav
-
-                endif
-#endif
-
+          do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+             do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
+                do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
+                   if (i .lt. domlo(1)) then
+                      phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
+                   endif
+                   if (i .gt. domhi(1)) then
+                      phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
+                   endif
+                   if (j .lt. domlo(2)) then
+                      phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
+                   endif
+                   if (j .gt. domhi(2)) then
+                      phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
+                   endif
+                   if (k .lt. domlo(3)) then
+                      phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
+                   endif
+                   if (k .gt. domhi(3)) then
+                      phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
+                   endif
+                enddo
              enddo
           enddo
-       enddo
 
-       do k = lo(3), hi(3)+1*dg(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+       endif
 
-#ifdef SELF_GRAVITY
-                if (gravity_type == "PoissonGrav") then
+       if (.not. (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) ) then
 
-                   gravz(i,j,k) = -HALF * (gpold3(i,j,k) + gpnew3(i,j,k))
+          ! Construct the time-averaged edge-centered gravity.
 
-                else
-
-                   gravz(i,j,k) = FOURTH * (gold(i,j,k,3) + gnew(i,j,k,3) + gold(i,j,k-1*dg(3),3) + gnew(i,j,k-1*dg(3),3))
-
-                endif
-#else
-                if (dim .eq. 3) then
-
-                   gravz(i,j,k) = const_grav
-
-                endif
-#endif
-
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)+1*dg(1)
+                   gravx(i,j,k) = HALF * (grav(i,j,k,1) + grav(i-1,j,k,1))
+                enddo
              enddo
           enddo
-       enddo
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)+1*dg(2)
+                do i = lo(1), hi(1)
+                   gravy(i,j,k) = HALF * (grav(i,j,k,2) + grav(i,j-1,k,2))
+                enddo
+             enddo
+          enddo
+
+          do k = lo(3), hi(3)+1*dg(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+                   gravz(i,j,k) = HALF * (grav(i,j,k,3) + grav(i,j,k-1,3))
+                enddo
+             enddo
+          enddo
+
+       endif
 
     endif
+#endif
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    do k = lo(3),hi(3)
+       do j = lo(2),hi(2)
+          do i = lo(1),hi(1)
 
              loc = position(i,j,k) - center
 
@@ -481,36 +471,57 @@ contains
 
                 SrEcorr = - SrE_old
 
-                ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                ! the change in the gravitational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
-                ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
-                ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
-                ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
-                ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in
-                ! the other source options, which effectively are equal to
-                ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
-                ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
+                ! For an explanation of this approach, see wdmerger paper I.
+                ! The main idea is that we are evaluating the change of the
+                ! potential energy at zone edges and applying that in an equal
+                ! and opposite sense to the gas energy. The physics is described
+                ! in Section 2.4; the particular form of the equation we are using
+                ! is found in Appendix B, as it provides the best numerical conservation
+                ! properties when using AMR.
 
-                ! Note that in the hydrodynamics step, the fluxes used here were already
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to
-                ! get the density change (flux * dt * dA / dV). We then divide by dt
-                ! so that we get the source term and not the actual update, which will
-                ! be applied later by multiplying by dt.
+#ifdef SELF_GRAVITY
+                if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
-                SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k,URHO) * gravx(i        ,j,k) * dx(1) + &
-                                               flux1(i+1*dg(1),j,k,URHO) * gravx(i+1*dg(1),j,k) * dx(1) + &
-                                               flux2(i,j        ,k,URHO) * gravy(i,j        ,k) * dx(2) + &
-                                               flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1*dg(2),k) * dx(2) + &
-                                               flux3(i,j,k        ,URHO) * gravz(i,j,k        ) * dx(3) + &
-                                               flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1*dg(3)) * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k,URHO) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
+                                                      flux1(i+1*dg(1),j,k,URHO) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
+                                                      flux2(i,j        ,k,URHO) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
+                                                      flux2(i,j+1*dg(2),k,URHO) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
+                                                      flux3(i,j,k        ,URHO) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
+                                                      flux3(i,j,k+1*dg(3),URHO) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
+                                                      (rhon - rhoo) * phi(i,j,k))
+
+                else
+
+                   ! However, at present phi is usually only actually filled for Poisson gravity.
+                   ! Here's an alternate version that only requires the use of the
+                   ! gravitational acceleration. It relies on the concept that, to second order,
+                   ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
+
+                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
+                                                  flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
+                                                  flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
+                                                  flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
+                                                  flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
+                                                  flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+
+                endif
+#else
+                ! For constant gravity, the only contribution is from the dimension that the gravity points in.
+
+                if (dim .eq. 1) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * const_grav * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k,URHO) * const_grav * dx(1) ) / vol(i,j,k)
+                else if (dim .eq. 2) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k,URHO) * const_grav * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k,URHO) * const_grav * dx(2) ) / vol(i,j,k) 
+                else if (dim .eq. 3) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ,URHO) * const_grav * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3),URHO) * const_grav * dx(3) ) / vol(i,j,k)
+                end if
+#endif
 
              else
-
                 call bl_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-
              end if
 
              src(UEDEN) = SrEcorr
@@ -525,13 +536,15 @@ contains
        enddo
     enddo
 
+#ifdef SELF_GRAVITY
     if (grav_source_type .eq. 4) then
-
+       call bl_deallocate(phi)
+       call bl_deallocate(grav)
        call bl_deallocate(gravx)
        call bl_deallocate(gravy)
        call bl_deallocate(gravz)
-
     endif
+#endif
 
   end subroutine ca_corrgsrc
 
