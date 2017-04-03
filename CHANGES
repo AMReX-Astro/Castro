@@ -1,6 +1,14 @@
 # changes since the last release:
 
 
+# 17.04
+
+  -- rewrote the conservative gravity formulation to work off of the
+     potential.  This gives the best conservation with AMR.  This is
+     equivalent to the description in Appendix B from Katz et
+     al. (2016).
+
+
 # 17.03
 
   -- the new refluxing method introduced in 16.11 has been removed,
