@@ -311,7 +311,7 @@ contains
                          bind(C, name = "compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
-    use meth_params_module, only: QVAR, QRHO, QU, QV, QW, QC, NQAUX
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
     use prob_params_module, only: dim
 
     use bl_fort_module, only : rt => c_real
@@ -320,7 +320,7 @@ contains
     integer :: lo(3), hi(3)
     integer :: q_lo(3), q_hi(3), qa_lo(3), qa_hi(3)
 
-    real(rt)         :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)         :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)         :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt)         :: dt, dx(3), courno
 
@@ -412,7 +412,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
-                                   QVAR, QRHO, QU, QV, QW, &
+                                   QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
                                    NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
@@ -675,7 +675,7 @@ contains
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
-                                  QVAR, QU, QPRES, &
+                                  NQ, QU, QPRES, &
                                   npassive, upass_map
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only: compute_hybrid_flux
@@ -686,7 +686,7 @@ contains
     implicit none
 
     integer :: dir, idx(3)
-    real(rt)         :: u(NVAR), q(QVAR), flux(NVAR)
+    real(rt)         :: u(NVAR), q(NQ), flux(NVAR)
     logical, optional :: include_pressure
 
     real(rt)         :: v_adv
@@ -763,7 +763,7 @@ contains
                                               lo,hi,dt,dx)
 
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, QVAR, URHO, UEINT, UFS, UFX, &
+    use meth_params_module, only: NVAR, NQ, URHO, UEINT, UFS, UFX, &
                                   small_dens, small_temp, cfl, &
                                   allow_small_energy, allow_negative_energy
     use prob_params_module, only: dim, coord_type, dg
@@ -793,7 +793,7 @@ contains
     real(rt)        , intent(in   ) :: dt, dx(3)
 
     real(rt)        , intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR)
+    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
     real(rt)        , intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
