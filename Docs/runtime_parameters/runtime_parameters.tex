@@ -92,14 +92,15 @@
 \runparamNS{hard\_cfl\_limit}{castro} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
 \rowcolor{tableShade}
 \runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
+\runparamNS{output\_at\_completion}{castro} &  write a final plotfile and checkpoint upon completion & 1 \\
+\rowcolor{tableShade}
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
-\rowcolor{tableShade}
 \runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
+\rowcolor{tableShade}
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
-\rowcolor{tableShade}
 \runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
-\runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
 \rowcolor{tableShade}
+\runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
 \runparamNS{track\_grid\_losses}{castro} &  calculate losses of material through physical grid boundaries & 0 \\
 
 

@@ -467,6 +467,9 @@ hard_cfl_limit               int           1
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
 
+# write a final plotfile and checkpoint upon completion
+output_at_completion         int           1
+
 
 
 @namespace: gravity Gravity static

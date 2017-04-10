@@ -147,3 +147,4 @@ pp.query("sum_per", sum_per);
 pp.query("show_center_of_mass", show_center_of_mass);
 pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("job_name", job_name);
+pp.query("output_at_completion", output_at_completion);
