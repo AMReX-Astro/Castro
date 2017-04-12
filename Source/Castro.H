@@ -258,6 +258,8 @@ public:
 
     bool source_flag(int src);
 
+    static int get_output_at_completion();
+
     void do_old_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
 
     void construct_old_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
@@ -812,6 +814,15 @@ void
 Castro::stopJob()
 {
   signalStopJob = true;
+
+
+}
+
+inline
+int
+Castro::get_output_at_completion()
+{
+    return output_at_completion;
 }
 
 #ifdef POINTMASS

@@ -67,18 +67,15 @@ main (int   argc,
     int  max_step;
     Real strt_time;
     Real stop_time;
-    int  output_at_completion;
     ParmParse pp; 
 
     max_step  = -1;
     strt_time =  0.0;
     stop_time = -1.0;
-    output_at_completion = 1;
 
     pp.query("max_step",max_step);
     pp.query("strt_time",strt_time);
     pp.query("stop_time",stop_time);
-    pp.query("output_at_completion",output_at_completion);
 
     if (strt_time < 0.0)
     {
@@ -182,7 +179,7 @@ main (int   argc,
 
     // Write final checkpoint and plotfile
 
-    if (output_at_completion) {
+    if (Castro::get_output_at_completion() == 1) {
 
 	if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
 	    amrptr->checkPoint();

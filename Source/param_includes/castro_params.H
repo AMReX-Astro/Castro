@@ -146,3 +146,4 @@ static amrex::Real sum_per;
 static int show_center_of_mass;
 static int hard_cfl_limit;
 static std::string job_name;
+static int output_at_completion;
