@@ -68,6 +68,7 @@ static Real cfl;
 static Real init_shrink;
 static Real change_max;
 static int use_retry;
+static int retry_max_subcycles;
 static Real retry_neg_dens_factor;
 static int sdc_iters;
 static Real dtnuc_e;
