@@ -67,6 +67,7 @@ static amrex::Real cfl;
 static amrex::Real init_shrink;
 static amrex::Real change_max;
 static int use_retry;
+static int retry_max_subcycles;
 static amrex::Real retry_neg_dens_factor;
 static int sdc_iters;
 static amrex::Real dtnuc_e;

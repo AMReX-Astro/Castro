@@ -547,9 +547,11 @@
 \runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \rowcolor{tableShade}
 \runparamNS{max\_dt}{castro} &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
-\runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
+\runparamNS{retry\_max\_subcycles}{castro} &  Do not permit more retry timesteps than this parameter. Set to a negative value to disable this criterion. & 1000 \\
 \rowcolor{tableShade}
+\runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
+\rowcolor{tableShade}
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 

@@ -15,6 +15,7 @@
 #endif
 
 #include <cmath>
+#include <climits>
 
 using std::string;
 using namespace amrex;
@@ -624,7 +625,49 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (dt_subcycle < dt) {
 
+	// Do a basic sanity check to make sure we're not about to overflow.
+
+        if (dt_subcycle * INT_MAX < dt) {
+	  if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+	    std::cout << "  The retry mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                      << "  but this would imply a number of timesteps that overflows an integer." << std::endl;
+	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
+                      << "  to avoid unstable timesteps." << std::endl;
+	  }
+	  BoxLib::Abort("Error: integer overflow in retry.");
+	}
+
         int sub_ncycle = ceil(dt / dt_subcycle);
+
+	// Abort if we would take more subcycled timesteps than the user has permitted.
+
+	if (retry_max_subcycles > 0 && sub_ncycle > retry_max_subcycles) {
+	  if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                      << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
+	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
+                      << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl 
+                      << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
+	  }
+	  BoxLib::Abort("Error: too many retry timesteps.");
+	}
+
+	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
+
+	if (dt_subcycle < dt_cutoff) {
+	  if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                      << "  but this timestep is shorter than the user-defined minimum, " << std::endl
+                      << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+	  }
+	  BoxLib::Abort("Error: retry timesteps too short.");
+	}
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
 	  std::cout << std::endl;
