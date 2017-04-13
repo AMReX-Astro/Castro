@@ -636,7 +636,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
                       << "  to avoid unstable timesteps." << std::endl;
 	  }
-	  BoxLib::Abort("Error: integer overflow in retry.");
+	  amrex::Abort("Error: integer overflow in retry.");
 	}
 
         int sub_ncycle = ceil(dt / dt_subcycle);
@@ -653,7 +653,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
                       << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl 
                       << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
 	  }
-	  BoxLib::Abort("Error: too many retry timesteps.");
+	  amrex::Abort("Error: too many retry timesteps.");
 	}
 
 	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
@@ -666,7 +666,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
                       << "  but this timestep is shorter than the user-defined minimum, " << std::endl
                       << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
 	  }
-	  BoxLib::Abort("Error: retry timesteps too short.");
+	  amrex::Abort("Error: retry timesteps too short.");
 	}
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
