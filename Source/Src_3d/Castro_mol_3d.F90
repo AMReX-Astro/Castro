@@ -85,8 +85,8 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
-  real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
-  real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
+  real(rt)        , pointer :: sxm(:,:,:,:), sym(:,:,:,:), szm(:,:,:,:)
+  real(rt)        , pointer :: sxp(:,:,:,:), syp(:,:,:,:), szp(:,:,:,:)
 
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
@@ -162,12 +162,12 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
 
-  call bl_allocate(sxm, st_lo, st_hi)
-  call bl_allocate(sxp, st_lo, st_hi)
-  call bl_allocate(sym, st_lo, st_hi)
-  call bl_allocate(syp, st_lo, st_hi)
-  call bl_allocate(szm, st_lo, st_hi)
-  call bl_allocate(szp, st_lo, st_hi)
+  call bl_allocate(sxm, st_lo, st_hi, NQ)
+  call bl_allocate(sxp, st_lo, st_hi, NQ)
+  call bl_allocate(sym, st_lo, st_hi, NQ)
+  call bl_allocate(syp, st_lo, st_hi, NQ)
+  call bl_allocate(szm, st_lo, st_hi, NQ)
+  call bl_allocate(szp, st_lo, st_hi, NQ)
 
   call bl_allocate ( qxm, It_lo, It_hi, NQ)
   call bl_allocate ( qxp, It_lo, It_hi, NQ)
@@ -252,7 +252,6 @@ subroutine ca_mol_single_stage(time, &
   km = 2
 
   do k3d = lo(3)-1, hi(3)+1
-     print *, 'k3d = ', k3d, lo(3), hi(3)
 
      ! Swap pointers to levels
      kt = km
@@ -262,7 +261,8 @@ subroutine ca_mol_single_stage(time, &
      do n = 1, NQ
         call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
                              flatn, q_lo, q_hi, &
-                             sxm, sxp, sym, syp, szm, szp, st_lo, st_hi, &
+                             sxm(:,:,:,n), sxp(:,:,:,n), sym(:,:,:,n), &
+                             syp(:,:,:,n), szm(:,:,:,n), szp(:,:,:,n), st_lo, st_hi, &
                              lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
         ! Construct the interface states -- this is essentially just a
@@ -274,30 +274,36 @@ subroutine ca_mol_single_stage(time, &
               ! x-edges
 
               ! left state at i-1/2 interface
-              qxm(i,j,kc,n) = sxp(i-1,j,kc)
+              qxm(i,j,kc,n) = sxp(i-1,j,kc,n)
 
               ! right state at i-1/2 interface
-              qxp(i,j,kc,n) = sxm(i,j,kc)
+              qxp(i,j,kc,n) = sxm(i,j,kc,n)
 
               ! y-edges
 
               ! left state at j-1/2 interface
-              qym(i,j,kc,n) = syp(i,j-1,kc)
+              qym(i,j,kc,n) = syp(i,j-1,kc,n)
 
               ! right state at j-1/2 interface
-              qyp(i,j,kc,n) = sym(i,j,kc)
+              qyp(i,j,kc,n) = sym(i,j,kc,n)
 
               ! z-edges
 
               ! left state at k3d-1/2 interface
-              qzm(i,j,kc,n) = szp(i,j,km)
+              qzm(i,j,kc,n) = szp(i,j,km,n)
 
               ! right state at k3d-1/2 interface
-              qzp(i,j,kc,n) = szm(i,j,kc)
+              qzp(i,j,kc,n) = szm(i,j,kc,n)
 
            enddo
         enddo
+
+!        if (n == QPRES) then
+!           print *, 's', k3d, szm(15,15,kc), szp(15,15,kc), szm(15,15,km), szp(15,15,km)
+!        endif
      enddo
+
+     !print *, k3d, q(15,15,k3d,QPRES), qzm(15,15,kc,QPRES), qxp(15,15,kc,QPRES)
 
      if (k3d >= lo(3)) then
 
@@ -338,9 +344,7 @@ subroutine ca_mol_single_stage(time, &
         endif  ! hi(3) check
 
         ! Compute F^z at kc (k3d)
-        !print *, 'z states in, k = ', k3d
-        !print *, 'qzm = ', qzm(lo(1),lo(2),kc,:)
-        !print *, 'qzp = ', qzp(lo(1),lo(2),kc,:)
+        !print *, k3d, q(15,15,k3d,QPRES), qzm(15,15,kc,QPRES), qxp(15,15,kc,QPRES)
 
         call cmpflx(qzm, qzp, It_lo, It_hi, &
                     flux3, flux3_lo, flux3_hi, &
@@ -359,9 +363,9 @@ subroutine ca_mol_single_stage(time, &
         enddo
 
      endif
+     
 
   enddo
-
 
   call bl_deallocate(flatn)
 
@@ -502,6 +506,12 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
+
+  ! diagnostic
+  !do k3d = lo(3)-1, hi(3)+1
+  !   print *, k3d, uin(15, 15, k3d, 1), uin(15, 15, k3d, UEINT), update(15, 15, k3d, 1), flux3(15, 15, k3d, 1)
+  !enddo
+  !stop
 
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
