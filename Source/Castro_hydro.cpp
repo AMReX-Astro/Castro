@@ -363,7 +363,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 {
 
   // this constructs the hydrodynamic source (essentially the flux
-  // divergence) using method of lines integration
+  // divergence) using method of lines integration.  The output, as a
+  // update to the state, is stored in the k_mol array of multifabs.
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Entering hydro advance" << std::endl << std::endl;
@@ -431,7 +432,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
       const int*  domain_lo = geom.Domain().loVect();
       const int*  domain_hi = geom.Domain().hiVect();
 
-      for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
+      for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	  const Box& bx  = mfi.tilebox();
 	  const Box& qbx = BoxLib::grow(bx, NUM_GROW);
@@ -490,7 +491,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 	  }
 #endif
 	  
-	  std::cout << "calling mol_single_stage " << lo[2] << " " << hi[2] << std::endl;
+	  //std::cout << "calling mol_single_stage " << lo[0] << " " << lo[1] << " " <<lo[2] << " " << hi[0] << " " << hi[1] << " " << hi[2] << std::endl;
 	  ca_mol_single_stage
 	    (&time,
 	     lo, hi, domain_lo, domain_hi,
