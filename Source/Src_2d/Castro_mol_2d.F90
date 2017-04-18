@@ -30,7 +30,9 @@ subroutine ca_mol_single_stage(time, &
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
   use bl_fort_module, only : rt => c_real
-
+#ifdef RADIATION  
+  use rad_params_module, only : ngroups
+#endif
   implicit none
 
   integer, intent(in) :: lo(2), hi(2), verbose
@@ -129,9 +131,11 @@ subroutine ca_mol_single_stage(time, &
   allocate(q1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, NGDNV))
   allocate(q2(flux2_l1:flux2_h1, flux2_l2:flux2_h2, NGDNV))
 
+#ifdef RADIATION
   ! when we do radiation, these would be passed out
-  allocate(rflx(flux1_l1-1:flux1_h1+1, flux1_l2-1:flux1_h2+1, NGDNV))
-  allocate(rfly(flux2_l1-1:flux2_h1+1, flux2_l2-1:flux2_h2+1, NGDNV))
+  allocate(rflx(flux1_l1:flux1_h1, flux1_l2:flux1_h2, ngroups))
+  allocate(rfly(flux2_l1:flux2_h1, flux2_l2:flux2_h2, ngroups))
+#endif
 
   allocate(shk(lo(1)-1:hi(1)+1, lo(2)-1:hi(2)+1))
   allocate(pdivu(lo(1):hi(1), lo(2):hi(2)))
@@ -382,5 +386,9 @@ subroutine ca_mol_single_stage(time, &
   end if
 
   deallocate(flatn,div,q1,q2,pdivu)
+
+#ifdef RADIATION
+  deallocate(rflx, rfly)
+#endif
 
 end subroutine ca_mol_single_stage

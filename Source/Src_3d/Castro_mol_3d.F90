@@ -31,6 +31,9 @@ subroutine ca_mol_single_stage(time, &
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
   use bl_fort_module, only : rt => c_real
+#ifdef RADIATION  
+  use rad_params_module, only : ngroups
+#endif
 
   implicit none
 
@@ -77,10 +80,12 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer:: q3(:,:,:,:)
   real(rt)        , pointer:: qint(:,:,:,:)
 
+#ifdef RADIATION
   ! radiation fluxes (need these to get things to compile)
   real(rt)        , pointer:: rflx(:,:,:,:)
   real(rt)        , pointer:: rfly(:,:,:,:)
   real(rt)        , pointer:: rflz(:,:,:,:)
+#endif
 
   real(rt)        , pointer:: shk(:,:,:)
 
@@ -161,6 +166,13 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
+
+#ifdef RADIATION
+  ! when we do radiation, these would be passed out
+  allocate(rflx(flux1_l1:flux1_h1, flux1_l2:flux1_h2, flux1_l3:flux1_h3, ngroups))
+  allocate(rfly(flux2_l1:flux2_h1, flux2_l2:flux2_h2, flux2_l3:flux2_h3, ngroups))
+  allocate(rflz(flux3_l1:flux3_h1, flux3_l2:flux3_h2, flux3_l3:flux3_h3, ngroups))
+#endif
 
   call bl_allocate(sxm, st_lo, st_hi, NQ)
   call bl_allocate(sxp, st_lo, st_hi, NQ)
@@ -313,7 +325,7 @@ subroutine ca_mol_single_stage(time, &
                        flux1, flux1_lo, flux1_hi, &
                        qint, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-                       rflux1, rfd1_lo, rfd1_hi, &
+                       rflx, flux1_lo, flux1_hi, &
 #endif
                        qaux, qa_lo, qa_hi, &
                        shk, shk_lo, shk_hi, &
@@ -330,7 +342,7 @@ subroutine ca_mol_single_stage(time, &
                        flux2, flux2_lo, flux2_hi, &
                        qint, It_lo, It_hi, &  ! temporary
 #ifdef RADIATION
-                       rflux2, rfd2_lo, rfd2_hi, &
+                       rfly, flux2_lo, flux2_hi, &
 #endif
                        qaux, qa_lo, qa_hi, &
                        shk, shk_lo, shk_hi, &
@@ -350,7 +362,7 @@ subroutine ca_mol_single_stage(time, &
                     flux3, flux3_lo, flux3_hi, &
                     qint, It_lo, It_hi, &
 #ifdef RADIATION
-                    rflux3, rfd3_lo, rfd3_hi, &
+                    rflz, flux3_lo, flux3_hi, &
 #endif
                     qaux, qa_lo, qa_hi, &
                     shk, shk_lo, shk_hi, &
@@ -387,6 +399,7 @@ subroutine ca_mol_single_stage(time, &
 
   call bl_deallocate(qint)
   call bl_deallocate(shk)
+
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,dx,div,lo,hi+1)
@@ -527,5 +540,11 @@ subroutine ca_mol_single_stage(time, &
   call bl_deallocate(    q1)
   call bl_deallocate(    q2)
   call bl_deallocate(    q3)
+
+#ifdef RADIATION
+  call bl_deallocate(rflx)
+  call bl_deallocate(rfly)
+  call bl_deallocate(rflz)
+#endif
 
 end subroutine ca_mol_single_stage
