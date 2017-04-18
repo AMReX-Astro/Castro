@@ -34,6 +34,9 @@ subroutine ca_mol_single_stage(time, &
 #ifdef RADIATION  
   use rad_params_module, only : ngroups
 #endif
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : add_hybrid_advection_source
+#endif
 
   implicit none
 
@@ -529,9 +532,9 @@ subroutine ca_mol_single_stage(time, &
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
-                                   qx, qx_lo, qx_hi, &
-                                   qy, qy_lo, qy_hi, &
-                                   qz, qz_lo, qz_hi)
+                                   q1, flux1_lo, flux1_hi, &
+                                   q2, flux2_lo, flux2_hi, &
+                                   q3, flux3_lo, flux3_hi)
 #endif
 
   call bl_deallocate(   div)
