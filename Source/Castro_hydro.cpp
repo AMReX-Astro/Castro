@@ -366,211 +366,209 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
   // divergence) using method of lines integration.  The output, as a
   // update to the state, is stored in the k_mol array of multifabs.
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "... Entering hydro advance" << std::endl << std::endl;
+  if (verbose && ParallelDescriptor::IOProcessor())
+    std::cout << "... Entering hydro advance" << std::endl << std::endl;
 
-    // Set up the source terms to go into the hydro -- note: the
-    // sources_for_hydro MF has ghost zones, but we don't need them
-    // here, since sources don't explicitly enter into the prediction
-    // for MOL integration
+  // Set up the source terms to go into the hydro -- note: the
+  // sources_for_hydro MF has ghost zones, but we don't need them
+  // here, since sources don't explicitly enter into the prediction
+  // for MOL integration
 
-    sources_for_hydro.setVal(0.0);
+  sources_for_hydro.setVal(0.0);
 
-    for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, 0);
+  for (int n = 0; n < num_src; ++n)
+    MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, 0);
 
-    int finest_level = parent->finestLevel();
+  int finest_level = parent->finestLevel();
 
-    const Real *dx = geom.CellSize();
-    Real courno    = -1.0e+200;
+  const Real *dx = geom.CellSize();
+  Real courno    = -1.0e+200;
 
-    MultiFab& S_new = get_new_data(State_Type);
+  MultiFab& S_new = get_new_data(State_Type);
 
-    MultiFab& k_stage = k_mol[istage];
+  MultiFab& k_stage = k_mol[istage];
 
 #ifdef RADIATION
-    MultiFab& Er_new = get_new_data(Rad_Type);
+  MultiFab& Er_new = get_new_data(Rad_Type);
 
-    if (!Radiation::rad_hydro_combined) {
-      BoxLib::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
-    }
+  if (!Radiation::rad_hydro_combined) {
+    BoxLib::Abort("Castro::construct_mol_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
+  }
 
-    FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
-    MultiFab& Erborder = fpi_rad.get_mf();
+  FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+  MultiFab& Erborder = fpi_rad.get_mf();
 
-    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
-    if (radiation->pure_hydro) {
-      lamborder.setVal(0.0, NUM_GROW);
-    }
-    else {
-      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
-    }
+  MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+  if (radiation->pure_hydro) {
+    lamborder.setVal(0.0, NUM_GROW);
+  }
+  else {
+    radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+  }
 
-    int nstep_fsp = -1;
+  int nstep_fsp = -1;
 #endif
 
-    BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
+  BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
+  {
 
-      FArrayBox flux[BL_SPACEDIM];
+    FArrayBox flux[BL_SPACEDIM];
 #if (BL_SPACEDIM <= 2)
-      FArrayBox pradial(Box::TheUnitBox(),1);
+    FArrayBox pradial(Box::TheUnitBox(),1);
 #endif
 #ifdef RADIATION
-      FArrayBox rad_flux[BL_SPACEDIM];
+    FArrayBox rad_flux[BL_SPACEDIM];
 #endif
-      FArrayBox q, qaux;
+    FArrayBox q, qaux;
 
-      int priv_nstep_fsp = -1;
+    int priv_nstep_fsp = -1;
 
-      Real cflLoc = -1.0e+200;
+    Real cflLoc = -1.0e+200;
 
-      const int*  domain_lo = geom.Domain().loVect();
-      const int*  domain_hi = geom.Domain().hiVect();
+    const int*  domain_lo = geom.Domain().loVect();
+    const int*  domain_hi = geom.Domain().hiVect();
 
-      for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
-	  const Box& bx  = mfi.tilebox();
-	  const Box& qbx = BoxLib::grow(bx, NUM_GROW);
+	const Box& bx  = mfi.tilebox();
+	const Box& qbx = BoxLib::grow(bx, NUM_GROW);
 
-	  const int* lo = bx.loVect();
-	  const int* hi = bx.hiVect();
+	const int* lo = bx.loVect();
+	const int* hi = bx.hiVect();
 
-	  FArrayBox &statein  = Sborder[mfi];
-	  FArrayBox &stateout = S_new[mfi];
+	FArrayBox &statein  = Sborder[mfi];
+	FArrayBox &stateout = S_new[mfi];
 
-	  FArrayBox &source_in  = sources_for_hydro[mfi];
+	FArrayBox &source_in  = sources_for_hydro[mfi];
 
-	  // the output of this will be stored in the correct stage MF
-	  FArrayBox &source_out = k_stage[mfi];
+	// the output of this will be stored in the correct stage MF
+	FArrayBox &source_out = k_stage[mfi];
 
 #ifdef RADIATION
-	  FArrayBox &Er = Erborder[mfi];
-	  FArrayBox &lam = lamborder[mfi];
-	  FArrayBox &Erout = Er_new[mfi];
+	FArrayBox &Er = Erborder[mfi];
+	FArrayBox &lam = lamborder[mfi];
+	FArrayBox &Erout = Er_new[mfi];
 #endif
 
-	  FArrayBox& vol = volume[mfi];
+	FArrayBox& vol = volume[mfi];
 
 #ifdef RADIATION
-	  q.resize(qbx, QRADVAR);
+	q.resize(qbx, QRADVAR);
 #else
-	  q.resize(qbx, QVAR);
+	q.resize(qbx, QVAR);
 #endif
-	  qaux.resize(qbx, NQAUX);
+	qaux.resize(qbx, NQAUX);
 
-	  // convert the conservative state to the primitive variable state.
-	  // this fills both q and qaux.
+	// convert the conservative state to the primitive variable state.
+	// this fills both q and qaux.
 
-	  ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
-		  statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
+	ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
+		statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
 #ifdef RADIATION
-		  Er.dataPtr(), ARLIM_3D(Er.loVect()), ARLIM_3D(Er.hiVect()),
-		  lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
+		Er.dataPtr(), ARLIM_3D(Er.loVect()), ARLIM_3D(Er.hiVect()),
+		lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
 #endif
-		  q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
-		  qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
+		q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
+		qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
 
 
-	  // Allocate fabs for fluxes
-	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
-	    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
-	    flux[i].resize(bxtmp,NUM_STATE);
+	// Allocate fabs for fluxes
+	for (int i = 0; i < BL_SPACEDIM ; i++)  {
+	  const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
+	  flux[i].resize(bxtmp,NUM_STATE);
 #ifdef RADIATION
-	    rad_flux[i].resize(bxtmp,Radiation::nGroups);
+	  rad_flux[i].resize(bxtmp,Radiation::nGroups);
 #endif
-	  }
+	}
 
 #if (BL_SPACEDIM <= 2)
-	  if (!Geometry::IsCartesian()) {
-	    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
-	  }
+	if (!Geometry::IsCartesian()) {
+	  pradial.resize(BoxLib::surroundingNodes(bx,0),1);
+	}
 #endif
 	  
-	  //std::cout << "calling mol_single_stage " << lo[0] << " " << lo[1] << " " <<lo[2] << " " << hi[0] << " " << hi[1] << " " << hi[2] << std::endl;
-	  ca_mol_single_stage
-	    (&time,
-	     lo, hi, domain_lo, domain_hi,
-	     BL_TO_FORTRAN(statein), 
-	     BL_TO_FORTRAN(stateout),
-	     BL_TO_FORTRAN(q),
-	     BL_TO_FORTRAN(qaux),
-	     BL_TO_FORTRAN(source_in),
-	     BL_TO_FORTRAN(source_out),
-	     dx, &dt,
-	     D_DECL(BL_TO_FORTRAN(flux[0]),
-		    BL_TO_FORTRAN(flux[1]),
-		    BL_TO_FORTRAN(flux[2])),
+	//std::cout << "calling mol_single_stage " << lo[0] << " " << lo[1] << " " <<lo[2] << " " << hi[0] << " " << hi[1] << " " << hi[2] << std::endl;
+	ca_mol_single_stage
+	  (&time,
+	   lo, hi, domain_lo, domain_hi,
+	   BL_TO_FORTRAN(statein), 
+	   BL_TO_FORTRAN(stateout),
+	   BL_TO_FORTRAN(q),
+	   BL_TO_FORTRAN(qaux),
+	   BL_TO_FORTRAN(source_in),
+	   BL_TO_FORTRAN(source_out),
+	   dx, &dt,
+	   D_DECL(BL_TO_FORTRAN(flux[0]),
+		  BL_TO_FORTRAN(flux[1]),
+		  BL_TO_FORTRAN(flux[2])),
 #if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN(pradial),
+	   BL_TO_FORTRAN(pradial),
 #endif
-	     D_DECL(BL_TO_FORTRAN(area[0][mfi]),
-		    BL_TO_FORTRAN(area[1][mfi]),
-		    BL_TO_FORTRAN(area[2][mfi])),
+	   D_DECL(BL_TO_FORTRAN(area[0][mfi]),
+		  BL_TO_FORTRAN(area[1][mfi]),
+		  BL_TO_FORTRAN(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN(dLogArea[0][mfi]),
+	   BL_TO_FORTRAN(dLogArea[0][mfi]),
 #endif
-	     BL_TO_FORTRAN(volume[mfi]),
-	     &cflLoc, verbose);
+	   BL_TO_FORTRAN(volume[mfi]),
+	   &cflLoc, verbose);
 
-	  // Store the fluxes from this advance.
-	  // For normal integration we want to add the fluxes from this advance
-	  // since we may be subcycling the timestep. But for SDC integration
-	  // we want to copy the fluxes since we expect that there will not be
-	  // subcycling and we only want the last iteration's fluxes.
-
-	  for (int i = 0; i < BL_SPACEDIM ; i++) {
-	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	// Store the fluxes from this advance -- we weight them by the
+	// integrator weight for this stage
+	for (int i = 0; i < BL_SPACEDIM ; i++) {
+	  fluxes    [i][mfi].saxpy(b_mol[istage], flux[i], 
+				   mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+	  rad_fluxes[i][mfi].saxpy(b_mol[istage], rad_flux[i], 
+				   mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, Radiation::nGroups);
 #endif
-	  }
+	}
 
 #if (BL_SPACEDIM <= 2)
-	  if (!Geometry::IsCartesian()) {
-	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
-	  }
+	if (!Geometry::IsCartesian()) {
+	  P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
+	}
 #endif
       } // MFIter loop
 
 #ifdef _OPENMP
 #pragma omp critical (hydro_courno)
 #endif
-      {
-	courno = std::max(courno,cflLoc);
+    {
+      courno = std::max(courno,cflLoc);
 #ifdef RADIATION
-	nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
+      nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
-      }
-    }  // end of omp parallel region
+    }
+  }  // end of omp parallel region
 
-    BL_PROFILE_VAR_STOP(CA_UMDRV);
+  BL_PROFILE_VAR_STOP(CA_UMDRV);
 
-    // Flush Fortran output
+  // Flush Fortran output
 
-    if (verbose)
-      flush_output();
+  if (verbose)
+    flush_output();
 
 
-    if (print_update_diagnostics)
+  if (print_update_diagnostics)
     {
 
-	bool local = true;
-	Array<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
+      bool local = true;
+      Array<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+      Lazy::QueueReduction( [=] () mutable {
 #endif
-	    ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
+	  ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
 
-	    if (ParallelDescriptor::IOProcessor())
-		std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
+	  if (ParallelDescriptor::IOProcessor())
+	    std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
 
-	    print_source_change(hydro_update);
+	  print_source_change(hydro_update);
 
 #ifdef BL_LAZY
 	});
@@ -578,13 +576,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
     }
 
 
-    if (courno > 1.0) {
-	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-	if (hard_cfl_limit == 1)
-	  BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
-    }
+  if (courno > 1.0) {
+    std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+    if (hard_cfl_limit == 1)
+      BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+  }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
+  if (verbose && ParallelDescriptor::IOProcessor())
+    std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 }
