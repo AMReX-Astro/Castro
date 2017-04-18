@@ -48,7 +48,7 @@ def process(castrorad_dir, plotfile):
     os.system("./{} {} > {}".format(analysis_routine, plotfile, "radsphere_testsuite.out"))
 
 
-    analytic = castrorad_dir + "/Exec/RadSphere/testsuite_analysis/radsphere_analytic.out"
+    analytic = castrorad_dir + "/Exec/radiation_tests/RadSphere/testsuite_analysis/radsphere_analytic.out"
     analytic_data = np.loadtxt(analytic)
 
     data = np.loadtxt("radsphere_testsuite.out")
