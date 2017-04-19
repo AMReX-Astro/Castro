@@ -343,6 +343,9 @@ ifdef BUILD_GIT_NAME
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
+          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
           --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)" \
 	  --build_git_name "$(BUILD_GIT_NAME)" \
@@ -351,6 +354,9 @@ else
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
+          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
           --MODULES "$(MNAMES)" \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 endif

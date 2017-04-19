@@ -611,10 +611,9 @@ Castro::writeJobInfo (const std::string& dir)
   FullPathJobInfoFile += "/job_info";
   jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);
 
-  std::string PrettyLine = "===============================================================================\n";
-  std::string OtherLine = "--------------------------------------------------------------------------------\n";
-  std::string SkipSpace = "        ";
-
+  std::string PrettyLine = std::string(78, '=') + "\n";
+  std::string OtherLine = std::string(78, '-') + "\n";
+  std::string SkipSpace = std::string(8, ' ') + "\n";
 
   // job information
   jobInfoFile << PrettyLine;
@@ -662,12 +661,27 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
   jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
   jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-  jobInfoFile << "AMReX dir:    " << buildInfoGetAMReXDir() << "\n";
+  jobInfoFile << "AMReX dir:     " << buildInfoGetAMReXDir() << "\n";
 
   jobInfoFile << "\n";
 
   jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
+
+  jobInfoFile << "\n";
+  
+  jobInfoFile << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
+  jobInfoFile << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "Fortran comp:  " << buildInfoGetFName() << "\n";
+  jobInfoFile << "Fortran flags: " << buildInfoGetFFlags() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "Link flags:    " << buildInfoGetLinkFlags() << "\n";
+  jobInfoFile << "Libraries:     " << buildInfoGetLibraries() << "\n";
 
   jobInfoFile << "\n";
 
@@ -684,7 +698,7 @@ Castro::writeJobInfo (const std::string& dir)
     jobInfoFile << "Castro       git describe: " << githash1 << "\n";
   }
   if (strlen(githash2) > 0) {
-    jobInfoFile << "AMReX       git describe: " << githash2 << "\n";
+    jobInfoFile << "AMReX        git describe: " << githash2 << "\n";
   }
   if (strlen(githash3) > 0) {	
     jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
