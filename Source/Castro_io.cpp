@@ -662,7 +662,7 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
   jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
   jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-  jobInfoFile << "BoxLib dir:    " << buildInfoGetAMReXDir() << "\n";
+  jobInfoFile << "AMReX dir:    " << buildInfoGetAMReXDir() << "\n";
 
   jobInfoFile << "\n";
 
@@ -684,7 +684,7 @@ Castro::writeJobInfo (const std::string& dir)
     jobInfoFile << "Castro       git describe: " << githash1 << "\n";
   }
   if (strlen(githash2) > 0) {
-    jobInfoFile << "BoxLib       git describe: " << githash2 << "\n";
+    jobInfoFile << "AMReX       git describe: " << githash2 << "\n";
   }
   if (strlen(githash3) > 0) {	
     jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
