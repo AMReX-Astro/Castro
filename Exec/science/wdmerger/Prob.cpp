@@ -159,12 +159,12 @@ Castro::wd_update (Real time, Real dt)
       auto mfpmask = c_lev.derive("primarymask", time, 0);
       auto mfsmask = c_lev.derive("secondarymask", time, 0);
 
-      BL_ASSERT(mfrho  != 0);
-      BL_ASSERT(mfxmom != 0);
-      BL_ASSERT(mfymom != 0);
-      BL_ASSERT(mfzmom != 0);
-      BL_ASSERT(mfpmask != 0);
-      BL_ASSERT(mfsmask != 0);
+      BL_ASSERT(mfrho   != nullptr);
+      BL_ASSERT(mfxmom  != nullptr);
+      BL_ASSERT(mfymom  != nullptr);
+      BL_ASSERT(mfzmom  != nullptr);
+      BL_ASSERT(mfpmask != nullptr);
+      BL_ASSERT(mfsmask != nullptr);
 
       if (lev < parent->finestLevel())
       {
@@ -370,9 +370,9 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
       auto mfpmask = c_lev.derive("primarymask", time, 0);
       auto mfsmask = c_lev.derive("secondarymask", time, 0);
 
-      BL_ASSERT(mf      != 0);
-      BL_ASSERT(mfpmask != 0);
-      BL_ASSERT(mfsmask != 0);
+      BL_ASSERT(mf      != nullptr);
+      BL_ASSERT(mfpmask != nullptr);
+      BL_ASSERT(mfsmask != nullptr);
 
       if (lev < parent->finestLevel())
       {
@@ -457,13 +457,13 @@ Castro::gwstrain (Real time,
     auto mfgravy = derive("grav_y",time,0);
     auto mfgravz = derive("grav_z",time,0);
 
-    BL_ASSERT(mfrho   != 0);
-    BL_ASSERT(mfxmom  != 0);
-    BL_ASSERT(mfymom  != 0);
-    BL_ASSERT(mfzmom  != 0);
-    BL_ASSERT(mfgravx != 0);
-    BL_ASSERT(mfgravy != 0);
-    BL_ASSERT(mfgravz != 0);
+    BL_ASSERT(mfrho   != nullptr);
+    BL_ASSERT(mfxmom  != nullptr);
+    BL_ASSERT(mfymom  != nullptr);
+    BL_ASSERT(mfzmom  != nullptr);
+    BL_ASSERT(mfgravx != nullptr);
+    BL_ASSERT(mfgravy != nullptr);
+    BL_ASSERT(mfgravz != nullptr);
 
     if (level < parent->finestLevel())
     {
@@ -925,8 +925,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
 	rot_force[lev]->setVal(0.0);
 
-	MultiFab::Add(*rot_force[lev], *getLevel(lev).old_sources[grav_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Add(*rot_force[lev], *getLevel(lev).new_sources[grav_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Add(*rot_force[lev], *(getLevel(lev).old_sources[grav_src]), 0, 0, NUM_STATE, ng);
+        MultiFab::Add(*rot_force[lev], *(getLevel(lev).new_sources[grav_src]), 0, 0, NUM_STATE, ng);
 
 	MultiFab::Add(*rot_force[lev], getLevel(lev).hydro_source, 0, 0, NUM_STATE, ng);
 
@@ -1053,14 +1053,14 @@ Castro::update_relaxation(Real time, Real dt) {
 
 	getLevel(lev).expand_state(Sb, old_time, ng);
 
-	MultiFab::Saxpy(S_new, -dt, *getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, -dt, *getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
 
 	getLevel(lev).construct_old_source(rot_src, old_time, dt);
 	getLevel(lev).construct_new_source(rot_src, new_time, dt);
 
-	MultiFab::Saxpy(S_new, dt, *getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, dt, *getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
 
 	Sb.clear();
 
