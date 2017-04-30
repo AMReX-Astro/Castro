@@ -6,13 +6,16 @@
 
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Geometry.H>
+#include <AMReX_Geometry.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Problem.H>
 #include <Problem_F.H>
 
 #include <Gravity.H>
 #include <Gravity_F.H>
+
+using amrex::Real;
 
 void
 Castro::sum_integrated_quantities ()
@@ -220,7 +223,7 @@ Castro::sum_integrated_quantities ()
 
     int nfoo_sum = 24 + NumSpec;
 
-    Array<Real> foo_sum(nfoo_sum);
+    amrex::Array<Real> foo_sum(nfoo_sum);
 
     foo_sum[0] = mass;
 
@@ -247,7 +250,7 @@ Castro::sum_integrated_quantities ()
       foo_sum[i + 24] = species_mass[i];
     }
 
-    ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
+    amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
 
     mass = foo_sum[0];
 
@@ -348,7 +351,7 @@ Castro::sum_integrated_quantities ()
 
     // Write data out to the log.
 
-    if ( ParallelDescriptor::IOProcessor() )
+    if ( amrex::ParallelDescriptor::IOProcessor() )
     {
 
       // The data logs are only defined on the IO processor

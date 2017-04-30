@@ -1,3 +1,4 @@
+
 // Preprocessor directive for allowing us to do a post-initialization update.
 
 #ifndef DO_PROBLEM_POST_INIT
@@ -18,31 +19,31 @@
 
 // Routine for determining white dwarf masses, centers of mass and velocities.
 
-void wd_update(Real time, Real dt);
+void wd_update(amrex::Real time, amrex::Real dt);
 
 // Volume within white dwarfs at a given density cutoff.
 
-void volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff, bool local = false);
+void volInBoundary (amrex::Real time, amrex::Real& vol_p, amrex::Real& vol_s, amrex::Real rho_cutoff, bool local = false);
 
 // Calculate gravitational wave signal.
 
-void gwstrain (Real time,
-	       Real& h_plus_1, Real& h_cross_1,
-	       Real& h_plus_2, Real& h_cross_2,
-	       Real& h_plus_3, Real& h_cross_3,
+void gwstrain (amrex::Real time,
+	       amrex::Real& h_plus_1, amrex::Real& h_cross_1,
+	       amrex::Real& h_plus_2, amrex::Real& h_cross_2,
+	       amrex::Real& h_plus_3, amrex::Real& h_cross_3,
 	       bool local = false);
 
 // Computes standard dot product of two three-vectors.
 
-Real dot_product(const Real a[], const Real b[]);
+amrex::Real dot_product(const amrex::Real a[], const amrex::Real b[]);
 
 // Computes standard cross-product of two three-vectors.
 
-void cross_product(const Real a[], const Real b[], Real c[]);
+void cross_product(const amrex::Real a[], const amrex::Real b[], amrex::Real c[]);
 
 // Computes norm of a three vector.
 
-Real norm(const Real a[]);
+amrex::Real norm(const amrex::Real a[]);
 
 // Problem post-initialization routine.
 
@@ -62,15 +63,15 @@ void writeGitHashes(std::ostream& log);
 
 // Check whether we should stop the run.
 
-void check_to_stop(Real time);
+void check_to_stop(amrex::Real time);
 
 // Calculate extrema on grid.
 
-void update_extrema(Real time);
+void update_extrema(amrex::Real time);
 
 // Update relaxation process.
 
-void update_relaxation(Real time, Real dt);
+void update_relaxation(amrex::Real time, amrex::Real dt);
 
 // Input parameters
 
@@ -83,55 +84,55 @@ static int problem;
 
 // Stellar masses
 
-static Real mass_p;
-static Real mass_s;
+static amrex::Real mass_p;
+static amrex::Real mass_s;
 
 // Rate of change of stellar masses
 
-static Real mdot_p;
-static Real mdot_s;
+static amrex::Real mdot_p;
+static amrex::Real mdot_s;
 
 // Stellar centers of mass and velocities
 
-static Real com_p[3];
-static Real com_s[3];
+static amrex::Real com_p[3];
+static amrex::Real com_s[3];
 
-static Real vel_p[3];
-static Real vel_s[3];
+static amrex::Real vel_p[3];
+static amrex::Real vel_s[3];
 
 // Radii of the WDs at various density thresholds.
 
-static Real rad_p[7];
-static Real rad_s[7];
+static amrex::Real rad_p[7];
+static amrex::Real rad_s[7];
 
 // Effective volume of the stars at various density cutoffs.
 
-static Real vol_p[7];
-static Real vol_s[7];
+static amrex::Real vol_p[7];
+static amrex::Real vol_s[7];
 
 // Average density of the stars.
 
-static Real rho_avg_p;
-static Real rho_avg_s;
+static amrex::Real rho_avg_p;
+static amrex::Real rho_avg_s;
 
 // Gravitational free-fall timescale of the stars.
 
-static Real t_ff_p;
-static Real t_ff_s;
+static amrex::Real t_ff_p;
+static amrex::Real t_ff_s;
 
 // Global extrema of various quantities over the whole simulation
 
-static Real T_global_max;
-static Real rho_global_max;
-static Real ts_te_global_max;
+static amrex::Real T_global_max;
+static amrex::Real rho_global_max;
+static amrex::Real ts_te_global_max;
 
 // Current values of the above extrema
 
-static Real T_curr_max;
-static Real rho_curr_max;
-static Real ts_te_curr_max;
+static amrex::Real T_curr_max;
+static amrex::Real rho_curr_max;
+static amrex::Real ts_te_curr_max;
 
 // Value of the total energy on the domain over the last several timesteps
 
 static const int num_previous_ener_timesteps = 5;
-static Real total_ener_array[num_previous_ener_timesteps];
+static amrex::Real total_ener_array[num_previous_ener_timesteps];

@@ -1,4 +1,4 @@
-   subroutine PROBINIT (init,name,namlen,problo,probhi)
+   subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
      use problem_io_module, only: initialize_io
      use wdmerger_util_module, only: initialize_problem
@@ -12,7 +12,7 @@
      call initialize_io(name, namlen)
      call initialize_problem(init)
 
-   end subroutine PROBINIT
+   end subroutine amrex_probinit
 
 
    ! ::: -----------------------------------------------------------

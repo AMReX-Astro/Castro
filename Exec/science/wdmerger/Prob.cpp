@@ -4,11 +4,12 @@
 #include "Gravity.H"
 #include <Gravity_F.H>
 
-#include "ParmParse.H"
-
-#include "buildInfo.H"
+#include "AMReX_ParmParse.H"
+#include "AMReX_buildInfo.H"
 
 #include <fstream>
+
+using namespace amrex;
 
 int Castro::relaxation_is_done = 0;
 int Castro::problem = -1;
@@ -148,15 +149,15 @@ Castro::wd_update (Real time, Real dt)
 
       // Density and momenta
 
-      MultiFab* mfrho  = c_lev.derive("density",time,0);
-      MultiFab* mfxmom = c_lev.derive("xmom",time,0);
-      MultiFab* mfymom = c_lev.derive("ymom",time,0);
-      MultiFab* mfzmom = c_lev.derive("zmom",time,0);
+      auto mfrho  = c_lev.derive("density",time,0);
+      auto mfxmom = c_lev.derive("xmom",time,0);
+      auto mfymom = c_lev.derive("ymom",time,0);
+      auto mfzmom = c_lev.derive("zmom",time,0);
 
       // Masks for the primary and secondary
 
-      MultiFab* mfpmask = c_lev.derive("primarymask", time, 0);
-      MultiFab* mfsmask = c_lev.derive("secondarymask", time, 0);
+      auto mfpmask = c_lev.derive("primarymask", time, 0);
+      auto mfsmask = c_lev.derive("secondarymask", time, 0);
 
       BL_ASSERT(mfrho  != 0);
       BL_ASSERT(mfxmom != 0);
@@ -211,13 +212,6 @@ Castro::wd_update (Real time, Real dt)
 		&mp, &ms);
 	}
 
-      delete mfrho;
-      delete mfxmom;
-      delete mfymom;
-      delete mfzmom;
-      delete mfpmask;
-      delete mfsmask;
-
     }
 
     set_amr_info(level, -1, -1, -1.0, -1.0);
@@ -264,7 +258,7 @@ Castro::wd_update (Real time, Real dt)
       foo_sum[i+25] = vel_s[i];
     }
 
-    ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
+    amrex::ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
 
     for (int i = 0; i <= 6; ++i) {
       vol_p[i] = foo_sum[i  ];
@@ -368,13 +362,13 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
       Castro& c_lev = getLevel(lev);
 
-      const Real* dx   = c_lev.geom.CellSize();
-      MultiFab*   mf   = c_lev.derive("density",time,0);
+      const Real* dx = c_lev.geom.CellSize();
+      auto mf = c_lev.derive("density",time,0);
 
       // Effective potentials of the primary and secondary
 
-      MultiFab* mfpmask = c_lev.derive("primarymask", time, 0);
-      MultiFab* mfsmask = c_lev.derive("secondarymask", time, 0);
+      auto mfpmask = c_lev.derive("primarymask", time, 0);
+      auto mfsmask = c_lev.derive("secondarymask", time, 0);
 
       BL_ASSERT(mf      != 0);
       BL_ASSERT(mfpmask != 0);
@@ -417,10 +411,6 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 	  vs += ss;
       }
 
-      delete mf;
-      delete mfsmask;
-      delete mfpmask;
-
       vol_p += vp;
       vol_s += vs;
 
@@ -431,7 +421,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
       const int nfoo = 2;
       Real foo[nfoo] = {vol_p, vol_s};
 
-      ParallelDescriptor::ReduceRealSum(foo, nfoo);
+      amrex::ParallelDescriptor::ReduceRealSum(foo, nfoo);
 
       vol_p = foo[0];
       vol_s = foo[1];
@@ -457,15 +447,15 @@ Castro::gwstrain (Real time,
 
     BL_PROFILE("Castro::gwstrain()");
 
-    const Real* dx       = geom.CellSize();
+    const Real* dx = geom.CellSize();
 
-    MultiFab* mfrho   = derive("density",time,0);
-    MultiFab* mfxmom  = derive("xmom",time,0);
-    MultiFab* mfymom  = derive("ymom",time,0);
-    MultiFab* mfzmom  = derive("zmom",time,0);
-    MultiFab* mfgravx = derive("grav_x",time,0);
-    MultiFab* mfgravy = derive("grav_y",time,0);
-    MultiFab* mfgravz = derive("grav_z",time,0);
+    auto mfrho   = derive("density",time,0);
+    auto mfxmom  = derive("xmom",time,0);
+    auto mfymom  = derive("ymom",time,0);
+    auto mfzmom  = derive("zmom",time,0);
+    auto mfgravx = derive("grav_x",time,0);
+    auto mfgravy = derive("grav_y",time,0);
+    auto mfgravz = derive("grav_z",time,0);
 
     BL_ASSERT(mfrho   != 0);
     BL_ASSERT(mfxmom  != 0);
@@ -505,16 +495,16 @@ Castro::gwstrain (Real time,
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    PArray<FArrayBox> priv_Qtt(nthreads, PArrayManage);
+    Array< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
     for (int i=0; i<nthreads; i++) {
-	priv_Qtt.set(i, new FArrayBox(bx));
+	priv_Qtt[i].reset(new FArrayBox(bx));
     }
 #pragma omp parallel
 #endif
     {
 #ifdef _OPENMP
 	int tid = omp_get_thread_num();
-	priv_Qtt[tid].setVal(0.0);
+	priv_Qtt[tid]->setVal(0.0);
 #endif
 	for (MFIter mfi(*mfrho,true); mfi.isValid(); ++mfi) {
 
@@ -532,20 +522,12 @@ Castro::gwstrain (Real time,
 					 BL_TO_FORTRAN_3D(volume[mfi]),
 					 ARLIM_3D(lo),ARLIM_3D(hi),ZFILL(dx),&time,
 #ifdef _OPENMP
-					 priv_Qtt[tid].dataPtr());
+					 priv_Qtt[tid]->dataPtr());
 #else
 	                                 Qtt.dataPtr());
 #endif
         }
     }
-
-    delete mfrho;
-    delete mfxmom;
-    delete mfymom;
-    delete mfzmom;
-    delete mfgravx;
-    delete mfgravy;
-    delete mfgravz;
 
     // Do an OpenMP reduction on the tensor.
 
@@ -557,7 +539,7 @@ Castro::gwstrain (Real time,
 	for (int i=0; i<n; ++i)
 	{
 	    for (int it=0; it<nthreads; it++) {
-		const Real* pq = priv_Qtt[it].dataPtr();
+		const Real* pq = priv_Qtt[it]->dataPtr();
 		p[i] += pq[i];
 	    }
 	}
@@ -566,7 +548,7 @@ Castro::gwstrain (Real time,
     // Now, do a global reduce over all processes.
 
     if (!local)
-      ParallelDescriptor::ReduceRealSum(Qtt.dataPtr(),bx.numPts());
+	amrex::ParallelDescriptor::ReduceRealSum(Qtt.dataPtr(),bx.numPts());
 
     // Now that we have the second time derivative of the quadrupole
     // tensor, we can calculate the transverse-trace gauge strain tensor.
@@ -641,12 +623,12 @@ void Castro::problem_post_init() {
   // If we're doing an initial relaxation step, ensure that we are not subcycling.
 
   if (problem == 3 && !relaxation_is_done && parent->subCycle())
-    BoxLib::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
+    amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // If we're doing an initial relaxation step, ensure that we retain source terms.
 
   if (problem == 3 && !relaxation_is_done && !keep_sources_until_end)
-    BoxLib::Abort("Error: cannot perform relaxation step if we are not retaining source terms.");
+    amrex::Abort("Error: cannot perform relaxation step if we are not retaining source terms.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
@@ -766,7 +748,7 @@ void Castro::check_to_stop(Real time) {
 
 	E_tot = rho_E + 0.5 * rho_phi;
 
-	ParallelDescriptor::ReduceRealSum(E_tot);
+	amrex::ParallelDescriptor::ReduceRealSum(E_tot);
 
 	// Put this on the end of the energy array.
 
@@ -805,7 +787,7 @@ void Castro::check_to_stop(Real time) {
 
 	  set_job_status(&jobDoneStatus);
 
-	  if (ParallelDescriptor::IOProcessor())
+	  if (amrex::ParallelDescriptor::IOProcessor())
 	    std::cout << std::endl 
 		      << "Ending simulation because total energy is positive and decreasing." 
 		      << std::endl;
@@ -844,7 +826,7 @@ void Castro::check_to_stop(Real time) {
       // Write out a checkpoint. Note that this will
       // only happen if you have amr.message_int = 1.
 
-      if (ParallelDescriptor::IOProcessor()) {
+      if (amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_continue", std::ofstream::out);
 	dump_file.close();
@@ -882,9 +864,8 @@ void Castro::update_extrema(Real time) {
 #ifdef REACTIONS
       if (lev == finest_level) {
 
-        MultiFab* ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
+        auto ts_te_MF = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
 	ts_te_curr_max = std::max(ts_te_curr_max, ts_te_MF->max(0,0,local_flag));
-	delete ts_te_MF;
 
       }
 #endif
@@ -901,7 +882,7 @@ void Castro::update_extrema(Real time) {
     foo_max[1] = rho_curr_max;
     foo_max[2] = ts_te_curr_max;
 
-    ParallelDescriptor::ReduceRealMax(foo_max, nfoo_max);
+    amrex::ParallelDescriptor::ReduceRealMax(foo_max, nfoo_max);
 
     T_curr_max     = foo_max[0];
     rho_curr_max   = foo_max[1];
@@ -936,24 +917,24 @@ Castro::update_relaxation(Real time, Real dt) {
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    PArray<MultiFab> rot_force(n_levs, PArrayManage);
+    Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
 
     for (int lev = 0; lev <= finest_level; ++lev) {
 
-	rot_force.set(lev, new MultiFab(getLevel(lev).boxArray(), NUM_STATE, ng, Fab_allocate));
+	rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng));
 
-	rot_force[lev].setVal(0.0);
+	rot_force[lev]->setVal(0.0);
 
-	MultiFab::Add(rot_force[lev], getLevel(lev).old_sources[grav_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Add(rot_force[lev], getLevel(lev).new_sources[grav_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Add(*rot_force[lev], *getLevel(lev).old_sources[grav_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Add(*rot_force[lev], *getLevel(lev).new_sources[grav_src], 0, 0, NUM_STATE, ng);
 
-	MultiFab::Add(rot_force[lev], getLevel(lev).hydro_source, 0, 0, NUM_STATE, ng);
+	MultiFab::Add(*rot_force[lev], getLevel(lev).hydro_source, 0, 0, NUM_STATE, ng);
 
 	// Mask out regions covered by fine grids.
 
 	if (lev < finest_level) {
 	    const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-	    MultiFab::Multiply(rot_force[lev], mask, 0, 0, NUM_STATE, 0);
+	    MultiFab::Multiply(*rot_force[lev], mask, 0, 0, NUM_STATE, 0);
 	}
 
     }
@@ -967,8 +948,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
 	MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-	MultiFab* pmask = getLevel(lev).derive("primarymask", time, 0);
-	MultiFab* smask = getLevel(lev).derive("secondarymask", time, 0);
+	auto pmask = getLevel(lev).derive("primarymask", time, 0);
+	auto smask = getLevel(lev).derive("secondarymask", time, 0);
 
 	MultiFab& vol = getLevel(lev).Volume();
 
@@ -990,11 +971,11 @@ Castro::update_relaxation(Real time, Real dt) {
 	    const int* hi  = box.hiVect();
 
 	    sum_force_on_stars(lo, hi,
-			       BL_TO_FORTRAN_3D(rot_force[lev][mfi]),
+			       BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
 			       BL_TO_FORTRAN_3D(S_new[mfi]),
 			       BL_TO_FORTRAN_3D(vol[mfi]),
 			       BL_TO_FORTRAN_3D((*pmask)[mfi]),
-			       BL_TO_FORTRAN_3D((*smask)[mfi]),
+                               BL_TO_FORTRAN_3D((*smask)[mfi]),
 			       &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
 
 	}
@@ -1006,9 +987,6 @@ Castro::update_relaxation(Real time, Real dt) {
 	force_s[0] += fsx;
 	force_s[1] += fsy;
 	force_s[2] += fsz;
-
-	delete pmask;
-	delete smask;
 
     }
 
@@ -1025,7 +1003,7 @@ Castro::update_relaxation(Real time, Real dt) {
     foo[4] = force_s[1];
     foo[5] = force_s[2];
 
-    ParallelDescriptor::ReduceRealSum(foo, 6);
+    amrex::ParallelDescriptor::ReduceRealSum(foo, 6);
 
     force_p[0] = foo[0];
     force_p[1] = foo[1];
@@ -1047,7 +1025,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
     Real period = 2.0 * M_PI / omega;
 
-    if (ParallelDescriptor::IOProcessor()) {
+    if (amrex::ParallelDescriptor::IOProcessor()) {
           std::cout << "\n";
           std::cout << "  Updating the rotational period from " << rotational_period << " s to " << period << " s." << "\n";
 	  std::cout << "\n";
@@ -1071,18 +1049,18 @@ Castro::update_relaxation(Real time, Real dt) {
 	// since the construction of Sborder includes more than just a FillPatch.
 	// The only difference is that we don't need NUM_GROW ghost cells.
 
-	Sb.define(getLevel(lev).boxArray(), NUM_STATE, ng, Fab_allocate);
+	Sb.define(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng);
 
 	getLevel(lev).expand_state(Sb, old_time, ng);
 
-	MultiFab::Saxpy(S_new, -dt, getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, -dt, getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, -dt, *getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, -dt, *getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
 
 	getLevel(lev).construct_old_source(rot_src, old_time, dt);
 	getLevel(lev).construct_new_source(rot_src, new_time, dt);
 
-	MultiFab::Saxpy(S_new, dt, getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, dt, getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, dt, *getLevel(lev).old_sources[rot_src], 0, 0, NUM_STATE, ng);
+	MultiFab::Saxpy(S_new, dt, *getLevel(lev).new_sources[rot_src], 0, 0, NUM_STATE, ng);
 
 	Sb.clear();
 
@@ -1106,7 +1084,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
     Real potential = 0.0;
 
-    MultiFab* mfphieff = derive("phiEff", time, 0);
+    auto mfphieff = derive("phiEff", time, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:potential)
@@ -1123,7 +1101,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
     }
 
-    ParallelDescriptor::ReduceRealSum(potential);
+    amrex::ParallelDescriptor::ReduceRealSum(potential);
 
     // Now cycle through the grids and determine if any zones
     // have crossed the density threshold outside the critical surface.
@@ -1149,14 +1127,12 @@ Castro::update_relaxation(Real time, Real dt) {
 
     }
 
-    ParallelDescriptor::ReduceIntSum(is_done);
+    amrex::ParallelDescriptor::ReduceIntSum(is_done);
 
     if (is_done > 0) {
 	relaxation_is_done = 1;
 	set_relaxation_status(&relaxation_is_done);
     }
-
-    delete mfphieff;
 
     if (relaxation_is_done) {
 
