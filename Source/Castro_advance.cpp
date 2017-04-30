@@ -387,47 +387,37 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // Swap the new data from the last timestep into the old state
-    // data.  If we're on level 0, do it for all levels above this one
-    // as well.  Or, if we're on a later iteration at a finer
-    // timestep, swap for all lower time levels as well.
+    // Swap the new data from the last timestep into the old state data.
 
-    if (level == 0 || amr_iteration > 1) {
+    for (int k = 0; k < num_state_type; k++) {
 
-        for (int lev = level; lev <= parent->finestLevel(); lev++) {
+	// The following is a hack to make sure that we only
+	// ever have new data for a few state types that only
+	// ever need new time data; by doing a swap now, we'll
+	// guarantee that allocOldData() does nothing. We do
+	// this because we never need the old data, so we
+	// don't want to allocate memory for it.
 
-	    Real dt_lev = parent->dtLevel(lev);
-            for (int k = 0; k < num_state_type; k++) {
-
-	        // The following is a hack to make sure that we only
-	        // ever have new data for a few state types that only
-	        // ever need new time data; by doing a swap now, we'll
-	        // guarantee that allocOldData() does nothing. We do
-	        // this because we never need the old data, so we
-	        // don't want to allocate memory for it.
-
-	        if (k == Source_Type)
-		    getLevel(lev).state[k].swapTimeLevels(0.0);
+	if (k == Source_Type)
+	    state[k].swapTimeLevels(0.0);
 #ifdef SDC
-		else if (k == SDC_Source_Type)
-		    getLevel(lev).state[k].swapTimeLevels(0.0);
+	else if (k == SDC_Source_Type)
+	    state[k].swapTimeLevels(0.0);
 #ifdef REACTIONS
-		else if (k == SDC_React_Type)
-		    getLevel(lev).state[k].swapTimeLevels(0.0);
+	else if (k == SDC_React_Type)
+	    state[k].swapTimeLevels(0.0);
 #endif
 #endif
 
-	        getLevel(lev).state[k].allocOldData();
-                getLevel(lev).state[k].swapTimeLevels(dt_lev);
-            }
+	state[k].allocOldData();
+	state[k].swapTimeLevels(dt);
+
+    }
 
 #ifdef SELF_GRAVITY
-	    if (do_grav)
-               gravity->swapTimeLevels(lev);
+    if (do_grav)
+	gravity->swapTimeLevels(level);
 #endif
-
-        }
-    }
 
     // Ensure data is valid before beginning advance. This addresses
     // the fact that we may have new data on this level that was interpolated
