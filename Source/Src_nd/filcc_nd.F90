@@ -6,10 +6,10 @@ subroutine filcc_nd(adv,adv_lo,adv_hi,domlo,domhi,delta,xlo,bc)
 
   use prob_params_module, only: dim
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
-  include 'bc_types.fi'  
+  include 'AMReX_bc_types.fi'  
   
   integer          :: adv_lo(3),adv_hi(3)
   integer          :: bc(dim,2)

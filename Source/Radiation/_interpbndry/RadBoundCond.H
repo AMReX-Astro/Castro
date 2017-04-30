@@ -1,7 +1,7 @@
 #ifndef _RAD_BOUNDCOND_H_
 #define _RAD_BOUNDCOND_H_
 
-#include <BLassert.H>
+#include <AMReX_BLassert.H>
 
 //@Man:
 /*@Memo:

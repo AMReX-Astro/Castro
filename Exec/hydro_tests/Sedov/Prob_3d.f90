@@ -1,10 +1,10 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: init, namlen
   integer :: name(namlen)
@@ -46,7 +46,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(2) = (problo(2)+probhi(2))/2.e0_rt
   center(3) = (problo(3)+probhi(3))/2.e0_rt
   
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -80,7 +80,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: level, nscal
   integer :: lo(3), hi(3)

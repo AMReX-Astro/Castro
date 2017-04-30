@@ -8,7 +8,7 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   use fluxlimiter_module, only : FLDlambda
   use filter_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
@@ -938,7 +938,7 @@ subroutine ca_get_v_dcf(lo, hi, &
 
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -997,7 +997,7 @@ subroutine ca_compute_dcoefs(lo, hi, &
                              dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3, &
                              r, idir) bind(C, name="ca_compute_dcoefs")
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1068,7 +1068,7 @@ subroutine ca_update_dcf(lo, hi, &
                          kp, kp_l1, kp_l2, kp_l3, kp_h1, kp_h2, kp_h3, &
                          kr, kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3) bind(C, name="ca_update_dcf")
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -1098,7 +1098,7 @@ subroutine ca_set_dterm_face(lo, hi, &
                              Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
                              dc, dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
                              dtf, dtf_l1, dtf_l2, dtf_l3, dtf_h1, dtf_h2, dtf_h3, dx, idir) bind(C, name="ca_set_dterm_face")
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
@@ -1147,7 +1147,7 @@ subroutine ca_face2center(lo, hi, &
                           fooz, fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3, &
                           fooc, fooc_l1, fooc_l2, fooc_l3, fooc_h1, fooc_h2, fooc_h3) bind(C, name="ca_face2center")
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3), scomp,dcomp,ncomp,nf,nc
@@ -1183,7 +1183,7 @@ subroutine ca_correct_dterm(  &
                             dfz, dfz_l1, dfz_l2, dfz_l3, dfz_h1, dfz_h2, dfz_h3, &
                             re, rc) bind(C, name="ca_correct_dterm")
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: dfx_l1, dfx_l2, dfx_l3, dfx_h1, dfx_h2, dfx_h3
@@ -1206,7 +1206,7 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, &
        UFX, allow_negative_energy
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
@@ -1265,7 +1265,7 @@ subroutine ca_est_gpr0(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
 
   use rad_params_module, only : ngroups
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3
@@ -1304,7 +1304,7 @@ subroutine ca_est_gpr2(kap, kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : FLDlambda, Edd_factor
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: kap_l1, kap_l2, kap_l3, kap_h1, kap_h2, kap_h3, &

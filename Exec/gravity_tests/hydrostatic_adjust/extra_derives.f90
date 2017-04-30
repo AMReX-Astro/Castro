@@ -9,7 +9,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
                                  allow_negative_energy
   use probdata_module, only: hse_p
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   integer p_l1,p_h1,ncomp_p
@@ -79,7 +79,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
                                  allow_negative_energy
   use probdata_module, only: hse_p
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer p_l1,p_h1,ncomp_p

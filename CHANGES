@@ -1,5 +1,16 @@
 # changes since the last release:
 
+
+# 17.04
+
+  -- rewrote the conservative gravity formulation to work off of the
+     potential.  This gives the best conservation with AMR.  This is
+     equivalent to the description in Appendix B from Katz et
+     al. (2016).
+
+
+# 17.03
+
   -- the new refluxing method introduced in 16.11 has been removed,
      as it was determined to not provide any benefit in accuracy.
 
@@ -10,6 +21,11 @@
   -- when all derived variables were stored in the plotfile, we were
      storing the mass fractions twice.  E.g. for he4, we were saving
      "he4" and "X(he4)".  Now only the latter is stored.
+
+  -- created a post_simulation() function that is called at the end of
+     a simulation.  An example is provided by test_diffusion where we
+     output the norm of the error against the analytic solution.
+     (issue #107, 108)
 
 
 # 17.02
@@ -24,8 +40,8 @@
      (issue #58)
 
   -- to support both single and double precision, all of the floating
-     point declarations use the c_real type defined in the
-     bl_fort_module -- this is set to single or double precision at
+     point declarations use the amrex_real type defined in the
+     amrex_fort_module -- this is set to single or double precision at
      compile time.  All constants also now use this type.  For
      brevity, we rename it to 'rt' in the use statement.  (issue #34)
 

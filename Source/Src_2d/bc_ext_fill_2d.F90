@@ -7,10 +7,10 @@ module bc_ext_fill_module
                                  xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
   use interpolate_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  include 'bc_types.fi'
+  include 'AMReX_bc_types.fi'
 
   private
 
@@ -33,7 +33,7 @@ contains
     use network, only: nspec
     use model_parser_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer adv_l1, adv_l2, adv_h1, adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
@@ -355,7 +355,7 @@ contains
     use model_parser_module
     use bl_error_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)

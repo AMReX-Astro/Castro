@@ -1,6 +1,6 @@
 module probdata_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)         Pi
       parameter (Pi=3.1415926535897932384e0_rt)
 

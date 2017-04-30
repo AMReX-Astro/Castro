@@ -1,8 +1,7 @@
-#include <winstd.H>
 #include <cstdio>
 
-#include "LevelBld.H"
-#include <ParmParse.H>
+#include "AMReX_LevelBld.H"
+#include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
 #include <Derive_F.H>
@@ -11,12 +10,13 @@
 # include "RAD_F.H"
 #endif
 
-#include "buildInfo.H"
+#include "AMReX_buildInfo.H"
 
 using std::string;
+using namespace amrex;
 
 static Box the_same_box (const Box& b) { return b; }
-static Box grow_box_by_one (const Box& b) { return BoxLib::grow(b,1); }
+static Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
 
 typedef StateDescriptor::BndryFunc BndryFunc;
 
@@ -568,11 +568,11 @@ Castro::variableSetUp ()
       std::cout << std::endl;
       if (Radiation::nNeutrinoGroups[0] > 0 &&
 	  NumAdv != 0) {
-	BoxLib::Error("Neutrino solver assumes NumAdv == 0");
+	amrex::Error("Neutrino solver assumes NumAdv == 0");
       }
       if (Radiation::nNeutrinoGroups[0] > 0 &&
 	  (NumSpec != 1 || NumAux != 1)) {
-	BoxLib::Error("Neutrino solver assumes NumSpec == NumAux == 1");
+	amrex::Error("Neutrino solver assumes NumSpec == NumAux == 1");
       }
     }
   }
@@ -707,7 +707,7 @@ Castro::variableSetUp ()
   // Here we exploit the fact that Xmom = Density + 1
   //   in order to use the correct interpolation.
   if (Xmom != Density+1)
-    BoxLib::Error("We are assuming Xmom = Density + 1 in Castro_setup.cpp");
+    amrex::Error("We are assuming Xmom = Density + 1 in Castro_setup.cpp");
   derive_lst.addComponent("magvort",desc_lst,State_Type,Density,4);
 
   //

@@ -2,7 +2,7 @@ module advection_module
 
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -57,7 +57,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(1),hi(1)
@@ -218,7 +218,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: lo(1), hi(1)
     integer, intent(in) :: uin_l1, uin_h1
     integer, intent(in) :: uout_l1, uout_h1

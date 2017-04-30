@@ -1,6 +1,6 @@
 module tagging_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , save ::    denerr,   dengrad
@@ -54,7 +54,7 @@ contains
 
     use prob_params_module, only: dg, dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nd, level
@@ -191,7 +191,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nd, level
@@ -252,7 +252,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, np, level
@@ -313,7 +313,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, np, level
@@ -374,7 +374,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nv, level
@@ -435,7 +435,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nr, level
@@ -496,7 +496,7 @@ contains
 
     use prob_params_module, only: dg
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nr, level
@@ -560,7 +560,7 @@ contains
 
     use meth_params_module, only: dxnuc
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: set, clear, nr, level

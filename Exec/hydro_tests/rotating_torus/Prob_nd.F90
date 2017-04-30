@@ -1,4 +1,4 @@
-subroutine probinit(init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_constants_module
   use fundamental_constants_module, only: Gconst
@@ -8,7 +8,7 @@ subroutine probinit(init,name,namlen,problo,probhi)
   use meth_params_module, only: point_mass
   use rotation_frequency_module, only: get_omega
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none 
 
   integer :: init,namlen,untin,i
@@ -49,7 +49,7 @@ subroutine probinit(init,name,namlen,problo,probhi)
   torus_width = HALF * (outer_radius - inner_radius)
   torus_center = inner_radius + torus_width
 
-end subroutine probinit
+end subroutine amrex_probinit
 
 
 
@@ -68,7 +68,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only: center
   use castro_util_module, only: position
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: level, nscal

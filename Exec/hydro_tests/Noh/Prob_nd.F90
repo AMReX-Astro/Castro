@@ -1,13 +1,13 @@
-   subroutine PROBINIT (init,name,namlen,problo,probhi)
+   subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-     use bl_fort_module, only : rt => c_real
+     use amrex_fort_module, only : rt => amrex_real
      implicit none
 
      integer :: init, namlen
      integer :: name(namlen)
      real(rt)         :: problo(3), probhi(3)
 
-   end subroutine PROBINIT
+   end subroutine amrex_probinit
 
 
    ! ::: -----------------------------------------------------------
@@ -44,7 +44,7 @@
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center, dim
 
-     use bl_fort_module, only : rt => c_real
+     use amrex_fort_module, only : rt => amrex_real
      implicit none
 
      integer :: level, nscal

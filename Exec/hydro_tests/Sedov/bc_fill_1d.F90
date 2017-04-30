@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -12,10 +12,10 @@ contains
 
     use meth_params_module, only : NVAR
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: adv_l1,adv_h1
     integer :: bc(1,2,*)
@@ -76,10 +76,10 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer :: adv_l1,adv_h1
     integer :: bc(1,2,*)
@@ -123,7 +123,7 @@ contains
     use eos_module, only: gamma_const
     use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)        , intent(in   ) ::  u_int(*)

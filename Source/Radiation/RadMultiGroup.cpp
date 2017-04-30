@@ -8,13 +8,15 @@
 
 #include "RadTests.H"
 
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 
 #include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+using namespace amrex;
 
 void Radiation::get_groups(int verbose)
 {

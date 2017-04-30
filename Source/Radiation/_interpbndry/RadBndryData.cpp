@@ -1,12 +1,14 @@
 #include <limits.h>
 #include <RadBndryData.H>
-#include <Utility.H>
+#include <AMReX_Utility.H>
 
 #include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+using namespace amrex;
 
 #define DEF_LIMITS(fab,fabdat,fablo,fabhi)   \
 const int* fablo = (fab).loVect();           \
@@ -17,11 +19,11 @@ const int* fablo = (fab).loVect();           \
 const int* fabhi = (fab).hiVect();           \
 const REAL* fabdat = (fab).dataPtr();
 
-RadBndryData::RadBndryData(const BoxArray& _grids, int _ncomp, 
-			   const ProxyGeometry& _geom)
+RadBndryData::RadBndryData(const BoxArray& _grids, const DistributionMapping& _dmap,
+			   int _ncomp, const ProxyGeometry& _geom)
     : BndryRegister(), geom(_geom)
 {
-    define(_grids,_ncomp,_geom);
+    define(_grids,_dmap,_ncomp,_geom);
 }
 
 // // copy constructor
@@ -32,23 +34,6 @@ RadBndryData::RadBndryData(const BoxArray& _grids, int _ncomp,
 
 RadBndryData::~RadBndryData()
 {
-      // masks was not allocated with PArrayManage, must manually dealloc
-    clear_masks();
-}
-
-void
-RadBndryData::clear_masks()
-{
-    for (int i = 0; i <2*BL_SPACEDIM; i++) {
-	int len = masks[i].size();
-	for (int k = 0; k <len; k++) {
-	    if (masks[i].defined(k)) {
-		Mask *m = masks[i].remove(k);
-		delete m;
-	    }
-
-	}
-    }
 }
 
 std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
@@ -62,7 +47,7 @@ std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 	    os << "::: face " << f << " of grid " << grds[grd] << "\n";
 	    os << "BC = " << mgb.bcond[f][grd]
 	       << " LOC = " << mgb.bcloc[f][grd] << "\n";
-	    os << mgb.masks[f][grd];
+	    os << *mgb.masks[f][grd];
 	    os << mgb.bndry[f][grd];
 	}
 	os << "--------------------------------------------------" << std::endl;
@@ -71,7 +56,8 @@ std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 }
 
 void
-RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _geom)
+RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
+		     int _ncomp, const ProxyGeometry& _geom)
 {
     geom = _geom;
     BndryRegister::setBoxes(_grids);
@@ -85,20 +71,21 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 	bcloc[face].resize(len);
 	bcond[face].resize(len);
 
-	BndryRegister::define(face,IndexType::TheCellType(),0,1,0,_ncomp);
+	BndryRegister::define(face,IndexType::TheCellType(),0,1,0,_ncomp,_dmap);
 
 	// alloc mask and set to quad_interp value
 	//for (int k = 0; k < len; k++) {
         for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
             int k = bi.index();
-	    Box face_box = BoxLib::adjCell(grids[k],face,1);
+	    Box face_box = amrex::adjCell(grids[k],face,1);
 
 	    // extend box in directions orthogonal to face normal
 	    for (int dir = 0; dir < BL_SPACEDIM; dir++) {
 		if (dir == coord_dir) continue;
 		face_box.grow(dir,1);
 	    }
-	    Mask *m = new Mask(face_box);
+	    masks[face][k].reset(new Mask(face_box));
+	    Mask *m = masks[face][k].get();
 	    m->setVal(outside_domain,0);
             Box dbox(geom.Domain());
             dbox &= face_box;
@@ -117,7 +104,6 @@ RadBndryData::define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& _g
 		m->shift(-iv);
 	      }
 	    }
-	    masks[face].set(k,m);
 	      // turn mask off on intersection with grids at this level
 	    for (int g = 0; g < len; g++) {
 		Box ovlp(grids[g]);

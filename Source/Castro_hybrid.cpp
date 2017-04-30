@@ -1,14 +1,16 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 void
 Castro::construct_old_hybrid_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[hybrid_src].setVal(0.0);
+    old_sources[hybrid_src]->setVal(0.0);
 
-    fill_hybrid_hydro_source(old_sources[hybrid_src], Sborder);
+    fill_hybrid_hydro_source(*old_sources[hybrid_src], Sborder);
 }
 
 
@@ -21,15 +23,15 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
 
     int ng = 0;
 
-    new_sources[hybrid_src].setVal(0.0);
+    new_sources[hybrid_src]->setVal(0.0);
 
-    fill_hybrid_hydro_source(new_sources[hybrid_src], S_new);
+    fill_hybrid_hydro_source(*new_sources[hybrid_src], S_new);
 
     // Time center the source term.
 
-    new_sources[hybrid_src].mult(0.5);
+    new_sources[hybrid_src]->mult(0.5);
 
-    MultiFab::Saxpy(new_sources[hybrid_src],-0.5,old_sources[hybrid_src],0,0,NUM_STATE,ng);
+    MultiFab::Saxpy(*new_sources[hybrid_src],-0.5,*old_sources[hybrid_src],0,0,NUM_STATE,ng);
 }
 
 

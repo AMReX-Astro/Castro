@@ -1,4 +1,3 @@
-#include <winstd.H>
 
 #include <new>
 #include <cstdio>
@@ -10,15 +9,15 @@
 #include <unistd.h>
 #endif
 
-#include <CArena.H>
-#include <REAL.H>
-#include <Utility.H>
-#include <IntVect.H>
-#include <Box.H>
-#include <Amr.H>
-#include <ParmParse.H>
-#include <ParallelDescriptor.H>
-#include <AmrLevel.H>
+#include <AMReX_CArena.H>
+#include <AMReX_REAL.H>
+#include <AMReX_Utility.H>
+#include <AMReX_IntVect.H>
+#include <AMReX_Box.H>
+#include <AMReX_Amr.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_ParallelDescriptor.H>
+#include <AMReX_AmrLevel.H>
 
 #include <time.h>
 
@@ -49,7 +48,7 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    BoxLib::Initialize(argc,argv);
+    amrex::Initialize(argc,argv);
 
     // save the inputs file name for later
     if (argc > 1) {
@@ -60,7 +59,7 @@ main (int   argc,
 
     do_burn();
 
-    BoxLib::Finalize();
+    amrex::Finalize();
 
     return 0;
 }

@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_types
   use prob_params_module, only: center
@@ -9,7 +9,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -72,7 +72,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   print *, 'here!', const_conductivity, diff_coeff
   rho0 = const_conductivity/(diff_coeff*eos_state%cv)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -104,9 +104,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only : problo, center
-  
-  use bl_fort_module, only : rt => c_real
+  use prob_params_module, only : problo
+  use prob_util_module, only : analytic
+
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: level, nscal
@@ -117,7 +118,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   real(rt)         :: xc, yc
   real(rt)         :: X(nspec), temp
-  real(rt)         :: dist2
+
   integer :: i,j
 
   type (eos_t) :: eos_state
@@ -134,9 +135,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,URHO) = rho0
 
-        dist2 = (xc - center(1))**2 + (yc - center(2))**2
+        call analytic(xc, yc, ZERO, temp)
 
-        temp = (T2 - T1)*exp(-0.25_rt*dist2/(diff_coeff*t_0) ) + T1
         state(i,j,UTEMP) = temp
 
         ! compute the internal energy and temperature

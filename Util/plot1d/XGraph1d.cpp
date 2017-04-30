@@ -2,14 +2,14 @@
 
 #include "XGraph1d.H"
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 #include <vector>
 #include <map>
 
-#include <Amr.H>
-#include <AmrLevel.H>
-#include <ParmParse.H>
-#include <Array.H>
+#include <AMReX_Amr.H>
+#include <AMReX_AmrLevel.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_Array.H>
 #include <Misc.H>
 
 #include <iomanip>
@@ -17,8 +17,10 @@
 #include <cstdio>
 #include <cctype>
 #include <algorithm>
-//using std::setprecision;
-//using namespace std;
+
+
+using namespace amrex;
+
 int XGraph1d::verbose = false;
 
 
@@ -56,7 +58,7 @@ XGraph1d::XGraph1d(Amr& amrsys )
     ParmParse pp("xgraph");
     pp.query("v",verbose); pp.query("verbose",verbose);
     int n = pp.countname("graph");
-    if (n>XGPtMXGY) BoxLib::Error("xgraph hardwired max number of vars");
+    if (n>XGPtMXGY) amrex::Error("xgraph hardwired max number of vars");
     int k;
     int freq0 = -1, lev0 = -1, newinput = 0;
     std::string fname0;
@@ -199,7 +201,7 @@ void XGraph1d::draw(int nstep, Real time, int force_draw)
    if (frames.size()==0) return;
 
    if (frames.size() > XGPtMXGY) 
-       BoxLib::Error("xgraph hardwired max number of vars");
+       amrex::Error("xgraph hardwired max number of vars");
     
    if (format == "all" || format == "All" || format == "ALL") {
        draw_all(nstep, time, force_draw);
@@ -250,8 +252,11 @@ void XGraph1d::draw_single(int nstep, Real time, int force_draw)
    int amrlev = amrptr->finestLevel();
    if(maxlev < 0||maxlev>amrlev) maxlev = amrlev;
    Array<MultiFab*> soln(amrlev+1);
-   for(int lev = 0; lev <= amrlev; lev++)
-      soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),frames.size(),0);
+   for(int lev = 0; lev <= amrlev; lev++) {
+       soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),
+			      amrptr->getLevel(lev).DistributionMap(),
+			      frames.size(),0);
+   }
    // set up arrays of output streams/filenames
    BL_ASSERT(fname_vec.size()<=XGPtMXGY);
    std::ofstream os[XGPtMXGY];
@@ -363,13 +368,12 @@ void XGraph1d::draw_single(int nstep, Real time, int force_draw)
       for(int lev = 0; lev <= maxlev; lev++) {
          // void derive() doesn't work correctly for derived variables
          // amrptr->getLevel(lev).derive(li->var_name,time,*soln[lev],cntall);
-         MultiFab* temp = amrptr->derive(li->var_name,time,lev,0);
+	 auto temp = amrptr->derive(li->var_name,time,lev,0);
          MultiFab::Copy(*soln[lev],*temp,0,cntall,1,0);
          Real g_min = soln[lev]->min(cntall);
          Real g_max = soln[lev]->max(cntall);
          v_min = Min(v_min,g_min);
          v_max = Max(v_max,g_max);
-	 delete temp;
       }
 
       ParallelDescriptor::ReduceRealMin(v_min);
@@ -560,15 +564,17 @@ void XGraph1d::draw_all(int nstep, Real time, int force_draw)
     }
     
     Array<MultiFab*> soln(amrlev+1);
-    for(int lev = 0; lev <= amrlev; lev++)
-	soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),frames.size(),0);
+    for(int lev = 0; lev <= amrlev; lev++) {
+	soln[lev]=new MultiFab(amrptr->getLevel(lev).boxArray(),
+			       amrptr->getLevel(lev).DistributionMap(),
+			       frames.size(),0);
+    }
 
     int cntall=0;
     for(std::list<XGFrame>::iterator li=frames.begin(); li != frames.end(); li++,cntall++) {
 	for(int lev = 0; lev <= maxlev; lev++) {
-	    MultiFab* temp = amrptr->derive(li->var_name,time,lev,0);
+	    auto temp = amrptr->derive(li->var_name,time,lev,0);
 	    MultiFab::Copy(*soln[lev],*temp,0,cntall,1,0);
-	    delete temp;
 	}
     }
 

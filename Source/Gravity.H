@@ -1,83 +1,79 @@
 #ifndef _Gravity_H_
 #define _Gravity_H_
 
-#include <AmrLevel.H>
+#include <AMReX_AmrLevel.H>
 
 class Gravity {
 
 public:
 
-  Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density);
+  Gravity(amrex::Amr* Parent, int _finest_level, amrex::BCRec* _phys_bc, int _Density);
   ~Gravity ();
   void read_params ();
 
   void set_numpts_in_gravity(int numpts);
 
   void install_level (int                   level,
-                      AmrLevel*             level_data,
-                      MultiFab&             volume,
-                      MultiFab*             area);
+                      amrex::AmrLevel*             level_data,
+                      amrex::MultiFab&             volume,
+                      amrex::MultiFab*             area);
 
   std::string get_gravity_type ();
-  Real get_const_grav ();
+  amrex::Real get_const_grav ();
   int NoSync();
   int NoComposite();
   int DoCompositeCorrection();
   int test_results_of_solves ();
   
-  void set_mass_offset(Real time, bool multi_level=true);
+  void set_mass_offset(amrex::Real time, bool multi_level=true);
 
-  PArray<MultiFab>& get_grad_phi_prev(int level);
-  PArray<MultiFab>& get_grad_phi_curr(int level);
+  amrex::Array<std::unique_ptr<amrex::MultiFab> >& get_grad_phi_prev(int level);
+  amrex::Array<std::unique_ptr<amrex::MultiFab> >& get_grad_phi_curr(int level);
 
-  MultiFab* get_grad_phi_prev_comp(int level,int comp);
+  amrex::MultiFab* get_grad_phi_prev_comp(int level,int comp);
 
-  void plus_grad_phi_curr(int level, PArray<MultiFab>& addend);
+  void plus_grad_phi_curr(int level, amrex::Array<std::unique_ptr<amrex::MultiFab> >& addend);
 
   void swapTimeLevels (int level);
 
   void update_max_rhs();
 
   void solve_for_phi (int               level,
-		      MultiFab&         phi,
-                      PArray<MultiFab>& grad_phi,
+		      amrex::MultiFab&         phi,
+                      const amrex::Array<amrex::MultiFab*>& grad_phi,
 		      int               is_new);
 
 
   void solve_for_delta_phi (int                        crse_level, 
                             int                        fine_level,
-                            PArray<MultiFab>&          rhs,
-                            PArray<MultiFab>&          delta_phi,
-                            PArray<PArray<MultiFab> >& grad_delta_phi);
+                            const amrex::Array<amrex::MultiFab*>&          rhs,
+                            const amrex::Array<amrex::MultiFab*>&          delta_phi,
+                            const amrex::Array<amrex::Array<amrex::MultiFab*> >&  grad_delta_phi);
 
   void gravity_sync (int crse_level, int fine_level,
-		     const PArray<MultiFab>& drho, const PArray<MultiFab>& dphi);
+		     const amrex::Array<amrex::MultiFab*>& drho, const amrex::Array<amrex::MultiFab*>& dphi);
 
   void multilevel_solve_for_new_phi (int level, int finest_level,
                                      int use_previous_phi_as_guess = 0);
   void actual_multilevel_solve      (int level, int finest_level, 
-                                     Array<PArray<MultiFab> >& grad_phi,
+                                     const amrex::Array<amrex::Array<amrex::MultiFab*> >& grad_phi,
 				     int is_new,
                                      int use_previous_phi_as_guess = 0);
 
-  Real computeAvg    (int level, MultiFab* mf, bool mask=true);
+  amrex::Real computeAvg    (int level, amrex::MultiFab* mf, bool mask=true);
 
   void create_comp_minus_level_grad_phi(int level,
-					MultiFab& comp_phi,
-					PArray<MultiFab>& comp_gphi,
-					MultiFab& cml_phi,
-                                        PArray<MultiFab>& cml_gphi);
-
-  void GetCrseGradPhi(int level, 
-                      PArray<MultiFab>& grad_phi_crse,
-                      Real time);
+					amrex::MultiFab& comp_phi,
+					const amrex::Array<amrex::MultiFab*>& comp_gphi,
+					amrex::MultiFab& cml_phi,
+					amrex::Array<std::unique_ptr<amrex::MultiFab> >& cml_gphi);
 
   void GetCrsePhi(int level, 
-                  MultiFab& phi_crse,
-                  Real time);
+                  amrex::MultiFab& phi_crse,
+                  amrex::Real time);
 
-  void get_old_grav_vector(int level, MultiFab& grav_vector, Real time);
-  void get_new_grav_vector(int level, MultiFab& grav_vector, Real time);
+  void get_old_grav_vector(int level, amrex::MultiFab& grav_vector, amrex::Real time);
+  void get_new_grav_vector(int level, amrex::MultiFab& grav_vector, amrex::Real time);
 
   void test_level_grad_phi_prev(int level);
   void test_level_grad_phi_curr(int level);
@@ -85,18 +81,18 @@ public:
 
   void average_fine_ec_onto_crse_ec(int level, int is_new);
 
-  void make_radial_gravity(int level, Real time, Array<Real>& radial_grav);
-  void interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector);
+  void make_radial_gravity(int level, amrex::Real time, amrex::Array<amrex::Real>& radial_grav);
+  void interpolate_monopole_grav(int level, amrex::Array<amrex::Real>& radial_grav, amrex::MultiFab& grav_vector);
 
-  void make_prescribed_grav(int level, Real time, MultiFab& grav, MultiFab& phi);
-  void make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior);
+  void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
+  void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
 
 #if (BL_SPACEDIM > 1)
-  void fill_multipole_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
+  void fill_multipole_BCs(int crse_level, int fine_level, const amrex::Array<amrex::MultiFab*>& Rhs, amrex::MultiFab& phi);
   void init_multipole_grav();
 #endif
 #if (BL_SPACEDIM == 3)
-  void fill_direct_sum_BCs(int crse_level, int fine_level, const PArray<MultiFab>& Rhs, MultiFab& phi);
+  void fill_direct_sum_BCs(int crse_level, int fine_level, const amrex::Array<amrex::MultiFab*>& Rhs, amrex::MultiFab& phi);
 #endif
 
   void make_mg_bc();
@@ -105,39 +101,41 @@ protected:
   //
   // Pointers to amr,amrlevel.
   //
-  Amr*             parent;
-  PArray<AmrLevel> LevelData;
+  amrex::Amr*             parent;
+  amrex::Array<amrex::AmrLevel*> LevelData;
   //
   // Pointers to grad_phi at previous and current time
   //
-  Array< PArray<MultiFab> > grad_phi_curr;
-  Array< PArray<MultiFab> > grad_phi_prev;
+  amrex::Array< amrex::Array<std::unique_ptr<amrex::MultiFab> > > grad_phi_curr;
+  amrex::Array< amrex::Array<std::unique_ptr<amrex::MultiFab> > > grad_phi_prev;
 
   //
   // BoxArray at each level
   //
-  Array<BoxArray> grids;
+  const amrex::Array<amrex::BoxArray>& grids;
+  //
+  const amrex::Array<amrex::DistributionMapping>& dmap;
   //
   // Absolute tolerance on each level
   //
-  Array<Real> abs_tol;
+  amrex::Array<amrex::Real> abs_tol;
   //
   // Relative tolerance on each level
   //
-  Array<Real> rel_tol;
+  amrex::Array<amrex::Real> rel_tol;
   //
   // Resnorm at each level
   //
-  Array<Real> level_solver_resnorm;
+  amrex::Array<amrex::Real> level_solver_resnorm;
   //
   // Maximum value of the RHS (used for obtaining absolute tolerances)
   //
-  Real max_rhs;
+  amrex::Real max_rhs;
   //
   // Volume and area fractions.
   //
-  PArray<MultiFab> volume;
-  Array<MultiFab*> area;
+  amrex::Array<amrex::MultiFab*> volume;
+  amrex::Array<amrex::MultiFab*> area;
 
   int Density;
   int finest_level;
@@ -145,54 +143,54 @@ protected:
 
   int mg_bc[2*BL_SPACEDIM];
 
-  BCRec*       phys_bc;
+  amrex::BCRec*       phys_bc;
 
   int   numpts_at_level;
 
   static int   test_solves;
-  static Real  mass_offset;
-  static Array< Array<Real> > radial_grav_old;
-  static Array< Array<Real> > radial_grav_new;
-  static Array< Array<Real> > radial_mass;
-  static Array< Array<Real> > radial_vol;
+  static amrex::Real  mass_offset;
+  static amrex::Array< amrex::Array<amrex::Real> > radial_grav_old;
+  static amrex::Array< amrex::Array<amrex::Real> > radial_grav_new;
+  static amrex::Array< amrex::Array<amrex::Real> > radial_mass;
+  static amrex::Array< amrex::Array<amrex::Real> > radial_vol;
 #ifdef GR_GRAV
-  static Array< Array<Real> > radial_pres;
+  static amrex::Array< amrex::Array<amrex::Real> > radial_pres;
 #endif
   static int   stencil_type;
 
-  static Real max_radius_all_in_domain;
+  static amrex::Real max_radius_all_in_domain;
 
 #include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
-  void applyMetricTerms(int level,MultiFab& Rhs, PArray<MultiFab>& coeffs);
-  void unweight_cc(int level,MultiFab& cc);
-  void unweight_edges(int level, PArray<MultiFab>& edges);
+  void applyMetricTerms(int level,amrex::MultiFab& Rhs, const amrex::Array<amrex::MultiFab*>& coeffs);
+  void unweight_cc(int level,amrex::MultiFab& cc);
+  void unweight_edges(int level, const amrex::Array<amrex::MultiFab*>& edges);
 #endif
 
 #ifdef POINTMASS
-    void add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass);
+    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
 #endif
 
 private:
 
-    Real solve_phi_with_fmg (int crse_level, int fine_level,
-			     PArray<MultiFab> & phi,
-			     PArray<MultiFab> & rhs,
-			     Array< PArray<MultiFab> >& grad_phi,
-			     PArray<MultiFab>& res,
-			     Real time);
+    amrex::Real solve_phi_with_fmg (int crse_level, int fine_level,
+			     const amrex::Array<amrex::MultiFab*>& phi,
+			     const amrex::Array<amrex::MultiFab*>& rhs,
+			     const amrex::Array<amrex::Array<amrex::MultiFab*> >& grad_phi,
+			     const amrex::Array<amrex::MultiFab*>& res,
+			     amrex::Real time);
 
-    void get_rhs (int crse_level, int nlevs, PArray<MultiFab> & rhs_p, int is_new);
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > get_rhs (int crse_level, int nlevs, int is_new);
 
     void sanity_check (int level);
 };
 
 class GradPhiPhysBCFunct
-    : public PhysBCFunctBase
+    : public amrex::PhysBCFunctBase
 {
 public:
     GradPhiPhysBCFunct ();
-    virtual void FillBoundary (MultiFab& mf, int dcomp, int ncomp, Real time);
+    virtual void FillBoundary (amrex::MultiFab& mf, int dcomp, int ncomp, amrex::Real time);
 };
 #endif

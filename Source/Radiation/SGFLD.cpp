@@ -8,6 +8,8 @@
 #include <omp.h>
 #endif
 
+using namespace amrex;
+
 void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state)
 {
   BL_PROFILE("Radiation::SGFLD_compute_rosseland (MultiFab)");

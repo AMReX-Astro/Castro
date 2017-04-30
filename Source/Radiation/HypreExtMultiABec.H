@@ -20,60 +20,60 @@ class HypreExtMultiABec : public HypreMultiABec {
 
   ~HypreExtMultiABec();
 
-  Real& a2Multiplier() {
+  amrex::Real& a2Multiplier() {
     return alpha2;
   }
-  Real& cMultiplier() {
+  amrex::Real& cMultiplier() {
     return gamma;
   }
-  Real& d1Multiplier() {
+  amrex::Real& d1Multiplier() {
     return delta1;
   }
-  Real& d2Multiplier() {
+  amrex::Real& d2Multiplier() {
     return delta2;
   }
 
-  void a2Coefficients(int level, const MultiFab &a2, int dir);
-  void cCoefficients( int level, const MultiFab &c,  int dir);
-  void d1Coefficients(int level, const MultiFab &d1, int dir);
-  void d2Coefficients(int level, const MultiFab &d2, int dir);
+  void a2Coefficients(int level, const amrex::MultiFab &a2, int dir);
+  void cCoefficients( int level, const amrex::MultiFab &c,  int dir);
+  void d1Coefficients(int level, const amrex::MultiFab &d1, int dir);
+  void d2Coefficients(int level, const amrex::MultiFab &d2, int dir);
 
-  const MultiFab& a2Coefficients(int level, int dir) {
-    return a2coefs[level][dir];
+  const amrex::MultiFab& a2Coefficients(int level, int dir) {
+      return (*a2coefs[level])[dir];
   }
-  const MultiFab& cCoefficients( int level, int dir) {
-    return ccoefs[level][dir];
+  const amrex::MultiFab& cCoefficients( int level, int dir) {
+      return (*ccoefs[level])[dir];
   }
-  const MultiFab& d1Coefficients(int level, int dir) {
-    return d1coefs[level][dir];
+  const amrex::MultiFab& d1Coefficients(int level, int dir) {
+      return (*d1coefs[level])[dir];
   }
-  const MultiFab& d2Coefficients(int level, int dir) {
-    return d2coefs[level][dir];
+  const amrex::MultiFab& d2Coefficients(int level, int dir) {
+      return (*d2coefs[level])[dir];
   }
 
   void loadLevelVectors(int level,
-                        MultiFab& dest,
+                        amrex::MultiFab& dest,
                         int icomp,
-                        MultiFab& rhs, // will not be altered
+                        amrex::MultiFab& rhs, // will not be altered
                         BC_Mode inhom);
   void loadLevelVectorB(int level,
-                        MultiFab& rhs, // will not be altered
+                        amrex::MultiFab& rhs, // will not be altered
                         BC_Mode inhom);
 
   void loadMatrix();  // once all level coeffs and scalars have been set
 
   void boundaryDterm(int level,
-		     MultiFab* Dterm,
-		     MultiFab& Er,
+		     amrex::MultiFab* Dterm,
+		     amrex::MultiFab& Er,
 		     int icomp);
 
  protected:
 
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > a2coefs; // face-based
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > ccoefs;  // face-based, 2 component
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > d1coefs; // cell-based but directional
-  PArray< Tuple<MultiFab, BL_SPACEDIM> > d2coefs; // face-based
-  Real alpha2, gamma, delta1, delta2; // multipliers for the above
+  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > a2coefs; // face-based
+  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > ccoefs;  // face-based, 2 component
+  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > d1coefs; // cell-based but directional
+  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > d2coefs; // face-based
+  amrex::Real alpha2, gamma, delta1, delta2; // multipliers for the above
 };
 
 #endif

@@ -1,13 +1,15 @@
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 #include "Diffusion.H"
 #include "Castro.H"
 #include <Gravity_F.H>
 
-#include <FMultiGrid.H>
+#include <AMReX_FMultiGrid.H>
 
 #define MAX_LEV 15
 
 #include "diffusion_defaults.H"
+
+using namespace amrex;
 
 int  Diffusion::stencil_type = CC_CROSS_STENCIL;
  
@@ -50,45 +52,45 @@ Diffusion::install_level (int                   level,
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "Installing Diffusion level " << level << '\n';
 
-    LevelData.clear(level);
-    LevelData.set(level, level_data);
+    LevelData[level] = level_data;
 
-    volume.clear(level);
-    volume.set(level, &_volume);
+    volume[level] = &_volume;
 
     area[level] = _area;
 
-    BoxArray ba(LevelData[level].boxArray());
+    BoxArray ba(LevelData[level]->boxArray());
     grids[level] = ba;
 }
 
 void
 Diffusion::applyop (int level, MultiFab& Temperature, 
                     MultiFab& CrseTemp, MultiFab& DiffTerm, 
-                    PArray<MultiFab>& temp_cond_coef)
+                    Array<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';
     }
 
-    PArray<MultiFab> coeffs_curv;
+    Array<std::unique_ptr<MultiFab> > coeffs_curv;
 #if (BL_SPACEDIM < 3)
     // NOTE: we just pass DiffTerm here to use in the MFIter loop...
     if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
     {
-	coeffs_curv.resize(BL_SPACEDIM, PArrayManage);
+	coeffs_curv.resize(BL_SPACEDIM);
 
 	for (int i = 0; i< BL_SPACEDIM; ++i) {
-	    coeffs_curv.set(i, new MultiFab(temp_cond_coef[i].boxArray(), 1, 0, Fab_allocate));
-	    MultiFab::Copy(coeffs_curv[i], temp_cond_coef[i], 0, 0, 1, 0);
+	    coeffs_curv[i].reset(new MultiFab(temp_cond_coef[i]->boxArray(),
+					      temp_cond_coef[i]->DistributionMap(),
+					      1, 0));
+	    MultiFab::Copy(*coeffs_curv[i], *temp_cond_coef[i], 0, 0, 1, 0);
 	}
 
 	applyMetricTerms(0, DiffTerm, coeffs_curv);
     }
 #endif
 
-    PArray<MultiFab> & coeffs = (coeffs_curv.size() > 0) ? coeffs_curv : temp_cond_coef;
+    auto & coeffs = (coeffs_curv.size() > 0) ? coeffs_curv : temp_cond_coef;
 
     IntVect crse_ratio = level > 0 ? parent->refRatio(level-1)
                                    : IntVect::TheZeroVector();
@@ -101,7 +103,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 	fmg.set_bc(mg_bc, CrseTemp, Temperature);
     }
 
-    fmg.set_diffusion_coeffs(coeffs);
+    fmg.set_diffusion_coeffs(amrex::GetArrOfPtrs(coeffs));
 
     fmg.applyop(Temperature, DiffTerm);
 
@@ -116,7 +118,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 void
 Diffusion::applyViscOp (int level, MultiFab& Vel, 
                         MultiFab& CrseVel, MultiFab& ViscTerm, 
-                        PArray<MultiFab>& visc_coeff)
+                        Array<std::unique_ptr<MultiFab> >& visc_coeff)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
@@ -136,7 +138,7 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 
     // Here we DO NOT multiply the coefficients by (1/r^2) for spherical coefficients
     // because we are computing (1/r^2) d/dr (const * d/dr(r^2 u))
-    fmg.set_diffusion_coeffs(visc_coeff);
+    fmg.set_diffusion_coeffs(amrex::GetArrOfPtrs(visc_coeff));
 
 #if (BL_SPACEDIM < 3)
     // Here we weight the Vel going into the FMG applyop
@@ -156,7 +158,7 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 
 #if (BL_SPACEDIM < 3)
 void
-Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
+Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Array<std::unique_ptr<MultiFab> >& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
@@ -178,9 +180,9 @@ Diffusion::applyMetricTerms(int level, MultiFab& Rhs, PArray<MultiFab>& coeffs)
 			       ybx.hiVect(),
 			       zbx.hiVect()),
 			BL_TO_FORTRAN(Rhs[mfi]),
-			D_DECL(BL_TO_FORTRAN(coeffs[0][mfi]),
-			       BL_TO_FORTRAN(coeffs[1][mfi]),
-			       BL_TO_FORTRAN(coeffs[2][mfi])),
+			D_DECL(BL_TO_FORTRAN((*coeffs[0])[mfi]),
+			       BL_TO_FORTRAN((*coeffs[1])[mfi]),
+			       BL_TO_FORTRAN((*coeffs[2])[mfi])),
 			dx,&coord_type);
     }
 }
@@ -244,7 +246,7 @@ Diffusion::make_mg_bc ()
             { 
               mg_bc[2*dir + 0] = MGT_BC_DIR;
             } else {
-              BoxLib::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
+              amrex::Error("Failed to set lo mg_bc in Diffusion::make_mg_bc" );
             }
 
             if (phys_bc->hi(dir) == Symmetry   || 
@@ -258,7 +260,7 @@ Diffusion::make_mg_bc ()
             { 
               mg_bc[2*dir + 0] = MGT_BC_DIR;
             } else {
-              BoxLib::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
+              amrex::Error("Failed to set hi mg_bc in Diffusion::make_mg_bc" );
             }
         }
     }

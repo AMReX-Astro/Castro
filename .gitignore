@@ -38,7 +38,8 @@ o/
 d/
 f/
 t/
-buildInfo.cpp
+tmp_build_dir/
+AMReX_buildInfo.cpp
 
 # These files are created at build time
 Exec/*/*/extern.f90

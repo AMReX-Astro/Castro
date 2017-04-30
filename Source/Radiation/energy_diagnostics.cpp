@@ -1,4 +1,3 @@
-#include <winstd.H>
 #include <iomanip>
 
 #include <cstdio>
@@ -10,6 +9,8 @@ using std::endl;
 #include "Castro.H"
 #include "Radiation.H"
 #include "Castro_F.H"
+
+using namespace amrex;
 
 // RHOYLTEST just prints out extra diagnostics to check the Yl implementation.
 

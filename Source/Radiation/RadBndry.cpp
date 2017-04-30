@@ -1,6 +1,6 @@
 
-#include <ParmParse.H>
-#include <LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
 #include "RadBndry.H"
 
 #include <iostream>
@@ -11,14 +11,17 @@
 
 #include "RAD_F.H"
 
+using namespace amrex;
+
 int         RadBndry::first = 1;
 Array<int>  RadBndry::bcflag(2*BL_SPACEDIM);
 Array<Real> RadBndry::bcval(2*BL_SPACEDIM);
 Real        RadBndry::time = 0.0;
 int         RadBndry::correction = 0;
 
-RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
-  NGBndry(_grids,1,_geom)
+RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
+		   const Geometry& _geom) :
+    NGBndry(_grids,_dmap,1,_geom)
 {
   if (first)
     init();
@@ -40,11 +43,11 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
         if (domain[face] == boxes()[igrid][face] &&
             !geom.isPeriodic(face.coordDir())) {
 	  const Box& face_box = bndry[face][bi].box();
-	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
+	  bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
           FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
-                         bctypearray[face][igrid].dataPtr(),
+                         bctypearray[face][igrid]->dataPtr(),
                          ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
         }
@@ -53,8 +56,9 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom) :
   }
 }
 
-RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom, Real bv) :
-  NGBndry(_grids,1,_geom)
+RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
+		   const Geometry& _geom, Real bv) :
+    NGBndry(_grids,_dmap,1,_geom)
 {
   if (first)
     init(bv);
@@ -65,17 +69,6 @@ RadBndry::RadBndry(const BoxArray& _grids, const Geometry& _geom, Real bv) :
 
 RadBndry::~RadBndry()
 {
-  for (OrientationIter fi; fi; ++fi) {
-    Orientation face = fi();
-    if (bcflag[face] == 2) {
-      int len = grids.size();
-      for (int igrid = 0; igrid < len; igrid++) {
-	if (bctypearray[face].defined(igrid)) {
-	  delete bctypearray[face].remove(igrid);
-	}
-      }
-    }
-  }
 }
 
 void RadBndry::init()

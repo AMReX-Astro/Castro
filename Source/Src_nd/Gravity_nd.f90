@@ -1,6 +1,6 @@
 module gravity_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -28,7 +28,7 @@ contains
 
     use fundamental_constants_module, only: Gconst
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)         :: Gconst_out
 
     Gconst_out = Gconst
@@ -53,7 +53,7 @@ contains
     use fundamental_constants_module, only : Gconst
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer          :: numpts_1d
     real(rt)         :: mass(0:numpts_1d-1)
@@ -162,7 +162,7 @@ contains
 
     use fundamental_constants_module, only : Gconst
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer          :: numpts_1d
     real(rt)         :: mass(0:numpts_1d-1)
@@ -209,7 +209,7 @@ contains
     use fundamental_constants_module, only : Gconst, c_light
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer          :: numpts_1d
     real(rt)         ::  rho(0:numpts_1d-1)
@@ -299,7 +299,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: lnum, lo_bc(3), hi_bc(3)
@@ -430,7 +430,7 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -580,7 +580,7 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -671,7 +671,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: n, i
@@ -691,7 +691,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: lnum
@@ -781,7 +781,7 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer,          intent(in) :: lnum, npts, nlo, index
@@ -889,7 +889,7 @@ contains
 
     use bl_constants_module, only: ONE
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer,          intent(in)    :: lnum, npts, nlo, index

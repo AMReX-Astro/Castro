@@ -1,6 +1,6 @@
 module gravity_3D_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -14,7 +14,7 @@ contains
        ecz, eczl1, eczl2, eczl3, eczh1, eczh2, eczh3, &
        dx,problo,coord_type) bind(C, name="ca_test_residual")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -57,7 +57,7 @@ contains
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -159,7 +159,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -256,7 +256,7 @@ contains
     use bl_constants_module
     use prob_params_module, only: center
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3),hi(3)
@@ -371,7 +371,7 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -623,7 +623,7 @@ contains
                                    bcYZLo, bcYZHi, &
                                    bclo, bchi) bind(C, name="ca_put_direct_sum_bc")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -709,7 +709,7 @@ contains
     use fundamental_constants_module, only: Gconst
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: loc(3), locb(3)

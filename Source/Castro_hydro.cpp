@@ -5,6 +5,8 @@
 #include "Radiation.H"
 #endif
 
+using namespace amrex;
+
 void
 Castro::construct_hydro_source(Real time, Real dt)
 {
@@ -19,7 +21,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     sources_for_hydro.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(sources_for_hydro, old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
+	MultiFab::Add(sources_for_hydro, *old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
 
     sources_for_hydro.FillBoundary(geom.periodicity());
 
@@ -67,13 +69,13 @@ Castro::construct_hydro_source(Real time, Real dt)
     MultiFab& Er_new = get_new_data(Rad_Type);
 
     if (!Radiation::rad_hydro_combined) {
-      BoxLib::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
+      amrex::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
     }
 
     FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
     MultiFab& Erborder = fpi_rad.get_mf();
 
-    MultiFab lamborder(grids, Radiation::nGroups, NUM_GROW);
+    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
     if (radiation->pure_hydro) {
       lamborder.setVal(0.0, NUM_GROW);
     }
@@ -125,7 +127,7 @@ Castro::construct_hydro_source(Real time, Real dt)
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	  const Box& bx    = mfi.tilebox();
-	  const Box& qbx = BoxLib::grow(bx, NUM_GROW);
+	  const Box& qbx = amrex::grow(bx, NUM_GROW);
 
 	  const int* lo = bx.loVect();
 	  const int* hi = bx.hiVect();
@@ -186,7 +188,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 	  // Allocate fabs for fluxes
 	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
-	    const Box& bxtmp = BoxLib::surroundingNodes(bx,i);
+	    const Box& bxtmp = amrex::surroundingNodes(bx,i);
 	    flux[i].resize(bxtmp,NUM_STATE);
 #ifdef RADIATION
 	    rad_flux[i].resize(bxtmp,Radiation::nGroups);
@@ -195,7 +197,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #if (BL_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
-	    pradial.resize(BoxLib::surroundingNodes(bx,0),1);
+	    pradial.resize(amrex::surroundingNodes(bx,0),1);
 	  }
 #endif
 
@@ -246,14 +248,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 #ifndef SDC
-	    fluxes    [i][mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	    (*fluxes    [i])[mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 #else
-	    fluxes    [i][mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
+	    (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
 #ifdef RADIATION
-	    rad_fluxes[i][mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
 	  }
@@ -345,7 +347,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     if (courno > 1.0) {
 	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
 	if (hard_cfl_limit == 1)
-	  BoxLib::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+	  amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
     }
 
     if (verbose && ParallelDescriptor::IOProcessor())

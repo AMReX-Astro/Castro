@@ -1,6 +1,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 void
 Castro::pointmass_update(Real time, Real dt)
 {

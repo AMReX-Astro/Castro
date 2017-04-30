@@ -1,8 +1,8 @@
 
-#include <ParmParse.H>
-#include <AmrLevel.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_AmrLevel.H>
 
-#include <LO_BCTYPES.H>
+#include <AMReX_LO_BCTYPES.H>
 //#include <CompSolver.H>
 
 #include "RadSolve.H"
@@ -17,6 +17,8 @@
 #include "RAD_F.H"
 
 #include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?
+
+using namespace amrex;
 
 Array<Real> RadSolve::absres(0);
 
@@ -43,7 +45,7 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
     use_hypre_nonsymmetric_terms = 1;
 
     if (level_solver_flag < 100) {
-      BoxLib::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+      amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
     }
   }
 
@@ -52,7 +54,7 @@ RadSolve::RadSolve(Amr* Parent) : parent(Parent),
     use_hypre_nonsymmetric_terms = 1;
 
     if (level_solver_flag < 100) {
-      BoxLib::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+      amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
     }
   }
 
@@ -114,10 +116,11 @@ void RadSolve::levelInit(int level)
 {
   BL_PROFILE("RadSolve::levelInit");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 //  const Real *dx = parent->Geom(level).CellSize();
 
   if (level_solver_flag < 100) {
-      hd = new HypreABec(grids, parent->Geom(level), level_solver_flag);
+      hd = new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag);
   }
   else {
       if (use_hypre_nonsymmetric_terms == 0) {
@@ -130,7 +133,7 @@ void RadSolve::levelInit(int level)
 	  d1Multi = hem->d1Multiplier();
 	  d2Multi = hem->d2Multiplier();
       }
-      hm->addLevel(level, parent->Geom(level), grids,
+      hm->addLevel(level, parent->Geom(level), grids, dmap,
                    IntVect::TheUnitVector());
       hm->buildMatrixStructure();
   }
@@ -233,13 +236,14 @@ void RadSolve::levelACoeffs(int level,
 {
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
   int Ncomp  = 1;
   int Nghost = 0;
 
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
+  MultiFab acoefs(grids, dmap, Ncomp, Nghost);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -271,10 +275,11 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
 			 int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
   const Geometry& geom = parent->Geom(level);
   const Box& domainBox = geom.Domain();
 
-  MultiFab spa(grids, 1, 0);
+  MultiFab spa(grids, dmap, 1, 0);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -314,7 +319,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
     hd->SPalpha(spa);
   }
   else {
-    BoxLib::Abort("Should not be in RadSolve::levelSPas");    
+    amrex::Abort("Should not be in RadSolve::levelSPas");    
   }
 }
 
@@ -331,7 +336,7 @@ void RadSolve::levelBCoeffs(int level,
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
 
-    MultiFab bcoefs(lambda[idim].boxArray(), 1, 0, Fab_allocate);
+    MultiFab bcoefs(lambda[idim].boxArray(), lambda[idim].DistributionMap(), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -343,7 +348,7 @@ void RadSolve::levelBCoeffs(int level,
 	    const Box &ndbox  = mfi.tilebox();
 	    getEdgeMetric(idim, geom, ndbox, r, s);
 
-	    const Box& reg = BoxLib::enclosedCells(ndbox);
+	    const Box& reg = amrex::enclosedCells(ndbox);
 	    bclim(bcoefs[mfi].dataPtr(), 
 		  BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
 		  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
@@ -367,10 +372,11 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
+    const DistributionMapping& dm = castro->DistributionMap();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
-	MultiFab dcoefs(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+	MultiFab dcoefs(castro->getEdgeBoxArray(idim), dm, 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -513,7 +519,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDI
 	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
 	    {
 		const Box &ccbx  = mfi.tilebox();
-		const Box &ndbx = BoxLib::surroundingNodes(ccbx, idim);
+		const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
 
 		getEdgeMetric(idim, geom, ndbx, r, s);
 
@@ -536,9 +542,10 @@ void RadSolve::levelFlux(int level,
 {
   BL_PROFILE("RadSolve::levelFlux");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // grow a larger MultiFab to hold Er so we can difference across faces
-  MultiFab Erborder(grids, 1, 1);
+  MultiFab Erborder(grids, dmap, 1, 1);
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
@@ -632,16 +639,17 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 {
   BL_PROFILE("RadSolve::levelDterm");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
   const Real* dx = parent->Geom(level).CellSize();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
   Tuple<MultiFab, BL_SPACEDIM> Dterm_face;
   for (int idim=0; idim<BL_SPACEDIM; idim++) {
-    Dterm_face[idim].define(castro->getEdgeBoxArray(idim), 1, 0, Fab_allocate);
+      Dterm_face[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   // grow a larger MultiFab to hold Er so we can difference across faces
-  MultiFab Erborder(grids, 1, 1);
+  MultiFab Erborder(grids, dmap, 1, 1);
   Erborder.setVal(0.0);
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
@@ -751,7 +759,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 	  const Box &kbox = kappa_r[mfi].box();
 
 	  const Box &ndbx  = mfi.tilebox();
-	  const Box &reg   = BoxLib::enclosedCells(ndbx);
+	  const Box &reg   = amrex::enclosedCells(ndbx);
 
 	  getEdgeMetric(idim, geom, ndbx, r, s);
     
@@ -770,12 +778,13 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 {
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
+  const DistributionMapping& dmap = parent->DistributionMap(level);
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
   int Ncomp = 1;
   int Nghost = 0;
-  MultiFab acoefs(grids, Ncomp, Nghost, Fab_allocate);
+  MultiFab acoefs(grids, dmap, Ncomp, Nghost);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -932,7 +941,7 @@ void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<R
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
 			     Array<Real>& r, Array<Real>& s)
 {
-    const Box& reg = BoxLib::enclosedCells(edgebox);
+    const Box& reg = amrex::enclosedCells(edgebox);
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
 	r.resize(reg.length(0)+1, 1);

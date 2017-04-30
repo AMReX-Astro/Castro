@@ -1,6 +1,6 @@
 module slope_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -19,7 +19,7 @@ contains
 
     use bl_constants_module        
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer ilo,ihi
@@ -121,7 +121,7 @@ contains
     use bl_constants_module
     use meth_params_module, only: QU, QV, QVAR
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     integer ilo,ihi
@@ -230,7 +230,7 @@ contains
 
     use bl_constants_module        
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2

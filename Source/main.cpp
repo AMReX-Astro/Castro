@@ -1,4 +1,3 @@
-#include <winstd.H>
 
 #include <new>
 #include <cstdio>
@@ -10,15 +9,15 @@
 #include <unistd.h>
 #endif
 
-#include <CArena.H>
-#include <REAL.H>
-#include <Utility.H>
-#include <IntVect.H>
-#include <Box.H>
-#include <Amr.H>
-#include <ParmParse.H>
-#include <ParallelDescriptor.H>
-#include <AmrLevel.H>
+#include <AMReX_CArena.H>
+#include <AMReX_REAL.H>
+#include <AMReX_Utility.H>
+#include <AMReX_IntVect.H>
+#include <AMReX_Box.H>
+#include <AMReX_Amr.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_ParallelDescriptor.H>
+#include <AMReX_AmrLevel.H>
 
 #include <time.h>
 
@@ -30,7 +29,10 @@
 #include <XGraph1d.H>
 #endif
 
+#include "Castro.H"
 #include "Castro_io.H"
+
+using namespace amrex;
 
 std::string inputs_name = "";
 
@@ -42,12 +44,12 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    BoxLib::Initialize(argc,argv);
+    amrex::Initialize(argc,argv);
 
     // Refuse to continue if we did not provide an inputs file.
 
     if (argc <= 1) {
-	BoxLib::Abort("Error: no inputs file provided on command line.");
+	amrex::Abort("Error: no inputs file provided on command line.");
     }
 
     // Save the inputs file name for later.
@@ -65,26 +67,23 @@ main (int   argc,
     int  max_step;
     Real strt_time;
     Real stop_time;
-    int  output_at_completion;
     ParmParse pp; 
 
     max_step  = -1;
     strt_time =  0.0;
     stop_time = -1.0;
-    output_at_completion = 1;
 
     pp.query("max_step",max_step);
     pp.query("strt_time",strt_time);
     pp.query("stop_time",stop_time);
-    pp.query("output_at_completion",output_at_completion);
 
     if (strt_time < 0.0)
     {
-        BoxLib::Abort("MUST SPECIFY a non-negative strt_time"); 
+        amrex::Abort("MUST SPECIFY a non-negative strt_time"); 
     }
 
     if (max_step < 0 && stop_time < 0.0) {
-      BoxLib::Abort(
+      amrex::Abort(
        "Exiting because neither max_step nor stop_time is non-negative.");
     }
 
@@ -161,6 +160,10 @@ main (int   argc,
 
     }
 
+#ifdef DO_PROBLEM_POST_SIMULATION
+    Castro::problem_post_simulation(amrptr->getAmrLevels());
+#endif
+
 #ifdef HAS_DUMPMODEL
     dumpmodelptr->dump(amrptr, 1);
     delete dumpmodelptr;
@@ -176,7 +179,7 @@ main (int   argc,
 
     // Write final checkpoint and plotfile
 
-    if (output_at_completion) {
+    if (Castro::get_output_at_completion() == 1) {
 
 	if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
 	    amrptr->checkPoint();
@@ -221,7 +224,7 @@ main (int   argc,
         std::cout << "Run time w/o init = " << runtime_timestep << std::endl;
     }
 
-    if (CArena* arena = dynamic_cast<CArena*>(BoxLib::The_Arena()))
+    if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
     {
         //
         // A barrier to make sure our output follows that of RunStats.
@@ -247,7 +250,7 @@ main (int   argc,
     BL_PROFILE_VAR_STOP(pmain);
     BL_PROFILE_SET_RUN_TIME(dRunTime2);
 
-    BoxLib::Finalize();
+    amrex::Finalize();
 
     return 0;
 }

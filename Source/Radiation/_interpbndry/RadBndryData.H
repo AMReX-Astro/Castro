@@ -1,15 +1,14 @@
 #ifndef _RAD_BNDRYDATA_H_
 #define _RAD_BNDRYDATA_H_
 
-#include <BLassert.H>
-#include <BoxArray.H>
-#include <FArrayBox.H>
-#include <Orientation.H>
-#include <BndryRegister.H>
-#include <Mask.H>
+#include <AMReX_BLassert.H>
+#include <AMReX_BoxArray.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_Orientation.H>
+#include <AMReX_BndryRegister.H>
+#include <AMReX_Mask.H>
 #include <RadBoundCond.H>
-#include <Geometry.H>
-#include <PArray.H>
+#include <AMReX_Geometry.H>
 
 #include <iostream>
 
@@ -35,14 +34,14 @@ class ProxyGeometry
 protected:
 //@ManMemo: internal data
 //@ManDoc: The underlying Geometry
-    const Geometry& m_g;
+    const amrex::Geometry& m_g;
 
 public:
 //@ManMemo: administrative functions
 //@ManDoc: default constructor
-    ProxyGeometry(const Geometry& g) : m_g( g ) {}
+    ProxyGeometry(const amrex::Geometry& g) : m_g( g ) {}
 //@ManDoc: type conversion operator
-    operator Geometry() const
+    operator amrex::Geometry() const
     {  return m_g; }
 };
 
@@ -72,14 +71,9 @@ public:
 	(not_covered).  This mask data is created upon non-default class
 	instantiation.
 */
-class RadBndryData : private BndryRegister
+class RadBndryData : public amrex::BndryRegister
 {
 public:
-//@ManMemo: fall-through functions
-//@ManDoc: return the array of Boxes
-    using BndryRegister::boxes;
-//@ManDoc: return the number of Boxes
-    using BndryRegister::size;
 
 //@ManMemo: class enumeration
 //@ManDoc: mask values enumeration
@@ -88,28 +82,26 @@ public:
 protected:
 //@ManMemo: internal data
 //@ManDoc: Array (on orientation) of boundary condition type specifiers
-    Array<RadBoundCond>   bcond[2*BL_SPACEDIM];
+    amrex::Array<RadBoundCond>   bcond[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition locations
-    Array<Real>        bcloc[2*BL_SPACEDIM];
+    amrex::Array<amrex::Real>    bcloc[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
-    PArray<Mask>       masks[2*BL_SPACEDIM];
+    amrex::Array<std::unique_ptr<amrex::Mask> > masks[2*BL_SPACEDIM];
 //@ManDoc: Domain used for mask defintions
-    Geometry geom;
-//@ManDoc: protect BndryRegister grids
-    using BndryRegister::grids;
-//@ManDoc: protect BndryRegister FabSets
-    using BndryRegister::bndry;
+    amrex::Geometry geom;
 
 public:
 //@ManMemo: administrative functions
 //@ManDoc: default constructor
-    RadBndryData() : BndryRegister() {};
+    RadBndryData() : amrex::BndryRegister() {};
 //@ManDoc: constructor specifying number of components and box of physical domain (cell-centered)
-    RadBndryData(const BoxArray& _grids, int _ncomp, const ProxyGeometry& geom);
+    RadBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+		 int _ncomp, const ProxyGeometry& geom);
 //@ManDoc: destructor
     virtual ~RadBndryData();
 //@ManDoc: alocate bndry fabs along given face
-    void define(const BoxArray& _grids, int _ncomp, const ProxyGeometry& geom);
+    void define(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
+		int _ncomp, const ProxyGeometry& geom);
 
 //@ManMemo: I/O functions
 //@ManDoc: write to output stream
@@ -117,70 +109,66 @@ public:
 
 //@ManMemo: access functions
 //@ManDoc: return FabSet on given face
-    const FabSet& bndryValues(const Orientation& _face) const
+    const amrex::FabSet& bndryValues(const amrex::Orientation& _face) const
     {
 	return bndry[_face];
     }
 //@ManDoc: return boundary location on given face
-    const Array<Real>& bndryLocs(const Orientation& _face) const
+    const amrex::Array<amrex::Real>& bndryLocs(const amrex::Orientation& _face) const
     {
 	return bcloc[_face];
     }
 //@ManDoc: return boundary type specifyer on given face
-    const Array<RadBoundCond>& bndryConds(const Orientation& _face) const
+    const amrex::Array<RadBoundCond>& bndryConds(const amrex::Orientation& _face) const
     {
 	return bcond[_face];
     }
 //@ManDoc: return boundary mask on given face
-    const PArray<Mask>& bndryMasks(const Orientation& _face) const
+    const amrex::Mask& bndryMasks (const amrex::Orientation& _face, int i) const
     {
-	return masks[_face];
+	return *masks[_face][i];
     }
 //@ManDoc: return domain used to define masks
-    const Box& getDomain() const
+    const amrex::Box& getDomain() const
     {
 	return geom.Domain();
     }
 //@ManDoc: return geometry used to define masks
-    const Geometry& getGeom() const
+    const amrex::Geometry& getGeom() const
     {
 	return geom;
     }
 //@ManDoc: set values of boundary Fab for given orientation on nth grid
-    void setValue(const Orientation& _face, int _n, Real _val)
+    void setValue(const amrex::Orientation& _face, int _n, amrex::Real _val)
     {
 	bndry[_face][_n].setVal(_val);
     }
 //@ManDoc: set mask values for given orientation on nth grid
-    void setMaskValue(const Orientation& _face, int _n, int _val)
+    void setMaskValue(const amrex::Orientation& _face, int _n, int _val)
     {
-	masks[_face][_n].setVal(_val);
+	masks[_face][_n]->setVal(_val);
     }
 //@ManDoc: set boundary type specifier for given orientation on nth grid
-    void setBoundCond(const Orientation& _face, int _n, const RadBoundCond& _bcn)
+    void setBoundCond(const amrex::Orientation& _face, int _n, const RadBoundCond& _bcn)
     {
 	bcond[_face][_n] = _bcn;
     }
 //@ManDoc: set boundary location for given orientation on nth grid
-    void setBoundLoc(const Orientation& _face, int _n, Real _val)
+    void setBoundLoc(const amrex::Orientation& _face, int _n, amrex::Real _val)
     {
 	bcloc[_face][_n] = _val;
     }
 //@ManDoc: implement public access to const BndryRegister::operator[]
-    const FabSet &operator[](const Orientation &_face) const {
-      return BndryRegister::bndry[_face];
+    const amrex::FabSet &operator[](const amrex::Orientation &_face) const {
+      return amrex::BndryRegister::bndry[_face];
     }
 //@ManDoc: implement public access to BndryRegister::operator[]
-    FabSet &operator[](const Orientation &_face) {
-      return BndryRegister::bndry[_face];
+    amrex::FabSet &operator[](const amrex::Orientation &_face) {
+      return amrex::BndryRegister::bndry[_face];
     }
     
 
 private:
-//@ManMemo: utility functions
-//@ManDoc: free memory taken by masks for this BndryData object
-    void clear_masks();
-
     //
     // Disabled!
     //
