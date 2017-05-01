@@ -250,7 +250,7 @@ public:
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
-    void construct_mol_hydro_source(Real time, Real dt, int istage, int nstages);
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, int istage, int nstages);
 
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
@@ -592,7 +592,7 @@ protected:
     //
     // A state array for the post burn state to be used in MOL integration
     //
-    MultiFab Sburn;
+    amrex::MultiFab Sburn;
 
     //
     // Source terms to the hydrodynamics solve.
@@ -648,15 +648,15 @@ protected:
 
     //
     // Storage for the method of lines stages
-    PArray<MultiFab> k_mol;
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > k_mol;
     //
 
     // MOL Butcher tableau
     static int MOL_STAGES;
   
-    static Array< Array<Real> > a_mol;
-    static Array<Real> b_mol;
-    static Array<Real> c_mol;
+    static amrex::Array< amrex::Array<amrex::Real> > a_mol;
+    static amrex::Array<amrex::Real> b_mol;
+    static amrex::Array<amrex::Real> c_mol;
 
     //
     //  Call extern/networks/.../network.f90::network_init()

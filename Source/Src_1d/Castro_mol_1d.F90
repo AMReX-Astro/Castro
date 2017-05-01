@@ -25,8 +25,8 @@ subroutine ca_mol_single_stage(time, &
   use prob_params_module, only : coord_type
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
+  use amrex_fort_module, only : rt => amrex_real
   use advection_util_1d_module, only : normalize_species_fluxes
-  use bl_fort_module, only : rt => c_real
 
   implicit none
 

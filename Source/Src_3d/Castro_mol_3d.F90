@@ -30,7 +30,7 @@ subroutine ca_mol_single_stage(time, &
   use flatten_module, only: uflaten
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION  
   use rad_params_module, only : ngroups
 #endif

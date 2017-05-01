@@ -280,7 +280,7 @@ Castro::do_advance (Real time,
       MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
 
       for (int n = 0; n < MOL_STAGES; ++n) {
-	MultiFab::Saxpy(S_new, dt*b_mol[n], k_mol[n], 0, 0, S_new.nComp(), 0);
+	MultiFab::Saxpy(S_new, dt*b_mol[n], *k_mol[n], 0, 0, S_new.nComp(), 0);
       }
 
       // we need to define the temperature now
@@ -392,13 +392,13 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 	  for (int k = 0; k <  Sburn.nComp(); ++k)
 	    {
-	      std::cout << "kmol[" << k << "]: " << k_mol[0].min(k) << " " << k_mol[0].max(k) << std::endl;
+	      std::cout << "kmol[" << k << "]: " << k_mol[0]->min(k) << " " << k_mol[0]->max(k) << std::endl;
 	    }
 	}
 
 	MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
 	for (int i = 0; i < sub_iteration; ++i)
-	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_new.nComp(), 0);
+	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
@@ -586,12 +586,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // of lines, and need storage for hte intermediate stages
       //PArray<MultiFab> k_mol(MOL_STAGES, PArrayManage);
       for (int n = 0; n < MOL_STAGES; ++n) {
-	k_mol.set(n, new MultiFab(grids, NUM_STATE, 0, Fab_allocate));
-	k_mol[n].setVal(0.0);
+	k_mol[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+	k_mol[n]->setVal(0.0);
       }
 
       // for the post-burn state
-      Sburn.define(grids, NUM_STATE, 0, Fab_allocate);
+      Sburn.define(grids, dmap, NUM_STATE, 0);
     }
 
     // Zero out the current fluxes.

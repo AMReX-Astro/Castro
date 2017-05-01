@@ -497,7 +497,7 @@ extern "C"
 
 
   void ca_mol_single_stage
-    (const Real* time,
+    (const amrex::Real* time,
      const int    lo[], const int    hi[],
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG(state),
@@ -506,7 +506,7 @@ extern "C"
      BL_FORT_FAB_ARG(qaux),
      BL_FORT_FAB_ARG(srcU),
      BL_FORT_FAB_ARG(update),
-     const Real dx[], const Real* dt,
+     const amrex::Real dx[], const amrex::Real* dt,
      D_DECL(BL_FORT_FAB_ARG(xflux),
             BL_FORT_FAB_ARG(yflux),
             BL_FORT_FAB_ARG(zflux)),
@@ -520,7 +520,7 @@ extern "C"
      const BL_FORT_FAB_ARG(dloga),
 #endif
      const BL_FORT_FAB_ARG(volume),
-     Real* cflLoc,
+     amrex::Real* cflLoc,
      const int&  verbose);
 
 
