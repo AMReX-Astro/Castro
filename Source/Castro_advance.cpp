@@ -1,4 +1,3 @@
-#include <winstd.H>
 
 #include "Castro.H"
 #include "Castro_F.H"
@@ -19,6 +18,7 @@
 #include <climits>
 
 using std::string;
+using namespace amrex;
 
 Real
 Castro::advance (Real time,
@@ -356,7 +356,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     if (do_ctu) {
       // for the CTU unsplit method, we always start with the old state
-      Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
 
@@ -367,7 +367,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       if (sub_iteration == 0) {
 
 	// first MOL stage
-	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
 	expand_state(Sborder, prev_time, NUM_GROW);
 
@@ -400,13 +400,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	for (int i = 0; i < sub_iteration; ++i)
 	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], k_mol[i], 0, 0, S_new.nComp(), 0);
 
-	Sborder.define(grids, NUM_STATE, NUM_GROW, Fab_allocate);
+	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
 	expand_state(Sborder, new_time, NUM_GROW);
 
       }
     }
-
 }
 
 
@@ -429,7 +428,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 	dSdt_new.setVal(0.0, NUM_GROW);
 
 	for (int n = 0; n < num_src; ++n) {
-	    MultiFab::Add(dSdt_new, new_sources[n], Xmom, Xmom, 3, 0);
+	    MultiFab::Add(dSdt_new, *new_sources[n], Xmom, Xmom, 3, 0);
 	}
 
 	dSdt_new.mult(2.0 / dt);
@@ -444,7 +443,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
     SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
     for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(SDC_source_new, new_sources[n], 0, 0, NUM_STATE, new_sources[n].nGrow());
+	MultiFab::Add(SDC_source_new, *new_sources[n], 0, 0, NUM_STATE, new_sources[n]->nGrow());
 #endif
 
 #ifdef RADIATION
@@ -549,9 +548,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       for (int k = 0; k < num_state_type; k++) {
 
-	prev_state.set(k, new StateData());
+	prev_state[k].reset(new StateData());
 
-	StateData::Initialize(prev_state[k], state[k]);
+	StateData::Initialize(*prev_state[k], state[k]);
 
       }
 
@@ -564,13 +563,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	// These arrays hold all source terms that update the state.
 
 	for (int n = 0; n < num_src; ++n) {
-	    old_sources.set(n, new MultiFab(grids, NUM_STATE, NUM_GROW));
-	    new_sources.set(n, new MultiFab(grids, NUM_STATE, get_new_data(State_Type).nGrow()));
+	    old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+	    new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
 	}
 
 	// This array holds the hydrodynamics update.
 
-	hydro_source.define(grids,NUM_STATE,0,Fab_allocate);
+	hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
 
@@ -579,7 +578,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // hydro update to store the sum of the new-time sources, so that we can
     // compute the time derivative of the source terms.
 
-    sources_for_hydro.define(grids,NUM_STATE,NUM_GROW,Fab_allocate);
+    sources_for_hydro.define(grids,dmap,NUM_STATE,NUM_GROW);
 
 
     if (!do_ctu) {
@@ -598,7 +597,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
-	fluxes[dir].setVal(0.0);
+	fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
@@ -608,7 +607,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined)
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	    rad_fluxes[dir].setVal(0.0);
+	    rad_fluxes[dir]->setVal(0.0);
 #endif
 
 }
@@ -638,9 +637,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int i = 0; i < BL_SPACEDIM; ++i) {
 	    if (level < parent->finestLevel())
-		getLevel(level+1).flux_reg.CrseInit(fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+		getLevel(level+1).flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
 	    if (level > 0)
-	        getLevel(level).flux_reg.FineAdd(fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+	        getLevel(level).flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
 	}
 
 #if (BL_SPACEDIM <= 2)
@@ -659,9 +658,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		if (level < parent->finestLevel())
-		    getLevel(level+1).rad_flux_reg.CrseInit(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+		    getLevel(level+1).rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
 		if (level > 0)
-		    getLevel(level).rad_flux_reg.FineAdd(rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+		    getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
 	    }
 
 	}
@@ -674,15 +673,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-	old_sources.clear();
-	new_sources.clear();
+	amrex::FillNull(old_sources);
+	amrex::FillNull(new_sources);
 	hydro_source.clear();
 
     }
 
     sources_for_hydro.clear();
 
-    prev_state.clear();
+    amrex::FillNull(prev_state);
 
     if (!do_ctu) {
       k_mol.clear();
@@ -759,7 +758,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
                       << "  to avoid unstable timesteps." << std::endl;
 	  }
-	  BoxLib::Abort("Error: integer overflow in retry.");
+	  amrex::Abort("Error: integer overflow in retry.");
 	}
 
         int sub_ncycle = ceil(dt / dt_subcycle);
@@ -776,7 +775,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
                       << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl 
                       << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
 	  }
-	  BoxLib::Abort("Error: too many retry timesteps.");
+	  amrex::Abort("Error: too many retry timesteps.");
 	}
 
 	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
@@ -789,7 +788,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
                       << "  but this timestep is shorter than the user-defined minimum, " << std::endl
                       << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
 	  }
-	  BoxLib::Abort("Error: retry timesteps too short.");
+	  amrex::Abort("Error: retry timesteps too short.");
 	}
 
 	if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -808,11 +807,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int k = 0; k < num_state_type; k++) {
 
-	  if (prev_state[k].hasOldData())
-	      state[k].copyOld(prev_state[k]);
+	  if (prev_state[k]->hasOldData())
+	      state[k].copyOld(*prev_state[k]);
 
-	  if (prev_state[k].hasNewData())
-	      state[k].copyNew(prev_state[k]);
+	  if (prev_state[k]->hasNewData())
+	      state[k].copyNew(*prev_state[k]);
 
 	  // Anticipate the swapTimeLevels to come.
 
@@ -906,8 +905,8 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	for (int k = 0; k < num_state_type; k++) {
 
-           if (prev_state[k].hasOldData())
-	      state[k].copyOld(prev_state[k]);
+           if (prev_state[k]->hasOldData())
+	      state[k].copyOld(*prev_state[k]);
 
 	   state[k].setTimeLevel(time + dt, dt, 0.0);
 

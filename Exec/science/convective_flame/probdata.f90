@@ -2,7 +2,7 @@ module probdata_module
 
   use network, only : nspec
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   character(len=80), save :: model_name

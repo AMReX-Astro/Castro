@@ -3,7 +3,7 @@
 
 module trace_ppm_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -30,6 +30,8 @@ contains
          npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm_reconstruct, ppm_int_profile
+
+    use amrex_fort_module, only : rt => amrex_real
 
     implicit none
 

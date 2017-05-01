@@ -4,6 +4,8 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
+using namespace amrex;
+
 void
 Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_T_max)
 {
@@ -11,9 +13,9 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
 
     const Real* dx = geom.CellSize();
 
-    MultiFab* mf = derive("Temp",time,1);
+    auto mf = derive("Temp",time,1);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf != nullptr);
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:T_max,grad_T_max) reduction(min:T_min)
@@ -31,9 +33,6 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
 			 ZFILL(dx),&time,
 			 &T_max, &T_min, &grad_T_max);
     }
-
-    delete mf;
-
 }
 
 
@@ -45,9 +44,9 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
     const Real* dx = geom.CellSize();
 
-    MultiFab* mf = derive("omegadot_He4",time,0);
+    auto mf = derive("omegadot_He4",time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf != nullptr);
 
     Real rho_fuel_dot_temp = 0.0;
 
@@ -69,7 +68,4 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
     }
 
     rho_fuel_dot += rho_fuel_dot_temp;
-    
-    delete mf;
-
 }

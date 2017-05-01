@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use network, only : network_init
@@ -6,7 +6,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network, only : nspec
   use bl_error_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: init, namlen
@@ -57,7 +57,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   xmin = problo(1)
   xmax = probhi(1)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -87,7 +87,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal
@@ -133,7 +133,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use fundamental_constants_module, only : hplanck, c_light, k_B
   use bl_constants_module, only : ZERO, ONE, HALF, M_PI
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nrad

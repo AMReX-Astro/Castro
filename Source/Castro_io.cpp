@@ -1,4 +1,3 @@
-#include <winstd.H>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -9,11 +8,11 @@
 #include <string>
 #include <ctime>
 
-#include <Utility.H>
+#include <AMReX_Utility.H>
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_io.H"
-#include <ParmParse.H>
+#include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -32,9 +31,10 @@
 #endif
 
 
-#include "buildInfo.H"
+#include "AMReX_buildInfo.H"
 
 using std::string;
+using namespace amrex;
 
 // Castro maintains an internal checkpoint version numbering system.
 // This allows us to maintain backwards compatibility with checkpoints
@@ -132,7 +132,7 @@ Castro::restart (Amr&     papa,
 
       int ns = desc_lst[State_Type].nComp();
       int ng = desc_lst[State_Type].nExtra();
-      MultiFab* new_data = new MultiFab(grids,ns,ng,Fab_allocate);
+      MultiFab* new_data = new MultiFab(grids,dmap,ns,ng);
       MultiFab& chk_data = get_state_data(State_Type).newData();
 
 #if (BL_SPACEDIM == 1)
@@ -277,7 +277,7 @@ Castro::restart (Amr&     papa,
     {
        std::cout << "grown_factor is " << grown_factor << std::endl;
        std::cout << "max_level is " << parent->maxLevel() << std::endl;
-       BoxLib::Error("Must have max_level > 0 if doing special restart with grown_factor");
+       amrex::Error("Must have max_level > 0 if doing special restart with grown_factor");
     }
 
     if (grown_factor > 1 && level == 0)
@@ -290,14 +290,14 @@ Castro::restart (Amr&     papa,
 
        Box orig_domain;
        if (star_at_center == 0) {
-          orig_domain = BoxLib::coarsen(geom.Domain(),grown_factor);
+          orig_domain = amrex::coarsen(geom.Domain(),grown_factor);
        } else if (star_at_center == 1) {
 
           Box domain(geom.Domain());
           int d,lo=0,hi=0;
           if (Geometry::IsRZ()) {
              if (grown_factor != 2) 
-                BoxLib::Abort("Must have grown_factor = 2");
+                amrex::Abort("Must have grown_factor = 2");
 
              d = 0;
              int dlen =  domain.size()[d];
@@ -324,7 +324,7 @@ Castro::restart (Amr&     papa,
                    lo =   (dlen)/3    ;
                    hi = 2*(dlen)/3 - 1;
                 } else { 
-                   BoxLib::Abort("Must have grown_factor = 2 or 3");
+                   amrex::Abort("Must have grown_factor = 2 or 3");
                 }
                 orig_domain.setSmall(d,lo);
                 orig_domain.setBig(d,hi);
@@ -333,7 +333,7 @@ Castro::restart (Amr&     papa,
        } else {
           if (ParallelDescriptor::IOProcessor())
              std::cout << "... invalid value of star_at_center: " << star_at_center << std::endl;
-          BoxLib::Abort();
+          amrex::Abort();
        }
 
        int ns = NUM_STATE;
@@ -397,8 +397,8 @@ Castro::restart (Amr&     papa,
         int rad_restart = 1; // disables quasi-steady initialization
         radiation = new Radiation(parent, this, rad_restart);
       }
-      radiation->regrid(level, grids);
-      radiation->restart(level, grids, parent->theRestartFile(), is);
+      radiation->regrid(level, grids, dmap);
+      radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
     }
 #endif
 }
@@ -611,10 +611,9 @@ Castro::writeJobInfo (const std::string& dir)
   FullPathJobInfoFile += "/job_info";
   jobInfoFile.open(FullPathJobInfoFile.c_str(), std::ios::out);
 
-  std::string PrettyLine = "===============================================================================\n";
-  std::string OtherLine = "--------------------------------------------------------------------------------\n";
-  std::string SkipSpace = "        ";
-
+  std::string PrettyLine = std::string(78, '=') + "\n";
+  std::string OtherLine = std::string(78, '-') + "\n";
+  std::string SkipSpace = std::string(8, ' ') + "\n";
 
   // job information
   jobInfoFile << PrettyLine;
@@ -662,12 +661,27 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "build date:    " << buildInfoGetBuildDate() << "\n";
   jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
   jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
-  jobInfoFile << "BoxLib dir:    " << buildInfoGetBoxlibDir() << "\n";
+  jobInfoFile << "AMReX dir:     " << buildInfoGetAMReXDir() << "\n";
 
   jobInfoFile << "\n";
 
   jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
+
+  jobInfoFile << "\n";
+  
+  jobInfoFile << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
+  jobInfoFile << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "Fortran comp:  " << buildInfoGetFName() << "\n";
+  jobInfoFile << "Fortran flags: " << buildInfoGetFFlags() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "Link flags:    " << buildInfoGetLinkFlags() << "\n";
+  jobInfoFile << "Libraries:     " << buildInfoGetLibraries() << "\n";
 
   jobInfoFile << "\n";
 
@@ -684,7 +698,7 @@ Castro::writeJobInfo (const std::string& dir)
     jobInfoFile << "Castro       git describe: " << githash1 << "\n";
   }
   if (strlen(githash2) > 0) {
-    jobInfoFile << "BoxLib       git describe: " << githash2 << "\n";
+    jobInfoFile << "AMReX        git describe: " << githash2 << "\n";
   }
   if (strlen(githash3) > 0) {	
     jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
@@ -869,7 +883,7 @@ Castro::writePlotFile (const std::string& dir,
         os << thePlotFileType() << '\n';
 
         if (n_data_items == 0)
-            BoxLib::Error("Must specify at least one valid data item to plot");
+            amrex::Error("Must specify at least one valid data item to plot");
 
         os << n_data_items << '\n';
 
@@ -956,8 +970,8 @@ Castro::writePlotFile (const std::string& dir,
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(FullPath, 0755))
-            BoxLib::CreateDirectoryFailed(FullPath);
+        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+            amrex::CreateDirectoryFailed(FullPath);
     //
     // Force other processors to wait till directory is built.
     //
@@ -993,7 +1007,7 @@ Castro::writePlotFile (const std::string& dir,
     // but a derived variable is allowed to have multiple components.
     int       cnt   = 0;
     const int nGrow = 0;
-    MultiFab  plotMF(grids,n_data_items,nGrow);
+    MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
     MultiFab* this_dat = 0;
     //
     // Cull data from state variables -- use no ghost cells.
@@ -1014,16 +1028,15 @@ Castro::writePlotFile (const std::string& dir,
 	for (std::list<std::string>::iterator it = derive_names.begin();
 	     it != derive_names.end(); ++it)
 	{
-	    MultiFab* derive_dat = derive(*it,cur_time,nGrow);
+	    auto derive_dat = derive(*it,cur_time,nGrow);
 	    MultiFab::Copy(plotMF,*derive_dat,0,cnt,1,nGrow);
-	    delete derive_dat;
 	    cnt++;
 	}
     }
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {
-	MultiFab::Copy(plotMF,radiation->plotvar[level],0,cnt,Radiation::nplotvar,0);
+	MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
 	cnt += Radiation::nplotvar;
     }
 #endif
@@ -1066,7 +1079,7 @@ Castro::writeSmallPlotFile (const std::string& dir,
         os << thePlotFileType() << '\n';
 
         if (n_data_items == 0)
-            BoxLib::Error("Must specify at least one valid data item to plot");
+            amrex::Error("Must specify at least one valid data item to plot");
 
         os << n_data_items << '\n';
 
@@ -1130,8 +1143,8 @@ Castro::writeSmallPlotFile (const std::string& dir,
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(FullPath, 0755))
-            BoxLib::CreateDirectoryFailed(FullPath);
+        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+            amrex::CreateDirectoryFailed(FullPath);
     //
     // Force other processors to wait till directory is built.
     //
@@ -1167,7 +1180,7 @@ Castro::writeSmallPlotFile (const std::string& dir,
     // but a derived variable is allowed to have multiple components.
     int       cnt   = 0;
     const int nGrow = 0;
-    MultiFab  plotMF(grids,n_data_items,nGrow);
+    MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
     MultiFab* this_dat = 0;
     //
     // Cull data from state variables -- use no ghost cells.

@@ -11,7 +11,7 @@
        use fundamental_constants_module, only : Gconst
        use prob_params_module          , only : center
 
-       use bl_fort_module, only : rt => c_real
+       use amrex_fort_module, only : rt => amrex_real
        implicit none
        integer         , intent(in   ) :: lo(3), hi(3)
        integer         , intent(in   ) :: grav_lo(3), grav_hi(3)
@@ -73,7 +73,7 @@
       use meth_params_module, only : NVAR, URHO
       use prob_params_module, only : center
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(3),      hi(3)
@@ -137,7 +137,7 @@
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(3),      hi(3)

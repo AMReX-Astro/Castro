@@ -1,6 +1,6 @@
 module radhydro_nd_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, parameter :: rk_order = 3
@@ -24,7 +24,7 @@ module radhydro_nd_module
 
     subroutine advect_in_fspace(ustar, af, dt, nstep_fsp)
       use rad_params_module, only : ngroups, nnuspec, ng0, ng1, dlognu
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(inout) :: ustar(0:ngroups-1)
       real(rt)        , intent(in) :: af(0:ngroups-1)
       real(rt)        , intent(in) :: dt
@@ -62,7 +62,7 @@ module radhydro_nd_module
     end subroutine advect_in_fspace
 
     subroutine update_one_species(n, u, a, dx, tend, nstepmax)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       integer, intent(in) :: n
       real(rt)        , intent(inout) :: u(0:n-1)
       real(rt)        , intent(in) :: a(0:n-1), dx(0:n-1)
@@ -119,7 +119,7 @@ module radhydro_nd_module
     end subroutine update_one_species
 
     function dudt(u,a,dx,n)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       integer, intent(in) :: n
       real(rt)        , intent(in) :: u(0:n-1), a(0:n-1), dx(0:n-1)
       real(rt)         :: dudt(0:n-1)
@@ -213,7 +213,7 @@ module radhydro_nd_module
     ! end function superbee
 
     function MC(r)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in) :: r
       real(rt)         :: MC
       MC = max(0.e0_rt, min(2.e0_rt*r, 0.5e0_rt*(1.e0_rt+r), 2.e0_rt))
@@ -227,7 +227,7 @@ module radhydro_nd_module
 
     subroutine weno5(vm2, vm1, v, vp1, vp2, v_weno5)
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       real(rt)        , intent(in) :: vm2, vm1, v, vp1, vp2
@@ -276,7 +276,7 @@ module radhydro_nd_module
       ! reference: Larsen, Levermore, Pomraning, and Sanderson, 1985, JCP, 61, 359
       use rad_params_module, only : ngroups, xnu, nugroup, dlognu
       use fundamental_constants_module, only : k_B, m_e, c_light, hplanck
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in) :: temp, ks, dt
       real(rt)        , intent(inout) :: u(ngroups)
       integer, intent(in), optional :: pt_index(:)

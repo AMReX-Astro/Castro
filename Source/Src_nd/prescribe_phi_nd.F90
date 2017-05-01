@@ -1,6 +1,6 @@
 module prescribe_phi_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -13,7 +13,7 @@ contains
     ! use fundamental_constants_module, only: Gconst
     ! use prob_params_module, only: problo, center, dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)

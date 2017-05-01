@@ -1,9 +1,17 @@
 # changes since the last release:
 
+
   -- added a framework for method-of-lines integration of the
      hydrodynamics.  This does not do characteristic tracing, but
      instead does reconstruction through multiple stages of an ODE
      integrator.  At the moment, radiation is not supported.
+
+  -- we now require the AMReX library instead of the BoxLib library
+
+
+# 17.05
+
+  -- some protections added in the retry code
 
 
 # 17.04
@@ -45,8 +53,8 @@
      (issue #58)
 
   -- to support both single and double precision, all of the floating
-     point declarations use the c_real type defined in the
-     bl_fort_module -- this is set to single or double precision at
+     point declarations use the amrex_real type defined in the
+     amrex_fort_module -- this is set to single or double precision at
      compile time.  All constants also now use this type.  For
      brevity, we rename it to 'rt' in the use statement.  (issue #34)
 

@@ -1,7 +1,7 @@
 module ppm_module
 
-  use bl_fort_module, only : rt => c_real
   use bl_constants_module
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -18,6 +18,7 @@ contains
                              ilo, ihi, dx)
        
     use meth_params_module, only : ppm_type
+
     implicit none
        
     integer, intent(in) :: qd_l1, qd_h1

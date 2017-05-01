@@ -1,4 +1,3 @@
-#include <winstd.H>
 
 #include "Castro.H"
 #include "Castro_F.H"
@@ -7,6 +6,8 @@ using std::string;
 
 #ifdef RADIATION
 #include "Radiation.H"
+
+using namespace amrex;
 
 void
 Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle) 

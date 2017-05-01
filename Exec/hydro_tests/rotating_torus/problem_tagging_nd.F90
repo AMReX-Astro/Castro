@@ -12,7 +12,7 @@ subroutine set_problem_tags(tag,tag_lo,tag_hi, &
   use castro_util_module, only: position
   use probdata_module, only: torus_center, torus_width
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   integer          :: lo(3),hi(3)

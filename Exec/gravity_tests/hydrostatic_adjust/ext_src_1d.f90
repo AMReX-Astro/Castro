@@ -11,7 +11,7 @@
     use prob_params_module, only: center
     use network
     
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer         ,intent(in   ) :: lo(1),hi(1)
     integer         ,intent(in   ) :: old_state_l1,old_state_h1

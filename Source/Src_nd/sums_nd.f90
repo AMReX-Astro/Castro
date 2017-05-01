@@ -1,6 +1,6 @@
 module castro_sums_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -12,7 +12,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -43,7 +43,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -75,7 +75,7 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: idir
@@ -155,7 +155,7 @@ contains
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: idir1, idir2
@@ -327,7 +327,7 @@ contains
     use prob_params_module, only: problo, center, dim
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: idir
@@ -381,7 +381,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)

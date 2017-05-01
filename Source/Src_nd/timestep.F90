@@ -1,6 +1,6 @@
 module timestep_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -22,7 +22,7 @@ contains
     use amrinfo_module, only: amr_time
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -128,7 +128,7 @@ contains
     use eos_type_module
     use extern_probin_module, only: small_x
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: so_lo(3), so_hi(3)
@@ -261,7 +261,7 @@ contains
     use bl_constants_module
     use conductivity_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -338,7 +338,7 @@ contains
     use bl_constants_module
     use conductivity_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -428,7 +428,7 @@ contains
     use extern_probin_module, only: small_x
     use eos_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)

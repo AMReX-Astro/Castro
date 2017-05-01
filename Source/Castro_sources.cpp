@@ -5,6 +5,8 @@
 #include "Radiation.H"
 #endif
 
+using namespace amrex;
+
 void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
@@ -99,7 +101,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 
       for (int n = 0; n < num_src; ++n)
 	if (source_flag(n))
-	  apply_source_to_state(S_new, old_sources[n], dt);
+	  apply_source_to_state(S_new, *old_sources[n], dt);
     }
 
     // Optionally print out diagnostic information about how much
@@ -128,7 +130,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	for (int n = 0; n < num_src; ++n) {
 	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
 	    if (source_flag(n)) {
-		apply_source_to_state(S_new, new_sources[n], dt);
+		apply_source_to_state(S_new, *new_sources[n], dt);
 		clean_state(S_new);
 	    }
 	}
@@ -144,7 +146,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 
 	for (int n = 0; n < num_src; ++n)
 	    if (source_flag(n))
-		apply_source_to_state(S_new, new_sources[n], dt);
+		apply_source_to_state(S_new, *new_sources[n], dt);
 
 	clean_state(S_new);
 
@@ -272,7 +274,7 @@ Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
   // Create a temporary array which will hold a single component
   // at a time of the volume-weighted source.
 
-  MultiFab weighted_source(source.boxArray(), 1, 0);
+  MultiFab weighted_source(source.boxArray(), source.DistributionMap(), 1, 0);
 
   for (int n = 0; n < source.nComp(); ++n) {
 
@@ -338,7 +340,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
     if (!source_flag(n)) continue;
 
-    MultiFab& source = is_new ? new_sources[n] : old_sources[n];
+    MultiFab& source = is_new ? *new_sources[n] : *old_sources[n];
 
     summed_updates[n] = evaluate_source_change(source, dt, local);
 
@@ -411,12 +413,12 @@ Castro::sum_of_sources(MultiFab& source)
   source.setVal(0.0);
 
   for (int n = 0; n < num_src; ++n)
-      MultiFab::Add(source, old_sources[n], 0, 0, NUM_STATE, ng);
+      MultiFab::Add(source, *old_sources[n], 0, 0, NUM_STATE, ng);
 
   MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
   for (int n = 0; n < num_src; ++n)
-      MultiFab::Add(source, new_sources[n], 0, 0, NUM_STATE, ng);
+      MultiFab::Add(source, *new_sources[n], 0, 0, NUM_STATE, ng);
 
 }
 
@@ -434,14 +436,14 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Carries the contribution of all non-reacting source terms.
 
-    MultiFab A(grids, NUM_STATE, ng, Fab_allocate);
+    MultiFab A(grids, dmap, NUM_STATE, ng);
 
     sum_of_sources(A);
 
     // Compute the state that has effectively only been updated with advection.
     // U* = U_old + dt A
     // where A = -div U + S_hydro
-    MultiFab S_noreact(grids, NUM_STATE, ng, Fab_allocate);
+    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
 
     MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
     MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
@@ -450,22 +452,22 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute its primitive counterpart, q*
 
-    MultiFab q_noreact(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_noreact(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_noreact(grids, dmap, QVAR, ng);
+    MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_noreact, q_noreact, qaux_noreact);
 
     // Compute the primitive version of the old state, q_old
 
-    MultiFab q_old(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_old(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_old(grids, dmap, QVAR, ng);
+    MultiFab qaux_old(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_old, q_old, qaux_old);
 
     // Compute the effective advective update on the primitive state.
     // A(q) = (q* - q_old)/dt
 
-    MultiFab A_prim(grids, QVAR, ng, Fab_allocate);
+    MultiFab A_prim(grids, dmap, QVAR, ng);
 
     A_prim.setVal(0.0);
 
@@ -476,8 +478,8 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute the primitive version of the new state.
 
-    MultiFab q_new(grids, QVAR, ng, Fab_allocate);
-    MultiFab qaux_new(grids, NQAUX, ng, Fab_allocate);
+    MultiFab q_new(grids, dmap, QVAR, ng);
+    MultiFab qaux_new(grids, dmap, NQAUX, ng);
 
     cons_to_prim(S_new, q_new, qaux_new);
 

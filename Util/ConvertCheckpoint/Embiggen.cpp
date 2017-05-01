@@ -2,7 +2,6 @@
 // This is the version that reads a Checkpoint file
 // and writes it out again.
 // ---------------------------------------------------------------
-#include <winstd.H>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
@@ -17,20 +16,20 @@
 #include <unistd.h>
 #endif
 
-#include "REAL.H"
-#include "Box.H"
-#include "FArrayBox.H"
-#include "ParmParse.H"
-#include "ParallelDescriptor.H"
-#include "DataServices.H"
-#include "Utility.H"
-#include "VisMF.H"
-#include "Geometry.H"
-#include "StateDescriptor.H"
-#include "StateData.H"
-#include "BCRec.H"
-#include "LevelBld.H"
-#include "AmrLevel.H"
+#include "AMReX_REAL.H"
+#include "AMReX_Box.H"
+#include "AMReX_FArrayBox.H"
+#include "AMReX_ParmParse.H"
+#include "AMReX_ParallelDescriptor.H"
+#include "AMReX_DataServices.H"
+#include "AMReX_Utility.H"
+#include "AMReX_VisMF.H"
+#include "AMReX_Geometry.H"
+#include "AMReX_StateDescriptor.H"
+#include "AMReX_StateData.H"
+#include "AMReX_BCRec.H"
+#include "AMReX_LevelBld.H"
+#include "AMReX_AmrLevel.H"
 
 #define VSHOWVAL(verbose, val) { if(verbose && \
                                    ParallelDescriptor::IOProcessor()) { \
@@ -46,6 +45,8 @@ LevelBld *getLevelBld() {
 using std::cout;
 using std::cerr;
 using std::endl;
+
+using namespace amrex;
 
 std::string CheckFileIn;
 std::string CheckFileOut;
@@ -134,17 +135,17 @@ static void ScanArguments() {
     pp.get("star_at_center", star_at_center);
 
     if (star_at_center != 0 && star_at_center != 1)
-       BoxLib::Abort("star_at_center must be 0 or 1");
+       amrex::Abort("star_at_center must be 0 or 1");
 
     if (ref_ratio != 2 && ref_ratio != 4)
-       BoxLib::Abort("ref_ratio must be 2 or 4");
+       amrex::Abort("ref_ratio must be 2 or 4");
 
     if (grown_factor <= 1)  
-        BoxLib::Abort("must have grown_factor > 1");
+        amrex::Abort("must have grown_factor > 1");
 
     if (star_at_center == 1)  
        if (grown_factor != 2 && grown_factor != 3)
-          BoxLib::Abort("must have grown_factor = 2 or 3 for star at center");
+          amrex::Abort("must have grown_factor = 2 or 3 for star at center");
 }
 
 // ---------------------------------------------------------------
@@ -174,7 +175,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
     is.rdbuf()->pubsetbuf(io_buffer.dataPtr(), io_buffer.size());
     is.open(File.c_str(), std::ios::in);
     if( ! is.good()) {
-        BoxLib::FileOpenFailed(File);
+        amrex::FileOpenFailed(File);
     }
 
     //
@@ -197,7 +198,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
     if(spdim != BL_SPACEDIM) {
         cerr << "Amr::restart(): bad spacedim = " << spdim << '\n';
-        BoxLib::Abort();
+        amrex::Abort();
     }
 
     is >> fakeAmr.cumtime;
@@ -250,11 +251,11 @@ static void ReadCheckpointFile(const std::string& fileName) {
       int dlen = dom0.size()[d];
       int scaled = dlen / (2*ref_ratio);
       if ( (scaled * 2 * ref_ratio) != dlen )
-        BoxLib::Abort("must have domain divisible by 2*ref_ratio");
+        amrex::Abort("must have domain divisible by 2*ref_ratio");
     }
 
     if (grown_factor <= 1)  
-        BoxLib::Abort("must have grown_factor > 1");
+        amrex::Abort("must have grown_factor > 1");
 
     for (i = 1; i <  mx_lev; i++) {
       is >> fakeAmr.ref_ratio[i];
@@ -306,7 +307,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
     fakeAmr.level_steps[0] = fakeAmr.level_steps[1] / ref_ratio;  
     if ( (fakeAmr.level_steps[0]*ref_ratio) != fakeAmr.level_steps[1] ) 
-       BoxLib::Abort("Number of steps in original checkpoint must be divisible by ref_ratio");
+       amrex::Abort("Number of steps in original checkpoint must be divisible by ref_ratio");
 
     // level_count is how many steps we've taken at this level since the last regrid
     if (fakeAmr.level_count[1] == fakeAmr.level_steps[1]) 
@@ -482,8 +483,8 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
     // Only the I/O processor makes the directory if it doesn't already exist.
     if(ParallelDescriptor::IOProcessor()) {
-      if( ! BoxLib::UtilCreateDirectory(ckfile, 0755)) {
-        BoxLib::CreateDirectoryFailed(ckfile);
+      if( ! amrex::UtilCreateDirectory(ckfile, 0755)) {
+        amrex::CreateDirectoryFailed(ckfile);
       }
     }
     // Force other processors to wait till directory is built.
@@ -535,7 +536,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 	                std::ios::out|std::ios::trunc|std::ios::binary);
 
         if( ! HeaderFile.good()) {
-          BoxLib::FileOpenFailed(HeaderFileName);
+          amrex::FileOpenFailed(HeaderFileName);
 	}
 
         old_prec = HeaderFile.precision(15);
@@ -584,8 +585,8 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
       FullPath += Level;
 
       // Only the I/O processor makes the directory if it doesn't already exist.
-      if(ParallelDescriptor::IOProcessor()) { if( ! BoxLib::UtilCreateDirectory(FullPath, 0755)) {
-          BoxLib::CreateDirectoryFailed(FullPath);
+      if(ParallelDescriptor::IOProcessor()) { if( ! amrex::UtilCreateDirectory(FullPath, 0755)) {
+          amrex::CreateDirectoryFailed(FullPath);
         }
       }
       // Force other processors to wait till directory is built.
@@ -687,7 +688,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
         HeaderFile.precision(old_prec);
 
         if( ! HeaderFile.good()) {
-          BoxLib::Error("Amr::checkpoint() failed");
+          amrex::Error("Amr::checkpoint() failed");
 	}
     }
 
@@ -914,12 +915,14 @@ static void ConvertData() {
          falRef.state[n].domain.refine(grown_factor);
    }
 
+   DistributionMapping newdm {newgrids};
+
    // We need to allocate a MultiFab for new data but don't need to fill it
    for (int n = 0; n < nstatetypes; n++) 
    {
       if (falRef0.state[n].new_data != 0) {
          int ncomps = (falRef0.state[n].new_data)->nComp();
-         MultiFab * newNewData = new MultiFab(newgrids,ncomps,1);
+         MultiFab * newNewData = new MultiFab(newgrids,newdm,ncomps,1);
 
          newNewData->setVal(0.); 
 
@@ -937,7 +940,7 @@ static void ConvertData() {
    {
       if (falRef0.state[n].old_data != 0) {
          int ncomps = (falRef0.state[n].old_data)->nComp();
-         MultiFab * newOldData = new MultiFab(newgrids,ncomps,1);
+         MultiFab * newOldData = new MultiFab(newgrids,newdm,ncomps,1);
          newOldData->setVal(0.);
 
          if (star_at_center == 1)  
@@ -976,7 +979,7 @@ static void ConvertData() {
 
 // ---------------------------------------------------------------
 int main(int argc, char *argv[]) {
-    BoxLib::Initialize(argc,argv);
+    amrex::Initialize(argc,argv);
 
     if(argc < 3) {
       PrintUsage(argv[0]);
@@ -1011,7 +1014,7 @@ int main(int argc, char *argv[]) {
       cout << " " << std::endl;
     }
 
-    BoxLib::Finalize();
+    amrex::Finalize();
 }
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------

@@ -25,7 +25,7 @@ module transverse_module
 
   use eos_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -47,7 +47,7 @@ contains
                     vol, vol_l1, vol_l2, vol_h1, vol_h2, &
                     ilo, ihi, jlo, jhi)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fx_l1, fx_l2, fx_h1, fx_h2
@@ -499,7 +499,7 @@ contains
                     srcQ, src_l1, src_l2, src_h1, src_h2, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer qd_l1, qd_l2, qd_h1, qd_h2
     integer qa_l1, qa_l2, qa_h1, qa_h2
     integer fy_l1, fy_l2, fy_h1, fy_h2

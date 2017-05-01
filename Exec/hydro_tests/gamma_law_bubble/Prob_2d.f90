@@ -1,10 +1,10 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
   use prob_params_module, only: center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -44,7 +44,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = frac*(problo(1)+probhi(1))
   center(2) = frac*(problo(2)+probhi(2))
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -77,7 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_module
   use eos_type_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal

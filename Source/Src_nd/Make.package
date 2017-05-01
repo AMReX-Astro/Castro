@@ -61,6 +61,3 @@ f90EXE_sources += Diffusion_nd.f90
 f90EXE_sources += Enthalpy_nd.f90
 endif
 
-f90EXE_sources += parmparse_mod.f90
-f90EXE_sources += string_mod.f90
-CEXE_sources   += parmparse_fi.cpp

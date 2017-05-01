@@ -11,7 +11,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
        allow_negative_energy, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
@@ -124,7 +124,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
@@ -236,7 +236,7 @@ subroutine ca_derrhopert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module
   use interpolate_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p
@@ -284,7 +284,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: p_l1,p_l2,p_h1,p_h2,ncomp_p

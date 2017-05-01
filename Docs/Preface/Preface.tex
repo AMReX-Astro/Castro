@@ -6,7 +6,9 @@ hydrodynamic equations for astrophysical flows including self-gravity,
 nuclear reactions and radiation.  \castro\ uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR).  Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
-refinement in both space and time, utilizing the \boxlib\ library.
+refinement in both space and time, utilizing the
+\amrex\ library\footnote{earlier versions of \castro\ used the
+  \boxlib\ library}.
 
 The core algorithms in \castro\ are described in a series of papers:
 \begin{itemize}
@@ -34,9 +36,10 @@ Improvements to the gravity solver and rotation were described in:
   \url{http://dx.doi.org/10.3847/0004-637X/819/2/94}
 \end{itemize}
 
-The development of \castro\ and the \boxlib\ library is led by the
+The development of \amrex\ library is led by the
 Center for Computational Sciences and Engineering / Lawrence Berkeley
-National Laboratory.
+National Laboratory.  \castro\ development is done collaboratively,
+including the CCSE and Stony Brook University.
 
 Past and present contributors to the \castro\ code base include:
 

@@ -1,6 +1,6 @@
 module ppm_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   use bl_constants_module
 
   implicit none
@@ -25,6 +25,7 @@ contains
     !             respect to zone center indexing
 
     use meth_params_module, only : ppm_type
+
     implicit none
 
     integer, intent(in) :: s_l1, s_l2, s_h1, s_h2

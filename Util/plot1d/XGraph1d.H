@@ -7,11 +7,8 @@
 using std::istream;
 using std::ostream;
 
-//#include <Box.H>
-//#include <PArray.H>
-#include <MultiFab.H>
-//#include <FArrayBox.H>
-//#include <BaseFab.H>
+#include <AMReX_MultiFab.H>
+#include <AMReX_Amr.H>
 
 #ifdef _MEM_CHECK_
 #include "mem.H"
@@ -38,14 +35,12 @@ class XGFrame {
       int        level;       // maximum level of plot
 };
 
-// forward ref
-class Amr;
 
 static const int XGPtMXGY=256; // Man is weak...
 class XGPt {
 public:
-   Real x;
-   Real y[XGPtMXGY];
+   amrex::Real x;
+   amrex::Real y[XGPtMXGY];
 };
 class XGGrid {
 public:
@@ -59,7 +54,7 @@ inline bool operator<(const XGGrid& lhs,const XGGrid& rhs) {
 class XGraph1d {
    friend ostream& operator << (ostream &os, XGraph1d &cont);
    public:
-      XGraph1d(Amr& amrsys);
+    XGraph1d(amrex::Amr& amrsys);
 
       ~XGraph1d();
 
@@ -68,20 +63,20 @@ class XGraph1d {
 
       void addVar(std::string& file_nm, std::string& var_nm, int freq, int lev);
 
-      void draw(int nstep, Real time, int force_draw = 0);
+      void draw(int nstep, amrex::Real time, int force_draw = 0);
 
-      void dumpXGraph(MultiFab& q, MultiFab& qf, int comp,
+      void dumpXGraph(amrex::MultiFab& q, amrex::MultiFab& qf, int comp,
          std::list<XGGrid>& xgg, int& lev, int& maxlev);
 
    private:
 
       // each file contains a single variable
-      void draw_single(int nstep, Real time, int force_draw);
+      void draw_single(int nstep, amrex::Real time, int force_draw);
       // all variables at the time are stored in file
-      void draw_all(int nstep, Real time, int force_draw);
+      void draw_all(int nstep, amrex::Real time, int force_draw);
 
       std::list<XGFrame> frames;
-      Amr *amrptr;
+      amrex::Amr *amrptr;
 
       static int verbose;
 

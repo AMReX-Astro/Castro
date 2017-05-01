@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_types
   use prob_params_module, only: center
@@ -9,7 +9,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -72,7 +72,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   print *, 'here!', const_conductivity, diff_coeff
   rho0 = const_conductivity/(diff_coeff*eos_state%cv)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -107,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : problo
   use prob_util_module, only : analytic
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: level, nscal

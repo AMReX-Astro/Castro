@@ -4,7 +4,7 @@ subroutine update_sponge_params(time) bind(C)
   use probdata_module, only: r_old_s
   use bl_error_module, only: bl_error
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none    
   
   real(rt)        , intent(in) :: time
@@ -56,7 +56,7 @@ end subroutine update_sponge_params
 
 double precision function f(r,t)
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , intent(in) :: r, t
@@ -73,7 +73,7 @@ end function f
 
 double precision function dfdr(r,t)
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , intent(in) :: r, t

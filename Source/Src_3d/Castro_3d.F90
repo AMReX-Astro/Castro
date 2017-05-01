@@ -47,7 +47,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
   use ctu_advection_module, only : umeth3d, consup
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 #ifdef RADIATION

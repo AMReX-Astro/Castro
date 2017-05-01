@@ -122,7 +122,7 @@ The corresponding type for Fortran is provided by the
 this to \variable{rt} when using it.  An example of a declaration of a
 parameter is:
 \begin{lstlisting}[language=fortran]
-  use bl_fort_module, only : rt => c_real                                       
+  use amrex_fort_module, only : rt => amrex_real                                       
 
   real(rt) :: tol = 1.0e-10_rt
 \end{lstlisting}

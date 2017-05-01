@@ -1,6 +1,6 @@
 module fluxlimiter_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, save :: limiter = 0
@@ -12,7 +12,7 @@ module fluxlimiter_module
   contains
 
     subroutine init_fluxlimiter_module(limiter_in, closure_in)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
       integer, intent(in) :: limiter_in, closure_in
       limiter = limiter_in
@@ -20,7 +20,7 @@ module fluxlimiter_module
     end subroutine init_fluxlimiter_module
 
     function FLDlambda(r, limiter_in)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       integer, intent(in), optional :: limiter_in
       real(rt)        , intent(in) :: r
       real(rt)         :: FLDlambda
@@ -51,7 +51,7 @@ module fluxlimiter_module
     end function FLDlambda
 
     function Edd_factor(lambda) result(f)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in) :: lambda
       real(rt)         :: f
       if (closure .eq. 0) then
@@ -104,7 +104,7 @@ module fluxlimiter_module
     end function Edd_factor
 
     function FLDalpha(lam) result(alpha)
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , intent(in) :: lam
       real(rt)         :: alpha, R, omtl, cr
       omtl = max(0.e0_rt, 1.e0_rt-3.e0_rt*lam)
@@ -141,7 +141,7 @@ end module fluxlimiter_module
 
 subroutine ca_initfluxlimiter(limiter, closure)  bind(C, name="ca_initfluxlimiter")
   use fluxlimiter_module, only : init_fluxlimiter_module
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer, intent(in) :: limiter, closure
   call init_fluxlimiter_module(limiter, closure)

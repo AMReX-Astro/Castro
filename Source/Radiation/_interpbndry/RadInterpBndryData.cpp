@@ -1,8 +1,10 @@
 #include <limits.h>
 #include <math.h>
-#include <LO_BCTYPES.H>
+#include <AMReX_LO_BCTYPES.H>
 #include <RadInterpBndryData.H>
 #include <RADINTERPBNDRYDATA_F.H>
+
+using namespace amrex;
 
 static BDInterpFunc* bdfunc[2*BL_SPACEDIM];
 static int bdfunc_set = 0;
@@ -46,9 +48,9 @@ const int* fablo = (fab).loVect();           \
 const int* fabhi = (fab).hiVect();           \
 const REAL* fabdat = (fab).dataPtr();
 
-RadInterpBndryData::RadInterpBndryData(const BoxArray& _grids, int _ncomp,
-                                 const Geometry& geom)
-    : RadBndryData(_grids,_ncomp,geom)
+RadInterpBndryData::RadInterpBndryData(const BoxArray& _grids, const DistributionMapping& _dmap,
+				       int _ncomp, const Geometry& geom)
+    : RadBndryData(_grids,_dmap,_ncomp,geom)
 {
 }
 
@@ -104,7 +106,7 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
 //     (B) Copy from ghost region of MultiFab at physical bndry
 //     (C) Copy from valid region of MultiFab at fine/fine interface
 void
-RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
+RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
 				const MultiFab& fine, int f_start,
 				int bnd_start, int num_comp, IntVect& ratio,
 				const BCRec& bc)
@@ -128,7 +130,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
         BL_ASSERT(grids[mfi.index()] == mfi.validbox());
         int grd = mfi.index();
 	const Box& fine_bx = grids[grd];
-        Box crse_bx = BoxLib::coarsen(fine_bx,ratio);
+        Box crse_bx = amrex::coarsen(fine_bx,ratio);
         const int* cblo = crse_bx.loVect();
         const int* cbhi = crse_bx.hiVect();
         int mxlen = crse_bx.longside() + 2;
@@ -154,7 +156,7 @@ RadInterpBndryData::setBndryValues(::BndryRegister& crse, int c_start,
 	    if (fine_bx[face] != fine_domain[face] ||
                 geom.isPeriodic(dir)) {
 		  // internal or periodic edge, interpolate from crse data
-                const Mask& mask = masks[face][grd];
+                const Mask& mask = *masks[face][grd];
                 const int* mlo = mask.loVect();
                 const int* mhi = mask.hiVect();
                 const int* mdat = mask.dataPtr();

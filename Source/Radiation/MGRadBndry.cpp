@@ -1,7 +1,7 @@
 // multigroup version of RadBndry.cpp
 
-#include <ParmParse.H>
-#include <LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
 #include "MGRadBndry.H"
 
 #include <iostream>
@@ -12,6 +12,8 @@
 
 #include "RAD_F.H"
 
+using namespace amrex;
+
 int         MGRadBndry::ngroups = 1;
 int         MGRadBndry::first = 1;
 Array<int>  MGRadBndry::bcflag(2*BL_SPACEDIM);
@@ -20,9 +22,10 @@ Real        MGRadBndry::time = 0.0;
 int         MGRadBndry::correction = 0;
 
 MGRadBndry::MGRadBndry(const BoxArray& _grids,
+		       const DistributionMapping& _dmap,
                        const int _ngroups,
                        const Geometry& _geom) :
-  NGBndry(_grids,_ngroups,_geom)
+    NGBndry(_grids,_dmap,_ngroups,_geom)
 {
   if (first)
     init(_ngroups);
@@ -44,11 +47,11 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
         if (domain[face] == boxes()[igrid][face] &&
             !geom.isPeriodic(face.coordDir())) {
 	  const Box& face_box = bndry[face][bi].box();
-	  bctypearray[face].set(igrid, new BaseFab<int>(face_box));
+	  bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
           FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
-                         bctypearray[face][igrid].dataPtr(),
+                         bctypearray[face][igrid]->dataPtr(),
                          ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
         }
@@ -59,17 +62,6 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
 
 MGRadBndry::~MGRadBndry()
 {
-  for (OrientationIter fi; fi; ++fi) {
-    Orientation face = fi();
-    if (bcflag[face] == 2) {
-      int len = grids.size();
-      for (int igrid = 0; igrid < len; igrid++) {
-	if (bctypearray[face].defined(igrid)) {
-	  delete bctypearray[face].remove(igrid);
-	}
-      }
-    }
-  }
 }
 
 void MGRadBndry::init(const int _ngroups)
@@ -256,7 +248,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
 #if 0
 	  FArrayBox& bnd_fab = bndry[face][bi];
-	  BaseFab<int>& tfab = bctypearray[face][i];
+	  BaseFab<int>& tfab = *(bctypearray[face][i]);
 
 	  FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab), 
 			 tfab.dataPtr(), ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);

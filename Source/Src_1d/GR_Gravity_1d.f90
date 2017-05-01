@@ -13,7 +13,7 @@
       use network, only : nspec, naux
       use bl_constants_module, only: HALF, FOUR3RD, M_PI
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: lo(1),hi(1)

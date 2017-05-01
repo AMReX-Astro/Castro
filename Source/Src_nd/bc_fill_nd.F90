@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -16,10 +16,10 @@ contains
     use meth_params_module, only: NVAR
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_lo(3),adv_hi(3)
     integer          :: bc(dim,2,*)
@@ -42,10 +42,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_lo(3),adv_hi(3)
     integer          :: bc(dim,2,*)
@@ -65,10 +65,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_lo(3),phi_hi(3)
     integer          :: bc(dim,2,*)
@@ -87,10 +87,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_lo(3),grav_hi(3)
     integer          :: bc(dim,2,*)
@@ -109,10 +109,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_lo(3),grav_hi(3)
     integer          :: bc(dim,2,*)
@@ -131,10 +131,10 @@ contains
 
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_lo(3),grav_hi(3)
     integer          :: bc(dim,2,*)
@@ -155,10 +155,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_lo(3),phi_hi(3)
     integer          :: bc(dim,2,*)
@@ -177,10 +177,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_lo(3),rot_hi(3)
     integer          :: bc(dim,2,*)
@@ -199,10 +199,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_lo(3),rot_hi(3)
     integer          :: bc(dim,2,*)
@@ -221,10 +221,10 @@ contains
 
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_lo(3),rot_hi(3)
     integer          :: bc(dim,2,*)
@@ -244,10 +244,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: react_lo(3),react_hi(3)
     integer          :: bc(dim,2,*)
@@ -268,10 +268,10 @@ contains
 
     use prob_params_module, only: dim  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rad_lo(3),rad_hi(3)
     integer          :: bc(dim,2,*)

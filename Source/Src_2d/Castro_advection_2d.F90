@@ -2,7 +2,7 @@ module ctu_advection_module
 
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -71,7 +71,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
@@ -378,7 +378,7 @@ contains
     use meth_params_module, only : USHK
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: lo(2), hi(2)
     integer, intent(in) :: uin_l1,uin_l2,uin_h1,uin_h2
     integer, intent(in) :: q_l1,q_l2,q_h1,q_h2

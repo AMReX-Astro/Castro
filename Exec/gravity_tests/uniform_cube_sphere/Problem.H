@@ -5,7 +5,7 @@
 #endif
 
 static int problem;
-static Real density;
-static Real diameter;
+static amrex::Real density;
+static amrex::Real diameter;
 
 void problem_post_init();

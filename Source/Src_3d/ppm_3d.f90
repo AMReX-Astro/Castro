@@ -1,10 +1,11 @@
 module ppm_module
 
+
   ! this does the parabolic reconstruction on a variable and the (optional)
   ! integration under the characteristic domain of the parabola
 
   use bl_constants_module
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
@@ -77,7 +78,7 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : ppm_type
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -370,7 +371,7 @@ contains
     use meth_params_module, only : ppm_type
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)

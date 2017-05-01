@@ -1,6 +1,6 @@
 module slope_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -21,7 +21,7 @@ contains
       use meth_params_module
       use bl_constants_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)
@@ -191,7 +191,7 @@ contains
         use meth_params_module
         use bl_constants_module
 
-        use bl_fort_module, only : rt => c_real
+        use amrex_fort_module, only : rt => amrex_real
         implicit none
 
         integer          :: qd_lo(3), qd_hi(3)

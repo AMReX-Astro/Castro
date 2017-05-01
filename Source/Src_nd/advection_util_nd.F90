@@ -1,6 +1,6 @@
 module advection_util_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -20,7 +20,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use bl_constants_module, only : ZERO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -208,7 +208,7 @@ contains
     use meth_params_module, only: UMR, UMP
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: old_state(NVAR), new_state(NVAR)
@@ -275,7 +275,7 @@ contains
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt)         :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
@@ -314,7 +314,7 @@ contains
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
     use prob_params_module, only: dim
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: lo(3), hi(3)
@@ -459,7 +459,7 @@ contains
     use rad_util_module, only : compute_ptot_ctot
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -635,7 +635,7 @@ contains
     use bl_constants_module, only: ZERO, HALF, ONE
     use castro_util_module, only: position
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -708,7 +708,7 @@ contains
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: dir, idx(3)
@@ -798,7 +798,7 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
     use eos_module, only: eos
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
