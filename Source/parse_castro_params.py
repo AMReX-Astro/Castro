@@ -137,7 +137,7 @@ class Param(object):
         if self.dtype == "int":
             tstr = "int         {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "Real        {}::{}".format(self.cpp_class, self.cpp_var_name)
+            tstr = "amrex::Real {}::{}".format(self.cpp_class, self.cpp_var_name)
         elif self.dtype == "string":
             tstr = "std::string {}::{}".format(self.cpp_class, self.cpp_var_name)
         else:
@@ -235,7 +235,7 @@ class Param(object):
         if self.dtype == "int":
             tstr = "{} int {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "{} Real {};\n".format(static, self.cpp_var_name)
+            tstr = "{} amrex::Real {};\n".format(static, self.cpp_var_name)
         elif self.dtype == "string":
             tstr = "{} std::string {};\n".format(static, self.cpp_var_name)
         else:

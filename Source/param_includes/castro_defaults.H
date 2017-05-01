@@ -93,7 +93,7 @@ int         Castro::diffuse_spec = 0;
 int         Castro::diffuse_vel = 0;
 #endif
 #ifdef DIFFUSION
-Real        Castro::diffuse_cutoff_density = -1.e200;
+amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 #endif
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
