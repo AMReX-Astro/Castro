@@ -361,6 +361,10 @@ public:
     //
     virtual void postCoarseTimeStep (amrex::Real cumtime) override;
     //
+    // Check whether we want to do a regrid.
+    //
+    void check_for_post_regrid (amrex::Real time);
+    //
     // Do work after regrid().
     //
     virtual void post_regrid (int lbase,

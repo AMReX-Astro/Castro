@@ -103,6 +103,9 @@ Castro::advance (Real time,
         dt_new = std::min(dt_new, retry_advance(time, dt, amr_iteration, amr_ncycle));
 #endif
 
+    if (use_post_step_regrid)
+	check_for_post_regrid(time + dt);
+
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
 #endif
@@ -785,3 +788,4 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     return dt_new;
 
 }
+
