@@ -2425,6 +2425,70 @@ Castro::errorEst (TagBoxArray& tags,
 
     set_amr_info(level, -1, -1, -1.0, -1.0);
 
+    // Apply each of the built-in tagging functions.
+
+    for (int j = 0; j < err_list.size(); j++)
+	apply_tagging_func(tags, clearval, tagval, time, j);
+
+    // Now we'll tag any user-specified zones using the full state array.
+
+    const int*  domain_lo = geom.Domain().loVect();
+    const int*  domain_hi = geom.Domain().hiVect();
+    const Real* dx        = geom.CellSize();
+    const Real* prob_lo   = geom.ProbLo();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+        Array<int>  itags;
+
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	{
+	    // tile box
+	    const Box&  tilebx  = mfi.tilebox();
+
+            TagBox&     tagfab  = tags[mfi];
+
+	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+	    // So we are going to get a temporary integer array.
+	    tagfab.get_itags(itags, tilebx);
+
+            // data pointer and index space
+	    int*        tptr    = itags.dataPtr();
+	    const int*  tlo     = tilebx.loVect();
+	    const int*  thi     = tilebx.hiVect();
+
+#ifdef DIMENSION_AGNOSTIC
+	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
+			     BL_TO_FORTRAN_3D(S_new[mfi]),
+			     &tagval, &clearval,
+			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
+			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
+#else
+	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
+			     BL_TO_FORTRAN(S_new[mfi]),
+			     &tagval, &clearval,
+			     tilebx.loVect(), tilebx.hiVect(),
+			     dx, prob_lo, &time, &level);
+#endif
+
+	    //
+	    // Now update the tags in the TagBox.
+	    //
+            tagfab.tags_and_untags(itags, tilebx);
+	}
+    }
+}
+
+
+
+void
+Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
+{
+
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
@@ -2488,55 +2552,9 @@ Castro::errorEst (TagBoxArray& tags,
 	}
 
     }
-
-    // Now we'll tag any user-specified zones using the full state array.
-
-    MultiFab& S_new = get_new_data(State_Type);
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-        Array<int>  itags;
-
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	{
-	    // tile box
-	    const Box&  tilebx  = mfi.tilebox();
-
-            TagBox&     tagfab  = tags[mfi];
-
-	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-	    // So we are going to get a temporary integer array.
-	    tagfab.get_itags(itags, tilebx);
-
-            // data pointer and index space
-	    int*        tptr    = itags.dataPtr();
-	    const int*  tlo     = tilebx.loVect();
-	    const int*  thi     = tilebx.hiVect();
-
-#ifdef DIMENSION_AGNOSTIC
-	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
-			     BL_TO_FORTRAN_3D(S_new[mfi]),
-			     &tagval, &clearval,
-			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
-			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
-#else
-	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
-			     BL_TO_FORTRAN(S_new[mfi]),
-			     &tagval, &clearval,
-			     tilebx.loVect(), tilebx.hiVect(),
-			     dx, prob_lo, &time, &level);
-#endif
-
-	    //
-	    // Now update the tags in the TagBox.
-	    //
-            tagfab.tags_and_untags(itags, tilebx);
-	}
-    }
 }
+
+
 
 std::unique_ptr<MultiFab>
 Castro::derive (const std::string& name,
