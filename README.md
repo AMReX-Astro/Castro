@@ -13,9 +13,9 @@ http://boxlib-codes.github.io/Castro/
 
 ## Getting Started
 
-To build `Castro`, you need a copy of the `BoxLib` library:
+To build `Castro`, you need a copy of the ` AMReX` library:
 
-https://github.com/BoxLib-Codes/BoxLib.git
+https://github.com/AMReX-Codes/amrex
 
 There is a User's Guide in `Castro/Docs/` (type `make` to build from
 LaTeX source) that will guide you through running your first problem.
@@ -39,7 +39,7 @@ they do, that the changes were expected).  No changes should ever be
 pushed directly into `master`.
 
 On the first workday of each month, we perform a merge of
-`development` into `master`, in coordination with `BoxLib`, `Maestro`,
+`development` into `master`, in coordination with `AMReX`, `Maestro`,
 and `Microphysics`.  For this merge to take place, we need to be
 passing the regression tests.  To accommodate this need, we close the
 merge window into `development` a few days before the merge day.
