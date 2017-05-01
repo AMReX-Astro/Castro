@@ -584,7 +584,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
-      //PArray<MultiFab> k_mol(MOL_STAGES, PArrayManage);
+      k_mol.resize(MOL_STAGES);
       for (int n = 0; n < MOL_STAGES; ++n) {
 	k_mol[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
 	k_mol[n]->setVal(0.0);

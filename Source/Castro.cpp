@@ -394,8 +394,7 @@ Castro::Castro ()
     :
     old_sources(num_src),
     new_sources(num_src),
-    prev_state(num_state_type),
-    k_mol(MOL_STAGES)
+    prev_state(num_state_type)
 {
 }
 
@@ -409,8 +408,7 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     old_sources(num_src),
     new_sources(num_src),
-    prev_state(num_state_type),
-    k_mol(MOL_STAGES)
+    prev_state(num_state_type)
 {
     buildMetrics();
 
