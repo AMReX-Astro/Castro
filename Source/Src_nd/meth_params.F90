@@ -169,6 +169,7 @@ module meth_params_module
   real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
+  integer         , save :: grown_factor
   integer         , save :: track_grid_losses
   real(rt), save :: const_grav
   integer         , save :: get_g_from_phi
@@ -195,8 +196,8 @@ module meth_params_module
   !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
   !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
   !$acc create(implicit_rotation_update, rot_axis, point_mass) &
-  !$acc create(point_mass_fix_solution, do_acc, track_grid_losses) &
-  !$acc create(const_grav, get_g_from_phi)
+  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
+  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -286,6 +287,7 @@ contains
     point_mass = 0.0d0;
     point_mass_fix_solution = 0;
     do_acc = -1;
+    grown_factor = 1;
     track_grid_losses = 0;
     const_grav = 0.0d0;
     get_g_from_phi = 0;
@@ -385,6 +387,7 @@ contains
     call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("do_acc", do_acc)
+    call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
     call pp%query("const_grav", const_grav)
     call pp%query("get_g_from_phi", get_g_from_phi)
@@ -411,8 +414,8 @@ contains
     !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
     !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
     !$acc device(implicit_rotation_update, rot_axis, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
