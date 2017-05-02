@@ -77,7 +77,7 @@ make help
   I get more information?}
 
   The best thing to do is to recompile the code with {\tt TEST=TRUE}
-  set in the {\tt GNUmakefile}.  This will have \boxlib\ catch the
+  set in the {\tt GNUmakefile}.  This will have \amrex\ catch the
   signals raised in both \cpp\ and Fortran functions.  Behind the
   scenes, this defines the {\tt BL\_TESTING} preprocessor flag, which
   will initialize memory allocated in {\tt fab}s or {\tt multifab}s to
@@ -87,16 +87,16 @@ make help
   to print out backtrace information.  The signals include seg fault,
   floating point exceptions (NaNs, divided by zero and overflow), and
   interruption by the user and system.  What signals are handed to
-  BoxLib are controlled by BoxLib.  (E.g., using interruption by the
+  \amrex\ are controlled by \amrex (e.g., using interruption by the
   user, this was once used to find an MPI deadlock.)  It also includes
   the {\tt BL\_ASSERTION} statements if {\tt USE\_ASSERTION=TRUE} or
   {\tt DEBUG=TRUE}. 
 
-  The BoxLib parameters that affect the behavior are:
+  The \amrex\ parameters that affect the behavior are:
   \begin{itemize}
-    \item {\tt boxlib.fpe\_trap\_invalid}
-    \item {\tt boxlib.fpe\_trap\_zero}
-    \item {\tt boxlib.fpe\_trap\_overflow}
+    \item {\tt amrex.fpe\_trap\_invalid}
+    \item {\tt amrex.fpe\_trap\_zero}
+    \item {\tt amrex.fpe\_trap\_overflow}
   \end{itemize}
 
   For further capabilities, defining {\tt BACKTRACE=TRUE} enables you
