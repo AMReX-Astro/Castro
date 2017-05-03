@@ -8,7 +8,7 @@ with MPI + OpenMP.
 
 More information on Castro can be found here:
 
-http://boxlib-codes.github.io/Castro/
+http://amrex-astro.github.io/Castro/
 
 
 ## Getting Started
