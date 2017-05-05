@@ -81,3 +81,7 @@ core-collapse supernovae: http://adsabs.harvard.edu/abs/2016ApJ...832...73C
 pop III supernovae: http://adsabs.harvard.edu/abs/2017MNRAS.467.4731C
 
 
+pop III supernovae: http://adsabs.harvard.edu/abs/2015ASPC..498...47C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...797....9W
+
