@@ -26,7 +26,7 @@
     
     <!-- Header -->
     <header id="header">
-      <h1><a href="https://github.com/BoxLib-Codes">BoxLib Codes</a></h1>
+      <h1><a href="https://github.com/AMReX-Codes">AMReX Codes</a></h1>
       <nav id="nav">
 	<ul>
 	  <li><a href="about.html">About</a></li>
@@ -44,7 +44,7 @@
       <p>an adaptive mesh, astrophysical radiation hydrodynamics simulation code</p>
       <ul class="actions">
 	<li>
-	  <a href="https://github.com/BoxLib-Codes/Castro" class="button big">Get Castro</a>
+	  <a href="https://github.com/AMReX-Astro/Castro" class="button big">Get Castro</a>
 	</li>
       </ul>
     </section>
@@ -54,7 +54,7 @@
       <div class="container">
 	<header class="major">
 	  <h2>Enable your science with Castro</h2>
-	  <p>Castro is part of the BoxLib suite of astrophysical
+	  <p>Castro is part of the AMReX suite of astrophysical
 	  hydrodynamics codes that collectively provide the simulation
 	  capabilities to model explosive astrophysical phenomena.
 	  Castro specializes in supersonic flows, where radiation can
@@ -80,7 +80,7 @@
 	    <section class="box">
 	      <i class="icon big rounded color9 fa-tachometer"></i>
 	      <h3>Performance</h3>
-	      <p>Castro is built on the BoxLib adaptive mesh
+	      <p>Castro is built on the AMReX adaptive mesh
 	      refinement library, and uses an advance MPI + tiled
 	      OpenMP approach to parallelism to get great performance
 		on modern architectures.  It scales from 1 to 100,000 cores,
@@ -115,17 +115,16 @@
 	  <ul class="alt">
 	    <li><h3><span class="icon fa-download"></span> Clone</h3>
 	      <pre>
-git clone https://github.com/BoxLib-Codes/BoxLib.git
-git clone https://github.com/BoxLib-Codes/Castro.git
+git clone https://github.com/AMReX-Codes/amrex.git
+git clone https://github.com/AMReX-Astro/Castro.git
 git clone https://github.com/BoxLib-Codes/Microphysics.git</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-cogs"></span> Setup your environment</h3>
 	      <pre>
 export CASTRO_HOME=/path/to/Castro
-export BOXLIB_HOME=/path/to/BoxLib
-export MICROPHYSICS_HOME=/path/to/Microphysics
-export BOXLIB_USE_MPI_WRAPPERS=1</pre>
+export AMREX_HOME=/path/to/AMReX
+export MICROPHYSICS_HOME=/path/to/Microphysics</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-magic"></span> Compile</h3>
@@ -143,7 +142,7 @@ make DIM=2</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-image"></span> Visualize</h3>
-	      Castro output (BoxLib format) is supported natively by yt, VisIt, and amrvis
+	      Castro output (BoxLib/AMReX format) is supported natively by yt, VisIt, and amrvis
 	    </li>
 
 	  </ul>
@@ -167,13 +166,15 @@ make DIM=2</pre>
 	  <h2>Development</h2>
 	  <p>Castro is BSD-licensed and hosted on github.  Contributions are welcomed.</p>
 	</header>
-	Castro is written in a mix of C++ and Fortran.  The main driver, memory
-	management, and parallelization are implemented in C++ (using
-	the BoxLib framework) and the physics kernels are written in
-	Fortran.  New code features are done either on the "<tt>development</tt>" branch
-	or in a separate feature branch and periodically merged into "<tt>master</tt>".  If
-	you want to contribute to Castro, clone the Castro git repo, make your changes
-	on "<tt>development</tt>" and then issue a pull-request to the Castro "<tt>development</tt>" branch.
+	Castro is written in a mix of C++ and Fortran.  The main
+	driver, memory management, and parallelization are implemented
+	in C++ (using the AMReX framework) and the physics kernels
+	are written in Fortran.  New code features are done either on
+	the "<tt>development</tt>" branch or in a separate feature
+	branch and periodically merged into "<tt>master</tt>".  If you
+	want to contribute to Castro, clone the Castro git repo, make
+	your changes on "<tt>development</tt>" and then issue a
+	pull-request to the Castro "<tt>development</tt>" branch.
 
 	<p>Additional physics capabilities are provided by the CastroRadiation and Microphysics
 	  git repositories.
