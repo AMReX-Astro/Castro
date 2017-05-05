@@ -693,7 +693,7 @@ void Castro::writeGitHashes(std::ostream& log) {
   const char* microphysics_hash = buildInfoGetGitHash(3);
 
   log << "# Castro       git hash: " << castro_hash       << std::endl;
-  log << "# AMReX        git hash: " << boxlib_hash       << std::endl;
+  log << "# AMReX        git hash: " << amrex_hash        << std::endl;
   log << "# Microphysics git hash: " << microphysics_hash << std::endl;
 
 }
