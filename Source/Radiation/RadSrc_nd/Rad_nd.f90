@@ -217,24 +217,24 @@ end subroutine ca_setgroup
 ! ::: -----------------------------------------------------------
 
 subroutine ca_inelastic_sct (lo, hi, &
-     uu,uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3, &
-     Er,Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3, &
-     ks,ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3, &
+     uu,uu_lo,uu_hi, &
+     Er,Er_lo,Er_hi, &
+     ks,ks_lo,ks_hi, &
      dt) bind(C)
 
   use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
   use rad_params_module, only : ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
-
   use amrex_fort_module, only : rt => amrex_real
+  implicit none
   integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: uu_l1,uu_l2,uu_l3,uu_h1,uu_h2,uu_h3
-  integer, intent(in) :: Er_l1,Er_l2,Er_l3,Er_h1,Er_h2,Er_h3
-  integer, intent(in) :: ks_l1,ks_l2,ks_l3,ks_h1,ks_h2,ks_h3
-  real(rt)        , intent(inout) :: uu(uu_l1:uu_h1,uu_l2:uu_h2,uu_l3:uu_h3,NVAR)
-  real(rt)        , intent(inout) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3,0:ngroups-1)
-  real(rt)        , intent(in   ) :: ks(ks_l1:ks_h1,ks_l2:ks_h2,ks_l3:ks_h3)
-  real(rt)        , intent(in) :: dt
+  integer, intent(in) :: uu_lo(3),uu_hi(3)
+  integer, intent(in) :: Er_lo(3),Er_hi(3)
+  integer, intent(in) :: ks_lo(3),ks_hi(3)
+  real(rt), intent(inout) :: uu(uu_lo(1):uu_hi(1),uu_lo(2):uu_hi(2),uu_lo(3):uu_hi(3),NVAR)
+  real(rt), intent(inout) :: Er(Er_lo(1):Er_hi(1),Er_lo(2):Er_hi(2),Er_lo(3):Er_hi(3),0:ngroups-1)
+  real(rt), intent(in   ) :: ks(ks_lo(1):ks_hi(1),ks_lo(2):ks_hi(2),ks_lo(3):ks_hi(3))
+  real(rt), intent(in) :: dt
 
   integer :: i, j, k
   real(rt)         :: Ertotold, Ertmp(0:ngroups-1), dEr
@@ -265,8 +265,8 @@ end subroutine ca_inelastic_sct
 ! ::: -----------------------------------------------------------
 
 subroutine ca_compute_scattering(lo, hi, &
-     kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
-     sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3)
+     kps,kps_lo,kps_hi, &
+     sta,sta_lo,sta_hi)
 
   use rad_params_module, only : ngroups, nugroup
   use opacity_table_module, only : get_opacities
@@ -277,10 +277,10 @@ subroutine ca_compute_scattering(lo, hi, &
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
-  integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
-  real(rt)        , intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
-  real(rt)        , intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
+  integer, intent(in) :: kps_lo(3),kps_hi(3)
+  integer, intent(in) :: sta_lo(3),sta_hi(3)
+  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
+  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
 
   integer :: i, j, k
   real(rt)         :: kp, kr, nu, rho, temp, Ye
@@ -313,8 +313,8 @@ subroutine ca_compute_scattering(lo, hi, &
 end subroutine ca_compute_scattering
 
 subroutine ca_compute_scattering_2(lo, hi, &
-     kps,kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3, &
-     sta,sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3, &
+     kps,kps_lo,kps_hi, &
+     sta,sta_lo,sta_hi, &
      k0_p, m_p, n_p, &
      k0_r, m_r, n_r, &
      Tfloor, kfloor)
@@ -326,13 +326,13 @@ subroutine ca_compute_scattering_2(lo, hi, &
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_l1,kps_l2,kps_l3,kps_h1,kps_h2,kps_h3
-  integer, intent(in) :: sta_l1,sta_l2,sta_l3,sta_h1,sta_h2,sta_h3
-  real(rt)        , intent(inout) :: kps(kps_l1:kps_h1,kps_l2:kps_h2,kps_l3:kps_h3)
-  real(rt)        , intent(in   ) :: sta(sta_l1:sta_h1,sta_l2:sta_h2,sta_l3:sta_h3,NVAR)
-  real(rt)        , intent(in) :: k0_p, m_p, n_p
-  real(rt)        , intent(in) :: k0_r, m_r, n_r
-  real(rt)        , intent(in) :: Tfloor, kfloor
+  integer, intent(in) :: kps_lo(3),kps_hi(3)
+  integer, intent(in) :: sta_lo(3),sta_hi(3)
+  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
+  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
+  real(rt), intent(in) :: k0_p, m_p, n_p
+  real(rt), intent(in) :: k0_r, m_r, n_r
+  real(rt), intent(in) :: Tfloor, kfloor
 
   integer :: i, j, k
   real(rt)        , parameter :: tiny = 1.0e-50_rt
