@@ -1,5 +1,7 @@
 /* problem-specific stuff goes here */
 
+#include <AMReX_BLFort.H>
+
 #ifdef __cplusplus
 extern "C"
 {
