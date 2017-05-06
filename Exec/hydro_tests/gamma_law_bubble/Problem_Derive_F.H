@@ -1,6 +1,8 @@
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   void ca_derpi
     (BL_FORT_FAB_ARG(der),const int* nvar,
@@ -38,4 +40,6 @@ extern "C"
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
 
+#ifdef __cplusplus
 }
+#endif

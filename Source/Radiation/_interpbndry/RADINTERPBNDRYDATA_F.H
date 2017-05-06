@@ -65,8 +65,10 @@ typedef void BDInterpFunc(amrex::Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* mask,  ARLIM_P(mlo), ARLIM_P(mhi),
 			  const amrex::Real* crse, ARLIM_P(clo), ARLIM_P(chi),
 			  amrex::Real* derives);
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
@@ -80,7 +82,9 @@ extern "C"
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 
@@ -150,8 +154,10 @@ typedef void BDInterpFunc(amrex::Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* mask,  ARLIM_P(mlo), ARLIM_P(mhi),
 			  const amrex::Real* crse, ARLIM_P(clo), ARLIM_P(chi),
 			  amrex::Real* derives);
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
@@ -165,7 +171,9 @@ extern "C"
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif    
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 

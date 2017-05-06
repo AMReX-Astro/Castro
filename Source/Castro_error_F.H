@@ -2,8 +2,10 @@
 #define _Castro_error_F_H_
 #include <AMReX_BLFort.H>
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   void ca_laplac_error
     (int* tag, const int* tag_lo, const int* tag_hi,
@@ -159,6 +161,8 @@ extern "C"
      const amrex::Real* time, const int* level);
 #endif
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif
