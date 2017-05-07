@@ -31,6 +31,8 @@
 #include "AMReX_LevelBld.H"
 #include "AMReX_AmrLevel.H"
 
+using namespace amrex;
+
 #define VSHOWVAL(verbose, val) { if(verbose && \
                                    ParallelDescriptor::IOProcessor()) { \
                                    cout << #val << " = " << val << endl; } }
@@ -459,11 +461,12 @@ static void ReadCheckpointFile(const std::string& fileName) {
            int ncomp = falRef_orig.state[i].new_data->nComp();
            int ngrow = falRef_orig.state[i].new_data->nGrow();
 
-           falRef.state[i].new_data = new MultiFab(falRef.grids,ncomp,ngrow);
+	   DistributionMapping dmap {falRef.grids};
+           falRef.state[i].new_data = new MultiFab(falRef.grids, dmap, ncomp, ngrow);
            falRef.state[i].new_data->setVal(0.);
 
            if (nsets_save[i] == 2) {
-             falRef.state[i].old_data = new MultiFab(falRef.grids,ncomp,ngrow);
+             falRef.state[i].old_data = new MultiFab(falRef.grids, dmap, ncomp, ngrow);
              falRef.state[i].old_data->setVal(0.);
            }
 

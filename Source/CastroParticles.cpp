@@ -160,7 +160,7 @@ Castro::ParticleDerive(const std::string& name,
 
   if (TracerPC && name == "particle_count")
   {
-      MultiFab* derive_dat = new MultiFab(grids,dmap,1,0);
+      auto derive_dat = new MultiFab(grids,dmap,1,0);
       MultiFab    temp_dat(grids,dmap,1,0);
       temp_dat.setVal(0);
       TracerPC->Increment(temp_dat,level);

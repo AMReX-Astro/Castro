@@ -1,5 +1,11 @@
 # changes since the last release:
 
+  -- we now require the AMReX library instead of the BoxLib library
+
+# 17.05
+
+  -- some protections added in the retry code
+
 
 # 17.04
 

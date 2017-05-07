@@ -4,7 +4,12 @@
 #include <AMReX_ArrayLim.H>
 #include <AMReX_BLFort.H>
 
+#ifdef __cplusplus
 extern "C" {
+#else
+#define RadBoundCond int
+#endif
+
   void hacoef(amrex::Real* mat, 
 	      BL_FORT_FAB_ARG(acoefs),
 	      ARLIM_P(reglo), ARLIM_P(reghi),
@@ -150,6 +155,9 @@ extern "C" {
 		     const amrex::Real*,
 		     const amrex::Real*,
 		     BL_FORT_FAB_ARG(flux));
+
+#ifdef __cplusplus
 };
+#endif
 
 #endif

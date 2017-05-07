@@ -1,6 +1,9 @@
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
+
     void problem_checkpoint(int * int_dir_name, int * len);
 
     void problem_restart(int * int_dir_name, int * len);
@@ -15,4 +18,6 @@ extern "C"
 			amrex::Real* state, const int* s_lo, const int* s_hi,
 			const amrex::Real* update_factor);
 
+#ifdef __cplusplus
 }
+#endif

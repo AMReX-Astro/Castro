@@ -423,7 +423,7 @@ bndry_func_thread_safe       int           1
 #-----------------------------------------------------------------------------
 
 # the factor by which to extend the domain upon restart for embiggening
-grown_factor                 int           1
+grown_factor                 int           1                  y
 
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               int          -1

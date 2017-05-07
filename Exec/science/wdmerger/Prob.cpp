@@ -484,7 +484,7 @@ Castro::gwstrain (Real time,
     // and requires the state at other timesteps. See, e.g., Equation 5 of
     // Loren-Aguilar et al. 2005.
 
-    // It is a 3x3 rank-2 tensor, but BoxLib expects IntVect() to use BL_SPACEDIM
+    // It is a 3x3 rank-2 tensor, but AMReX expects IntVect() to use BL_SPACEDIM
     // dimensions, so we add a redundant third index in 3D.
 
     Box bx( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(2, 2, 0)) );
@@ -689,14 +689,12 @@ void Castro::problem_post_restart() {
 void Castro::writeGitHashes(std::ostream& log) {
 
   const char* castro_hash       = buildInfoGetGitHash(1);
-  const char* boxlib_hash       = buildInfoGetGitHash(2);
+  const char* amrex_hash        = buildInfoGetGitHash(2);
   const char* microphysics_hash = buildInfoGetGitHash(3);
-  const char* wdmerger_hash     = buildInfoGetBuildGitHash();
 
   log << "# Castro       git hash: " << castro_hash       << std::endl;
-  log << "# BoxLib       git hash: " << boxlib_hash       << std::endl;
+  log << "# AMReX        git hash: " << amrex_hash        << std::endl;
   log << "# Microphysics git hash: " << microphysics_hash << std::endl;
-  log << "# wdmerger     git hash: " << wdmerger_hash     << std::endl;
 
 }
 
@@ -817,7 +815,7 @@ void Castro::check_to_stop(Real time) {
     }
 #endif
 
-    // Is the job done? If so, signal this to BoxLib.
+    // Is the job done? If so, signal this to AMReX.
 
     get_job_status(&jobDoneStatus);
 
