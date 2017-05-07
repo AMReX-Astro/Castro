@@ -2124,6 +2124,56 @@ Castro::advance_aux(Real time, Real dt)
 
 
 void
+Castro::FluxRegCrseInit() {
+
+    FluxRegister* reg;
+
+    if (level == parent->finestLevel()) return;
+
+    Castro& fine_level = getLevel(level+1);
+
+    for (int i = 0; i < BL_SPACEDIM; ++i)
+	fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+#endif
+
+}
+
+
+void
+Castro::FluxRegFineAdd() {
+
+    FluxRegister* reg;
+
+    if (level == 0) return;
+
+    for (int i = 0; i < BL_SPACEDIM; ++i)
+	flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+#endif
+
+}
+
+
+void
 Castro::reflux(int crse_level, int fine_level)
 {
     BL_PROFILE("Castro::reflux()");
