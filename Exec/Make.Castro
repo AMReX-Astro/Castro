@@ -130,7 +130,7 @@ ifeq ($(USE_HDF5), TRUE)
    LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
 endif
 
-all: $(executable) 
+all: $(executable)
 	@echo SUCCESS
 
 # for backward compatibility -- MICROPHYSICS_DIR is deprecated
@@ -138,7 +138,7 @@ ifndef MICROPHYSICS_HOME
   ifdef MICROPHYSICS_DIR
     MICROPHYSICS_HOME := $(MICROPHYSICS_DIR)
     $(info MICROPHYSICS_DIR is deprecated.  Please use MICROPHYSICS_HOME)
-  endif 
+  endif
 endif
 
 ifdef MICROPHYSICS_HOME
@@ -157,7 +157,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
 endif
 
-# Problems can specify the input file for general_null by 
+# Problems can specify the input file for general_null by
 # setting GENERAL_NET_INPUTS directly (full path) or just
 # specifying the name of the inputs file as NETWORK_INPUTS
 # and let us sort it out
@@ -199,7 +199,7 @@ endif
 ifeq ($(USE_DIFFUSION), TRUE)
   include $(COND_PATH)/Make.package
   EXTERN_CORE += $(COND_PATH)
-endif	      
+endif
 
 ifeq ($(USE_RAD), TRUE)
   OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
@@ -231,8 +231,8 @@ ifeq ($(USE_RAD), TRUE)
 LAPACK_dir    := $(TOP)/Util/LAPACK
 include $(LAPACK_dir)/Make.package
 EXTERN_CORE += $(TOP)/Util/LAPACK
-INCLUDE_LOCATIONS += $(LAPACK_dir) 
-VPATH_LOCATIONS   += $(LAPACK_dir) 
+INCLUDE_LOCATIONS += $(LAPACK_dir)
+VPATH_LOCATIONS   += $(LAPACK_dir)
 endif
 
 ifeq ($(DIM), 1)
@@ -243,10 +243,10 @@ VPATH_LOCATIONS   += $(TOP)/Util/plot1d
 endif
 
 
-Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd
-
-
-Pdirs 	:= Base AmrCore Amr Boundary 
+# AMReX directories -- note the Make.package for these adds these
+# directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
+# don't need to do it here
+Pdirs 	:= Base AmrCore Amr Boundary
 
 ifeq ($(USE_PARTICLES), TRUE)
   Pdirs += Particle
@@ -258,32 +258,28 @@ endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
-Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
-Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
+
+# Castro directories
+Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd \
+           constants Util/model_parser
 
 ifeq ($(USE_RAD), TRUE)
-RadDirs := Source/Radiation
-RadDirs += Source/Radiation/_interpbndry
-RadDirs	+= Source/Radiation/RadSrc_$(DIM)d Source/Radiation/RadSrc_nd
-
-Bpack += $(foreach dir, $(RadDirs), $(TOP)/$(dir)/Make.package)
-Blocs += $(foreach dir, $(RadDirs), $(TOP)/$(dir))
+Bdirs +=   Source/Radiation Source/Radiation/_interpbndry \
+           Source/Radiation/RadSrc_$(DIM)d Source/Radiation/RadSrc_nd
 endif
+
+Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
+Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 include $(Bpack)
 
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-include $(TOP)/constants/Make.package
-EXTERN_CORE += $(TOP)/constants
-INCLUDE_LOCATIONS += $(TOP)/constants
-VPATH_LOCATIONS   += $(TOP)/constants
 
-include $(TOP)/Util/model_parser/Make.package
+# these are for finding runtime parameters
+EXTERN_CORE += $(TOP)/constants
 EXTERN_CORE += $(TOP)/Util/model_parser
-INCLUDE_LOCATIONS += $(TOP)/Util/model_parser
-VPATH_LOCATIONS   += $(TOP)/Util/model_parser
 
 USE_MG = FALSE
 
@@ -294,7 +290,7 @@ endif
 ifeq ($(USE_DIFFUSION), TRUE)
   USE_MG = TRUE
 endif
-   
+
 ifeq ($(USE_MG), TRUE)
   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
@@ -312,7 +308,7 @@ EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTER
 extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)" 
+           --pa "$(EXTERN_PARAMETERS)"
 
 # job_info support
 #CEXE_sources += AMReX_buildInfo.cpp
@@ -338,28 +334,23 @@ objForExecs += $(objEXETempDir)/AMReX_buildInfo.o
 .FORCE:
 .PHONE: .FORCE
 
-$(objEXETempDir)/AMReX_buildInfo.o: .FORCE
+# set BUILD_GIT_NAME and BUILD_GIT_DIR if you are building in a
+# git-controlled dir not under Castro/
+EXTRA_BUILD_INFO :=
 ifdef BUILD_GIT_NAME
-	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
-          --amrex_home "$(AMREX_HOME)" \
-          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
-          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
-          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
-          --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)" \
-	  --build_git_name "$(BUILD_GIT_NAME)" \
-	  --build_git_dir "$(BUILD_GIT_DIR)"
-else
-	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
-          --amrex_home "$(AMREX_HOME)" \
-          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
-          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
-          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
-          --MODULES "$(MNAMES)" \
-          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
+EXTRA_BUILD_INFO := --build_git_name "$(BUILD_GIT_NAME)" \
+                    --build_git_dir "$(BUILD_GIT_DIR)"
 endif
+
+$(objEXETempDir)/AMReX_buildInfo.o: .FORCE
+	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
+          --amrex_home "$(AMREX_HOME)" \
+          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
+          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
+          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
+          --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
+          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) AMReX_buildInfo.cpp -o $(objEXETempDir)/AMReX_buildInfo.o
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 
