@@ -1727,8 +1727,6 @@ Castro::check_for_post_regrid (Real time)
 
 	int num_tags = tags.numTags();
 
-	amrex::ParallelDescriptor::ReduceIntSum(num_tags);
-
 	// If we requested any tags at all, we have a potential trigger for a regrid.
 
 	bool missing_on_fine_level = false;
@@ -1784,6 +1782,10 @@ Castro::check_for_post_regrid (Real time)
 	    post_step_regrid = 1;
 
 	}
+
+	// Now find out if any processor asked for a regrid.
+
+	amrex::ParallelDescriptor::ReduceIntMax(post_step_regrid);
 
     }
 #endif
