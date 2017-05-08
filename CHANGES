@@ -2,6 +2,9 @@
 
   -- we now require the AMReX library instead of the BoxLib library
 
+  -- a new mechanism for using a stability criterion to trigger
+     a regrid at the end of a timestep was added (PR #122)
+
 # 17.05
 
   -- some protections added in the retry code
