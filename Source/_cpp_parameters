@@ -265,6 +265,10 @@ change_max                   Real          1.1
 # on the same level until we reach the original target time.
 use_retry                    int           0
 
+# Check for a possible post-timestep regrid if certain stability
+# criteria were violated.
+use_post_step_regrid         int           0
+
 # Do not permit more retry timesteps than this parameter.
 # Set to a negative value to disable this criterion.
 retry_max_subcycles          int           1000

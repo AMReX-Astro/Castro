@@ -1,0 +1,19 @@
+&fortin
+  T_l = 4.d9
+  T_r = 5.d7
+
+  dens = 2.d8
+
+  cfrac = 0.d0
+
+  idir = 1
+  frac = 0.333d0
+/
+
+&tagging
+
+/
+
+&extern
+
+/

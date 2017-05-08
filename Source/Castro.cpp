@@ -19,6 +19,7 @@
 #include <Derive_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
+#include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
 #include <Castro_error_F.H>
 
@@ -1020,7 +1021,15 @@ Castro::init ()
 
     Real dt_old = (cur_time - prev_time)/(Real)parent->MaxRefRatio(level-1);
 
-    setTimeLevel(cur_time,dt_old,dt);
+    Real time = cur_time;
+
+    // If we just triggered a regrid, we need to account for the fact that
+    // the data on the coarse level has already been advanced.
+
+    if (getLevel(level-1).post_step_regrid)
+	time = prev_time;
+
+    setTimeLevel(time,dt_old,dt);
 
     for (int s = 0; s < num_state_type; ++s) {
 	MultiFab& state_MF = get_new_data(s);
@@ -1687,6 +1696,103 @@ Castro::postCoarseTimeStep (Real cumtime)
 }
 
 void
+Castro::check_for_post_regrid (Real time)
+{
+
+#ifdef REACTIONS
+    // Check whether we violated the burning stability criterion. This
+    // will manifest as any zones at this time signifying that they
+    // need to be tagged that do not have corresponding zones on the fine level.
+
+    if (level < parent->maxLevel()) {
+
+	TagBoxArray tags(grids, dmap);
+
+	tags.setVal(TagBox::CLEAR);
+
+	int err_idx = -1;
+
+	for (int i = 0; i < err_list.size(); ++i) {
+	    if (err_list[i].name() == "t_sound_t_enuc") {
+		err_idx = i;
+		break;
+	    }
+	}
+
+	if (err_idx < 0) {
+	    amrex::Abort("Error: t_sound_t_enuc error function not found.");
+	}
+
+	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
+
+	int num_tags = tags.numTags();
+
+	// If we requested any tags at all, we have a potential trigger for a regrid.
+
+	bool missing_on_fine_level = false;
+
+	if (num_tags > 0) {
+
+	    if (level == parent->finestLevel()) {
+
+		// If there is no level above us at all, we know a regrid is needed.
+
+		missing_on_fine_level = true;
+
+	    }
+	    else {
+
+		// If there is a level above us, we need to check whether
+		// every tagged zone has a corresponding entry in the fine
+		// grid. If not, we need to trigger a regrid so we can get
+		// those other zones refined too.
+		
+		std::vector<IntVect> tvec;
+		
+		tags.collate(tvec);
+
+		const BoxArray& fgrids = getLevel(level+1).boxArray();
+
+		for (int i = 0; i < tvec.size(); ++i) {
+
+		    Box c_bx(tvec[i], tvec[i]);
+		    Box f_bx = c_bx.refine(parent->refRatio(level));
+
+		    if (!fgrids.contains(f_bx)) {
+			missing_on_fine_level = true;
+			break;
+		    }
+
+		}
+
+	    }
+
+	}
+
+	if (missing_on_fine_level) {
+
+	    if (amrex::ParallelDescriptor::IOProcessor()) {
+
+		std::cout << "\n"
+			  << "Current refinement pattern insufficient at level " << level << ".\n"
+			  << "Performing a regrid to obtain more refinement.\n";
+
+	    }
+
+	    post_step_regrid = 1;
+
+	}
+
+	// Now find out if any processor asked for a regrid.
+
+	amrex::ParallelDescriptor::ReduceIntMax(post_step_regrid);
+
+    }
+#endif
+
+}
+
+void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
@@ -1701,21 +1807,73 @@ Castro::post_regrid (int lbase,
 #ifdef SELF_GRAVITY
     if (do_grav)
     {
-       const Real cur_time = state[State_Type].curTime();
-       if ( (level == lbase) && cur_time > 0.)
-       {
-	   if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
-	       int use_previous_phi = 1;
 
-	       // Update the maximum density, used in setting the solver tolerance.
+	if (use_post_step_regrid && post_step_regrid && gravity->get_gravity_type() == "PoissonGrav" && lbase < new_finest) {
 
-	       if (level == 0) {
-		   gravity->update_max_rhs();
-	       }
+	   // In the case where we're coming here during a regrid that occurs
+	   // after a timestep, we only want to interpolate the gravitational
+	   // field from the old time. The state data will already have been
+	   // filled, so all we need to do is interpolate the grad_phi data.
 
-	       gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
-	   }
-       }
+	    // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
+	    // since the fine levels for Poisson gravity do not touch the physical boundary.
+
+	    GradPhiPhysBCFunct gp_phys_bc;
+
+	    // We need to use a nodal interpolater.
+
+	    Interpolater* gp_interp = &node_bilinear_interp;
+
+	    Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(lbase));
+	    Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lbase+1));
+
+	    Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
+
+	    for (int lev = lbase+1; lev <= new_finest; ++lev) {
+
+		// For the BCs, we will use the Gravity_Type BCs for convenience, but these will
+		// not do anything because we do not fill on physical boundaries.
+
+		const Array<BCRec>& gp_bcs = getLevel(lev).get_desc_lst()[Gravity_Type].getBCs();
+
+		for (int n = 0; n < BL_SPACEDIM; ++n) {
+		    amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
+						 0, 0, 1,
+						 parent->Geom(lev-1), parent->Geom(lev),
+						 gp_phys_bc, gp_phys_bc, parent->refRatio(lev-1),
+						 gp_interp, gp_bcs);
+		}
+
+		if (lev+1 <= new_finest) {
+
+		    grad_phi_coarse = grad_phi_fine;
+		    grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lev+1));
+
+		}
+
+	    }
+
+       } else {
+
+	    const Real cur_time = state[State_Type].curTime();
+	    if ( (level == lbase) && cur_time > 0.)
+	    {
+		if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+		    int use_previous_phi = 1;
+
+		    // Update the maximum density, used in setting the solver tolerance.
+
+		    if (level == 0)
+			gravity->update_max_rhs();
+
+		    gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
+
+		}
+
+	    }
+
+	}
+
     }
 #endif
 }
@@ -1965,6 +2123,56 @@ Castro::advance_aux(Real time, Real dt)
     }
 }
 #endif
+
+
+void
+Castro::FluxRegCrseInit() {
+
+    FluxRegister* reg;
+
+    if (level == parent->finestLevel()) return;
+
+    Castro& fine_level = getLevel(level+1);
+
+    for (int i = 0; i < BL_SPACEDIM; ++i)
+	fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+#endif
+
+}
+
+
+void
+Castro::FluxRegFineAdd() {
+
+    FluxRegister* reg;
+
+    if (level == 0) return;
+
+    for (int i = 0; i < BL_SPACEDIM; ++i)
+	flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+
+#if (BL_SPACEDIM <= 2)
+    if (!Geometry::IsCartesian())
+	getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+#endif
+
+#ifdef RADIATION
+    if (Radiation::rad_hydro_combined)
+	for (int i = 0; i < BL_SPACEDIM; ++i)
+	    getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+#endif
+
+}
 
 
 void
@@ -2425,6 +2633,79 @@ Castro::errorEst (TagBoxArray& tags,
 
     set_amr_info(level, -1, -1, -1.0, -1.0);
 
+    Real t = time;
+
+    // If we are forcing a post-timestep regrid,
+    // note that we need to use the new time here,
+    // not the old time.
+
+    if (post_step_regrid)
+	t = get_state_data(State_Type).curTime();
+
+    // Apply each of the built-in tagging functions.
+
+    for (int j = 0; j < err_list.size(); j++)
+	apply_tagging_func(tags, clearval, tagval, t, j);
+
+    // Now we'll tag any user-specified zones using the full state array.
+
+    const int*  domain_lo = geom.Domain().loVect();
+    const int*  domain_hi = geom.Domain().hiVect();
+    const Real* dx        = geom.CellSize();
+    const Real* prob_lo   = geom.ProbLo();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    {
+        Array<int>  itags;
+
+	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	{
+	    // tile box
+	    const Box&  tilebx  = mfi.tilebox();
+
+            TagBox&     tagfab  = tags[mfi];
+
+	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+	    // So we are going to get a temporary integer array.
+	    tagfab.get_itags(itags, tilebx);
+
+            // data pointer and index space
+	    int*        tptr    = itags.dataPtr();
+	    const int*  tlo     = tilebx.loVect();
+	    const int*  thi     = tilebx.hiVect();
+
+#ifdef DIMENSION_AGNOSTIC
+	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
+			     BL_TO_FORTRAN_3D(S_new[mfi]),
+			     &tagval, &clearval,
+			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
+			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
+#else
+	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
+			     BL_TO_FORTRAN(S_new[mfi]),
+			     &tagval, &clearval,
+			     tilebx.loVect(), tilebx.hiVect(),
+			     dx, prob_lo, &time, &level);
+#endif
+
+	    //
+	    // Now update the tags in the TagBox.
+	    //
+            tagfab.tags_and_untags(itags, tilebx);
+	}
+    }
+}
+
+
+
+void
+Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
+{
+
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
@@ -2488,55 +2769,9 @@ Castro::errorEst (TagBoxArray& tags,
 	}
 
     }
-
-    // Now we'll tag any user-specified zones using the full state array.
-
-    MultiFab& S_new = get_new_data(State_Type);
-
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-        Array<int>  itags;
-
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-	{
-	    // tile box
-	    const Box&  tilebx  = mfi.tilebox();
-
-            TagBox&     tagfab  = tags[mfi];
-
-	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-	    // So we are going to get a temporary integer array.
-	    tagfab.get_itags(itags, tilebx);
-
-            // data pointer and index space
-	    int*        tptr    = itags.dataPtr();
-	    const int*  tlo     = tilebx.loVect();
-	    const int*  thi     = tilebx.hiVect();
-
-#ifdef DIMENSION_AGNOSTIC
-	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
-			     BL_TO_FORTRAN_3D(S_new[mfi]),
-			     &tagval, &clearval,
-			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
-			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
-#else
-	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
-			     BL_TO_FORTRAN(S_new[mfi]),
-			     &tagval, &clearval,
-			     tilebx.loVect(), tilebx.hiVect(),
-			     dx, prob_lo, &time, &level);
-#endif
-
-	    //
-	    // Now update the tags in the TagBox.
-	    //
-            tagfab.tags_and_untags(itags, tilebx);
-	}
-    }
 }
+
+
 
 std::unique_ptr<MultiFab>
 Castro::derive (const std::string& name,
