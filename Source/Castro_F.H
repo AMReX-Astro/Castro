@@ -2,10 +2,11 @@
 #define _Castro_F_H_
 #include <AMReX_BLFort.H>
 
+#ifdef __cplusplus
 #include <AMReX.H>
-
 extern "C"
 {
+#endif
 
   void ca_network_init();
 
@@ -280,7 +281,11 @@ extern "C"
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo, 
      const amrex::Real* time, const int* bc)
+#ifdef __cplusplus
   { amrex::Abort("Not supposed to call ca_nullfill"); }
+#else
+    ;
+#endif
 
 #else
 
@@ -399,7 +404,11 @@ extern "C"
      const int dlo[], const int dhi[],
      const amrex::Real dx[], const amrex::Real glo[],
      const amrex::Real* time, const int bc[])
+#ifdef __cplusplus
   { amrex::Abort("Not supposed to call ca_nullfill"); }
+#else
+    ;
+#endif
 
 #endif
 
@@ -745,7 +754,9 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
+#ifdef __cplusplus
 }
+#endif
 
 #ifdef DIMENSION_AGNOSTIC
 

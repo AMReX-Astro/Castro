@@ -68,6 +68,7 @@ amrex::Real Castro::cfl = 0.8;
 amrex::Real Castro::init_shrink = 1.0;
 amrex::Real Castro::change_max = 1.1;
 int         Castro::use_retry = 0;
+int         Castro::use_post_step_regrid = 0;
 int         Castro::retry_max_subcycles = 1000;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 int         Castro::sdc_iters = 2;

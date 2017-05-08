@@ -363,6 +363,10 @@ public:
     //
     virtual void postCoarseTimeStep (amrex::Real cumtime) override;
     //
+    // Check whether we want to do a regrid.
+    //
+    void check_for_post_regrid (amrex::Real time);
+    //
     // Do work after regrid().
     //
     virtual void post_regrid (int lbase,
@@ -391,16 +395,19 @@ public:
     virtual void errorEst (amrex::TagBoxArray& tb,
                            int          clearval,
                            int          tagval,
-                           amrex::Real         time,
+                           amrex::Real  time,
 			   int          n_error_buf = 0,
 			   int          ngrow = 0) override;
 
+    //
+    // Apply a given tagging function.
+    //
+    void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+
     // Returns a MultiFab containing the derived data for this level.
-    // The user is responsible for deleting this pointer when done
-    // with it.  If ngrow>0 the MultiFab is built on the appropriately
-    // grown BoxArray.
+    // If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
     virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
-						     amrex::Real               time,
+						     amrex::Real        time,
 						     int                ngrow) override;
 
     // This version of derive() fills the dcomp'th component of mf with the derived quantity.
@@ -668,6 +675,9 @@ protected:
     static void read_params ();
 
     Castro& getLevel (int lev);
+
+    void FluxRegCrseInit();
+    void FluxRegFineAdd();
 
     void reflux (int crse_level, int fine_level);
 

@@ -1,5 +1,9 @@
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   void problem_checkpoint(int* int_dir_name, int* len);
 
@@ -113,4 +117,6 @@ extern "C"
 
   void set_total_ener_array(const amrex::Real* const ener_array);
 
+#ifdef __cplusplus
 }
+#endif

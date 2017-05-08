@@ -20,8 +20,10 @@
 
 #include <AMReX_BLFort.H>
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 void ca_init_radhydro_pars
     (const int & fspace_advection_type, const int & do_inelastic_scattering,
      const int & comoving, const amrex::Real & flatten_pp_threshold);
@@ -34,8 +36,9 @@ void ca_initradconstants
 void ca_initsinglegroup
   (const int& ngroups);
 
+#ifdef __cplusplus
 }
-
+#endif
 
 
 BL_FORT_PROC_DECL(CA_INITGROUPS,ca_initgroups)
@@ -51,8 +54,10 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
    const amrex::Real* xnu, const int& ngroups, const int& ng0, const int& ng1);
 
 #ifdef NEUTRINO
+#ifdef __cplusplus
 extern "C"
 {
+#endif
   void ca_derneut
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
@@ -97,10 +102,14 @@ extern "C"
      const amrex::Real* delta, const amrex::Real* xlo,
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
      const int* level, const int* grid_no);
+#ifdef __cplusplus
 }
 #endif
+#endif
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_powerlaw_kappa
      (const int lo[], const int hi[],
       BL_FORT_FAB_ARG(kappa), const BL_FORT_FAB_ARG(u), 
@@ -113,7 +122,9 @@ extern "C" {
       const amrex::Real* kappa0, const amrex::Real* m, const amrex::Real* n, const amrex::Real* p, 
       const amrex::Real* s0, const amrex::Real* sm, const amrex::Real* sn, const amrex::Real* sp, 
       const amrex::Real* Tfloor, const amrex::Real* kfloor);
+#ifdef __cplusplus
 }
+#endif
 
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
@@ -123,7 +134,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
     BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_get_v_dcf
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(er), 
@@ -151,7 +164,9 @@ extern "C" {
     const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
     const amrex::Real* r, const int* idir);
 
+#ifdef __cplusplus
 }
+#endif
  
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
@@ -164,7 +179,9 @@ BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
     const int lo[], const int hi[],
     const amrex::Real* dx, const int* limiter, const int* comoving); 
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_set_dterm_face
    (const int lo[], const int hi[],
     const BL_FORT_FAB_ARG(Er),
@@ -185,13 +202,19 @@ extern "C" {
 	    BL_FORT_FAB_ARG(dfy),
 	    BL_FORT_FAB_ARG(dfz)),
      const amrex::Real* re, const amrex::Real* rc);
+#ifdef __cplusplus
 }
+#endif
 
 // <MGFLD>
+#ifdef __cplusplus
 extern "C" {
+#endif
 void ca_initfluxlimiter
    (const int* limiter, const int* closure);
+#ifdef __cplusplus
 }
+#endif
 
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_ACCEL_ACOE_NEUT, ca_accel_acoe_neut)
@@ -300,7 +323,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETA_THE, ca_compute_eta_the)
      const BL_FORT_FAB_ARG(rho),
      const amrex::Real* delta_t, const amrex::Real* tau);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_rhs_neut
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
@@ -321,7 +346,9 @@ extern "C" {
     const BL_FORT_FAB_ARG(rhoYe_star),    
     const amrex::Real* r,
     const amrex::Real* dt, const int* igroup, const amrex::Real* ptc_tau);
+#ifdef __cplusplus
 }
+#endif
 
 BL_FORT_PROC_DECL(CA_COMPUTE_ROSSELAND_NEUT, ca_compute_rosseland_neut)
    (const int lo[], const int hi[],
@@ -472,7 +499,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_ETAT, ca_compute_etat)
      const BL_FORT_FAB_ARG(rho),
      const amrex::Real* delta_t, const amrex::Real* tau);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_rhs
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
@@ -486,7 +515,9 @@ extern "C" {
     const BL_FORT_FAB_ARG(rhoe_star),    
     const amrex::Real* r,
     const amrex::Real* dt, const int* igroup, const amrex::Real* ptc_tau);
+#ifdef __cplusplus
 }
+#endif
 
 BL_FORT_PROC_DECL(CA_LOCAL_ACCEL, ca_local_accel)
    (const int lo[], const int hi[],
@@ -529,12 +560,16 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
 
 #endif
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_rosseland
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpr),
     const BL_FORT_FAB_ARG(state));
+#ifdef __cplusplus
 }
+#endif
 
 BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
    (const int * lo, const int* hi,
@@ -548,7 +583,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
     const amrex::Real* k0_r, const amrex::Real* m_r, const amrex::Real* n_r,
     const amrex::Real* Tfloor, const amrex::Real* kfloor);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_planck
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(kpp),
@@ -563,7 +600,9 @@ extern "C" {
      const int* domlo, const int* domhi,
      const amrex::Real* delta, const amrex::Real* xlo, const amrex::Real* problo,
      const amrex::Real* time, const int* level);
+#ifdef __cplusplus
 }
+#endif
 
 // photon problems solved by the neutrino solver need these
 BL_FORT_PROC_DECL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
@@ -607,7 +646,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
     const amrex::Real* scattering_exp_p,
     const amrex::Real* prop_temp_floor);
 #ifdef MG_SU_OLSON
+#ifdef __cplusplus
 extern "C" {
+#endif
   void ca_compute_rhs_so
    (const int* lo, const int *hi, 
     BL_FORT_FAB_ARG(rhs),
@@ -620,7 +661,9 @@ extern "C" {
     const BL_FORT_FAB_ARG(rhoe_star),    
     const amrex::Real* x,
     const amrex::Real* t, const amrex::Real* dt, const int* igroup);
+#ifdef __cplusplus
 }
+#endif
 #endif
 
 // other functions that work for both neutrino and photons
@@ -632,8 +675,10 @@ BL_FORT_PROC_DECL(CA_ACCEL_CCOE, ca_accel_ccoe)
     const amrex::Real* dx, const int* idim, const int* igroup);
 
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   void ca_flux_face2center
    (const int lo[], const int hi[],
@@ -649,7 +694,9 @@ extern "C"
 	   BL_FORT_FAB_ARG(lamy),
 	   BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
+#ifdef __cplusplus
 }
+#endif
 
 BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
    (const int* lo, const int* hi,
@@ -657,8 +704,10 @@ BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
     const amrex::Real* r, const amrex::Real* dt);
 
 // in RadDerive_?d.f90
+#ifdef __cplusplus
 extern "C"
 {
+#endif
   void ca_derertot
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
@@ -683,12 +732,16 @@ extern "C"
      const amrex::Real* delta, const amrex::Real* xlo,
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
+#ifdef __cplusplus
 }
+#endif
 // </ MGFLD>
 
 // RadEOS
+#ifdef __cplusplus
 extern "C" 
 {
+#endif
   void ca_compute_c_v
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG(cv),
@@ -713,7 +766,9 @@ extern "C"
      const amrex::Real* const_c_v,
      const amrex::Real* c_v_exp_m,
      const amrex::Real* c_v_exp_n);
+#ifdef __cplusplus
 }
+#endif
 
 #ifdef NEUTRINO
 BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
@@ -754,7 +809,9 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
      const BL_FORT_FAB_ARG(Fi), int& ifi, int& nfi, 
      BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   void multrs(BL_FORT_FAB_ARG(cc), 
 	      ARLIM_P(reglo), ARLIM_P(reghi), amrex::Real* r, amrex::Real* s);
 
@@ -960,6 +1017,8 @@ extern "C" {
 	      BL_FORT_FAB_ARG(spec),
 	      BL_FORT_FAB_ARG(accel), 
 	      const int& nTotal);
+#ifdef __cplusplus
 };
+#endif
 
 #endif

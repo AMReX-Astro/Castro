@@ -145,7 +145,7 @@ contains
              ! We currently do not know how to fill the boundary conditions
              ! for fine levels that touch the physical boundary.
              ! (Note that this does not apply for interior/symmetry boundaries.)
-             ! To do this properly we need to be aware of BoxLib's strategy
+             ! To do this properly we need to be aware of AMReX's strategy
              ! for tagging, which is not cell-based, but rather chunk-based.
              ! The size of the chunk on the coarse grid is given by
              ! blocking_factor / ref_ratio -- the idea here being that

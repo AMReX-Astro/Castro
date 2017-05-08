@@ -1,5 +1,9 @@
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   void ca_derinertialmomentumx(BL_FORT_FAB_ARG_3D(der),const int* nvar,
 			       const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
@@ -129,4 +133,6 @@ extern "C"
 			   const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
 			   const int* level, const int* grid_no);
 
+#ifdef __cplusplus
 }
+#endif
