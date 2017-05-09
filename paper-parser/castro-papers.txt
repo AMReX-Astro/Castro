@@ -85,3 +85,28 @@ pop III supernovae: http://adsabs.harvard.edu/abs/2015ASPC..498...47C
 
 pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...797....9W
 
+pop III supernovae: http://adsabs.harvard.edu/abs/2015MPLA...3030002C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2014IJMPD..2330008C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...797...97S
+
+V&amp;V: http://adsabs.harvard.edu/abs/2014JCoPh.275..154J
+
+pair-instability SNe: http://adsabs.harvard.edu/abs/2014ApJ...792...28C
+
+Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2014ApJ...788...75R
+
+Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2014ApJ...785..105M
+
+algorithm: http://adsabs.harvard.edu/abs/2013A%26C.....3...70C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2013ApJ...768..195W
+
+algorithm: http://adsabs.harvard.edu/abs/2012JPhCS.402a2024C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2011CoPhC.182..254C
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2010ApJ...709...11J
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2010AIPC.1294..255C
