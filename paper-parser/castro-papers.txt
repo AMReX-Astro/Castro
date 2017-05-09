@@ -93,7 +93,7 @@ pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...797...97S
 
 V&amp;V: http://adsabs.harvard.edu/abs/2014JCoPh.275..154J
 
-pair-instability SNe: http://adsabs.harvard.edu/abs/2014ApJ...792...28C
+pop III supernovae: http://adsabs.harvard.edu/abs/2014ApJ...792...28C
 
 Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2014ApJ...788...75R
 
