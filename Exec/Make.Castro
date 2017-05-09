@@ -133,14 +133,6 @@ endif
 all: $(executable)
 	@echo SUCCESS
 
-# for backward compatibility -- MICROPHYSICS_DIR is deprecated
-ifndef MICROPHYSICS_HOME
-   ifdef MICROPHYSICS_DIR
-      MICROPHYSICS_HOME := $(MICROPHYSICS_DIR)
-      $(info MICROPHYSICS_DIR is deprecated.  Please use MICROPHYSICS_HOME)
-   endif
-endif
-
 ifdef MICROPHYSICS_HOME
    EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
    NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
