@@ -5,6 +5,6 @@ C$(CA_BASE)_sources += RadInterpBndryData.cpp RadBndryData.cpp
 
 C$(CA_BASE)_headers += RadInterpBndryData.H RadBndryData.H RadBoundCond.H
 
-F90$(CA_BASE)_sources += RadInterpBndryData_$(DIM)d.F90
+ca_F90$(CA_BASE)_sources += RadInterpBndryData_$(DIM)d.F90
 
-F$(CA_BASE)_headers += RADINTERPBNDRYDATA_F.H
+ca_F$(CA_BASE)_headers += RADINTERPBNDRYDATA_F.H
