@@ -262,9 +262,16 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-f90EXE_sources += $(ca_f90EXE_sources)
-F90EXE_sources += $(ca_F90EXE_sources)
+ifeq ($(MEGA_FORTRAN), TRUE)
+   F90EXE_sources += mega_f.F90
+   #$(depEXETempDir)/f90.depends: mega_f.F90
+else
+   f90EXE_sources += $(ca_f90EXE_sources)
+   F90EXE_sources += $(ca_F90EXE_sources)
+endif
 
+mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
+	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
 
 # these are for finding runtime parameters
 EXTERN_CORE += $(TOP)/constants
