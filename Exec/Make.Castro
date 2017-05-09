@@ -279,9 +279,7 @@ else
 endif
 
 mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
-	#$(RM) mega_f.F90
-	#$(foreach f, $^, $(shell echo "$f"))
-	$(foreach f, $^, $(shell cat "$f" >> mega_f.F90))
+	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
 
 # these are for finding runtime parameters
 EXTERN_CORE += $(TOP)/constants
