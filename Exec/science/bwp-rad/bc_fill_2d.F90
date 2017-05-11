@@ -208,11 +208,10 @@ contains
     integer :: i, j
 
 
-    !temporary values just to see if things compile
      real:: c_light = 2.99e10
      real:: F_in
      real(rt) :: const_k, exp_m, exp_n 
-     real:: D = 5.3 !will change, now is just to have something compiling
+     real:: D 
      real:: T, rho, k
 
      call parmparse_build(pp,"radiation")
@@ -225,42 +224,29 @@ contains
      F_in = bcval_lo(2)
 
 
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:,1)
+     ! handle an external BC via extrapolation here 
+     bc_temp(:,:) = bc(:,:,1)
 
-    if ( bc(2,1,1) == EXT_DIR .and. rad_l2 < domlo(2)) then
-       bc_temp(2,1) = FOEXTRAP
-    endif
+     if ( bc(2,1,1) == EXT_DIR .and. rad_l2 < domlo(2)) then
+        bc_temp(2,1) = FOEXTRAP
+     endif
 
-    call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
+     call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
 
-    !computing the gradient of Er to then get R ??  .... based on function scgrgd1
-     !do j = rad_l2, rad_h2
-        ! x derivatives, gradient assembly:
-      !  do i = rad_l1, rad_h1 + 1
-       !    r(i,j) = abs(rad(i,j) - rad(i-1,j)) / delta(1)
-       ! enddo
-     !enddo
+     !compute the gradient of Er to then get R ??  .... 
 
-        ! y derivative
-     !do j = rad_l2, rad_h2 
-      !  do i = rad_l1, rad_h1
-       !    r(i,j) = sqrt( r(i,j) ** 2 + ( abs(rad(i,j) - rad(i,j-1)) / delta(2) )**2 )
-        !enddo
-     !enddo
 
-     
+     !for now using the last one? cause it is the same at initial time at end of domain
+     !maybe do an interpolation and find opacity in each cell?
+     T = T_0(npts)
+     rho = rho_0(npts)
+     k = const_k * rho**exp_m * T**(-exp_n) !rosseland mean opacity
+      
 
-      !for now using the last one? cause it is the same at initial time at end of domain
-      !maybe do an interpolation and find opacity in each cell?
-      T = T_0(npts)
-      rho = rho_0(npts)
-      k = const_k * rho**exp_m * T**(-exp_n) !rosseland mean opacity
-
-      D = FLDlambda(0.0e0_rt, limiter) / k  !R is 0? at initialization  
+     D = FLDlambda(0.0e0_rt, limiter) / k  !R is 0? at initialization  
 
       !fill ghost cell 
-      rad(rad_l1:rad_h1,rad_l2) = 2.0*D/(2.0*D + delta(2)) * (2.0*delta(2)/(c_light*D)*F_in + rad(rad_l1:rad_h1,rad_l2+1))
+     rad(rad_l1:rad_h1,rad_l2) = 2.0*D/(2.0*D + delta(2)) * (2.0*delta(2)/(c_light*D)*F_in + rad(rad_l1:rad_h1,rad_l2+1))
 
 
   end subroutine ca_radfill
