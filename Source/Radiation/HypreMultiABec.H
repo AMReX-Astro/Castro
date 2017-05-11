@@ -3,6 +3,7 @@
 
 #include "HypreABec.H"
 
+#include <list>
 #include "HYPRE_sstruct_ls.h"
 
 // An AuxVar is an intermediate variable used in building up a

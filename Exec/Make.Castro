@@ -133,14 +133,6 @@ endif
 all: $(executable)
 	@echo SUCCESS
 
-# for backward compatibility -- MICROPHYSICS_DIR is deprecated
-ifndef MICROPHYSICS_HOME
-   ifdef MICROPHYSICS_DIR
-      MICROPHYSICS_HOME := $(MICROPHYSICS_DIR)
-      $(info MICROPHYSICS_DIR is deprecated.  Please use MICROPHYSICS_HOME)
-   endif
-endif
-
 ifdef MICROPHYSICS_HOME
    EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
    NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
@@ -270,9 +262,16 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-f90EXE_sources += $(ca_f90EXE_sources)
-F90EXE_sources += $(ca_F90EXE_sources)
+ifeq ($(MEGA_FORTRAN), TRUE)
+   F90EXE_sources += mega_f.F90
+   #$(depEXETempDir)/f90.depends: mega_f.F90
+else
+   f90EXE_sources += $(ca_f90EXE_sources)
+   F90EXE_sources += $(ca_F90EXE_sources)
+endif
 
+mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
+	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
 
 # these are for finding runtime parameters
 EXTERN_CORE += $(TOP)/constants
