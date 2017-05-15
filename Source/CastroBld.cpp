@@ -1,19 +1,22 @@
 
-#include "LevelBld.H"
+#include "AMReX_LevelBld.H"
 #include "Castro.H"
+
+using namespace amrex;
 
 class CastroBld
     :
     public LevelBld
 {
-    virtual void variableSetUp ();
-    virtual void variableCleanUp ();
-    virtual AmrLevel *operator() ();
+    virtual void variableSetUp () override;
+    virtual void variableCleanUp () override;
+    virtual AmrLevel *operator() () override;
     virtual AmrLevel *operator() (Amr&            papa,
                                   int             lev,
                                   const Geometry& level_geom,
                                   const BoxArray& ba,
-                                  Real            time);
+                                  const DistributionMapping& dm,
+                                  Real            time) override;
 };
 
 CastroBld Castro_bld;
@@ -47,7 +50,8 @@ CastroBld::operator() (Amr&            papa,
                        int             lev,
                        const Geometry& level_geom,
                        const BoxArray& ba,
+		       const DistributionMapping& dm,
                        Real            time)
 {
-    return new Castro(papa, lev, level_geom, ba, time);
+    return new Castro(papa, lev, level_geom, ba, dm, time);
 }

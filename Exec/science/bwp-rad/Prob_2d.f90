@@ -1,11 +1,11 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
   use bl_error_module
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer init, namlen
   integer name(namlen)
@@ -46,13 +46,16 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(1) = 0.e0_rt
   center(2) = 0.5e0_rt*(problo(2)+probhi(2))
 
+
   allocate(rho_0(npts_model))
   allocate(T_0(npts_model))
   !get initial Temperature and density from initial model
   rho_0 = model_state(:,idens_model)
   T_0 = model_state(:,itemp_model)
   npts = npts_model
-end subroutine PROBINIT
+
+end subroutine amrex_probinit
+
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -90,7 +93,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal
@@ -158,7 +161,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   use model_parser_module
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer level, nrad
   integer lo(2), hi(2)
   integer rad_state_l1,rad_state_l2

@@ -1,7 +1,8 @@
-#include <winstd.H>
 
 #include "Castro.H"
 #include "Castro_F.H"
+
+using namespace amrex;
 
 void Castro::construct_old_rotation_source(Real time, Real dt)
 {
@@ -10,7 +11,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 
     int ng = Sborder.nGrow();
 
-    old_sources[rot_src].setVal(0.0);
+    old_sources[rot_src]->setVal(0.0);
 
     // Fill the rotation data.
 
@@ -41,7 +42,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D(old_sources[rot_src][mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[rot_src])[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
 
@@ -64,7 +65,7 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 
     int ng = 0;
 
-    new_sources[rot_src].setVal(0.0);
+    new_sources[rot_src]->setVal(0.0);
 
     // Fill the rotation data.
 
@@ -101,10 +102,10 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(rot_new[mfi]),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[rot_src][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[0][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[1][mfi]),
-			BL_TO_FORTRAN_3D(fluxes[2][mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[rot_src])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
 			ZFILL(dx),dt,&time,
 			BL_TO_FORTRAN_3D(volume[mfi]));
 	}
@@ -141,7 +142,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     ng = state.nGrow();
 
     if (ng > rot.nGrow())
-      BoxLib::Error("State MF has more ghost cells than rotation MF.");
+      amrex::Error("State MF has more ghost cells than rotation MF.");
     
 #ifdef _OPENMP
 #pragma omp parallel

@@ -8,15 +8,17 @@
 #include <Gravity_F.H>
 #endif
 
+using namespace amrex;
+
 Real
 Castro::sumDerive (const std::string& name,
                    Real               time,
 		   bool               local)
 {
     Real sum     = 0.0;
-    MultiFab* mf = derive(name, time, 0);
+    auto mf = derive(name, time, 0);
 
-    BL_ASSERT(!(mf == 0));
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -34,8 +36,6 @@ Castro::sumDerive (const std::string& name,
 	}
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -52,9 +52,9 @@ Castro::volWgtSum (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto mf = derive(name,time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel() && finemask)
     {
@@ -85,8 +85,6 @@ Castro::volWgtSum (const std::string& name,
         sum += s;
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -102,9 +100,9 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto mf = derive(name,time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -135,8 +133,6 @@ Castro::volWgtSquaredSum (const std::string& name,
         sum += s;
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -153,9 +149,9 @@ Castro::locWgtSum (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto mf = derive(name,time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -186,8 +182,6 @@ Castro::locWgtSum (const std::string& name,
         sum += s;
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -205,9 +199,9 @@ Castro::locWgtSum2D (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto mf = derive(name,time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -238,8 +232,6 @@ Castro::locWgtSum2D (const std::string& name,
         sum += s;
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -247,21 +239,19 @@ Castro::locWgtSum2D (const std::string& name,
 }
 
 Real
-Castro::volWgtSumMF (MultiFab* mf, int comp, bool local) 
+Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local) 
 {
     BL_PROFILE("Castro::volWgtSumMF()");
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
 
-    BL_ASSERT(mf != 0);
-
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf,true); mfi.isValid(); ++mfi)
     {
-        FArrayBox& fab = (*mf)[mfi];
+        const FArrayBox& fab = mf[mfi];
 
         Real s = 0.0;
         const Box& box  = mfi.tilebox();
@@ -301,10 +291,10 @@ Castro::volWgtSumOneSide (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto        mf      = derive(name,time,0);
     const int* domhi    = geom.Domain().hiVect();
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -375,8 +365,6 @@ Castro::volWgtSumOneSide (const std::string& name,
 		
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -400,10 +388,10 @@ Castro::locWgtSumOneSide (const std::string& name,
 
     Real sum            = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0); 
+    auto        mf      = derive(name,time,0); 
     const int* domhi    = geom.Domain().hiVect(); 
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -473,8 +461,6 @@ Castro::locWgtSumOneSide (const std::string& name,
         
     }
 
-    delete mf;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -491,11 +477,11 @@ Castro::volProductSum (const std::string& name1,
 
     Real        sum = 0.0;
     const Real* dx  = geom.CellSize();
-    MultiFab*   mf1 = derive(name1,time,0);
-    MultiFab*   mf2 = derive(name2,time,0);
+    auto        mf1 = derive(name1,time,0);
+    auto        mf2 = derive(name2,time,0);
 
-    BL_ASSERT(mf1 != 0);
-    BL_ASSERT(mf2 != 0);
+    BL_ASSERT(mf1);
+    BL_ASSERT(mf2);
 
     if (level < parent->finestLevel())
     {
@@ -523,9 +509,6 @@ Castro::volProductSum (const std::string& name1,
         sum += s;
     }
 
-    delete mf1;
-    delete mf2;
-
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);
 
@@ -542,9 +525,9 @@ Castro::locSquaredSum (const std::string& name,
 
     Real        sum     = 0.0;
     const Real* dx      = geom.CellSize();
-    MultiFab*   mf      = derive(name,time,0);
+    auto        mf      = derive(name,time,0);
 
-    BL_ASSERT(mf != 0);
+    BL_ASSERT(mf);
 
     if (level < parent->finestLevel())
     {
@@ -569,8 +552,6 @@ Castro::locSquaredSum (const std::string& name,
 
         sum += s;
     }
-
-    delete mf;
 
     if (!local)
 	ParallelDescriptor::ReduceRealSum(sum);

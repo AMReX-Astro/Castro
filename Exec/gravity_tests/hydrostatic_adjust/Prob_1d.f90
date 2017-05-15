@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
@@ -8,7 +8,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use model_parser_module
 
   use network, only : nspec
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: init,namlen,untin,i,k
@@ -99,7 +99,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   hse_eint_top = eos_state%e
   hse_p_top = eos_state%p
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -133,7 +133,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use model_parser_module, only: npts_model
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: level, nscal

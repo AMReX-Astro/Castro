@@ -1,6 +1,6 @@
 module rotation_sources_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -21,7 +21,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -160,7 +160,7 @@ contains
     use hybrid_advection_module, only: add_hybrid_momentum_source
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(3), hi(3)

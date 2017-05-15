@@ -1,7 +1,7 @@
 module probdata_module
 
 !     These determine the refinement criteria
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       real(rt)        , save :: denerr,  dengrad
       real(rt)        , save :: velerr,  velgrad
       real(rt)        , save :: presserr,pressgrad

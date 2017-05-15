@@ -4,8 +4,10 @@
 #include "Castro_F.H"
 #include "Problem_F.H"
 
+using namespace amrex;
+
 #ifdef DO_PROBLEM_POST_SIMULATION
-void Castro::problem_post_simulation(PArray<AmrLevel>& amr_level) {
+void Castro::problem_post_simulation(Array<std::unique_ptr<AmrLevel> >& amr_level) {
 
   // this is a stub post_simulation() routine
 

@@ -17,7 +17,7 @@ module riemann_module
                                    riemann_solver, ppm_temp_fix, hybrid_riemann, &
                                    allow_negative_energy
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -50,7 +50,7 @@ contains
     use rad_params_module, only : ngroups
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer ilo,ihi
@@ -206,7 +206,7 @@ contains
 
     use prob_params_module, only : coord_type
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: qd_l1, qd_h1
     integer, intent(in) :: s_l1, s_h1
     integer, intent(in) :: ilo1, ihi1
@@ -307,7 +307,7 @@ contains
     use eos_module
     use riemann_util_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter :: small = 1.e-8_rt
 
     integer :: qpd_l1, qpd_h1
@@ -834,7 +834,7 @@ contains
     use fluxlimiter_module, only : Edd_factor
 #endif
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
     integer ilo,ihi

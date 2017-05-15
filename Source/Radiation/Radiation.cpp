@@ -1,6 +1,6 @@
 
-#include <LO_BCTYPES.H>
-#include <ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
 #include "Radiation.H"
 #include "RadSolve.H"
 
@@ -9,7 +9,7 @@
 #include "RadTests.H"
 
 #include "RAD_F.H"
-#include "PROB_AMR_F.H"
+#include "AMReX_PROB_AMR_F.H"
 
 #include <iostream>
 
@@ -18,6 +18,8 @@
 #endif
 
 #include <sstream>
+
+using namespace amrex;
 
 // Radiation test problems and static parameters.  Some of these are
 // initialized with inputs values in the function read_static_params.
@@ -165,14 +167,14 @@ void Radiation::read_static_params()
   filter_lambda_S = filter_lambda_T - 1;
   pp.query("filter_lambda_S", filter_lambda_S);
   if (filter_lambda_T > 4) {
-    BoxLib::Error("filter_lambda_T > 4");
+    amrex::Error("filter_lambda_T > 4");
   }
   if (filter_lambda_T < 0) {
-    BoxLib::Error("filter_lambda_T < 0");
+    amrex::Error("filter_lambda_T < 0");
   }
   if (filter_lambda_T > 0) {
     if (filter_lambda_S >= filter_lambda_T) {
-      BoxLib::Error("Invalid filter_lambda_S; S must be less than T when T > 0.");
+      amrex::Error("Invalid filter_lambda_S; S must be less than T when T > 0.");
     }
   }
 
@@ -181,20 +183,20 @@ void Radiation::read_static_params()
   filter_prim_S = filter_prim_T - 1;
   pp.query("filter_prim_S", filter_prim_S);
   if (filter_prim_T > 4) {
-    BoxLib::Error("filter_prim_T > 4");
+    amrex::Error("filter_prim_T > 4");
   }
   if (filter_prim_T < 0) {
-    BoxLib::Error("filter_prim_T < 0");
+    amrex::Error("filter_prim_T < 0");
   }
   if (filter_prim_T > 0) {
     if (filter_prim_S >= filter_prim_T) {
-      BoxLib::Error("Invalid filter_prim_S; S must be less than T when T > 0.");
+      amrex::Error("Invalid filter_prim_S; S must be less than T when T > 0.");
     }
   }
 
   if (rad_hydro_combined) {
     if (Castro::use_colglaz >= 0) {
-      BoxLib::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
+      amrex::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
     }
   }
 
@@ -240,7 +242,7 @@ void Radiation::read_static_params()
   }
   else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
-      BoxLib::Error("Unknown Radiation::SolverType");    
+      amrex::Error("Unknown Radiation::SolverType");    
   }
 
 
@@ -420,12 +422,7 @@ void Radiation::read_static_params()
 }
 
 Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
-  : parent(Parent),
-    flux_cons(PArrayManage),
-    flux_cons_old(PArrayManage), 
-    flux_trial(PArrayManage),
-    dflux(PArrayManage),
-    plotvar(PArrayManage)
+  : parent(Parent)
 {
   // castro is passed in, rather than obtained from parent, because this
   // routine will be called in some cases before any AmrLevels have
@@ -476,10 +473,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("convergence_check_type", convergence_check_type);
   limiter  = 2;              pp.query("limiter", limiter);
   if (SolverType == SGFLDSolver && limiter%10 == 1) {
-    BoxLib::Abort("SGFLDSolver does not supports limiter = 1");    
+    amrex::Abort("SGFLDSolver does not supports limiter = 1");    
   }
   if (SolverType == MGFLDSolver && limiter%10 == 1) {
-    BoxLib::Abort("MGFLDSolver does not supports limiter = 1");    
+    amrex::Abort("MGFLDSolver does not supports limiter = 1");    
   }
 
   closure = 3;
@@ -789,7 +786,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 			comoving, flatten_pp_threshold);
 }
 
-void Radiation::regrid(int level, const BoxArray& grids)
+void Radiation::regrid(int level, const BoxArray& grids, const DistributionMapping& dmap)
 {
   BL_PROFILE("Radiation::Regrid");
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
@@ -799,32 +796,22 @@ void Radiation::regrid(int level, const BoxArray& grids)
   if (level > 0) {
     IntVect crse_ratio = parent->refRatio(level-1);
 
-    if (flux_cons.defined(level))
-      delete flux_cons.remove(level);
-    flux_cons.set(level,
-                  new FluxRegister(grids, crse_ratio, level, nGroups));
-    flux_cons[level].setVal(0.0);
+    flux_cons[level].reset(new FluxRegister(grids, dmap, crse_ratio, level, nGroups));
+    flux_cons[level]->setVal(0.0);
 
     // For deferred sync, flux_cons_old does not need to be defined here.
     // It will be set in the deferred_sync_setup routine.
 
-    if (flux_trial.defined(level))
-      delete flux_trial.remove(level);
-    flux_trial.set(level,
-                   new FluxRegister(grids, crse_ratio, level, nGroups));
-    flux_trial[level].setVal(0.0);
+    flux_trial[level].reset(new FluxRegister(grids, dmap, crse_ratio, level, nGroups));
+    flux_trial[level]->setVal(0.0);
 
   }
 
-  if (dflux.defined(level))
-    delete dflux.remove(level);
-  dflux.set(level, new MultiFab(grids, 1, 0));
+  dflux[level].reset(new MultiFab(grids, dmap, 1, 0));
 
-  if (plotvar.defined(level))
-      delete plotvar.remove(level);
   if (nplotvar > 0) {
-      plotvar.set(level, new MultiFab(grids, nplotvar, 0));
-      plotvar[level].setVal(0.0);
+      plotvar[level].reset(new MultiFab(grids, dmap, nplotvar, 0));
+      plotvar[level]->setVal(0.0);
   }
 
   // This array will not be used on the finest level.  I create it here,
@@ -844,19 +831,15 @@ void Radiation::close(int level)
       std::cout << "Clearing radiation object at level " << level
             << "..." << std::endl;
     }
-    if (flux_cons.defined(level))
-      delete flux_cons.remove(level);
-    if (flux_trial.defined(level))
-      delete flux_trial.remove(level);
+    flux_cons[level].reset();
+    flux_trial[level].reset();
 
     // flux_cons_old is not deleted here because if it exists it still
     // has energy in it.  It will be deleted once it is finally used.
 
-    if (dflux.defined(level))
-      delete dflux.remove(level);
+    dflux[level].reset();
 
-    if (plotvar.defined(level))
-	delete plotvar.remove(level);
+    plotvar[level].reset();
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "                                       done" << std::endl;
@@ -884,8 +867,8 @@ void Radiation::close(int level)
 }
 
 void Radiation::restart(int level, const BoxArray& grids,
-                        const std::string& dir,
-                        std::istream& is)
+			const DistributionMapping& dmap,
+                        const std::string& dir, std::istream& is)
 {
   //
   // With the deferred sync option, we have to restart the rad flux register
@@ -931,19 +914,9 @@ void Radiation::restart(int level, const BoxArray& grids,
     //
     // Input conservation flux register.
     //
-    FluxRegister flux_in;
-    flux_in.read(FullPathName, is);
-
     const IntVect& crse_ratio = parent->refRatio(level-1);
-    flux_cons_old.set(level, new FluxRegister(grids, crse_ratio, level, nGroups));
-    
-    BL_ASSERT(flux_cons_old[level].refRatio()  == flux_in.refRatio());
-    BL_ASSERT(flux_cons_old[level].fineLevel() == flux_in.fineLevel());
-    BL_ASSERT(flux_cons_old[level].crseLevel() == flux_in.crseLevel());
-    BL_ASSERT(flux_cons_old[level].nComp()     == flux_in.nComp());
-    BL_ASSERT(BoxLib::match(flux_cons_old[level].boxes(), flux_in.boxes()));
-
-    FluxRegister::Copy(flux_cons_old[level], flux_in);
+    flux_cons_old[level].reset(new FluxRegister(grids, dmap, crse_ratio, level, nGroups));    
+    flux_cons_old[level]->read(FullPathName, is);
   }
 }
 
@@ -991,7 +964,7 @@ void Radiation::checkPoint(int level,
     os << PathNameInHeader;
   }
 
-  if (flux_cons_old.defined(level)) {
+  if (flux_cons_old[level]) {
     //
     // Conservation flux register exists.
     //
@@ -1014,7 +987,7 @@ void Radiation::checkPoint(int level,
     //
     // Output conservation flux register.
     //
-    flux_cons_old[level].write(FullPathName, os /* , how */ );
+    flux_cons_old[level]->write(FullPathName, os /* , how */ );
   }
   else {
     //
@@ -1034,6 +1007,7 @@ void Radiation::analytic_solution(int level)
 
   Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
 
   Real time = castro->get_state_data(Rad_Type).curTime();
 
@@ -1070,12 +1044,12 @@ void Radiation::analytic_solution(int level)
     }
 
     MultiFab& S_new = castro->get_new_data(State_Type);
-    MultiFab& T_new = plotvar[level];
+    MultiFab& T_new = *plotvar[level];
     
-    MultiFab temp(grids,1,0);
+    MultiFab temp(grids,dmap,1,0);
     
     {
-      MultiFab fkp(grids,1,0);
+      MultiFab fkp(grids,dmap,1,0);
       
       get_frhoe(temp, S_new);
       get_planck_and_temp(fkp, temp, S_new);
@@ -1119,12 +1093,12 @@ void Radiation::pre_timestep(int level)
       // and not rebuilt flux_cons, so check for that here.
       
       int flevel = level + 1;
-      if (!flux_cons.defined(flevel)) {
+      if (!flux_cons[flevel]) {
 	  const BoxArray& grids = parent->getLevel(flevel).boxArray();
+	  const DistributionMapping& dmap = parent->getLevel(flevel).DistributionMap();
 	  const IntVect& crse_ratio = parent->refRatio(level);
-	  flux_cons.set(flevel,
-			new FluxRegister(grids, crse_ratio, flevel, nGroups));
-	  flux_cons[flevel].setVal(0.0);
+	  flux_cons[flevel].reset(new FluxRegister(grids, dmap, crse_ratio, flevel, nGroups));
+	  flux_cons[flevel]->setVal(0.0);
       }
   }
   
@@ -1151,10 +1125,10 @@ void Radiation::init_flux(int level, int ncycle)
 
   int fine_level = parent->finestLevel();
 
-  dflux[level].setVal(0.0);
+  dflux[level]->setVal(0.0);
 
   if (level < fine_level) {
-      flux_cons[level+1].setVal(0.0);
+      flux_cons[level+1]->setVal(0.0);
   }
 
   if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
@@ -1429,6 +1403,7 @@ void Radiation::getBndryData(RadBndry& bd, MultiFab& Er,
   BL_PROFILE("Radiation::getBndryData");
   Castro      *castro = (Castro*)&parent->getLevel(level);
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
 
   if (level == 0) {
     bd.setBndryValues(Er, Rad, 0, 1, rad_bc); // Rad=0
@@ -1437,7 +1412,7 @@ void Radiation::getBndryData(RadBndry& bd, MultiFab& Er,
     BoxArray cgrids(grids);
     IntVect crse_ratio = parent->refRatio(level-1);
     cgrids.coarsen(crse_ratio);
-    BndryRegister crse_br(cgrids, 0, 1, 1, 1);
+    BndryRegister crse_br(cgrids, dmap, 0, 1, 1, 1);
     crse_br.setVal(1.0e30);
     filBndry(crse_br, level-1, time);
 
@@ -1458,6 +1433,7 @@ void Radiation::getBndryDataMG(MGRadBndry& mgbd, MultiFab& Er,
   BL_PROFILE("Radiation::getBndryDataMG");
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
 
   if(level == 0) {
     mgbd.setBndryValues(Er, 0, 0, Radiation::nGroups, rad_bc);
@@ -1466,7 +1442,7 @@ void Radiation::getBndryDataMG(MGRadBndry& mgbd, MultiFab& Er,
     BoxArray cgrids(grids);
     IntVect crse_ratio = parent->refRatio(level-1);
     cgrids.coarsen(crse_ratio);
-    BndryRegister crse_br(cgrids, 0, 1, 1, Radiation::nGroups);
+    BndryRegister crse_br(cgrids, dmap, 0, 1, 1, Radiation::nGroups);
     crse_br.setVal(1.0e30);
     filBndry(crse_br, level-1, time);
 
@@ -1483,6 +1459,7 @@ void Radiation::getBndryDataMG_ga(MGRadBndry& mgbd, MultiFab& Er, int level)
   BL_PROFILE("Radiation::getBndryDataMG_ga");
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
 
   if(level == 0) {
     mgbd.setBndryValues(Er, 0, 0, 1, rad_bc);
@@ -1491,7 +1468,7 @@ void Radiation::getBndryDataMG_ga(MGRadBndry& mgbd, MultiFab& Er, int level)
     BoxArray cgrids(grids);
     IntVect crse_ratio = parent->refRatio(level-1);
     cgrids.coarsen(crse_ratio);
-    BndryRegister crse_br(cgrids, 0, 1, 1, 1);
+    BndryRegister crse_br(cgrids, dmap, 0, 1, 1, 1);
     crse_br.setVal(0.0);
 
     mgbd.setBndryValues(crse_br, 0, Er, 0,
@@ -1508,6 +1485,7 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
 
   Castro      *castro = (Castro*)&parent->getLevel(level);
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom  = parent->Geom(level);
 
   Real old_time = castro->get_state_data(Rad_Type).prevTime();
@@ -1554,14 +1532,14 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
     MultiFab snew_tmp;
 
     if (need_old_data) {
-      sold_tmp.define(grids, 1, n_grow, Fab_allocate);
+      sold_tmp.define(grids, dmap, 1, n_grow);
       sold_tmp.setVal(0.0); // need legal numbers for linComb below
       sold_tmp.copy(S_old, Rad, 0, 1);
       sold_tmp.FillBoundary(geom.periodicity());
     }
 
     if (need_new_data) {
-      snew_tmp.define(grids, 1, n_grow, Fab_allocate);
+      snew_tmp.define(grids, dmap, 1, n_grow);
       snew_tmp.setVal(0.0); // need legal numbers for linComb below
       snew_tmp.copy(S_new, Rad, 0, 1);
       snew_tmp.FillBoundary(geom.periodicity());
@@ -1613,7 +1591,7 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
 	}
     }
     else {
-	BoxLib::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
+	amrex::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
     }
 }
 
@@ -1633,7 +1611,7 @@ void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
 	      BL_TO_FORTRAN(state));
     }
     else {
-	BoxLib::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
+	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
     }
     
     if (use_opacity_table_module) {
@@ -1681,7 +1659,7 @@ void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
 	    BL_TO_FORTRAN(state));
   }
   else {
-    BoxLib::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
+    amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
   }
 
   state.copy(temp,reg,0,reg,Temp,1);
@@ -1878,25 +1856,19 @@ void Radiation::deferred_sync_setup(int crse_level)
 
   const Orientation ori(0, Orientation::low);
 
-  int do_swap = (flux_cons_old.defined(level) &&
-                 (flux_cons_old[level].coarsenedBoxes() ==
-                  flux_cons[level].coarsenedBoxes()) &&
-                 (flux_cons_old[level][ori].DistributionMap() ==
-                  flux_cons[level][ori].DistributionMap()));
+  int do_swap = (flux_cons_old[level] &&
+                 (flux_cons_old[level]->coarsenedBoxes() ==
+                  flux_cons[level]->coarsenedBoxes()) &&
+                 ((*flux_cons_old[level])[ori].DistributionMap() ==
+                  (*flux_cons[level])[ori].DistributionMap()));
 
   if (do_swap) {
-    // flux_cons_old exists and is based on same grids as flux_cons
-
-    FluxRegister *tmp = flux_cons_old.remove(level);
-    flux_cons_old.set(level, flux_cons.remove(level));
-    flux_cons.set(level, tmp);
+      // flux_cons_old exists and is based on same grids as flux_cons
+      std::swap(flux_cons_old[level], flux_cons[level]);
   }
   else {
-    if (flux_cons_old.defined(level))
-      delete flux_cons_old.remove(level);
-    flux_cons_old.set(level, flux_cons.remove(level));
-
-    // leave flux_cons undefined because we may be about to regrid anyway
+      flux_cons_old[level] = std::move(flux_cons[level]);
+      // leave flux_cons undefined because we may be about to regrid anyway
   }
 
   delta_t_old[crse_level] = parent->dtLevel(crse_level);
@@ -1918,12 +1890,13 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
   int fine_level = parent->finestLevel();
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
   Real delta_t = parent->dtLevel(level);
 
   if (level < parent->maxLevel() &&
-      flux_cons_old.defined(level+1)) {
+      flux_cons_old[level+1]) {
 
-    FluxRegister& sync_flux = flux_cons_old[level+1];
+    FluxRegister& sync_flux = *flux_cons_old[level+1];
 
     if (indx == 0) {
       // clean up fine-fine interfaces (does all groups at once)
@@ -1941,7 +1914,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
     // output if one is found.
 
     if (level+1 < parent->maxLevel() &&
-        flux_cons_old.defined(level+2)) {
+        flux_cons_old[level+2]) {
 
       BoxArray fgrids;
 
@@ -1976,14 +1949,14 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
           ref_rat *= parent->refRatio(flev-1);
 
-          if (flux_cons_old.defined(flev+1)) {
+          if (flux_cons_old[flev+1]) {
 
             if (flev > level+1) {
               fgrids.refine(parent->refRatio(flev-1));
               // fgrids is now at refinement level flev
             }
 
-            FluxRegister& ff_sync = flux_cons_old[flev+1];
+            FluxRegister& ff_sync = *flux_cons_old[flev+1];
             BoxArray ffgr = ff_sync.coarsenedBoxes();
             ffgr.grow(1); // these are the cells to reflux into
 
@@ -1991,7 +1964,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
             const Box& domain = parent->Geom(flev).Domain();
 
             // this may be inefficient, so do it box by box instead
-            //ffgr = BoxLib::intersect(ffgr, domain);
+            //ffgr = amrex::intersect(ffgr, domain);
             for (int i = 0; i < ffgr.size(); i++) {
               ffgr.set(i, (ffgr[i] & domain));
             }
@@ -2064,7 +2037,9 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
               // enlarged so that it evenly covers whole cells at the
               // resolution of level.
 
-              MultiFab flev_data(refined_grids, 1, 0);
+	      const DistributionMapping& dm_ff_sync = ff_sync.DistributionMap();
+
+              MultiFab flev_data(refined_grids, dm_ff_sync, 1, 0);
               flev_data.setVal(0.0);
 
               // Reflux into this expanded (flev resolution) MultiFab.
@@ -2087,11 +2062,11 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
               // Coarsen to level resolution.
 
-              MultiFab rhs_tmp(grids, 1, 0);
+              MultiFab rhs_tmp(grids, dmap, 1, 0);
               rhs_tmp.setVal(0.0);     // clear garbage
 
               // The data we are coarsening already has the metric factor built in.
-	      BoxLib::average_down(flev_data, rhs_tmp, 0, 1, ref_rat);
+	      amrex::average_down(flev_data, rhs_tmp, 0, 1, ref_rat);
 
               // Add coarsened result into rhs.
               rhs.plus(rhs_tmp, 0, 1, 0);
@@ -2116,10 +2091,10 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
     // the update routine where delta_t_old is zeroed out after
     // the data becomes stale.
 
-    if (flux_cons_old.defined(flev) &&
+    if (flux_cons_old[flev] &&
         delta_t_old[flev-1] > 0.0) {
 
-      FluxRegister& crse_sync_flux = flux_cons_old[flev];
+      FluxRegister& crse_sync_flux = *flux_cons_old[flev];
 
       const IntVect& rat = crse_sync_flux.refRatio();
       BoxArray old_boxes = crse_sync_flux.coarsenedBoxes();
@@ -2156,11 +2131,12 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
 
         // We now know we have to reflux from crse_sync_flux
 
-        FluxRegister ref_sync_flux(old_boxes,
+	const DistributionMapping& dm_crse_sync_flux = crse_sync_flux.DistributionMap();
+
+        FluxRegister ref_sync_flux(old_boxes, dm_crse_sync_flux,
                                    IntVect::TheUnitVector(),
                                    level+1, // this is not used
-                                   1,
-                                   crse_sync_flux.DistributionMap());
+                                   1);
         ref_rat *= rat;
 
         // ref_rat is now the ratio between level and flev-1
@@ -2241,7 +2217,8 @@ void Radiation::scaledGradient(int level,
   if (nGrow_Er == 0) { // default value
     if (limiter > 0) {
       const BoxArray& grids = parent->boxArray(level);
-      Erbtmp.define(grids,1,1,Fab_allocate);
+      const DistributionMapping& dmap = parent->DistributionMap(level);
+      Erbtmp.define(grids,dmap,1,1);
       Erbtmp.setVal(-1.0);
       MultiFab::Copy(Erbtmp, Er, igroup, 0, 1, 0);
 
@@ -2269,7 +2246,7 @@ void Radiation::scaledGradient(int level,
 
 	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
 	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
-	      const Box& reg = BoxLib::enclosedCells(nbox);
+	      const Box& reg = amrex::enclosedCells(nbox);
 
 	      if (limiter == 0) {
 		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
@@ -2283,7 +2260,7 @@ void Radiation::scaledGradient(int level,
 	      }
 	      else if (limiter%10 == 2) {
 #if (BL_SPACEDIM >= 2)
-		  const Box& dbox = BoxLib::grow(reg,1);
+		  const Box& dbox = amrex::grow(reg,1);
 		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  scgrd2(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp), 
@@ -2301,7 +2278,7 @@ void Radiation::scaledGradient(int level,
 	      }
 	      else {
 #if (BL_SPACEDIM >= 2)
-		  const Box& dbox = BoxLib::grow(reg,1);
+		  const Box& dbox = amrex::grow(reg,1);
 		  dtmp.resize(dbox, BL_SPACEDIM - 1);
 #endif
 		  scgrd3(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp), 
@@ -2419,7 +2396,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		std::cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
 		     << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
 		     << "when use_opacity_table_module=1"<<std::endl;
-		BoxLib::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
+		amrex::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
 	    }
 	    
 	    
@@ -2560,7 +2537,7 @@ void Radiation::set_current_group(int igroup)
     current_group_name = "Muon";
   }
   else {
-    BoxLib::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
+    amrex::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
   }
 #else
   current_group_number = igroup;
@@ -2572,6 +2549,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
 {
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
+  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom = parent->Geom(level);
 
   const int*  domain_lo = geom.Domain().loVect();
@@ -2583,7 +2561,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
   int ncomp = State.nComp();
   Real time = castro->get_state_data(Rad_Type).curTime();
 
-  MultiFab mask(grids,1,ngrow);
+  MultiFab mask(grids,dmap,1,ngrow);
   mask.setVal(-1.0,ngrow);
   mask.setVal( 0.0,0);
   mask.FillBoundary(geom.periodicity());

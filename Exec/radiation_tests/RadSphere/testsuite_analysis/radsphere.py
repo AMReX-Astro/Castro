@@ -20,11 +20,13 @@ def process(castrorad_dir, plotfile):
     run_dir = os.getcwd()
 
     # 1. make sure that the analysis tool is built
-    build_dir = castrorad_dir + "/Exec/RadSphere/Tools/"
+    build_dir = castrorad_dir + "/Exec/radiation_tests/RadSphere/Tools"
     os.chdir(build_dir)
     os.system("make programs=fradsphere >& /dev/null")
 
     # find the executable
+    analysis_routine = ""
+    
     for file in os.listdir(build_dir):
         if (os.path.isfile(file) and 
             file.startswith("fradsphere") and
@@ -46,7 +48,7 @@ def process(castrorad_dir, plotfile):
     os.system("./{} {} > {}".format(analysis_routine, plotfile, "radsphere_testsuite.out"))
 
 
-    analytic = castrorad_dir + "/Exec/RadSphere/testsuite_analysis/radsphere_analytic.out"
+    analytic = castrorad_dir + "/Exec/radiation_tests/RadSphere/testsuite_analysis/radsphere_analytic.out"
     analytic_data = np.loadtxt(analytic)
 
     data = np.loadtxt("radsphere_testsuite.out")

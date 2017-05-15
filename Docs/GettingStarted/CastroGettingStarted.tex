@@ -1,7 +1,7 @@
 
 \section{Downloading the Code}
 
-\castro\ is built on top of the \boxlib\ framework.  In order to run
+\castro\ is built on top of the \amrex\ framework.  In order to run
 \castro\, you must download two separate git modules.
 
 \vspace{.1in}
@@ -12,61 +12,54 @@
 
 \begin{enumerate}
 
-\item Clone/fork the \boxlib\ repository from the \boxlib\ Codes {\sf
-  github} page (\url{https://github.com/BoxLib-Codes}).  To
+\item Clone/fork the \amrex\ repository from the {\tt AMReX-Codes} {\sf
+  github} page (\url{https://github.com/AMReX-Codes/amrex/}).  To
   clone via the command line, simply type:
 \begin{verbatim}
-git clone https://github.com/BoxLib-Codes/BoxLib.git
+git clone https://github.com/AMReX-Codes/amrex.git
 \end{verbatim}
 Alternately, if you have a {\sf github} account with your
 machine's SSH-keys registered, you can do:
 \begin{verbatim}
-git clone ssh://git@github.com/BoxLib-Codes/BoxLib.git
+git clone ssh://git@github.com/AMReX-Codes/amrex.git
 \end{verbatim}
 
-This will create a directory called {\tt BoxLib/} on your machine.
+This will create a directory called {\tt amrex/} on your machine.
 
-You will want to periodically update \boxlib\ by typing
+You will want to periodically update \amrex\ by typing
 \begin{verbatim}
 git pull
 \end{verbatim}
-in the {\tt BoxLib/} directory.  
+in the {\tt amrex/} directory.  
 
 Note: actively development is done on the {\tt development} branch
 in each repo, and merged into the {\tt master} branch periodically.
 If you wish to use the \castro\ {\tt development} branch, then you
-should also switch to the {\tt development} branch for \boxlib.
+should also switch to the {\tt development} branch for \amrex.
 
-If you prefer not to use {\sf git}, you can navigate to the
-\href{https://github.com/BoxLib-Codes}{\boxlib\ Codes} page in
-your browser, click on \boxlib, and press the ``Download ZIP''
-button to get an archive of the software. However, if you do this
-then you will need to re-download the software each time you want to
-update, so this is not recommended.
-
-\item Set the environment variable, {\tt BOXLIB\_HOME}, on your
-  machine to point to the path name where you have put \boxlib.
+\item Set the environment variable, {\tt AMREX\_HOME}, on your
+  machine to point to the path name where you have put \amrex.
   You can add this to your {\tt .bashrc} as:
 \begin{Verbatim}[commandchars=\\\{\}]
-export BOXLIB_HOME={\em /path/to/BoxLib/}
+export AMREX_HOME={\em /path/to/amrex/}
 \end{Verbatim}
-where you replace \texttt{\em /path/to/BoxLib/} will the full path to the
-{\tt BoxLib/} directory.
+where you replace \texttt{\em /path/to/amrex/} will the full path to the
+{\tt amrex/} directory.
 
 \item Clone/fork the \castro\ repository from the same {\sf
   github} organization as above, using either HTTP access:
 \begin{verbatim}
-git clone https://github.com/BoxLib-Codes/Castro.git
+git clone https://github.com/AMReX-Astro/Castro.git
 \end{verbatim}
 or SSH access if you have it enabled:
 \begin{verbatim}
-git clone ssh://git@github.com:/BoxLib-Codes/Castro.git
+git clone ssh://git@github.com:/AMReX-Astro/Castro.git
 \end{verbatim}
 Or, as above, you can download a ZIP file of the code from
-\href{https://github.com/BoxLib-Codes}{our main {\sf github} page},
+\href{https://github.com/AMReX-Astro}{our main {\sf github} page},
 by clicking on the \castro\ link.
 
-As with \boxlib, development on \castro\ is done in the
+As with \amrex, development on \castro\ is done in the
 {\tt development} branch, so you should work there if you want
 the latest source.
 
@@ -138,7 +131,7 @@ problem in 1-d, 2-d or 3-d.
       build with MPI---this requires that you have the MPI library
       installed on your machine.  In this case, the build system will
       need to know about your MPI installation.  This can be done by
-      editing the makefiles in the \boxlib\ tree, but the default
+      editing the makefiles in the \amrex\ tree, but the default
       fallback is to look for the standard MPI wrappers (e.g.\ {\tt
         mpic++} and {\tt mpif90}) to do the build.
 
@@ -178,8 +171,9 @@ clear by the names of the inputs files.
 \index{visualization}
 
 There are several options for visualizing the data.  The popular
-\visit\ package supports the \boxlib\ file format natively, as does
-the \yt\ python package.  The standard tool used within the
+\visit\ package supports the \amrex\ file format natively, as does the
+\yt\ python package\footnote{Each of these will recognize it as the
+  \boxlib\ format.}.  The standard tool used within the
 \boxlib-community is \amrvis, which we demonstrate here.
 
 \begin{enumerate}

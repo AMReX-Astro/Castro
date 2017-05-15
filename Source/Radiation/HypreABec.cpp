@@ -1,6 +1,6 @@
 
-#include <ParmParse.H>
-#include <LO_BCTYPES.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_LO_BCTYPES.H>
 
 #include "HypreABec.H"
 #include "HABEC_F.H"
@@ -12,6 +12,8 @@
 #endif
 
 #include "_hypre_struct_mv.h"
+
+using namespace amrex;
 
 static int ispow2(int i)
 {
@@ -43,7 +45,9 @@ static int* hiV(const Box& b) {
 #endif
 }
 
-HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
+HypreABec::HypreABec(const BoxArray& grids,
+		     const DistributionMapping& dmap,
+		     const Geometry& _geom,
 		     int _solver_flag)
   : geom(_geom), solver_flag(_solver_flag)
 {
@@ -93,7 +97,7 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
   // (SMG reduces to cyclic reduction in this case, so it's an exact solve.)
   // (PFMG will not work.)
 
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, 2, &grid);
+  HYPRE_StructGridCreate(MPI_COMM_WORLD, 2, &hgrid);
 
   if (geom.isAnyPeriodic()) {
     BL_ASSERT(geom.isPeriodic(0));
@@ -104,12 +108,12 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
     is_periodic[1] = 0;
     BL_ASSERT(ispow2(is_periodic[0]));
 
-    HYPRE_StructGridSetPeriodic(grid, is_periodic);
+    HYPRE_StructGridSetPeriodic(hgrid, is_periodic);
   }
 
 #else
 
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, &grid);
+  HYPRE_StructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, &hgrid);
 
   if (geom.isAnyPeriodic()) {
     int is_periodic[BL_SPACEDIM];
@@ -121,7 +125,7 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
 	BL_ASSERT(geom.Domain().smallEnd(i) == 0);
       }
     }
-    HYPRE_StructGridSetPeriodic(grid, is_periodic);
+    HYPRE_StructGridSetPeriodic(hgrid, is_periodic);
   }
 #endif
 
@@ -129,21 +133,20 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
     // parallel section:
     BL_ASSERT(ParallelDescriptor::NProcs() == num_procs);
     BL_ASSERT(ParallelDescriptor::MyProc() == myid);
-    DistributionMapping distributionMap(grids, num_procs);
 
     for (i = 0; i < grids.size(); i++) {
-      if (distributionMap[i] == myid) {
-	HYPRE_StructGridSetExtents(grid, loV(grids[i]), hiV(grids[i]));
+      if (dmap[i] == myid) {
+	HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
       }
     }
   }
   else {
     for (i = 0; i < grids.size(); i++) {
-      HYPRE_StructGridSetExtents(grid, loV(grids[i]), hiV(grids[i]));
+      HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
     }
   }
 
-  HYPRE_StructGridAssemble(grid);
+  HYPRE_StructGridAssemble(hgrid);
 
 #if (BL_SPACEDIM == 1)
   // if we were really 1D:
@@ -186,20 +189,20 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
     HYPRE_StructStencilSetElement(stencil, i, offsets[i]);
   }
 
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &A);
+  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, hgrid, stencil, &A);
   HYPRE_StructMatrixSetSymmetric(A, 1);
   HYPRE_StructMatrixSetNumGhost(A, A_num_ghost);
   HYPRE_StructMatrixInitialize(A);
 
-  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, grid, stencil, &A0);
+  HYPRE_StructMatrixCreate(MPI_COMM_WORLD, hgrid, stencil, &A0);
   HYPRE_StructMatrixSetSymmetric(A0, 1);
   HYPRE_StructMatrixSetNumGhost(A0, A_num_ghost);
   HYPRE_StructMatrixInitialize(A0);
 
-  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, stencil, &b);
-  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, stencil, &x);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &b);
-  HYPRE_StructVectorCreate(MPI_COMM_WORLD, grid, &x);
+  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, stencil, &b);
+  //HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, stencil, &x);
+  HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, &b);
+  HYPRE_StructVectorCreate(MPI_COMM_WORLD, hgrid, &x);
 
   HYPRE_StructStencilDestroy(stencil); // no longer needed
 
@@ -208,34 +211,25 @@ HypreABec::HypreABec(const BoxArray& grids, const Geometry& _geom,
 
   int ncomp=1;
   int ngrow=0;
-  acoefs = new MultiFab(grids, ncomp, ngrow);
+  acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
  
   for (i = 0; i < BL_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
-    bcoefs[i] = new MultiFab(edge_boxes, ncomp, ngrow);
+    bcoefs[i].reset(new MultiFab(edge_boxes, dmap, ncomp, ngrow));
   }
-
-  SPa = 0;
 }
 
 HypreABec::~HypreABec()
 {
-  delete acoefs;
-  for (int i = 0; i < BL_SPACEDIM; i++) {
-    delete bcoefs[i];
-  }
-
-  delete SPa;
-
   HYPRE_StructVectorDestroy(b);
   HYPRE_StructVectorDestroy(x);
 
   HYPRE_StructMatrixDestroy(A);
   HYPRE_StructMatrixDestroy(A0);
 
-  HYPRE_StructGridDestroy(grid);
+  HYPRE_StructGridDestroy(hgrid);
 }
 
 void HypreABec::setScalars(Real Alpha, Real Beta)
@@ -263,7 +257,8 @@ void HypreABec::SPalpha(const MultiFab& a)
   BL_ASSERT( a.ok() );
   if (SPa == 0) {
     const BoxArray& grids = a.boxArray(); 
-    SPa = new MultiFab(grids,1,0);
+    const DistributionMapping& dmap = a.DistributionMap();
+    SPa.reset(new MultiFab(grids,dmap,1,0));
   }
   MultiFab::Copy(*SPa, a, 0, 0, 1, 0);
 }
@@ -290,6 +285,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
   Real foo=1.e200;
 
   Real *mat, *vec;
+  FArrayBox fnew;
   for (MFIter vi(vector); vi.isValid(); ++vi) {
     i = vi.index();
     const Box &reg = grids[i];
@@ -303,17 +299,14 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       f->copy(vector[vi], icomp, 0, 1);
       fcomp = 0;
     }
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg),
 				   f->dataPtr(fcomp));
-
-    if (vector.nGrow() != 0) {
-      delete f;
-    }
 
     // initialize product (to temporarily hold the boundary contribution):
 
@@ -345,13 +338,13 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
       idim = oitr().coordDir();
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Mask      &msk = bd.bndryMasks(oitr())[i];
+      const Mask      &msk = bd.bndryMasks(oitr(),i);
 
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
         if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+          const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
           tfp = tf.dataPtr();
           bctype = -1;
         }
@@ -465,13 +458,13 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 		const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 		const Real      &bcl = bd.bndryLocs(oitr())[i];
 		const FArrayBox       &fs  = bd.bndryValues(oitr())[si];
-		const Mask      &msk = bd.bndryMasks(oitr())[i];
+		const Mask      &msk = bd.bndryMasks(oitr(),i);
 
 		if (reg[oitr()] == domain[oitr()]) {
 		    const int *tfp = NULL;
 		    int bctype = bct;
 		    if (bd.mixedBndry(oitr())) {
-			const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+			const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
 			tfp = tf.dataPtr();
 			bctype = -1;
 		    }
@@ -597,14 +590,14 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       idim = oitr().coordDir();
       const RadBoundCond &bct = bd.bndryConds(oitr())[i];
       const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Mask      &msk = bd.bndryMasks(oitr())[i];
+      const Mask      &msk = bd.bndryMasks(oitr(),i);
       const Box &bbox = (*bcoefs[idim])[ai].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
         const int *tfp = NULL;
         int bctype = bct;
         if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+          const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
           tfp = tf.dataPtr();
           bctype = -1;
         }
@@ -852,6 +845,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
   Array<Real> r;
 
   Real *vec;
+  FArrayBox fnew;
   for (MFIter di(dest); di.isValid(); ++di) {
     i = di.index();
     const Box &reg = grids[i];
@@ -865,7 +859,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       f->copy(dest[di], icomp, 0, 1);
       fcomp = 0;
     }
@@ -886,14 +881,14 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 	const RadBoundCond &bct = bd.bndryConds(oitr())[i];
 	const Real      &bcl = bd.bndryLocs(oitr())[i];
 	const FArrayBox       &fs  = bd.bndryValues(oitr())[di];
-	const Mask      &msk = bd.bndryMasks(oitr())[i];
+	const Mask      &msk = bd.bndryMasks(oitr(),i);
 	const Box &bbox = (*bcoefs[idim])[di].box();
 
         if (reg[oitr()] == domain[oitr()]) {
           const int *tfp = NULL;
           int bctype = bct;
           if (bd.mixedBndry(oitr())) {
-            const BaseFab<int> &tf = bd.bndryTypes(oitr())[i];
+            const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
             tfp = tf.dataPtr();
             bctype = -1;
           }
@@ -919,10 +914,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     // initialize rhs
 
     HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg), vec);
-
-    if (dest.nGrow() != 0) {
-      delete f;       // contains vec
-    }
   }
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
@@ -990,7 +981,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = icomp;
     }
     else {
-      f = new FArrayBox(reg);
+      f = &fnew;
+      f->resize(reg);
       fcomp = 0;
     }
 
@@ -1000,7 +992,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
     if (dest.nGrow() != 0) {
       dest[di].copy(*f, 0, icomp, 1);
-      delete f;
     }
   }
 

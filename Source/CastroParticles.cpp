@@ -5,6 +5,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+using namespace amrex;
+
 #ifdef PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
@@ -62,8 +64,8 @@ Castro::read_particle_params ()
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
     if (ParallelDescriptor::IOProcessor())
-        if (!BoxLib::UtilCreateDirectory(timestamp_dir, 0755))
-            BoxLib::CreateDirectoryFailed(timestamp_dir);
+        if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
+            amrex::CreateDirectoryFailed(timestamp_dir);
     //
     // Force other processors to wait till directory is built.
     //
@@ -149,7 +151,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
     }
 }
 
-MultiFab*
+std::unique_ptr<MultiFab>
 Castro::ParticleDerive(const std::string& name,
                        Real               time,
                        int                ngrow)
@@ -158,33 +160,34 @@ Castro::ParticleDerive(const std::string& name,
 
   if (TracerPC && name == "particle_count")
   {
-      MultiFab* derive_dat = new MultiFab(grids,1,0);
-      MultiFab    temp_dat(grids,1,0);
+      auto derive_dat = new MultiFab(grids,dmap,1,0);
+      MultiFab    temp_dat(grids,dmap,1,0);
       temp_dat.setVal(0);
       TracerPC->Increment(temp_dat,level);
       MultiFab::Copy(*derive_dat,temp_dat,0,0,1,0);
-      return derive_dat;
+      return std::unique_ptr<MultiFab>(derive_dat);
   }
   else if (TracerPC && name == "total_particle_count")
   {
       //
       // We want the total particle count at this level or higher.
       //
-      MultiFab* derive_dat = ParticleDerive("particle_count",time,ngrow);
+      auto derive_dat = ParticleDerive("particle_count",time,ngrow);
 
       IntVect trr(D_DECL(1,1,1));
 
       for (int lev = level+1; lev <= parent->finestLevel(); lev++)
       {
           BoxArray ba = parent->boxArray(lev);
+	  const DistributionMapping& dm = parent->DistributionMap(lev);
 
-          MultiFab temp_dat(ba,1,0);
+          MultiFab temp_dat(ba,dm,1,0);
 
           trr *= parent->refRatio(lev-1);
 
           ba.coarsen(trr);
 
-          MultiFab ctemp_dat(ba,1,0);
+          MultiFab ctemp_dat(ba,dm,1,0);
 
           temp_dat.setVal(0);
           ctemp_dat.setVal(0);
@@ -197,19 +200,19 @@ Castro::ParticleDerive(const std::string& name,
               FArrayBox&       cfab = ctemp_dat[mfi];
               const Box&       fbx  = ffab.box();
 
-              BL_ASSERT(cfab.box() == BoxLib::coarsen(fbx,trr));
+              BL_ASSERT(cfab.box() == amrex::coarsen(fbx,trr));
 
               for (IntVect p = fbx.smallEnd(); p <= fbx.bigEnd(); fbx.next(p))
               {
                   const Real val = ffab(p);
                   if (val > 0)
-                      cfab(BoxLib::coarsen(p,trr)) += val;
+                      cfab(amrex::coarsen(p,trr)) += val;
               }
           }
 
           temp_dat.clear();
 
-          MultiFab dat(grids,1,0);
+          MultiFab dat(grids,dmap,1,0);
           dat.setVal(0);
           dat.copy(ctemp_dat);
 
@@ -297,7 +300,7 @@ Castro::advance_particles(int iteration, Real time, Real dt)
 	int ng = iteration;
 	Real t = time + 0.5*dt;
 
-	MultiFab Ucc(grids,BL_SPACEDIM,ng); // cell centered velocity
+	MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
 
 	{
 	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);

@@ -1,6 +1,7 @@
 module trace_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_error_module, only : amrex_error
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -20,7 +21,7 @@ contains
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)
@@ -65,7 +66,7 @@ contains
 
       if (ppm_type .ne. 0) then
         print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
-        call bl_error("Error:: trace_3d.f90 :: tracexy")
+        call amrex_error("Error:: trace_3d.f90 :: tracexy")
       end if
 
       !!!!!!!!!!!!!!!
@@ -435,7 +436,7 @@ contains
                                      npassive, qpass_map, small_dens, small_pres, ppm_type
       use bl_constants_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer          :: qd_lo(3), qd_hi(3)
@@ -474,7 +475,7 @@ contains
 
       if (ppm_type .ne. 0) then
         print *,'Oops -- shouldnt be in tracez with ppm_type != 0'
-        call bl_error("Error:: trace_3d.f90 :: tracez")
+        call amrex_error("Error:: trace_3d.f90 :: tracez")
       end if
 
       dtdz = dt/dx(3)

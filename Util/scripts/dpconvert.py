@@ -3,7 +3,7 @@
 # walk through all of the Fortran files and convert any double
 # precision declarations to
 #
-#   real(c_real) :: x
+#   real(amrex_real) :: x
 
 import os
 import re
@@ -26,7 +26,7 @@ implno_re = re.compile(r"^(implicit\s+none)", re.IGNORECASE|re.DOTALL)
 use_re = re.compile(r"^(use)\s+(\w*)", re.IGNORECASE|re.DOTALL)
 
 # module include line to add
-mod_incl = "use bl_fort_module, only : rt => c_real"
+mod_incl = "use amrex_fort_module, only : rt => amrex_real"
 
 # new-style declaration
 new_decl = "real(rt)"
@@ -90,7 +90,7 @@ def main():
     for sf in sfiles:
 
         # the tricky part of the conversion is that we need to add the
-        # "use bl_fort_module" to the source in any program unit (or
+        # "use amrex_fort_module" to the source in any program unit (or
         # scope) that has double precision declarations.
 
         # read the file

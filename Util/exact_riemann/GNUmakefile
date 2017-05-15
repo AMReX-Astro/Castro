@@ -8,7 +8,7 @@ COMP := gfortran
 CASTRO_HOME = ../../
 
 # include the main Makefile stuff
-include $(BOXLIB_HOME)/Tools/F_mk/GMakedefs.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
 
 # core BoxLib directories
 BOXLIB_CORE := Src/F_BaseLib
@@ -65,8 +65,8 @@ Fmpack := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir)/GPackage.mak)
 Fmlocs := $(foreach dir, $(Fmdirs), $(CASTRO_HOME)/$(dir))
 
 # BoxLib stuff
-Fmpack += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir)/GPackage.mak)
-Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(BOXLIB_HOME)/$(dir))
+Fmpack += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir)/GPackage.mak)
+Fmlocs += $(foreach dir, $(BOXLIB_CORE), $(AMREX_HOME)/$(dir))
 
 # EOS/Network
 Fmpack += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir)/GPackage.mak)
@@ -100,21 +100,21 @@ FINCLUDE_LOCATIONS += $(Fmincs)
 
 # probin stuff
 PROBIN_PARAMETER_DIRS = ./
-PROBIN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(PROBIN_PARAMETER_DIRS))
+PROBIN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(PROBIN_PARAMETER_DIRS))
 
 EXTERN_PARAMETER_DIRS += $(foreach dir, $(MICROPHYS_CORE), $(MICROPHYSICS_HOME)/$(dir))
-EXTERN_PARAMETERS := $(shell $(BOXLIB_HOME)/Tools/F_scripts/findparams.py $(EXTERN_PARAMETER_DIRS))
+EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_PARAMETER_DIRS))
 
 PROBIN_TEMPLATE := ./dummy.probin.template
 
 probin.f90: $(PROBIN_PARAMETERS) $(EXTERN_PARAMETERS) $(PROBIN_TEMPLATE)
 	@echo " "
-	$(BOXLIB_HOME)/Tools/F_scripts/write_probin.py \
+	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(PROBIN_TEMPLATE) -o probin.f90 -n probin \
            --pa "$(PROBIN_PARAMETERS)" --pb "$(EXTERN_PARAMETERS)"
 
 
-include $(BOXLIB_HOME)/Tools/F_mk/GMakerules.mak
+include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
 
 
 %.$(suf).exe:%.f90 $(objects)

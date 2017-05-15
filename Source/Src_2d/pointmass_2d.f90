@@ -10,7 +10,7 @@
        use prob_params_module          , only : center
        use bl_constants_module
 
-       use bl_fort_module, only : rt => c_real
+       use amrex_fort_module, only : rt => amrex_real
        implicit none
 
        integer         , intent(in   ) :: lo(2), hi(2)
@@ -58,7 +58,7 @@
       use prob_params_module, only : center
       use bl_constants_module
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(2),hi(2)
@@ -117,7 +117,7 @@
       use meth_params_module, only : NVAR
       use prob_params_module, only : center
 
-      use bl_fort_module, only : rt => c_real
+      use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer :: lo(2),hi(2)

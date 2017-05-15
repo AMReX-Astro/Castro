@@ -1,31 +1,31 @@
-f90EXE_sources += trace_$(DIM)d.f90
-f90EXE_sources += trace_ppm_$(DIM)d.f90
-F90EXE_sources += trans_$(DIM)d.F90
-f90EXE_sources += slope_$(DIM)d.f90
-f90EXE_sources += ppm_$(DIM)d.f90
+ca_f90EXE_sources += trace_$(DIM)d.f90
+ca_f90EXE_sources += trace_ppm_$(DIM)d.f90
+ca_F90EXE_sources += trans_$(DIM)d.F90
+ca_f90EXE_sources += slope_$(DIM)d.f90
+ca_f90EXE_sources += ppm_$(DIM)d.f90
 
-F90EXE_sources += Castro_$(DIM)d.F90 
-F90EXE_sources += Castro_advection_$(DIM)d.F90
+ca_F90EXE_sources += Castro_$(DIM)d.F90 
+ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
 
-F90EXE_sources += riemann_$(DIM)d.F90 
-f90EXE_sources += advection_util_$(DIM)d.f90 
+ca_F90EXE_sources += riemann_$(DIM)d.F90 
+ca_f90EXE_sources += advection_util_$(DIM)d.f90 
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
-F90EXE_sources += bc_fill_$(DIM)d.F90
-F90EXE_sources += bc_ext_fill_$(DIM)d.F90
-f90EXE_sources += ext_src_$(DIM)d.f90
-f90EXE_sources += Prob_$(DIM)d.f90
-f90EXE_sources += problem_tagging_$(DIM)d.f90
+ca_F90EXE_sources += bc_fill_$(DIM)d.F90
+ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
+ca_f90EXE_sources += ext_src_$(DIM)d.f90
+ca_f90EXE_sources += Prob_$(DIM)d.f90
+ca_f90EXE_sources += problem_tagging_$(DIM)d.f90
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-f90EXE_sources += Gravity_$(DIM)d.f90
-f90EXE_sources += MGutils_2d.f90
+ca_f90EXE_sources += Gravity_$(DIM)d.f90
+ca_f90EXE_sources += MGutils_2d.f90
 ifeq ($(USE_GR), TRUE)
-f90EXE_sources += GR_Gravity_$(DIM)d.f90
+ca_f90EXE_sources += GR_Gravity_$(DIM)d.f90
 endif
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
-f90EXE_sources += MGutils_2d.f90
+ca_f90EXE_sources += MGutils_2d.f90
 endif

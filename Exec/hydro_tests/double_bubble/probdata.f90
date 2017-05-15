@@ -2,7 +2,7 @@ module probdata_module
 
   use network
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)        , save :: dens_base, pres_base
   real(rt)        , save :: pert_factor, y_pert_center, pert_width
 

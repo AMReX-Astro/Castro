@@ -4,7 +4,7 @@
 // mk_params.sh
 
 static std::string gravity_type;
-static Real const_grav;
+static amrex::Real const_grav;
 static int direct_sum_bcs;
 static int drdxfac;
 static int lnum;

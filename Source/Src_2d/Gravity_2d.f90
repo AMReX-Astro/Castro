@@ -1,6 +1,6 @@
 module gravity_2D_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -15,7 +15,7 @@ contains
 
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(2),hi(2)
@@ -82,7 +82,7 @@ contains
     use prob_params_module, only: center
     use meth_params_module, only: NVAR, URHO
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer          :: lo(2),hi(2)
@@ -171,7 +171,7 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     integer          :: lo(2),hi(2)
@@ -252,7 +252,7 @@ contains
     use prob_params_module, only: center
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer          :: lo(2),hi(2)
     integer          :: domlo(2),domhi(2)

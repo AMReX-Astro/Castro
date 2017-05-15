@@ -1,11 +1,11 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use parallel
   use probdata_module
   use model_parser_module
   use bl_error_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -72,7 +72,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
      xloc_vortices(i) = (dble(i-1) + 0.5e0_rt) * offset + problo(1)
   enddo
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -107,7 +107,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use model_parser_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer level, nscal

@@ -7,7 +7,7 @@
 // $Id: Misc.H,v 1.1 2008-07-03 22:02:56 almgren Exp $
 //
 
-#include <SPACE.H>
+#include <AMReX_SPACE.H>
 
 /*@ManDoc:
   Returns a copy of the minimum of the two values.  Will work with

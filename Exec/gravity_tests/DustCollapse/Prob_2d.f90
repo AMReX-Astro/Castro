@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
@@ -6,7 +6,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use meth_params_module, only: small_temp
   use prob_params_module, only : center
   use network, only : nspec
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none 
 
   integer :: init,namlen,untin,i,k
@@ -87,7 +87,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
 
   T_ambient = eos_state % T
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -122,7 +122,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
   use prob_params_module, only : center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer          :: level, nscal

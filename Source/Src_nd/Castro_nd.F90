@@ -23,7 +23,7 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
   ! initialize the external runtime parameters in
   ! extern_probin_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -39,7 +39,7 @@ subroutine get_num_spec(nspec_out) bind(C, name="get_num_spec")
 
   use network, only : nspec
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: nspec_out
@@ -56,7 +56,7 @@ subroutine get_num_aux(naux_out) bind(C, name="get_num_aux")
 
   use network, only : naux
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: naux_out
@@ -74,7 +74,7 @@ subroutine get_spec_names(spec_names,ispec,len) &
 
   use network, only : nspec, short_spec_names
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in   ) :: ispec
@@ -100,7 +100,7 @@ subroutine get_spec_az(ispec,A,Z) bind(C, name="get_spec_az")
 
   use network, only : nspec, aion, zion
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer         , intent(in   ) :: ispec
@@ -121,7 +121,7 @@ subroutine get_aux_names(aux_names,iaux,len) &
 
   use network, only : naux, short_aux_names
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in   ) :: iaux
@@ -147,7 +147,7 @@ subroutine get_qvar(qvar_in) bind(C, name="get_qvar")
 
   use meth_params_module, only: QVAR
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(inout) :: qvar_in
@@ -164,7 +164,7 @@ subroutine get_nqaux(nqaux_in) bind(C, name="get_nqaux")
 
   use meth_params_module, only: NQAUX
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(inout) :: nqaux_in
@@ -182,7 +182,7 @@ subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: level_in, iteration_in, ncycle_in
@@ -220,7 +220,7 @@ subroutine get_method_params(nGrowHyp) bind(C, name="get_method_params")
 
   use meth_params_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: ngrowHyp
@@ -238,7 +238,7 @@ subroutine allocate_outflow_data(np,nc) &
 
   use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: np,nc
@@ -262,7 +262,7 @@ subroutine set_old_outflow_data(radial,time,np,nc) &
 
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , intent(in) :: radial(nc,np)
@@ -289,7 +289,7 @@ subroutine set_new_outflow_data(radial,time,np,nc) &
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , intent(in) :: radial(nc,np)
@@ -314,7 +314,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
        outflow_data_old, outflow_data_old_time
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer                       :: np,nc
@@ -362,7 +362,7 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use rad_params_module, only : ngroups
 #endif
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: dm
@@ -634,7 +634,7 @@ subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
   use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
        QU, QV, QW
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   NGDNV = 6
@@ -671,7 +671,7 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   use meth_params_module, only: rot_axis
 #endif
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: dm
@@ -751,7 +751,7 @@ subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_rati
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer,          intent(in) :: max_level_in
@@ -815,7 +815,7 @@ end subroutine set_grid_info
 
 subroutine ca_set_special_tagging_flag(dummy,flag) &
      bind(C, name="ca_set_special_tagging_flag")
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)         :: dummy
   integer          :: flag
 end subroutine ca_set_special_tagging_flag
@@ -831,7 +831,7 @@ subroutine get_tagging_params(name, namlen) &
 
   ! Initialize the tagging parameters
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -917,7 +917,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
 
   ! Initialize the sponge parameters
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   integer :: namlen
   integer :: name(namlen)
 
@@ -992,7 +992,7 @@ subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
 
   use meth_params_module, only: point_mass
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   real(rt)        , intent(in) :: pointmass_in

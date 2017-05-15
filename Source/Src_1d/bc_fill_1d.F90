@@ -1,6 +1,6 @@
 module bc_fill_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   public
@@ -13,10 +13,10 @@ contains
 
     use meth_params_module, only: NVAR  
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
@@ -38,10 +38,10 @@ contains
   subroutine ca_denfill(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,time,bc) &
        bind(C, name="ca_denfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: adv_l1,adv_h1
     integer          :: bc(1,2,*)
@@ -60,10 +60,10 @@ contains
                             domlo,domhi,delta,xlo,time,bc) &
                             bind(C, name="ca_phigravfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
@@ -82,10 +82,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravxfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
@@ -103,10 +103,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravyfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
@@ -124,10 +124,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_gravzfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: grav_l1,grav_h1
     integer          :: bc(1,2,*)
@@ -147,10 +147,10 @@ contains
                            domlo,domhi,delta,xlo,time,bc) &
                            bind(C, name="ca_phirotfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: phi_l1,phi_h1
     integer          :: bc(1,2,*)
@@ -169,10 +169,10 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotxfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
@@ -190,10 +190,10 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotyfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
@@ -211,10 +211,10 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ca_rotzfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: rot_l1,rot_h1
     integer          :: bc(1,2,*)
@@ -234,10 +234,10 @@ contains
                           domlo,domhi,delta,xlo,time,bc) &
                           bind(C, name="ca_reactfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer          :: react_l1,react_h1
     integer          :: bc(1,2,*)
@@ -258,10 +258,10 @@ contains
                         domlo,domhi,delta,xlo,time,bc) &
                         bind(C, name="ca_radfill")
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    include 'bc_types.fi'
+    include 'AMReX_bc_types.fi'
 
     integer rad_l1,rad_h1
     integer bc(1,2,*)

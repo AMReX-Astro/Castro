@@ -265,6 +265,14 @@ change_max                   Real          1.1
 # on the same level until we reach the original target time.
 use_retry                    int           0
 
+# Check for a possible post-timestep regrid if certain stability
+# criteria were violated.
+use_post_step_regrid         int           0
+
+# Do not permit more retry timesteps than this parameter.
+# Set to a negative value to disable this criterion.
+retry_max_subcycles          int           1000
+
 # If we're doing retries, set the target threshold for changes in density
 # if a retry is triggered by a negative density. If this is set to a negative
 # number then it will disable retries using this criterion.
@@ -415,7 +423,7 @@ bndry_func_thread_safe       int           1
 #-----------------------------------------------------------------------------
 
 # the factor by which to extend the domain upon restart for embiggening
-grown_factor                 int           1
+grown_factor                 int           1                  y
 
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               int          -1
@@ -463,6 +471,9 @@ hard_cfl_limit               int           1
 # a string describing the simulation that will be copied into the
 # plotfile's {\tt job\_info} file
 job_name                     string        ""
+
+# write a final plotfile and checkpoint upon completion
+output_at_completion         int           1
 
 
 

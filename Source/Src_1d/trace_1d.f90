@@ -1,6 +1,6 @@
 module trace_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   private
@@ -24,7 +24,7 @@ contains
     use slope_module, only : uslope, pslope
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer domlo(1),domhi(1)

@@ -9,7 +9,7 @@ subroutine do_burn() bind(C)
   use reactions_module, only: ca_react_state
   use extern_probin_module, only: ncell, dt, dens_min, dens_max, temp_min, temp_max
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, parameter :: nv = 7 + nspec

@@ -26,7 +26,7 @@
     use meth_params_module, only : NVAR
     use bl_constants_module
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer         ,intent(in   ) :: lo(1),hi(1)

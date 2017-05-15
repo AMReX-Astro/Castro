@@ -1,7 +1,7 @@
 module probdata_module
 
  ! Problem setup data
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   real(rt)         :: rho1, rho2, pressure
 
   ! Problem number

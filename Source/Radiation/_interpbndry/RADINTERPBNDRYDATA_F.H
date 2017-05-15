@@ -55,18 +55,20 @@
 #  endif
 #endif
 
-#include <ArrayLim.H>
+#include <AMReX_ArrayLim.H>
 
-typedef void BDInterpFunc(Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
+typedef void BDInterpFunc(amrex::Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* lo, const int* hi,
 			  ARLIM_P(cblo), ARLIM_P(cbhi),
 			  const int* nvar, const int* ratio,
 			  const int* not_covered,
 			  const int* mask,  ARLIM_P(mlo), ARLIM_P(mhi),
-			  const Real* crse, ARLIM_P(clo), ARLIM_P(chi),
-			  Real* derives);
+			  const amrex::Real* crse, ARLIM_P(clo), ARLIM_P(chi),
+			  amrex::Real* derives);
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
@@ -80,7 +82,9 @@ extern "C"
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 
@@ -140,18 +144,20 @@ extern "C"
 #  endif
 #endif
 
-#include <ArrayLim.H>
+#include <AMReX_ArrayLim.H>
 
-typedef void BDInterpFunc(Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
+typedef void BDInterpFunc(amrex::Real* bndr, ARLIM_P(blo), ARLIM_P(bhi),
 			  const int* lo, const int* hi,
 			  ARLIM_P(cblo), ARLIM_P(cbhi),
 			  const int* nvar, const int* ratio,
 			  const int* not_covered,
 			  const int* mask,  ARLIM_P(mlo), ARLIM_P(mhi),
-			  const Real* crse, ARLIM_P(clo), ARLIM_P(chi),
-			  Real* derives);
+			  const amrex::Real* crse, ARLIM_P(clo), ARLIM_P(chi),
+			  amrex::Real* derives);
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
@@ -165,7 +171,9 @@ extern "C"
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif    
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 

@@ -1,5 +1,22 @@
 # changes since the last release:
 
+  -- we now require the AMReX library instead of the BoxLib library
+
+  -- a new mechanism for using a stability criterion to trigger
+     a regrid at the end of a timestep was added (PR #122)
+
+# 17.05
+
+  -- some protections added in the retry code
+
+
+# 17.04
+
+  -- rewrote the conservative gravity formulation to work off of the
+     potential.  This gives the best conservation with AMR.  This is
+     equivalent to the description in Appendix B from Katz et
+     al. (2016).
+
 
 # 17.03
 
@@ -32,8 +49,8 @@
      (issue #58)
 
   -- to support both single and double precision, all of the floating
-     point declarations use the c_real type defined in the
-     bl_fort_module -- this is set to single or double precision at
+     point declarations use the amrex_real type defined in the
+     amrex_fort_module -- this is set to single or double precision at
      compile time.  All constants also now use this type.  For
      brevity, we rename it to 'rt' in the use statement.  (issue #34)
 

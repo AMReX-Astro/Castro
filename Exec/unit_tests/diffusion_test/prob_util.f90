@@ -2,7 +2,7 @@
 
 module prob_util_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 

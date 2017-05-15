@@ -1,4 +1,4 @@
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_types
   use bl_constants_module
@@ -7,7 +7,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   use probdata_module
   use prob_params_module, only: center
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: init, namlen
@@ -50,7 +50,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   center(2) = HALF*(problo(2)+probhi(2))
   center(3) = HALF*(problo(3)+probhi(3))
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -88,7 +88,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use network, only: nspec, network_species_index
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer :: level, nscal

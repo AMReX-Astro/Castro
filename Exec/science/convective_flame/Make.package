@@ -1,4 +1,4 @@
-f90EXE_sources += probdata.f90
-f90EXE_sources += hydrostatic_bc_$(DIM)d.f90
+ca_f90EXE_sources += probdata.f90
+ca_f90EXE_sources += hydrostatic_bc_$(DIM)d.f90
 
 

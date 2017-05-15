@@ -5,7 +5,7 @@ module rad_util_module
   use rad_params_module, only : ngroups
   use bl_constants_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
@@ -15,7 +15,7 @@ contains
     use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, QRADVAR
     use fluxlimiter_module, only : Edd_factor
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in) :: lam(0:ngroups-1)
     real(rt)        , intent(in) :: q(QRADVAR)
     real(rt)        , intent(in) :: cg
@@ -53,7 +53,7 @@ contains
 
   function FLDlambda(r, limiter) result (lambda)
 
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     real(rt)         :: r
     integer :: limiter
 
