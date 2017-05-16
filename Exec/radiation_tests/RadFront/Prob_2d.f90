@@ -1,10 +1,10 @@
 
-subroutine PROBINIT (init,name,namlen,problo,probhi)
+subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use network, only : network_init
   use eos_module
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer init, namlen
@@ -61,7 +61,7 @@ subroutine PROBINIT (init,name,namlen,problo,probhi)
   ymin = problo(2)
   ymax = probhi(2)
 
-end subroutine PROBINIT
+end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
@@ -93,7 +93,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use eos_type_module
   use eos_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   
   integer :: level, nscal
@@ -138,7 +138,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
 
   use probdata_module
   
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer :: level, nrad
   integer :: lo(2), hi(2)
