@@ -113,9 +113,6 @@ castro.state_interp_order = 0
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
 
-# Use the new reflux method
-castro.reflux_strategy = 1
-
 ############################################################################################
 # Physics to include
 ############################################################################################
