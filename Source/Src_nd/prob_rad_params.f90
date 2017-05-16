@@ -4,7 +4,7 @@
 
 module prob_rad_params_module
 
-  use bl_fort_module, only : rt => c_real
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 

@@ -728,7 +728,7 @@ subroutine set_problem_rad_params(dm,bcval_lo_in,bcval_hi_in) &
                          bind(C, name="set_problem_rad_params")
 
     use prob_rad_params_module, only: bcval_lo, bcval_hi
-    use bl_fort_module, only : rt => c_real
+    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: dm

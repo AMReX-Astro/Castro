@@ -6,6 +6,7 @@ ca_f90EXE_sources += Tagging_nd.f90
 ca_f90EXE_sources += Problem.f90
 ca_F90EXE_sources += meth_params.F90
 ca_f90EXE_sources += prob_params.f90
+ca_f90EXE_sources += prob_rad_params.f90
 ca_f90EXE_sources += update_sponge_params.f90
 
 ca_f90EXE_sources += interpolate.f90

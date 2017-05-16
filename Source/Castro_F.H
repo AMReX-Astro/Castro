@@ -86,7 +86,7 @@ extern "C"
 #ifdef RADIATION
    void set_problem_rad_params
      (const int& dm,
-      const Real* bcval_lo, const Real* bcval_hi
+      const amrex::Real* bcval_lo, const amrex::Real* bcval_hi
      );
 #endif
 
