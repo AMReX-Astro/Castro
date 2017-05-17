@@ -1804,7 +1804,7 @@ Castro::post_regrid (int lbase,
     if (do_grav)
     {
 
-	if (use_post_step_regrid && post_step_regrid && gravity->get_gravity_type() == "PoissonGrav" && lbase < new_finest) {
+	if (use_post_step_regrid && post_step_regrid && gravity->get_gravity_type() == "PoissonGrav" && level == lbase && lbase < new_finest) {
 
 	   // In the case where we're coming here during a regrid that occurs
 	   // after a timestep, we only want to interpolate the gravitational
