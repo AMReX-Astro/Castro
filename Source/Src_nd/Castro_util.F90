@@ -119,8 +119,8 @@ contains
 
 
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
-       bind(C, name="reset_internal_e")
+  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
+       bind(C, name="ca_reset_internal_e")
 
     use eos_module 
     use network, only : nspec, naux
@@ -322,12 +322,12 @@ contains
 
     endif
 
-  end subroutine reset_internal_e  
+  end subroutine ca_reset_internal_e
 
 
 
-  subroutine compute_temp(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="compute_temp")
+  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) &
+       bind(C, name="ca_compute_temp")
 
     use network, only : nspec, naux
     use eos_module
@@ -355,7 +355,7 @@ contains
 
              if (state(i,j,k,URHO) <= ZERO) then
                 print *,'   '
-                print *,'>>> Error: Castro_util.F90::compute_temp ',i,j,k
+                print *,'>>> Error: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative density ',state(i,j,k,URHO)
                 print *,'    '
                 call bl_error("Error:: compute_temp_nd.f90")
@@ -363,7 +363,7 @@ contains
 
              if (allow_negative_energy .eq. 0 .and. state(i,j,k,UEINT) <= ZERO) then
                 print *,'   '
-                print *,'>>> Warning: Castro_util.F90::compute_temp ',i,j,k
+                print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
                 print *,'   '
                 call bl_error("Error:: compute_temp_nd.f90")
@@ -401,7 +401,7 @@ contains
        enddo
     enddo
 
-  end subroutine compute_temp 
+  end subroutine ca_compute_temp
 
 
 
@@ -718,7 +718,7 @@ contains
 
 
 
-  subroutine get_center(center_out) bind(C, name="get_center")
+  subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
 
     use prob_params_module, only : center
 
@@ -729,11 +729,11 @@ contains
 
     center_out = center
 
-  end subroutine get_center
+  end subroutine ca_get_center
 
 
 
-  subroutine set_center(center_in) bind(C, name="set_center")
+  subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
 
     use prob_params_module, only : center
 
@@ -744,12 +744,12 @@ contains
 
     center = center_in
 
-  end subroutine set_center
+  end subroutine ca_set_center
 
 
 
-  subroutine find_center(data,new_center,icen,dx,problo) &
-                         bind(C, name="find_center")
+  subroutine ca_find_center(data,new_center,icen,dx,problo) &
+                         bind(C, name="ca_find_center")
 
     use bl_constants_module
     use prob_params_module, only: dg, dim
@@ -813,7 +813,7 @@ contains
 
     endif
 
-  end subroutine find_center
+  end subroutine ca_find_center
 
 
 

@@ -572,7 +572,7 @@ Castro::setPlotVariables ()
           //
 	  // Get the number of species from the network model.
           //
-	  get_num_spec(&NumSpec);
+	  ca_get_num_spec(&NumSpec);
           //
 	  // Get the species names from the network model.
           //
@@ -583,7 +583,7 @@ Castro::setPlotVariables ()
               //
               // This call return the actual length of each string in "len"
               //
-              get_spec_names(int_spec_names.dataPtr(),&i,&len);
+              ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
               char* spec_name = new char[len+1];
               for (int j = 0; j < len; j++)
                   spec_name[j] = int_spec_names[j];
@@ -786,14 +786,14 @@ Castro::writeJobInfo (const std::string& dir)
       //
       // This call return the actual length of each string in "len"
       //
-      get_spec_names(int_spec_names.dataPtr(),&i,&len);
+      ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
       char* spec_name = new char[len+1];
       for (int j = 0; j < len; j++) 
 	spec_name[j] = int_spec_names[j];
       spec_name[len] = '\0';
 
       // get A and Z
-      get_spec_az(&i, &Aion, &Zion);
+      ca_get_spec_az(&i, &Aion, &Zion);
 
       jobInfoFile << 
 	std::setw(6) << i << SkipSpace << 

@@ -365,7 +365,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 {
     // Pass some information about the state of the simulation to a Fortran module.
 
-    set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
+    ca_set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
 
     // Save the current iteration.
 

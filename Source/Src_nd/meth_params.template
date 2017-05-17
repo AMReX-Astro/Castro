@@ -3,7 +3,7 @@
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
 ! and the ones that we are mirroring from C++ and obtaining through the
-! ParmParse module are initialized in set_castro_method_params().
+! ParmParse module are initialized in ca_set_castro_method_params().
 
 module meth_params_module
 
@@ -101,7 +101,7 @@ module meth_params_module
 
 contains
 
-  subroutine set_castro_method_params() bind(C,name="set_castro_method_params")
+  subroutine ca_set_castro_method_params() bind(C, name="ca_set_castro_method_params")
 
     use amrex_parmparse_module, only: amrex_parmparse_build, amrex_parmparse_destroy, amrex_parmparse
 
@@ -174,20 +174,9 @@ contains
 
     call amrex_parmparse_destroy(pp)
 
-  end subroutine set_castro_method_params
+  end subroutine ca_set_castro_method_params
 
 #ifdef RADIATION
-  subroutine get_qradvar(qradvar_in) bind(C, name="get_qradvar")
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer, intent(inout) :: qradvar_in
-
-    qradvar_in = QRADVAR
-
-  end subroutine get_qradvar
-
   subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
        bind(C, name="ca_init_radhydro_pars")
 
