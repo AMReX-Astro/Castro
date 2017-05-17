@@ -365,7 +365,7 @@ subroutine ca_compute_scattering_2(lo, hi, &
 
 end subroutine ca_compute_scattering_2
 
-subroutine init_godunov_indices_rad() bind(C)
+subroutine ca_init_godunov_indices_rad() bind(C, name="ca_init_godunov_indices_rad")
 
   use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
        GDLAMS, GDERADS, &
@@ -390,4 +390,4 @@ subroutine init_godunov_indices_rad() bind(C)
      call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 
-end subroutine init_godunov_indices_rad
+end subroutine ca_init_godunov_indices_rad

@@ -599,22 +599,48 @@ computer.  So it is worth trying a few solvers to find out which one
 is best for your problem and computer.
 
 \begin{description}
-\item[radsolve.level\_solver\_flag] \hfill \\
+\item \runparam{radsolve.level\_solver\_flag}: the linear solver
+  in \hypre\ to use.  The available choices are:
+  \begin{itemize}
+    \item {\tt 0}: SMG
+    \item {\tt 1}: PFMG  (>= 2-d only)
+    \item {\tt 100}: AMG using ParCSR ObjectType
+    \item {\tt 102}: GMRES using ParCSR ObjectType
+    \item {\tt 103}: GMRES using SStruct ObjectType
+    \item {\tt 104}: GMRES using AMG as preconditioner
+    \item {\tt 109}: GMRES using Struct SMG/PFMG as preconditioner
+    \item {\tt 150}: AMG using ParCSR ObjectType
+    \item {\tt 1002}: PCG using ParCSR ObjectType
+    \item {\tt 1003}: PCG using SStruct ObjectType
+  \end{itemize}
+
+  As a general rule, the SMG is the most stable solver, but is usually
+  the slowest.  The asymmetry in the linear system comes from the
+  adaptive mesh, so the PFMG should be your first choice.  Note: in
+  you cannot use PFMG.
+
   Setting this to 109 (GMRES using Struct SMG/PFMG as preconditioner)
   should work reasonably well for most problems.
-\item[radsolve.maxiter = 40] \hfill \\
+
+\item \runparam{radsolve.maxiter} (default: {\tt 40}): 
   Maximal number of iteration in Hypre.
-\item[radsolve.reltol = 1.e-10] \hfill \\
+
+\item \runparam{radsolve.reltol} (default: {\tt 1.e-10}):
   Relative tolerance in Hypre
-\item[radsolve.abstol = 0] \hfill \\
+
+\item \runparam{radsolve.abstol} (default: {\tt 0}):
   Absolute tolerance in Hypre
-\item[radsolve.v = 0] \hfill \\
+
+\item \runparam{radsolve.v} (default: {\tt 0}):
   Verbosity
-\item[radsolve.verbose = 0] \hfill \\
+
+\item \runparam{radsolve.verbos} (default: {\tt 0}):
   Verbosity
-\item[habec.verbose = 0] \hfill \\
+
+\item \runparam{habec.verbose} (default: {\tt 0}):
   Verbosity for {\tt level\_solver\_flag} $<$ 100
-\item[hmabec.verbose = 0] \hfill \\
+
+\item \runparam{hmabec.verbose} (default: {\tt 0}):
   Verbosity for {\tt level\_solver\_flag} $>=$ 100
 \end{description}
 

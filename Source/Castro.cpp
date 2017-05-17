@@ -534,13 +534,13 @@ Castro::Castro (Amr&            papa,
     // until here so that ngroups is defined (if needed) in
     // rad_params_module
 #ifdef RADIATION
-    init_godunov_indices_rad();
-    get_qradvar(&QRADVAR);
+    ca_init_godunov_indices_rad();
+    ca_get_qradvar(&QRADVAR);
 
     // NQAUX depends on radiation groups, so get it fresh here
-    get_nqaux(&NQAUX);
+    ca_get_nqaux(&NQAUX);
 #else
-    init_godunov_indices();
+    ca_init_godunov_indices();
 #endif
 
     // NQ will be used to dimension the primitive variable state
@@ -721,6 +721,8 @@ Castro::initMFs()
 
     }
 
+    post_step_regrid = 0;
+
 }
 
 void
@@ -801,8 +803,8 @@ Castro::setGridInfo ()
 	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      set_grid_info(max_level, dx_level, domlo_level, domhi_level,
-		    ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
+      ca_set_grid_info(max_level, dx_level, domlo_level, domhi_level,
+		       ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
 
     }
 
@@ -838,7 +840,7 @@ Castro::initData ()
       }
 #endif
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
@@ -893,7 +895,7 @@ Castro::initData ()
 	  // Generate the initial hybrid momenta based on this user data.
 
 #ifdef HYBRID_MOMENTUM
-	  init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
+	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_3D(S_new[mfi]));
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
@@ -1069,7 +1071,7 @@ Castro::estTimeStep (Real dt_old)
     if (fixed_dt > 0.0)
         return fixed_dt;
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real estdt = max_dt;
 
@@ -1449,7 +1451,7 @@ Castro::post_timestep (int iteration)
 
     // Pass some information about the state of the simulation to a Fortran module.
 
-    set_amr_info(level, iteration, -1, -1.0, -1.0);
+    ca_set_amr_info(level, iteration, -1, -1.0, -1.0);
 
     //
     // Integration cycle on fine level grids is complete
@@ -1669,13 +1671,13 @@ Castro::post_restart ()
     // until here so that ngroups is defined (if needed) in
     // rad_params_module
 #ifdef RADIATION
-    init_godunov_indices_rad();
-    get_qradvar(&QRADVAR);
+    ca_init_godunov_indices_rad();
+    ca_get_qradvar(&QRADVAR);
 
     // NQAUX depends on radiation groups, so get it fresh here
-    get_nqaux(&NQAUX);
+    ca_get_nqaux(&NQAUX);
 #else
-    init_godunov_indices();
+    ca_init_godunov_indices();
 #endif
 
     // NQ will be used to dimension the primitive variable state
@@ -1731,9 +1733,15 @@ Castro::check_for_post_regrid (Real time)
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
 
-	int num_tags = tags.numTags();
+	// Globally collate the tags.
+
+	std::vector<IntVect> tvec;
+
+	tags.collate(tvec);
 
 	// If we requested any tags at all, we have a potential trigger for a regrid.
+
+	int num_tags = tvec.size();
 
 	bool missing_on_fine_level = false;
 
@@ -1745,17 +1753,12 @@ Castro::check_for_post_regrid (Real time)
 
 		missing_on_fine_level = true;
 
-	    }
-	    else {
+	    } else {
 
 		// If there is a level above us, we need to check whether
 		// every tagged zone has a corresponding entry in the fine
 		// grid. If not, we need to trigger a regrid so we can get
 		// those other zones refined too.
-		
-		std::vector<IntVect> tvec;
-		
-		tags.collate(tvec);
 
 		const BoxArray& fgrids = getLevel(level+1).boxArray();
 
@@ -1776,22 +1779,15 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	if (missing_on_fine_level) {
+	    post_step_regrid = 1;
 
 	    if (amrex::ParallelDescriptor::IOProcessor()) {
-
 		std::cout << "\n"
 			  << "Current refinement pattern insufficient at level " << level << ".\n"
 			  << "Performing a regrid to obtain more refinement.\n";
 
 	    }
-
-	    post_step_regrid = 1;
-
 	}
-
-	// Now find out if any processor asked for a regrid.
-
-	amrex::ParallelDescriptor::ReduceIntMax(post_step_regrid);
 
     }
 #endif
@@ -1814,50 +1810,43 @@ Castro::post_regrid (int lbase,
     if (do_grav)
     {
 
-	if (use_post_step_regrid && post_step_regrid && gravity->get_gravity_type() == "PoissonGrav" && lbase < new_finest) {
+	if (use_post_step_regrid && getLevel(lbase).post_step_regrid && gravity->get_gravity_type() == "PoissonGrav") {
 
-	   // In the case where we're coming here during a regrid that occurs
-	   // after a timestep, we only want to interpolate the gravitational
-	   // field from the old time. The state data will already have been
-	   // filled, so all we need to do is interpolate the grad_phi data.
+	   if (level > lbase) {
 
-	    // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
-	    // since the fine levels for Poisson gravity do not touch the physical boundary.
+	       // In the case where we're coming here during a regrid that occurs
+	       // after a timestep, we only want to interpolate the gravitational
+	       // field from the old time. The state data will already have been
+	       // filled, so all we need to do is interpolate the grad_phi data.
 
-	    GradPhiPhysBCFunct gp_phys_bc;
+	       // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
+	       // since the fine levels for Poisson gravity do not touch the physical boundary.
 
-	    // We need to use a nodal interpolater.
+	       GradPhiPhysBCFunct gp_phys_bc;
 
-	    Interpolater* gp_interp = &node_bilinear_interp;
+	       // We need to use a nodal interpolater.
 
-	    Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(lbase));
-	    Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lbase+1));
+	       Interpolater* gp_interp = &node_bilinear_interp;
 
-	    Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
+	       Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(level-1));
+	       Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(level));
 
-	    for (int lev = lbase+1; lev <= new_finest; ++lev) {
+	       Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
 
-		// For the BCs, we will use the Gravity_Type BCs for convenience, but these will
-		// not do anything because we do not fill on physical boundaries.
+	       // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
+	       // not do anything because we do not fill on physical boundaries.
 
-		const Array<BCRec>& gp_bcs = getLevel(lev).get_desc_lst()[Gravity_Type].getBCs();
+	       const Array<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
 
-		for (int n = 0; n < BL_SPACEDIM; ++n) {
-		    amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
-						 0, 0, 1,
-						 parent->Geom(lev-1), parent->Geom(lev),
-						 gp_phys_bc, gp_phys_bc, parent->refRatio(lev-1),
-						 gp_interp, gp_bcs);
-		}
+	       for (int n = 0; n < BL_SPACEDIM; ++n) {
+		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
+						0, 0, 1,
+						parent->Geom(level-1), parent->Geom(level),
+						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
+						gp_interp, gp_bcs);
+	       }
 
-		if (lev+1 <= new_finest) {
-
-		    grad_phi_coarse = grad_phi_fine;
-		    grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lev+1));
-
-		}
-
-	    }
+	   }
 
        } else {
 
@@ -2553,11 +2542,11 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	FArrayBox& statenew = S_new[mfi];
 	FArrayBox& vol      = volume[mfi];
 
-	enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
-				statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
-				vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				&dens_change, &verbose);
+	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
+				   vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
+				   ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				   &dens_change, &verbose);
 
     }
 
@@ -2637,7 +2626,7 @@ Castro::errorEst (TagBoxArray& tags,
 {
     BL_PROFILE("Castro::errorEst()");
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real t = time;
 
@@ -2881,9 +2870,9 @@ Castro::reset_internal_energy(MultiFab& S_new)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                         BL_TO_FORTRAN_3D(S_new[mfi]),
-			 print_fortran_warnings);
+        ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			    BL_TO_FORTRAN_3D(S_new[mfi]),
+			    print_fortran_warnings);
     }
 
     // Flush Fortran output
@@ -2954,7 +2943,7 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
+	ca_compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
 #ifdef RADIATION
       }
 #endif
@@ -3133,7 +3122,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
-        find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
+        ca_find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
     }
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
@@ -3141,7 +3130,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Make sure if R-Z that center stays exactly on axis
     if ( Geometry::IsRZ() ) center[0] = 0;
 
-    set_center(ZFILL(center));
+    ca_set_center(ZFILL(center));
 }
 
 void
@@ -3157,7 +3146,7 @@ Castro::write_center ()
        Real time = state[State_Type].curTime();
 
        Real center[3];
-       get_center(center);
+       ca_get_center(center);
 
        if (time == 0.0) {
            data_logc << std::setw( 8) <<  "   nstep";
@@ -3307,10 +3296,10 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
 
         const Box& bx = mfi.growntilebox(ng);
 
-	ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
-		q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
-	        qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
+	ca_ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+		   u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
+		   q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
+		   qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
 
     }
 

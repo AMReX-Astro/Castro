@@ -8,7 +8,7 @@ contains
   ! Takes the initial linear momentum data in a state and converts it
   ! to the hybrid momenta.
 
-  subroutine init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C,name='init_hybrid_momentum')
+  subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
     use castro_util_module, only: position
@@ -36,7 +36,7 @@ contains
        enddo
     enddo
 
-  end subroutine init_hybrid_momentum
+  end subroutine ca_init_hybrid_momentum
 
 
 
@@ -314,7 +314,7 @@ contains
 
   ! Update state to account for hybrid advection.
 
-  subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
+  subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
 
     use bl_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
@@ -343,6 +343,6 @@ contains
        enddo
     enddo
 
-  end subroutine hybrid_update
+  end subroutine ca_hybrid_update
 
 end module hybrid_advection_module

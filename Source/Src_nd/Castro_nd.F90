@@ -35,7 +35,7 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_num_spec(nspec_out) bind(C, name="get_num_spec")
+subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
   use network, only : nspec
 
@@ -46,13 +46,13 @@ subroutine get_num_spec(nspec_out) bind(C, name="get_num_spec")
 
   nspec_out = nspec
 
-end subroutine get_num_spec
+end subroutine ca_get_num_spec
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_num_aux(naux_out) bind(C, name="get_num_aux")
+subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
   use network, only : naux
 
@@ -63,14 +63,14 @@ subroutine get_num_aux(naux_out) bind(C, name="get_num_aux")
 
   naux_out = naux
 
-end subroutine get_num_aux
+end subroutine ca_get_num_aux
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_spec_names(spec_names,ispec,len) &
-     bind(C, name="get_spec_names")
+subroutine ca_get_spec_names(spec_names,ispec,len) &
+     bind(C, name="ca_get_spec_names")
 
   use network, only : nspec, short_spec_names
 
@@ -90,13 +90,13 @@ subroutine get_spec_names(spec_names,ispec,len) &
      spec_names(i) = ichar(short_spec_names(ispec+1)(i:i))
   end do
 
-end subroutine get_spec_names
+end subroutine ca_get_spec_names
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_spec_az(ispec,A,Z) bind(C, name="get_spec_az")
+subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
 
   use network, only : nspec, aion, zion
 
@@ -110,14 +110,14 @@ subroutine get_spec_az(ispec,A,Z) bind(C, name="get_spec_az")
   A = aion(ispec+1)
   Z = zion(ispec+1)
 
-end subroutine get_spec_az
+end subroutine ca_get_spec_az
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_aux_names(aux_names,iaux,len) &
-     bind(C, name="get_aux_names")
+subroutine ca_get_aux_names(aux_names,iaux,len) &
+     bind(C, name="ca_get_aux_names")
 
   use network, only : naux, short_aux_names
 
@@ -137,13 +137,13 @@ subroutine get_aux_names(aux_names,iaux,len) &
      aux_names(i) = ichar(short_aux_names(iaux+1)(i:i))
   end do
 
-end subroutine get_aux_names
+end subroutine ca_get_aux_names
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_qvar(qvar_in) bind(C, name="get_qvar")
+subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
   use meth_params_module, only: QVAR
 
@@ -154,13 +154,29 @@ subroutine get_qvar(qvar_in) bind(C, name="get_qvar")
 
   qvar_in = QVAR
 
-end subroutine get_qvar
+end subroutine ca_get_qvar
+
+#ifdef RADIATION
+subroutine ca_get_qradvar(qradvar_in) bind(C, name="ca_get_qradvar")
+
+  use meth_params_module, only: QRADVAR
+
+  use amrex_fort_module, only : rt => amrex_real
+  implicit none
+
+  integer, intent(inout) :: qradvar_in
+
+  qradvar_in = QRADVAR
+
+end subroutine ca_get_qradvar
+#endif
+
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_nqaux(nqaux_in) bind(C, name="get_nqaux")
+subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
 
@@ -171,14 +187,14 @@ subroutine get_nqaux(nqaux_in) bind(C, name="get_nqaux")
 
   nqaux_in = NQAUX
 
-end subroutine get_nqaux
+end subroutine ca_get_nqaux
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
-     bind(C, name="set_amr_info")
+subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
+     bind(C, name="ca_set_amr_info")
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
 
@@ -208,13 +224,13 @@ subroutine set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      amr_dt = dt_in
   endif
 
-end subroutine set_amr_info
+end subroutine ca_set_amr_info
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_method_params(nGrowHyp) bind(C, name="get_method_params")
+subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
 
   ! Passing data from f90 back to C++
 
@@ -227,7 +243,7 @@ subroutine get_method_params(nGrowHyp) bind(C, name="get_method_params")
 
   nGrowHyp = NHYP
 
-end subroutine get_method_params
+end subroutine ca_get_method_params
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -345,13 +361,13 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
-     FirstAdv,FirstSpec,FirstAux,numadv, &
+subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
+                                FirstAdv,FirstSpec,FirstAux,numadv, &
 #ifdef SHOCK_VAR
-     Shock, &
+                                Shock, &
 #endif
-     gravity_type_in, gravity_type_len) &
-     bind(C, name="set_method_params")
+                                gravity_type_in, gravity_type_len) &
+                                bind(C, name="ca_set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
@@ -626,10 +642,10 @@ subroutine set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   !$acc device(small_dens, small_temp)
 
-end subroutine set_method_params
+end subroutine ca_set_method_params
 
 
-subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
+subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
   use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
        QU, QV, QW
@@ -650,18 +666,18 @@ subroutine init_godunov_indices() bind(C, name="init_godunov_indices")
      call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 
-end subroutine init_godunov_indices
+end subroutine ca_init_godunov_indices
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-     Interior_in, Inflow_in, Outflow_in, &
-     Symmetry_in, SlipWall_in, NoSlipWall_in, &
-     coord_type_in, &
-     problo_in, probhi_in, center_in) &
-     bind(C, name="set_problem_params")
+subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
+                                 Interior_in, Inflow_in, Outflow_in, &
+                                 Symmetry_in, SlipWall_in, NoSlipWall_in, &
+                                 coord_type_in, &
+                                 problo_in, probhi_in, center_in) &
+                                 bind(C, name="ca_set_problem_params")
 
   ! Passing data from C++ into f90
 
@@ -718,14 +734,15 @@ subroutine set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
-end subroutine set_problem_params
+end subroutine ca_set_problem_params
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_ratio_in, n_error_buf_in, blocking_factor_in) &
-     bind(C, name="set_grid_info")
+subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
+                            ref_ratio_in, n_error_buf_in, blocking_factor_in) &
+                            bind(C, name="ca_set_grid_info")
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
 
@@ -785,7 +802,7 @@ subroutine set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, ref_rati
      blocking_factor(lev) = blocking_factor_in(lev)
   enddo
 
-end subroutine set_grid_info
+end subroutine ca_set_grid_info
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -802,8 +819,8 @@ end subroutine ca_set_special_tagging_flag
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_tagging_params(name, namlen) &
-     bind(C, name="get_tagging_params")
+subroutine ca_get_tagging_params(name, namlen) &
+     bind(C, name="ca_get_tagging_params")
 
   use tagging_module
 
@@ -882,14 +899,14 @@ subroutine get_tagging_params(name, namlen) &
 
   close (unit=un)
 
-end subroutine get_tagging_params
+end subroutine ca_get_tagging_params
 
 #ifdef SPONGE
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
+subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
 
   use sponge_module
 
@@ -958,7 +975,7 @@ subroutine get_sponge_params(name, namlen) bind(C, name="get_sponge_params")
      call bl_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 
-end subroutine get_sponge_params
+end subroutine ca_get_sponge_params
 #endif
 
 #ifdef POINTMASS

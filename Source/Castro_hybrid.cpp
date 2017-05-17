@@ -73,7 +73,7 @@ Castro::hybrid_sync(MultiFab& state)
 
 	    const Box& bx = mfi.tilebox();
 
-	    hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(state[mfi]));
+	    ca_hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_3D(state[mfi]));
 
 	}
 

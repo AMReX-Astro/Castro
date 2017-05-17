@@ -194,7 +194,7 @@ Castro::variableSetUp ()
   int dm = BL_SPACEDIM;
 
   // Get the number of species from the network model.
-  get_num_spec(&NumSpec);
+  ca_get_num_spec(&NumSpec);
 
   if (NumSpec > 0)
     {
@@ -203,7 +203,7 @@ Castro::variableSetUp ()
     }
 
   // Get the number of auxiliary quantities from the network model.
-  get_num_aux(&NumAux);
+  ca_get_num_aux(&NumAux);
 
   if (NumAux > 0)
     {
@@ -218,7 +218,7 @@ Castro::variableSetUp ()
   NUM_STATE = cnt;
 
   // Define NUM_GROW from the f90 module.
-  get_method_params(&NUM_GROW);
+  ca_get_method_params(&NUM_GROW);
 
   const Real run_strt = ParallelDescriptor::second() ;
 
@@ -240,26 +240,26 @@ Castro::variableSetUp ()
 
   // Read in the input values to Fortran.
 
-  set_castro_method_params();
+  ca_set_castro_method_params();
 
-  set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-		    NumAdv,
+  ca_set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
+		       NumAdv,
 #ifdef SHOCK_VAR
-		    Shock,
+		       Shock,
 #endif
-		    gravity_type_name.dataPtr(), gravity_type_length);
+		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
 
-  get_qvar(&QVAR);
-  get_nqaux(&NQAUX);
+  ca_get_qvar(&QVAR);
+  ca_get_nqaux(&NQAUX);
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
 
   if (ParallelDescriptor::IOProcessor())
-    std::cout << "\nTime in set_method_params: " << run_stop << '\n' ;
+    std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
   int coord_type = Geometry::Coord();
 
@@ -268,9 +268,9 @@ Castro::variableSetUp ()
   ParmParse ppc("castro");
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
-  set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-		     Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-		     Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
+  ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
+			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+			Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -281,13 +281,13 @@ Castro::variableSetUp ()
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
 
-  get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
+  ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
 #ifdef SPONGE
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
 
-  get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+  ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
 #endif
 
   Interpolater* interp;
@@ -427,7 +427,7 @@ Castro::variableSetUp ()
     int len = 20;
     Array<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
-    get_spec_names(int_spec_names.dataPtr(),&i,&len);
+    ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];
     for (int j = 0; j < len; j++)
       char_spec_names[j] = int_spec_names[j];
@@ -457,7 +457,7 @@ Castro::variableSetUp ()
     int len = 20;
     Array<int> int_aux_names(len);
     // This call return the actual length of each string in "len"
-    get_aux_names(int_aux_names.dataPtr(),&i,&len);
+    ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
     char char_aux_names[len+1];
     for (int j = 0; j < len; j++)
       char_aux_names[j] = int_aux_names[j];
