@@ -715,6 +715,8 @@ Castro::initMFs()
 
     }
 
+    post_step_regrid = 0;
+
 }
 
 void
@@ -1725,9 +1727,15 @@ Castro::check_for_post_regrid (Real time)
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
 
-	int num_tags = tags.numTags();
+	// Globally collate the tags.
+
+	std::vector<IntVect> tvec;
+
+	tags.collate(tvec);
 
 	// If we requested any tags at all, we have a potential trigger for a regrid.
+
+	int num_tags = tvec.size();
 
 	bool missing_on_fine_level = false;
 
@@ -1739,17 +1747,12 @@ Castro::check_for_post_regrid (Real time)
 
 		missing_on_fine_level = true;
 
-	    }
-	    else {
+	    } else {
 
 		// If there is a level above us, we need to check whether
 		// every tagged zone has a corresponding entry in the fine
 		// grid. If not, we need to trigger a regrid so we can get
 		// those other zones refined too.
-		
-		std::vector<IntVect> tvec;
-		
-		tags.collate(tvec);
 
 		const BoxArray& fgrids = getLevel(level+1).boxArray();
 
@@ -1770,22 +1773,15 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	if (missing_on_fine_level) {
+	    post_step_regrid = 1;
 
 	    if (amrex::ParallelDescriptor::IOProcessor()) {
-
 		std::cout << "\n"
 			  << "Current refinement pattern insufficient at level " << level << ".\n"
 			  << "Performing a regrid to obtain more refinement.\n";
 
 	    }
-
-	    post_step_regrid = 1;
-
 	}
-
-	// Now find out if any processor asked for a regrid.
-
-	amrex::ParallelDescriptor::ReduceIntMax(post_step_regrid);
 
     }
 #endif
