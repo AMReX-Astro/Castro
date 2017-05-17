@@ -1804,50 +1804,43 @@ Castro::post_regrid (int lbase,
     if (do_grav)
     {
 
-	if (use_post_step_regrid && post_step_regrid && gravity->get_gravity_type() == "PoissonGrav" && level == lbase && lbase < new_finest) {
+	if (use_post_step_regrid && getLevel(lbase).post_step_regrid && gravity->get_gravity_type() == "PoissonGrav") {
 
-	   // In the case where we're coming here during a regrid that occurs
-	   // after a timestep, we only want to interpolate the gravitational
-	   // field from the old time. The state data will already have been
-	   // filled, so all we need to do is interpolate the grad_phi data.
+	   if (level > lbase) {
 
-	    // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
-	    // since the fine levels for Poisson gravity do not touch the physical boundary.
+	       // In the case where we're coming here during a regrid that occurs
+	       // after a timestep, we only want to interpolate the gravitational
+	       // field from the old time. The state data will already have been
+	       // filled, so all we need to do is interpolate the grad_phi data.
 
-	    GradPhiPhysBCFunct gp_phys_bc;
+	       // Instantiate a bare physical BC function for grad_phi. It doesn't do anything
+	       // since the fine levels for Poisson gravity do not touch the physical boundary.
 
-	    // We need to use a nodal interpolater.
+	       GradPhiPhysBCFunct gp_phys_bc;
 
-	    Interpolater* gp_interp = &node_bilinear_interp;
+	       // We need to use a nodal interpolater.
 
-	    Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(lbase));
-	    Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lbase+1));
+	       Interpolater* gp_interp = &node_bilinear_interp;
 
-	    Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
+	       Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(level-1));
+	       Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(level));
 
-	    for (int lev = lbase+1; lev <= new_finest; ++lev) {
+	       Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
 
-		// For the BCs, we will use the Gravity_Type BCs for convenience, but these will
-		// not do anything because we do not fill on physical boundaries.
+	       // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
+	       // not do anything because we do not fill on physical boundaries.
 
-		const Array<BCRec>& gp_bcs = getLevel(lev).get_desc_lst()[Gravity_Type].getBCs();
+	       const Array<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
 
-		for (int n = 0; n < BL_SPACEDIM; ++n) {
-		    amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
-						 0, 0, 1,
-						 parent->Geom(lev-1), parent->Geom(lev),
-						 gp_phys_bc, gp_phys_bc, parent->refRatio(lev-1),
-						 gp_interp, gp_bcs);
-		}
+	       for (int n = 0; n < BL_SPACEDIM; ++n) {
+		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
+						0, 0, 1,
+						parent->Geom(level-1), parent->Geom(level),
+						gp_phys_bc, gp_phys_bc, parent->refRatio(level-1),
+						gp_interp, gp_bcs);
+	       }
 
-		if (lev+1 <= new_finest) {
-
-		    grad_phi_coarse = grad_phi_fine;
-		    grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(lev+1));
-
-		}
-
-	    }
+	   }
 
        } else {
 
