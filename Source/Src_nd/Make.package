@@ -61,3 +61,7 @@ ca_f90EXE_sources += Diffusion_nd.f90
 ca_f90EXE_sources += Enthalpy_nd.f90
 endif
 
+ca_F90EXE_sources += castro_c_interfaces_nd.F90
+ifeq ($(USE_CUDA), TRUE)
+ca_F90EXE_sources += castro_cuda_interfaces_nd.F90
+endif

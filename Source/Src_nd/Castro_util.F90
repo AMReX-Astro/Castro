@@ -79,8 +79,7 @@ contains
 
 
 
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="ca_enforce_consistent_e")
+  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
@@ -88,9 +87,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
-    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     ! Local variables
     integer          :: i,j,k
@@ -115,7 +114,7 @@ contains
        end do
     end do
 
-  end subroutine ca_enforce_consistent_e
+  end subroutine enforce_consistent_e
 
 
 
@@ -132,9 +131,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3), verbose
-    integer          :: u_lo(3), u_hi(3)
-    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
     integer          :: i,j,k
@@ -415,9 +414,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: state_lo(3), state_hi(3)
-    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: state_lo(3), state_hi(3)
+    real(rt), intent(in) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     ! Local variables
     integer          :: i, j, k
@@ -454,9 +453,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: u_lo(3), u_hi(3)
-    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
     integer          :: i, j, k
