@@ -79,8 +79,7 @@ contains
 
 
 
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="ca_enforce_consistent_e")
+  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module
@@ -115,7 +114,7 @@ contains
        end do
     end do
 
-  end subroutine ca_enforce_consistent_e
+  end subroutine enforce_consistent_e
 
 
 
