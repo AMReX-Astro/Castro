@@ -5,16 +5,16 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
+  public ca_enforce_minimum_density, compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens
 
 contains
 
-  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
-                                     uout,uout_lo,uout_hi, &
-                                     vol,vol_lo,vol_hi, &
-                                     lo,hi,frac_change,verbose) &
-                                     bind(C, name="enforce_minimum_density")
+  subroutine ca_enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                        uout,uout_lo,uout_hi, &
+                                        vol,vol_lo,vol_hi, &
+                                        lo,hi,frac_change,verbose) &
+                                        bind(C, name="ca_enforce_minimum_density")
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
@@ -71,7 +71,7 @@ contains
 
                 print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
                 print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call bl_error("Error:: advection_util_nd.f90 :: enforce_minimum_density")
+                call bl_error("Error:: advection_util_nd.f90 :: ca_enforce_minimum_density")
 
              else if (uout(i,j,k,URHO) < small_dens) then
 
@@ -177,7 +177,7 @@ contains
 
                 else
 
-                   call bl_error("Unknown density_reset_method in subroutine enforce_minimum_density.")
+                   call bl_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
 
                 endif
 
@@ -191,7 +191,7 @@ contains
        enddo
     enddo
 
-  end subroutine enforce_minimum_density
+  end subroutine ca_enforce_minimum_density
 
 
 
@@ -397,14 +397,14 @@ contains
 
 
 
-  subroutine ctoprim(lo, hi, &
-                     uin, uin_lo, uin_hi, &
+  subroutine ca_ctoprim(lo, hi, &
+                        uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-                     Erin, Erin_lo, Erin_hi, &
-                     lam, lam_lo, lam_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
 #endif
-                     q,     q_lo,   q_hi, &
-                     qaux, qa_lo,  qa_hi) bind(C, name = "ctoprim")
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi) bind(C, name = "ca_ctoprim")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -588,15 +588,15 @@ contains
        enddo
     enddo
 
-  end subroutine ctoprim
+  end subroutine ca_ctoprim
 
 
 
-  subroutine srctoprim(lo, hi, &
-                       q,     q_lo,   q_hi, &
-                       qaux, qa_lo,  qa_hi, &
-                       src, src_lo, src_hi, &
-                       srcQ,srQ_lo, srQ_hi) bind(C, name = "srctoprim")
+  subroutine ca_srctoprim(lo, hi, &
+                          q,     q_lo,   q_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          srcQ,srQ_lo, srQ_hi) bind(C, name = "ca_srctoprim")
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -664,7 +664,7 @@ contains
 
     enddo
 
-  end subroutine srctoprim
+  end subroutine ca_srctoprim
 
 
 

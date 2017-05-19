@@ -306,7 +306,7 @@ Gravity::install_level (int                   level,
     if (level == 0)
     {
         Real center[3];
-        get_center(center);
+        ca_get_center(center);
         Real x = Geometry::ProbHi(0) - center[0];
         Real y = Geometry::ProbHi(1) - center[1];
         max_radius_all_in_domain = std::min(x,y);

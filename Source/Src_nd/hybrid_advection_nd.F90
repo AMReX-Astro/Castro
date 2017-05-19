@@ -8,7 +8,7 @@ contains
   ! Takes the initial linear momentum data in a state and converts it
   ! to the hybrid momenta.
 
-  subroutine init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C,name='init_hybrid_momentum')
+  subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
     use castro_util_module, only: position
@@ -17,9 +17,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
-    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     integer          :: i, j, k
     real(rt)         :: loc(3)
@@ -36,7 +36,7 @@ contains
        enddo
     enddo
 
-  end subroutine init_hybrid_momentum
+  end subroutine ca_init_hybrid_momentum
 
 
 
@@ -53,11 +53,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
-    integer          :: e_lo(3), e_hi(3)
-    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt)         :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: e_lo(3), e_hi(3)
+    real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
 
     integer          :: i, j, k
     real(rt)         :: loc(3), R, rhoInv
@@ -314,7 +314,7 @@ contains
 
   ! Update state to account for hybrid advection.
 
-  subroutine hybrid_update(lo, hi, state, state_lo, state_hi) bind(C,name='hybrid_update')
+  subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
 
     use bl_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
@@ -324,9 +324,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: state_lo(3), state_hi(3)
-    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: state_lo(3), state_hi(3)
+    real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     integer          :: i, j, k
     real(rt)         :: loc(3)
@@ -343,6 +343,6 @@ contains
        enddo
     enddo
 
-  end subroutine hybrid_update
+  end subroutine ca_hybrid_update
 
 end module hybrid_advection_module

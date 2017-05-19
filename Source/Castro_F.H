@@ -14,30 +14,30 @@ extern "C"
 
   void ca_extern_init(const int* name, const int* namlen);
 
-  void get_num_spec(int* nspec);
+  void ca_get_num_spec(int* nspec);
 
-  void get_num_aux(int* naux);
+  void ca_get_num_aux(int* naux);
 
-  void get_spec_names(int* spec_names, int* ispec, int* len);
+  void ca_get_spec_names(int* spec_names, int* ispec, int* len);
 
-  void get_spec_az(int* ispec, amrex::Real* A, amrex::Real* Z);
+  void ca_get_spec_az(int* ispec, amrex::Real* A, amrex::Real* Z);
 
-  void get_aux_names(int* aux_names, int* iaux, int* len);
+  void ca_get_aux_names(int* aux_names, int* iaux, int* len);
 
-  void get_qvar(int* qvar);
+  void ca_get_qvar(int* qvar);
 
 #ifdef RADIATION
-  void get_qradvar(int* qradvar);
+  void ca_get_qradvar(int* qradvar);
 #endif
 
-  void get_nqaux(int* nqaux);
+  void ca_get_nqaux(int* nqaux);
 
   void ca_set_special_tagging_flag(const amrex::Real& max_den, const int* flag);
 
-  void set_amr_info(const int& level, const int& iteration, const int& ncycle,
-		    const amrex::Real& time, const amrex::Real& dt);
+  void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
+		       const amrex::Real& time, const amrex::Real& dt);
 
-  void get_method_params(int* HYP_GROW);
+  void ca_get_method_params(int* HYP_GROW);
 
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -52,7 +52,7 @@ extern "C"
 #endif
 #endif
 
-  void set_method_params
+  void ca_set_method_params
     (const int& dm,
      const int& Density, const int& Xmom, 
      const int& Eden,    const int& Eint, 
@@ -65,15 +65,15 @@ extern "C"
      const int* gravity_type, const int& gravity_type_len);
 
 
-  void set_castro_method_params();
+  void ca_set_castro_method_params();
 
 #ifdef RADIATION
-  void init_godunov_indices_rad();
+  void ca_init_godunov_indices_rad();
 #else
-  void init_godunov_indices();
+  void ca_init_godunov_indices();
 #endif
 
-  void set_problem_params
+  void ca_set_problem_params
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
      const int& Interior_value, const int& Inflow_value,
@@ -83,15 +83,15 @@ extern "C"
      const amrex::Real* problo, const amrex::Real* probhi,
      const amrex::Real* center);
 
-  void set_grid_info
+  void ca_set_grid_info
     (const int& max_level, const amrex::Real* dx_level,
      const int* domlo_level, const int* domhi_level,
      const int* ref_ratio, const int* n_error_buf,
      const int* blocking_factor);
 
-  void get_tagging_params(const int* name, const int* namlen);
+  void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
-  void get_sponge_params(const int* name, const int* namlen);
+  void ca_get_sponge_params(const int* name, const int* namlen);
 #endif
 
 #ifdef SELF_GRAVITY
@@ -106,7 +106,7 @@ extern "C"
 #endif
 
 #ifdef HYBRID_MOMENTUM
-  void init_hybrid_momentum
+  void ca_init_hybrid_momentum
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_hybrid_hydro_source
@@ -114,30 +114,30 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(sources));
 
-  void hybrid_update
+  void ca_hybrid_update
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state));
 #endif
 
-  void ctoprim(const int* lo, const int* hi,
-	       const amrex::Real* u, const int* u_lo, const int* u_hi,
+  void ca_ctoprim(const int* lo, const int* hi,
+	          const amrex::Real* u, const int* u_lo, const int* u_hi,
 #ifdef RADIATION
-	       const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-	       const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
+		  const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
+		  const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
 #endif
-	       const amrex::Real* q, const int* q_lo, const int* q_hi,
-               const amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
+		  const amrex::Real* q, const int* q_lo, const int* q_hi,
+		  const amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
 
-  void srctoprim(const int* lo,   const int* hi,
-		 const amrex::Real* q,   const int* q_lo,   const int* q_hi,
-		 const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
-		 const amrex::Real* src, const int* src_lo, const int* src_hi,
-		 const amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi);
+  void ca_srctoprim(const int* lo,   const int* hi,
+		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
+		    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
+		    const amrex::Real* src, const int* src_lo, const int* src_hi,
+		    const amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
-  void enforce_minimum_density
+  void ca_enforce_minimum_density
     (const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
      const amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
@@ -147,19 +147,19 @@ extern "C"
   void ca_normalize_species
     (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi);
 
-  void get_center(amrex::Real* center);
-  void set_center(amrex::Real* center);
-  void find_center(amrex::Real* data, amrex::Real* center, int* icen,
-		   const amrex::Real* dx, const amrex::Real* problo);
+  void ca_get_center(amrex::Real* center);
+  void ca_set_center(amrex::Real* center);
+  void ca_find_center(amrex::Real* data, amrex::Real* center, int* icen,
+		      const amrex::Real* dx, const amrex::Real* problo);
 
-  void compute_temp
+  void ca_compute_temp
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state), const int*);
 
-  void reset_internal_e
+  void ca_reset_internal_e
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(S_new),
      const int& verbose);

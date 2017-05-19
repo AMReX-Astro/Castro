@@ -120,7 +120,7 @@ Castro::sum_integrated_quantities ()
     // Number of species.
     
     int NumSpec;
-    get_num_spec(&NumSpec);    
+    ca_get_num_spec(&NumSpec);    
 
     // Species names and total masses on the domain.
 
@@ -160,7 +160,7 @@ Castro::sum_integrated_quantities ()
 
       // Update the local level we're on.
 
-      set_amr_info(lev, -1, -1, -1.0, -1.0);
+      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
       // Get the current level from Castro
 
@@ -217,7 +217,7 @@ Castro::sum_integrated_quantities ()
 
     // Return to the original level.
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     // Do the reductions.
 

@@ -141,7 +141,7 @@ Castro::wd_update (Real time, Real dt)
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      set_amr_info(lev, -1, -1, -1.0, -1.0);
+      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
       Castro& c_lev = getLevel(lev);
 
@@ -214,7 +214,7 @@ Castro::wd_update (Real time, Real dt)
 
     }
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     com_p[0] = com_p_x;
     com_p[1] = com_p_y;
@@ -358,7 +358,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      set_amr_info(lev, -1, -1, -1.0, -1.0);
+      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
       Castro& c_lev = getLevel(lev);
 
@@ -428,7 +428,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     }
 
-    set_amr_info(level, -1, -1, -1.0, -1.0);
+    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
 }
 
