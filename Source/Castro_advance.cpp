@@ -392,19 +392,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// is State_Data) to allow for ghost filling.
 	MultiFab& S_new = get_new_data(State_Type);
 
-	// debugging
-	if (0) {
-	  for (int k = 0; k <  Sburn.nComp(); ++k)
-	    {
-	      std::cout << "Sburn[" << k << "]: " << Sburn.min(k) << " " << Sburn.max(k) << std::endl;
-	    }
-
-	  for (int k = 0; k <  Sburn.nComp(); ++k)
-	    {
-	      std::cout << "kmol[" << k << "]: " << k_mol[0]->min(k) << " " << k_mol[0]->max(k) << std::endl;
-	    }
-	}
-
 	MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
 	for (int i = 0; i < sub_iteration; ++i)
 	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);

@@ -313,12 +313,7 @@ subroutine ca_mol_single_stage(time, &
            enddo
         enddo
 
-!        if (n == QPRES) then
-!           print *, 's', k3d, szm(15,15,kc), szp(15,15,kc), szm(15,15,km), szp(15,15,km)
-!        endif
      enddo
-
-     !print *, k3d, q(15,15,k3d,QPRES), qzm(15,15,kc,QPRES), qxp(15,15,kc,QPRES)
 
      if (k3d >= lo(3)) then
 
@@ -359,7 +354,6 @@ subroutine ca_mol_single_stage(time, &
         endif  ! hi(3) check
 
         ! Compute F^z at kc (k3d)
-        !print *, k3d, q(15,15,k3d,QPRES), qzm(15,15,kc,QPRES), qxp(15,15,kc,QPRES)
 
         call cmpflx(qzm, qzp, It_lo, It_hi, &
                     flux3, flux3_lo, flux3_hi, &
@@ -522,12 +516,6 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
-
-  ! diagnostic
-  !do k3d = lo(3)-1, hi(3)+1
-  !   print *, k3d, uin(15, 15, k3d, 1), uin(15, 15, k3d, UEINT), update(15, 15, k3d, 1), flux3(15, 15, k3d, 1)
-  !enddo
-  !stop
 
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
