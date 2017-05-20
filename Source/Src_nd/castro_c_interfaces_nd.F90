@@ -222,6 +222,12 @@ contains
     real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
     integer, intent(in)     :: idx
 
+    call srctoprim(lo, hi, &
+                   q,     q_lo,   q_hi, &
+                   qaux, qa_lo,  qa_hi, &
+                   src, src_lo, src_hi, &
+                   srcQ,srQ_lo, srQ_hi)
+
   end subroutine ca_srctoprim
 
 end module c_interface_modules
