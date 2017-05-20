@@ -153,16 +153,14 @@ extern "C"
 		      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state));
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int*);
 
   void ca_enforce_consistent_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state), const int*);
 
   void ca_reset_internal_e
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(S_new),
-     const int& verbose);
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
+     const int& verbose, const int*);
 
 #ifdef DIMENSION_AGNOSTIC
 

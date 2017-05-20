@@ -118,8 +118,7 @@ contains
 
 
 
-  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
-       bind(C, name="ca_reset_internal_e")
+  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
     use eos_module 
     use network, only : nspec, naux
@@ -321,12 +320,11 @@ contains
 
     endif
 
-  end subroutine ca_reset_internal_e
+  end subroutine reset_internal_e
 
 
 
-  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="ca_compute_temp")
+  subroutine compute_temp(lo,hi,state,s_lo,s_hi)
 
     use network, only : nspec, naux
     use eos_module
@@ -400,8 +398,8 @@ contains
        enddo
     enddo
 
-  end subroutine ca_compute_temp
-
+  end subroutine compute_temp
+  
 
 
   subroutine ca_check_initial_species(lo,hi,state,state_lo,state_hi) &

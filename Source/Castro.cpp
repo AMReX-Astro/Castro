@@ -2864,10 +2864,11 @@ Castro::reset_internal_energy(MultiFab& S_new)
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
+	const int idx = mfi.tileIndex();
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    print_fortran_warnings);
+			    print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output
@@ -2938,7 +2939,7 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	const int idx      = mfi.uniqueIndex();
+	const int idx = mfi.tileIndex();
 	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			BL_TO_FORTRAN_3D(State[mfi]), &idx);
 #ifdef RADIATION
