@@ -1,6 +1,6 @@
 module c_interface_modules
 
-  use meth_params_module, only: NVAR
+  use meth_params_module, only: NVAR, NQAUX, NQ, QVAR
   use amrex_fort_module, only: rt => amrex_real  
 
 #ifdef CUDA
@@ -87,5 +87,141 @@ contains
     call reset_internal_e(lo, hi, u, u_lo, u_hi, verbose)
 
   end subroutine ca_reset_internal_e
+
+
+  subroutine ca_normalize_species(u, u_lo, u_hi, lo, hi, idx) &
+       bind(C, name="ca_normalize_species")
+
+    use castro_util_module, only: normalize_species
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    integer, intent(in)     :: idx
+
+    call normalize_species(u, u_lo, u_hi, lo, hi)
+
+  end subroutine ca_normalize_species
+
+
+  subroutine ca_enforce_minimum_density(uin, uin_lo, uin_hi, &
+                                        uout, uout_lo, uout_hi, &
+                                        vol, vol_lo, vol_hi, &
+                                        lo, hi, frac_change, verbose, idx) &
+                                        bind(C, name="ca_enforce_minimum_density")
+
+    use advection_util_module, only: enforce_minimum_density
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3), verbose
+    integer, intent(in) ::  uin_lo(3),  uin_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) ::  vol_lo(3),  vol_hi(3)
+
+    real(rt), intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+    real(rt), intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
+    real(rt), intent(inout) :: frac_change
+    integer, intent(in)     :: idx
+
+    call enforce_minimum_density(uin, uin_lo, uin_hi, &
+                                 uout, uout_lo, uout_hi, &
+                                 vol, vol_lo, vol_hi, &
+                                 lo, hi, frac_change, verbose)                
+
+  end subroutine ca_enforce_minimum_density
+
+
+  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi, idx) &
+                                      bind(C, name="ca_check_initial_species")
+
+    use castro_util_module, only: check_initial_species
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: state_lo(3), state_hi(3)
+    real(rt), intent(in) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    integer, intent(in)     :: idx
+
+    call check_initial_species(lo, hi, state, state_lo, state_hi)
+
+  end subroutine ca_check_initial_species
+
+
+  subroutine ca_ctoprim(lo, hi, &
+                        uin, uin_lo, uin_hi, &
+#ifdef RADIATION
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
+#endif
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi, idx) bind(C, name = "ca_ctoprim")
+
+    use advection_util_module, only: ctoprim
+
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+#endif
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: uin_lo(3), uin_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: lam_lo(3), lam_hi(3)
+#endif
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+
+    real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+#ifdef RADIATION
+    real(rt)        , intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+#endif
+
+    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    integer, intent(in)     :: idx
+
+    call ctoprim(lo, hi, &
+                 uin, uin_lo, uin_hi, &
+#ifdef RADIATION
+                 Erin, Erin_lo, Erin_hi, &
+                 lam, lam_lo, lam_hi, &
+#endif
+                 q,     q_lo,   q_hi, &
+                 qaux, qa_lo,  qa_hi)
+
+  end subroutine ca_ctoprim
+
+
+  subroutine ca_srctoprim(lo, hi, &
+                          q,     q_lo,   q_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          srcQ,srQ_lo, srQ_hi, idx) bind(C, name = "ca_srctoprim")
+
+    use advection_util_module, only: srctoprim
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3),   qa_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
+
+    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+    integer, intent(in)     :: idx
+
+  end subroutine ca_srctoprim
 
 end module c_interface_modules

@@ -5,16 +5,15 @@ module advection_util_module
 
   private
 
-  public ca_enforce_minimum_density, compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
+  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens
 
 contains
 
-  subroutine ca_enforce_minimum_density(uin,uin_lo,uin_hi, &
-                                        uout,uout_lo,uout_hi, &
-                                        vol,vol_lo,vol_hi, &
-                                        lo,hi,frac_change,verbose) &
-                                        bind(C, name="ca_enforce_minimum_density")
+  subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                     uout,uout_lo,uout_hi, &
+                                     vol,vol_lo,vol_hi, &
+                                     lo,hi,frac_change,verbose)
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
@@ -191,7 +190,7 @@ contains
        enddo
     enddo
 
-  end subroutine ca_enforce_minimum_density
+  end subroutine enforce_minimum_density
 
 
 
@@ -397,14 +396,14 @@ contains
 
 
 
-  subroutine ca_ctoprim(lo, hi, &
-                        uin, uin_lo, uin_hi, &
+  subroutine ctoprim(lo, hi, &
+                     uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-                        Erin, Erin_lo, Erin_hi, &
-                        lam, lam_lo, lam_hi, &
+                     Erin, Erin_lo, Erin_hi, &
+                     lam, lam_lo, lam_hi, &
 #endif
-                        q,     q_lo,   q_hi, &
-                        qaux, qa_lo,  qa_hi) bind(C, name = "ca_ctoprim")
+                     q,     q_lo,   q_hi, &
+                     qaux, qa_lo,  qa_hi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -588,15 +587,15 @@ contains
        enddo
     enddo
 
-  end subroutine ca_ctoprim
+  end subroutine ctoprim
 
 
 
-  subroutine ca_srctoprim(lo, hi, &
-                          q,     q_lo,   q_hi, &
-                          qaux, qa_lo,  qa_hi, &
-                          src, src_lo, src_hi, &
-                          srcQ,srQ_lo, srQ_hi) bind(C, name = "ca_srctoprim")
+  subroutine srctoprim(lo, hi, &
+                       q,     q_lo,   q_hi, &
+                       qaux, qa_lo,  qa_hi, &
+                       src, src_lo, src_hi, &
+                       srcQ,srQ_lo, srQ_hi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
@@ -664,8 +663,8 @@ contains
 
     enddo
 
-  end subroutine ca_srctoprim
-
+  end subroutine srctoprim
+  
 
 
   ! Given a conservative state and its corresponding primitive state, calculate the

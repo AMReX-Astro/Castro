@@ -1,6 +1,7 @@
 module castro_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
 contains
@@ -402,8 +403,7 @@ contains
   
 
 
-  subroutine ca_check_initial_species(lo,hi,state,state_lo,state_hi) &
-                                      bind(C, name="ca_check_initial_species")
+  subroutine check_initial_species(lo, hi, state, state_lo, state_hi)
 
     use network           , only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -437,11 +437,11 @@ contains
        enddo
     enddo
 
-  end subroutine ca_check_initial_species
+  end subroutine check_initial_species
 
 
 
-  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
+  subroutine normalize_species(u, u_lo, u_hi, lo, hi)
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -475,7 +475,7 @@ contains
        enddo
     enddo
 
-  end subroutine ca_normalize_species
+  end subroutine normalize_species
 
 
 
