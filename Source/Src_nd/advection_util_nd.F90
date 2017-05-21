@@ -1075,8 +1075,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
                 fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i-1,j,k,UEINT) - drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i-1,j,k,UEINT)) / drhoeLF)
+             else if (u(i-1,j,k,UEINT) - drhoeLF < small_rhoe(i-1,j,k)) then
+                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i-1,j,k) - u(i-1,j,k,UEINT)) / drhoeLF)
              endif
 
              flux1(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux1(i,j,k,:)
@@ -1093,8 +1093,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i-1,j,k,UEINT) - drhoe < small_rhoe(i,j,k)) then
-                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i-1,j,k,UEINT)) / drhoe)
+             else if (u(i-1,j,k,UEINT) - drhoe < small_rhoe(i-1,j,k)) then
+                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i-1,j,k) - u(i-1,j,k,UEINT)) / drhoe)
              endif
 
           enddo
@@ -1244,8 +1244,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
                 fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i,j-1,k,UEINT) - drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j-1,k,UEINT)) / drhoeLF)
+             else if (u(i,j-1,k,UEINT) - drhoeLF < small_rhoe(i,j-1,k)) then
+                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j-1,k) - u(i,j-1,k,UEINT)) / drhoeLF)
              endif
 
              flux2(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux2(i,j,k,:)
@@ -1262,8 +1262,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
                 flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i,j-1,k,UEINT) - drhoe < small_rhoe(i,j,k)) then
-                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j-1,k,UEINT)) / drhoe)
+             else if (u(i,j-1,k,UEINT) - drhoe < small_rhoe(i,j-1,k)) then
+                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_rhoe(i,j-1,k) - u(i,j-1,k,UEINT)) / drhoe)
              endif
 
           enddo
@@ -1415,8 +1415,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
                 fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i,j,k-1,UEINT) - drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k-1,UEINT)) / drhoeLF)
+             else if (u(i,j,k-1,UEINT) - drhoeLF < small_rhoe(i,j,k-1)) then
+                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k-1) - u(i,j,k-1,UEINT)) / drhoeLF)
              endif
 
              flux3(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux3(i,j,k,:)
@@ -1433,8 +1433,8 @@ contains
 
              if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
                 flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i,j,k-1,UEINT) - drhoe < small_rhoe(i,j,k)) then
-                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k-1,UEINT)) / drhoe)
+             else if (u(i,j,k-1,UEINT) - drhoe < small_rhoe(i,j,k-1)) then
+                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_rhoe(i,j,k-1) - u(i,j,k-1,UEINT)) / drhoe)
              endif
 
           enddo
