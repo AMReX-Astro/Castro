@@ -899,7 +899,10 @@ Castro::initData ()
 #endif
 
           // Verify that the sum of (rho X)_i = rho at every cell
-          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_new[mfi]));
+	  const int idx = mfi.tileIndex();
+
+          ca_check_initial_species(ARLIM_3D(lo), ARLIM_3D(hi), 
+				   BL_TO_FORTRAN_3D(S_new[mfi]), &idx);
        }
        enforce_consistent_e(S_new);
 
@@ -2482,7 +2485,10 @@ Castro::normalize_species (MultiFab& S_new)
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox(ng);
-       ca_normalize_species(BL_TO_FORTRAN_3D(S_new[mfi]),ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
+       const int idx = mfi.tileIndex();
+
+       ca_normalize_species(BL_TO_FORTRAN_3D(S_new[mfi]), 
+			    ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), &idx);
     }
 }
 
@@ -2542,12 +2548,13 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
 	FArrayBox& vol      = volume[mfi];
-
+	const int idx = mfi.tileIndex();
+	
 	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				   vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
 				   ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				   &dens_change, &verbose);
+				   &dens_change, &verbose, &idx);
 
     }
 
@@ -2870,10 +2877,11 @@ Castro::reset_internal_energy(MultiFab& S_new)
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
+	const int idx = mfi.tileIndex();
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    print_fortran_warnings);
+			    print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output
@@ -2944,7 +2952,9 @@ Castro::computeTemp(MultiFab& State)
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {
 #endif
-	ca_compute_temp(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),BL_TO_FORTRAN_3D(State[mfi]));
+	const int idx = mfi.tileIndex();
+	ca_compute_temp(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+			BL_TO_FORTRAN_3D(State[mfi]), &idx);
 #ifdef RADIATION
       }
 #endif
@@ -3296,11 +3306,12 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux)
     for (MFIter mfi(u, true); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.growntilebox(ng);
+	const int idx = mfi.tileIndex();
 
 	ca_ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		   u[mfi].dataPtr(), ARLIM_3D(u[mfi].loVect()), ARLIM_3D(u[mfi].hiVect()),
 		   q[mfi].dataPtr(), ARLIM_3D(q[mfi].loVect()), ARLIM_3D(q[mfi].hiVect()),
-		   qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()));
+		   qaux[mfi].dataPtr(), ARLIM_3D(qaux[mfi].loVect()), ARLIM_3D(qaux[mfi].hiVect()), &idx);
 
     }
 

@@ -160,6 +160,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  // convert the conservative state to the primitive variable state.
 	  // this fills both q and qaux.
 
+	  const int idx = mfi.tileIndex();
+
 	  ca_ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
 		     statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
 #ifdef RADIATION
@@ -167,7 +169,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		     lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
 #endif
 		     q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
-		     qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()));
+		     qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()), &idx);
 
 	  // convert the source terms expressed as sources to the conserved state to those
 	  // expressed as sources for the primitive state.
@@ -176,7 +178,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 		       q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
 		       qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()),
 		       source_in.dataPtr(), ARLIM_3D(source_in.loVect()), ARLIM_3D(source_in.hiVect()),
-		       src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()));
+		       src_q.dataPtr(), ARLIM_3D(src_q.loVect()), ARLIM_3D(src_q.hiVect()), &idx);
 
 #ifndef RADIATION
 

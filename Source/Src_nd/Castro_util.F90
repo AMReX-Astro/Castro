@@ -1,6 +1,7 @@
 module castro_util_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
 contains
@@ -14,18 +15,19 @@ contains
     use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, dx_level, &
                                   domlo_level, domhi_level, Interior
     use bl_constants_module, only: ZERO, HALF
+    use amrex_fort_module, only: rt => amrex_real
 
     ! Input arguments
-    use amrex_fort_module, only : rt => amrex_real
+
     integer :: i, j, k
     logical, optional :: ccx, ccy, ccz
 
     ! Local variables
-    real(rt)         :: position(3), dx(3), offset(3)
-    integer :: idx(3)
-    logical :: cc(3)
-    integer :: domlo(3), domhi(3)
-    integer :: dir
+    real(rt) :: position(3), dx(3), offset(3)
+    integer  :: idx(3)
+    logical  :: cc(3)
+    integer  :: domlo(3), domhi(3)
+    integer  :: dir
 
     idx = (/ i, j, k /)
 
@@ -81,19 +83,19 @@ contains
 
   subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
 
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
-    use bl_constants_module
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
+    use bl_constants_module, only: HALF, ONE
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     ! Local variables
-    integer          :: i,j,k
-    real(rt)         :: u, v, w, rhoInv
+    integer  :: i,j,k
+    real(rt) :: u, v, w, rhoInv
 
     !
     ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
@@ -118,17 +120,17 @@ contains
 
 
 
-  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) &
-       bind(C, name="ca_reset_internal_e")
+  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
-    use eos_module 
-    use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re, eos_input_rt
+    use network, only: nspec, naux
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
          UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
-    use bl_constants_module
+    use bl_constants_module, only: ZERO, HALF, ONE
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -136,8 +138,8 @@ contains
     real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
-    integer          :: i,j,k
-    real(rt)         :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
+    integer  :: i,j,k
+    real(rt) :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
 
     type (eos_t) :: eos_state
 
@@ -321,28 +323,28 @@ contains
 
     endif
 
-  end subroutine ca_reset_internal_e
+  end subroutine reset_internal_e
 
 
 
-  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) &
-       bind(C, name="ca_compute_temp")
+  subroutine compute_temp(lo,hi,state,s_lo,s_hi)
 
-    use network, only : nspec, naux
-    use eos_module
-    use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
+    use network, only: nspec, naux
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
+    use meth_params_module, only: NVAR, URHO, UEDEN, UEINT, UTEMP, &
          UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
-    use bl_constants_module
+    use bl_constants_module, only: ZERO, ONE
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer         , intent(in   ) :: lo(3),hi(3)
-    integer         , intent(in   ) :: s_lo(3),s_hi(3)
-    real(rt)        , intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: s_lo(3),s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    integer          :: i,j,k
-    real(rt)         :: rhoInv
+    integer  :: i,j,k
+    real(rt) :: rhoInv
 
     type (eos_t) :: eos_state
 
@@ -400,18 +402,17 @@ contains
        enddo
     enddo
 
-  end subroutine ca_compute_temp
+  end subroutine compute_temp
+  
 
 
+  subroutine check_initial_species(lo, hi, state, state_lo, state_hi)
 
-  subroutine ca_check_initial_species(lo,hi,state,state_lo,state_hi) &
-                                      bind(C, name="ca_check_initial_species")
-
-    use network           , only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
+    use network           , only: nspec
+    use meth_params_module, only: NVAR, URHO, UFS
     use bl_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -419,8 +420,8 @@ contains
     real(rt), intent(in) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
     ! Local variables
-    integer          :: i, j, k
-    real(rt)         :: spec_sum
+    integer  :: i, j, k
+    real(rt) :: spec_sum
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -439,27 +440,27 @@ contains
        enddo
     enddo
 
-  end subroutine ca_check_initial_species
+  end subroutine check_initial_species
 
 
 
-  subroutine ca_normalize_species(u,u_lo,u_hi,lo,hi) bind(C, name="ca_normalize_species")
+  subroutine normalize_species(u, u_lo, u_hi, lo, hi)
 
-    use network, only : nspec
-    use meth_params_module, only : NVAR, URHO, UFS
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UFS
     use bl_constants_module, only: ONE
     use extern_probin_module, only: small_x
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
     real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
 
     ! Local variables
-    integer          :: i, j, k
-    real(rt)         :: xn(nspec)
+    integer  :: i, j, k
+    real(rt) :: xn(nspec)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -477,7 +478,7 @@ contains
        enddo
     enddo
 
-  end subroutine ca_normalize_species
+  end subroutine normalize_species
 
 
 
@@ -488,9 +489,9 @@ contains
 
     use amrinfo_module, only: amr_level
     use prob_params_module, only: dx_level, dim
-    
-    use amrex_fort_module, only : rt => amrex_real
-    real(rt)         :: loc(3)
+    use amrex_fort_module, only: rt => amrex_real
+
+    real(rt), intent(in) :: loc(3)
 
     integer :: index(3)
 
@@ -513,16 +514,16 @@ contains
     use amrinfo_module, only: amr_level
     use bl_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: i, j, k, dir
 
-    real(rt)         :: area
+    real(rt) :: area
 
     logical :: cc(3) = .true.
-    real(rt)         :: dx(3), loc(3)
+    real(rt) :: dx(3), loc(3)
 
     ! Force edge-centering along the direction of interest
 
@@ -643,15 +644,15 @@ contains
     use amrinfo_module, only: amr_level
     use bl_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: i, j, k
 
-    real(rt)         :: volume
+    real(rt) :: volume
 
-    real(rt)         :: dx(3), loc_l(3), loc_r(3)
+    real(rt) :: dx(3), loc_l(3), loc_r(3)
 
     dx = dx_level(:,amr_level)
 
@@ -719,12 +720,12 @@ contains
 
   subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
 
-    use prob_params_module, only : center
+    use prob_params_module, only: center
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)        , intent(inout) :: center_out(3)
+    real(rt), intent(inout) :: center_out(3)
 
     center_out = center
 
@@ -734,12 +735,12 @@ contains
 
   subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
 
-    use prob_params_module, only : center
+    use prob_params_module, only: center
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)         :: center_in(3)
+    real(rt), intent(in) :: center_in(3)
 
     center = center_in
 
@@ -750,18 +751,19 @@ contains
   subroutine ca_find_center(data,new_center,icen,dx,problo) &
                          bind(C, name="ca_find_center")
 
-    use bl_constants_module
+    use bl_constants_module, only: ZERO, HALF, TWO
     use prob_params_module, only: dg, dim
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)         :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
-    real(rt)         :: new_center(3)
-    real(rt)         :: dx(3),problo(3)
-    real(rt)         :: a,b,x,y,z,cen
-    integer          :: icen(3)
-    integer          :: i,j,k
+    real(rt), intent(inout) :: data(-1:1,-1*dg(2):1*dg(2),-1*dg(3):1*dg(3))
+    real(rt), intent(  out) :: new_center(3)
+    real(rt), intent(in   ) :: dx(3),problo(3)
+
+    real(rt) :: a,b,x,y,z,cen
+    integer  :: icen(3)
+    integer  :: i,j,k
 
     if (dim .eq. 1) then
 
@@ -822,29 +824,29 @@ contains
                                  problo,numpts_1d) &
                                  bind(C, name="ca_compute_avgstate")
 
-    use meth_params_module, only : URHO, UMX, UMY, UMZ
-    use prob_params_module, only : center, dim
-    use bl_constants_module
+    use meth_params_module, only: URHO, UMX, UMY, UMZ
+    use prob_params_module, only: center, dim
+    use bl_constants_module, only: HALF
+    use amrex_fort_module, only: rt => amrex_real
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3),hi(3),nc
-    real(rt)         :: dx(3),dr,problo(3)
+    integer,  intent(in   ) :: lo(3),hi(3),nc
+    real(rt), intent(in   ) :: dx(3),dr,problo(3)
 
-    integer          :: numpts_1d
-    real(rt)         :: radial_state(nc,0:numpts_1d-1)
-    real(rt)         :: radial_vol(0:numpts_1d-1)
+    integer,  intent(in   ) :: numpts_1d
+    real(rt), intent(inout) :: radial_state(nc,0:numpts_1d-1)
+    real(rt), intent(inout) :: radial_vol(0:numpts_1d-1)
 
-    integer          :: s_lo(3), s_hi(3)
-    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nc)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nc)
 
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i,j,k,n,index
-    real(rt)         :: x,y,z,r
-    real(rt)         :: x_mom,y_mom,z_mom,radial_mom
+    integer  :: i,j,k,n,index
+    real(rt) :: x,y,z,r
+    real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
     if (dim .eq. 1) call bl_error("Error: cannot do ca_compute_avgstate in 1D.")
 
@@ -893,11 +895,13 @@ contains
 
   function linear_to_angular_momentum(loc, mom) result(ang_mom)
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
+
     implicit none
 
-    real(rt)         :: loc(3), mom(3)
-    real(rt)         :: ang_mom(3)
+    real(rt), intent(in) :: loc(3), mom(3)
+
+    real(rt) :: ang_mom(3)
 
     ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
     ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)
