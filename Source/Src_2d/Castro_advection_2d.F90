@@ -363,7 +363,7 @@ contains
                                    UEDEN, UEINT, UTEMP, NGDNV, GDPRES, track_grid_losses, &
 
                                    limit_fluxes_on_small_dens, NQ
-    use prob_params_module, only : coord_type, domlo_level, domhi_level, center
+    use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
     use advection_util_2d_module, only : normalize_species_fluxes
     use advection_util_module, only: limit_hydro_fluxes_on_small_dens
@@ -563,7 +563,7 @@ contains
     ! Add gradp term to momentum equation -- only for axisymmetric
     ! coords (and only for the radial flux).
 
-    if (coord_type == 1) then
+    if (.not. mom_flux_has_p(1)%comp(UMX)) then
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              update(i,j,UMX) = update(i,j,UMX) - (q1(i+1,j,GDPRES) - q1(i,j,GDPRES)) / dx
@@ -598,7 +598,7 @@ contains
           ! not the radiation contribution.  Note that we've already included
           ! the gas pressure in the momentum flux for all Cartesian coordinate
           ! directions
-          if (coord_type == 1) then
+          if (.non. mom_flux_has_p(1)%comp(UMX)) then
              dpdx = ( q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
           else
              dpdx = ZERO
