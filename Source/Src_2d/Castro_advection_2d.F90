@@ -598,7 +598,7 @@ contains
           ! not the radiation contribution.  Note that we've already included
           ! the gas pressure in the momentum flux for all Cartesian coordinate
           ! directions
-          if (.non. mom_flux_has_p(1)%comp(UMX)) then
+          if (.not. mom_flux_has_p(1)%comp(UMX)) then
              dpdx = ( q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
           else
              dpdx = ZERO
