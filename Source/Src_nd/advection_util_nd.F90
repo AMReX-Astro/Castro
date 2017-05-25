@@ -696,7 +696,7 @@ contains
   ! Given a conservative state and its corresponding primitive state, calculate the
   ! corresponding flux in a given direction.
 
-  function dflux(u, q, dir, idx, include_pressure) result(flux)
+  function dflux(u, q, dir, idx) result(flux)
 
     use bl_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
@@ -706,13 +706,12 @@ contains
     use hybrid_advection_module, only: compute_hybrid_flux
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
-
+    use prob_params_module, only: mom_flux_has_p
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: dir, idx(3)
     real(rt)         :: u(NVAR), q(NQ), flux(NVAR)
-    logical, optional :: include_pressure
 
     real(rt)         :: v_adv
     integer :: ipassive, n
@@ -741,10 +740,8 @@ contains
     ! It is optional because for some geometries we cannot write
     ! the pressure term in a conservative form.
 
-    if (present(include_pressure)) then
-       if (include_pressure) then
-          flux(UMX + dir - 1) = flux(UMX + dir - 1) + q(QPRES)
-       endif
+    if (mom_flux_has_p(dir)%comp(UMX+dir-1)) then
+       flux(UMX + dir - 1) = flux(UMX + dir - 1) + q(QPRES)
     endif
 
     ! Hybrid flux.
@@ -840,7 +837,6 @@ contains
     real(rt)         :: alpha_x, alpha_y, alpha_z
     real(rt)         :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
     integer          :: dir
-    logical          :: include_pressure
 
     type (eos_t) :: eos_state
     real(rt)         :: rhoe, drhoe, rhoeLF, drhoeLF
@@ -913,12 +909,6 @@ contains
     ! Whether or not to include pressure in the cell-centered fluxes we calculate
     ! will depend on which dimensionality and coordinate system we are in.
 
-    if (dim .eq. 1 .or. (dim .eq. 2 .and. coord_type .eq. 1)) then
-       include_pressure = .false.
-    else
-       include_pressure = .true.
-    endif
-
     alpha_x = (ONE / dim)
     alpha_y = (ONE / dim)
     alpha_z = (ONE / dim)
@@ -954,8 +944,8 @@ contains
                    ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
                    ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k], include_pressure)
-                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
+                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
+                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                    ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < small_dens.
@@ -985,8 +975,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k], include_pressure)
-                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
+                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
+                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                    drhoeLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1014,8 +1004,8 @@ contains
 
                 if (rho < small_dens) then
 
-                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
-                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k], include_pressure)
+                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
+                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i,j,k,:) - u(i+1,j,k,:)))
 
                    drhoLF = -TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(URHO)
@@ -1034,8 +1024,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
-                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k], include_pressure)
+                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
+                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i,j,k,:) - u(i+1,j,k,:)))
 
                    drhoeLF = -TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1080,8 +1070,8 @@ contains
 
              theta = min(thetam_dens(i-1,j,k), thetap_dens(i,j,k)) * min(thetam_rhoe(i-1,j,k), thetap_rhoe(i,j,k))
 
-             fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k], include_pressure)
-             fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k], include_pressure)
+             fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
+             fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
              ! Ensure that the fluxes don't violate the floor. It is okay that we are applying
@@ -1152,8 +1142,8 @@ contains
 
                 if (rho < small_dens) then
 
-                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k], include_pressure)
-                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
+                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
+                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                    drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
@@ -1172,8 +1162,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k], include_pressure)
-                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
+                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
+                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                    drhoeLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1198,8 +1188,8 @@ contains
 
                 if (rho < small_dens) then
 
-                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
-                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k], include_pressure)
+                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
+                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j,k,:) - u(i,j+1,k,:)))
 
                    drhoLF = -TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(URHO)
@@ -1218,8 +1208,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
-                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k], include_pressure)
+                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
+                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j,k,:) - u(i,j+1,k,:)))
 
                    drhoeLF = -TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1254,8 +1244,8 @@ contains
 
              theta = min(thetam_dens(i,j-1,k), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j-1,k), thetap_rhoe(i,j,k))
 
-             fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k], include_pressure)
-             fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k], include_pressure)
+             fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
+             fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
              drhoLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
@@ -1323,8 +1313,8 @@ contains
 
                 if (rho < small_dens) then
 
-                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1], include_pressure)
-                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ], include_pressure)
+                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
+                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                    drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
@@ -1343,8 +1333,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1], include_pressure)
-                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ], include_pressure)
+                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
+                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                    drhoeLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1369,8 +1359,8 @@ contains
 
                 if (rho < small_dens) then
 
-                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ], include_pressure)
-                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1], include_pressure)
+                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
+                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k,:) - u(i,j,k+1,:)))
 
                    drhoLF = -TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(URHO)
@@ -1389,8 +1379,8 @@ contains
 
                 if (rhoe < small_rhoe(i,j,k)) then
 
-                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ], include_pressure)
-                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1], include_pressure)
+                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
+                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1])
                    fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k,:) - u(i,j,k+1,:)))
 
                    drhoeLF = -TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(UEINT)
@@ -1425,8 +1415,8 @@ contains
 
              theta = min(thetam_dens(i,j,k-1), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j,k-1), thetap_rhoe(i,j,k))
 
-             fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1], include_pressure)
-             fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ], include_pressure)
+             fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
+             fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
              drhoLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)

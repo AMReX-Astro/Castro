@@ -4,6 +4,8 @@
 
 module prob_params_module
 
+  use meth_params_module, only : UMX, UMZ
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -32,5 +34,18 @@ module prob_params_module
   integer         , save, allocatable :: ref_ratio(:,:)
   integer         , save, allocatable :: n_error_buf(:)
   integer         , save, allocatable :: blocking_factor(:)
+
+  integer, parameter :: MAX_MOM_INDEX = 5
+  type momflux_t
+     ! we want this to be able to use UMX, UMY, and UMZ to index here, but
+     ! we can't use those to allocate, since they are not know until runtime.
+     ! dynamic allocation might mess with GPUs, so we make this big enough
+     ! to definitely contain UMX, UMY, and UMZ, and then check this when
+     ! we fill it
+     logical :: comp(MAX_MOM_INDEX)
+  end type momflux_t
+
+  ! one component for each coordinate direction flux
+  type (momflux_t), save :: mom_flux_has_p(3)
   
 end module prob_params_module

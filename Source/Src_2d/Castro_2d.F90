@@ -31,7 +31,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
-  use meth_params_module, only : NQ, QVAR, NVAR, NHYP, NGDNV, GDPRES, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NHYP, NGDNV, GDPRES, UMX, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif
@@ -41,7 +41,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only : uflaten
-  use prob_params_module, only : coord_type
+  use prob_params_module, only : mom_flux_has_p
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use flatten_module, only : rad_flaten
@@ -235,7 +235,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
               eden_lost, xang_lost, yang_lost, zang_lost, &
               verbose)
 
-  if (coord_type .eq. 1) then
+  if (.not. mom_flux_has_p(1)%comp(UMX)) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
   end if
 

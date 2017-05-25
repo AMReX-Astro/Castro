@@ -195,7 +195,7 @@ contains
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    npassive, upass_map, qpass_map
-    use prob_params_module, only : coord_type
+    use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
@@ -292,12 +292,11 @@ contains
     ! normal momentum flux.  Note for 1-d and 2-d non cartesian
     ! r-coordinate, we leave off the pressure term and handle that
     ! separately in the update, to accommodate different geometries
-    if (ndim == 1 .or. (ndim == 2 .and. coord_type == 1 .and. idir == 1)) then
-       fl_tmp = ql(QRHO)*ql(ivel)**2
-       fr_tmp = qr(QRHO)*qr(ivel)**2
-    else
-       fl_tmp = ql(QRHO)*ql(ivel)**2 + ql(QPRES)
-       fr_tmp = qr(QRHO)*qr(ivel)**2 + qr(QPRES)
+    fl_tmp = ql(QRHO)*ql(ivel)**2
+    fr_tmp = qr(QRHO)*qr(ivel)**2
+    if (mom_flux_has_p(idir)%comp(UMX-1+idir)) then
+       fl_tmp = fl_tmp + ql(QPRES)
+       fr_tmp = fr_tmp + qr(QPRES)
     endif
 
     f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
@@ -440,7 +439,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map
-    use prob_params_module, only : coord_type
+    use prob_params_module, only : mom_flux_has_p
 
     integer, intent(in) :: idir, ndim, bnd_fac
     real(rt)        , intent(in) :: U(NVAR)
@@ -468,8 +467,7 @@ contains
     F(UMY) = U(UMY)*u_flx
     F(UMZ) = U(UMZ)*u_flx
 
-    if (ndim == 3 .or. (ndim == 2 .and. coord_type == 0) .or. &
-         (ndim == 2 .and. coord_type == 1 .and. idir == 2)) then
+    if (mom_flux_has_p(idir)%comp(UMX-1+idir)) then
        ! we do not include the pressure term in any non-Cartesian
        ! coordinate directions
        F(UMX-1+idir) = F(UMX-1+idir) + p
