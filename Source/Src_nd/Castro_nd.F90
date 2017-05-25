@@ -684,6 +684,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   use bl_constants_module, only: ZERO
   use prob_params_module
+  use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
   use meth_params_module, only: rot_axis
 #endif
@@ -734,6 +735,30 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      rot_axis = 2
   endif
 #endif
+
+
+  ! sanity check on our allocations
+  if (UMZ > MAX_MOM_INDEX) then
+     call bl_error("ERROR: not enough space in comp in mom_flux_has_p")
+  endif
+
+  ! keep track of which components of the momentum flux have pressure
+  if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
+     mom_flux_has_p(1)%comp(UMX) = .false.
+  else
+     mom_flux_has_p(1)%comp(UMX) = .true.
+  endif
+  mom_flux_has_p(1)%comp(UMY) = .false.
+  mom_flux_has_p(1)%comp(UMZ) = .false.
+
+  mom_flux_has_p(2)%comp(UMX) = .false.
+  mom_flux_has_p(2)%comp(UMY) = .true.
+  mom_flux_has_p(2)%comp(UMZ) = .false.
+
+  mom_flux_has_p(3)%comp(UMX) = .false.
+  mom_flux_has_p(3)%comp(UMY) = .false.
+  mom_flux_has_p(3)%comp(UMZ) = .true.
+
 
 end subroutine ca_set_problem_params
 
