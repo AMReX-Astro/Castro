@@ -56,10 +56,6 @@ ifeq ($(USE_DIFFUSION), TRUE)
    DEFINES += -DDIFFUSION
 endif
 
-ifeq ($(USE_TAU), TRUE)
-   DEFINES += -DTAU
-endif
-
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
    ifeq ($(DIM), 3)
       DEFINES += -DHYBRID_MOMENTUM
