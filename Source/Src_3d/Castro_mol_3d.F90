@@ -525,6 +525,39 @@ subroutine ca_mol_single_stage(time, &
                                    q3, flux3_lo, flux3_hi)
 #endif
 
+  ! Scale the fluxes for the form we expect later in refluxing.
+
+  do n = 1, NVAR
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1) + 1
+              flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+           enddo
+        enddo
+     enddo
+  enddo
+
+  do n = 1, NVAR
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2) + 1
+           do i = lo(1), hi(1)
+              flux2(i,j,k,n) = dt * flux2(i,j,k,n) * area2(i,j,k)
+           enddo
+        enddo
+     enddo
+  enddo
+
+  do n = 1, NVAR
+     do k = lo(3), hi(3) + 1
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              flux3(i,j,k,n) = dt * flux3(i,j,k,n) * area3(i,j,k)
+           enddo
+        enddo
+     enddo
+  enddo
+
+
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
 
