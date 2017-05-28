@@ -17,7 +17,7 @@ module transverse_module
                                  transverse_use_eos, ppm_type, ppm_trace_sources, &
                                  transverse_reset_density, transverse_reset_rhoe, &
                                  ppm_predict_gammae
-  use prob_params_module, only : coord_type
+  use prob_params_module, only : mom_flux_has_p
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
@@ -229,7 +229,7 @@ contains
              ! flux in the x-direction, for we need to fix this now.
              runewr = rur - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                                  area1(i,j)*fx(i,j,UMX))/vol(i,j)
-             if (coord_type == 1) then
+             if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewr = runewr -cdtdx *(pggp-pggm)
              endif
              rvnewr = rvr - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &
@@ -366,7 +366,7 @@ contains
                                  area1(i,j)*fx(i,j,URHO))/vol(i,j)
              runewl = rul - hdt*(area1(i+1,j)*fx(i+1,j,UMX)  -  &
                                  area1(i,j)*fx(i,j,UMX))/vol(i,j) 
-             if (coord_type == 1) then
+             if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewl = runewl -cdtdx *(pggp-pggm)
              endif
              rvnewl = rvl - hdt*(area1(i+1,j)*fx(i+1,j,UMY)  -  &

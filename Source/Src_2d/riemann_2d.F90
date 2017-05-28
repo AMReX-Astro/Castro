@@ -423,7 +423,7 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use prob_params_module, only : coord_type
+    use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
@@ -906,7 +906,7 @@ contains
           if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*qint(i,j,iu)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
-             if (coord_type == 0) then
+             if (mom_flux_has_p(idir)%comp(UMX)) then
                 uflx(i,j,UMX) = uflx(i,j,UMX) + qint(i,j,GDPRES)
              endif
           else
@@ -960,7 +960,7 @@ contains
 #endif
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
-    use prob_params_module, only : coord_type
+    use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
@@ -1319,7 +1319,7 @@ contains
           if (idir == 1) then
              uflx(i,j,UMX) = uflx(i,j,URHO)*qint(i,j,iu)
              uflx(i,j,UMY) = uflx(i,j,URHO)*vgd
-             if (coord_type == 0) then
+             if (mom_flux_has_p(idir)%comp(UMX)) then
                 uflx(i,j,UMX) = uflx(i,j,UMX) + qint(i,j,GDPRES)
              endif
           else

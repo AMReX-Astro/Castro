@@ -2,8 +2,17 @@
 
   -- we now require the AMReX library instead of the BoxLib library
 
+  -- the Microphysics repository that we rely on for the EOS and 
+     reaction networks is now part of the starkiller-astro github. 
+     You can change your clone to refer to this via:
+
+     git remote set-url origin ssh://git@github.com/starkiller-astro/Microphysics
+
   -- a new mechanism for using a stability criterion to trigger
      a regrid at the end of a timestep was added (PR #122)
+
+  -- some cleaning of the logic for momentum fluxes and
+     limit_hydro_fluxes_on_small_dens (issues #130, #131)
 
 # 17.05
 

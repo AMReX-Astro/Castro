@@ -23,9 +23,10 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
   ! initialize the external runtime parameters in
   ! extern_probin_module
 
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: namlen
-  integer :: name(namlen)
+  use amrex_fort_module, only: rt => amrex_real
+
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
 
   call runtime_init(name,namlen)
 
@@ -37,9 +38,9 @@ end subroutine ca_extern_init
 
 subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
 
-  use network, only : nspec
+  use network, only: nspec
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: nspec_out
@@ -54,9 +55,9 @@ end subroutine ca_get_num_spec
 
 subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
 
-  use network, only : naux
+  use network, only: naux
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: naux_out
@@ -72,9 +73,9 @@ end subroutine ca_get_num_aux
 subroutine ca_get_spec_names(spec_names,ispec,len) &
      bind(C, name="ca_get_spec_names")
 
-  use network, only : nspec, short_spec_names
+  use network, only: nspec, short_spec_names
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in   ) :: ispec
@@ -98,13 +99,13 @@ end subroutine ca_get_spec_names
 
 subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
 
-  use network, only : nspec, aion, zion
+  use network, only: nspec, aion, zion
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer         , intent(in   ) :: ispec
-  real(rt)        , intent(inout) :: A, Z
+  integer,  intent(in   ) :: ispec
+  real(rt), intent(inout) :: A, Z
 
   ! C++ is 0-based indexing, so increment
   A = aion(ispec+1)
@@ -119,9 +120,9 @@ end subroutine ca_get_spec_az
 subroutine ca_get_aux_names(aux_names,iaux,len) &
      bind(C, name="ca_get_aux_names")
 
-  use network, only : naux, short_aux_names
+  use network, only: naux, short_aux_names
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in   ) :: iaux
@@ -146,8 +147,8 @@ end subroutine ca_get_aux_names
 subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
   use meth_params_module, only: QVAR
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(inout) :: qvar_in
@@ -160,8 +161,8 @@ end subroutine ca_get_qvar
 subroutine ca_get_qradvar(qradvar_in) bind(C, name="ca_get_qradvar")
 
   use meth_params_module, only: QRADVAR
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(inout) :: qradvar_in
@@ -179,7 +180,7 @@ end subroutine ca_get_qradvar
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -197,12 +198,12 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      bind(C, name="ca_set_amr_info")
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer, intent(in) :: level_in, iteration_in, ncycle_in
-  real(rt)        , intent(in) :: time_in, dt_in
+  integer,  intent(in) :: level_in, iteration_in, ncycle_in
+  real(rt), intent(in) :: time_in, dt_in
 
   if (level_in .ge. 0) then
      amr_level = level_in
@@ -234,9 +235,9 @@ subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
 
   ! Passing data from f90 back to C++
 
-  use meth_params_module
+  use meth_params_module, only: NHYP
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(out) :: ngrowHyp
@@ -253,8 +254,8 @@ subroutine allocate_outflow_data(np,nc) &
      bind(C, name="allocate_outflow_data")
 
   use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: np,nc
@@ -277,13 +278,13 @@ subroutine set_old_outflow_data(radial,time,np,nc) &
   ! Passing data from C++ to f90
 
   use meth_params_module, only: outflow_data_old, outflow_data_old_time
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , intent(in) :: radial(nc,np)
-  real(rt)        , intent(in) :: time
-  integer         , intent(in) :: np,nc
+  real(rt), intent(in) :: radial(nc,np)
+  real(rt), intent(in) :: time
+  integer,  intent(in) :: np,nc
 
   ! Do this so the routine has the right size
   deallocate(outflow_data_old)
@@ -304,13 +305,13 @@ subroutine set_new_outflow_data(radial,time,np,nc) &
   ! Passing data from C++ to f90
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , intent(in) :: radial(nc,np)
-  real(rt)        , intent(in) :: time
-  integer         , intent(in) :: np,nc
+  real(rt), intent(in) :: radial(nc,np)
+  real(rt), intent(in) :: time
+  integer,  intent(in) :: np,nc
 
   ! Do this so the routine has the right size
   deallocate(outflow_data_new)
@@ -328,12 +329,12 @@ end subroutine set_new_outflow_data
 subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
-       outflow_data_old, outflow_data_old_time
+                                outflow_data_old, outflow_data_old_time
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer                       :: np,nc
+  integer :: np, nc
 
   nc = size(outflow_data_new,dim=1)
   np = size(outflow_data_new,dim=2)
@@ -376,10 +377,10 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
 #ifdef RADIATION
-  use rad_params_module, only : ngroups
+  use rad_params_module, only: ngroups
 #endif
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: dm
@@ -648,10 +649,10 @@ end subroutine ca_set_method_params
 
 subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
-  use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
-       QU, QV, QW
+  use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
+                                QU, QV, QW
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   NGDNV = 6
@@ -684,18 +685,19 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   use bl_constants_module, only: ZERO
   use prob_params_module
+  use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
   use meth_params_module, only: rot_axis
 #endif
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer, intent(in) :: dm
-  integer, intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-  integer, intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
-  integer, intent(in) :: coord_type_in
-  real(rt)        , intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+  integer,  intent(in) :: dm
+  integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
+  integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
+  integer,  intent(in) :: coord_type_in
+  real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
 
   dim = dm
 
@@ -735,6 +737,30 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
+
+  ! sanity check on our allocations
+  if (UMZ > MAX_MOM_INDEX) then
+     call bl_error("ERROR: not enough space in comp in mom_flux_has_p")
+  endif
+
+  ! keep track of which components of the momentum flux have pressure
+  if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
+     mom_flux_has_p(1)%comp(UMX) = .false.
+  else
+     mom_flux_has_p(1)%comp(UMX) = .true.
+  endif
+  mom_flux_has_p(1)%comp(UMY) = .false.
+  mom_flux_has_p(1)%comp(UMZ) = .false.
+
+  mom_flux_has_p(2)%comp(UMX) = .false.
+  mom_flux_has_p(2)%comp(UMY) = .true.
+  mom_flux_has_p(2)%comp(UMZ) = .false.
+
+  mom_flux_has_p(3)%comp(UMX) = .false.
+  mom_flux_has_p(3)%comp(UMY) = .false.
+  mom_flux_has_p(3)%comp(UMZ) = .true.
+
+
 end subroutine ca_set_problem_params
 
 ! :::
@@ -746,16 +772,16 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
                             bind(C, name="ca_set_grid_info")
 
   use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer,          intent(in) :: max_level_in
-  real(rt)        , intent(in) :: dx_level_in(3*(max_level_in+1))
-  integer,          intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
-  integer,          intent(in) :: ref_ratio_in(3*(max_level_in+1))
-  integer,          intent(in) :: n_error_buf_in(0:max_level_in)
-  integer,          intent(in) :: blocking_factor_in(0:max_level_in)
+  integer,  intent(in) :: max_level_in
+  real(rt), intent(in) :: dx_level_in(3*(max_level_in+1))
+  integer,  intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
+  integer,  intent(in) :: ref_ratio_in(3*(max_level_in+1))
+  integer,  intent(in) :: n_error_buf_in(0:max_level_in)
+  integer,  intent(in) :: blocking_factor_in(0:max_level_in)
 
   integer :: lev, dir
 
@@ -811,9 +837,12 @@ end subroutine ca_set_grid_info
 
 subroutine ca_set_special_tagging_flag(dummy,flag) &
      bind(C, name="ca_set_special_tagging_flag")
-  use amrex_fort_module, only : rt => amrex_real
-  real(rt)         :: dummy
-  integer          :: flag
+
+  use amrex_fort_module, only: rt => amrex_real
+
+  real(rt) :: dummy
+  integer  :: flag
+
 end subroutine ca_set_special_tagging_flag
 
 ! :::
@@ -823,11 +852,11 @@ end subroutine ca_set_special_tagging_flag
 subroutine ca_get_tagging_params(name, namlen) &
      bind(C, name="ca_get_tagging_params")
 
-  use tagging_module
-
   ! Initialize the tagging parameters
 
-  use amrex_fort_module, only : rt => amrex_real
+  use tagging_module
+  use amrex_fort_module, only: rt => amrex_real
+
   integer :: namlen
   integer :: name(namlen)
 
@@ -909,11 +938,11 @@ end subroutine ca_get_tagging_params
 
 subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
 
-  use sponge_module
-
   ! Initialize the sponge parameters
 
-  use amrex_fort_module, only : rt => amrex_real
+  use sponge_module
+  use amrex_fort_module, only: rt => amrex_real
+
   integer :: namlen
   integer :: name(namlen)
 
@@ -987,11 +1016,11 @@ end subroutine ca_get_sponge_params
 subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
 
   use meth_params_module, only: point_mass
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , intent(in) :: pointmass_in
+  real(rt), intent(in) :: pointmass_in
 
   point_mass = pointmass_in
 

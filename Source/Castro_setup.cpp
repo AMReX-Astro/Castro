@@ -123,7 +123,7 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor()) {
 
     const char* castro_hash  = buildInfoGetGitHash(1);
-    const char* boxlib_hash  = buildInfoGetGitHash(2);
+    const char* amrex_hash   = buildInfoGetGitHash(2);
     const char* microphysics_hash = buildInfoGetGitHash(3);
     const char* buildgithash = buildInfoGetBuildGitHash();
     const char* buildgitname = buildInfoGetBuildGitName();
@@ -131,8 +131,8 @@ Castro::variableSetUp ()
     if (strlen(castro_hash) > 0) {
       std::cout << "\n" << "Castro git describe: " << castro_hash << "\n";
     }
-    if (strlen(boxlib_hash) > 0) {
-      std::cout << "BoxLib git describe: " << boxlib_hash << "\n";
+    if (strlen(amrex_hash) > 0) {
+      std::cout << "AMReX git describe: " << amrex_hash << "\n";
     }
     if (strlen(microphysics_hash) > 0) {
       std::cout << "Microphysics git describe: " << microphysics_hash << "\n";
