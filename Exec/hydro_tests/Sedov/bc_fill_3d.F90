@@ -258,10 +258,10 @@ contains
   subroutine bcnormal(u_int,u_ext,dir,sgn,rho_only)
 
     use probdata_module
-    use eos_module, only : gamma_const
+    use actual_eos_module, only : gamma_const
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: u_int(*),u_ext(*)

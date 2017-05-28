@@ -1,13 +1,14 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use eos_module
-  use eos_type_module
-  use bl_error_module
-  use network
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
+  use bl_error_module, only: bl_error
+  use network, only: nspec
   use probdata_module
   use extern_probin_module
-
   use amrex_fort_module, only : rt => amrex_real
+  use bl_constants_module, only: ZERO, ONE
+
   implicit none
 
   integer init, namlen
@@ -96,10 +97,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only: problo, probhi
   use extern_probin_module, only : specific_q_burn
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
-  use eos_type_module
-  use eos_module
-
+  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+  use eos_module, only: eos
   use amrex_fort_module, only : rt => amrex_real
+  use bl_constants_module, only: ZERO, ONE
+
   implicit none
 
   integer level, nscal

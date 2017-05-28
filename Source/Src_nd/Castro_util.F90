@@ -121,14 +121,15 @@ contains
 
   subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
-    use eos_module 
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_rt
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
          UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -328,12 +329,13 @@ contains
   subroutine compute_temp(lo,hi,state,s_lo,s_hi)
 
     use network, only : nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
          UFS, UFX, allow_negative_energy, dual_energy_update_E_from_e
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer         , intent(in   ) :: lo(3),hi(3)

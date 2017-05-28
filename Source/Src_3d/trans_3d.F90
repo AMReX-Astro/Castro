@@ -22,10 +22,10 @@ module transverse_module
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif
-
-  use eos_module
-
+  use eos_module, only: eos
+  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   private
@@ -36,6 +36,7 @@ contains
   subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
 
     use amrex_fort_module, only : rt => amrex_real
+
     integer, intent(in) :: ii, jj, kk
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)

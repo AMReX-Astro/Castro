@@ -179,8 +179,8 @@ end subroutine ca_get_qradvar
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer, intent(inout) :: nqaux_in
@@ -372,7 +372,8 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use meth_params_module
   use network, only : nspec, naux
   use parallel, only : parallel_initialize
-  use eos_module, only : eos_init, eos_get_small_dens, eos_get_small_temp
+  use eos_module, only: eos_init
+  use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
 #ifdef RADIATION
   use rad_params_module, only : ngroups

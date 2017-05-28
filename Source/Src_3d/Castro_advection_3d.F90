@@ -1,8 +1,8 @@
 module advection_module
 
   use bl_constants_module
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   private
@@ -67,7 +67,8 @@ contains
     use ppm_module, only : ppm
     use slope_module, only : uslope, pslope
     use actual_network, only : nspec, naux
-    use eos_module, only : eos_t, eos_input_rt, eos
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_rt
     use riemann_module, only: cmpflx, shock
     use bl_constants_module
 #ifdef RADIATION

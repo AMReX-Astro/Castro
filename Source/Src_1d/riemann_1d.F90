@@ -24,7 +24,7 @@ module riemann_module
 
   public cmpflx, shock
 
-  real(rt)        , parameter :: smallu = 1.e-12_rt
+  real(rt), parameter :: smallu = 1.e-12_rt
 
 contains
 
@@ -42,15 +42,16 @@ contains
                     qaux, qa_l1, qa_h1, ilo, ihi)
 
 
-    use eos_type_module
-    use eos_module
+    use eos_type_module, only: eos_input_re, eos_input_rt, eos_t
+    use eos_module, only: eos
     use network, only: nspec, naux
-
 #ifdef RADIATION
     use rad_params_module, only : ngroups
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer ilo,ihi

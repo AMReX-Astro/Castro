@@ -33,8 +33,10 @@ contains
     use burner_module
     use burn_type_module
     use bl_constants_module
-
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
