@@ -113,7 +113,8 @@ end subroutine amrex_probinit
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_h1,delta,xlo,xhi)
 
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS

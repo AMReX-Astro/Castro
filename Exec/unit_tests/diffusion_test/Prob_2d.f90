@@ -4,8 +4,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use prob_params_module, only: center
   use probdata_module
   use bl_error_module
-  use eos_type_module
-  use eos_module
+  use eos_type_module, only: eos_t, eos_input_rt
+  use eos_module, only : eos
   use network, only : nspec
   use extern_probin_module, only: const_conductivity
 
@@ -101,11 +101,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module, only : T1, T2, diff_coeff, t_0, rho0
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use network, only: nspec
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : problo
   use prob_util_module, only : analytic
+  use bl_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
