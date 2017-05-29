@@ -5,6 +5,7 @@ module hse_bc_module
   use prob_params_module
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
+  use bl_constants_module, only : ZERO, HALF
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -22,7 +23,6 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                    UFS, UTEMP, const_grav
     use network, only: nspec
-
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer :: adv_l1, adv_l2, adv_l3, adv_h1, adv_h2, adv_h3

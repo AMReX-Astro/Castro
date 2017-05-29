@@ -1,6 +1,7 @@
 module hse_bc_module
 
   use bl_types
+  use bl_constants_module, only: ZERO, HALF
   use bl_error_module
   use prob_params_module
   use eos_module, only : eos
