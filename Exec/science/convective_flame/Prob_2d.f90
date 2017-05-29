@@ -96,6 +96,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
 
+  use bl_constants_module, only: HALF, ZERO, ONE
   use probdata_module
   use model_parser_module
   use interpolate_module

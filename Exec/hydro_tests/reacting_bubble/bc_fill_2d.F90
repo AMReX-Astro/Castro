@@ -1,5 +1,6 @@
 module bc_fill_module
 
+  use bl_constants_module, only : ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -13,7 +14,8 @@ contains
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
     use interpolate_module
-    use eos_module
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module
 
