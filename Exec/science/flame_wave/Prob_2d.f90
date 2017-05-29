@@ -77,7 +77,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module
   use probdata_module
   use interpolate_module
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt, eos_input_tp
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only: problo
   use network, only: nspec

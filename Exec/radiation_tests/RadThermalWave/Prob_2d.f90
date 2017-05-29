@@ -78,7 +78,8 @@
        delta,xlo,xhi)
 
       use probdata_module
-      use eos_module
+      use eos_module, only : eos
+      use eos_type_module, only : eos_t, eos_input_rt
       use meth_params_module, only : URHO, UMX, UMY, UEDEN, UEINT, UTEMP, UFS, UFX
 
       use network, only : nspec

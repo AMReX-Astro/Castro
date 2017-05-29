@@ -85,7 +85,8 @@
       use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
 
       use network, only : nspec
-      use eos_module
+      use eos_module, only : eos
+      use eos_type_module, only : eos_t, eos_input_rt
 
       use amrex_fort_module, only : rt => amrex_real
       implicit none

@@ -86,6 +86,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                                  UFS, UTEMP
   use eos_module
   use eos_type_module
+  use bl_constants_module, only : ZERO, HALF, ONE
   use network, only: nspec, network_species_index
 
   use amrex_fort_module, only : rt => amrex_real
