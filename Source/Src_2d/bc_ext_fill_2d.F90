@@ -29,7 +29,8 @@ contains
                       bind(C, name="ext_fill")
 
     use prob_params_module, only : problo
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module
 

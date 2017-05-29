@@ -31,7 +31,7 @@ module riemann_module
 
   public cmpflx, shock
 
-  real(rt)        , parameter :: smallu = 1.e-12_rt
+  real(rt), parameter :: smallu = 1.e-12_rt
 
 contains
 
@@ -50,10 +50,13 @@ contains
                     idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
-
     use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
