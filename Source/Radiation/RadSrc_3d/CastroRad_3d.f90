@@ -1202,7 +1202,8 @@ subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
      lo,hi,dx,dt) bind(C)
 
   use network, only : nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only: eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, &
        UFX, allow_negative_energy
 
