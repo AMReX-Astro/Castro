@@ -22,10 +22,10 @@ module transverse_module
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor
 #endif
-
-  use eos_module
-
+  use eos_module, only: eos
+  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   private

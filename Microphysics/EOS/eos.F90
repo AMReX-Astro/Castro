@@ -1,12 +1,5 @@
 module eos_module
 
-  use bl_types, only: dp_t
-  use bl_error_module
-  use bl_constants_module
-  use network, only: nspec, aion, zion
-  use eos_type_module
-  use actual_eos_module
-
   implicit none
 
   public eos_init, eos
@@ -20,13 +13,16 @@ contains
 
   subroutine eos_init(small_temp, small_dens)
 
-    use extern_probin_module
-    use parallel
+    use amrex_fort_module, only: rt => amrex_real
+    use parallel, only: parallel_IOProcessor
+    use bl_error_module, only: bl_warn
+    use eos_type_module, only: mintemp, mindens
+    use actual_eos_module, only: actual_eos_init
 
     implicit none
 
-    real(dp_t), optional :: small_temp
-    real(dp_t), optional :: small_dens
+    real(rt), optional :: small_temp
+    real(rt), optional :: small_dens
 
     ! Set up any specific parameters or initialization steps required by the EOS we are using.
 
@@ -77,7 +73,12 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, composition, composition_derivatives
+    use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
+#ifndef ACC
+    use bl_error_module, only: bl_error
+#endif
 
     implicit none
 
@@ -126,6 +127,10 @@ contains
   subroutine reset_inputs(input, state, has_been_reset)
 
     !$acc routine seq
+
+    use eos_type_module, only: eos_t, &
+                               eos_input_rt, eos_input_re, eos_input_rh, eos_input_tp, &
+                               eos_input_rp, eos_input_th, eos_input_ph, eos_input_ps
 
     implicit none
 
@@ -188,6 +193,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mindens, maxdens
+
     implicit none
 
     type (eos_t), intent(inout) :: state
@@ -205,6 +212,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mintemp, maxtemp
+
     implicit none
 
     type (eos_t), intent(inout) :: state
@@ -219,6 +228,8 @@ contains
   subroutine reset_e(state, has_been_reset)
 
     !$acc routine seq
+
+    use eos_type_module, only: eos_t, mine, maxe
 
     implicit none
 
@@ -237,6 +248,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, minh, maxh
+
     implicit none
 
     type (eos_t), intent(inout) :: state
@@ -254,6 +267,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mins, maxs
+
     implicit none
 
     type (eos_t), intent(inout) :: state
@@ -270,6 +285,8 @@ contains
   subroutine reset_p(state, has_been_reset)
 
     !$acc routine seq
+
+    use eos_type_module, only: eos_t, minp, maxp
 
     implicit none
 
@@ -291,7 +308,8 @@ contains
 
     !$acc routine seq
 
-    use actual_eos_module
+    use eos_type_module, only: eos_t, eos_input_rt, mintemp, maxtemp, mindens, maxdens
+    use actual_eos_module, only: actual_eos
 
     implicit none
 
@@ -313,6 +331,11 @@ contains
   subroutine check_inputs(input, state)
 
     !$acc routine seq
+
+    use network, only: nspec
+    use eos_type_module, only: eos_t, print_state, minx, maxx, minye, maxye, &
+                               eos_input_rt, eos_input_re, eos_input_rp, eos_input_rh, &
+                               eos_input_th, eos_input_tp, eos_input_ph, eos_input_ps
 
     implicit none
 
@@ -391,6 +414,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mindens, maxdens, print_state
+
     implicit none
 
     type (eos_t), intent(in) :: state
@@ -411,6 +436,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mintemp, maxtemp, print_state
+
     implicit none
 
     type (eos_t), intent(in) :: state
@@ -418,7 +445,7 @@ contains
     if (state % T .lt. mintemp) then
        call print_state(state)
        call bl_error('EOS: T smaller than mintemp.')
-    else if (state % T .gt. maxdens) then
+    else if (state % T .gt. maxtemp) then
        call print_state(state)
        call bl_error('EOS: T greater than maxtemp.')
     endif
@@ -430,6 +457,8 @@ contains
   subroutine check_e(state)
 
     !$acc routine seq
+
+    use eos_type_module, only: eos_t, mine, maxe, print_state
 
     implicit none
 
@@ -451,6 +480,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, minh, maxh, print_state
+
     implicit none
 
     type (eos_t), intent(in) :: state
@@ -471,6 +502,8 @@ contains
 
     !$acc routine seq
 
+    use eos_type_module, only: eos_t, mins, maxs, print_state
+
     implicit none
 
     type (eos_t), intent(in) :: state
@@ -490,6 +523,8 @@ contains
   subroutine check_p(state)
 
     !$acc routine seq
+
+    use eos_type_module, only: eos_t, minp, maxp, print_state
 
     implicit none
 

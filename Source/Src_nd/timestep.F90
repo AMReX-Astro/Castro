@@ -1,6 +1,7 @@
 module timestep_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   public
@@ -12,8 +13,9 @@ contains
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
     use network, only: nspec, naux
-    use eos_module
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
     use bl_constants_module
 #ifdef ROTATION
@@ -21,8 +23,8 @@ contains
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -114,21 +116,22 @@ contains
                               lo, hi, dx, dt_old, dt) &
                               bind(C, name="ca_estdt_burning")
 
-    use bl_constants_module, only: ONE
-    use network, only: nspec, naux
+    use bl_constants_module, only: HALF, ONE
+    use network, only: nspec, naux, aion
     use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_mode
     use prob_params_module, only : dim
 #if naux > 0
     use meth_params_module, only : UFX
 #endif
     use actual_rhs_module, only: actual_rhs
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
     use burn_type_module
     use eos_type_module
     use extern_probin_module, only: small_x
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: so_lo(3), so_hi(3)
@@ -253,15 +256,15 @@ contains
        bind(C, name="ca_estdt_temp_diffusion")
 
     use network, only: nspec, naux
-    use eos_module
-    use eos_type_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
     use bl_constants_module
     use conductivity_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -330,15 +333,15 @@ contains
        bind(C, name="ca_estdt_enth_diffusion")
 
     use network, only: nspec, naux
-    use eos_module
-    use eos_type_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
          diffuse_cutoff_density
     use prob_params_module, only: dim
     use bl_constants_module
     use conductivity_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -426,9 +429,10 @@ contains
     use prob_params_module, only: dim
     use network, only: nspec, naux
     use extern_probin_module, only: small_x
-    use eos_module
-
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)

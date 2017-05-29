@@ -195,7 +195,6 @@ contains
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
-    use eos_module
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, track_grid_losses, &
 #ifdef RADIATION

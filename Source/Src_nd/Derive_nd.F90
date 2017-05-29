@@ -1,6 +1,7 @@
 module derive_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   public
@@ -101,11 +102,12 @@ contains
                           bind(C, name="ca_deruplusc")
 
     use network, only : nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -151,11 +153,12 @@ contains
                            bind(C, name="ca_deruminusc")
 
     use network, only : nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -485,11 +488,12 @@ contains
                         bind(C, name="ca_derpres")
 
     use network, only: nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -535,8 +539,8 @@ contains
 
     use bl_constants_module
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -610,11 +614,12 @@ contains
                               bind(C, name="ca_dersoundspeed")
 
     use network, only: nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -659,11 +664,12 @@ contains
                               bind(C, name="ca_dermachnumber")
 
     use network, only: nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -708,11 +714,12 @@ contains
                            bind(C, name="ca_derentropy")
 
     use network, only: nspec, naux
-    use eos_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use bl_constants_module
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -760,10 +767,12 @@ contains
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
     use network, only: nspec, naux
     use prob_params_module, only: dim
-    use eos_module, only: eos_t, eos_input_re, eos
-
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
+    
 
     integer          :: lo(3), hi(3)
     integer          :: t_lo(3), t_hi(3), ncomp_t
@@ -1098,8 +1107,8 @@ contains
     use bl_constants_module
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
-    use eos_type_module
-    use eos_module
+    use eos_type_module, only: eos_input_re, eos_t
+    use eos_module, only: eos
     use network
     use conductivity_module
 
@@ -1158,8 +1167,8 @@ contains
     use bl_constants_module
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
-    use eos_type_module
-    use eos_module
+    use eos_type_module, only: eos_input_re, eos_t
+    use eos_module, only: eos
     use network
     use conductivity_module
 
@@ -1219,8 +1228,8 @@ contains
     use meth_params_module, only: UTEMP
     use prob_params_module, only: dim
     use diffusion_module
-    
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)

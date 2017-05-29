@@ -123,13 +123,13 @@ contains
   subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re, eos_input_rt
+    use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
          UTEMP, small_temp, allow_negative_energy, allow_small_energy, &
          dual_energy_eta2, dual_energy_update_E_from_e
     use bl_constants_module, only: ZERO, HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
+    use amrex_fort_module, only : rt => amrex_real
 
     implicit none
 

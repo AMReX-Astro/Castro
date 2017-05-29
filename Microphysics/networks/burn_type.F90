@@ -81,7 +81,7 @@ contains
 
     !$acc routine seq
 
-    use eos_module, only: eos_t
+    use eos_type_module, only: eos_t
 
     implicit none
 
@@ -113,7 +113,7 @@ contains
 
     !$acc routine seq
 
-    use eos_module, only: eos_t
+    use eos_type_module, only: eos_t
 
     implicit none
 

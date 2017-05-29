@@ -1,8 +1,8 @@
 module ctu_advection_module
 
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   private
@@ -70,8 +70,8 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
