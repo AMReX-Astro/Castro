@@ -1,8 +1,8 @@
 module probdata_module
 
   use network, only: nspec, network_species_index
-  use eos_type_module, only: eos_t
-  use eos_module, only: eos_input_rt, eos
+  use eos_type_module, only: eos_t, eos_input_rt
+  use eos_module, only: eos
   use bl_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR
   use fundamental_constants_module, only: Gconst, M_solar, AU
   use initial_model_module, only: initial_model
