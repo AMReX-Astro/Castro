@@ -29,8 +29,9 @@ contains
                        r_model, rho_model, T_model, e_model, p_model, &
                        lo, hi)
 
-    use eos_module
-    use eos_type_module
+    use eos_module, only : eos
+    use eos_type_module, only : eos_t, eos_input_rp
+    use network, only : nspec
     use meth_params_module, only: const_grav
 
     use amrex_fort_module, only : rt => amrex_real
