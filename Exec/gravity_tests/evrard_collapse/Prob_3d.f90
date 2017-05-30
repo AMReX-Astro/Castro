@@ -5,9 +5,9 @@
      use amrex_fort_module, only : rt => amrex_real
      implicit none
 
-     integer :: init, namlen
-     integer :: name(namlen)
-     real(rt)         :: problo(3), probhi(3)
+     integer  :: init, namlen
+     integer  :: name(namlen)
+     real(rt) :: problo(3), probhi(3)
 
      call initialize(name, namlen)
 
@@ -40,26 +40,26 @@
                           delta,xlo,xhi)
 
      use probdata_module
-     use eos_module, only: eos_input_re, eos
-     use eos_type_module, only: eos_t
+     use eos_module, only: eos
+     use eos_type_module, only: eos_t, eos_input_re
      use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
           UEDEN, UEINT, UFS
      use network, only : nspec
      use bl_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
      use fundamental_constants_module, only: Gconst, M_solar
      use prob_params_module, only: center
-
      use amrex_fort_module, only : rt => amrex_real
+
      implicit none
 
-     integer :: level, nscal
-     integer :: lo(3), hi(3)
-     integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-     real(rt)         :: xlo(3), xhi(3), time, delta(3)
-     real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+     integer,  intent(in   ) :: level, nscal
+     integer,  intent(in   ) :: lo(3), hi(3)
+     integer,  intent(in   ) :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
+     real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+     real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
 
-     real(rt)         :: loc(3)
-     real(rt)         :: radius
+     real(rt) :: loc(3)
+     real(rt) :: radius
 
      type (eos_t) :: zone_state
 
