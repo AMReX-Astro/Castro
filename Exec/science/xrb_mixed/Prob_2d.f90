@@ -94,11 +94,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use interpolate_module
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
-
+  use bl_constants_module, only : ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
   implicit none
         
@@ -116,7 +117,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
 
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
 
      do i = lo(1), hi(1)   
 
@@ -166,13 +167,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (apply_vel_field) then
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
         ydist = y - velpert_height_loc
         
         do i = lo(1), hi(1)   
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
-           upert = 0.e0_rt
+           upert = ZERO
 
            ! loop over each vortex
            do vortex = 1, num_vortices
