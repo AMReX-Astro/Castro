@@ -14,7 +14,8 @@ contains
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, const_grav
     use interpolate_module
-    use eos_module
+    use eos_module, only : eos
+    use eos_type_module, only: eos_input_rt, eos_t
     use network, only: nspec
     use model_parser_module
 
