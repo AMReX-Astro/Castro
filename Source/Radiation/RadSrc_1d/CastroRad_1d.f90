@@ -404,7 +404,8 @@ subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
   lo,hi,dx,dt) bind(C)
 
   use network, only : nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy
   use amrex_fort_module, only : rt => amrex_real

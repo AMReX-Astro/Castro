@@ -2,13 +2,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_constants_module
   use fundamental_constants_module, only: Gconst
-  use eos_module, only: K_const, gamma_const, polytrope_index
+  use actual_eos_module, only: K_const, gamma_const, polytrope_index
   use probdata_module
   use prob_params_module, only: center
   use meth_params_module, only: point_mass
   use rotation_frequency_module, only: get_omega
-  
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none 
 
   integer :: init,namlen,untin,i
@@ -60,15 +60,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use bl_constants_module
   use fundamental_constants_module, only: Gconst
   use probdata_module
-  use eos_module
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
+  use actual_eos_module, only: polytrope_index, K_const
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, do_rotation
   use rotation_frequency_module, only: get_omega
   use math_module, only: cross_product
   use prob_params_module, only: center
   use castro_util_module, only: position
-  
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer          :: level, nscal

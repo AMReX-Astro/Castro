@@ -7,8 +7,8 @@ module initial_model_module
   use bl_types
   use bl_constants_module
   use bl_error_module, only: bl_error
-  use eos_module, only: eos_input_rt, eos
-  use eos_type_module, only: eos_t
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar

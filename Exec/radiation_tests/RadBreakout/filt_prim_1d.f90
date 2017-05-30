@@ -7,7 +7,8 @@ subroutine ca_filt_prim(lo, hi, &
 
   use probdata_module, only : filter_rhomax, filter_timemax
   use network, only : naux, nspec
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFA, UFS, UFX, &
        small_temp, small_dens, nadv
   use filter_module

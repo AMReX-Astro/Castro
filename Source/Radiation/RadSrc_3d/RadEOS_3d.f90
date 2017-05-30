@@ -5,7 +5,8 @@ subroutine ca_compute_c_v(lo, hi, &
                           state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3) &
                           bind(C, name="ca_compute_c_v")
 
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
@@ -50,7 +51,9 @@ subroutine ca_get_rhoe(lo, hi, &
                        state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3) &
                        bind(C, name="ca_get_rhoe")
 
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
+
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
@@ -96,7 +99,8 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
 
 
   use network, only : nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UTEMP, UFS, UFX, small_temp, allow_negative_energy
 
   use amrex_fort_module, only : rt => amrex_real
@@ -191,7 +195,8 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
      state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3)
 
   use network, only: nspec, naux
-  use eos_module
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UFS, UFX, &
        small_temp, allow_negative_energy
   
@@ -254,7 +259,8 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
      state, state_l1, state_l2, state_l3, state_h1, state_h2, state_h3)
   
   use network, only: nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
   use amrex_fort_module, only : rt => amrex_real

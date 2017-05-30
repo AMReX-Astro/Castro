@@ -61,7 +61,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
-  use eos_module
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none

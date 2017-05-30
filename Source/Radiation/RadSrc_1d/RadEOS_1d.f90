@@ -4,7 +4,8 @@ subroutine ca_compute_c_v(lo, hi, &
                           temp, temp_l1, temp_h1, &
                           state, state_l1, state_h1) bind(C, name="ca_compute_c_v")
   
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
@@ -44,7 +45,8 @@ subroutine ca_get_rhoe(lo, hi, &
                        temp, temp_l1, temp_h1, &
                        state, state_l1, state_h1) bind(C, name="ca_get_rhoe")
   
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only: eos_t, eos_input_rt
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS, UFX
   
@@ -59,7 +61,7 @@ subroutine ca_get_rhoe(lo, hi, &
   real(rt)                     :: rhoe(rhoe_l1:rhoe_h1)
   
   integer          :: i
-  real(rt)         :: rhoInv
+  real(rt)         :: rhoInv  
   type(eos_t) :: eos_state  
 
   do i = lo(1), hi(1)
@@ -83,7 +85,8 @@ subroutine ca_compute_temp_given_rhoe(lo,hi,  &
                                       state,state_l1,state_h1) bind(C, name="ca_compute_temp_given_rhoe")
 
   use network, only : nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only: eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UFS, UFX, UTEMP, small_temp, allow_negative_energy
 
   use amrex_fort_module, only : rt => amrex_real
@@ -166,7 +169,8 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
      state, state_l1, state_h1)
   
   use network, only: nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_re
   use meth_params_module, only : NVAR, URHO, UFS, UFX, &
        small_temp, allow_negative_energy
   
@@ -225,7 +229,8 @@ subroutine ca_compute_reye_given_ty(lo, hi, &
      state, state_l1, state_h1)
   
   use network, only: nspec, naux
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rt
   use meth_params_module, only : NVAR, URHO, UFS, UFX
 
   use amrex_fort_module, only : rt => amrex_real
