@@ -16,9 +16,9 @@ contains
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
     use prob_params_module, only: dim
     use castro_util_module, only: position
-    use eos_module, only: eos_input_rp, eos
+    use eos_module, only: eos
     use extern_probin_module, only: eos_gamma
-    use eos_type_module, only: eos_t
+    use eos_type_module, only: eos_t, eos_input_rp
     use network, only: nspec
 
     use amrex_fort_module, only : rt => amrex_real

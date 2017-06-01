@@ -83,7 +83,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use eos_module, only : gamma_const
+  use actual_eos_module, only : gamma_const
   use bl_constants_module
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center, problo

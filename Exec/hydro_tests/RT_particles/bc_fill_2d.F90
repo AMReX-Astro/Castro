@@ -11,7 +11,7 @@ contains
                         domlo,domhi,delta,xlo,time,bc) bind(C)
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
-    use eos_module, only : gamma_const
+    use actual_eos_module, only : gamma_const
     use probdata_module, only: p0_base
 
     use amrex_fort_module, only : rt => amrex_real

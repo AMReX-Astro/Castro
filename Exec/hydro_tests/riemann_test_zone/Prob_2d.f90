@@ -155,7 +155,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use eos_module, only : gamma_const
   use bl_constants_module, only: M_PI, FOUR3RD
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
   use prob_params_module, only : center

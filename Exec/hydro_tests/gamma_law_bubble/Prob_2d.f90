@@ -76,6 +76,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP, const_grav
   use eos_module
   use eos_type_module
+  use actual_eos_module, only : gamma_const
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none
