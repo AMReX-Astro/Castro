@@ -2,7 +2,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use bl_error_module
   use probdata_module
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rp
   use meth_params_module, only: small_temp
   use prob_params_module, only : center
   use network, only : nspec
@@ -116,7 +117,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use eos_module
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rp
   use network, only : nspec
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
