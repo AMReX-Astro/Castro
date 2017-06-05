@@ -363,7 +363,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 void
-Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
+Castro::construct_mol_hydro_source(Real time, Real dt)
 {
 
   // this constructs the hydrodynamic source (essentially the flux
@@ -390,7 +390,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 
   MultiFab& S_new = get_new_data(State_Type);
 
-  MultiFab& k_stage = *k_mol[istage];
+  MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -525,10 +525,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, int istage, int nstages)
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 	for (int i = 0; i < BL_SPACEDIM ; i++) {
-	  (*fluxes    [i])[mfi].saxpy(b_mol[istage], flux[i], 
+	  (*fluxes    [i])[mfi].saxpy(b_mol[mol_iteration], flux[i], 
 				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
-	  (*rad_fluxes[i])[mfi].saxpy(b_mol[istage], rad_flux[i], 
+	  (*rad_fluxes[i])[mfi].saxpy(b_mol[mol_iteration], rad_flux[i], 
 				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, Radiation::nGroups);
 #endif
 	}

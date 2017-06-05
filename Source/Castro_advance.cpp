@@ -52,12 +52,14 @@ Castro::advance (Real time,
 
     for (int n = 0; n < sdc_iters; ++n) {
 
+        sdc_iteration = n
+
         if (ParallelDescriptor::IOProcessor())
 	    std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
 
 	// First do the non-reacting advance and construct the relevant source terms.
 
-	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, n, sdc_iters);
+	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
 
 #ifdef REACTIONS
 	if (do_react) {
@@ -93,15 +95,15 @@ Castro::advance (Real time,
     if (do_ctu) {
 
       // CTU method is just a single update
-      int sub_iteration = 0;
-      int sub_ncycle = 0;
+      sub_iteration = 0;
+      sub_ncycle = 0;
 
-      dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
-			  sub_iteration, sub_ncycle);
+      dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
+
     } else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
-	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle, 
-			    iter, MOL_STAGES);
+	mol_iteration = iter;
+	dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
       }
     }
 
@@ -153,9 +155,7 @@ Real
 Castro::do_advance (Real time,
                     Real dt,
                     int  amr_iteration,
-                    int  amr_ncycle,
-                    int  sub_iteration,
-                    int  sub_ncycle)
+                    int  amr_ncycle)
 {
 
   // this routine will advance the old state data (called S_old here)
@@ -173,8 +173,7 @@ Castro::do_advance (Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time, dt, amr_iteration, amr_ncycle, 
-			  sub_iteration, sub_ncycle);
+    initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
     // Check for NaN's.
 
@@ -183,7 +182,7 @@ Castro::do_advance (Real time,
     // Since we are Strang splitting the reactions, do them now (only
     // for first stage of MOL)
 
-    if (do_ctu || (!do_ctu && sub_iteration == 0)) {
+    if (do_ctu || (!do_ctu && mol_iteration == 0)) {
 
 #ifdef REACTIONS
 #ifndef SDC
@@ -211,11 +210,10 @@ Castro::do_advance (Real time,
     // applied to any state.
 
 #ifdef SELF_GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, prev_time);
+    construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-    do_old_sources(prev_time, dt, amr_iteration, amr_ncycle,
-		   sub_iteration, sub_ncycle);
+    do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn 
@@ -226,7 +224,7 @@ Castro::do_advance (Real time,
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);      
       } else {
-        construct_mol_hydro_source(time, dt, sub_iteration, sub_ncycle);
+        construct_mol_hydro_source(time, dt);
       }
     }
 
@@ -264,17 +262,15 @@ Castro::do_advance (Real time,
       // Construct and apply new-time source terms.
 
 #ifdef SELF_GRAVITY
-      construct_new_gravity(amr_iteration, amr_ncycle, sub_iteration, sub_ncycle, 
-			    cur_time);
+      construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
-      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle,
-		     sub_iteration, sub_ncycle);
+      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle);
 
       // Do the second half of the reactions.
     }
 
-    if (!do_ctu && sub_iteration == sub_ncycle-1) {
+    if (!do_ctu && mol_iteration == MOL_STAGES-1) {
       // we just finished the last stage of the MOL integration.
       // Construct S_new now using the weighted sum of the k_mol
       // updates
@@ -296,7 +292,7 @@ Castro::do_advance (Real time,
 
     }
 
-    if (do_ctu || sub_iteration == sub_ncycle-1) {
+    if (do_ctu || mol_iteration == MOL_STAGES-1) {
       // last part of reactions for CTU and if we are done with the
       // MOL stages
 
@@ -307,7 +303,7 @@ Castro::do_advance (Real time,
 #endif
       }
 
-    finalize_do_advance(time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
     return dt;
 
@@ -316,8 +312,7 @@ Castro::do_advance (Real time,
 
 
 void
-Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, 
-			      int sub_iteration, int sub_ncycle)
+Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     // Reset the change from density resets
@@ -373,7 +368,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
       
-      if (sub_iteration == 0) {
+      if (mol_iteration == 0) {
 
 	// first MOL stage
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
@@ -393,8 +388,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	MultiFab& S_new = get_new_data(State_Type);
 
 	MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-	for (int i = 0; i < sub_iteration; ++i)
-	  MultiFab::Saxpy(S_new, dt*a_mol[sub_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
+	for (int i = 0; i < mol_iteration; ++i)
+	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
@@ -407,15 +402,17 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 
 void
-Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
 #ifndef SDC
-    // Update the dSdt MultiFab. Since we want (S^{n+1} - S^{n}) / dt, we
-    // only need to take twice the new-time source term, since in the predictor-corrector
-    // approach, the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue
-    // in general for the non-momentum sources, but those don't appear in the hydro anyway,
-    // and for safety we'll only do this on the momentum terms.
+    // Update the dSdt MultiFab. Since we want (S^{n+1} - S^{n}) / dt,
+    // we only need to take twice the new-time source term, since in
+    // the predictor-corrector approach, the new-time source term is
+    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+    // non-momentum sources, but those don't appear in the hydro
+    // anyway, and for safety we'll only do this on the momentum
+    // terms.
 
     if (source_term_predictor == 1) {
 
@@ -839,7 +836,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	        gravity->swapTimeLevels(level);
 #endif
 
-	    do_advance(subcycle_time,dt_advance,amr_iteration,amr_ncycle,sub_iteration,sub_ncycle);
+	    do_advance(subcycle_time,dt_advance,amr_iteration,amr_ncycle);
 
 	    if (verbose && ParallelDescriptor::IOProcessor()) {
 	        std::cout << std::endl;

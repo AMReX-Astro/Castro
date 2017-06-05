@@ -78,14 +78,13 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     // Construct the old-time sources.
 
     for (int n = 0; n < num_src; ++n)
-	construct_old_source(n, time, dt, amr_iteration, amr_ncycle,
-			     sub_iteration, sub_ncycle);
+	construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
 
 
     if (do_ctu) {
@@ -115,7 +114,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 }
 
 void
-Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -128,7 +127,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
     if (update_state_between_sources) {
 
 	for (int n = 0; n < num_src; ++n) {
-	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
 	    if (source_flag(n)) {
 		apply_source_to_state(S_new, *new_sources[n], dt);
 		clean_state(S_new);
@@ -140,7 +139,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 	// Construct the new-time source terms.
 
 	for (int n = 0; n < num_src; ++n)
-	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle, sub_iteration, sub_ncycle);
+	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
 
 	// Apply the new-time sources to the state.
 
@@ -164,7 +163,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle, in
 }
 
 void
-Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -211,7 +210,7 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 }
 
 void
-Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle)
+Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
