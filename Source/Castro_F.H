@@ -454,7 +454,7 @@ extern "C"
      const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
 
-  void ca_umdrv
+  void ca_ctu_update
     (const int* is_finest_level,
      const amrex::Real* time,
      const int    lo[], const int    hi[],
@@ -501,6 +501,34 @@ extern "C"
      amrex::Real& xang_lost,
      amrex::Real& yang_lost,
      amrex::Real& zang_lost);
+
+
+  void ca_mol_single_stage
+    (const amrex::Real* time,
+     const int    lo[], const int    hi[],
+     const int domlo[], const int domhi[],
+     const BL_FORT_FAB_ARG(state),
+     BL_FORT_FAB_ARG(stateout),
+     BL_FORT_FAB_ARG(q),
+     BL_FORT_FAB_ARG(qaux),
+     BL_FORT_FAB_ARG(srcU),
+     BL_FORT_FAB_ARG(update),
+     const amrex::Real dx[], const amrex::Real* dt,
+     D_DECL(BL_FORT_FAB_ARG(xflux),
+            BL_FORT_FAB_ARG(yflux),
+            BL_FORT_FAB_ARG(zflux)),
+#if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG(pradial),
+#endif
+     D_DECL(BL_FORT_FAB_ARG(xarea),
+            BL_FORT_FAB_ARG(yarea),
+            BL_FORT_FAB_ARG(zarea)),
+#if (BL_SPACEDIM < 3)
+     const BL_FORT_FAB_ARG(dloga),
+#endif
+     const BL_FORT_FAB_ARG(volume),
+     amrex::Real* cflLoc,
+     const int&  verbose);
 
 
 #ifdef RADIATION

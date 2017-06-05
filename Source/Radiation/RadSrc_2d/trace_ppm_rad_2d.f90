@@ -29,7 +29,7 @@ contains
          ppm_predict_gammae, &
          npassive, qpass_map
     use rad_params_module, only : ngroups
-    use ppm_module, only : ppm
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -110,6 +110,9 @@ contains
     real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
     real(rt)        , allocatable :: Im_src(:,:,:,:,:)
 
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:,:), sxp(:,:), sym(:,:), syp(:,:)
+
     real(rt)         :: er_foo
 
     if (ppm_type == 0) then
@@ -141,6 +144,11 @@ contains
     !allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
     hdt = HALF * dt
+
+    allocate(sxm(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(sxp(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(sym(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(syp(qd_l1:qd_h1, qd_l2:qd_h2))
 
 
     !=========================================================================
@@ -174,11 +182,16 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, NQ
-       call ppm(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
-                q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2,&
-                flatn, &
-                Ip(:,:,:,:,n), Im(:,:,:,:,n), &
-                ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+       call ppm_reconstruct(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+       call ppm_int_profile(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                            sxm, sxp, sym, syp, &
+                            Ip(:,:,:,:,n), Im(:,:,:,:,n), &
+                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
     end do
 
     ! trace the gas gamma to the edge
@@ -192,13 +205,20 @@ contains
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
-                   q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
-                   flatn, &
-                   Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
-                   ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+          call ppm_reconstruct(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
+                               flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+                               sxm, sxp, sym, syp, &
+                               ilo1, ilo2, ihi1, ihi2, dx, dy)
+
+          call ppm_int_profile(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
+                               q(:,:,QU:QV), qaux(:,:,QC), qd_l1, qd_l2, qd_h1, qd_h2, &
+                               sxm, sxp, sym, syp, &
+                               Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
+                               ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
        enddo
     endif
+
+    deallocate(sxm, sxp, sym, syp)
 
     !-------------------------------------------------------------------------
     ! x-direction

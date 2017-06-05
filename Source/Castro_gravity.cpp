@@ -7,7 +7,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
+Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -105,7 +105,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, int sub_iterati
 }
 
 void
-Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, Real time)
+Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
     MultiFab& grav_new = get_new_data(Gravity_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);

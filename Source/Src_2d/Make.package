@@ -6,6 +6,7 @@ ca_f90EXE_sources += ppm_$(DIM)d.f90
 
 ca_F90EXE_sources += Castro_$(DIM)d.F90 
 ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
+ca_F90EXE_sources += Castro_mol_$(DIM)d.F90
 
 ca_F90EXE_sources += riemann_$(DIM)d.F90 
 ca_f90EXE_sources += advection_util_$(DIM)d.f90 

@@ -15,6 +15,7 @@ amrex::Real Castro::small_temp = -1.e200;
 amrex::Real Castro::small_pres = -1.e200;
 amrex::Real Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
+int         Castro::do_ctu = 1;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;

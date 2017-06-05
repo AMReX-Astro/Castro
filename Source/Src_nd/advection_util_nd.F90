@@ -310,7 +310,7 @@ contains
                          bind(C, name = "compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
     use prob_params_module, only: dim
 
     use amrex_fort_module, only : rt => amrex_real
@@ -323,7 +323,7 @@ contains
     real(rt)         :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt)         :: dt, dx(3), courno
 
-    real(rt)         :: courx, coury, courz, courmx, courmy, courmz
+    real(rt)         :: courx, coury, courz, courmx, courmy, courmz, courtmp
     real(rt)         :: dtdx, dtdy, dtdz
     integer          :: i, j, k
 
@@ -359,38 +359,64 @@ contains
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
 
-             if (courx .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
-             end if
+             if (do_ctu == 1) then
+                ! CTU integration constraint
 
-             if (coury .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
-             end if
+                if (courx .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (u+c) * dt / dx > 1 ', courx
+                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                   print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
+                
+                if (coury .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (v+c) * dt / dx > 1 ', coury
+                   print *,'>>> ... at cell (i,j,k)   : ', i,j,k
+                   print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
 
-             if (courz .gt. ONE) then
-                print *,'   '
-                call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
-                print *,'>>> ... density             ', q(i,j,k,QRHO)
-             end if
+                if (courz .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (w+c) * dt / dx > 1 ', courz
+                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                   print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
+             else
 
+                ! method-of-lines constraint
+                courtmp = courx
+                if (dim >= 2) then
+                   courtmp = courtmp + coury
+                endif
+                if (dim == 3) then
+                   courtmp = courtmp + courz
+                endif
+                
+                ! note: it might not be 1 for all RK integrators
+                if (courtmp > ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                   print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                endif
+                
+                courno = max(courno, courtmp)
+             endif
           enddo
        enddo
     enddo
 
-    courno = max( courmx, courmy, courmz )
+    if (do_ctu == 1) then
+       courno = max( courmx, courmy, courmz )
+    endif
 
   end subroutine compute_cfl
 

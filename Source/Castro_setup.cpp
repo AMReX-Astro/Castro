@@ -940,4 +940,82 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
+
+  // method of lines Butcher tableau
+#define THIRDORDER_TVD
+
+#ifdef THIRDORDER
+  MOL_STAGES = 3;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {0,   0, 0};
+  a_mol[1] = {0.5, 0, 0};
+  a_mol[2] = {-1,  2, 0};
+
+  b_mol = {1./6., 2./3., 1./6.};
+
+  c_mol = {0.0, 0.5, 1};
+#endif
+
+#ifdef THIRDORDER_TVD
+  MOL_STAGES = 3;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {0.0,  0.0,  0.0};
+  a_mol[1] = {1.0,  0.0,  0.0};
+  a_mol[2] = {0.25, 0.25, 0.0};
+
+  b_mol = {1./6., 1./6., 2./3.};
+
+  c_mol = {0.0, 1.0, 0.5};
+#endif
+
+#ifdef SECONDORDER
+  MOL_STAGES = 2;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {0,   0,};
+  a_mol[1] = {0.5, 0,};
+
+  b_mol = {0.0, 1.0};
+
+  c_mol = {0.0, 0.5};
+#endif
+
+#ifdef SECONDORDER_TVD
+  MOL_STAGES = 2;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {0,   0,};
+  a_mol[1] = {1.0, 0,};
+
+  b_mol = {0.5, 0.5};
+
+  c_mol = {0.0, 1.0};
+#endif
+
+#ifdef FIRSTORDER
+  MOL_STAGES = 1;
+
+  a_mol.resize(MOL_STAGES);
+  for (int n = 0; n < MOL_STAGES; ++n)
+    a_mol[n].resize(MOL_STAGES);
+
+  a_mol[0] = {1};
+  b_mol = {1.0};
+  c_mol = {0.0};
+#endif
+
 }

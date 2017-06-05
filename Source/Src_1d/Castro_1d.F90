@@ -1,4 +1,4 @@
-subroutine ca_umdrv(is_finest_level, time, &
+subroutine ca_ctu_update(is_finest_level, time, &
                     lo, hi, domlo, domhi, &
                     uin, uin_l1, uin_h1, &
                     uout, uout_l1, uout_h1, &
@@ -24,7 +24,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     nstep_fsp, &
 #endif
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                    eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
+                    eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
 #ifdef RADIATION
@@ -40,7 +40,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   use rad_params_module, only : ngroups
   use flatten_module, only : rad_flaten
 #endif
-  use advection_module  , only : umeth1d, consup
+  use ctu_advection_module  , only : umeth1d, consup
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -215,4 +215,4 @@ subroutine ca_umdrv(is_finest_level, time, &
 
   deallocate(flatn,div,pdivu,q1)
 
-end subroutine ca_umdrv
+end subroutine ca_ctu_update

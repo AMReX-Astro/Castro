@@ -1,4 +1,4 @@
-module advection_module
+module ctu_advection_module
 
   use bl_constants_module
   use amrex_fort_module, only : rt => amrex_real
@@ -64,7 +64,7 @@ contains
     use trace_module, only : tracexy, tracez
     use transverse_module, only : transx1, transx2, transy1, transy2, transz, &
                                   transxy, transxz, transyz
-    use ppm_module, only : ppm
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
     use slope_module, only : uslope, pslope
     use actual_network, only : nspec, naux
     use eos_module, only: eos
@@ -173,6 +173,9 @@ contains
     real(rt)        , pointer :: Ip_gc(:,:,:,:,:,:), Im_gc(:,:,:,:,:,:)
 
     real(rt)        , pointer :: shk(:,:,:)
+
+    real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
+    real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
 
     type (eos_t) :: eos_state
 
@@ -360,6 +363,14 @@ contains
     kc = 1
     km = 2
 
+    
+    call bl_allocate(sxm, It_lo, It_hi)
+    call bl_allocate(sxp, It_lo, It_hi)
+    call bl_allocate(sym, It_lo, It_hi)
+    call bl_allocate(syp, It_lo, It_hi)
+    call bl_allocate(szm, It_lo, It_hi)
+    call bl_allocate(szp, It_lo, It_hi)
+
     do k3d = lo(3)-1, hi(3)+1
 
        ! Swap pointers to levels
@@ -370,30 +381,45 @@ contains
        if (ppm_type .gt. 0) then
 
           do n = 1, NQ
-             call ppm(q(:,:,:,n  ),  qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                      flatn,qd_lo,qd_hi, &
-                      Ip(:,:,:,:,:,n),Im(:,:,:,:,:,n),It_lo,It_hi, &
-                      lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
+             call ppm_reconstruct(q(:,:,:,n  ), qd_lo, qd_hi, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+
+             call ppm_int_profile(q(:,:,:,n  ), qd_lo, qd_hi, &
+                                  q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  Ip(:,:,:,:,:,n), Im(:,:,:,:,:,n), It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
           end do
 
           if (ppm_trace_sources .eq. 1) then
              do n=1,QVAR
-                call ppm(srcQ(:,:,:,n),src_lo,src_hi, &
-                         q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         flatn,qd_lo,qd_hi, &
-                         Ip_src(:,:,:,:,:,n),Im_src(:,:,:,:,:,n),It_lo,It_hi, &
-                         lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
+                call ppm_reconstruct(srcQ(:,:,:,n), src_lo, src_hi, &
+                                     flatn, qd_lo, qd_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+
+                call ppm_int_profile(srcQ(:,:,:,n), src_lo, src_hi, &
+                                     q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                     Ip_src(:,:,:,:,:,n), Im_src(:,:,:,:,:,n), It_lo, It_hi, &
+                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
              enddo
           endif
 
           ! this probably doesn't support radiation
           if (ppm_temp_fix /= 1) then
-             call ppm(qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                      q(:,:,:,QU:QW),qaux(:,:,:,QC),qd_lo,qd_hi, &
-                      flatn,qd_lo,qd_hi, &
-                      Ip_gc(:,:,:,:,:,1),Im_gc(:,:,:,:,:,1),It_lo,It_hi, &
-                      lo(1),lo(2),hi(1),hi(2),dx,dt,k3d,kc)
+             call ppm_reconstruct(qaux(:,:,:,QGAMC), qd_lo, qd_hi, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+
+             call ppm_int_profile(qaux(:,:,:,QGAMC), qd_lo, qd_hi, &
+                                  q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  Ip_gc(:,:,:,:,:,1), Im_gc(:,:,:,:,:,1), It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
           else
 
              do iwave = 1, 3
@@ -790,6 +816,13 @@ contains
     enddo
 
     ! Deallocate arrays
+    call bl_deallocate(sxm)
+    call bl_deallocate(sxp)
+    call bl_deallocate(sym)
+    call bl_deallocate(syp)
+    call bl_deallocate(szm)
+    call bl_deallocate(szp)
+
     call bl_deallocate ( qgdnvx)
     call bl_deallocate ( qgdnvxf)
     call bl_deallocate ( qgdnvtmpx)
@@ -1554,4 +1587,4 @@ contains
 
   end subroutine consup
 
-end module advection_module
+end module ctu_advection_module

@@ -234,9 +234,7 @@ public:
     amrex::Real do_advance (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
-                     int  amr_ncycle,
-                     int  sub_iteration,
-                     int  sub_ncycle);
+                     int  amr_ncycle);
 
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
@@ -244,11 +242,13 @@ public:
 
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-    void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+    void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-    void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle);
+    void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
+
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
@@ -260,13 +260,13 @@ public:
 
     static int get_output_at_completion();
 
-    void do_old_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+    void do_old_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_old_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+    void construct_old_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void do_new_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+    void do_new_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1, int sub_iteration = -1, int sub_ncycle = -1);
+    void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
     amrex::Array<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
@@ -296,11 +296,9 @@ public:
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
-			       int sub_iteration, int sub_ncycle,
 			       amrex::Real time);
 
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
-			       int sub_iteration, int sub_ncycle,
 			       amrex::Real time);
 #endif
     void construct_old_gravity_source(amrex::Real time, amrex::Real dt);
@@ -441,9 +439,9 @@ public:
 #endif
 
 #ifdef ROTATION
-    void construct_old_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, amrex::Real time);
+    void construct_old_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
 
-    void construct_new_rotation(int amr_iteration, int amr_ncycle, int sub_iteration, int sub_ncycle, amrex::Real time);
+    void construct_new_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
 
     void construct_old_rotation_source(amrex::Real time, amrex::Real dt);
 
@@ -595,6 +593,11 @@ protected:
     amrex::MultiFab Sborder;
 
     //
+    // A state array for the post burn state to be used in MOL integration
+    //
+    amrex::MultiFab Sburn;
+
+    //
     // Source terms to the hydrodynamics solve.
     //
     amrex::MultiFab sources_for_hydro;
@@ -645,6 +648,18 @@ protected:
     // State data to hold if we want to do a retry.
     //
     amrex::Array<std::unique_ptr<amrex::StateData> > prev_state;
+
+    //
+    // Storage for the method of lines stages
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > k_mol;
+    //
+
+    // MOL Butcher tableau
+    static int MOL_STAGES;
+  
+    static amrex::Array< amrex::Array<amrex::Real> > a_mol;
+    static amrex::Array<amrex::Real> b_mol;
+    static amrex::Array<amrex::Real> c_mol;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -774,6 +789,19 @@ protected:
 
     static int Knapsack_Weight_Type;
     static int num_state_type;
+
+
+    // counters for various retries in Castro
+
+    // retry capability
+    int sub_iteration;
+    int sub_ncycle;
+  
+    // sdc
+    int sdc_iteration;
+  
+    // method of lines
+    int mol_iteration;
 
 /* problem-specific includes */
 #include <Problem.H>

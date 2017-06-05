@@ -1,4 +1,4 @@
-subroutine ca_umdrv(is_finest_level, time, &
+subroutine ca_ctu_update(is_finest_level, time, &
                     lo, hi, domlo, domhi, &
                     uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
                     uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
@@ -28,7 +28,7 @@ subroutine ca_umdrv(is_finest_level, time, &
                     nstep_fsp, &
 #endif
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                    eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_umdrv")
+                    eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
@@ -45,7 +45,7 @@ subroutine ca_umdrv(is_finest_level, time, &
   use rad_params_module, only : ngroups
   use flatten_module, only : rad_flaten
 #endif
-  use advection_module, only : umeth3d, consup
+  use ctu_advection_module, only : umeth3d, consup
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -124,8 +124,8 @@ subroutine ca_umdrv(is_finest_level, time, &
   integer :: uin_lo(3), uin_hi(3)
   integer :: uout_lo(3), uout_hi(3)
 #ifdef RADIATION
-  integer :: Erin_lo(3), Erin_hi(3)                                             
-  integer :: Erout_lo(3), Erout_hi(3)                                           
+  integer :: Erin_lo(3), Erin_hi(3)
+  integer :: Erout_lo(3), Erout_hi(3)
 #endif
   integer :: updt_lo(3), updt_hi(3)
   integer :: flux1_lo(3), flux1_hi(3)
@@ -164,11 +164,11 @@ subroutine ca_umdrv(is_finest_level, time, &
   uout_hi = [ uout_h1, uout_h2, uout_h3 ]
 
 #ifdef RADIATION
-  Erin_lo = [Erin_l1, Erin_l2, Erin_l3]                                         
-  Erin_hi = [Erin_h1, Erin_h2, Erin_h3]                                         
-                                                                                
-  Erout_lo = [Erout_l1, Erout_l2, Erout_l3]                                     
-  Erout_hi = [Erout_h1, Erout_h2, Erout_h3]     
+  Erin_lo = [Erin_l1, Erin_l2, Erin_l3]
+  Erin_hi = [Erin_h1, Erin_h2, Erin_h3]
+
+  Erout_lo = [Erout_l1, Erout_l2, Erout_l3]
+  Erout_hi = [Erout_h1, Erout_h2, Erout_h3]
 #endif
 
   updt_lo = [ updt_l1, updt_l2, updt_l3 ]
@@ -307,4 +307,4 @@ subroutine ca_umdrv(is_finest_level, time, &
   call bl_deallocate(    q2)
   call bl_deallocate(    q3)
 
-end subroutine ca_umdrv
+end subroutine ca_ctu_update

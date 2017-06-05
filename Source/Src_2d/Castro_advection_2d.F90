@@ -1,4 +1,4 @@
-module advection_module
+module ctu_advection_module
 
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH, TWO
   use amrex_fort_module, only : rt => amrex_real
@@ -866,4 +866,4 @@ contains
 
   end subroutine consup
 
-end module advection_module
+end module ctu_advection_module

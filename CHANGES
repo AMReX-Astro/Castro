@@ -1,6 +1,11 @@
 # changes since the last release:
 
 
+  -- added a framework for method-of-lines integration of the
+     hydrodynamics.  This does not do characteristic tracing, but
+     instead does reconstruction through multiple stages of an ODE
+     integrator.  At the moment, radiation is not supported.
+
 # 17.06
 
   -- we now require the AMReX library instead of the BoxLib library
