@@ -52,7 +52,7 @@ Castro::advance (Real time,
 
     for (int n = 0; n < sdc_iters; ++n) {
 
-        sdc_iteration = n
+        sdc_iteration = n;
 
         if (ParallelDescriptor::IOProcessor())
 	    std::cout << "\nBeginning SDC iteration " << n + 1 << " of " << sdc_iters << ".\n\n";
