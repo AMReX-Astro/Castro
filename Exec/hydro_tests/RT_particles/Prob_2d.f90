@@ -1,7 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use eos_module, only : gamma_const
   use bl_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -78,7 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, &
        UEDEN, UEINT, UFS, UTEMP, small_temp
   use bl_constants_module, only: ZERO, HALF, M_PI
-  use eos_module, only : gamma_const
+  use actual_eos_module, only : gamma_const
   
   use amrex_fort_module, only : rt => amrex_real
   implicit none

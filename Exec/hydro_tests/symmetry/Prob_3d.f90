@@ -77,6 +77,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module
   use eos_type_module
   use eos_module
+  use network, only : nspec
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module
 

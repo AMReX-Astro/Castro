@@ -109,8 +109,6 @@ contains
     real(rt)         :: cl, cr
     type (eos_t) :: eos_state
 
-    real(rt)         :: rhoInv
-
     gd_lo = (/ ilo, jlo /)
     gd_hi = (/ ihi, jhi /)
 
@@ -206,13 +204,12 @@ contains
        ! plus state
        do j = jlo, jhi
           do i = ilo, ihi
-             rhoInv = ONE / qp(i,j,kc,QRHO)
 
              eos_state % rho = qp(i,j,kc,QRHO)
              eos_state % p   = qp(i,j,kc,QPRES)
              eos_state % e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
-             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1) * rhoInv
-             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1) * rhoInv
+             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1)
 
              call eos(eos_input_re, eos_state)
 

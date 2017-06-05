@@ -15,6 +15,7 @@ contains
     use interpolate_module
     use eos_module
     use eos_type_module
+    use actual_eos_module, only : gamma_const
     use network, only: nspec
 
     use amrex_fort_module, only : rt => amrex_real
@@ -267,7 +268,7 @@ contains
 
     use probdata_module
     use interpolate_module
-    use eos_module, only: gamma_const
+    use actual_eos_module, only: gamma_const
     use meth_params_module, only : const_grav
 
     use amrex_fort_module, only : rt => amrex_real

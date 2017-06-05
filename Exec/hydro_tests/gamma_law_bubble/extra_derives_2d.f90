@@ -7,6 +7,7 @@ subroutine ca_derpi(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use network, only : nspec, naux
   use eos_module
   use eos_type_module
+  use actual_eos_module, only : gamma_const
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
@@ -119,6 +120,7 @@ subroutine ca_derpioverp0(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use network, only : nspec, naux
   use eos_module
   use eos_type_module
+  use actual_eos_module, only : gamma_const
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
        allow_negative_energy, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
@@ -232,7 +234,7 @@ subroutine ca_derrhopert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
 
   use network, only : nspec, naux
   use meth_params_module, only : URHO, const_grav
-  use eos_module, only: gamma_const
+  use actual_eos_module, only: gamma_const
   use probdata_module
   use interpolate_module
 
@@ -280,6 +282,7 @@ subroutine ca_dertpert(p,p_l1,p_l2,p_h1,p_h2,ncomp_p, &
   use network, only : nspec, naux
   use eos_module
   use eos_type_module
+  use actual_eos_module, only : gamma_const
   use meth_params_module, only : UTEMP, const_grav
   use probdata_module, only: pres_base, dens_base, do_isentropic
   use prob_params_module, only: center
