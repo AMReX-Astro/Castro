@@ -266,7 +266,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     if (verbose) {
 
-	Real e_added = r.sum(NumSpec + 1);
+	Real e_added = r.sum(NumSpec);
 
 	if (ParallelDescriptor::IOProcessor() && e_added != 0.0)
 	    std::cout << "... (rho e) added from burning: " << e_added << std::endl;
