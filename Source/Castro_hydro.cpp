@@ -371,7 +371,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   // update to the state, is stored in the k_mol array of multifabs.
 
   if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering hydro advance" << std::endl << std::endl;
+    std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
 
   // Set up the source terms to go into the hydro -- note: the
   // sources_for_hydro MF has ghost zones, but we don't need them
@@ -586,8 +586,5 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     if (hard_cfl_limit == 1)
       amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
   }
-
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
 }
