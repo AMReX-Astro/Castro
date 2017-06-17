@@ -383,6 +383,10 @@ that hold source term information.
   formulation using the time-centered fluxes the form is slightly
   different.
 
+\item \variable{sources\_for\_hydro} : a single \multifab\ that stores
+  the sum of sources over each physical process (from {\tt
+    old\_sources} or {\tt new\_sources})
+
 \end{itemize}
 
 \section{\mfiter\ and interacting with Fortran}
