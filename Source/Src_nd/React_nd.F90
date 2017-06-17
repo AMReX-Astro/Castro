@@ -113,6 +113,7 @@ contains
 
              ! Ensure that the temperature going in is consistent with the internal energy.
 
+
              call burn_to_eos(burn_state_in, eos_state_in)
              call eos(eos_input_re, eos_state_in)
              call eos_to_burn(eos_state_in, burn_state_in)

@@ -552,23 +552,29 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
-	// These arrays hold all source terms that update the state.
+      // These arrays hold all source terms that update the state.  We
+      // create and destroy them in the advance to save memory outside
+      // of the advance, unless we keep_sources_until_end (for
+      // diagnostics) or update the sources after reflux.  In those
+      // cases, we initialize these sources in Castro::initMFs and
+      // keep them for the life of the simulation.
 
-	for (int n = 0; n < num_src; ++n) {
-	    old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
-	    new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
-	}
+      for (int n = 0; n < num_src; ++n) {
+	old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+	new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
+      }
 
-	// This array holds the hydrodynamics update.
-
-	hydro_source.define(grids,dmap,NUM_STATE,0);
+      // This array holds the hydrodynamics update.
+      
+      hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
 
-    // This array holds the sum of all source terms that affect the hydrodynamics.
-    // If we are doing the source term predictor, we'll also use this after the
-    // hydro update to store the sum of the new-time sources, so that we can
-    // compute the time derivative of the source terms.
+    // This array holds the sum of all source terms that affect the
+    // hydrodynamics.  If we are doing the source term predictor,
+    // we'll also use this after the hydro update to store the sum of
+    // the new-time sources, so that we can compute the time
+    // derivative of the source terms.
 
     sources_for_hydro.define(grids,dmap,NUM_STATE,NUM_GROW);
 
