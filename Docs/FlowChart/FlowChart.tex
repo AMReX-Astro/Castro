@@ -320,12 +320,20 @@ In the code, the objective is to evolve the state from the old time,
   complex time-integration schemes.
 
   In the Strang-split formulation, we start the reconstruction using
-  the state after burning, $\Ub^\star$ (\variable{Sborder}), and
-  predict to the half-time ($n+1/2$) to get a second-order accurate
-  method.  Note: \variable{Sborder} does not know of any sources
-  except for reactions.  The advection step is complicated, and more
-  detail is given in Section \ref{Sec:Advection Step}.  Here is the
-  summarized version:
+  the state after burning, $\Ub^\star$ (\variable{Sborder}).  There
+  are two approaches we use, the corner transport upwind (CTU) method
+  that uses characteristic tracing as described in
+  \cite{colella:1990}, and a method-of-lines approach.  The choice is 
+  determined by the parameter \runparam{castro.do\_ctu}.
+
+  \begin{enumerate}
+  \item CTU method:
+
+    For the CTU method, we predict to the half-time ($n+1/2$) to get a
+    second-order accurate method.  Note: \variable{Sborder} does not
+    know of any sources except for reactions.  The advection step is
+    complicated, and more detail is given in Section
+    \ref{Sec:Advection Step}.  Here is the summarized version:
   \begin{enumerate}
   \item Compute primitive variables.
   \item Convert the source terms to those acting on primitive variables
@@ -349,6 +357,11 @@ In the code, the objective is to evolve the state from the old time,
 
   The update computed here is then immediately applied to
   \variable{S\_new}.
+
+
+  \item method of lines
+
+  \end{enumerate}
 
 \item \label{strang:clean} {\em Clean State} [\code{clean\_state()}]
 
