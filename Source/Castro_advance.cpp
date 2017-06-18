@@ -279,13 +279,13 @@ Castro::do_advance (Real time,
       // compute the hydro update
       hydro_source.setVal(0.0);
       for (int n = 0; n < MOL_STAGES; ++n) {
-	MultiFab::Saxpy(hydro_source, dt*b_mol[n], *k_mol[n], 0, 0, hydro_source.nComp(), 0);
+	MultiFab::Saxpy(hydro_source, b_mol[n], *k_mol[n], 0, 0, hydro_source.nComp(), 0);
       }
 
       // Apply the update -- we need to build on Sburn, so
       // start with that state
       MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-      MultiFab::Add(S_new, hydro_source, 0, 0, S_new.nComp(), 0);
+      MultiFab::Saxpy(S_new, dt, hydro_source, 0, 0, S_new.nComp(), 0);
       
       // define the temperature now
       clean_state(S_new);
