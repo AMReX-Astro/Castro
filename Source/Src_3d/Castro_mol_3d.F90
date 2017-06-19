@@ -2,12 +2,14 @@
 
 subroutine ca_mol_single_stage(time, &
                                lo, hi, domlo, domhi, &
+                               stage_weight, &
                                uin, uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3, &
                                uout, uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3, &
                                q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
                                qaux, qa_l1, qa_l2, qa_l3, qa_h1, qa_h2, qa_h3, &
                                srcU, srU_l1, srU_l2, srU_l3, srU_h1, srU_h2, srU_h3, &
                                update, updt_l1, updt_l2, updt_l3, updt_h1, updt_h2, updt_h3, &
+                               update_flux, uf_l1, uf_l2, uf_l3, uf_h1, uf_h2, uf_h3, &
                                dx, dt, &
                                flux1, flux1_l1, flux1_l2, flux1_l3, flux1_h1, flux1_h2, flux1_h3, &
                                flux2, flux2_l1, flux2_l2, flux2_l3, flux2_h1, flux2_h2, flux2_h3, &
@@ -42,12 +44,14 @@ subroutine ca_mol_single_stage(time, &
 
   integer, intent(in) :: lo(3), hi(3), verbose
   integer, intent(in) ::  domlo(3), domhi(3)
+  real(rt), intent(in) :: stage_weight
   integer, intent(in) :: uin_l1, uin_l2, uin_l3, uin_h1, uin_h2, uin_h3
   integer, intent(in) :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
   integer, intent(in) :: q_l1, q_l2, q_l3, q_h1, q_h2, q_h3
   integer, intent(in) :: qa_l1, qa_l2, qa_l3, qa_h1, qa_h2, qa_h3
   integer, intent(in) :: srU_l1, srU_l2, srU_l3, srU_h1, srU_h2, srU_h3
   integer, intent(in) :: updt_l1, updt_l2, updt_l3, updt_h1, updt_h2, updt_h3
+  integer, intent(in) :: uf_l1, uf_l2, uf_l3, uf_h1, uf_h2, uf_h3
   integer, intent(in) :: flux1_l1, flux1_l2, flux1_l3, flux1_h1, flux1_h2, flux1_h3
   integer, intent(in) :: flux2_l1, flux2_l2, flux2_l3, flux2_h1, flux2_h2, flux2_h3
   integer, intent(in) :: flux3_l1, flux3_l2, flux3_l3, flux3_h1, flux3_h2, flux3_h3
@@ -62,6 +66,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(inout) :: qaux(qa_l1:qa_h1, qa_l2:qa_h2, qa_l3:qa_h3, NQAUX)
   real(rt)        , intent(in) :: srcU(srU_l1:srU_h1, srU_l2:srU_h2, srU_l3:srU_h3, QVAR)
   real(rt)        , intent(inout) :: update(updt_l1:updt_h1, updt_l2:updt_h2, updt_l3:updt_h3, NVAR)
+  real(rt)        , intent(inout) :: update_flux(uf_l1:uf_h1, uf_l2:uf_h2, uf_l3:uf_h3, NVAR)
   real(rt)        , intent(inout) :: flux1(flux1_l1:flux1_h1, flux1_l2:flux1_h2, flux1_l3:flux1_h3, NVAR)
   real(rt)        , intent(inout) :: flux2(flux2_l1:flux2_h1, flux2_l2:flux2_h2, flux2_l3:flux2_h3, NVAR)
   real(rt)        , intent(inout) :: flux3(flux3_l1:flux3_h1, flux3_l2:flux3_h2, flux3_l3:flux3_h3, NVAR)
@@ -509,6 +514,10 @@ subroutine ca_mol_single_stage(time, &
               if (n .eq. UEINT) then
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
               endif
+
+              ! for storage
+              update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
+                   stage_weight * update(i,j,k,n)
 
               update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 

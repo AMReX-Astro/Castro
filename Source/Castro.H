@@ -603,7 +603,8 @@ protected:
     amrex::MultiFab sources_for_hydro;
 
     //
-    // Source term representing hydrodynamics update.
+    // Source term representing hydrodynamics update -- this should just be
+    // -div{F(U)} -- no source terms
     //
     amrex::MultiFab hydro_source;
 
@@ -652,7 +653,6 @@ protected:
     //
     // Storage for the method of lines stages
     amrex::Array<std::unique_ptr<amrex::MultiFab> > k_mol;
-    //
 
     // MOL Butcher tableau
     static int MOL_STAGES;
