@@ -230,7 +230,21 @@ Castro::do_advance (Real time,
 
     // For MOL integration, we are done with this stage, unless it is
     // the last stage
-    if (do_ctu) {
+
+    if (!do_ctu && mol_iteration == MOL_STAGES-1) {
+      // we just finished the last stage of the MOL integration.
+      // Construct S_new now using the weighted sum of the k_mol
+      // updates
+            
+      // Apply the update -- we need to build on Sburn, so
+      // start with that state
+      MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
+      MultiFab::Saxpy(S_new, dt, hydro_source, 0, 0, S_new.nComp(), 0);
+      
+      // define the temperature now
+      clean_state(S_new);
+
+    } else if (do_ctu) {
 
       // Sync up state after old sources and hydro source.
 
@@ -239,6 +253,13 @@ Castro::do_advance (Real time,
       // Check for NaN's.
 
       check_for_nan(S_new);
+    }
+
+
+    // if we are done with the update do the source correction and
+    // then the second half of the reactions
+    
+    if (do_ctu || mol_iteration == MOL_STAGES-1) {
 
 #ifdef SELF_GRAVITY
       // Must define new value of "center" before we call new gravity
@@ -267,32 +288,9 @@ Castro::do_advance (Real time,
 
       do_new_sources(cur_time, dt, amr_iteration, amr_ncycle);
 
+
       // Do the second half of the reactions.
-    }
 
-    if (!do_ctu && mol_iteration == MOL_STAGES-1) {
-      // we just finished the last stage of the MOL integration.
-      // Construct S_new now using the weighted sum of the k_mol
-      // updates
-      
-
-      // compute the hydro update
-      hydro_source.setVal(0.0);
-      for (int n = 0; n < MOL_STAGES; ++n) {
-	MultiFab::Saxpy(hydro_source, dt*b_mol[n], *k_mol[n], 0, 0, hydro_source.nComp(), 0);
-      }
-
-      // Apply the update -- we need to build on Sburn, so
-      // start with that state
-      MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-      MultiFab::Add(S_new, hydro_source, 0, 0, S_new.nComp(), 0);
-      
-      // define the temperature now
-      clean_state(S_new);
-
-    }
-
-    if (do_ctu || mol_iteration == MOL_STAGES-1) {
       // last part of reactions for CTU and if we are done with the
       // MOL stages
 

@@ -1,11 +1,13 @@
 subroutine ca_mol_single_stage(time, &
                                lo, hi, domlo, domhi, &
+                               stage_weight, &
                                uin, uin_l1, uin_h1, &
                                uout, uout_l1, uout_h1, &
                                q, q_l1, q_h1, &
                                qaux, qa_l1, qa_h1, &
                                srcU, srU_l1, srU_h1, &
                                update, updt_l1, updt_h1, &
+                               update_flux, uf_l1, uf_h1, &
                                delta, dt, &
                                flux, flux_l1, flux_h1, &
                                pradial, p_l1, p_h1, &
@@ -32,12 +34,14 @@ subroutine ca_mol_single_stage(time, &
 
   integer, intent(in) :: lo(1), hi(1), verbose
   integer, intent(in) :: domlo(1), domhi(1)
+  real(rt), intent(in) :: stage_weight
   integer, intent(in) :: uin_l1, uin_h1
   integer, intent(in) :: uout_l1, uout_h1
   integer, intent(in) :: q_l1, q_h1
   integer, intent(in) :: qa_l1, qa_h1
   integer, intent(in) :: srU_l1, srU_h1
   integer, intent(in) :: updt_l1, updt_h1
+  integer, intent(in) :: uf_l1, uf_h1
   integer, intent(in) :: flux_l1, flux_h1
   integer, intent(in) :: p_l1, p_h1
   integer, intent(in) :: area_l1, area_h1
@@ -50,6 +54,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
   real(rt)        , intent(in) ::     srcU(  srU_l1:  srU_h1,NVAR)
   real(rt)        , intent(inout) :: update(updt_l1: updt_h1,NVAR)
+  real(rt)        , intent(inout) :: update_flux(uf_l1: uf_h1,NVAR)
   real(rt)        , intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
   real(rt)        , intent(inout) :: pradial(  p_l1:   p_h1)
   real(rt)        , intent(in) :: area( area_l1: area_h1     )
@@ -267,6 +272,9 @@ subroutine ca_mol_single_stage(time, &
         else if (n == UMX) then
            update(i,UMX) = update(i,UMX) - ( q1(i+1,GDPRES) - q1(i,GDPRES) ) / dx
         endif
+
+        ! for storage
+        update_flux(i,n) = update_flux(i,n) + stage_weight * update(i,n)
 
         ! include source terms
         update(i,n) = update(i,n) + srcU(i,n)

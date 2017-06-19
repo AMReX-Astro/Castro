@@ -373,6 +373,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
 
+
+  // we'll add each stage's contribution to -div{F(U)} as we compute them
+  if (mol_iteration == 0) {
+    hydro_source.setVal(0.0);
+  }
+
   // Set up the source terms to go into the hydro -- note: the
   // sources_for_hydro MF has ghost zones, but we don't need them
   // here, since sources don't explicitly enter into the prediction
@@ -451,6 +457,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 	// the output of this will be stored in the correct stage MF
 	FArrayBox &source_out = k_stage[mfi];
+	FArrayBox &source_hydro_only = hydro_source[mfi];
 
 #ifdef RADIATION
 	FArrayBox &Er = Erborder[mfi];
@@ -500,12 +507,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	ca_mol_single_stage
 	  (&time,
 	   lo, hi, domain_lo, domain_hi,
+	   &(b_mol[mol_iteration]),
 	   BL_TO_FORTRAN(statein), 
 	   BL_TO_FORTRAN(stateout),
 	   BL_TO_FORTRAN(q),
 	   BL_TO_FORTRAN(qaux),
 	   BL_TO_FORTRAN(source_in),
 	   BL_TO_FORTRAN(source_out),
+	   BL_TO_FORTRAN(source_hydro_only),
 	   dx, &dt,
 	   D_DECL(BL_TO_FORTRAN(flux[0]),
 		  BL_TO_FORTRAN(flux[1]),

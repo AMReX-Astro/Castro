@@ -2,12 +2,14 @@
 
 subroutine ca_mol_single_stage(time, &
                                lo, hi, domlo, domhi, &
+                               stage_weight, &
                                uin, uin_l1, uin_l2, uin_h1, uin_h2, &
                                uout, uout_l1, uout_l2, uout_h1, uout_h2, &
                                q, qd_l1, qd_l2, qd_h1, qd_h2, &
                                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
                                srcU, srU_l1, srU_l2, srU_h1, srU_h2, &
                                update, updt_l1, updt_l2, updt_h1, updt_h2, &
+                               update_flux, uf_l1, uf_l2, uf_h1, uf_h2, &
                                delta, dt, &
                                flux1, flux1_l1, flux1_l2, flux1_h1, flux1_h2, &
                                flux2, flux2_l1, flux2_l2, flux2_h1, flux2_h2, &
@@ -37,12 +39,14 @@ subroutine ca_mol_single_stage(time, &
 
   integer, intent(in) :: lo(2), hi(2), verbose
   integer, intent(in) :: domlo(2), domhi(2)
+  real(rt), intent(in) :: stage_weight
   integer, intent(in) :: uin_l1, uin_l2, uin_h1, uin_h2
   integer, intent(in) :: uout_l1,uout_l2,uout_h1,uout_h2
   integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
   integer, intent(in) :: qa_l1, qa_l2, qa_h1, qa_h2
   integer, intent(in) :: srU_l1, srU_l2, srU_h1, srU_h2
   integer, intent(in) :: updt_l1,updt_l2,updt_h1,updt_h2
+  integer, intent(in) :: uf_l1,uf_l2,uf_h1,uf_h2
   integer, intent(in) :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
   integer, intent(in) :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
   integer, intent(in) :: p_l1,p_l2,p_h1,p_h2
@@ -57,6 +61,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(inout) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
   real(rt)        , intent(in) :: srcU(srU_l1:srU_h1,srU_l2:srU_h2,NVAR)
   real(rt)        , intent(inout) :: update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
+  real(rt)        , intent(inout) :: update_flux(uf_l1:uf_h1,uf_l2:uf_h2,NVAR)
   real(rt)        , intent(inout) :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
   real(rt)        , intent(inout) :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
   real(rt)        , intent(inout) :: pradial(p_l1:p_h1,p_l2:p_h2)
@@ -336,7 +341,7 @@ subroutine ca_mol_single_stage(time, &
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to
   ! get the update
-  
+
   do n = 1, NVAR
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -355,6 +360,9 @@ subroutine ca_mol_single_stage(time, &
                  update(i,j,n) = update(i,j,n) - (q1(i+1,j,GDPRES) - q1(i,j,GDPRES))/ dx
               endif
            endif
+
+           ! for storage
+           update_flux(i,j,n) = update_flux(i,j,n) + stage_weight * update(i,j,n)
 
            ! include source terms
            update(i,j,n) = update(i,j,n) + srcU(i,j,n)
