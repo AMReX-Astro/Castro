@@ -197,23 +197,27 @@ Castro::do_advance (Real time,
 
       MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
 
-      if (!do_ctu) {
-	// store the result of the burn in Sburn for later stages
-	MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
-      }
-    }
 
-
-    // Construct the old-time sources from Sborder.  For CTU
-    // integration, this will already be applied to S_new (with full
-    // dt weighting), to be correctly later.  For MOL, this is not
-    // applied to any state.
+      // Construct the old-time sources from Sborder.  For both CTU
+      // and integration, this will already be applied to S_new (with
+      // full dt weighting), to be correctly later.  Note: this
+      // implies that we do not use the sources as integrate by the
+      // MOL integrator.  Also note -- this does not affect the
+      // prediction of the interface state, an explict source will be
+      // traced there as needed.
 
 #ifdef SELF_GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
+      construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-    do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
+      do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
+
+      if (!do_ctu) {
+	// store the result of the burn and old-time sources in Sburn for later stages
+	MultiFab::Copy(Sburn, S_new, 0, 0, NUM_STATE, S_new.nGrow());
+      }
+
+    }
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn 
@@ -380,7 +384,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// the result after the first dt/2 burn (which we copied into
 	// Sburn) and we need to fill ghost cells.  
 
-	// We'll overwrite S_old with this information, since we don't
+	// We'll overwrite S_new with this information, since we don't
 	// need it anymorebuild this state temporarily in S_new (which
 	// is State_Data) to allow for ghost filling.
 	MultiFab& S_new = get_new_data(State_Type);
