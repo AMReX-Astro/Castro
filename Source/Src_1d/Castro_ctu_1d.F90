@@ -1,30 +1,30 @@
 subroutine ca_ctu_update(is_finest_level, time, &
-                    lo, hi, domlo, domhi, &
-                    uin, uin_l1, uin_h1, &
-                    uout, uout_l1, uout_h1, &
+                         lo, hi, domlo, domhi, &
+                         uin, uin_lo, uin_hi, &
+                         uout, uout_lo, uout_hi, &
 #ifdef RADIATION
-                    Erin, Erin_l1, Erin_h1, &
-                    Erout, Erout_l1, Erout_h1, &
+                         Erin, Erin_lo, Erin_hi, &
+                         Erout, Erout_lo, Erout_hi, &
 #endif
-                    q, q_l1, q_h1, &
-                    qaux, qa_l1, qa_h1, &
-                    srcQ, srQ_l1, srQ_h1, &
-                    update, updt_l1, updt_h1, &
-                    delta, dt, &
-                    flux, flux_l1, flux_h1, &
+                         q, q_lo, q_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         srcQ, srQ_lo, srQ_hi, &
+                         update, updt_lo, updt_hi, &
+                         delta, dt, &
+                         flux, flux_lo, flux_hi, &
 #ifdef RADIATION
-                    radflux, radflux_l1, radflux_h1,&
+                         radflux, radflux_lo, radflux_hi, &
 #endif
-                    pradial, p_l1, p_h1, &
-                    area, area_l1, area_h1, &
-                    dloga, dloga_l1, dloga_h1, &
-                    vol, vol_l1, vol_h1, &
-                    courno, verbose, &
+                         pradial, p_lo, p_hi, &
+                         area, area_lo, area_hi, &
+                         dloga, dloga_lo, dloga_hi, &
+                         vol, vol_lo, vol_hi, &
+                         courno, verbose, &
 #ifdef RADIATION
-                    nstep_fsp, &
+                         nstep_fsp, &
 #endif
-                    mass_lost, xmom_lost, ymom_lost, zmom_lost, &
-                    eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
+                         mass_lost, xmom_lost, ymom_lost, zmom_lost, &
+                         eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
   use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
 #ifdef RADIATION
@@ -48,40 +48,40 @@ subroutine ca_ctu_update(is_finest_level, time, &
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(1), hi(1), verbose
   integer, intent(in) :: domlo(1), domhi(1)
-  integer, intent(in) :: uin_l1, uin_h1
-  integer, intent(in) :: uout_l1, uout_h1
-  integer, intent(in) :: q_l1, q_h1
-  integer, intent(in) :: qa_l1, qa_h1
-  integer, intent(in) :: srQ_l1,srQ_h1
-  integer, intent(in) :: updt_l1, updt_h1
-  integer, intent(in) :: flux_l1, flux_h1
+  integer, intent(in) :: uin_lo(3), uin_hi(3)
+  integer, intent(in) :: uout_lo(3), uout_hi(3)
+  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: qa_lo(3), qa_hi(3)
+  integer, intent(in) :: srQ_lo(3),srQ_hi(3)
+  integer, intent(in) :: updt_lo(3), updt_hi(3)
+  integer, intent(in) :: flux_lo(3), flux_hi(3)
 #ifdef RADIATION
   integer, intent(inout) :: nstep_fsp
-  integer, intent(in) :: Erin_l1, Erin_h1
-  integer, intent(in) :: Erout_l1, Erout_h1
-  integer, intent(in) :: radflux_l1, radflux_h1
+  integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+  integer, intent(in) :: Erout_lo(3), Erout_hi(3)
+  integer, intent(in) :: radflux_lo(3), radflux_hi(3)
 #endif
-  integer, intent(in) :: p_l1, p_h1
-  integer, intent(in) :: area_l1, area_h1
-  integer, intent(in) :: dloga_l1, dloga_h1
-  integer, intent(in) :: vol_l1, vol_h1
+  integer, intent(in) :: p_lo(3), p_hi(3)
+  integer, intent(in) :: area_lo(3), area_hi(3)
+  integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+  integer, intent(in) :: vol_lo(3), vol_hi(3)
 
-  real(rt)        , intent(in) ::      uin(  uin_l1:  uin_h1,NVAR)
-  real(rt)        , intent(inout) ::  uout( uout_l1: uout_h1,NVAR)
-  real(rt)        , intent(inout) ::     q(    q_l1:    q_h1,NQ)
-  real(rt)        , intent(in) ::     qaux(   qa_l1:   qa_h1,NQAUX)
-  real(rt)        , intent(in) ::     srcQ(  srQ_l1:  srQ_h1,QVAR)
-  real(rt)        , intent(inout) :: update(updt_l1: updt_h1,NVAR)
-  real(rt)        , intent(inout) ::  flux( flux_l1: flux_h1,NVAR)
+  real(rt)        , intent(in) ::      uin(  uin_lo(1):  uin_hi(1),NVAR)
+  real(rt)        , intent(inout) ::  uout( uout_lo(1): uout_hi(1),NVAR)
+  real(rt)        , intent(inout) ::     q(    q_lo(1):    q_hi(1),NQ)
+  real(rt)        , intent(in) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
+  real(rt)        , intent(in) ::     srcQ(  srQ_lo(1):  srQ_hi(1),QVAR)
+  real(rt)        , intent(inout) :: update(updt_lo(1): updt_hi(1),NVAR)
+  real(rt)        , intent(inout) ::  flux( flux_lo(1): flux_hi(1),NVAR)
 #ifdef RADIATION
-  real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1, 0:ngroups-1)
-  real(rt)        , intent(inout) :: radflux(radflux_l1: radflux_h1, 0:ngroups-1)
-  real(rt)        , intent(in) :: Erin( Erin_l1: Erin_h1, 0:ngroups-1)
+  real(rt)        , intent(inout) :: Erout(Erout_lo(1):Erout_hi(1), 0:ngroups-1)
+  real(rt)        , intent(inout) :: radflux(radflux_lo(1): radflux_hi(1), 0:ngroups-1)
+  real(rt)        , intent(in) :: Erin( Erin_lo(1): Erin_hi(1), 0:ngroups-1)
 #endif
-  real(rt)        , intent(inout) :: pradial(  p_l1:   p_h1)
-  real(rt)        , intent(in) :: area( area_l1: area_h1     )
-  real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1     )
-  real(rt)        , intent(in) ::   vol(  vol_l1: vol_h1      )
+  real(rt)        , intent(inout) :: pradial(  p_lo(1):   p_hi(1))
+  real(rt)        , intent(in) :: area( area_lo(1): area_hi(1)     )
+  real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1)     )
+  real(rt)        , intent(in) ::   vol(  vol_lo(1): vol_hi(1)      )
   real(rt)        , intent(in) :: delta(1), dt, time
   real(rt)        , intent(inout) :: courno
 
@@ -98,48 +98,28 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   real(rt)         :: dx
 
-  integer i,ngf, ngq
-
-  integer ::  uin_lo(1),  uin_hi(1)
-  integer :: uout_lo(1), uout_hi(1)
-  integer :: q_lo(1), q_hi(1)
+  integer i,ngf
 
   integer :: lo_3D(3), hi_3D(3)
-  integer :: q_lo_3D(3), q_hi_3D(3)
-  integer :: uin_lo_3D(3), uin_hi_3D(3)
   real(rt)         :: dx_3D(3)
 
-  uin_lo  = [uin_l1]
-  uin_hi  = [uin_h1]
-
-  uout_lo = [uout_l1]
-  uout_hi = [uout_h1]
-
-  ngq = NHYP
   ngf = 1
-
-  q_lo = [q_l1]
-  q_hi = [q_h1]
 
   lo_3D   = [lo(1), 0, 0]
   hi_3D   = [hi(1), 0, 0]
-  q_lo_3D = [q_l1, 0, 0]
-  q_hi_3D = [q_h1, 0, 0]
-  uin_lo_3D = [uin_l1, 0, 0]
-  uin_hi_3D = [uin_h1, 0, 0]
   dx_3D   = [delta(1), ZERO, ZERO]
 
-  allocate( flatn(q_l1:q_h1))
+  allocate( flatn(q_lo(1):q_hi(1)))
 
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate(    q1(flux_l1-1:flux_h1+1,NGDNV))
+  allocate(    q1(flux_lo(1)-1:flux_hi(1)+1,NGDNV))
 
   dx = delta(1)
 
   ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo_3D, q_hi_3D, &
-                   qaux, [qa_l1, 0, 0], [qa_h1, 0, 0], &
+  call compute_cfl(q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
                    lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.
@@ -151,29 +131,29 @@ subroutine ca_ctu_update(is_finest_level, time, &
      call rad_flaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
                       q(:,qpres), q(:,qptot), &
                       q(:,QU), q(:,QV), q(:,QW), &
-                      flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+                      flatn, q_lo, q_hi)
 #else
      call uflaten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
                   q(:,QPRES), q(:,QU), q(:,QV), q(:,QW), &
-                  flatn, [q_l1, 0, 0], [q_h1, 0, 0])
+                  flatn, q_lo, q_hi)
 #endif
   else
      flatn = ONE
   endif
 
   call umeth1d(lo, hi, domlo, domhi, &
-               q, q_l1, q_h1, &
+               q, q_lo(1), q_hi(1), &
                flatn, &
-               qaux, qa_l1, qa_h1, &
-               srcQ, srQ_l1, srQ_h1, &
+               qaux, qa_lo(1), qa_hi(1), &
+               srcQ, srQ_lo(1), srQ_hi(1), &
                lo(1), hi(1), dx, dt, &
-               uout, uout_l1, uout_h1, &
-               flux, flux_l1, flux_h1, &
+               uout, uout_lo(1), uout_hi(1), &
+               flux, flux_lo(1), flux_hi(1), &
 #ifdef RADIATION
-               radflux,radflux_l1,radflux_h1, &
+               radflux,radflux_lo(1),radflux_hi(1), &
 #endif
-               q1, flux_l1-1, flux_h1+1, &
-               dloga, dloga_l1, dloga_h1)
+               q1, flux_lo(1)-1, flux_hi(1)+1, &
+               dloga, dloga_lo(1), dloga_hi(1))
 
 
   ! Define p*divu
@@ -190,20 +170,20 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
 
   ! Conservative update
-  call consup(uin, uin_l1, uin_h1, &
-              uout, uout_l1, uout_h1, &
-              update, updt_l1, updt_h1, &
-              q, q_l1, q_h1, &
-              flux, flux_l1, flux_h1, &
-              q1, flux_l1-1, flux_h1+1, &
+  call consup(uin, uin_lo(1), uin_hi(1), &
+              uout, uout_lo(1), uout_hi(1), &
+              update, updt_lo(1), updt_hi(1), &
+              q, q_lo(1), q_hi(1), &
+              flux, flux_lo(1), flux_hi(1), &
+              q1, flux_lo(1)-1, flux_hi(1)+1, &
 #ifdef RADIATION
-              Erin, Erin_l1, Erin_h1, &
-              Erout, Erout_l1, Erout_h1, &
-              radflux, radflux_l1, radflux_h1, &
+              Erin, Erin_lo(1), Erin_hi(1), &
+              Erout, Erout_lo(1), Erout_hi(1), &
+              radflux, radflux_lo(1), radflux_hi(1), &
               nstep_fsp, &
 #endif
-              area, area_l1, area_h1, &
-              vol, vol_l1, vol_h1, &
+              area, area_lo(1), area_hi(1), &
+              vol, vol_lo(1), vol_hi(1), &
               div, pdivu, lo, hi, dx, dt, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &
