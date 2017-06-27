@@ -8,9 +8,9 @@ module flatten_module
 
   private
 
-  public :: uflaten
+  public :: uflatten
 #ifdef RADIATION
-  public :: rad_flaten
+  public :: rad_flatten
 #endif
 
 contains
@@ -19,7 +19,7 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine uflaten(lo, hi, q, flatn, q_lo, q_hi)
+  subroutine uflatten(lo, hi, q, flatn, q_lo, q_hi)
 
     use meth_params_module, only : small_pres, QPRES, QU, QV, QW, NQ
     use prob_params_module, only : dg
@@ -162,12 +162,12 @@ contains
     call bl_deallocate(z  )
     call bl_deallocate(chi)
 
-  end subroutine uflaten
+  end subroutine uflatten
 
 #ifdef RADIATION
-  subroutine rad_flaten(lo, hi, p, ptot, u, v, w, flatn, q_lo, q_hi)
+  subroutine rad_flatten(lo, hi, q, flatn, q_lo, q_hi)
 
-    use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT
+    use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT, NQ
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -175,21 +175,17 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
 
-    real(rt)        , intent(in) :: p(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: ptot(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: u(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: v(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: w(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i, j, k
 
     real(rt)        , pointer :: flatg(:,:,:)
 
-    call uflaten(lo, hi, ptot, u, v, w, flatn, q_lo, q_hi)
+    call uflatten(lo, hi, q, flatn, q_lo, q_hi)
 
     call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflaten(lo, hi, p, u, v, w, flatg, q_lo, q_hi)
+    call uflatten(lo, hi, q, flatg, q_lo, q_hi)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -198,10 +194,10 @@ contains
              flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
 
              if (flatten_pp_threshold > ZERO) then
-                if ( u(i-1,j,k) + v(i,j-1,k) + w(i,j,k-1) > &
-                     u(i+1,j,k) + v(i,j+1,k) + w(i,j,k+1) ) then
+                if ( q(i-1,j,k,QU) + q(i,j-1,k,QV) + q(i,j,k-1,QW) > &
+                     q(i+1,j,k,QU) + q(i,j+1,k,QV) + q(i,j,k+1,QW) ) then
 
-                   if (p(i,j,k) < flatten_pp_threshold * ptot(i,j,k)) then
+                   if (q(i,j,k,QPRES) < flatten_pp_threshold * q(i,j,k,QPTOT)) then
                       flatn(i,j,k) = ZERO
                    end if
 
@@ -214,7 +210,7 @@ contains
 
     call bl_deallocate(flatg)
 
-  end subroutine rad_flaten
+  end subroutine rad_flatten
 #endif
 
 end module flatten_module

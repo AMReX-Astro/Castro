@@ -40,11 +40,11 @@ subroutine ca_ctu_update(is_finest_level, time, &
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, ONE
-  use flatten_module, only : uflaten
+  use flatten_module, only : uflatten
   use prob_params_module, only : mom_flux_has_p
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use flatten_module, only : rad_flaten
+  use flatten_module, only : rad_flatten
 #endif
   use ctu_advection_module, only : umeth2d, consup
 
@@ -151,13 +151,11 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   elseif (use_flattening == 1) then
 #ifdef RADIATION
-     call rad_flaten([lo(1)-ngf, lo(2)-ngf, 0], [hi(1)+ngf, hi(2)+ngf, 0], &
-                     q(:,:,qpres), q(:,:,qptot), &
-                     q(:,:,QU), q(:,:,QV), q(:,:,QW), &
-                     flatn, q_lo, q_hi)
+     call rad_flatten([lo(1)-ngf, lo(2)-ngf, 0], [hi(1)+ngf, hi(2)+ngf, 0], &
+                      q, flatn, q_lo, q_hi)
 #else
-     call uflaten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
-                  q, flatn, q_lo, q_hi)
+     call uflatten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
+                   q, flatn, q_lo, q_hi)
 #endif
   else
      flatn = ONE

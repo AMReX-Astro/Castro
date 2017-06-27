@@ -27,7 +27,7 @@ subroutine ca_mol_single_stage(time, &
   use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, HALF, ONE
-  use flatten_module, only : uflaten
+  use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
@@ -170,8 +170,8 @@ subroutine ca_mol_single_stage(time, &
      flatn = ZERO
 
   elseif (use_flattening == 1) then
-     call uflaten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
-                  q, flatn, q_lo, q_hi)
+     call uflatten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
+                   q, flatn, q_lo, q_hi)
   else
      flatn = ONE
   endif

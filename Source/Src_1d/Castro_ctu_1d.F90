@@ -34,11 +34,11 @@ subroutine ca_ctu_update(is_finest_level, time, &
                                  NGDNV, GDU, GDPRES, first_order_hydro
   use bl_constants_module, only : ZERO, HALF, ONE
   use advection_util_module, only : compute_cfl
-  use flatten_module, only : uflaten
+  use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use flatten_module, only : rad_flaten
+  use flatten_module, only : rad_flatten
 #endif
   use ctu_advection_module  , only : umeth1d, consup
 
@@ -128,13 +128,11 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   else if (use_flattening == 1) then
 #ifdef RADIATION
-     call rad_flaten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
-                      q(:,qpres), q(:,qptot), &
-                      q(:,QU), q(:,QV), q(:,QW), &
-                      flatn, q_lo, q_hi)
+     call rad_flatten([lo(1)-ngf, 0, 0], [hi(1)+ngf, 0, 0], &
+                      q, flatn, q_lo, q_hi)
 #else
-     call uflaten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
-                  q, flatn, q_lo, q_hi)
+     call uflatten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
+                   q, flatn, q_lo, q_hi)
 #endif
   else
      flatn = ONE
