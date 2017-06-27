@@ -508,27 +508,27 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  (&time,
 	   lo, hi, domain_lo, domain_hi,
 	   &(b_mol[mol_iteration]),
-	   BL_TO_FORTRAN(statein), 
-	   BL_TO_FORTRAN(stateout),
-	   BL_TO_FORTRAN(q),
-	   BL_TO_FORTRAN(qaux),
-	   BL_TO_FORTRAN(source_in),
-	   BL_TO_FORTRAN(source_out),
-	   BL_TO_FORTRAN(source_hydro_only),
+	   BL_TO_FORTRAN_3D(statein), 
+	   BL_TO_FORTRAN_3D(stateout),
+	   BL_TO_FORTRAN_3D(q),
+	   BL_TO_FORTRAN_3D(qaux),
+	   BL_TO_FORTRAN_3D(source_in),
+	   BL_TO_FORTRAN_3D(source_out),
+	   BL_TO_FORTRAN_3D(source_hydro_only),
 	   dx, &dt,
-	   D_DECL(BL_TO_FORTRAN(flux[0]),
-		  BL_TO_FORTRAN(flux[1]),
-		  BL_TO_FORTRAN(flux[2])),
+	   D_DECL(BL_TO_FORTRAN_3D(flux[0]),
+		  BL_TO_FORTRAN_3D(flux[1]),
+		  BL_TO_FORTRAN_3D(flux[2])),
 #if (BL_SPACEDIM < 3)
-	   BL_TO_FORTRAN(pradial),
+	   BL_TO_FORTRAN_3D(pradial),
 #endif
-	   D_DECL(BL_TO_FORTRAN(area[0][mfi]),
-		  BL_TO_FORTRAN(area[1][mfi]),
-		  BL_TO_FORTRAN(area[2][mfi])),
+	   D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
+		  BL_TO_FORTRAN_3D(area[1][mfi]),
+		  BL_TO_FORTRAN_3D(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-	   BL_TO_FORTRAN(dLogArea[0][mfi]),
+	   BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
-	   BL_TO_FORTRAN(volume[mfi]),
+	   BL_TO_FORTRAN_3D(volume[mfi]),
 	   &cflLoc, verbose);
 
 	// Store the fluxes from this advance -- we weight them by the
