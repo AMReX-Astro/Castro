@@ -19,9 +19,9 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine uflaten(lo, hi, p, u, v, w, flatn, q_lo, q_hi)
+  subroutine uflaten(lo, hi, q, flatn, q_lo, q_hi)
 
-    use meth_params_module, only : small_pres
+    use meth_params_module, only : small_pres, QPRES, QU, QV, QW, NQ
     use prob_params_module, only : dg
     use bl_constants_module
 
@@ -31,10 +31,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
 
-    real(rt)        , intent(in) :: p(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: u(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: v(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-    real(rt)        , intent(in) :: w(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i, j, k, ishft
@@ -52,90 +49,92 @@ contains
     call bl_allocate(chi,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
     ! x-direction flattening coef
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
           !dir$ ivdep
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
-             dp(i,j,k) = p(i+1*dg(1),j,k) - p(i-1*dg(1),j,k)
-             denom = max(small_pres,abs(p(i+2*dg(1),j,k)-p(i-2*dg(1),j,k)))
+             dp(i,j,k) = q(i+1*dg(1),j,k,QPRES) - q(i-1*dg(1),j,k,QPRES)
+             denom = max(small_pres, abs(q(i+2*dg(1),j,k,QPRES) - q(i-2*dg(1),j,k,QPRES)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (u(i-1*dg(1),j,k)-u(i+1*dg(1),j,k) .ge. ZERO) then
+             if (q(i-1*dg(1),j,k,QU) - q(i+1*dg(1),j,k,QU) >= ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
-             tmp = min(p(i+1*dg(1),j,k),p(i-1*dg(1),j,k))
-             if ((abs(dp(i,j,k))/tmp).gt.shktst) then
+             tmp = min(q(i+1*dg(1),j,k,QPRES), q(i-1*dg(1),j,k,QPRES))
+             if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
                 chi(i,j,k) = ZERO
              endif
           enddo
-          do i = lo(1),hi(1)
-             if(dp(i,j,k).gt.ZERO)then
+          do i = lo(1), hi(1)
+             if(dp(i,j,k) > ZERO)then
                 ishft = 1
              else
                 ishft = -1
              endif
              flatn(i,j,k) = ONE - &
-                  max(chi(i-ishft*dg(1),j,k)*z(i-ishft*dg(1),j,k),chi(i,j,k)*z(i,j,k))
+                  max(chi(i-ishft*dg(1),j,k)*z(i-ishft*dg(1),j,k), &
+                      chi(i,j,k)*z(i,j,k))
           enddo
        enddo
     enddo
 
     ! y-direction flattening coef
-    do k = lo(3),hi(3)
-       do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
+    do k = lo(3), hi(3)
+       do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
           !dir$ ivdep
-          do i = lo(1),hi(1)
-             dp(i,j,k) = p(i,j+1*dg(2),k) - p(i,j-1*dg(2),k)
-             denom = max(small_pres,abs(p(i,j+2*dg(2),k)-p(i,j-2*dg(2),k)))
+          do i = lo(1), hi(1)
+             dp(i,j,k) = q(i,j+1*dg(2),k,QPRES) - q(i,j-1*dg(2),k,QPRES)
+             denom = max(small_pres, abs(q(i,j+2*dg(2),k,QPRES) - q(i,j-2*dg(2),k,QPRES)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (v(i,j-1*dg(2),k)-v(i,j+1*dg(2),k) .ge. ZERO) then
+             if (q(i,j-1*dg(2),k,QV) - q(i,j+1*dg(2),k,QV) >= ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
-             tmp = min(p(i,j+1*dg(2),k),p(i,j-1*dg(2),k))
-             if ((abs(dp(i,j,k))/tmp).gt.shktst) then
+             tmp = min(q(i,j+1*dg(2),k,QPRES), q(i,j-1*dg(2),k,QPRES))
+             if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
                 chi(i,j,k) = ZERO
              endif
           enddo
        end do
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-             if(dp(i,j,k).gt.ZERO)then
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             if(dp(i,j,k) > ZERO)then
                 ishft = 1
              else
                 ishft = -1
              endif
              ftmp = ONE - &
-                  max(chi(i,j-ishft*dg(2),k)*z(i,j-ishft*dg(2),k),chi(i,j,k)*z(i,j,k))
+                  max(chi(i,j-ishft*dg(2),k)*z(i,j-ishft*dg(2),k), &
+                      chi(i,j,k)*z(i,j,k))
              flatn(i,j,k) = min( flatn(i,j,k), ftmp )
           enddo
        enddo
     enddo
 
     ! z-direction flattening coef
-    do k = lo(3)-1*dg(3),hi(3)+1*dg(3)
-       do j = lo(2),hi(2)
+    do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
+       do j = lo(2), hi(2)
           !dir$ ivdep
-          do i = lo(1),hi(1)
-             dp(i,j,k) = p(i,j,k+1*dg(3)) - p(i,j,k-1*dg(3))
-             denom = max(small_pres,abs(p(i,j,k+2*dg(3))-p(i,j,k-2*dg(3))))
+          do i = lo(1), hi(1)
+             dp(i,j,k) = q(i,j,k+1*dg(3),QPRES) - q(i,j,k-1*dg(3),QPRES)
+             denom = max(small_pres, abs(q(i,j,k+2*dg(3),QPRES) - q(i,j,k-2*dg(3),QPRES)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
-             if (w(i,j,k-1*dg(3))-w(i,j,k+1*dg(3)) .ge. ZERO) then
+             if (q(i,j,k-1*dg(3),QW) - q(i,j,k+1*dg(3),QW) >= ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
-             tmp = min(p(i,j,k+1*dg(3)),p(i,j,k-1*dg(3)))
-             if ((abs(dp(i,j,k))/tmp).gt.shktst) then
+             tmp = min(q(i,j,k+1*dg(3),QPRES), q(i,j,k-1*dg(3),QPRES))
+             if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
                 chi(i,j,k) = ZERO
@@ -146,13 +145,14 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             if(dp(i,j,k).gt.ZERO)then
+             if(dp(i,j,k) > ZERO)then
                 ishft = 1
              else
                 ishft = -1
              endif
              ftmp = ONE - &
-                  max(chi(i,j,k-ishft*dg(3))*z(i,j,k-ishft*dg(3)),chi(i,j,k)*z(i,j,k))
+                  max(chi(i,j,k-ishft*dg(3))*z(i,j,k-ishft*dg(3)), &
+                      chi(i,j,k)*z(i,j,k))
              flatn(i,j,k) = min( flatn(i,j,k), ftmp )
           enddo
        enddo
