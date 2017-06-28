@@ -38,14 +38,14 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine cmpflx(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
-                    flx, flx_l1, flx_l2, flx_h1, flx_h2, &
-                    qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+  subroutine cmpflx(qm, qp, qpd_lo, qpd_hi, &
+                    flx, flx_lo, flx_hi, &
+                    qint, qg_lo, qg_hi, &
 #ifdef RADIATION
-                    rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
+                    rflx, rflx_lo, rflx_hi, &
 #endif
-                    qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                    shk, s_l1, s_l2, s_h1, s_h2, &
+                    qaux, qa_lo, qa_hi, &
+                    shk, s_lo, s_hi, &
                     idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     use eos_type_module, only: eos_input_re, eos_input_rt, eos_t
@@ -55,28 +55,28 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer, intent(in) :: flx_l1,flx_l2,flx_h1,flx_h2
-    integer, intent(in) :: qg_l1,qg_l2,qg_h1,qg_h2
-    integer, intent(in) :: qa_l1,qa_l2,qa_h1,qa_h2
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: flx_lo(3), flx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    integer, intent(in) :: s_l1,s_l2,s_h1,s_h2
+    integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: idir,ilo,ihi,jlo,jhi
     integer, intent(in) :: domlo(2),domhi(2)
 
 #ifdef RADIATION
-    integer, intent(in) :: rflx_l1,rflx_l2,rflx_h1,rflx_h2
-    real(rt)        , intent(inout) :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
+    real(rt)        , intent(inout) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
+    real(rt)        , intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
-    real(rt)        , intent(inout) ::  qm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)        , intent(inout) ::  qp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)        , intent(inout) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,NVAR)
+    real(rt)        , intent(inout) ::  qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)        , intent(inout) ::  qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)        , intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),NVAR)
 
-    real(rt)        , intent(in) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
-    real(rt)        , intent(in) ::  shk( s_l1: s_h1, s_l2: s_h2)
+    real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
+    real(rt)        , intent(in) ::  shk( s_lo(1): s_hi(1), s_lo(2): s_hi(2))
 
     ! Local variables
     integer i, j
@@ -225,30 +225,30 @@ contains
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
-       call riemannus(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+       call riemannus(qm, qp, qpd_lo, qpd_hi, &
                       gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
-                      flx, flx_l1, flx_l2, flx_h1, flx_h2, &
-                      qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+                      flx, flx_lo, flx_hi, &
+                      qint, qg_lo, qg_hi, &
 #ifdef RADIATION
                       lam, gamcgm, gamcgp, &
-                      rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
+                      rflx, rflx_lo, rflx_hi, &
 #endif
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
-       call riemanncg(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
                       gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
-                      flx, flx_l1, flx_l2, flx_h1, flx_h2, &
-                      qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+                      flx, flx_lo, flx_hi, &
+                      qint, qg_lo, qg_hi, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     elseif (riemann_solver == 2) then
        ! HLLC
-       call HLLC(qm, qp, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+       call HLLC(qm, qp, qpd_lo, qpd_hi, &
                  gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
-                 flx, flx_l1, flx_l2, flx_h1, flx_h2, &
-                 qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+                 flx, flx_lo, flx_hi, &
+                 qint, qg_lo, qg_hi, &
                  idir, ilo, ihi, jlo, jhi, domlo, domhi)
     else
        call bl_error("ERROR: invalid value of riemann_solver")

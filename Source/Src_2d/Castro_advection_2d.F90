@@ -133,6 +133,15 @@ contains
     integer          :: i,j
     integer :: lo_3D(3), hi_3D(3)
 
+    integer :: tflx_lo(3), tflx_hi(3)
+    integer :: tfly_lo(3), tfly_hi(3)
+
+    tflx_lo = [lo(1), lo(2)-1, 0]
+    tflx_hi = [hi(1)+1, hi(2)+1, 0]
+
+    tfly_lo = [lo(1)-1, lo(2), 0]
+    tfly_hi = [hi(1)+1, hi(2)+1, 0]
+
     allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
     allocate (  qm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
@@ -142,11 +151,11 @@ contains
     allocate ( qym(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
     allocate ( qyp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
 
-    allocate (  fx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1,NVAR) )
-    allocate (  fy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1,NVAR) )
+    allocate (  fx(tflx_lo(1):tflx_hi(1),tflx_lo(2):tflx_hi(2),NVAR) )
+    allocate (  fy(tfly_lo(1):tfly_hi(1),tfly_lo(2):tfly_hi(2),NVAR) )
 #ifdef RADIATION
-    allocate (rfx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1,0:ngroups-1))
-    allocate (rfy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1,0:ngroups-1))
+    allocate ( rfx(tflx_lo(1):tflx_hi(1),tflx_lo(2):tflx_hi(2),0:ngroups-1) )
+    allocate ( rfy(tfly_lo(1):tfly_hi(1),tfly_lo(2):tfly_hi(2),0:ngroups-1) )
 #endif
 
     allocate (shk(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1))
@@ -231,26 +240,26 @@ contains
 
     ! Solve the Riemann problem in the x-direction using these first
     ! guesses for the x-interface states.  This produces the flux fx
-    call cmpflx(qxm, qxp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
-                fx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+    call cmpflx(qxm, qxp, lo_3D-1, hi_3D+2, &
+                fx, tflx_lo, tflx_hi, &
                 qgdxtmp, q1_lo, q1_hi, &
 #ifdef RADIATION
-                rfx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                rfx, tflx_lo, tflx_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                shk, lo_3D-1, hi_3D+1, &
                 1, lo(1), hi(1), lo(2)-1, hi(2)+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
-    call cmpflx(qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
-                fy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+    call cmpflx(qym, qyp, lo_3D-1, hi_3D+2, &
+                fy, tfly_lo, tfly_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
-                rfy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                rfy, tfly_lo, tfly_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                shk, lo_3D-1, hi_3D+1, &
                 2, lo(1)-1, hi(1)+1, lo(2), hi(2), domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
@@ -270,14 +279,14 @@ contains
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(qm, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+    call cmpflx(qm, qp, lo_3D-1, hi_3D+2, &
                 flux1, fd1_lo, fd1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
                 rflux1, rfd1_lo, rfd1_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                shk, lo_3D-1, hi_3D+1, &
                 1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
@@ -299,14 +308,14 @@ contains
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(qm, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+    call cmpflx(qm, qp, lo_3D-1, hi_3D+2, &
                 flux2, fd2_lo, fd2_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
                 rflux2, rfd2_lo, rfd2_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                shk, lo_3D-1, hi_3D+1, &
                 2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Construct p div{U} -- this will be used as a source to the internal
