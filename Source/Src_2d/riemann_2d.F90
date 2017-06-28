@@ -306,19 +306,19 @@ contains
   end subroutine cmpflx
 
 
-  subroutine shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   shk,s_l1,s_l2,s_h1,s_h2, &
-                   ilo1,ilo2,ihi1,ihi2,dx,dy)
+  subroutine shock(q, q_lo, q_hi, &
+                   shk, s_lo, s_hi, &
+                   lo, hi, dx, dy)
 
     use prob_params_module, only : coord_type
 
     use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
-    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: lo(2), hi(2)
     real(rt)        , intent(in) :: dx, dy
-    real(rt)        , intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)        , intent(inout) :: shk(s_l1:s_h1,s_l2:s_h2)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
 
     integer :: i, j
 
@@ -339,8 +339,8 @@ contains
     ! The spirit of this follows the shock detection in Colella &
     ! Woodward (1984)
 
-    do j = ilo2-1, ihi2+1
-       do i = ilo1-1, ihi1+1
+    do j = lo(2)-1, hi(2)+1
+       do i = lo(1)-1, hi(1)+1
 
           ! construct div{U}
           if (coord_type == 0) then

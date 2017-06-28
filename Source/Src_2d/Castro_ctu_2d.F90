@@ -162,24 +162,24 @@ subroutine ca_ctu_update(is_finest_level, time, &
   endif
 
   ! Compute hyperbolic fluxes using unsplit Godunov
-  call umeth2d(q, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
+  call umeth2d(q, q_lo, q_hi, &
                flatn, &
-               qaux, qa_lo(1), qa_lo(2), qa_hi(1), qa_hi(2), &
-               srcQ, srQ_lo(1), srQ_lo(2), srQ_hi(1), srQ_hi(2), &
-               lo(1), lo(2), hi(1), hi(2), dx, dy, dt, &
-               uout, uout_lo(1), uout_lo(2), uout_hi(1), uout_hi(2), &
-               flux1, flux1_lo(1), flux1_lo(2), flux1_hi(1), flux1_hi(2), &
-               flux2, flux2_lo(1), flux2_lo(2), flux2_hi(1), flux2_hi(2), &
+               qaux, qa_lo, qa_hi, &
+               srcQ, srQ_lo, srQ_hi, &
+               lo, hi, dx, dy, dt, &
+               uout, uout_lo, uout_hi, &
+               flux1, flux1_lo, flux1_hi, &
+               flux2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
-               radflux1,radflux1_lo(1),radflux1_lo(2),radflux1_hi(1),radflux1_hi(2), &
-               radflux2,radflux2_lo(1),radflux2_lo(2),radflux2_hi(1),radflux2_hi(2), &
+               radflux1, radflux1_lo, radflux1_hi, &
+               radflux2, radflux2_lo, radflux2_hi, &
 #endif               
-               q1, flux1_lo(1)-1, flux1_lo(2)-1, flux1_hi(1)+1, flux1_hi(2)+1, &
-               q2, flux2_lo(1)-1, flux2_lo(2)-1, flux2_hi(1)+1, flux2_hi(2)+1, &
-               area1, area1_lo(1), area1_lo(2), area1_hi(1), area1_hi(2), &
-               area2, area2_lo(1), area2_lo(2), area2_hi(1), area2_hi(2), &
-               pdivu, vol, vol_lo(1), vol_lo(2), vol_hi(1), vol_hi(2), &
-               dloga,dloga_lo(1),dloga_lo(2),dloga_hi(1),dloga_hi(2), &
+               q1, flux1_lo-1, flux1_hi+1, &
+               q2, flux2_lo-1, flux2_hi+1, &
+               area1, area1_lo, area1_hi, &
+               area2, area2_lo, area2_hi, &
+               pdivu, vol, vol_lo, vol_hi, &
+               dloga, dloga_lo, dloga_hi, &
                domlo, domhi)
 
 
@@ -189,24 +189,24 @@ subroutine ca_ctu_update(is_finest_level, time, &
             delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
 
   ! Conservative update
-  call consup(uin,  uin_lo(1),  uin_lo(2),  uin_hi(1),  uin_hi(2), &
-              q, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
-              uout,  uout_lo(1), uout_lo(2), uout_hi(1), uout_hi(2), &
-              update, updt_lo(1), updt_lo(2), updt_hi(1), updt_hi(2), &
-              q1, flux1_lo(1)-1, flux1_lo(2)-1, flux1_hi(1)+1, flux1_hi(2)+1, &
-              q2, flux2_lo(1)-1, flux2_lo(2)-1, flux2_hi(1)+1, flux2_hi(2)+1, &
-              flux1, flux1_lo(1), flux1_lo(2), flux1_hi(1), flux1_hi(2), &
-              flux2, flux2_lo(1), flux2_lo(2), flux2_hi(1), flux2_hi(2), &
+  call consup(uin,  uin_lo,  uin_hi, &
+              q, q_lo, q_hi, &
+              uout,  uout_lo, uout_hi, &
+              update, updt_lo, updt_hi, &
+              q1, flux1_lo-1, flux1_hi+1, &
+              q2, flux2_lo-1, flux2_hi+1, &
+              flux1, flux1_lo, flux1_hi, &
+              flux2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
-              Erin, Erin_lo(1), Erin_lo(2), Erin_hi(1), Erin_hi(2), &
-              Erout, Erout_lo(1), Erout_lo(2), Erout_hi(1), Erout_hi(2), &
-              radflux1, radflux1_lo(1), radflux1_lo(2), radflux1_hi(1), radflux1_hi(2), &
-              radflux2, radflux2_lo(1), radflux2_lo(2), radflux2_hi(1), radflux2_hi(2), &
+              Erin, Erin_lo, Erin_hi, &
+              Erout, Erout_lo, Erout_hi, &
+              radflux1, radflux1_lo, radflux1_hi, &
+              radflux2, radflux2_lo, radflux2_hi, &
               nstep_fsp, &
 #endif
-              area1, area1_lo(1), area1_lo(2), area1_hi(1), area1_hi(2), &
-              area2, area2_lo(1), area2_lo(2), area2_hi(1), area2_hi(2), &
-              vol, vol_lo(1), vol_lo(2), vol_hi(1), vol_hi(2), &
+              area1, area1_lo, area1_hi, &
+              area2, area2_lo, area2_hi, &
+              vol, vol_lo, vol_hi, &
               div, pdivu, lo, hi, dx, dy, dt, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &

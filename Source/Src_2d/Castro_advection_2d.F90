@@ -29,24 +29,24 @@ contains
 ! ::: :: flux2      <=  (modify) flux in Y direction on Y edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth2d(q, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine umeth2d(q, q_lo, q_hi, &
                      flatn, &
-                     qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                     srcQ, src_l1, src_l2, src_h1, src_h2, &
-                     ilo1, ilo2, ihi1, ihi2, dx, dy, dt, &
-                     uout, uout_l1, uout_l2, uout_h1, uout_h2, &
-                     flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
-                     flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
+                     qaux, qa_lo, qa_hi, &
+                     srcQ, src_lo, src_hi, &
+                     lo, hi, dx, dy, dt, &
+                     uout, uout_lo, uout_hi, &
+                     flux1, fd1_lo, fd1_hi, &
+                     flux2, fd2_lo, fd2_hi, &
 #ifdef RADIATION
-                     rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
-                     rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+                     rflux1, rfd1_lo, rfd1_hi, &
+                     rflux2, rfd2_lo, rfd2_hi, &
 #endif
-                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                     area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                     area2, area2_l1, area2_l2, area2_h1, area2_h2, &
-                     pdivu, vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                     dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
+                     q1, q1_lo, q1_hi, &
+                     q2, q2_lo, q2_hi, &
+                     area1, area1_lo, area1_hi, &
+                     area2, area2_lo, area2_hi, &
+                     pdivu, vol, vol_lo, vol_hi, &
+                     dloga, dloga_lo, dloga_hi, &
                      domlo, domhi)
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
@@ -74,44 +74,44 @@ contains
 
     implicit none
 
-    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
-    integer, intent(in) :: qa_l1, qa_l2, qa_h1, qa_h2
-    integer, intent(in) :: dloga_l1, dloga_l2, dloga_h1, dloga_h2
-    integer, intent(in) :: src_l1, src_l2, src_h1, src_h2
-    integer, intent(in) :: uout_l1, uout_l2, uout_h1, uout_h2
-    integer, intent(in) :: fd1_l1, fd1_l2, fd1_h1, fd1_h2
-    integer, intent(in) :: fd2_l1, fd2_l2, fd2_h1, fd2_h2
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) :: fd1_lo(3), fd1_hi(3)
+    integer, intent(in) :: fd2_lo(3), fd2_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2
-    integer, intent(in) :: rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2
+    integer, intent(in) :: rfd1_lo(3), rfd1_hi(3)
+    integer, intent(in) :: rfd2_lo(3), rfd2_hi(3)
 #endif
-    integer, intent(in) :: q1_l1, q1_l2, q1_h1, q1_h2
-    integer, intent(in) :: q2_l1, q2_l2, q2_h1, q2_h2
-    integer, intent(in) :: area1_l1, area1_l2, area1_h1, area1_h2
-    integer, intent(in) :: area2_l1, area2_l2, area2_h1, area2_h2
-    integer, intent(in) :: vol_l1, vol_l2, vol_h1, vol_h2
-    integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: lo(2), hi(2)
     integer, intent(in) :: domlo(2), domhi(2)
 
     real(rt)        , intent(in) :: dx, dy, dt
-    real(rt)        , intent(in) :: q(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)        , intent(inout) :: qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
-    real(rt)        , intent(in) :: flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)        , intent(in) :: srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    real(rt)        , intent(inout) :: q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
-    real(rt)        , intent(inout) :: q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
-    real(rt)        , intent(inout) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    real(rt)        , intent(inout) :: flux1(fd1_l1:fd1_h1,fd1_l2:fd1_h2,NVAR)
-    real(rt)        , intent(inout) :: flux2(fd2_l1:fd2_h1,fd2_l2:fd2_h2,NVAR)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
+    real(rt)        , intent(in) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
+    real(rt)        , intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+    real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
+    real(rt)        , intent(inout) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV)
+    real(rt)        , intent(inout) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),NGDNV)
+    real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),NVAR)
+    real(rt)        , intent(inout) :: flux1(fd1_lo(1):fd1_hi(1),fd1_lo(2):fd1_hi(2),NVAR)
+    real(rt)        , intent(inout) :: flux2(fd2_lo(1):fd2_hi(1),fd2_lo(2):fd2_hi(2),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(inout) :: rflux1(rfd1_l1:rfd1_h1,rfd1_l2:rfd1_h2,0:ngroups-1)
-    real(rt)        , intent(inout) :: rflux2(rfd2_l1:rfd2_h1,rfd2_l2:rfd2_h2,0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux1(rfd1_lo(1):rfd1_hi(1),rfd1_lo(2):rfd1_hi(2),0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux2(rfd2_lo(1):rfd2_hi(1),rfd2_lo(2):rfd2_hi(2),0:ngroups-1)
 #endif
-    real(rt)        , intent(in) :: area1(area1_l1:area1_h1,area1_l2:area1_h2)
-    real(rt)        , intent(in) :: area2(area2_l1:area2_h1,area2_l2:area2_h2)
-    real(rt)        , intent(inout) :: pdivu(ilo1:ihi1,ilo2:ihi2)
-    real(rt)        , intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2)
+    real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2))
+    real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2))
+    real(rt)        , intent(inout) :: pdivu(lo(1):hi(1),lo(2):hi(2))
+    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
 
     ! Left and right state arrays (edge centered, cell centered)
     real(rt)        , allocatable::  qm(:,:,:),  qp(:,:,:)
@@ -131,25 +131,29 @@ contains
     real(rt)         :: dtdx
     real(rt)         :: hdtdx, hdt, hdtdy
     integer          :: i,j
+    integer :: lo_3D(3), hi_3D(3)
 
-    allocate ( qgdxtmp(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV))
+    allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
-    allocate (  qm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
-    allocate (  qp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
-    allocate ( qxm(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
-    allocate ( qxp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
-    allocate ( qym(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
-    allocate ( qyp(ilo1-1:ihi1+2,ilo2-1:ihi2+2,NQ) )
+    allocate (  qm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate (  qp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate ( qxm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate ( qxp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate ( qym(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate ( qyp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
 
-    allocate (  fx(ilo1  :ihi1+1,ilo2-1:ihi2+1,NVAR) )
-    allocate (  fy(ilo1-1:ihi1+1,ilo2  :ihi2+1,NVAR) )
+    allocate (  fx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1,NVAR) )
+    allocate (  fy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1,NVAR) )
 #ifdef RADIATION
-    allocate (rfx(ilo1  :ihi1+1,ilo2-1:ihi2+1,0:ngroups-1))
-    allocate (rfy(ilo1-1:ihi1+1,ilo2  :ihi2+1,0:ngroups-1))
+    allocate (rfx(lo(1)  :hi(1)+1,lo(2)-1:hi(2)+1,0:ngroups-1))
+    allocate (rfy(lo(1)-1:hi(1)+1,lo(2)  :hi(2)+1,0:ngroups-1))
 #endif
 
-    allocate (shk(ilo1-1:ihi1+1,ilo2-1:ihi2+1))
+    allocate (shk(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1))
 
+
+    lo_3D = [lo(1), lo(2), 0]
+    hi_3D = [hi(1), hi(2), 0]
 
     ! Local constants
     dtdx = dt/dx
@@ -160,16 +164,16 @@ contains
     ! multidimensional shock detection
 
 #ifdef SHOCK_VAR
-    uout(ilo1:ihi1,ilo2:ihi2,USHK) = ZERO
+    uout(lo(1):hi(1),lo(2):hi(2),USHK) = ZERO
 
-    call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
-               shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
-               ilo1,ilo2,ihi1,ihi2,dx,dy)
+    call shock(q, q_lo, q_hi, &
+               shk, lo_3D-1, hi_3D+1, &
+               lo, hi, dx, dy)
 
     ! Store the shock data for future use in the burning step.
 
-    do j = ilo2, ihi2
-       do i = ilo1, ihi1
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)
           uout(i,j,USHK) = shk(i,j)
        enddo
     enddo
@@ -183,9 +187,9 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q,qd_l1,qd_l2,qd_h1,qd_h2, &
-                  shk,ilo1-1,ilo2-1,ihi1+1,ihi2+1, &
-                  ilo1,ilo2,ihi1,ihi2,dx,dy)
+       call shock(q, q_lo, q_hi, &
+                  shk, lo_3D-1, hi_3D+1, &
+                  lo, hi, dx, dy)
     else
        shk(:,:) = ZERO
     endif
@@ -200,115 +204,116 @@ contains
 #ifdef RADIATION
        call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
 #else
-       call trace(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                  dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                  qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-                  srcQ,src_l1,src_l2,src_h1,src_h2, &
-                  ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call trace(q, flatn, q_lo, q_hi, &
+                  qaux, qa_lo, qa_hi, &
+                  dloga, dloga_lo, dloga_hi, &
+                  qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
+                  srcQ, src_lo, src_hi, &
+                  lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
 #endif
     else
 #ifdef RADIATION
-       call trace_ppm_rad(q, qaux, flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
-                          dloga, dloga_l1, dloga_l2, dloga_h1, dloga_h2, &
-                          qxm, qxp, qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                          srcQ, src_l1, src_l2, src_h1, src_h2, &
-                          ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+       call trace_ppm_rad(q, qaux, flatn, q_lo, q_hi, &
+                          dloga, dloga_lo, dloga_hi, &
+                          qxm, qxp, qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                          srcQ, src_lo, src_hi, &
+                          lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
 
 #else
-       call trace_ppm(q,qaux(:,:,QC),flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                      dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                      qxm,qxp,qym,qyp,ilo1-1,ilo2-1,ihi1+2,ihi2+2, &
-                      srcQ,src_l1,src_l2,src_h1,src_h2, &
-                      qaux(:,:,QGAMC),qa_l1,qa_l2,qa_h1,qa_h2, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
+       call trace_ppm(q, flatn, q_lo, q_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dloga, dloga_lo, dloga_hi, &
+                      qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
+                      srcQ, src_lo, src_hi, &
+                      lo(1),lo(2),hi(1),hi(2),dx,dy,dt)
 #endif
     end if
 
     ! Solve the Riemann problem in the x-direction using these first
     ! guesses for the x-interface states.  This produces the flux fx
-    call cmpflx(qxm, qxp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
-                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
+    call cmpflx(qxm, qxp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                fx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                qgdxtmp, q1_lo, q1_hi, &
 #ifdef RADIATION
-                rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+                rfx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
 #endif
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-                1, ilo1, ihi1, ilo2-1, ihi2+1, domlo, domhi)
+                qaux, qa_lo, qa_hi, &
+                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                1, lo(1), hi(1), lo(2)-1, hi(2)+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
-    call cmpflx(qym, qyp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
-                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+    call cmpflx(qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                fy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                q2, q2_lo, q2_hi, &
 #ifdef RADIATION
-                rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+                rfy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
 #endif
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-                2, ilo1-1, ihi1+1, ilo2, ihi2, domlo, domhi)
+                qaux, qa_lo, qa_hi, &
+                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                2, lo(1)-1, hi(1)+1, lo(2), hi(2), domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
-    call transy(qxm, qm, qxp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                fy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+    call transy(qxm, qm, qxp, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                qaux, qa_lo, qa_hi, &
+                fy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
 #ifdef RADIATION
-                rfy, ilo1-1, ilo2, ihi1+1, ihi2+1, &
+                rfy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
 #endif
-                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                srcQ, src_l1, src_l2, src_h1, src_h2, &
+                q2, q2_lo, q2_hi, &
+                srcQ, src_lo, src_hi, &
                 hdt, hdtdy, &
-                ilo1-1, ihi1+1, ilo2, ihi2)
+                lo(1)-1, hi(1)+1, lo(2), hi(2))
 
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                flux1, fd1_l1, fd1_l2, fd1_h1, fd1_h2, &
-                q1, q1_l1, q1_l2, q1_h1, q1_h2, &
+    call cmpflx(qm, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                flux1, fd1_lo, fd1_hi, &
+                q1, q1_lo, q1_hi, &
 #ifdef RADIATION
-                rflux1, rfd1_l1, rfd1_l2, rfd1_h1, rfd1_h2, &
+                rflux1, rfd1_lo, rfd1_hi, &
 #endif
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-                1, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                qaux, qa_lo, qa_hi, &
+                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
-    call transx(qym, qm, qyp, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                fx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+    call transx(qym, qm, qyp, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                qaux, qa_lo, qa_hi, &
+                fx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
 #ifdef RADIATION
-                rfx, ilo1, ilo2-1, ihi1+1, ihi2+1, &
+                rfx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
 #endif
-                qgdxtmp, q1_l1, q1_l2, q1_h1, q1_h2, &
-                srcQ,  src_l1,  src_l2,  src_h1,  src_h2, &
+                qgdxtmp, q1_lo, q1_hi, &
+                srcQ, src_lo, src_hi, &
                 hdt, hdtdx, &
-                area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                vol, vol_l1, vol_l2, vol_h1, vol_h2, &
-                ilo1, ihi1, ilo2-1, ihi2+1)
+                area1, area1_lo, area1_hi, &
+                vol, vol_lo, vol_hi, &
+                lo(1), hi(1), lo(2)-1, hi(2)+1)
 
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(qm, qp, ilo1-1, ilo2-1, ihi1+2, ihi2+2, &
-                flux2, fd2_l1, fd2_l2, fd2_h1, fd2_h2, &
-                q2, q2_l1, q2_l2, q2_h1, q2_h2, &
+    call cmpflx(qm, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                flux2, fd2_lo, fd2_hi, &
+                q2, q2_lo, q2_hi, &
 #ifdef RADIATION
-                rflux2, rfd2_l1, rfd2_l2, rfd2_h1, rfd2_h2, &
+                rflux2, rfd2_lo, rfd2_hi, &
 #endif
-                qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                shk, ilo1-1, ilo2-1, ihi1+1, ihi2+1, &
-                2, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                qaux, qa_lo, qa_hi, &
+                shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+                2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Construct p div{U} -- this will be used as a source to the internal
     ! energy update.  Note we construct this using the interface states
     ! returned from the Riemann solver.
-    do j = ilo2,ihi2
-       do i = ilo1,ihi1
+    do j = lo(2), hi(2)
+       do i = lo(1), hi(1)
           pdivu(i,j) = HALF*( &
                (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
                (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
@@ -331,24 +336,24 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine consup( uin, uin_l1, uin_l2, uin_h1, uin_h2, &
-                     q, q_l1, q_l2, q_h1, q_h2, &
-                     uout,uout_l1,uout_l2,uout_h1,uout_h2, &
-                     update,updt_l1,updt_l2,updt_h1,updt_h2, &
-                     q1, q1_l1, q1_l2, q1_h1, q1_h2, &
-                     q2, q2_l1, q2_l2, q2_h1, q2_h2, &
-                     flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                     flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+  subroutine consup( uin, uin_lo, uin_hi, &
+                     q, q_lo, q_hi, &
+                     uout, uout_lo, uout_hi, &
+                     update, updt_lo, updt_hi, &
+                     q1, q1_lo, q1_hi, &
+                     q2, q2_lo, q2_hi, &
+                     flux1, flux1_lo, flux1_hi, &
+                     flux2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
-                     Erin, Erin_l1, Erin_l2, Erin_h1, Erin_h2, &
-                     Erout,Erout_l1,Erout_l2,Erout_h1,Erout_h2, &
-                     rflux1,rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2, &
-                     rflux2,rflux2_l1,rflux2_l2,rflux2_h1,rflux2_h2, &
+                     Erin, Erin_lo, Erin_hi, &
+                     Erout, Erout_lo, Erout_hi, &
+                     rflux1, rflux1_lo, rflux1_hi, &
+                     rflux2, rflux2_lo, rflux2_hi, &
                      nstep_fsp, &
 #endif
-                     area1,area1_l1,area1_l2,area1_h1,area1_h2, &
-                     area2,area2_l1,area2_l2,area2_h1,area2_h2, &
-                     vol,vol_l1,vol_l2,vol_h1,vol_h2, &
+                     area1, area1_lo, area1_hi, &
+                     area2, area2_lo, area2_hi, &
+                     vol, vol_lo, vol_hi, &
                      div,pdivu,lo,hi,dx,dy,dt, &
                      mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                      eden_lost,xang_lost,yang_lost,zang_lost, &
@@ -380,44 +385,44 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: lo(2), hi(2)
-    integer, intent(in) :: uin_l1,uin_l2,uin_h1,uin_h2
-    integer, intent(in) :: q_l1,q_l2,q_h1,q_h2
-    integer, intent(in) :: uout_l1,uout_l2,uout_h1,uout_h2
-    integer, intent(in) :: updt_l1,updt_l2,updt_h1,updt_h2
-    integer, intent(in) :: q1_l1, q1_l2, q1_h1, q1_h2
-    integer, intent(in) :: q2_l1, q2_l2, q2_h1, q2_h2
-    integer, intent(in) :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
-    integer, intent(in) :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
+    integer, intent(in) :: uin_lo(3), uin_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) :: updt_lo(3), updt_hi(3)
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: flux1_lo(3), flux1_hi(3)
+    integer, intent(in) :: flux2_lo(3), flux2_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: Erout_l1,Erout_l2,Erout_h1,Erout_h2
-    integer, intent(in) :: Erin_l1,Erin_l2,Erin_h1,Erin_h2
-    integer, intent(in) :: rflux1_l1,rflux1_l2,rflux1_h1,rflux1_h2
-    integer, intent(in) :: rflux2_l1,rflux2_l2,rflux2_h1,rflux2_h2
+    integer, intent(in) :: Erout_lo(3), Erout_lo(3)
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: rflux1_lo(3), rflux1_hi(3)
+    integer, intent(in) :: rflux2_lo(3), rflux2_hi(3)
 #endif
-    integer, intent(in) :: area1_l1,area1_l2,area1_h1,area1_h2
-    integer, intent(in) :: area2_l1,area2_l2,area2_h1,area2_h2
-    integer, intent(in) :: vol_l1,vol_l2,vol_h1,vol_h2
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
 
     integer, intent(in) :: verbose
 
-    real(rt)        , intent(in) :: uin(uin_l1:uin_h1,uin_l2:uin_h2,NVAR)
-    real(rt)        , intent(in) :: q(q_l1:q_h1,q_l2:q_h2,NQ)
-    real(rt)        , intent(in) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,NVAR)
-    real(rt)        , intent(inout) :: update(updt_l1:updt_h1,updt_l2:updt_h2,NVAR)
-    real(rt)        , intent(in) :: q1(q1_l1:q1_h1,q1_l2:q1_h2,NGDNV)
-    real(rt)        , intent(in) :: q2(q2_l1:q2_h1,q2_l2:q2_h2,NGDNV)
-    real(rt)        , intent(inout) :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-    real(rt)        , intent(inout) :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+    real(rt)        , intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),NVAR)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)        , intent(in) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),NVAR)
+    real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),NVAR)
+    real(rt)        , intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV)
+    real(rt)        , intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),NGDNV)
+    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),NVAR)
+    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(in) :: Erin( Erin_l1: Erin_h1, Erin_l2: Erin_h2,0:ngroups-1)
-    real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1,Erout_l2:Erout_h2,0:ngroups-1)
-    real(rt)        , intent(inout) :: rflux1(rflux1_l1:rflux1_h1,rflux1_l2:rflux1_h2,0:ngroups-1)
-    real(rt)        , intent(inout) :: rflux2(rflux2_l1:rflux2_h1,rflux2_l2:rflux2_h2,0:ngroups-1)
+    real(rt)        , intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),0:ngroups-1)
+    real(rt)        , intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux1(rflux1_lo(1):rflux1_hi(1),rflux1_lo(2):rflux1_hi(2),0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux2(rflux2_lo(1):rflux2_hi(1),rflux2_lo(2):rflux2_hi(2),0:ngroups-1)
     integer, intent(inout) :: nstep_fsp
 #endif
-    real(rt)        , intent(in) :: area1(area1_l1:area1_h1,area1_l2:area1_h2)
-    real(rt)        , intent(in) :: area2(area2_l1:area2_h1,area2_l2:area2_h2)
-    real(rt)        , intent(in) :: vol(vol_l1:vol_h1,vol_l2:vol_h2)
+    real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2))
+    real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2))
+    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1)
     real(rt)        , intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2))
     real(rt)        , intent(in) :: dx, dy, dt
@@ -425,6 +430,8 @@ contains
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
 
     integer i, j, k, n
+
+    integer :: lo_3D(3), hi_3D(3)
 
     real(rt)         div1
     !real(rt)         rho, Up, Vp, SrE
@@ -457,6 +464,8 @@ contains
     end if
 #endif
 
+    lo_3D = [lo(1), lo(2), 0]
+    hi_3D = [hi(1), hi(2), 0]
 
     ! Correct the fluxes to include the effects of the artificial viscosity.
 
@@ -494,20 +503,20 @@ contains
     enddo
 
     if (limit_fluxes_on_small_dens == 1) then
-       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, uin_l2, 0], [uin_h1, uin_h2, 0], &
-                                             q, [q_l1, q_l2, 0], [q_h1, q_h2, 0], &
-                                             vol, [vol_l1, vol_l2, 0], [vol_h1, vol_h2, 0], &
-                                             flux1, [flux1_l1, flux1_l2, 0], [flux1_h1, flux1_h2, 0], &
-                                             area1, [area1_l1, area1_l2, 0], [area1_h1, area1_h2, 0], &
-                                             flux2, [flux2_l1, flux2_l2, 0], [flux2_h1, flux2_h2, 0], &
-                                             area2, [area2_l1, area2_l2, 0], [area2_h1, area2_h2, 0], &
+       call limit_hydro_fluxes_on_small_dens(uin, uin_lo, uin_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux1, flux1_lo, flux1_hi, &
+                                             area1, area1_lo, area1_hi, &
+                                             flux2, flux2_lo, flux2_hi, &
+                                             area2, area2_lo, area2_hi, &
                                              [lo(1), lo(2), 0], [hi(1), hi(2), 0], dt, [dx, dy, ZERO])
     endif
 
     ! Normalize the species fluxes.
 
-    call normalize_species_fluxes(flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                                  flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+    call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
+                                  flux2, flux2_lo, flux2_hi, &
                                   lo,hi)
 
 #ifdef RADIATION
