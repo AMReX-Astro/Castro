@@ -131,9 +131,9 @@ subroutine ca_mol_single_stage(time, &
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),USHK) = ZERO
 
-    call shock(q, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
-               shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
-               lo(1), lo(2), hi(1), hi(2), dx, dy)
+    call shock(q, q_lo, q_hi, &
+               shk, lo_3D-1, hi_3D+1, &
+               lo, hi, dx, dy)
 
     ! Store the shock data for future use in the burning step.
     do j = lo(2), hi(2)
@@ -151,9 +151,9 @@ subroutine ca_mol_single_stage(time, &
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
-                  shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
-                  lo(1), lo(2), hi(1), hi(2), dx, dy)
+       call shock(q, q_lo, q_hi, &
+                  shk, lo_3D-1, hi_3D+1, &
+                  lo, hi, dx, dy)
     else
        shk(:,:) = ZERO
     endif
@@ -195,8 +195,8 @@ subroutine ca_mol_single_stage(time, &
 
   ! Do PPM reconstruction
   do n = 1, QVAR
-     call ppm_reconstruct(q(:,:,n), q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
-                          flatn, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
+     call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
+                          flatn, q_lo, q_hi, &
                           sxm, sxp, sym, syp, &
                           lo(1), lo(2), hi(1), hi(2), dx, dy)
 
@@ -230,25 +230,25 @@ subroutine ca_mol_single_stage(time, &
 
 
   ! Get the fluxes from the Riemann solver
-  call cmpflx(qxm, qxp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
-              flux1, flux1_lo(1), flux1_lo(2), flux1_hi(1), flux1_hi(2), &
-              q1, flux1_lo(1), flux1_lo(2), flux1_hi(1), flux1_hi(2), &
+  call cmpflx(qxm, qxp, lo_3D-1, hi_3D+2, &
+              flux1, flux1_lo, flux1_hi, &
+              q1, flux1_lo, flux1_hi, &
 #ifdef RADIATION
-              rflx, flux1_lo(1), flux1_lo(2), flux1_hi(1), flux1_hi(2), &
+              rflx, flux1_lo, flux1_hi, &
 #endif
-              qaux, qa_lo(1), qa_lo(2), qa_hi(1), qa_hi(2), &
-              shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+              qaux, qa_lo, qa_hi, &
+              shk, lo_3D-1, hi_3D+1, &
               1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
 
-  call cmpflx(qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
-              flux2, flux2_lo(1), flux2_lo(2), flux2_hi(1), flux2_hi(2), &
-              q2, flux2_lo(1), flux2_lo(2), flux2_hi(1), flux2_hi(2), &
+  call cmpflx(qym, qyp, lo_3D-1, hi_3D+2, &
+              flux2, flux2_lo, flux2_hi, &
+              q2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
-              rfly, flux2_lo(1), flux2_lo(2), flux2_hi(1), flux2_hi(2), &
+              rfly, flux2_lo, flux2_hi, &
 #endif
-              qaux, qa_lo(1), qa_lo(2), qa_hi(1), qa_hi(2), &
-              shk, lo(1)-1, lo(2)-1, hi(1)+1, hi(2)+1, &
+              qaux, qa_lo, qa_hi, &
+              shk, lo_3D-1, hi_3D+1, &
               2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
   deallocate(qxm, qxp, qym, qyp)
@@ -309,8 +309,8 @@ subroutine ca_mol_single_stage(time, &
 
 
   ! Normalize the species fluxes
-  call normalize_species_fluxes(flux1,flux1_lo(1),flux1_lo(2),flux1_hi(1),flux1_hi(2), &
-                                flux2,flux2_lo(1),flux2_lo(2),flux2_hi(1),flux2_hi(2), &
+  call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
+                                flux2, flux2_lo, flux2_hi, &
                                 lo,hi)
 
 

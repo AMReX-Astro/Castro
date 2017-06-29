@@ -226,7 +226,7 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                      gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
 #ifdef RADIATION
@@ -238,7 +238,7 @@ contains
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                      gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
@@ -246,7 +246,7 @@ contains
     elseif (riemann_solver == 2) then
        ! HLLC
        call HLLC(qm, qp, qpd_lo, qpd_hi, &
-                 gamcm, gamcp, cavg, smallc, ilo-1, jlo-1, ihi+1, jhi+1, &
+                 gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                  flx, flx_lo, flx_hi, &
                  qint, qg_lo, qg_hi, &
                  idir, ilo, ihi, jlo, jhi, domlo, domhi)
@@ -411,10 +411,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine riemanncg(ql,qr,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                       gamcl,gamcr,cav,smallc,gd_l1,gd_l2,gd_h1,gd_h2, &
-                       uflx,uflx_l1,uflx_l2,uflx_h1,uflx_h2, &
-                       qint, qg_l1,qg_l2,qg_h1,qg_h2, &
+  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
+                       gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                       uflx, uflx_lo, uflx_hi, &
+                       qint, qg_lo, qg_hi, &
                        idir,ilo1,ihi1,ilo2,ihi2,domlo,domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
@@ -429,21 +429,22 @@ contains
     real(rt)        , parameter:: small = 1.e-8_rt
     real(rt)        , parameter :: small_u = 1.e-10_rt
 
-    integer :: qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer :: gd_l1,gd_l2,gd_h1,gd_h2
-    integer :: uflx_l1,uflx_l2,uflx_h1,uflx_h2
-    integer :: qg_l1,qg_l2,qg_h1,qg_h2
+    integer :: qpd_lo(3), qpd_hi(3)
+    integer :: gd_lo(3), gd_hi(3)
+    integer :: uflx_lo(3), uflx_hi(3)
+    integer :: qg_lo(3), qg_hi(3)
     integer :: idir,ilo1,ihi1,ilo2,ihi2
     integer :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)         :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)         ::  gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         ::  gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         ::    cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    real(rt)         :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
+    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+
+    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
     integer :: i,j,ilo,jlo,ihi,jhi, ipassive
     integer :: n, nqp
@@ -950,13 +951,13 @@ contains
 ! :::
 
 
-  subroutine riemannus(ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
-                       gamcl, gamcr, cav, smallc, gd_l1, gd_l2, gd_h1, gd_h2, &
-                       uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
-                       qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+  subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
+                       gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                       uflx, uflx_lo, uflx_hi, &
+                       qint, qg_lo, qg_hi, &
 #ifdef RADIATION
                        lam, gamcgl, gamcgr, &
-                       rflx, rflx_l1, rflx_l2, rflx_h1, rflx_h2, &
+                       rflx, rflx_lo, rflx_hi, &
 #endif
                        idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
@@ -965,30 +966,30 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
-    integer :: gd_l1, gd_l2, gd_h1, gd_h2
-    integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
-    integer :: qg_l1, qg_l2, qg_h1, qg_h2
+    integer :: qpd_lo(3), qpd_hi(3)
+    integer :: gd_lo(3), gd_hi(3)
+    integer :: uflx_lo(3), uflx_hi(3)
+    integer :: qg_lo(3), qg_hi(3)
 #ifdef RADIATION
-    integer :: rflx_l1, rflx_l2, rflx_h1, rflx_h2
+    integer :: rflx_lo(3), rflx_hi(3)
 #endif
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)         :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
+    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    real(rt)         :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
+    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 #ifdef RADIATION
-    real(rt)         ::    lam(gd_l1:gd_h1,gd_l2:gd_h2,0:ngroups-1)
-    real(rt)         :: gamcgl(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: gamcgr(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: rflx(rflx_l1:rflx_h1,rflx_l2:rflx_h2,0:ngroups-1)
+    real(rt)         ::    lam(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),0:ngroups-1)
+    real(rt)         :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
 #endif
 
     integer :: ilo,ihi,jlo,jhi
@@ -1376,10 +1377,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine HLLC(ql, qr, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
-                  gamcl, gamcr, cav, smallc, gd_l1, gd_l2, gd_h1, gd_h2, &
-                  uflx, uflx_l1, uflx_l2, uflx_h1, uflx_h2, &
-                  qint, qg_l1, qg_l2, qg_h1, qg_h2, &
+  subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
+                  gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                  uflx, uflx_lo, uflx_hi, &
+                  qint, qg_lo, qg_hi, &
                   idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
 
     ! this is an implementation of the HLLC solver described in Toro's
@@ -1392,21 +1393,22 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
-    integer :: gd_l1, gd_l2, gd_h1, gd_h2
-    integer :: uflx_l1, uflx_l2, uflx_h1, uflx_h2
-    integer :: qg_l1, qg_l2, qg_h1, qg_h2
+    integer :: qpd_lo(3), qpd_hi(3)
+    integer :: gd_lo(3), gd_hi(3)
+    integer :: uflx_lo(3), uflx_hi(3)
+    integer :: qg_lo(3), qg_hi(3)
     integer :: idir, ilo1, ihi1, ilo2, ihi2
     integer :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)         :: qr(qpd_l1:qpd_h1,qpd_l2:qpd_h2,NQ)
-    real(rt)         :: gamcl(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: gamcr(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: cav(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: smallc(gd_l1:gd_h1,gd_l2:gd_h2)
-    real(rt)         :: uflx(uflx_l1:uflx_h1,uflx_l2:uflx_h2,NVAR)
-    real(rt)         :: qint(qg_l1:qg_h1,qg_l2:qg_h2,NGDNV)
+    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+
+    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
     integer :: ilo,ihi,jlo,jhi
     integer :: i, j

@@ -34,46 +34,47 @@ module transverse_module
 
 contains
 
-  subroutine transx(qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
-                    qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                    fx, fx_l1, fx_l2, fx_h1, fx_h2, &
+  subroutine transx(qm, qmo, qp, qpo, qd_lo, qd_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fx, fx_lo, fx_hi, &
 #ifdef RADIATION
-                    rfx, rfx_l1, rfx_l2, rfx_h1, rfx_h2, &
+                    rfx, rfx_lo, rfx_hi, &
 #endif
-                    qgdx, qgdx_l1, qgdx_l2, qgdx_h1, qgdx_h2, &
-                    srcQ, src_l1, src_l2, src_h1, src_h2, &
+                    qgdx, qgdx_lo, qgdx_hi, &
+                    srcQ, src_lo, src_hi, &
                     hdt, cdtdx,  &
-                    area1, area1_l1, area1_l2, area1_h1, area1_h2, &
-                    vol, vol_l1, vol_l2, vol_h1, vol_h2, &
+                    area1, area1_lo, area1_hi, &
+                    vol, vol_lo, vol_hi, &
                     ilo, ihi, jlo, jhi)
 
     use amrex_fort_module, only : rt => amrex_real
-    integer qd_l1, qd_l2, qd_h1, qd_h2
-    integer qa_l1, qa_l2, qa_h1, qa_h2
-    integer fx_l1, fx_l2, fx_h1, fx_h2
-    integer qgdx_l1, qgdx_l2, qgdx_h1, qgdx_h2
-    integer src_l1, src_l2, src_h1, src_h2
-    integer area1_l1, area1_l2, area1_h1, area1_h2
-    integer vol_l1, vol_l2, vol_h1, vol_h2
+    integer qd_lo(3), qd_hi(3)
+    integer qa_lo(3), qa_hi(3)
+    integer fx_lo(3), fx_hi(3)
+    integer qgdx_lo(3), qgdx_hi(3)
+    integer src_lo(3), src_hi(3)
+    integer area1_lo(3), area1_hi(3)
+    integer vol_lo(3), vol_hi(3)
     integer ilo, ihi, jlo, jhi
 
 #ifdef RADIATION
-    integer rfx_l1, rfx_l2, rfx_h1, rfx_h2
-    real(rt)         rfx(rfx_l1:rfx_h1,rfx_l2:rfx_h2,0:ngroups-1)
+    integer rfx_lo(3), rfx_hi(3)
+    real(rt)         rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),0:ngroups-1)
 #endif
 
-    real(rt)         qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
 
-    real(rt)         qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
 
-    real(rt)         fx(fx_l1:fx_h1,fx_l2:fx_h2,NVAR)
-    real(rt)         qgdx(qgdx_l1:qgdx_h1,qgdx_l2:qgdx_h2,NGDNV)
-    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    real(rt)         area1(area1_l1:area1_h1,area1_l2:area1_h2)
-    real(rt)         vol(vol_l1:vol_h1,vol_l2:vol_h2)
+    real(rt)         fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),NVAR)
+    real(rt)         qgdx(qgdx_lo(1):qgdx_hi(1),qgdx_lo(2):qgdx_hi(2),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+    real(rt)         area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2))
+    real(rt)         vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
+
     real(rt)         hdt, cdtdx
 
     integer          :: i, j, g
@@ -489,39 +490,40 @@ contains
   end subroutine transx
 
 
-  subroutine transy(qm, qmo, qp, qpo, qd_l1, qd_l2, qd_h1, qd_h2, &
-                    qaux, qa_l1, qa_l2, qa_h1, qa_h2, &
-                    fy,fy_l1,fy_l2,fy_h1,fy_h2, &
+  subroutine transy(qm, qmo, qp, qpo, qd_lo, qd_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    fy, fy_lo, fy_hi, &
 #ifdef RADIATION
-                    rfy,rfy_l1,rfy_l2,rfy_h1,rfy_h2, &
+                    rfy, rfy_lo, rfy_hi, &
 #endif
-                    qgdy, qgdy_l1, qgdy_l2, qgdy_h1, qgdy_h2, &
-                    srcQ, src_l1, src_l2, src_h1, src_h2, &
+                    qgdy, qgdy_lo, qgdy_hi, &
+                    srcQ, src_lo, src_hi, &
                     hdt, cdtdy, ilo, ihi, jlo, jhi)
 
     use amrex_fort_module, only : rt => amrex_real
-    integer qd_l1, qd_l2, qd_h1, qd_h2
-    integer qa_l1, qa_l2, qa_h1, qa_h2
-    integer fy_l1, fy_l2, fy_h1, fy_h2
-    integer qgdy_l1, qgdy_l2, qgdy_h1, qgdy_h2
-    integer src_l1, src_l2, src_h1, src_h2
+    integer qd_lo(3), qd_hi(3)
+    integer qa_lo(3), qa_hi(3)
+    integer fy_lo(3), fy_hi(3)
+    integer qgdy_lo(3), qgdy_hi(3)
+    integer src_lo(3), src_hi(3)
     integer ilo, ihi, jlo, jhi
 
 #ifdef RADIATION
-    integer rfy_l1, rfy_l2, rfy_h1, rfy_h2
-    real(rt)         rfy(rfy_l1:rfy_h1,rfy_l2:rfy_h2,0:ngroups-1)
+    integer rfy_lo(3), rfy_hi(3)
+    real(rt)         rfy(rfy_lo(1):rfy_hi(1),rfy_lo(2):rfy_hi(2),0:ngroups-1)
 #endif
 
-    real(rt)         qm(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qmo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qp(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
-    real(rt)         qpo(qd_l1:qd_h1,qd_l2:qd_h2,NQ)
+    real(rt)         qm(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qmo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qp(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
+    real(rt)         qpo(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),NQ)
 
-    real(rt)         qaux(qa_l1:qa_h1,qa_l2:qa_h2,NQAUX)
+    real(rt)         qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
 
-    real(rt)         fy(fy_l1:fy_h1,fy_l2:fy_h2,NVAR)
-    real(rt)         qgdy(qgdy_l1:qgdy_h1,qgdy_l2:qgdy_h2,NGDNV)
-    real(rt)         srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)         fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),NVAR)
+    real(rt)         qgdy(qgdy_lo(1):qgdy_hi(1),qgdy_lo(2):qgdy_hi(2),NGDNV)
+    real(rt)         srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
+
     real(rt)         hdt, cdtdy
 
     integer          :: i, j, g

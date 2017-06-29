@@ -265,11 +265,11 @@ contains
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
-    call transy(qxm, qm, qxp, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+    call transy(qxm, qm, qxp, qp, lo_3D-1, hi_3D+2, &
                 qaux, qa_lo, qa_hi, &
-                fy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                fy, tfly_lo, tfly_hi, &
 #ifdef RADIATION
-                rfy, lo(1)-1, lo(2), hi(1)+1, hi(2)+1, &
+                rfy, tfly_lo, tfly_hi, &
 #endif
                 q2, q2_lo, q2_hi, &
                 srcQ, src_lo, src_hi, &
@@ -292,11 +292,11 @@ contains
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
-    call transx(qym, qm, qyp, qp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+    call transx(qym, qm, qyp, qp, lo_3D-1, hi_3D+2, &
                 qaux, qa_lo, qa_hi, &
-                fx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                fx, tflx_lo, tflx_hi, &
 #ifdef RADIATION
-                rfx, lo(1), lo(2)-1, hi(1)+1, hi(2)+1, &
+                rfx, tflx_lo, tflx_hi, &
 #endif
                 qgdxtmp, q1_lo, q1_hi, &
                 srcQ, src_lo, src_hi, &
