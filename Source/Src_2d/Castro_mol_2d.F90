@@ -22,7 +22,7 @@ subroutine ca_mol_single_stage(time, &
 
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
-                                 use_flattening, QU, QV, QW, QPRES, NQAUX, &
+                                 use_flattening, QU, QV, QW, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann
   use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl

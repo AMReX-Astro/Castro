@@ -222,9 +222,10 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call trace_ppm_rad(q, qaux, flatn, q_lo, q_hi, &
+       call trace_ppm_rad(q, flatn, q_lo, q_hi, &
+                          qaux, qa_lo, qa_hi, &
                           dloga, dloga_lo, dloga_hi, &
-                          qxm, qxp, qym, qyp, lo(1)-1, lo(2)-1, hi(1)+2, hi(2)+2, &
+                          qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
                           srcQ, src_lo, src_hi, &
                           lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
 
@@ -403,7 +404,7 @@ contains
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: Erout_lo(3), Erout_lo(3)
+    integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: rflux1_lo(3), rflux1_hi(3)
     integer, intent(in) :: rflux2_lo(3), rflux2_hi(3)
