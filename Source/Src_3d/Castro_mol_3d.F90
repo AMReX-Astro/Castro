@@ -29,7 +29,7 @@ subroutine ca_mol_single_stage(time, &
   use advection_util_3d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: uflaten
+  use flatten_module, only: uflatten
   use riemann_module, only: cmpflx, shock
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
@@ -203,8 +203,8 @@ subroutine ca_mol_single_stage(time, &
   if (first_order_hydro == 1) then
      flatn = ZERO
   elseif (use_flattening == 1) then
-     call uflaten(lo - ngf, hi + ngf, &
-                  q, flatn, q_lo, q_hi)
+     call uflatten(lo - ngf, hi + ngf, &
+                   q, flatn, q_lo, q_hi)
   else
      flatn = ONE
   endif
