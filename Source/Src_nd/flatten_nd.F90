@@ -19,8 +19,10 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine uflatten(lo, hi, q, flatn, q_lo, q_hi)
+  subroutine uflatten(lo, hi, q, flatn, q_lo, q_hi, ipres)
 
+    ! here, ipres is the pressure variable we want to consider jumps on
+    ! passing it in allows
     use meth_params_module, only : small_pres, QPRES, QU, QV, QW, NQ
     use prob_params_module, only : dg
     use bl_constants_module
@@ -30,6 +32,7 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: ipres
 
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
@@ -53,8 +56,8 @@ contains
        do j = lo(2), hi(2)
           !dir$ ivdep
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
-             dp(i,j,k) = q(i+1*dg(1),j,k,QPRES) - q(i-1*dg(1),j,k,QPRES)
-             denom = max(small_pres, abs(q(i+2*dg(1),j,k,QPRES) - q(i-2*dg(1),j,k,QPRES)))
+             dp(i,j,k) = q(i+1*dg(1),j,k,ipres) - q(i-1*dg(1),j,k,ipres)
+             denom = max(small_pres, abs(q(i+2*dg(1),j,k,ipres) - q(i-2*dg(1),j,k,ipres)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
              if (q(i-1*dg(1),j,k,QU) - q(i+1*dg(1),j,k,QU) >= ZERO) then
@@ -62,7 +65,7 @@ contains
              else
                 tst = ZERO
              endif
-             tmp = min(q(i+1*dg(1),j,k,QPRES), q(i-1*dg(1),j,k,QPRES))
+             tmp = min(q(i+1*dg(1),j,k,ipres), q(i-1*dg(1),j,k,ipres))
              if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
@@ -87,8 +90,8 @@ contains
        do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
           !dir$ ivdep
           do i = lo(1), hi(1)
-             dp(i,j,k) = q(i,j+1*dg(2),k,QPRES) - q(i,j-1*dg(2),k,QPRES)
-             denom = max(small_pres, abs(q(i,j+2*dg(2),k,QPRES) - q(i,j-2*dg(2),k,QPRES)))
+             dp(i,j,k) = q(i,j+1*dg(2),k,ipres) - q(i,j-1*dg(2),k,ipres)
+             denom = max(small_pres, abs(q(i,j+2*dg(2),k,ipres) - q(i,j-2*dg(2),k,ipres)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
              if (q(i,j-1*dg(2),k,QV) - q(i,j+1*dg(2),k,QV) >= ZERO) then
@@ -96,7 +99,7 @@ contains
              else
                 tst = ZERO
              endif
-             tmp = min(q(i,j+1*dg(2),k,QPRES), q(i,j-1*dg(2),k,QPRES))
+             tmp = min(q(i,j+1*dg(2),k,ipres), q(i,j-1*dg(2),k,ipres))
              if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
@@ -124,8 +127,8 @@ contains
        do j = lo(2), hi(2)
           !dir$ ivdep
           do i = lo(1), hi(1)
-             dp(i,j,k) = q(i,j,k+1*dg(3),QPRES) - q(i,j,k-1*dg(3),QPRES)
-             denom = max(small_pres, abs(q(i,j,k+2*dg(3),QPRES) - q(i,j,k-2*dg(3),QPRES)))
+             dp(i,j,k) = q(i,j,k+1*dg(3),ipres) - q(i,j,k-1*dg(3),ipres)
+             denom = max(small_pres, abs(q(i,j,k+2*dg(3),ipres) - q(i,j,k-2*dg(3),ipres)))
              zeta = abs(dp(i,j,k))/denom
              z(i,j,k) = min( ONE, max( ZERO, dzcut*(zeta - zcut1) ) )
              if (q(i,j,k-1*dg(3),QW) - q(i,j,k+1*dg(3),QW) >= ZERO) then
@@ -133,7 +136,7 @@ contains
              else
                 tst = ZERO
              endif
-             tmp = min(q(i,j,k+1*dg(3),QPRES), q(i,j,k-1*dg(3),QPRES))
+             tmp = min(q(i,j,k+1*dg(3),ipres), q(i,j,k-1*dg(3),ipres))
              if ((abs(dp(i,j,k))/tmp) > shktst) then
                 chi(i,j,k) = tst
              else
@@ -182,10 +185,10 @@ contains
 
     real(rt)        , pointer :: flatg(:,:,:)
 
-    call uflatten(lo, hi, q, flatn, q_lo, q_hi)
+    call uflatten(lo, hi, q, flatn, q_lo, q_hi, QPTOT)
 
     call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflatten(lo, hi, q, flatg, q_lo, q_hi)
+    call uflatten(lo, hi, q, flatg, q_lo, q_hi, QPRES)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

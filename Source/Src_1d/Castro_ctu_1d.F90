@@ -132,7 +132,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                       q, flatn, q_lo, q_hi)
 #else
      call uflatten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
-                   q, flatn, q_lo, q_hi)
+                   q, flatn, q_lo, q_hi, QPRES)
 #endif
   else
      flatn = ONE

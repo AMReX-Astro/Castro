@@ -146,7 +146,7 @@ subroutine ca_mol_single_stage(time, &
 
   else if (use_flattening == 1) then
      call uflatten([lo(1) - ngf, 0, 0], [hi(1) + ngf, 0, 0], &
-                   q, flatn, q_lo, q_hi)
+                   q, flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
   endif

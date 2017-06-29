@@ -22,7 +22,7 @@ subroutine ca_mol_single_stage(time, &
 
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
-                                 use_flattening, QU, QV, QW, NQAUX, &
+                                 use_flattening, QU, QV, QW, QPRES, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann
   use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl
@@ -171,7 +171,7 @@ subroutine ca_mol_single_stage(time, &
 
   elseif (use_flattening == 1) then
      call uflatten([lo(1) - ngf, lo(2) - ngf, 0], [hi(1) + ngf, hi(2) + ngf, 0], &
-                   q, flatn, q_lo, q_hi)
+                   q, flatn, q_lo, q_hi,QPRES)
   else
      flatn = ONE
   endif
