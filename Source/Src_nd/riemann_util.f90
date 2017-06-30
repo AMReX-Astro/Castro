@@ -97,10 +97,10 @@ contains
                                   gdot, gmin, gmax, &
                                   pstar, gamstar, converged, pstar_hist_extra)
 
-    ! we want to zero                                                                     
-    ! f(p*) = u*_l(p*) - u*_r(p*)                                                         
-    ! we'll do bisection                                                                  
-                                                  
+    ! we want to zero
+    ! f(p*) = u*_l(p*) - u*_r(p*)
+    ! we'll do bisection
+
     use meth_params_module, only : cg_maxiter, cg_tol
 
     real(rt)        , intent(inout) :: pstar_lo, pstar_hi
