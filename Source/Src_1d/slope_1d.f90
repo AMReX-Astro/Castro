@@ -8,19 +8,22 @@ contains
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
-      subroutine uslope(q,flatn,qd_l1,qd_h1,dq,qpd_l1,qpd_h1,ilo,ihi,nv)
+      subroutine uslope(q, flatn, q_lo, q_hi, &
+                        dq, qpd_lo, qpd_hi, &
+                        ilo, ihi)
 
-!      use meth_params_module, only : QPRES
+      use meth_params_module, only : NQ
       use bl_constants_module
 
       use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer ilo, ihi, nv
-      integer qd_l1,qd_h1,qpd_l1,qpd_h1
-      real(rt)         q(qd_l1:qd_h1, nv)
-      real(rt)         dq(qpd_l1:qpd_h1,nv)
-      real(rt)         flatn(qd_l1:qd_h1)
+      integer q_lo(3), q_hi(3)
+      integer :: qpd_lo(3), qpd_hi(3)
+      real(rt)         q(q_lo(1):q_hi(1),NQ)
+      real(rt)         dq(qpd_lo(1):qpd_hi(1),NQ)
+      real(rt)         flatn(q_lo(1):q_hi(1))
 
 !     Local arrays 
       real(rt)        , allocatable::dsgn(:),dlim(:),df(:),dcen(:)
@@ -68,24 +71,25 @@ contains
 ! ::: 
 ! ::: ------------------------------------------------------------------
 ! ::: 
-      subroutine pslope(p,rho,flatn,qd_l1,qd_h1,dp,qpd_l1,qpd_h1, &
-                        src,src_l1,src_h1,ilo,ihi,dx)
+      subroutine pslope(q, flatn, q_lo, q_hi, &
+                        dq, qpd_lo, qpd_hi, &
+                        src, src_lo, src_hi, &
+                        ilo, ihi, dx)
 
       use bl_constants_module
-      use meth_params_module, only: QU, QVAR
+      use meth_params_module, only: QU, QVAR, NQ, QPRES, QRHO
       
       use amrex_fort_module, only : rt => amrex_real
       implicit none
 
       integer ilo, ihi
-      integer  qd_l1, qd_h1
-      integer qpd_l1,qpd_h1
-      integer src_l1,src_h1
-      real(rt)        , intent(in   ) ::      p( qd_l1: qd_h1)
-      real(rt)        , intent(in   ) ::    rho( qd_l1: qd_h1)
-      real(rt)        , intent(in   ) ::  flatn( qd_l1: qd_h1)
-      real(rt)        , intent(  out) ::     dp(qpd_l1:qpd_h1)
-      real(rt)        , intent(in   ) ::    src(src_l1:src_h1,QVAR)
+      integer  q_lo(3), q_hi(3)
+      integer qpd_lo(3), qpd_hi(3)
+      integer src_lo(3), src_hi(3)
+      real(rt)        , intent(in   ) ::      q( q_lo(1):q_hi(1),NQ)
+      real(rt)        , intent(in   ) ::  flatn( q_lo(1):q_hi(1))
+      real(rt)        , intent(  out) ::     dq(qpd_lo(1):qpd_hi(1),NQ)
+      real(rt)        , intent(in   ) ::    src(src_lo(1):src_hi(1),QVAR)
       real(rt)        , intent(in   ) ::  dx
 
 !     Local arrays
@@ -101,14 +105,12 @@ contains
 
       ! first compute Fromm slopes
       do i = ilo-2, ihi+2 
-          dlft = p(i  ) - p(i-1)
-          drgt = p(i+1) - p(i  )
+          dlft = q(i  ,QPRES) - q(i-1,QPRES)
+          drgt = q(i+1,QPRES) - q(i  ,QPRES)
 
           ! Here we subtract off (rho * acceleration) so as not to limit that part of the slope
-          dlft = dlft - FOURTH * (rho(i)+rho(i-1))*(src(i,QU)+src(i-1,QU))*dx
-          drgt = drgt - FOURTH * (rho(i)+rho(i+1))*(src(i,QU)+src(i+1,QU))*dx
-!         dlft = dlft - rho(i)*src(i,QU)*dx
-!         drgt = drgt - rho(i)*src(i,QU)*dx
+          dlft = dlft - FOURTH * (q(i,QRHO) + q(i-1,QRHO)) * (src(i,QU) + src(i-1,QU))*dx
+          drgt = drgt - FOURTH * (q(i,QRHO) + q(i+1,QRHO)) * (src(i,QU) + src(i+1,QU))*dx
 
           dcen(i) = HALF*(dlft+drgt)
           dsgn(i) = sign(ONE, dcen(i))
@@ -129,13 +131,12 @@ contains
       ! now limited fourth order slopes
       do i = ilo-1, ihi+1 
           dp1 = FOUR3RD*dcen(i) - SIXTH*(df(i+1) + df(i-1))
-          dp(i) = flatn(i)* &
-                      dsgn(i)*min(dlim(i),abs(dp1))
-          dp(i) = dp(i) + rho(i)*src(i,QU)*dx
+          dq(i,QPRES) = flatn(i) * dsgn(i)*min(dlim(i),abs(dp1))
+          dq(i,QPRES) = dq(i,QPRES) + q(i,QRHO)*src(i,QU)*dx
       enddo
 
       ! Here we are assuming a symmetry boundary condition
-      if (ilo .eq. 0) dp(-1) = -dp(0)
+      if (ilo .eq. 0) dq(-1,QPRES) = -dq(0,QPRES)
 
       deallocate (dsgn,dlim,df,dcen)
 

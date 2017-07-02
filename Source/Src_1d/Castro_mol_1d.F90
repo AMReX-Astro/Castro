@@ -87,6 +87,8 @@ subroutine ca_mol_single_stage(time, &
 
   integer :: lo_3D(3), hi_3D(3)
   real(rt)         :: dx_3D(3)
+  integer :: qp_lo(3), qp_hi(3)
+  integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1
 
@@ -97,6 +99,13 @@ subroutine ca_mol_single_stage(time, &
 
   dx_3D   = [delta(1), ZERO, ZERO]
 
+  shk_lo = [lo(1)-1, 0, 0]
+  shk_hi = [hi(1)+1, 0, 0]
+
+  qp_lo = [lo(1)-1, 0, 0]
+  qp_hi = [hi(1)+2, 0, 0]
+
+
   allocate( flatn(q_lo(1):q_hi(1)))
 
   allocate(    q1(flux_lo(1):flux_hi(1), NGDNV))
@@ -105,7 +114,7 @@ subroutine ca_mol_single_stage(time, &
   allocate(rflx(flux_lo(1):flux_hi(1), NGDNV))
 
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate( shk(lo(1)-1:hi(1)+1))
+  allocate( shk(shk_lo(1):shk_hi(1)))
 
   dx = delta(1)
 
@@ -113,7 +122,7 @@ subroutine ca_mol_single_stage(time, &
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),USHK) = ZERO
 
-    call shock(q,q_lo(1),q_hi(1),shk,lo(1)-1,hi(1)+1,lo(1),hi(1),dx)
+    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
 
     ! Store the shock data for future use in the burning step.
     do i = lo(1), hi(1)
@@ -128,7 +137,7 @@ subroutine ca_mol_single_stage(time, &
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q,q_lo(1),q_hi(1),shk,lo(1)-1,hi(1)+1,lo(1),hi(1),dx)
+       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
     else
        shk(:) = ZERO
     endif
@@ -161,13 +170,13 @@ subroutine ca_mol_single_stage(time, &
   ! qm and qp are the left and right states for an interface -- they
   ! are defined for a particular interface, with the convention that
   ! qm(i) and qp(i) correspond to the i-1/2 interface
-  allocate ( qxm(lo(1)-1:hi(1)+2,NQ) )
-  allocate ( qxp(lo(1)-1:hi(1)+2,NQ) )
+  allocate ( qxm(qp_lo(1):qp_hi(1),NQ) )
+  allocate ( qxp(qp_lo(1):qp_hi(1),NQ) )
 
   ! Do PPM reconstruction
   do n = 1, QVAR
-     call ppm_reconstruct(q(:,n), q_lo(1), q_hi(1), &
-                          flatn, &
+     call ppm_reconstruct(q(:,n), q_lo, q_hi, &
+                          flatn, q_lo, q_hi, &
                           sxm, sxp, &
                           lo(1), hi(1), dx)
 
@@ -185,13 +194,13 @@ subroutine ca_mol_single_stage(time, &
 
   ! Get the fluxes from the Riemann solver
   call cmpflx(lo, hi, domlo, domhi, &
-              qxm, qxp, lo(1)-1, hi(1)+2, &
-              flux, flux_lo(1), flux_hi(1), &
-              q1, flux_lo(1), flux_hi(1), &
+              qxm, qxp, qp_lo, qp_hi, &
+              flux, flux_lo, flux_hi, &
+              q1, flux_lo, flux_hi, &
 #ifdef RADIATION
-              rflx, flux_lo(1), flux_hi(1), &
+              rflx, flux_lo, flux_hi, &
 #endif
-              qaux, qa_lo(1), qa_hi(1), lo(1), hi(1))
+              qaux, qa_lo, qa_hi, lo(1), hi(1))
 
   deallocate(qxm, qxp)
 

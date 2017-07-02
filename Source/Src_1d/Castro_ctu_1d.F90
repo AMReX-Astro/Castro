@@ -139,18 +139,18 @@ subroutine ca_ctu_update(is_finest_level, time, &
   endif
 
   call umeth1d(lo, hi, domlo, domhi, &
-               q, q_lo(1), q_hi(1), &
+               q, q_lo, q_hi, &
                flatn, &
-               qaux, qa_lo(1), qa_hi(1), &
-               srcQ, srQ_lo(1), srQ_hi(1), &
+               qaux, qa_lo, qa_hi, &
+               srcQ, srQ_lo, srQ_hi, &
                lo(1), hi(1), dx, dt, &
-               uout, uout_lo(1), uout_hi(1), &
-               flux, flux_lo(1), flux_hi(1), &
+               uout, uout_lo, uout_hi, &
+               flux, flux_lo, flux_hi, &
 #ifdef RADIATION
-               radflux,radflux_lo(1),radflux_hi(1), &
+               radflux,radflux_lo, radflux_hi, &
 #endif
-               q1, flux_lo(1)-1, flux_hi(1)+1, &
-               dloga, dloga_lo(1), dloga_hi(1))
+               q1, flux_lo-1, flux_hi+1, &
+               dloga, dloga_lo, dloga_hi)
 
 
   ! Define p*divu
@@ -167,20 +167,20 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
 
   ! Conservative update
-  call consup(uin, uin_lo(1), uin_hi(1), &
-              uout, uout_lo(1), uout_hi(1), &
-              update, updt_lo(1), updt_hi(1), &
-              q, q_lo(1), q_hi(1), &
-              flux, flux_lo(1), flux_hi(1), &
-              q1, flux_lo(1)-1, flux_hi(1)+1, &
+  call consup(uin, uin_lo, uin_hi, &
+              uout, uout_lo, uout_hi, &
+              update, updt_lo, updt_hi, &
+              q, q_lo, q_hi, &
+              flux, flux_lo, flux_hi, &
+              q1, flux_lo-1, flux_hi+1, &
 #ifdef RADIATION
-              Erin, Erin_lo(1), Erin_hi(1), &
-              Erout, Erout_lo(1), Erout_hi(1), &
-              radflux, radflux_lo(1), radflux_hi(1), &
+              Erin, Erin_lo, Erin_hi, &
+              Erout, Erout_lo, Erout_hi, &
+              radflux, radflux_lo, radflux_hi, &
               nstep_fsp, &
 #endif
-              area, area_lo(1), area_hi(1), &
-              vol, vol_lo(1), vol_hi(1), &
+              area, area_lo, area_hi, &
+              vol, vol_lo, vol_hi, &
               div, pdivu, lo, hi, dx, dt, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &

@@ -12,8 +12,8 @@ module ppm_module
 contains
 
   ! characteristics based on u
-  subroutine ppm_reconstruct(s, qd_l1, qd_h1, &
-                             flatn, &
+  subroutine ppm_reconstruct(s, s_lo, s_hi, &
+                             flatn, q_lo, q_hi, &
                              sxm, sxp, &
                              ilo, ihi, dx)
        
@@ -21,12 +21,14 @@ contains
 
     implicit none
        
-    integer, intent(in) :: qd_l1, qd_h1
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: ilo, ihi
-    real(rt), intent(in) :: s(qd_l1:qd_h1)
-    real(rt), intent(in) :: flatn(qd_l1:qd_h1)
-    real(rt), intent(inout) :: sxm(qd_l1:qd_h1)
-    real(rt), intent(inout) :: sxp(qd_l1:qd_h1)
+
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1))
+    real(rt), intent(in) :: flatn(q_lo(1):q_hi(1))
+    real(rt), intent(inout) :: sxm(s_lo(1):s_hi(1))
+    real(rt), intent(inout) :: sxp(s_lo(1):s_hi(1))
     real(rt), intent(in) :: dx
 
     ! local
@@ -212,20 +214,24 @@ contains
 
 
   ! characteristics based on u
-  subroutine ppm_int_profile(s, qd_l1, qd_h1, &
-                             u, cspd, &
+  subroutine ppm_int_profile(s, s_lo, s_hi, &
+                             u, u_lo, u_hi, &
+                             cspd, qa_lo, qa_hi, &
                              sxm, sxp, &
                              Ip, Im, ilo, ihi, dx, dt)
        
     implicit none
        
-    integer, intent(in) :: qd_l1, qd_h1
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: ilo, ihi
-    real(rt), intent(in) :: s(qd_l1:qd_h1)
-    real(rt), intent(in) :: u(qd_l1:qd_h1)
-    real(rt), intent(in) :: cspd(qd_l1:qd_h1)
-    real(rt), intent(in) :: sxm(qd_l1:qd_h1)
-    real(rt), intent(in) :: sxp(qd_l1:qd_h1)
+
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1))
+    real(rt), intent(in) :: u(u_lo(1):u_hi(1))
+    real(rt), intent(in) :: cspd(qa_lo(1):qa_hi(1))
+    real(rt), intent(in) :: sxm(s_lo(1):s_hi(1))
+    real(rt), intent(in) :: sxp(s_lo(1):s_hi(1))
     real(rt), intent(inout) :: Ip(ilo-1:ihi+1,1:3)
     real(rt), intent(inout) :: Im(ilo-1:ihi+1,1:3)
     real(rt), intent(in) :: dx, dt

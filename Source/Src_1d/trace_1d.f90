@@ -12,13 +12,14 @@ contains
   ! :::
   ! ::: ------------------------------------------------------------------
   ! :::
-  subroutine trace(q,dq,c,flatn,qd_l1,qd_h1, &
-       dloga,dloga_l1,dloga_h1, &
-       srcQ,src_l1,src_h1,&
-       qxm,qxp,qpd_l1,qpd_h1, &
-       ilo,ihi,domlo,domhi,dx,dt)
+  subroutine trace(q, dq, flatn, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dloga, dloga_lo, dloga_hi, &
+                   srcQ, src_lo, src_hi, &
+                   qxm, qxp, qpd_lo, qpd_hi, &
+                   ilo, ihi, domlo, domhi, dx, dt)
 
-    use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QREINT, QPRES, &
+    use meth_params_module, only : plm_iorder, QVAR, NQ, NQAUX, QRHO, QU, QREINT, QC, QPRES, &
          npassive, qpass_map, small_dens, ppm_type, fix_mass_flux, use_pslope
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use slope_module, only : uslope, pslope
@@ -27,22 +28,23 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer domlo(1),domhi(1)
+    integer domlo(1), domhi(1)
     integer ilo,ihi
-    integer    qd_l1,   qd_h1
-    integer dloga_l1,dloga_h1
-    integer   qpd_l1,  qpd_h1
-    integer   src_l1,  src_h1
+    integer    q_lo(3), q_hi(3)
+    integer    qa_lo(3), qa_hi(3)
+    integer dloga_lo(3), dloga_hi(3)
+    integer   qpd_lo(3),  qpd_hi(3)
+    integer   src_lo(3),  src_hi(3)
     real(rt)         dx, dt
-    real(rt)             q( qd_l1: qd_h1,QVAR)
-    real(rt)          srcQ(src_l1:src_h1,QVAR)
-    real(rt)         flatn(qd_l1:qd_h1)
-    real(rt)             c(qd_l1:qd_h1)
-    real(rt)         dloga(dloga_l1:dloga_h1)
+    real(rt)             q(q_lo(1):q_hi(1),NQ)
+    real(rt)             qaux(qa_lo(1):qa_hi(1),NQAUX)
+    real(rt)          srcQ(src_lo(1):src_hi(1),QVAR)
+    real(rt)         flatn(q_lo(1):q_hi(1))
+    real(rt)         dloga(dloga_lo(1):dloga_hi(1))
 
-    real(rt)           dq( qpd_l1: qpd_h1,QVAR)
-    real(rt)          qxm( qpd_l1: qpd_h1,QVAR)
-    real(rt)          qxp( qpd_l1: qpd_h1,QVAR)
+    real(rt)           dq( qpd_lo(1): qpd_hi(1),NQ)
+    real(rt)          qxm( qpd_lo(1): qpd_hi(1),NQ)
+    real(rt)          qxp( qpd_lo(1): qpd_hi(1),NQ)
 
     !     Local variables
     integer          :: i
@@ -77,27 +79,26 @@ contains
     ! Compute slopes
     if (plm_iorder .eq. 1) then
 
-       dq(ilo-1:ihi+1,1:QVAR) = ZERO
+       dq(ilo-1:ihi+1,1:NQ) = ZERO
 
     else
 
-       call uslope(q,flatn,qd_l1,qd_h1, &
-            dq,qpd_l1,qpd_h1, &
-            ilo,ihi,QVAR)
+       call uslope(q, flatn, q_lo, q_hi, &
+                   dq, qpd_lo, qpd_hi, &
+                   ilo, ihi)
 
        if (use_pslope .eq. 1) &
-            call pslope(q(:,QPRES),q(:,QRHO), &
-            flatn      , qd_l1, qd_h1, &
-            dq(:,QPRES),qpd_l1,qpd_h1, &
-            srcQ       ,src_l1,src_h1, &
-            ilo,ihi,dx)
+            call pslope(q, flatn, q_lo, q_hi, &
+                        dq, qpd_lo, qpd_hi, &
+                        srcQ, src_lo, src_hi, &
+                        ilo,ihi,dx)
 
     endif
 
     ! Compute left and right traced states
     do i = ilo-1, ihi+1
 
-       cc = c(i)
+       cc = qaux(i,QC)
        csq = cc**2
        rho = q(i,QRHO)
        u = q(i,QU)
