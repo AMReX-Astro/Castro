@@ -36,7 +36,7 @@ contains
     logical :: extremum, bigp, bigm
 
     real(rt) :: dsl, dsr, dsc, D2, D2C, D2L, D2R, D2LIM, alphap, alpham
-    real(rt) :: sgn, sigma, s6, amax, delam, delap
+    real(rt) :: sgn, amax, delam, delap
     real(rt) :: dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin, dachkm, dachkp
 
     ! \delta s_{\ib}^{vL}

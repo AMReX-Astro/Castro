@@ -35,7 +35,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif
-                                 use_flattening, QU, QV, QW, QPRES, NQAUX, &
+                                 use_flattening, QPRES, NQAUX, &
                                  first_order_hydro
   use advection_util_2d_module, only : divu
   use advection_util_module, only : compute_cfl

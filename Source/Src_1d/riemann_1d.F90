@@ -222,7 +222,6 @@ contains
 
     real(rt)         :: divU
     real(rt)         :: px_pre, px_post
-    real(rt)         :: e_x, d
     real(rt)         :: p_pre, p_post, pjump
 
     real(rt)         :: rc, rm, rp
@@ -275,7 +274,6 @@ contains
 
        ! test for compression + pressure jump to flag a shock
        if (p_pre == ZERO) then
-          ! this can arise if e_x = e_y = 0 (U = 0)
           pjump = ZERO
        else
           pjump = eps - (p_post - p_pre)/p_pre

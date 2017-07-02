@@ -16,7 +16,7 @@ subroutine ca_mol_single_stage(time, &
                                vol, vol_lo, vol_hi, &
                                courno, verbose) bind(C, name="ca_mol_single_stage")
 
-  use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
+  use meth_params_module, only : NQ, QVAR, QU, QPRES, &
                                  UMX, UMY, UMZ, UTEMP, USHK, UEINT, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &

@@ -788,7 +788,7 @@ contains
     use meth_params_module, only: NVAR, NQ, URHO, UEINT, UFS, UFX, &
                                   small_dens, small_temp, cfl, &
                                   allow_small_energy, allow_negative_energy
-    use prob_params_module, only: dim, coord_type, dg
+    use prob_params_module, only: dim, dg
     use mempool_module, only: bl_allocate, bl_deallocate
     use network, only: nspec, naux
     use eos_type_module, only: eos_input_rt, eos_t

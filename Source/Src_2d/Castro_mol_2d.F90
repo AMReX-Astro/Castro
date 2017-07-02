@@ -22,7 +22,7 @@ subroutine ca_mol_single_stage(time, &
 
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
-                                 use_flattening, QU, QV, QW, QPRES, NQAUX, &
+                                 use_flattening, QPRES, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann
   use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl
@@ -82,8 +82,10 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , allocatable :: q2(:,:,:)
 
   ! radiation fluxes (need these to get things to compile)
+#ifdef RADIATION
   real(rt)        , allocatable :: rflx(:,:,:)
   real(rt)        , allocatable :: rfly(:,:,:)
+#endif
 
   real(rt)        , allocatable :: shk(:,:)
 

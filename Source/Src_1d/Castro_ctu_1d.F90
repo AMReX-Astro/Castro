@@ -26,7 +26,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                          mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                          eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
-  use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, &
+  use meth_params_module, only : NQ, QVAR, QU, QPRES, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif

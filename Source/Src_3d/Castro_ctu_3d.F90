@@ -31,7 +31,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                          eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, QU, QV, QW, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
+  use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif

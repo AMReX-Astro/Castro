@@ -52,11 +52,8 @@ contains
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
                                    QFS, QFX, QTEMP, QREINT, &
-                                   QC, QCSML, QGAMC, NQAUX, &
+                                   QC, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
-#ifdef RADIATION
-                                   QGAMCG, QCG, &
-#endif
                                    ppm_type, &
                                    use_pslope, ppm_trace_sources, ppm_temp_fix, &
                                    hybrid_riemann

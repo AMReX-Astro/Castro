@@ -145,11 +145,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	  FArrayBox &Er = Erborder[mfi];
 	  FArrayBox &lam = lamborder[mfi];
 	  FArrayBox &Erout = Er_new[mfi];
-#endif
 
-	  FArrayBox& vol      = volume[mfi];
-
-#ifdef RADIATION
 	  q.resize(qbx, QRADVAR);
 #else
 	  q.resize(qbx, QVAR);

@@ -12,10 +12,11 @@ module trace_ppm_rad_module
 
 contains
 
-  subroutine trace_ppm_rad(q, qaux, flatn, qd_l1, qd_h1, &
-                           dloga, dloga_l1, dloga_h1, &
-                           srcQ, src_l1, src_h1,&
-                           qxm, qxp, qpd_l1, qpd_h1, &
+  subroutine trace_ppm_rad(q, flatn, q_lo, q_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           dloga, dloga_lo, dloga_hi, &
+                           srcQ, src_lo, src_hi,&
+                           qxm, qxp, qpd_lo, qpd_hi, &
                            ilo, ihi, domlo, domhi, dx, dt)
 
     use bl_constants_module
@@ -34,19 +35,20 @@ contains
 
     integer ilo,ihi
     integer domlo(1),domhi(1)
-    integer    qd_l1,   qd_h1
-    integer dloga_l1,dloga_h1
-    integer   qpd_l1,  qpd_h1
-    integer   src_l1,  src_h1
+    integer    q_lo(3), q_hi(3)
+    integer    qa_lo(3), qa_hi(3)
+    integer dloga_lo(3), dloga_hi(3)
+    integer   qpd_lo(3), qpd_hi(3)
+    integer   src_lo(3), src_hi(3)
     real(rt)         dx, dt
-    real(rt)             q( qd_l1: qd_h1, NQ)
-    real(rt)         :: qaux(qd_l1:qd_h1, NQAUX)
-    real(rt)         flatn(qd_l1:qd_h1)
-    real(rt)          srcQ(src_l1:src_h1,QVAR)
-    real(rt)         dloga(dloga_l1:dloga_h1)
+    real(rt)             q(q_lo(1):q_hi(1), NQ)
+    real(rt)         :: qaux(qa_lo(1):qa_hi(1), NQAUX)
+    real(rt)         flatn(q_lo(1):q_hi(1))
+    real(rt)          srcQ(src_lo(1):src_hi(1),QVAR)
+    real(rt)         dloga(dloga_lo(1):dloga_hi(1))
 
-    real(rt)          qxm( qpd_l1: qpd_h1, NQ)
-    real(rt)          qxp( qpd_l1: qpd_h1, NQ)
+    real(rt)          qxm( qpd_lo(1):qpd_hi(1), NQ)
+    real(rt)          qxp( qpd_lo(1):qpd_hi(1), NQ)
 
     ! Local variables
     integer :: i, g
@@ -139,8 +141,8 @@ contains
        allocate(Im_src(ilo-1:ihi+1,3,QVAR))
     endif
 
-    allocate(sxm(qd_l1:qd_h1))
-    allocate(sxp(qd_l1:qd_h1))
+    allocate(sxm(q_lo(1):q_hi(1)))
+    allocate(sxp(q_lo(1):q_hi(1)))
 
 
     !=========================================================================
@@ -174,13 +176,14 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, NQ
-       call ppm_reconstruct(q(:,n), qd_l1, qd_h1, &
-                            flatn, &
+       call ppm_reconstruct(q(:,n), q_lo, q_hi, &
+                            flatn, q_lo, q_hi, &
                             sxm, sxp, &
                             ilo, ihi, dx)
 
-       call ppm_int_profile(q(:,n), qd_l1, qd_h1, &
-                            q(:,QU), qaux(:,QC), &
+       call ppm_int_profile(q(:,n), q_lo, q_hi, &
+                            q(:,QU), q_lo, q_hi, &
+                            qaux(:,QC), qa_lo, qa_hi, &
                             sxm, sxp, &
                             Ip(:,:,n), Im(:,:,n), &
                             ilo, ihi, dx, dt)
@@ -188,13 +191,14 @@ contains
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ(:,n), src_l1, src_h1, &
-                               flatn, &
+          call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
+                               flatn, q_lo, q_hi, &
                                sxm, sxp, &
                                ilo, ihi, dx)
 
-          call ppm_int_profile(srcQ(:,n), src_l1, src_h1, &
-                               q(:,QU), qaux(:,QC), &
+          call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
+                               q(:,QU), q_lo, q_hi, &
+                               qaux(:,QC), qa_lo, qa_hi, &
                                sxm, sxp, &
                                Ip_src(:,:,n), Im_src(:,:,n), &
                                ilo, ihi, dx, dt)

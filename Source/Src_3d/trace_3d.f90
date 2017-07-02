@@ -51,13 +51,12 @@ contains
 
       real(rt)         enth, alpham, alphap, alpha0r, alpha0e
       real(rt)         alpha0u, alpha0v, alpha0w
-      real(rt)         spminus, spplus, spzero
       real(rt)         apright, amright, azrright, azeright
       real(rt)         azu1rght, azv1rght, azw1rght
       real(rt)         apleft, amleft, azrleft, azeleft
       real(rt)         azu1left, azv1left, azw1left
       real(rt)         acmprght, acmpleft, acmpbot, acmptop
-
+      real(rt) :: spzero
       real(rt)         rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
       real(rt)         e(3)
 
@@ -112,22 +111,6 @@ contains
             e(2) = u
             e(3) = u+cc
 
-            ! if (u-cc .gt. ZERO) then
-            !    spminus = -ONE
-            ! else
-            !    spminus = (u-cc)*dtdx
-            ! endif
-            ! if (u+cc .gt. ZERO) then
-            !    spplus = -ONE
-            ! else
-            !    spplus = (u+cc)*dtdx
-            ! endif
-            ! if (u .gt. ZERO) then
-            !    spzero = -ONE
-            ! else
-            !    spzero = u*dtdx
-            ! endif
-
             rho_ref = rho - HALF*(ONE + dtdx*min(e(1),ZERO))*drho
             u_ref = u - HALF*(ONE + dtdx*min(e(1),ZERO))*du
             v_ref = v - HALF*(ONE + dtdx*min(e(1),ZERO))*dv
@@ -144,14 +127,6 @@ contains
             azv1rght = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0v
             azw1rght = 0.25e0*dtdx*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0w
 
-            !apright = HALF*(-ONE - spplus )*alphap
-            !amright = HALF*(-ONE - spminus)*alpham
-            !azrright = HALF*(-ONE - spzero )*alpha0r
-            !azeright = HALF*(-ONE - spzero )*alpha0e
-            !azv1rght = HALF*(-ONE - spzero )*alpha0v
-            !azw1rght = HALF*(-ONE - spzero )*alpha0w
-
-
             if (i .ge. ilo1) then
                qxp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
                qxp(i,j,kc,QRHO) = max(small_dens, qxp(i,j,kc,QRHO))
@@ -164,22 +139,6 @@ contains
             end if
 
             ! now construct the left state on the i+1 interface
-
-            ! if (u-cc .ge. ZERO) then
-            !    spminus = (u-cc)*dtdx
-            ! else
-            !    spminus = ONE
-            ! endif
-            ! if (u+cc .ge. ZERO) then
-            !    spplus = (u+cc)*dtdx
-            ! else
-            !    spplus = ONE
-            ! endif
-            ! if (u .ge. ZERO) then
-            !    spzero = u*dtdx
-            ! else
-            !    spzero = ONE
-            ! endif
 
             rho_ref = rho + HALF*(ONE - dtdx*max(e(3),ZERO))*drho
             u_ref = u + HALF*(ONE - dtdx*max(e(3),ZERO))*du
@@ -195,13 +154,6 @@ contains
             azeleft = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
             azv1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0v
             azw1left = 0.25e0_rt*dtdx*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0w
-
-            !apleft = HALF*(ONE - spplus )*alphap
-            !amleft = HALF*(ONE - spminus)*alpham
-            !azrleft = HALF*(ONE - spzero )*alpha0r
-            !azeleft = HALF*(ONE - spzero )*alpha0e
-            !azv1left = HALF*(ONE - spzero )*alpha0v
-            !azw1left = HALF*(ONE - spzero )*alpha0w
 
             if (i .le. ihi1) then
                qxm(i+1,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
@@ -285,22 +237,6 @@ contains
             e(2) = v
             e(3) = v+cc
 
-            ! if (v-cc .gt. ZERO) then
-            !    spminus = -ONE
-            ! else
-            !    spminus = (v-cc)*dtdy
-            ! endif
-            ! if (v+cc .gt. ZERO) then
-            !    spplus = -ONE
-            ! else
-            !    spplus = (v+cc)*dtdy
-            ! endif
-            ! if (v .gt. ZERO) then
-            !    spzero = -ONE
-            ! else
-            !    spzero = v*dtdy
-            ! endif
-
             rho_ref = rho - HALF*(ONE + dtdy*min(e(1),ZERO))*drho
             u_ref = u - HALF*(ONE + dtdy*min(e(1),ZERO))*du
             v_ref = v - HALF*(ONE + dtdy*min(e(1),ZERO))*dv
@@ -316,13 +252,6 @@ contains
             azu1rght = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0u
             azw1rght = 0.25e0*dtdy*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0w
 
-            !apright = HALF*(-ONE - spplus )*alphap
-            !amright = HALF*(-ONE - spminus)*alpham
-            !azrright = HALF*(-ONE - spzero )*alpha0r
-            !azeright = HALF*(-ONE - spzero )*alpha0e
-            !azu1rght = HALF*(-ONE - spzero )*alpha0u
-            !azw1rght = HALF*(-ONE - spzero )*alpha0w
-
             if (j .ge. ilo2) then
                qyp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
                qyp(i,j,kc,QRHO) = max(small_dens, qyp(i,j,kc,QRHO))
@@ -333,23 +262,6 @@ contains
                qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
                qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
             end if
-
-
-            ! if (v-cc .ge. ZERO) then
-            !    spminus = (v-cc)*dtdy
-            ! else
-            !    spminus = ONE
-            ! endif
-            ! if (v+cc .ge. ZERO) then
-            !    spplus = (v+cc)*dtdy
-            ! else
-            !    spplus = ONE
-            ! endif
-            ! if (v .ge. ZERO) then
-            !    spzero = v*dtdy
-            ! else
-            !    spzero = ONE
-            ! endif
 
             rho_ref = rho + HALF*(ONE - dtdy*max(e(3),ZERO))*drho
             u_ref = u + HALF*(ONE - dtdy*max(e(3),ZERO))*du
@@ -365,13 +277,6 @@ contains
             azeleft = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
             azu1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0u
             azw1left = 0.25e0_rt*dtdy*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0w
-
-            !apleft = HALF*(ONE - spplus )*alphap
-            !amleft = HALF*(ONE - spminus)*alpham
-            !azrleft = HALF*(ONE - spzero )*alpha0r
-            !azeleft = HALF*(ONE - spzero )*alpha0e
-            !azu1left = HALF*(ONE - spzero )*alpha0u
-            !azw1left = HALF*(ONE - spzero )*alpha0w
 
             if (j .le. ihi2) then
                qym(i,j+1,kc,QRHO) = rho_ref + apleft + amleft + azrleft
@@ -463,13 +368,12 @@ contains
       real(rt)         drho, du, dv, dw, dp, drhoe
       real(rt)         enth, alpham, alphap, alpha0r, alpha0e
       real(rt)         alpha0u, alpha0v
-      real(rt)         spminus, spplus, spzero
       real(rt)         apright, amright, azrright, azeright
       real(rt)         azu1rght, azv1rght
       real(rt)         apleft, amleft, azrleft, azeleft
       real(rt)         azu1left, azv1left
       real(rt)         acmpbot, acmptop
-
+      real(rt) :: spzero
       real(rt)         rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
       real(rt)         e(3)
 
@@ -515,22 +419,6 @@ contains
             e(2) = w
             e(3) = w+cc
 
-            ! if (w-cc .gt. ZERO) then
-            !    spminus = -ONE
-            ! else
-            !    spminus = (w-cc)*dtdz
-            ! endif
-            ! if (w+cc .gt. ZERO) then
-            !    spplus = -ONE
-            ! else
-            !    spplus = (w+cc)*dtdz
-            ! endif
-            ! if (w .gt. ZERO) then
-            !    spzero = -ONE
-            ! else
-            !    spzero = w*dtdz
-            ! endif
-
             rho_ref = rho - HALF*(ONE + dtdz*min(e(1),ZERO))*drho
             u_ref = u - HALF*(ONE + dtdz*min(e(1),ZERO))*du
             v_ref = v - HALF*(ONE + dtdz*min(e(1),ZERO))*dv
@@ -545,13 +433,6 @@ contains
             azeright = 0.25e0*dtdz*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0e
             azu1rght = 0.25e0*dtdz*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0u
             azv1rght = 0.25e0*dtdz*(e(1)-e(2))*(ONE - sign(ONE,e(2)))*alpha0v
-
-            !apright = HALF*(-ONE - spplus )*alphap
-            !amright = HALF*(-ONE - spminus)*alpham
-            !azrright = HALF*(-ONE - spzero )*alpha0r
-            !azeright = HALF*(-ONE - spzero )*alpha0e
-            !azu1rght = HALF*(-ONE - spzero )*alpha0u
-            !azv1rght = HALF*(-ONE - spzero )*alpha0v
 
             qzp(i,j,kc,QRHO) = rho_ref + apright + amright + azrright
             qzp(i,j,kc,QRHO) = max(small_dens, qzp(i,j,kc,QRHO))
@@ -591,22 +472,6 @@ contains
             e(2) = w
             e(3) = w+cc
 
-            ! if (w-cc .ge. ZERO) then
-            !    spminus = (w-cc)*dtdz
-            ! else
-            !    spminus = ONE
-            ! endif
-            ! if (w+cc .ge. ZERO) then
-            !    spplus = (w+cc)*dtdz
-            ! else
-            !    spplus = ONE
-            ! endif
-            ! if (w .ge. ZERO) then
-            !    spzero = w*dtdz
-            ! else
-            !    spzero = ONE
-            ! endif
-
             rho_ref = rho + HALF*(ONE - dtdz*max(e(3),ZERO))*drho
             u_ref = u + HALF*(ONE - dtdz*max(e(3),ZERO))*du
             v_ref = v + HALF*(ONE - dtdz*max(e(3),ZERO))*dv
@@ -621,13 +486,6 @@ contains
             azeleft = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0e
             azu1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0u
             azv1left = 0.25e0_rt*dtdz*(e(3) - e(2))*(ONE + sign(ONE,e(2)))*alpha0v
-
-            !apleft = HALF*(ONE - spplus )*alphap
-            !amleft = HALF*(ONE - spminus)*alpham
-            !azrleft = HALF*(ONE - spzero )*alpha0r
-            !azeleft = HALF*(ONE - spzero )*alpha0e
-            !azu1left = HALF*(ONE - spzero )*alpha0u
-            !azv1left = HALF*(ONE - spzero )*alpha0v
 
             qzm(i,j,kc,QRHO) = rho_ref + apleft + amleft + azrleft
             qzm(i,j,kc,QRHO) = max(small_dens, qzm(i,j,kc,QRHO))

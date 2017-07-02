@@ -51,13 +51,7 @@ contains
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
-#ifdef RADIATION
-                                   QGAMCG, QCG, &
-                                   comoving, fspace_type, &
-                                   GDU, GDPRES, &
-
-#endif
-                                   QC, QCSML, QGAMC, NQAUX
+                                   NQAUX
     use trace_module, only : trace
 #ifdef RADIATION
     use rad_params_module, only : ngroups

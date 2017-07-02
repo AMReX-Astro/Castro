@@ -2126,8 +2126,6 @@ Castro::advance_aux(Real time, Real dt)
 void
 Castro::FluxRegCrseInit() {
 
-    FluxRegister* reg;
-
     if (level == parent->finestLevel()) return;
 
     Castro& fine_level = getLevel(level+1);
@@ -2151,8 +2149,6 @@ Castro::FluxRegCrseInit() {
 
 void
 Castro::FluxRegFineAdd() {
-
-    FluxRegister* reg;
 
     if (level == 0) return;
 

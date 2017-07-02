@@ -40,10 +40,7 @@ contains
                      dloga, dloga_lo, dloga_hi)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
-                                   QC, QCSML, QGAMC, NQAUX, NGDNV, &
-#ifdef RADIATION
-                                   QGAMCG, QCG, &
-#endif
+                                   NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann
     use riemann_module, only : cmpflx, shock
     use trace_module, only : trace
