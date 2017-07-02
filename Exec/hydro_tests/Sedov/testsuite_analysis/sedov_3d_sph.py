@@ -93,7 +93,8 @@ def process(castro_dir, plotfile):
 
     pylab.tight_layout()
 
-    pylab.savefig("sedov_3d_sph.png")
+    outfile = plotfile.split("_plt")[0] + ".png"
+    pylab.savefig(outfile)
 
 
 
