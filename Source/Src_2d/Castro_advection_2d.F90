@@ -51,13 +51,7 @@ contains
 
     use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
-#ifdef RADIATION
-                                   QGAMCG, QCG, &
-                                   comoving, fspace_type, &
-                                   GDU, GDPRES, &
-
-#endif
-                                   QC, QCSML, QGAMC, NQAUX
+                                   NQAUX
     use trace_module, only : trace
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -131,16 +125,23 @@ contains
     real(rt)         :: dtdx
     real(rt)         :: hdtdx, hdt, hdtdy
     integer          :: i,j
-    integer :: lo_3D(3), hi_3D(3)
 
     integer :: tflx_lo(3), tflx_hi(3)
     integer :: tfly_lo(3), tfly_hi(3)
+    integer :: shk_lo(3), shk_hi(3)
+    integer :: qp_lo(3), qp_hi(3)
 
     tflx_lo = [lo(1), lo(2)-1, 0]
     tflx_hi = [hi(1)+1, hi(2)+1, 0]
 
     tfly_lo = [lo(1)-1, lo(2), 0]
     tfly_hi = [hi(1)+1, hi(2)+1, 0]
+
+    shk_lo = [lo(1)-1, lo(2)-1, 0]
+    shk_hi = [hi(1)+1, hi(2)+1, 0]
+
+    qp_lo = [lo(1)-1, lo(2)-1, 0]
+    qp_hi = [hi(1)+2, hi(2)+2, 0]
 
     allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
@@ -158,11 +159,8 @@ contains
     allocate ( rfy(tfly_lo(1):tfly_hi(1),tfly_lo(2):tfly_hi(2),0:ngroups-1) )
 #endif
 
-    allocate (shk(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1))
+    allocate (shk(shk_lo(1):shk_hi(1),shk_lo(2):shk_hi(2)))
 
-
-    lo_3D = [lo(1), lo(2), 0]
-    hi_3D = [hi(1), hi(2), 0]
 
     ! Local constants
     dtdx = dt/dx
@@ -176,7 +174,7 @@ contains
     uout(lo(1):hi(1),lo(2):hi(2),USHK) = ZERO
 
     call shock(q, q_lo, q_hi, &
-               shk, lo_3D-1, hi_3D+1, &
+               shk, shk_lo, shk_hi, &
                lo, hi, dx, dy)
 
     ! Store the shock data for future use in the burning step.
@@ -197,7 +195,7 @@ contains
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
-                  shk, lo_3D-1, hi_3D+1, &
+                  shk, shk_lo, shk_hi, &
                   lo, hi, dx, dy)
     else
        shk(:,:) = ZERO
@@ -216,7 +214,7 @@ contains
        call trace(q, flatn, q_lo, q_hi, &
                   qaux, qa_lo, qa_hi, &
                   dloga, dloga_lo, dloga_hi, &
-                  qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
+                  qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                   srcQ, src_lo, src_hi, &
                   lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
 #endif
@@ -225,7 +223,7 @@ contains
        call trace_ppm_rad(q, flatn, q_lo, q_hi, &
                           qaux, qa_lo, qa_hi, &
                           dloga, dloga_lo, dloga_hi, &
-                          qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
+                          qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                           srcQ, src_lo, src_hi, &
                           lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
 
@@ -233,7 +231,7 @@ contains
        call trace_ppm(q, flatn, q_lo, q_hi, &
                       qaux, qa_lo, qa_hi, &
                       dloga, dloga_lo, dloga_hi, &
-                      qxm, qxp, qym, qyp, lo_3D-1, hi_3D+2, &
+                      qxm, qxp, qym, qyp, qp_lo, qp_hi, &
                       srcQ, src_lo, src_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dy,dt)
 #endif
@@ -241,32 +239,32 @@ contains
 
     ! Solve the Riemann problem in the x-direction using these first
     ! guesses for the x-interface states.  This produces the flux fx
-    call cmpflx(qxm, qxp, lo_3D-1, hi_3D+2, &
+    call cmpflx(qxm, qxp, qp_lo, qp_hi, &
                 fx, tflx_lo, tflx_hi, &
                 qgdxtmp, q1_lo, q1_hi, &
 #ifdef RADIATION
                 rfx, tflx_lo, tflx_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo_3D-1, hi_3D+1, &
+                shk, shk_lo, shk_hi, &
                 1, lo(1), hi(1), lo(2)-1, hi(2)+1, domlo, domhi)
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
-    call cmpflx(qym, qyp, lo_3D-1, hi_3D+2, &
+    call cmpflx(qym, qyp, qp_lo, qp_hi, &
                 fy, tfly_lo, tfly_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
                 rfy, tfly_lo, tfly_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo_3D-1, hi_3D+1, &
+                shk, shk_lo, shk_hi, &
                 2, lo(1)-1, hi(1)+1, lo(2), hi(2), domlo, domhi)
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
     ! states.  This results in the new x-interface states qm and qp
-    call transy(qxm, qm, qxp, qp, lo_3D-1, hi_3D+2, &
+    call transy(qxm, qm, qxp, qp, qp_lo, qp_hi, &
                 qaux, qa_lo, qa_hi, &
                 fy, tfly_lo, tfly_hi, &
 #ifdef RADIATION
@@ -280,20 +278,20 @@ contains
     ! Solve the final Riemann problem across the x-interfaces with the
     ! full unsplit states.  The resulting flux through the x-interfaces
     ! is flux1
-    call cmpflx(qm, qp, lo_3D-1, hi_3D+2, &
+    call cmpflx(qm, qp, qp_lo, qp_hi, &
                 flux1, fd1_lo, fd1_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
                 rflux1, rfd1_lo, rfd1_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo_3D-1, hi_3D+1, &
+                shk, shk_lo, shk_hi, &
                 1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
     ! states.  This results in the new y-interface states qm and qp
-    call transx(qym, qm, qyp, qp, lo_3D-1, hi_3D+2, &
+    call transx(qym, qm, qyp, qp, qp_lo, qp_hi, &
                 qaux, qa_lo, qa_hi, &
                 fx, tflx_lo, tflx_hi, &
 #ifdef RADIATION
@@ -309,14 +307,14 @@ contains
     ! Solve the final Riemann problem across the y-interfaces with the
     ! full unsplit states.  The resulting flux through the y-interfaces
     ! is flux2
-    call cmpflx(qm, qp, lo_3D-1, hi_3D+2, &
+    call cmpflx(qm, qp, qp_lo, qp_hi, &
                 flux2, fd2_lo, fd2_hi, &
                 q2, q2_lo, q2_hi, &
 #ifdef RADIATION
                 rflux2, rfd2_lo, rfd2_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                shk, lo_3D-1, hi_3D+1, &
+                shk, shk_lo, shk_hi, &
                 2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
     ! Construct p div{U} -- this will be used as a source to the internal
@@ -441,8 +439,6 @@ contains
 
     integer i, j, k, n
 
-    integer :: lo_3D(3), hi_3D(3)
-
     real(rt)         div1
     !real(rt)         rho, Up, Vp, SrE
     integer domlo(3), domhi(3)
@@ -473,9 +469,6 @@ contains
        end if
     end if
 #endif
-
-    lo_3D = [lo(1), lo(2), 0]
-    hi_3D = [hi(1), hi(2), 0]
 
     ! Correct the fluxes to include the effects of the artificial viscosity.
 

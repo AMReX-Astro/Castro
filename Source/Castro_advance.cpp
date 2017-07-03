@@ -550,8 +550,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    MultiFab& S_new = get_new_data(State_Type);
-
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 
       // These arrays hold all source terms that update the state.  We

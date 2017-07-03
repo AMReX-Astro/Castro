@@ -23,7 +23,7 @@ contains
 
     ! here, ipres is the pressure variable we want to consider jumps on
     ! passing it in allows
-    use meth_params_module, only : small_pres, QPRES, QU, QV, QW, NQ
+    use meth_params_module, only : small_pres, QU, QV, QW, NQ
     use prob_params_module, only : dg
     use bl_constants_module
 

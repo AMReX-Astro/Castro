@@ -26,24 +26,21 @@ contains
 ! ::: ----------------------------------------------------------------
 
   subroutine umeth1d(lo, hi, domlo, domhi, &
-                     q, qd_l1, qd_h1, &
+                     q, q_lo, q_hi, &
                      flatn, &
-                     qaux, qa_l1, qa_h1, &
-                     srcQ, src_l1,src_h1, &
+                     qaux, qa_lo, qa_hi, &
+                     srcQ, src_lo, src_hi, &
                      ilo, ihi, dx, dt, &
-                     uout, uout_l1, uout_h1, &
-                     flux, fd_l1, fd_h1, &
+                     uout, uout_lo, uout_hi, &
+                     flux, fd_lo, fd_hi, &
 #ifdef RADIATION
-                     rflux, rfd_l1, rfd_h1, &
+                     rflux, rfd_lo, rfd_hi, &
 #endif
-                     q1, q1_l1, q1_h1, &
-                     dloga, dloga_l1, dloga_h1)
+                     q1, q1_lo, q1_hi, &
+                     dloga, dloga_lo, dloga_hi)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
-                                   QC, QCSML, QGAMC, NQAUX, NGDNV, &
-#ifdef RADIATION
-                                   QGAMCG, QCG, &
-#endif
+                                   NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann
     use riemann_module, only : cmpflx, shock
     use trace_module, only : trace
@@ -60,32 +57,32 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(1),hi(1)
+    integer, intent(in) :: lo(1), hi(1)
     integer, intent(in) :: domlo(1), domhi(1)
-    integer, intent(in) :: dloga_l1, dloga_h1
-    integer, intent(in) :: qd_l1, qd_h1
-    integer, intent(in) :: qa_l1, qa_h1
-    integer, intent(in) :: src_l1, src_h1
-    integer, intent(in) :: uout_l1, uout_h1
-    integer, intent(in) :: fd_l1, fd_h1
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) :: fd_lo(3), fd_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: rfd_l1, rfd_h1
+    integer, intent(in) :: rfd_lo(3), rfd_hi(3)
 #endif
-    integer, intent(in) :: q1_l1, q1_h1
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: ilo, ihi
 
     real(rt)        , intent(in) :: dx, dt
-    real(rt)        , intent(in) :: q(   qd_l1:qd_h1,NQ)
-    real(rt)        , intent(in) :: qaux(   qa_l1:qa_h1,NQAUX)
-    real(rt)        , intent(in) :: flatn(   qd_l1:qd_h1)
-    real(rt)        , intent(inout) :: uout(uout_l1:uout_h1,NVAR)
-    real(rt)        , intent(inout) :: flux(fd_l1:fd_h1,NVAR)
+    real(rt)        , intent(in) :: q(   q_lo(1):q_hi(1),NQ)
+    real(rt)        , intent(in) :: qaux(   qa_lo(1):qa_hi(1),NQAUX)
+    real(rt)        , intent(in) :: flatn(   q_lo(1):q_hi(1))
+    real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1),NVAR)
+    real(rt)        , intent(inout) :: flux(fd_lo(1):fd_hi(1),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(inout) :: rflux(rfd_l1:rfd_h1,0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux(rfd_lo(1):rfd_hi(1),0:ngroups-1)
 #endif
-    real(rt)        , intent(in) :: srcQ(src_l1  :src_h1,QVAR)
-    real(rt)        , intent(inout) :: q1(q1_l1:q1_h1,NGDNV)
-    real(rt)        , intent(in) :: dloga(dloga_l1:dloga_h1)
+    real(rt)        , intent(in) :: srcQ(src_lo(1)  :src_hi(1),QVAR)
+    real(rt)        , intent(inout) :: q1(q1_lo(1):q1_hi(1),NGDNV)
+    real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1))
 
     real(rt)        , allocatable :: shk(:)
 
@@ -94,13 +91,23 @@ contains
     ! Left and right state arrays (edge centered, cell centered)
     real(rt)        , allocatable:: dq(:,:), qm(:,:), qp(:,:)
 
+    integer :: qp_lo(3), qp_hi(3)
+    integer :: shk_lo(3), shk_hi(3)
 
-    allocate (shk(ilo-1:ihi+1))
+    qp_lo = [ilo-1, 0, 0]
+    qp_hi = [ihi+2, 0, 0]
+
+    shk_lo = [ilo-1, 0, 0]
+    shk_hi = [ihi+1, 0, 0]
+
+    allocate (shk(shk_lo(1):shk_hi(1)))
 
 #ifdef SHOCK_VAR
     uout(ilo:ihi,USHK) = ZERO
 
-    call shock(q,qd_l1,qd_h1,shk,ilo-1,ihi+1,ilo,ihi,dx)
+    call shock(q, q_lo, q_hi, &
+               shk, shk_lo, shk_hi, &
+               ilo, ihi, dx)
 
     ! Store the shock data for future use in the burning step.
     do i = ilo, ihi
@@ -115,7 +122,9 @@ contains
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q,qd_l1,qd_h1,shk,ilo-1,ihi+1,ilo,ihi,dx)
+       call shock(q, q_lo, q_hi, &
+                  shk, shk_lo, shk_hi, &
+                  ilo, ihi, dx)
     else
        shk(:) = ZERO
     endif
@@ -124,23 +133,25 @@ contains
 
 
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
-    allocate ( qm(ilo-1:ihi+1,NQ))
-    allocate ( qp(ilo-1:ihi+1,NQ))
+    allocate ( qm(qp_lo(1):qp_hi(1),NQ))
+    allocate ( qp(qp_lo(1):qp_hi(1),NQ))
 
     ! Trace to edges w/o transverse flux correction terms
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
-       call trace_ppm_rad(q, qaux, flatn, qd_l1, qd_h1, &
-                          dloga, dloga_l1, dloga_h1, &
-                          srcQ, src_l1, src_h1, &
-                          qm, qp, ilo-1, ihi+1, &
+       call trace_ppm_rad(q, flatn, q_lo, q_hi, &
+                          qaux, qa_lo, qa_hi, &
+                          dloga, dloga_lo, dloga_hi, &
+                          srcQ, src_lo, src_hi, &
+                          qm, qp, qp_lo, qp_hi, &
                           ilo, ihi, domlo, domhi, dx, dt)
 #else
-       call trace_ppm(q,qaux(:,QC),flatn,qaux(:,QGAMC),qd_l1,qd_h1, &
-                      dloga,dloga_l1,dloga_h1, &
-                      srcQ,src_l1,src_h1, &
-                      qm,qp,ilo-1,ihi+1, &
-                      ilo,ihi,domlo,domhi,dx,dt)
+       call trace_ppm(q, flatn, q_lo, q_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      dloga, dloga_lo, dloga_hi, &
+                      srcQ, src_lo, src_hi, &
+                      qm, qp, qp_lo, qp_hi, &
+                      ilo, ihi, domlo, domhi, dx, dt)
 #endif
     else
 #ifdef RADIATION
@@ -148,11 +159,12 @@ contains
 #else
        allocate ( dq(ilo-1:ihi+1,NQ))
 
-       call trace(q,dq,qaux(:,QC),flatn,qd_l1,qd_h1, &
-                  dloga,dloga_l1,dloga_h1, &
-                  srcQ,src_l1,src_h1, &
-                  qm,qp,ilo-1,ihi+1, &
-                  ilo,ihi,domlo,domhi,dx,dt)
+       call trace(q, dq, flatn, q_lo, q_hi, &
+                  qaux, qa_lo, qa_hi, &
+                  dloga, dloga_lo, dloga_hi, &
+                  srcQ, src_lo, src_hi, &
+                  qm, qp, qp_lo, qp_hi, &
+                  ilo, ihi, domlo, domhi, dx, dt)
 
        deallocate(dq)
 #endif
@@ -160,13 +172,14 @@ contains
 
     ! Solve Riemann problem, compute xflux from improved predicted states
     call cmpflx(lo, hi, domlo, domhi, &
-                qm, qp, ilo-1, ihi+1, &
-                flux, fd_l1, fd_h1, &
-                q1, q1_l1, q1_h1, &
+                qm, qp, qp_lo, qp_hi, &
+                flux, fd_lo, fd_hi, &
+                q1, q1_lo, q1_hi, &
 #ifdef RADIATION
-                rflux, rfd_l1,rfd_h1, &
+                rflux, rfd_lo,rfd_hi, &
 #endif
-                qaux, qa_l1, qa_h1, ilo, ihi)
+                qaux, qa_lo, qa_hi, &
+                ilo, ihi)
 
     deallocate (qm,qp)
 
@@ -176,20 +189,20 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine consup(uin, uin_l1, uin_h1, &
-                    uout, uout_l1, uout_h1, &
-                    update, updt_l1, updt_h1, &
-                    q, q_l1, q_h1, &
-                    flux, flux_l1, flux_h1, &
-                    q1, q1_l1, q1_h1, &
+  subroutine consup(uin, uin_lo, uin_hi, &
+                    uout, uout_lo, uout_hi, &
+                    update, updt_lo, updt_hi, &
+                    q, q_lo, q_hi, &
+                    flux, flux_lo, flux_hi, &
+                    q1, q1_lo, q1_hi, &
 #ifdef RADIATION
-                    Erin, Erin_l1, Erin_h1, &
-                    Erout, Erout_l1, Erout_h1, &
-                    rflux, rflux_l1, rflux_h1, &
+                    Erin, Erin_lo, Erin_hi, &
+                    Erout, Erout_lo, Erout_hi, &
+                    rflux, rflux_lo, rflux_hi, &
                     nstep_fsp, &
 #endif
-                    area, area_l1, area_h1, &
-                    vol, vol_l1, vol_h1, &
+                    area, area_lo, area_hi, &
+                    vol, vol_lo, vol_hi, &
                     div, pdivu, lo, hi, dx, dt, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost, &
@@ -219,35 +232,35 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: lo(1), hi(1)
-    integer, intent(in) :: uin_l1, uin_h1
-    integer, intent(in) :: uout_l1, uout_h1
-    integer, intent(in) :: updt_l1, updt_h1
-    integer, intent(in) :: q1_l1, q1_h1
-    integer, intent(in) :: q_l1,  q_h1
-    integer, intent(in) :: flux_l1, flux_h1
+    integer, intent(in) :: uin_lo(3), uin_hi(3)
+    integer, intent(in) :: uout_lo(3), uout_hi(3)
+    integer, intent(in) :: updt_lo(3), updt_hi(3)
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: q_lo(3),  q_hi(3)
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: Erin_l1, Erin_h1
-    integer, intent(in) :: Erout_l1, Erout_h1
-    integer, intent(in) :: rflux_l1, rflux_h1
+    integer, intent(in) :: Erin_lo(3), Erin_hi(3)
+    integer, intent(in) :: Erout_lo(3), Erout_hi(3)
+    integer, intent(in) :: rflux_lo(3), rflux_hi(3)
     integer, intent(inout) :: nstep_fsp
 #endif
-    integer, intent(in) :: area_l1, area_h1
-    integer, intent(in) :: vol_l1,  vol_h1
+    integer, intent(in) :: area_lo(3), area_hi(3)
+    integer, intent(in) :: vol_lo(3),  vol_hi(3)
     integer, intent(in) :: verbose
 
-    real(rt)        , intent(in) :: uin(uin_l1:uin_h1,NVAR)
-    real(rt)        , intent(in) :: uout(uout_l1:uout_h1,NVAR)
-    real(rt)        , intent(inout) :: update(updt_l1:updt_h1,NVAR)
-    real(rt)        , intent(in) :: q1(q1_l1:q1_h1,NGDNV)
-    real(rt)        , intent(in) :: q(q_l1:q_h1,NQ)
-    real(rt)        , intent(inout) :: flux(flux_l1:flux_h1,NVAR)
+    real(rt)        , intent(in) :: uin(uin_lo(1):uin_hi(1),NVAR)
+    real(rt)        , intent(in) :: uout(uout_lo(1):uout_hi(1),NVAR)
+    real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1),NVAR)
+    real(rt)        , intent(in) :: q1(q1_lo(1):q1_hi(1),NGDNV)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),NQ)
+    real(rt)        , intent(inout) :: flux(flux_lo(1):flux_hi(1),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(in) :: Erin(Erin_l1:Erin_h1,0:ngroups-1)
-    real(rt)        , intent(inout) :: Erout(Erout_l1:Erout_h1,0:ngroups-1)
-    real(rt)        , intent(inout) :: rflux(rflux_l1:rflux_h1,0:ngroups-1)
+    real(rt)        , intent(in) :: Erin(Erin_lo(1):Erin_hi(1),0:ngroups-1)
+    real(rt)        , intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),0:ngroups-1)
+    real(rt)        , intent(inout) :: rflux(rflux_lo(1):rflux_hi(1),0:ngroups-1)
 #endif
-    real(rt)        , intent(in) :: area( area_l1: area_h1)
-    real(rt)        , intent(in) :: vol(vol_l1:vol_h1)
+    real(rt)        , intent(in) :: area( area_lo(1): area_hi(1))
+    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1)
     real(rt)        , intent(in) :: pdivu(lo(1):hi(1)  )
     real(rt)        , intent(in) :: dx, dt
@@ -305,16 +318,16 @@ contains
     ! Limit the fluxes to avoid negative/small densities.
 
     if (limit_fluxes_on_small_dens .eq. 1) then
-       call limit_hydro_fluxes_on_small_dens(uin, [uin_l1, 0, 0], [uin_h1, 0, 0], &
-                                             q, [q_l1, 0, 0], [q_h1, 0, 0], &
-                                             vol, [vol_l1, 0, 0], [vol_h1, 0, 0], &
-                                             flux, [flux_l1, 0, 0], [flux_h1, 0, 0], &
-                                             area, [area_l1, 0, 0], [area_h1, 0, 0], &
+       call limit_hydro_fluxes_on_small_dens(uin, uin_lo, uin_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux, flux_lo, flux_hi, &
+                                             area, area_lo, area_hi, &
                                              [lo(1), 0, 0], [hi(1), 0, 0], dt, [dx, ZERO, ZERO])
     endif
 
     ! Normalize the species fluxes.
-    call normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
+    call normalize_species_fluxes(flux, flux_lo, flux_hi, lo, hi)
 
 #ifdef RADIATION
     ! now do the radiation energy groups parts

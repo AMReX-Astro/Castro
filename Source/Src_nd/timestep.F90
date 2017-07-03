@@ -129,8 +129,8 @@ contains
     use burner_module, only: ok_to_burn
     use burn_type_module
     use eos_type_module
-    use extern_probin_module, only: small_x
     use amrex_fort_module, only : rt => amrex_real
+    use extern_probin_module, only: small_x
 
     implicit none
 
@@ -425,10 +425,10 @@ contains
                                   cfl, do_hydro
 #ifdef REACTIONS
     use meth_params_module, only: dtnuc_e, dtnuc_X, do_react
+    use extern_probin_module, only: small_x
 #endif
     use prob_params_module, only: dim
     use network, only: nspec, naux
-    use extern_probin_module, only: small_x
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real

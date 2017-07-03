@@ -22,8 +22,8 @@ subroutine ca_mol_single_stage(time, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, UEINT, USHK, UMX, GDU, GDV, GDW, &
-                                 use_flattening, QU, QV, QW, QPRES, NQAUX, &
+                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, &
+                                 use_flattening, QPRES, NQAUX, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type
   use advection_util_3d_module, only : divu, normalize_species_fluxes
