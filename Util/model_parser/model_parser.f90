@@ -106,7 +106,6 @@ contains
     allocate (model_r(npts_model))
 
 887 format(78('-'))
-888 format(a60,g18.10)
 889 format(a60)
 
     if ( parallel_IOProcessor()) then
