@@ -190,7 +190,7 @@ contains
   end subroutine pstar_bisection
 
 
-  subroutine HLL(ql, qr, cl, cr, idir, ndim, f)
+  subroutine HLL(ql, qr, cl, cr, idir, f)
 
     use meth_params_module, only : QVAR, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
@@ -200,7 +200,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in) :: ql(QVAR), qr(QVAR), cl, cr
     real(rt)        , intent(inout) :: f(NVAR)
-    integer, intent(in) :: idir, ndim
+    integer, intent(in) :: idir
 
     integer :: ivel, ivelt, iveltt, imom, imomt, imomtt
     real(rt)         :: a1, a4, bd, bl, bm, bp, br
@@ -435,13 +435,13 @@ contains
   end subroutine HLLC_state
 
 
-  pure subroutine compute_flux(idir, ndim, bnd_fac, U, p, F)
+  pure subroutine compute_flux(idir, bnd_fac, U, p, F)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map
     use prob_params_module, only : mom_flux_has_p
 
-    integer, intent(in) :: idir, ndim, bnd_fac
+    integer, intent(in) :: idir, bnd_fac
     real(rt)        , intent(in) :: U(NVAR)
     real(rt)        , intent(in) :: p
     real(rt)        , intent(out) :: F(NVAR)
