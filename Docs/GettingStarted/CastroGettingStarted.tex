@@ -205,14 +205,13 @@ Then cd into {\tt volpack/} and type {\tt make}.
 
 Note: \amrvis\ requires the OSF/Motif libraries and headers. If you don't have these 
 you will need to install the development version of motif through your package manager. 
-{\tt lesstif} gives some functionality and will allow you to build the amrvis executable, 
-but \amrvis\ may not run properly.
-
 On most Linux distributions, the motif library is provided by the
 {\tt openmotif} package, and its header files (like {\tt Xm.h}) are provided
-by {\tt openmotif-devel}. If those packages are not installed, then use the
+by {\tt openmotif-devel}.  If those packages are not installed, then use the
 package management tool to install them, which varies from
 distribution to distribution, but is straightforward. 
+{\tt lesstif} gives some functionality and will allow you to build the amrvis executable, 
+but \amrvis\ may not run properly.
 
 You may then want to create an alias to {\tt amrvis2d}, for example
 \begin{verbatim}
@@ -241,6 +240,12 @@ where {\tt /tmp/Amrvis/amrvis2d...ex} is the full path and name of the \amrvis\ 
   looking at, select a region and click ``Dataset'' (under View)
   in order to look at the actual numbers, etc. You can also export the
   pictures in several different formats under "File/Export".
+
+Some users have found that \amrvis\ does not work properly under X 
+with the proprietary Nvidia graphics driver---this is due to lack
+of support for pseudocolor visuals.  \yt\ is a great alternative
+to using \amrvis\ for visualization, and understands \castro\
+plotfiles well.
 
 Please know that we do have a number of conversion routines to other
 formats (such as matlab), but it is hard to describe them all. If you
