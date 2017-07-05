@@ -776,7 +776,7 @@ Castro::setGridInfo ()
       }
 
       for (int lev = 0; lev <= max_level; lev++)
-	blocking_factor_to_f[lev] = parent->blockingFactor(lev);
+	blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
 
       for (int lev = 1; lev <= max_level; lev++) {
 	IntVect ref_ratio = parent->refRatio(lev-1);
@@ -2126,8 +2126,6 @@ Castro::advance_aux(Real time, Real dt)
 void
 Castro::FluxRegCrseInit() {
 
-    FluxRegister* reg;
-
     if (level == parent->finestLevel()) return;
 
     Castro& fine_level = getLevel(level+1);
@@ -2151,8 +2149,6 @@ Castro::FluxRegCrseInit() {
 
 void
 Castro::FluxRegFineAdd() {
-
-    FluxRegister* reg;
 
     if (level == 0) return;
 

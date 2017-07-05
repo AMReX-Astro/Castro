@@ -12,18 +12,19 @@ module trace_ppm_module
 
 contains
 
-  subroutine trace_ppm(q,c,flatn,gamc,qd_l1,qd_h1, &
-                       dloga,dloga_l1,dloga_h1, &
-                       srcQ,src_l1,src_h1,&
-                       qxm,qxp,qpd_l1,qpd_h1, &
-                       ilo,ihi,domlo,domhi,dx,dt)
+  subroutine trace_ppm(q, flatn, q_lo, q_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       dloga, dloga_lo, dloga_hi, &
+                       srcQ, src_lo, src_hi, &
+                       qxm, qxp, qpd_lo, qpd_hi, &
+                       ilo, ihi, domlo, domhi, dx, dt)
 
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use bl_constants_module
     use meth_params_module, only : QVAR, QRHO, QU, QREINT, QPRES, &
-         QTEMP, QFS, QFX, QGAME, &
+         QTEMP, QFS, QFX, QGAME, QGAMC, QC, NQ, NQAUX, &
          small_dens, small_pres, fix_mass_flux, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_predict_gammae, ppm_reference_eigenvectors, &
@@ -37,21 +38,21 @@ contains
 
     integer ilo,ihi
     integer domlo(1),domhi(1)
-    integer    qd_l1,   qd_h1
-    integer dloga_l1,dloga_h1
-    integer   qpd_l1,  qpd_h1
-    integer   src_l1,  src_h1
+    integer    q_lo(3), q_hi(3)
+    integer    qa_lo(3), qa_hi(3)
+    integer dloga_lo(3), dloga_hi(3)
+    integer   qpd_lo(3), qpd_hi(3)
+    integer   src_lo(3), src_hi(3)
     real(rt)         dx, dt
 
-    real(rt)             q( qd_l1: qd_h1,QVAR)
-    real(rt)          srcQ(src_l1:src_h1,QVAR)
-    real(rt)          gamc(qd_l1:qd_h1)
-    real(rt)         flatn(qd_l1:qd_h1)
-    real(rt)             c(qd_l1:qd_h1)
-    real(rt)         dloga(dloga_l1:dloga_h1)
+    real(rt)             q( q_lo(1): q_hi(1),NQ)
+    real(rt)         qaux( qa_lo(1):qa_hi(1),NQAUX)
+    real(rt)          srcQ(src_lo(1):src_hi(1),QVAR)
+    real(rt)         flatn(q_lo(1):q_hi(1))
+    real(rt)         dloga(dloga_lo(1):dloga_hi(1))
 
-    real(rt)          qxm( qpd_l1: qpd_h1,QVAR)
-    real(rt)          qxp( qpd_l1: qpd_h1,QVAR)
+    real(rt)          qxm( qpd_lo(1):qpd_hi(1),NQ)
+    real(rt)          qxp( qpd_lo(1):qpd_hi(1),NQ)
 
     ! Local variables
     integer :: i, iwave
@@ -137,8 +138,8 @@ contains
        allocate(Im_src(ilo-1:ihi+1,3,QVAR))
     endif
 
-    allocate(sxm(qd_l1:qd_h1))
-    allocate(sxp(qd_l1:qd_h1))
+    allocate(sxm(q_lo(1):q_hi(1)))
+    allocate(sxp(q_lo(1):q_hi(1)))
 
     !=========================================================================
     ! PPM CODE
@@ -171,13 +172,14 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, QVAR
-       call ppm_reconstruct(q(:,n), qd_l1, qd_h1, &
-                            flatn, &
+       call ppm_reconstruct(q(:,n), q_lo, q_hi, &
+                            flatn, q_lo, q_hi, &
                             sxm, sxp, &
                             ilo, ihi, dx)
 
-       call ppm_int_profile(q(:,n), qd_l1, qd_h1, &
-                            q(:,QU), c, &
+       call ppm_int_profile(q(:,n), q_lo, q_hi, &
+                            q(:,QU), q_lo, q_hi, &
+                            qaux(:,QC), qa_lo, qa_hi, &
                             sxm, sxp, &
                             Ip(:,:,n), Im(:,:,n), &
                             ilo, ihi, dx, dt)
@@ -218,13 +220,14 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
-       call ppm_reconstruct(gamc(:), qd_l1, qd_h1, &
-                            flatn, &
+       call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
+                            flatn, q_lo, q_hi, &
                             sxm, sxp, &
                             ilo, ihi, dx)
 
-       call ppm_int_profile(gamc(:), qd_l1, qd_h1, &
-                            q(:,QU), c, &
+       call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
+                            q(:,QU), q_lo, q_hi, &
+                            qaux(:,QC), qa_lo, qa_hi, &
                             sxm, sxp, &
                             Ip_gc(:,:,1), Im_gc(:,:,1), &
                             ilo, ihi, dx, dt)
@@ -232,13 +235,14 @@ contains
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ(:,n), src_l1, src_h1, &
-                               flatn, &
+          call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
+                               flatn, q_lo, q_hi, &
                                sxm, sxp, &
                                ilo, ihi, dx)
 
-          call ppm_int_profile(srcQ(:,n), src_l1, src_h1, &
-                               q(:,QU), c, &
+          call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
+                               q(:,QU), q_lo, q_hi, &
+                               qaux(:,QC), qa_lo, qa_hi, &
                                sxm, sxp, &
                                Ip_src(:,:,n), Im_src(:,:,n), &
                                ilo, ihi, dx, dt)
@@ -254,7 +258,7 @@ contains
     ! Trace to left and right edges using upwind PPM
     do i = ilo-1, ihi+1
 
-       cc = c(i)
+       cc =  qaux(i,QC)
        csq = cc**2
 
        rho = q(i,QRHO)
@@ -266,7 +270,7 @@ contains
 
        Clag = rho*cc
 
-       gam_g = gamc(i)
+       gam_g = qaux(i,QGAMC)
        game = q(i,QGAME)
 
        !----------------------------------------------------------------------

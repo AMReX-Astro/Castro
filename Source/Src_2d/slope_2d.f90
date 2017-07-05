@@ -13,23 +13,24 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                    dq,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                    ilo1,ilo2,ihi1,ihi2,nv,idir)
+  subroutine uslope(q, flatn, q_lo, q_hi, &
+                    dq, qpd_lo, qpd_hi, &
+                    ilo1,ilo2,ihi1,ihi2,idir)
 
     use bl_constants_module        
+    use meth_params_module, only : NQ
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer ilo,ihi
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer ilo1,ilo2,ihi1,ihi2,nv,idir
+    integer q_lo(3), q_hi(3)
+    integer qpd_lo(3), qpd_hi(3)
+    integer ilo1,ilo2,ihi1,ihi2,idir
     
-    real(rt)             q( qd_l1: qd_h1, qd_l2: qd_h2,nv)
-    real(rt)         flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-    real(rt)            dq(qpd_l1:qpd_h1,qpd_l2:qpd_h2,nv)
+    real(rt)             q( q_lo(1):q_hi(1), q_lo(2):q_hi(2), NQ)
+    real(rt)         flatn( q_lo(1):q_hi(1), q_lo(2):q_hi(2))
+    real(rt)            dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2), NQ)
     
     ! local
     real(rt)        , allocatable::dsgn(:),dlim(:),df(:),dcen(:)
@@ -45,7 +46,7 @@ contains
     allocate (  df(ilo-2:ihi+2))
     allocate (dcen(ilo-2:ihi+2))
     
-    do n = 1, nv 
+    do n = 1, NQ 
        
        if (idir .eq. 1) then
           
@@ -113,28 +114,27 @@ contains
 ! ::: ------------------------------------------------------------------
 ! ::: 
 
-  subroutine pslope(p,rho,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                    dp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                    src,src_l1,src_l2,src_h1,src_h2, &
+  subroutine pslope(q, flatn, q_lo, q_hi, &
+                    dp, qpd_lo, qpd_hi, &
+                    src, src_lo, src_hi, &
                     ilo1,ilo2,ihi1,ihi2,dx,dy,idir)
     
     use bl_constants_module
-    use meth_params_module, only: QU, QV, QVAR
+    use meth_params_module, only: QU, QV, QPRES, QRHO, QVAR, NQ
     
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
     integer ilo,ihi
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer src_l1,src_l2,src_h1,src_h2
+    integer q_lo(3), q_hi(3)
+    integer qpd_lo(3), qpd_hi(3)
+    integer src_lo(3), src_hi(3)
     integer ilo1,ilo2,ihi1,ihi2,idir
     
-    real(rt)        , intent(in   ) ::      p( qd_l1: qd_h1, qd_l2: qd_h2)
-    real(rt)        , intent(in   ) ::    rho( qd_l1: qd_h1, qd_l2: qd_h2)
-    real(rt)        , intent(in   ) ::  flatn( qd_l1: qd_h1, qd_l2: qd_h2)
-    real(rt)        , intent(  out) ::     dp(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
-    real(rt)        , intent(in   ) ::    src(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)        , intent(in   ) ::      q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)        , intent(in   ) ::  flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
+    real(rt)        , intent(  out) ::     dp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2))
+    real(rt)        , intent(in   ) ::    src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
     real(rt)        , intent(in   ) ::  dx,dy
     
     ! local
@@ -157,12 +157,14 @@ contains
        do j = ilo2-1, ihi2+1
           ! First compute Fromm slopes
           do i = ilo1-2, ihi1+2
-             dlft = p(i  ,j) - p(i-1,j)
-             drgt = p(i+1,j) - p(i  ,j)
+             dlft = q(i  ,j,QPRES) - q(i-1,j,QPRES)
+             drgt = q(i+1,j,QPRES) - q(i  ,j,QPRES)
              
              ! Subtract off (rho * acceleration) so as not to limit that part of the slope
-             dlft = dlft - FOURTH * (rho(i,j)+rho(i-1,j))*(src(i,j,QU)+src(i-1,j,QU))*dx
-             drgt = drgt - FOURTH * (rho(i,j)+rho(i+1,j))*(src(i,j,QU)+src(i+1,j,QU))*dx
+             dlft = dlft - FOURTH * (q(i,j,QRHO) + q(i-1,j,QRHO)) * &
+                  (src(i,j,QU)+src(i-1,j,QU))*dx
+             drgt = drgt - FOURTH * (q(i,j,QRHO) + q(i+1,j,QRHO)) * &
+                  (src(i,j,QU)+src(i+1,j,QU))*dx
              
              dcen(i) = HALF*(dlft+drgt)
              dsgn(i) = sign(ONE, dcen(i))
@@ -179,7 +181,7 @@ contains
           do i = ilo1-1, ihi1+1
              dp1 = FOUR3RD*dcen(i) - SIXTH*(df(i+1) + df(i-1))
              dp(i,j) = flatn(i,j)*dsgn(i)*min(dlim(i),abs(dp1))
-             dp(i,j) = dp(i,j) + rho(i,j)*src(i,j,QU)*dx
+             dp(i,j) = dp(i,j) + q(i,j,QRHO)*src(i,j,QU)*dx
           enddo
        enddo
        
@@ -189,12 +191,14 @@ contains
        do i = ilo1-1, ihi1+1
           ! First compute Fromm slopes
           do j = ilo2-2, ihi2+2
-             dlft = p(i,j  ) - p(i,j-1)
-             drgt = p(i,j+1) - p(i,j  )
+             dlft = q(i,j  ,QPRES) - q(i,j-1,QPRES)
+             drgt = q(i,j+1,QPRES) - q(i,j  ,QPRES)
              
              ! Subtract off (rho * acceleration) so as not to limit that part of the slope
-             dlft = dlft - FOURTH * (rho(i,j)+rho(i,j-1))*(src(i,j,QV)+src(i,j-1,QV))*dy
-             drgt = drgt - FOURTH * (rho(i,j)+rho(i,j+1))*(src(i,j,QV)+src(i,j+1,QV))*dy
+             dlft = dlft - FOURTH * (q(i,j,QRHO) + q(i,j-1,QRHO)) * &
+                  (src(i,j,QV)+src(i,j-1,QV))*dy
+             drgt = drgt - FOURTH * (q(i,j,QRHO) + q(i,j+1,QRHO)) * &
+                  (src(i,j,QV)+src(i,j+1,QV))*dy
              
              dcen(j) = HALF*(dlft+drgt)
              dsgn(j) = sign( ONE, dcen(j) )
@@ -211,7 +215,7 @@ contains
           do j = ilo2-1, ihi2+1
              dp1 = FOUR3RD*dcen(j) - SIXTH*(df(j+1) + df(j-1))
              dp(i,j) = flatn(i,j)*dsgn(j)*min(dlim(j),abs(dp1))
-             dp(i,j) = dp(i,j) + rho(i,j)*src(i,j,QV)*dy
+             dp(i,j) = dp(i,j) + q(i,j,QRHO)*src(i,j,QV)*dy
           enddo
        enddo
        
@@ -222,9 +226,8 @@ contains
   end subroutine pslope
 
 
-  subroutine multid_slope(q, flatn, &
-                          qd_l1, qd_l2, qd_h1, qd_h2, &
-                          dqx, dqy, qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+  subroutine multid_slope(q, flatn, q_lo, q_hi, &
+                          dqx, dqy, qpd_lo, qpd_hi, &
                           dx, dy, &
                           ilo, jlo, ihi, jhi)
 
@@ -233,17 +236,17 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
-    integer, intent(in) :: qpd_l1, qpd_l2, qpd_h1, qpd_h2
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: ilo, jlo, ihi, jhi
 
     real(rt)        , intent(in) :: dx, dy
 
-    real(rt)        , intent(in) ::     q( qd_l1: qd_h1, qd_l2: qd_h2)
-    real(rt)        , intent(in) :: flatn( qd_l1: qd_h1, qd_l2: qd_h2)
+    real(rt)        , intent(in) ::     q( q_lo(1): q_hi(1), q_lo(2): q_hi(2))
+    real(rt)        , intent(in) :: flatn( q_lo(1): q_hi(1), q_lo(2): q_hi(2))
 
-    real(rt)        , intent(inout) :: dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
-    real(rt)        , intent(inout) :: dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2)
+    real(rt)        , intent(inout) :: dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2))
+    real(rt)        , intent(inout) :: dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2))
 
     integer :: i, j, m, n
     
@@ -265,7 +268,7 @@ contains
     ! First find the values at the nodes.  Here q_nd(i,j) will refer to
     ! a_{i-1/2,j-1/2}
 
-    allocate(q_nd(qd_l1:qd_h1,qd_l2:qd_h2))
+    allocate(q_nd(q_lo(1):q_hi(1),q_lo(2):q_hi(2)))
 
     do j = jlo-2, jhi+3
        do i = ilo-2, ihi+3

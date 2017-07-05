@@ -4,7 +4,7 @@ ca_F90EXE_sources += trans_$(DIM)d.F90
 ca_f90EXE_sources += slope_$(DIM)d.f90
 ca_f90EXE_sources += ppm_$(DIM)d.f90
 
-ca_F90EXE_sources += Castro_$(DIM)d.F90 
+ca_F90EXE_sources += Castro_ctu_$(DIM)d.F90 
 ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
 ca_F90EXE_sources += Castro_mol_$(DIM)d.F90
 

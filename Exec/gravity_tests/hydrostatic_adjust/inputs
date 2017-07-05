@@ -61,8 +61,3 @@ amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variab
 #PROBIN FILENAME
 amr.probin_file = probin
 
-xgraph.format = xmg
-xgraph.graph  = den  density    500 -1
-xgraph.graph  = Temp Temp       500 -1
-xgraph.graph  = pres pressure   500 -1
-xgraph.graph  = xvel x_velocity 500 -1

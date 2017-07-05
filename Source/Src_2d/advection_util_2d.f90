@@ -10,8 +10,8 @@ module advection_util_2d_module
 contains
 
   subroutine normalize_species_fluxes(  &
-                    flux1,flux1_l1,flux1_l2,flux1_h1,flux1_h2, &
-                    flux2,flux2_l1,flux2_l2,flux2_h1,flux2_h2, &
+                    flux1,flux1_lo, flux1_hi, &
+                    flux2, flux2_lo, flux2_hi, &
                     lo,hi)
 
     use network, only : nspec
@@ -22,10 +22,10 @@ contains
     implicit none
 
     integer          :: lo(2),hi(2)
-    integer          :: flux1_l1,flux1_l2,flux1_h1,flux1_h2
-    integer          :: flux2_l1,flux2_l2,flux2_h1,flux2_h2
-    real(rt)         :: flux1(flux1_l1:flux1_h1,flux1_l2:flux1_h2,NVAR)
-    real(rt)         :: flux2(flux2_l1:flux2_h1,flux2_l2:flux2_h2,NVAR)
+    integer          :: flux1_lo(3), flux1_hi(3)
+    integer          :: flux2_lo(3), flux2_hi(3)
+    real(rt)         :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),NVAR)
+    real(rt)         :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),NVAR)
     
     ! Local variables
     integer          :: i,j,n

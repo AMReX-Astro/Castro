@@ -101,7 +101,6 @@ contains
     integer i,j,k
 
     real(rt)         dsl, dsr, dsc
-    real(rt)         sigma, s6
 
     ! s_{\ib,+}, s_{\ib,-}
     real(rt)         :: sm, sp
@@ -396,7 +395,7 @@ contains
     logical extremum, bigp, bigm
 
     real(rt)         D2, D2C, D2L, D2R, D2LIM, alphap, alpham
-    real(rt)         sgn, sigma, s6
+    real(rt)         sgn
     real(rt)         dafacem, dafacep, dabarm, dabarp, dafacemin, dabarmin
     real(rt)         dachkm, dachkp
     real(rt)         amax, delam, delap

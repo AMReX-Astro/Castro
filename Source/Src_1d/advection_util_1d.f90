@@ -9,7 +9,7 @@ module advection_util_1d_module
 
 contains
 
-  subroutine normalize_species_fluxes(flux,flux_l1,flux_h1,lo,hi)
+  subroutine normalize_species_fluxes(flux, flux_lo, flux_hi, lo, hi)
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
@@ -19,8 +19,8 @@ contains
     implicit none
     
     integer          :: lo(1),hi(1)
-    integer          :: flux_l1,flux_h1
-    real(rt)         :: flux(flux_l1:flux_h1,NVAR)
+    integer          :: flux_lo(3), flux_hi(3)
+    real(rt)         :: flux(flux_lo(1):flux_hi(1),NVAR)
     
     ! Local variables
     integer          :: i,n

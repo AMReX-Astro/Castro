@@ -9,14 +9,15 @@ module trace_module
 
 contains
 
-  subroutine trace(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                   qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                   src,src_l1,src_l2,src_h1,src_h2, &
+  subroutine trace(q, flatn, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dloga, dloga_lo, dloga_hi, &
+                   qxm, qxp, qym, qyp, qpd_lo, qpd_hi, &
+                   src, src_lo, src_hi, &
                    ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QV, &
-                                   QREINT, QPRES, &
+                                   QREINT, QPRES, QC, NQ, NQAUX, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
     use slope_module, only : uslope, pslope, multid_slope
     use bl_constants_module
@@ -24,22 +25,23 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer ilo1,ilo2,ihi1,ihi2
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer src_l1,src_l2,src_h1,src_h2
+    integer, intent(in) :: ilo1,ilo2,ihi1,ihi2
+    integer, intent(in) ::  q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
 
     real(rt)         dx, dy, dt
-    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    real(rt)             c(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
-    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         src(src_l1:src_h1,src_l2:src_h2,QVAR)
+    real(rt)             q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)          qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
+    real(rt)         flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
+    real(rt)         dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
+    real(rt)         qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),NQ)
 
     real(rt)        , allocatable :: dqx(:,:,:), dqy(:,:,:)
 
@@ -72,8 +74,8 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
 
-    allocate(dqx(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
-    allocate(dqy(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR))
+    allocate(dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),QVAR))
+    allocate(dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),QVAR))
 
     ! Compute slopes
     if (plm_iorder == 1) then
@@ -83,26 +85,23 @@ contains
     elseif (plm_iorder == 2) then
        ! these are piecewise linear slopes.  The limiter is a 4th order
        ! limiter, but the overall method will be second order.
-       call uslope(q, &
-                   flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
-                   dqx  ,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                   ilo1,ilo2,ihi1,ihi2,QVAR,1)
+       call uslope(q, flatn, q_lo, q_hi, &
+                   dqx, qpd_lo, qpd_hi, &
+                   ilo1,ilo2,ihi1,ihi2,1)
 
-       call uslope(q,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                   dqy,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                   ilo1,ilo2,ihi1,ihi2,QVAR,2)
+       call uslope(q, flatn, q_lo, q_hi, &
+                   dqy, qpd_lo, qpd_hi, &
+                   ilo1,ilo2,ihi1,ihi2,2)
 
        if (use_pslope .eq. 1) then
-          call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                      flatn         , qd_l1, qd_l2, qd_h1, qd_h2, &
-                      dqx(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                      src           ,src_l1,src_l2,src_h1,src_h2, &
+          call pslope(q, flatn, q_lo, q_hi, &
+                      dqx(:,:,QPRES), qpd_lo, qpd_hi, &
+                      src, src_lo, src_hi, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,1)
 
-          call pslope(q(:,:,QPRES),q(:,:,QRHO),  &
-                      flatn         , qd_l1, qd_l2, qd_h1, qd_h2, &
-                      dqy(:,:,QPRES),qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                      src           ,src_l1,src_l2,src_h1,src_h2, &
+          call pslope(q, flatn, q_lo, q_hi, &
+                      dqy(:,:,QPRES), qpd_lo, qpd_hi, &
+                      src, src_lo, src_hi, &
                       ilo1,ilo2,ihi1,ihi2,dx,dy,2)
        endif
 
@@ -111,10 +110,8 @@ contains
        ! reconstruction based on the BDS advection method to construct
        ! the x- and y-slopes together
        do n = 1, QVAR
-          call multid_slope(q(:,:,n), flatn, &
-                            qd_l1, qd_l2, qd_h1, qd_h2, &
-                            dqx(:,:,n), dqy(:,:,n), &
-                            qpd_l1, qpd_l2, qpd_h1, qpd_h2, &
+          call multid_slope(q(:,:,n), flatn, q_lo, q_hi, &
+                            dqx(:,:,n), dqy(:,:,n), qpd_lo, qpd_hi, &
                             dx, dy, &
                             ilo1, ilo2, ihi1, ihi2)
        enddo
@@ -133,7 +130,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
                
-          cc = c(i,j)
+          cc = qaux(i,j,QC)
           csq = cc**2
           rho = q(i,j,QRHO)
           u = q(i,j,QU)
@@ -278,7 +275,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
           
-          cc = c(i,j)
+          cc = qaux(i,j,QC)
           csq = cc**2
           rho = q(i,j,QRHO)
           u = q(i,j,QU)

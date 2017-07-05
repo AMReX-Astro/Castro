@@ -12,19 +12,19 @@ module trace_ppm_module
 
 contains
 
-  subroutine trace_ppm(q,c,flatn,qd_l1,qd_l2,qd_h1,qd_h2, &
-                       dloga,dloga_l1,dloga_l2,dloga_h1,dloga_h2, &
-                       qxm,qxp,qym,qyp,qpd_l1,qpd_l2,qpd_h1,qpd_h2, &
-                       srcQ,src_l1,src_l2,src_h1,src_h2, &
-                       gamc,gc_l1,gc_l2,gc_h1,gc_h2, &
+  subroutine trace_ppm(q, flatn, q_lo, q_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       dloga, dloga_lo, dloga_hi, &
+                       qxm, qxp, qym, qyp, qpd_lo, qpd_hi, &
+                       srcQ, src_lo, src_hi, &
                        ilo1,ilo2,ihi1,ihi2,dx,dy,dt)
 
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
     use bl_constants_module
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QREINT, QPRES, &
-         QTEMP, QFS, QFX, QGAME, &
+    use meth_params_module, only : NQ, QVAR, NQAUX, QRHO, QU, QV, QREINT, QPRES, &
+         QTEMP, QFS, QFX, QGAME, QGAMC, QC, &
          small_dens, small_pres, &
          ppm_type, ppm_trace_sources, ppm_temp_fix, &
          ppm_reference_eigenvectors, &
@@ -36,24 +36,23 @@ contains
     implicit none
 
     integer ilo1,ilo2,ihi1,ihi2
-    integer qd_l1,qd_l2,qd_h1,qd_h2
-    integer dloga_l1,dloga_l2,dloga_h1,dloga_h2
-    integer qpd_l1,qpd_l2,qpd_h1,qpd_h2
-    integer src_l1,src_l2,src_h1,src_h2
-    integer gc_l1,gc_l2,gc_h1,gc_h2
+    integer q_lo(3), q_hi(3)
+    integer qa_lo(3), qa_hi(3)
+    integer dloga_lo(3), dloga_hi(3)
+    integer qpd_lo(3), qpd_hi(3)
+    integer src_lo(3), src_hi(3)
 
-    real(rt)             q(qd_l1:qd_h1,qd_l2:qd_h2,QVAR)
-    real(rt)             c(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)         flatn(qd_l1:qd_h1,qd_l2:qd_h2)
-    real(rt)         dloga(dloga_l1:dloga_h1,dloga_l2:dloga_h2)
+    real(rt)             q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt)          qaux(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQAUX)
+    real(rt)         flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
+    real(rt)         dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
 
-    real(rt)         qxm(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qxp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qym(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
-    real(rt)         qyp(qpd_l1:qpd_h1,qpd_l2:qpd_h2,QVAR)
+    real(rt)         qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt)         qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)          srcQ(src_l1:src_h1,src_l2:src_h2,QVAR)
-    real(rt)         gamc(gc_l1:gc_h1,gc_l2:gc_h2)
+    real(rt)          srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
 
     real(rt)         dx, dy, dt
 
@@ -138,10 +137,10 @@ contains
 
     hdt = HALF * dt
 
-    allocate(sxm(qd_l1:qd_h1, qd_l2:qd_h2))
-    allocate(sxp(qd_l1:qd_h1, qd_l2:qd_h2))
-    allocate(sym(qd_l1:qd_h1, qd_l2:qd_h2))
-    allocate(syp(qd_l1:qd_h1, qd_l2:qd_h2))
+    allocate(sxm(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+    allocate(sxp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+    allocate(sym(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+    allocate(syp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
 
 
     !=========================================================================
@@ -175,13 +174,14 @@ contains
     ! limiting, and returns the integral of each profile under each
     ! wave to each interface
     do n = 1, QVAR
-       call ppm_reconstruct(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
-                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+       call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
+                            flatn, q_lo, q_hi, &
                             sxm, sxp, sym, syp, &
                             ilo1, ilo2, ihi1, ihi2, dx, dy)
 
-       call ppm_int_profile(q(:,:,n), qd_l1, qd_l2, qd_h1, qd_h2, &
-                            q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+       call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
+                            q(:,:,QU:QV), q_lo, q_hi, &
+                            qaux(:,:,QC), qa_lo, qa_hi, &
                             sxm, sxp, sym, syp, &
                             Ip(:,:,:,:,n), Im(:,:,:,:,n), &
                             ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
@@ -225,13 +225,14 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
     if (ppm_temp_fix /= 1) then
-       call ppm_reconstruct(gamc(:,:), gc_l1, gc_l2, gc_h1, gc_h2, &
-                            flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+       call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
+                            flatn, q_lo, q_hi, &
                             sxm, sxp, sym, syp, &
                             ilo1, ilo2, ihi1, ihi2, dx, dy)
 
-       call ppm_int_profile(gamc(:,:), gc_l1, gc_l2, gc_h1, gc_h2, &
-                            q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+       call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
+                            q(:,:,QU:QV), q_lo, q_hi, &
+                            qaux(:,:,QC), qa_lo, qa_hi, &
                             sxm, sxp, sym, syp, &
                             Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), &
                             ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
@@ -239,13 +240,14 @@ contains
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
-                               flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+          call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
+                               flatn, q_lo, q_hi, &
                                sxm, sxp, sym, syp, &
                                ilo1, ilo2, ihi1, ihi2, dx, dy)
 
-          call ppm_int_profile(srcQ(:,:,n), src_l1, src_l2, src_h1, src_h2, &
-                               q(:,:,QU:QV), c, qd_l1, qd_l2, qd_h1, qd_h2, &
+          call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
+                               q(:,:,QU:QV), q_lo, q_hi, &
+                               qaux(:,:,QC), qa_lo, qa_hi, &
                                sxm, sxp, sym, syp, &
                                Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
                                ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
@@ -263,7 +265,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j)
+          cc = qaux(i,j,QC)
           csq = cc**2
 
           rho = q(i,j,QRHO)
@@ -276,7 +278,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamc(i,j)
+          gam_g = qaux(i,j,QGAMC)
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------
@@ -704,7 +706,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j)
+          cc = qaux(i,j,QC)
           csq = cc**2
 
           rho = q(i,j,QRHO)
@@ -717,7 +719,7 @@ contains
 
           Clag = rho*cc
 
-          gam_g = gamc(i,j)
+          gam_g = qaux(i,j,QGAMC)
           game = q(i,j,QGAME)
 
           !-------------------------------------------------------------------

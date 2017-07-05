@@ -12,8 +12,8 @@ module ppm_module
 contains
 
   ! characteristics based on u
-  subroutine ppm_reconstruct(s, s_l1, s_l2, s_h1, s_h2, &
-                             flatn, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine ppm_reconstruct(s, s_lo, s_hi, &
+                             flatn, q_lo, q_hi, &
                              sxm, sxp, sym, syp, &
                              ilo1, ilo2, ihi1, ihi2, dx, dy)
 
@@ -28,15 +28,15 @@ contains
 
     implicit none
 
-    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
-    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
-    real(rt), intent(in) :: s(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(in) :: flatn(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(inout) :: sxm(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(inout) :: sxp(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(inout) :: sym(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(inout) :: syp(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
+    real(rt), intent(inout) :: sxm(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(inout) :: sxp(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(inout) :: sym(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(inout) :: syp(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
     real(rt), intent(in) :: dx, dy
 
     ! local
@@ -430,24 +430,26 @@ contains
   end subroutine ppm_reconstruct
 
 
-  subroutine ppm_int_profile(s, s_l1, s_l2, s_h1, s_h2, &
-                             u, cspd, qd_l1, qd_l2, qd_h1, qd_h2, &
+  subroutine ppm_int_profile(s, s_lo, s_hi, &
+                             u, u_lo, u_hi, &
+                             cspd, qa_lo, qa_hi, &
                              sxm, sxp, sym, syp, &
                              Ip, Im, &
                              ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
 
-    integer, intent(in) :: s_l1, s_l2, s_h1, s_h2
-    integer, intent(in) :: qd_l1, qd_l2, qd_h1, qd_h2
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
 
-    real(rt), intent(in) :: s(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(in) :: sxm(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(in) :: sxp(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(in) :: sym(s_l1:s_h1,s_l2:s_h2)
-    real(rt), intent(in) :: syp(s_l1:s_h1,s_l2:s_h2)
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: sxm(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: sxp(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: sym(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: syp(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
 
-    real(rt), intent(in) :: u(qd_l1:qd_h1,qd_l2:qd_h2,1:2)
-    real(rt), intent(in) :: cspd(qd_l1:qd_h1,qd_l2:qd_h2)
+    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),1:2)
+    real(rt), intent(in) :: cspd(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2))
 
     real(rt), intent(inout) ::  Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)
     real(rt), intent(inout) ::  Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:2,1:3)

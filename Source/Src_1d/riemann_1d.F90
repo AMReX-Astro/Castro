@@ -33,13 +33,14 @@ contains
 ! :::
 
   subroutine cmpflx(lo, hi, domlo, domhi, &
-                    qm, qp, qpd_l1, qpd_h1, &
-                    flx, flx_l1, flx_h1, &
-                    qint, qg_l1, qg_h1, &
+                    qm, qp, qpd_lo, qpd_hi, &
+                    flx, flx_lo, flx_hi, &
+                    qint, qg_lo, qg_hi, &
 #ifdef RADIATION
-                    rflx, rflx_l1, rflx_h1, &
+                    rflx, rflx_lo, rflx_hi, &
 #endif
-                    qaux, qa_l1, qa_h1, ilo, ihi)
+                    qaux, qa_lo, qa_hi, &
+                    ilo, ihi)
 
 
     use eos_type_module, only: eos_input_re, eos_input_rt, eos_t
@@ -55,21 +56,21 @@ contains
     integer lo(1),hi(1)
     integer domlo(1),domhi(1)
     integer ilo,ihi
-    integer qpd_l1,qpd_h1
-    integer flx_l1, flx_h1
-    integer  qg_l1,  qg_h1
-    integer  qa_l1,  qa_h1
+    integer qpd_lo(3), qpd_hi(3)
+    integer flx_lo(3), flx_hi(3)
+    integer  qg_lo(3), qg_hi(3)
+    integer  qa_lo(3), qa_hi(3)
 
-    real(rt)            qm(qpd_l1:qpd_h1, NQ)
-    real(rt)            qp(qpd_l1:qpd_h1, NQ)
+    real(rt)            qm(qpd_lo(1):qpd_hi(1), NQ)
+    real(rt)            qp(qpd_lo(1):qpd_hi(1), NQ)
 
-    real(rt)           flx(flx_l1:flx_h1, NVAR)
-    real(rt)          qint( qg_l1: qg_h1, NGDNV)
-    real(rt)          qaux( qa_l1: qa_h1, NQAUX)
+    real(rt)           flx(flx_lo(1):flx_hi(1), NVAR)
+    real(rt)          qint( qg_lo(1): qg_hi(1), NGDNV)
+    real(rt)          qaux( qa_lo(1): qa_hi(1), NQAUX)
 
 #ifdef RADIATION
-    integer rflx_l1, rflx_h1
-    real(rt)         rflx(rflx_l1:rflx_h1, 0:ngroups-1)
+    integer rflx_lo(3), rflx_hi(3)
+    real(rt)         rflx(rflx_lo(1):rflx_hi(1), 0:ngroups-1)
 #endif
 
     ! Local variables
@@ -172,22 +173,24 @@ contains
     ! Solve Riemann problem (godunov state passed back, but only (u,p) saved)
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson
-       call riemannus(qm, qp,qpd_l1,qpd_h1, &
+       call riemannus(qm,  qp, qpd_lo, qpd_hi, &
                       smallc, cavg, &
                       gamcm, gamcp, &
-                      flx, flx_l1, flx_h1, &
-                      qint, qg_l1, qg_h1, &
+                      flx, flx_lo, flx_hi, &
+                      qint, qg_lo, qg_hi, &
 #ifdef RADIATION
                       lam, gamcgm, gamcgp, &
-                      rflx, rflx_l1, rflx_h1, &
+                      rflx, rflx_lo, rflx_hi, &
 #endif
                       ilo, ihi, domlo, domhi )
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz
-       call riemanncg(qm, qp,qpd_l1,qpd_h1, smallc, cavg, &
-                      gamcm, gamcp, flx, flx_l1, flx_h1, &
-                      qint, qg_l1, qg_h1, &
+       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+                      smallc, cavg, &
+                      gamcm, gamcp, &
+                      flx, flx_lo, flx_hi, &
+                      qint, qg_lo, qg_hi, &
                       ilo, ihi)
     else
        call bl_error("ERROR: HLLC not support in 1-d yet")
@@ -201,25 +204,24 @@ contains
   end subroutine cmpflx
 
 
-  subroutine shock(q,qd_l1,qd_h1, &
-                   shk,s_l1,s_h1, &
-                   ilo1,ihi1,dx)
+  subroutine shock(q, q_lo, q_hi, &
+                   shk, s_lo, s_hi, &
+                   ilo1, ihi1, dx)
 
     use prob_params_module, only : coord_type
 
     use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: qd_l1, qd_h1
-    integer, intent(in) :: s_l1, s_h1
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: ilo1, ihi1
     real(rt)        , intent(in) :: dx
-    real(rt)        , intent(in) :: q(qd_l1:qd_h1,NQ)
-    real(rt)        , intent(inout) :: shk(s_l1:s_h1)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),NQ)
+    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1))
 
     integer :: i
 
     real(rt)         :: divU
     real(rt)         :: px_pre, px_post
-    real(rt)         :: e_x, d
     real(rt)         :: p_pre, p_post, pjump
 
     real(rt)         :: rc, rm, rp
@@ -272,7 +274,6 @@ contains
 
        ! test for compression + pressure jump to flag a shock
        if (p_pre == ZERO) then
-          ! this can arise if e_x = e_y = 0 (U = 0)
           pjump = ZERO
        else
           pjump = eps - (p_post - p_pre)/p_pre
@@ -295,10 +296,12 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine riemanncg(ql,qr,qpd_l1,qpd_h1,smallc,cav, &
-                       gamcl,gamcr,uflx,uflx_l1,uflx_h1, &
-                       qint,qg_l1,qg_h1, &
-                       ilo,ihi)
+  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
+                       smallc, cav, &
+                       gamcl, gamcr, &
+                       uflx, uflx_lo, uflx_hi, &
+                       qint, qg_lo, qg_hi, &
+                       ilo, ihi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -311,18 +314,18 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter :: small = 1.e-8_rt
 
-    integer :: qpd_l1, qpd_h1
-    integer :: uflx_l1, uflx_h1
-    integer :: qg_l1, qg_h1
+    integer :: qpd_lo(3), qpd_hi(3)
+    integer :: uflx_lo(3), uflx_hi(3)
+    integer :: qg_lo(3), qg_hi(3)
 
-    real(rt)         :: ql(qpd_l1:qpd_h1, NQ)
-    real(rt)         :: qr(qpd_l1:qpd_h1, NQ)
+    real(rt)         :: ql(qpd_lo(1):qpd_hi(1), NQ)
+    real(rt)         :: qr(qpd_lo(1):qpd_hi(1), NQ)
     real(rt)         ::  gamcl(ilo:ihi+1)
     real(rt)         ::  gamcr(ilo:ihi+1)
     real(rt)         ::    cav(ilo:ihi+1)
     real(rt)         :: smallc(ilo:ihi+1)
-    real(rt)         :: uflx(uflx_l1:uflx_h1, NVAR)
-    real(rt)         ::  qint(qg_l1:qg_h1, NGDNV)
+    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1), NVAR)
+    real(rt)         ::  qint(qg_lo(1):qg_hi(1), NGDNV)
 
     integer :: ilo,ihi
     integer :: n, nqp, ipassive
@@ -817,16 +820,16 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine riemannus(ql,qr,qpd_l1,qpd_h1, &
-                       smallc,cav, &
-                       gamcl,gamcr, &
-                       uflx,uflx_l1,uflx_h1,&
-                       qint,qg_l1,qg_h1, &
+  subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
+                       smallc, cav, &
+                       gamcl, gamcr, &
+                       uflx, uflx_lo, uflx_hi, &
+                       qint, qg_lo, qg_hi, &
 #ifdef RADIATION
                        lam, gamcgl, gamcgr, &
-                       rflx,rflx_l1,rflx_h1, &
+                       rflx, rflx_lo, rflx_hi, &
 #endif
-                       ilo,ihi,domlo,domhi)
+                       ilo, ihi, domlo, domhi)
 
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow, Symmetry
 #ifdef RADIATION
@@ -840,26 +843,26 @@ contains
 
     integer ilo,ihi
     integer domlo(1),domhi(1)
-    integer  qpd_l1,  qpd_h1
-    integer   qg_l1,   qg_h1
-    integer uflx_l1, uflx_h1
+    integer  qpd_lo(3), qpd_hi(3)
+    integer   qg_lo(3), qg_hi(3)
+    integer uflx_lo(3), uflx_hi(3)
 
 #ifdef RADIATION
-    integer rflx_l1, rflx_h1
+    integer rflx_lo(3), rflx_hi(3)
 #endif
 
-    real(rt)         ql(qpd_l1:qpd_h1, NQ)
-    real(rt)         qr(qpd_l1:qpd_h1, NQ)
+    real(rt)         ql(qpd_lo(1):qpd_hi(1), NQ)
+    real(rt)         qr(qpd_lo(1):qpd_hi(1), NQ)
 
     real(rt)           cav(ilo:ihi+1), smallc(ilo:ihi+1)
     real(rt)         gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
-    real(rt)          uflx(uflx_l1:uflx_h1, NVAR)
-    real(rt)          qint( qg_l1: qg_h1, NGDNV)
+    real(rt)          uflx(uflx_lo(1):uflx_hi(1), NVAR)
+    real(rt)          qint( qg_lo(1): qg_hi(1), NGDNV)
 
 #ifdef RADIATION
     real(rt)         lam(ilo-1:ihi+2, 0:ngroups-1)
     real(rt)         gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
-    real(rt)          rflx(rflx_l1:rflx_h1, 0:ngroups-1)
+    real(rt)          rflx(rflx_lo(1):rflx_hi(1), 0:ngroups-1)
 
     real(rt)        , dimension(0:ngroups-1) :: erl, err
     real(rt)         :: regdnv_g, pgdnv_g, pgdnv_t

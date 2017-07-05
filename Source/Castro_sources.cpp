@@ -87,21 +87,19 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
 
 
-    if (do_ctu) {
-      // Apply the old-time sources directly to the new-time state,
-      // S_new -- note that this addition is for full dt, since we
-      // will do a predictor-corrector on the sources to allow for
-      // state-dependent sources.
-
-      // note: this is not needed for MOL, since the sources will
-      // be applied as part of the overall integration
-
-      MultiFab& S_new = get_new_data(State_Type);
-
-      for (int n = 0; n < num_src; ++n)
-	if (source_flag(n))
-	  apply_source_to_state(S_new, *old_sources[n], dt);
-    }
+    // Apply the old-time sources directly to the new-time state,
+    // S_new -- note that this addition is for full dt, since we
+    // will do a predictor-corrector on the sources to allow for
+    // state-dependent sources.
+    
+    // note: this is not needed for MOL, since the sources will
+    // be applied as part of the overall integration
+    
+    MultiFab& S_new = get_new_data(State_Type);
+    
+    for (int n = 0; n < num_src; ++n)
+      if (source_flag(n))
+	apply_source_to_state(S_new, *old_sources[n], dt);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
