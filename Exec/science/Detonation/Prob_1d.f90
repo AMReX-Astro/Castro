@@ -130,11 +130,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         state(state_l1:state_h1,NVAR)
   real(rt)         time, delta(1)
   real(rt)         xlo(1), xhi(1)
-<<<<<<< HEAD
   real(rt)         sigma
-=======
-  real(rt)         w, sigma, c
->>>>>>> development
   real(rt)         xcen
   real(rt)         p_temp, eint_temp
   integer i
