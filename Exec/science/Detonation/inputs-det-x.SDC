@@ -53,11 +53,11 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = det_x_chk  # root name of checkpoint file
-amr.check_int       = 100         # number of timesteps between checkpoints
+amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 1.e-7
+amr.plot_per = 1.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
