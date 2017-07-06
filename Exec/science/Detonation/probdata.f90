@@ -14,7 +14,7 @@ module probdata_module
       integer         , save :: max_raderr_lev, max_radgrad_lev
 
 !     Sod variables
-      real(rt)        , save ::  T_l, T_r, dens, frac, cfrac
+      real(rt)        , save ::  T_l, T_r, dens, frac, cfrac, w_T, center_T
 
 
 !     These help specify which specific problem

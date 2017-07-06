@@ -1,5 +1,9 @@
 # changes since the last release:
 
+# 17.07
+
+  -- start of some code cleaning for eventual GPU offload support
+     merging from StarLord
 
   -- added a framework for method-of-lines integration of the
      hydrodynamics.  This does not do characteristic tracing, but
