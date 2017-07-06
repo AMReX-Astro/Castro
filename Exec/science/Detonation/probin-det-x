@@ -3,11 +3,14 @@
   T_r = 5.d7
 
   dens = 2.d8
-
   cfrac = 0.d0
+  
 
   idir = 1
   frac = 0.333d0
+
+  w_T = 2.d1
+  center_T = 1.d4
 /
 
 &tagging

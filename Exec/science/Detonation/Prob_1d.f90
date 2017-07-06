@@ -12,7 +12,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, &
+  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
        denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
        velgrad,  max_velgrad_lev, &
        presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, &
@@ -39,7 +39,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
-
+  
+  w_T = 1.e2_rt           ! width of temperature profile transition zone (cm)           
+  center_T = 1.2e4_rt     ! central position of teperature profile transition zone (cm) 
+  
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
   max_denerr_lev = -1
@@ -127,7 +130,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         state(state_l1:state_h1,NVAR)
   real(rt)         time, delta(1)
   real(rt)         xlo(1), xhi(1)
-  real(rt)         w, sigma, c
+  real(rt)         sigma
   real(rt)         xcen
   real(rt)         p_temp, eint_temp
   integer i
@@ -137,12 +140,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
 
   L_x = xmax - xmin
-  w = 200 ! width of temperature profile transition zone                                                                                                                                                                                                                      
-  c = 12000 ! center of teperature profile transition zone                                                                                                                                                                                                                    
 
   do i = lo(1), hi(1)
      xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
-     sigma = 1.0 / (1.0 + exp(-(c - xcen)/ w))
+     sigma = 1.0 / (1.0 + exp(-(center_T - xcen)/ w_T))
      state(i,URHO ) = dens
 
      state(i,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
