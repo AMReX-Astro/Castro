@@ -130,7 +130,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         state(state_l1:state_h1,NVAR)
   real(rt)         time, delta(1)
   real(rt)         xlo(1), xhi(1)
+<<<<<<< HEAD
   real(rt)         sigma
+=======
+  real(rt)         w, sigma, c
+>>>>>>> development
   real(rt)         xcen
   real(rt)         p_temp, eint_temp
   integer i
@@ -140,9 +144,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
 
   L_x = xmax - xmin
-
+  w = 200 ! width of temperature profile transition zone
+  c = 12000 ! center of teperature profile transition zone
+  
   do i = lo(1), hi(1)
      xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
+
      sigma = 1.0 / (1.0 + exp(-(center_T - xcen)/ w_T))
      state(i,URHO ) = dens
 
