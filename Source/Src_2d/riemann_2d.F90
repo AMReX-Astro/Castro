@@ -289,7 +289,7 @@ contains
                 endif
 
                 call HLL(qm(i,j,:), qp(i,j,:), cl, cr, &
-                         idir, 2, flx(i,j,:))
+                         idir, flx(i,j,:))
 
              endif
 
@@ -1567,12 +1567,12 @@ contains
           if (S_r <= ZERO) then
              ! R region
              call cons_state(qr(i,j,:), U_state)
-             call compute_flux(idir, 2, bnd_fac, U_state, pr, F_state)
+             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
           else if (S_r > ZERO .and. S_c <= ZERO) then
              ! R* region
              call cons_state(qr(i,j,:), U_state)
-             call compute_flux(idir, 2, bnd_fac, U_state, pr, F_state)
+             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
              call HLLC_state(idir, S_r, S_c, qr(i,j,:), U_hllc_state)
 
@@ -1582,7 +1582,7 @@ contains
           else if (S_c > ZERO .and. S_l < ZERO) then
              ! L* region
              call cons_state(ql(i,j,:), U_state)
-             call compute_flux(idir, 2, bnd_fac, U_state, pl, F_state)
+             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
              call HLLC_state(idir, S_l, S_c, ql(i,j,:), U_hllc_state)
 
@@ -1592,7 +1592,7 @@ contains
           else
              ! L region
              call cons_state(ql(i,j,:), U_state)
-             call compute_flux(idir, 2, bnd_fac, U_state, pl, F_state)
+             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
           endif
 
