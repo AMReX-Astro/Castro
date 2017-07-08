@@ -7,10 +7,9 @@
   
 
   idir = 1
-  frac = 0.333d0
 
-  w_T = 2.d1
-  center_T = 1.d4
+  w_T = 5.d-4
+  center_T = 3.d-1
 /
 
 &tagging

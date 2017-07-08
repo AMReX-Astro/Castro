@@ -37,8 +37,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
-  w_T = 1.e2_rt           ! width of temperature profile transition zone (cm)           
-  center_T = 1.2e4_rt     ! central position of teperature profile transition zone (cm) 
+  w_T = 5.e-4_rt          ! ratio of the width of temperature transition zone to the full domain          
+  center_T = 3.e-1_rt     ! central position parameter of teperature profile transition zone 
 
   ! Read namelists
   untin = 9
@@ -100,6 +100,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, xn
   use meth_params_module, only: NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
   use amrex_fort_module, only: rt => amrex_real
+  use prob_params_module, only: problo, probhi
 
   implicit none
 
@@ -110,18 +111,21 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt), intent(in   ) :: time, delta(1)
   real(rt), intent(in   ) :: xlo(1), xhi(1)
 
-  real(rt) :: sigma
+  real(rt) :: sigma, width, c_T
   real(rt) :: xcen
   integer  :: i
 
   type (eos_t) :: eos_state
+
+  width = w_T * (probhi(1) - problo(1))
+  c_T = problo(1) + center_T * (probhi(1) - problo(1))
 
   do i = lo(1), hi(1)
      xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
 
      state(i,URHO ) = dens
 
-     sigma = 1.0 / (1.0 + exp(-(center_T - xcen)/ w_T))
+     sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
 
      state(i,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
