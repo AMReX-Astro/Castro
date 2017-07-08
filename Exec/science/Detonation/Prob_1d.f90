@@ -140,8 +140,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type (eos_t) :: eos_state
 
   L_x = xmax - xmin
-  w = 200 ! width of temperature profile transition zone
-  c = 12000 ! center of teperature profile transition zone
   
   do i = lo(1), hi(1)
      xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
