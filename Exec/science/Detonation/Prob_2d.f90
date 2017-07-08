@@ -112,7 +112,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt), intent(in   ) :: time, delta(2)
   real(rt), intent(in   ) :: xlo(2), xhi(2)
 
-  real(rt) :: sigma
+  real(rt) :: sigma, width, c_T
   real(rt) :: xcen, ycen
   integer  :: i, j
 
