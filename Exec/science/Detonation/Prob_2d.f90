@@ -13,7 +13,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   
   integer untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir
+  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -36,6 +36,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
+
+  w_T = 1.e2_rt           ! width of temperature profile transition zone (cm)
+  center_T = 1.2e4_rt     ! central position of teperature profile transition zone (cm)
 
 !     Read namelists
   untin = 9
@@ -118,6 +121,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         time, delta(2)
   real(rt)         xlo(2), xhi(2)
 
+  real(rt)         sigma
   real(rt)         xcen, ycen
   real(rt)         p_temp, eint_temp
   integer i,j
@@ -132,11 +136,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
             
         state(i,j,URHO ) = dens
 
-        if (xcen <= frac*(xmin + 0.5e0_rt*(xmax-xmin))) then
-           state(i,j,UTEMP) = T_l
-        else
-           state(i,j,UTEMP) = T_r
-        endif
+        sigma = 1.0 / (1.0 + exp(-(center_T - xcen)/ w_T))
+
+        state(i,j,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
         state(i,j,UFS:UFS-1+nspec) = state(i,j,URHO)*xn(1:nspec)
 
