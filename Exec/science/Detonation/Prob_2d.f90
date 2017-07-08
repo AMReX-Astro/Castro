@@ -3,8 +3,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use network   , only : network_species_index, nspec
   use bl_error_module
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer init, namlen
@@ -13,10 +13,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   
   integer untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, &
-       denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velgrad,  max_velgrad_lev, &
-       presserr, pressgrad,max_presserr_lev,max_pressgrad_lev
+  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -40,19 +37,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
-  denerr = 1.e20_rt
-  dengrad = 1.e20_rt
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
-  
-  presserr = 1.e20_rt
-  pressgrad = 1.e20_rt
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-  
-  velgrad = 1.e20_rt
-  max_velgrad_lev = -1
-  
 !     Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')

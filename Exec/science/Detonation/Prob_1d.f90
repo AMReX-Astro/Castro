@@ -12,11 +12,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
-       denerr,  dengrad,  max_denerr_lev,  max_dengrad_lev, &
-       velgrad,  max_velgrad_lev, &
-       presserr,pressgrad,max_presserr_lev,max_pressgrad_lev, &
-       temperr,tempgrad,max_temperr_lev,max_tempgrad_lev
+  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T
 
 !
 !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -42,20 +38,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   
   w_T = 1.e2_rt           ! width of temperature profile transition zone (cm)           
   center_T = 1.2e4_rt     ! central position of teperature profile transition zone (cm) 
-  
-  denerr = 1.e20_rt
-  dengrad = 1.e20_rt
-  max_denerr_lev = -1
-  max_dengrad_lev = -1
 
-  presserr = 1.e20_rt
-  pressgrad = 1.e20_rt
-  max_presserr_lev = -1
-  max_pressgrad_lev = -1
-
-  velgrad = 1.e20_rt
-  max_velgrad_lev = -1
-  
 !     Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')
