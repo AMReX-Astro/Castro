@@ -1,33 +1,34 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use probdata_module
-  use network   , only : network_species_index, nspec
-  use bl_error_module
-  use amrex_fort_module, only : rt => amrex_real
+  use probdata_module, only: T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
+                             xn, ihe4, ic12, io16
+  use network, only: network_species_index, nspec
+  use bl_error_module, only: bl_error
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
-  integer init, namlen
-  integer name(namlen)
-  real(rt)         problo(1), probhi(1)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(1), probhi(1)
 
-  integer untin,i
+  integer :: untin,i
 
   namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T
 
-!
-!     Build "probin" filename -- the name of file containing fortin namelist.
-!     
+  ! Build "probin" filename -- the name of file containing fortin namelist.
+
   integer, parameter :: maxlen = 256
-  character probin*(maxlen)
+  character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-         
-  ! set namelist defaults
-  
+
+  ! Set namelist defaults
+
   T_l = 1.e9_rt
   T_r = 5.e7_rt
   dens = 1.e8_rt
@@ -35,20 +36,15 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
-  
+
   w_T = 1.e2_rt           ! width of temperature profile transition zone (cm)           
   center_T = 1.2e4_rt     ! central position of teperature profile transition zone (cm) 
 
-!     Read namelists
+  ! Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
-
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  center(1) = 0.5e0_rt*(problo(1)+probhi(1))
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")
@@ -58,7 +54,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
      call bl_error("ERROR: species indices not found")
   endif
-
 
   ! make sure that the carbon fraction falls between 0 and 1
   if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
@@ -71,22 +66,22 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn(:) = 0.e0_rt
   xn(ic12) = cfrac
   xn(ihe4) = 1.e0_rt - cfrac
-  
+
 end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -99,36 +94,34 @@ end subroutine amrex_probinit
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_h1,delta,xlo,xhi)
 
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rt
   use network, only: nspec
-  use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
+  use probdata_module, only: T_l, T_r, center_T, w_T, dens, xn
+  use meth_params_module, only: NVAR, URHO, UMX, UEDEN, UEINT, UTEMP, UFS
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
-  integer level, nscal
-  integer lo(1), hi(1)
-  integer state_l1,state_h1
-  real(rt)         state(state_l1:state_h1,NVAR)
-  real(rt)         time, delta(1)
-  real(rt)         xlo(1), xhi(1)
-  real(rt)         sigma
-  real(rt)         xcen
-  real(rt)         p_temp, eint_temp
-  integer i
 
-  real(rt)         :: L_x
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(1), hi(1)
+  integer,  intent(in   ) :: state_l1,state_h1
+  real(rt), intent(inout) :: state(state_l1:state_h1,NVAR)
+  real(rt), intent(in   ) :: time, delta(1)
+  real(rt), intent(in   ) :: xlo(1), xhi(1)
+
+  real(rt) :: sigma
+  real(rt) :: xcen
+  integer  :: i
 
   type (eos_t) :: eos_state
 
-  L_x = xmax - xmin
-  
   do i = lo(1), hi(1)
-     xcen = xmin + delta(1)*(dble(i) + 0.5e0_rt)
+     xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
+
+     state(i,URHO ) = dens
 
      sigma = 1.0 / (1.0 + exp(-(center_T - xcen)/ w_T))
-     state(i,URHO ) = dens
 
      state(i,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
@@ -143,7 +136,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      state(i,UMX  ) = 0.e0_rt
      state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added                                                                                                                                                                                     
      state(i,UEINT) = state(i,URHO)*eos_state%e
-            
+
   enddo
 
 end subroutine ca_initdata
