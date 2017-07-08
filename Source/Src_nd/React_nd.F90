@@ -263,7 +263,7 @@ contains
              ! Don't burn on zones inside shock regions, if the relevant option is set.
 
 #ifdef SHOCK_VAR
-             if (state(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
+             if (unew(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
 #endif
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
