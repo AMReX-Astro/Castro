@@ -784,6 +784,7 @@ contains
 #endif
                                               lo,hi,dt,dx)
 
+    use amrex_fort_module, only: rt => amrex_real
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, UEINT, UFS, UFX, &
                                   small_dens, small_temp, cfl, &
@@ -794,7 +795,6 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
     use eos_module, only: eos
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
@@ -812,34 +812,34 @@ contains
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
 
-    real(rt)        , intent(in   ) :: dt, dx(3)
+    real(rt), intent(in   ) :: dt, dx(3)
 
-    real(rt)        , intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
 #if (BL_SPACEDIM >= 2)
-    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
 #if (BL_SPACEDIM == 3)
-    real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
 
-    real(rt)        , pointer :: thetap_dens(:,:,:), thetam_dens(:,:,:)
-    real(rt)        , pointer :: thetap_rhoe(:,:,:), thetam_rhoe(:,:,:)
-    real(rt)        , pointer :: small_rhoe(:,:,:)
+    real(rt), pointer :: thetap_dens(:,:,:), thetam_dens(:,:,:)
+    real(rt), pointer :: thetap_rhoe(:,:,:), thetam_rhoe(:,:,:)
+    real(rt), pointer :: small_rhoe(:,:,:)
 
-    integer          :: i, j, k
+    integer  :: i, j, k
 
-    real(rt)         :: alpha_x, alpha_y, alpha_z
-    real(rt)         :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
-    integer          :: dir
+    real(rt) :: alpha_x, alpha_y, alpha_z
+    real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
+    integer  :: dir
 
     type (eos_t) :: eos_state
-    real(rt)         :: rhoe, drhoe, rhoeLF, drhoeLF
+    real(rt) :: rhoe, drhoe, rhoeLF, drhoeLF
 
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
