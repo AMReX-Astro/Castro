@@ -472,7 +472,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Zero it out, and add them back using the saved copy of the fluxes.
 
     if (use_post_step_regrid && level > 0)
-	if (getLevel(level-1).post_step_regrid)
+	if (getLevel(level-1).post_step_regrid && amr_iteration == 1)
 	    getLevel(level-1).FluxRegCrseInit();
 
     // The option of whether to do a multilevel initialization is
