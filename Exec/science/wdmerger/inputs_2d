@@ -327,7 +327,7 @@ amr.small_plot_int = -1
 amr.write_plotfile_with_checkpoint = 0
 
 # Do not write final checkpoint/plotfile
-output_at_completion = 0
+castro.output_at_completion = 0
 
 # Do not write a plotfile or checkpoint on restart
 amr.plotfile_on_restart = 0
