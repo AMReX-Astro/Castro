@@ -1,5 +1,16 @@
 # changes since the last release:
 
+  -- the option castro.limit_fluxes_on_small_dens now only limits
+     on density as the name suggests. It originally also limited
+     fluxes if the internal energy would go negative, but this
+     caused problems in runs with MPI, so it was removed. It was
+     not strictly needed anyway, as the normal logic for handling
+     negative internal energies is reliable.
+
+  -- two errors were fixed in the implementation of the triggered
+     regrid at the end of a timestep. The method now correctly conserves
+     fluid variables at coarse-fine boundaries.
+
 # 17.07
 
   -- start of some code cleaning for eventual GPU offload support
