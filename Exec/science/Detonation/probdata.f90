@@ -2,7 +2,7 @@ module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
-  real(rt), save :: T_l, T_r, dens, frac, cfrac, w_T, center_T
+  real(rt), save :: T_l, T_r, dens, frac, cfrac, w_T, center_T, smallx
 
   integer, save :: idir
 
