@@ -55,10 +55,3 @@ amr.probin_file = probin.1d.cyl
 
 # FAB FORMAT
 fab.format = ASCII
-
-# 1D PLOTTING PARAMETERS
-xgraph.format = dat
-
-xgraph.graph = den density 100 -1
-xgraph.graph = xmom xmom 100 -1
-xgraph.graph = pres pressure 100 -1

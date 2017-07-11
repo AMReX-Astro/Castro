@@ -32,18 +32,6 @@ amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 #amr.plot_files_output = 0    # suppress plot files
 
-xgraph.format = gnu
-xgraph.graph = eint       eint_e         100  -1
-xgraph.graph = Er         Ertot          100  -1
-xgraph.graph = Er00       rad0           100  -1
-xgraph.graph = Er08       rad8           100  -1
-xgraph.graph = Er16       rad16          100  -1
-xgraph.graph = Er24       rad24          100  -1
-xgraph.graph = Er32       rad32          100  -1
-xgraph.graph = Er40       rad40          100  -1
-xgraph.graph = Er48       rad48          100  -1
-xgraph.graph = Er56       rad56          100  -1
-xgraph.graph = Er63       rad63          100  -1
 
 # PROBIN FILENAME
 amr.probin_file     = probin.common

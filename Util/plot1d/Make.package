@@ -1,5 +1,0 @@
-PLOT1D = EXE
-
-C$(PLOT1D)_headers += XGraph1d.H
-
-C$(PLOT1D)_sources += XGraph1d.cpp

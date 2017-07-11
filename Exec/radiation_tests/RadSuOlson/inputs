@@ -192,7 +192,3 @@ DistributionMapping.strategy = ROUNDROBIN
 DistributionMapping.strategy = KNAPSACK
 DistributionMapping.strategy = SFC
 
-xgraph.format = gnu
-xgraph.graph = Temp       Temp     1000 -1
-xgraph.graph = eint       eint_e   1000 -1
-xgraph.graph = Er         rad      1000 -1

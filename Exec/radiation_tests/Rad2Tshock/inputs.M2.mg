@@ -32,17 +32,6 @@ amr.plot_file       = plt_
 amr.plot_int        = 500     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-xgraph.format = gnu
-xgraph.graph = dens       density        500  -1
-xgraph.graph = Temp       Temp           500  -1
-xgraph.graph = vx         x_velocity     500  -1
-xgraph.graph = Er         Ertot          500  -1
-xgraph.graph = Er0        rad0           500  -1
-xgraph.graph = Er4        rad4           500  -1
-xgraph.graph = Er8        rad8           500  -1
-xgraph.graph = Er12       rad12          500  -1
-xgraph.graph = Er15       rad15          500  -1
-
 # PROBIN FILENAME
 amr.probin_file     = probin.M2
 

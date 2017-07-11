@@ -62,10 +62,3 @@ castro.v            = 0       # control verbosity in Castro.cpp
 amr.derive_plot_vars = ALL
 
 amr.probin_file = probin
-
-#xgraph.format = xmg
-#xgraph.graph  = den  density    10 -1
-#xgraph.graph  = pres pressure   10 -1
-#xgraph.graph  = xvel x_velocity 10 -1
-#xgraph.graph  = grav_x grav_x   10 -1
-

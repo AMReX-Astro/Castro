@@ -73,6 +73,3 @@ amr.derive_plot_vars = NONE
 
 #PROBIN FILENAME
 amr.probin_file = probin.fullstar
-
-xgraph.format = pla
-xgraph.graph  = den  density     1000000 -1
