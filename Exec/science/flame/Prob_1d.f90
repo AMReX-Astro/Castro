@@ -6,6 +6,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network
   use probdata_module
   use extern_probin_module
+  use bl_constants_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -81,6 +82,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
   use eos_type_module
   use eos_module
+  use bl_constants_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none

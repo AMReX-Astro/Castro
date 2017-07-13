@@ -11,6 +11,8 @@
      regrid at the end of a timestep. The method now correctly conserves
      fluid variables at coarse-fine boundaries.
 
+  -- the XGRAPH stuff that output xmgr-compatible 1-d ASCII profiles
+
 # 17.07
 
   -- start of some code cleaning for eventual GPU offload support

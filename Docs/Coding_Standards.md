@@ -13,7 +13,7 @@ a Fortran routine from C++
    which passes in the FAB data pointer, and a three-dimensional version of lo and
    hi (in 1D and 2D, the extra dimensions are filled with zeros). In the C++ function
    declaration, you can either use BL_FORT_FAB_ARG_ANYD(fab), or you can explicitly
-   list out Real*, int*, int*.
+   list out Real*, const int*, const int*.
 
  * A separate tile `lo`/`hi` should be passed in to each subroutine, with the expectation
    that the Fortran subroutine will act exactly over the domain (lo, hi). If you want to
