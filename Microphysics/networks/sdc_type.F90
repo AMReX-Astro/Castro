@@ -33,6 +33,7 @@ module sdc_type_module
      integer :: n_rhs
      integer :: n_jac
 
+     integer :: sdc_iter
   end type sdc_t
 
 end module sdc_type_module

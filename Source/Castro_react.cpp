@@ -343,7 +343,7 @@ Castro::react_state(Real time, Real dt)
 		       a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
 		       r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
 		       m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
-		       time, dt);
+		       time, dt, sdc_iteration);
 
     }
 
