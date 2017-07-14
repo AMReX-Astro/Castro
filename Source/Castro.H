@@ -422,7 +422,7 @@ public:
 		     amrex::MultiFab& weights,
 		     amrex::Real time,
 		     amrex::Real dt_react,
-		     int  ngrow = 0);
+		     int strang_half, int  ngrow = 0);
 
     void strang_react_first_half(amrex::Real time, amrex::Real dt);
 

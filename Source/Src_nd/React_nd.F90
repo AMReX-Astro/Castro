@@ -14,7 +14,7 @@ contains
                             reactions,r_lo,r_hi, &
                             weights,w_lo,w_hi, &
                             mask,m_lo,m_hi, &
-                            time,dt_react) bind(C, name="ca_react_state")
+                            time,dt_react,strang_half) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -52,6 +52,7 @@ contains
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
+    integer, intent(in) :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
