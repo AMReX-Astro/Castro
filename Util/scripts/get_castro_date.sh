@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# clone StarLord and all associated repos and reset them to a particular
+# clone Castro and all associated repos and reset them to a particular
 # date/time.  Then output the necessary environment variables to build
 # with this source.
 
