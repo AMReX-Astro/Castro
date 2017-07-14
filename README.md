@@ -13,12 +13,18 @@ http://amrex-astro.github.io/Castro/
 
 ## Getting Started
 
-To build `Castro`, you need a copy of the ` AMReX` library:
+You can download Castro and all the necessary dependencies (AMReX and
+the Microphysics repo) using the script:
 
-https://github.com/AMReX-Codes/amrex
+https://raw.githubusercontent.com/AMReX-Astro/Castro/development/Util/scripts/get_castro.sh
 
-There is a User's Guide in `Castro/Docs/` (type `make` to build from
-LaTeX source) that will guide you through running your first problem.
+Running this will clone the repositories and create a file
+`castro_exports.sh` which you can source or copy to your `.bashrc`
+to define the necessary environment variables.
+
+The User's Guide in `Castro/Docs/` (type `make` to build from
+LaTeX source) will guide you through running your first problem.
+
 A PDF of the User's Guide can be found at
 
 http://bender.astro.sunysb.edu/Castro/staging/Castro/Docs/CastroUserGuide.pdf
