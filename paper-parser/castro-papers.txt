@@ -110,3 +110,5 @@ pop III supernovae: http://adsabs.harvard.edu/abs/2011CoPhC.182..254C
 pop III supernovae: http://adsabs.harvard.edu/abs/2010ApJ...709...11J
 
 pop III supernovae: http://adsabs.harvard.edu/abs/2010AIPC.1294..255C
+
+low-energy supernovae: http://adsabs.harvard.edu/abs/2017arXiv170602440L
