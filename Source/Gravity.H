@@ -19,7 +19,6 @@ public:
                       amrex::MultiFab*             area);
 
   std::string get_gravity_type ();
-  amrex::Real get_const_grav ();
   int NoSync();
   int NoComposite();
   int DoCompositeCorrection();

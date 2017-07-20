@@ -328,11 +328,6 @@ std::string Gravity::get_gravity_type()
   return gravity_type;
 }
 
-Real Gravity::get_const_grav()
-{
-  return const_grav;
-}
-
 int Gravity::NoSync()
 {
   return no_sync;
