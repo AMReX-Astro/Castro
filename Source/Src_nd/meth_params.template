@@ -110,7 +110,6 @@ contains
 
     type (amrex_parmparse) :: pp
 
-    call amrex_parmparse_build(pp, "castro")
 
     @@set_castro_params@@
 
@@ -172,7 +171,6 @@ contains
 
     !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    call amrex_parmparse_destroy(pp)
 
   end subroutine ca_set_castro_method_params
 

@@ -216,7 +216,15 @@ contains
 
     type (amrex_parmparse) :: pp
 
-    call amrex_parmparse_build(pp, "castro")
+
+    const_grav = 0.0d0;
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
+    call amrex_parmparse_destroy(pp)
+
 
     difmag = 0.1d0;
     small_dens = -1.d200;
@@ -292,9 +300,8 @@ contains
     do_acc = -1;
     grown_factor = 1;
     track_grid_losses = 0;
-    const_grav = 0.0d0;
-    get_g_from_phi = 0;
 
+    call amrex_parmparse_build(pp, "castro")
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -393,8 +400,9 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
+    call amrex_parmparse_destroy(pp)
+
+
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -480,7 +488,6 @@ contains
 
     !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    call amrex_parmparse_destroy(pp)
 
   end subroutine ca_set_castro_method_params
 
