@@ -13,6 +13,10 @@
 
   -- the XGRAPH stuff that output xmgr-compatible 1-d ASCII profiles
 
+  -- fixed a bug where the gravity runtime parameters were not 
+     being properly initialized in the Fortran side of the code.
+
+
 # 17.07
 
   -- start of some code cleaning for eventual GPU offload support
