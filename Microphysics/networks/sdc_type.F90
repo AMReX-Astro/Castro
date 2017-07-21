@@ -8,6 +8,10 @@ module sdc_type_module
   ! A generic structure holding data necessary to do a nuclear burn
   ! in the SDC formalism.
 
+  ! these indicies represent the order that the conserved state comes
+  ! into the ODE integration from the hydro code.
+  !
+  ! they also represent the order of the advective sources
   integer, parameter :: SEDEN = 1
   integer, parameter :: SEINT = 2
   integer, parameter :: SFS   = 3
