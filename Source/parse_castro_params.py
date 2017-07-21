@@ -325,13 +325,25 @@ def write_meth_module(plist, meth_template):
                         mo.write(", ")
 
         elif line.find("@@set_castro_params@@") >= 0:
-            for p in params:
-                mo.write(p.get_f90_default_string())
 
-            mo.write("\n")
+            namespaces = list(set([q.namespace for q in params]))
+            print("namespaces: ", namespaces)
+            for nm in namespaces:
+                params_nm = [q for q in params if q.namespace == nm]
 
-            for p in params:
-                mo.write(p.get_query_string("F90"))
+                for p in params_nm:
+                    mo.write(p.get_f90_default_string())
+
+                mo.write("\n")
+
+                mo.write('    call amrex_parmparse_build(pp, "{}")\n'.format(nm))
+
+                for p in params_nm:
+                    mo.write(p.get_query_string("F90"))
+
+                mo.write('    call amrex_parmparse_destroy(pp)\n')
+                
+                mo.write("\n\n")
 
             # Now do the OpenACC device updates
 

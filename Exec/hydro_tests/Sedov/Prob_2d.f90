@@ -75,11 +75,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use actual_eos_module, only: gamma_const
-  use bl_constants_module, only: M_PI, FOUR3RD
+  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
+  use network, only : nspec
+  use eos_module, only : eos
+  use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
 
   implicit none
 
@@ -97,6 +99,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer :: i,j, ii, jj
   real(rt)         :: vol_pert, vol_ambient
+  real(rt) :: xn_zone(nspec), e_zone
+  type(eos_t) :: eos_state
+
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
 
   ! Cylindrical problem in Cartesian coordinates
   if (probtype .eq. 21) then
@@ -105,7 +112,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! energy into a corresponding pressure distributed throughout the
      ! perturbed volume
      vctr = M_PI*r_init**2
-     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
+
+     e_zone = exp_energy/vctr/dens_ambient
+
+     eos_state % e = e_zone
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = 100.0  ! initial guess
+
+     call eos(eos_input_re, eos_state)
+
+     p_exp = eos_state % p
 
      do j = lo(2), hi(2)
         ymin = xlo(2) + delta(2)*dble(j-lo(2))
@@ -135,7 +152,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/ (vol_pert + vol_ambient)
 
-           eint = p_zone/(gamma_const - 1.e0_rt)
+           eos_state % p = p_zone
+           eos_state % rho = dens_ambient
+           eos_state % xn(:) = xn_zone(:)
+
+           call eos(eos_input_rp, eos_state)
+
+           eint = dens_ambient * eos_state % e
 
            state(i,j,URHO) = dens_ambient
            state(i,j,UMX:UMZ) = 0.e0_rt
@@ -158,7 +181,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      !  energy into a corresponding pressure distributed throughout
      !  the perturbed volume
      vctr = M_PI*r_init**2
-     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
+
+     e_zone = exp_energy/vctr/dens_ambient
+
+     eos_state % e = e_zone
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = 100.0  ! initial guess
+
+     call eos(eos_input_re, eos_state)
+
+     p_exp = eos_state % p
 
      j = lo(2)
 
@@ -183,7 +216,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/ (vol_pert + vol_ambient)
 
-        eint = p_zone/(gamma_const - 1.e0_rt)
+        eos_state % p = p_zone
+        eos_state % rho = dens_ambient
+        eos_state % xn(:) = xn_zone(:)
+
+        call eos(eos_input_rp, eos_state)
+
+        eint = dens_ambient * eos_state % e
 
         state(i,j,URHO) = dens_ambient
         state(i,j,UMX:UMZ) = 0.e0_rt
@@ -215,7 +254,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      ! energy into a corresponding pressure distributed throughout the
      ! perturbed volume
      vctr = FOUR3RD*M_PI*r_init**3
-     p_exp = (gamma_const - 1.e0_rt)*exp_energy/vctr
+
+     e_zone = exp_energy/vctr/dens_ambient
+
+     eos_state % e = e_zone
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = 100.0  ! initial guess
+
+     call eos(eos_input_re, eos_state)
+
+     p_exp = eos_state % p
 
      do j = lo(2), hi(2)
         ymin = xlo(2) + delta(2)*dble(j-lo(2))
@@ -253,8 +302,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            enddo
 
            p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/ (vol_pert + vol_ambient)
+           eos_state % p = p_zone
+           eos_state % rho = dens_ambient
+           eos_state % xn(:) = xn_zone(:)
 
-           eint = p_zone/(gamma_const - 1.e0_rt)
+           call eos(eos_input_rp, eos_state)
+
+           eint = dens_ambient * eos_state % e
 
            state(i,j,URHO) = dens_ambient
            state(i,j,UMX:UMZ) = 0.e0_rt
