@@ -28,7 +28,7 @@ module riemann_module
 
   private
 
-  public cmpflx, shock, riemanncg
+  public cmpflx, shock, riemanncg, riemannus
 
   real(rt), parameter :: smallu = 1.e-12_rt
 
