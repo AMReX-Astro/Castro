@@ -114,8 +114,8 @@
   do_constant_volume_burn = T
   call_eos_in_rhs = T
 
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
+  rtol_spec = 1.d-8
+  atol_spec = 1.d-8
 
   rtol_temp = 1.d-6
   atol_temp = 1.d-6
