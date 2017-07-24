@@ -33,13 +33,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   T_r = 5.e7_rt
   dens = 1.e8_rt
   smallx = 1.e-12_rt
-  
+
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
   cfrac = 0.5
 
-  w_T = 5.e-4_rt          ! ratio of the width of temperature transition zone to the full domain          
-  center_T = 3.e-1_rt     ! central position parameter of teperature profile transition zone 
+  w_T = 5.e-4_rt          ! ratio of the width of temperature transition zone to the full domain
+  center_T = 3.e-1_rt     ! central position parameter of teperature profile transition zone
 
   ! Read namelists
   untin = 9
@@ -64,7 +64,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set the default mass fractions
   allocate(xn(nspec))
 
-  xn(:) = smallx 
+  xn(:) = smallx
   xn(ic12) = cfrac
   xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
 
@@ -139,7 +139,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      call eos(eos_input_rt, eos_state)
 
      state(i,UMX  ) = 0.e0_rt
-     state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added                                                                                                                                                                                     
+     state(i,UEDEN) = state(i,URHO)*eos_state%e  ! if vel /= 0, then KE needs to be added
      state(i,UEINT) = state(i,URHO)*eos_state%e
 
   enddo
