@@ -16,6 +16,9 @@
   -- fixed a bug where the gravity runtime parameters were not 
      being properly initialized in the Fortran side of the code.
 
+  -- the viscosity routine is now separate from conductivity
+     in Microphysics/.  Also, Castro can now use the stellar
+     conductivity that is part of StarKiller.
 
 # 17.07
 
