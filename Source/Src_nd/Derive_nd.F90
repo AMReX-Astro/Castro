@@ -1141,7 +1141,7 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call thermal_conductivity(eos_state, coeff)
+                call conductivity(eos_state, coeff)
              else
                 coeff = ZERO
              endif
@@ -1201,7 +1201,7 @@ contains
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call thermal_conductivity(eos_state, coeff)
+                call conductivity(eos_state, coeff)
              else
                 coeff = ZERO
              endif
