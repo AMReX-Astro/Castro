@@ -1,7 +1,7 @@
 module actual_conductivity_module
 
   use amrex_fort_module, only : rt => amrex_real                                
-  use eos_type_modulem only : eos_t
+  use eos_type_module, only : eos_t
   
   implicit none
 
