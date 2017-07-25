@@ -10,6 +10,7 @@ TOP := $(CASTRO_HOME)
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
+VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
 EBASE = Castro
 
@@ -152,6 +153,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
 ifneq "$(wildcard $(COND_HOME)/$(strip $(Conductivity_dir)) )" ""
    COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
 endif
+   VISC_PATH := $(VISC_HOME)/constant
 endif
 
 # Problems can specify the input file for general_null by
@@ -197,8 +199,10 @@ ifeq ($(USE_DIFFUSION), TRUE)
    include $(TOP)/Microphysics/conductivity/Make.package
    include $(COND_HOME)/Make.package
    include $(COND_PATH)/Make.package
+   include $(VISC_PATH)/Make.package
    EXTERN_CORE += $(COND_HOME)
    EXTERN_CORE += $(COND_PATH)
+   EXTERN_CORE += $(VISC_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -214,8 +218,8 @@ INCLUDE_LOCATIONS += $(NETWORK_HOME) $(NETWORK_PATH)
 VPATH_LOCATIONS   += $(NETWORK_HOME) $(NETWORK_PATH)
 
 ifeq ($(USE_DIFFUSION), TRUE)
-   INCLUDE_LOCATIONS += $(COND_HOME) $(COND_PATH)
-   VPATH_LOCATIONS   += $(COND_HOME) $(COND_PATH)
+   INCLUDE_LOCATIONS += $(COND_HOME) $(COND_PATH) $(VISC_PATH)
+   VPATH_LOCATIONS   += $(COND_HOME) $(COND_PATH) $(VISC_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -316,6 +320,7 @@ INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
 MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
 ifeq ($(USE_DIFFUSION), TRUE)
    MNAMES += CONDUCTIVITY=$(COND_PATH)
+   MNAMES += VISCOSITY=$(VISC_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
