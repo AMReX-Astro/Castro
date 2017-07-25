@@ -211,7 +211,7 @@ contains
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
-
+    use eos_module, only : eos
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -236,14 +236,14 @@ contains
        do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              eos_state%rho    = state(i,j,k,URHO)
-!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%T      = state(i,j,k,UTEMP)
              eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
              eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
              call eos(eos_input_re,eos_state)
 
              if (eos_state%rho > diffuse_cutoff_density) then
-                call thermal_conductivity(eos_state, coeff)
+                call conductivity(eos_state, coeff)
                 coeff = coeff / eos_state%cp
              else
                 coeff = ZERO
@@ -298,7 +298,7 @@ contains
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
-
+    use eos_module, only : eos
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -338,7 +338,7 @@ contains
 
              if (eos_state%rho > diffuse_cutoff_density) then
 
-                call thermal_conductivity(eos_state, cond)
+                call conductivity(eos_state, cond)
              else
                 cond = ZERO
              endif
@@ -391,6 +391,7 @@ contains
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
+    use eos_module, only : eos
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -416,15 +417,14 @@ contains
        do j = lo(2)-1*dg(2),hi(2)+1*dg(2)
           do i = lo(1)-1*dg(1),hi(1)+1*dg(1)
              eos_state%rho    = state(i,j,k,URHO)
-!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%T      = state(i,j,k,UTEMP)
              eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
              eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
              call eos(eos_input_re,eos_state)
 
-
              if (eos_state%rho > diffuse_cutoff_density) then
-                call thermal_conductivity(eos_state, cond)
+                call conductivity(eos_state, cond)
                 cond = cond / eos_state%cp
              else
                 cond = ZERO
