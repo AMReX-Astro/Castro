@@ -1,23 +1,29 @@
-module conductivity_module
+module actual_conductivity_module
 
-  use bl_types
-  use network
-  use eos_type_module
-  use eos_module
-
+  use amrex_fort_module, only : rt => amrex_real                                
+  use eos_type_modulem only : eos_t
+  
   implicit none
 
 contains
 
-  subroutine thermal_conductivity(eos_state, therm_cond)
+  subroutine actual_conductivity_init()
+
+    implicit none
+
+  end subroutine actual_conductivity_init
+
+  subroutine actual_conductivity(eos_state, therm_cond)
     
     use extern_probin_module, only: const_conductivity
 
+    implicit none
+
     type (eos_t), intent(in) :: eos_state
-    real (kind=dp_t), intent(inout) :: therm_cond
+    real (kind=rt), intent(inout) :: therm_cond
 
     therm_cond = const_conductivity
     
-  end subroutine thermal_conductivity
+  end subroutine actual_conductivity
 
-end module conductivity_module
+end module actual_conductivity_module
