@@ -134,12 +134,12 @@ module meth_params_module
   integer         , save :: do_sponge
   integer         , save :: sponge_implicit
   integer         , save :: first_order_hydro
-  character (len=128), save :: xl_ext_bc_type
-  character (len=128), save :: xr_ext_bc_type
-  character (len=128), save :: yl_ext_bc_type
-  character (len=128), save :: yr_ext_bc_type
-  character (len=128), save :: zl_ext_bc_type
-  character (len=128), save :: zr_ext_bc_type
+  character (len=:), allocatable, save :: xl_ext_bc_type
+  character (len=:), allocatable, save :: xr_ext_bc_type
+  character (len=:), allocatable, save :: yl_ext_bc_type
+  character (len=:), allocatable, save :: yr_ext_bc_type
+  character (len=:), allocatable, save :: zl_ext_bc_type
+  character (len=:), allocatable, save :: zr_ext_bc_type
   integer         , save :: hse_zero_vels
   integer         , save :: hse_interp_temp
   integer         , save :: hse_reflect_vels
@@ -262,6 +262,12 @@ contains
     do_sponge = 0;
     sponge_implicit = 1;
     first_order_hydro = 0;
+    allocate(character(len=1)::xl_ext_bc_type)
+    allocate(character(len=1)::xr_ext_bc_type)
+    allocate(character(len=1)::yl_ext_bc_type)
+    allocate(character(len=1)::yr_ext_bc_type)
+    allocate(character(len=1)::zl_ext_bc_type)
+    allocate(character(len=1)::zr_ext_bc_type)
     xl_ext_bc_type = "";
     xr_ext_bc_type = "";
     yl_ext_bc_type = "";
