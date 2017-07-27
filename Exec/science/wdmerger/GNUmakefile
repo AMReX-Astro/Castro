@@ -26,7 +26,7 @@ endif
 
 # Set the default integrator for the burner.
 
-INTEGRATOR_DIR ?= BS
+INTEGRATOR_DIR ?= VODE
 
 # Default compiler.
 

@@ -784,17 +784,12 @@ contains
 #endif
                                               lo,hi,dt,dx)
 
+    use amrex_fort_module, only: rt => amrex_real
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UEINT, UFS, UFX, &
-                                  small_dens, small_temp, cfl, &
-                                  allow_small_energy, allow_negative_energy
+    use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
     use prob_params_module, only: dim, dg
     use mempool_module, only: bl_allocate, bl_deallocate
-    use network, only: nspec, naux
-    use eos_type_module, only: eos_input_rt, eos_t
-    use eos_module, only: eos
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
@@ -812,95 +807,47 @@ contains
     integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
 
-    real(rt)        , intent(in   ) :: dt, dx(3)
+    real(rt), intent(in   ) :: dt, dx(3)
 
-    real(rt)        , intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
+    real(rt), intent(in   ) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
 #if (BL_SPACEDIM >= 2)
-    real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
+    real(rt), intent(in   ) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
 #endif
 #if (BL_SPACEDIM == 3)
-    real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
+    real(rt), intent(in   ) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
 #endif
 
-    real(rt)        , pointer :: thetap_dens(:,:,:), thetam_dens(:,:,:)
-    real(rt)        , pointer :: thetap_rhoe(:,:,:), thetam_rhoe(:,:,:)
-    real(rt)        , pointer :: small_rhoe(:,:,:)
+    real(rt), pointer :: thetap(:,:,:), thetam(:,:,:)
 
-    integer          :: i, j, k
+    integer  :: i, j, k
 
-    real(rt)         :: alpha_x, alpha_y, alpha_z
-    real(rt)         :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
-    integer          :: dir
-
-    type (eos_t) :: eos_state
-    real(rt)         :: rhoe, drhoe, rhoeLF, drhoeLF
+    real(rt) :: alpha_x, alpha_y, alpha_z
+    real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta
+    integer  :: dir
 
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
     ! compressible Euler equations." It has been modified to enforce not only positivity
-    ! but also the stronger requirement that rho > small_dens. In addition, instead of
-    ! limiting on pressure, we limit on (rho e).
-
-    ! Calculate the floor (rho e) for each zone. If disallowing small energies, then the
-    ! 'small' (rho e) for a given zone should be constructed from an EOS call given
-    ! (small_dens, small_temp, X). (Another option would be to try and figure out what
-    ! the current density is, but this is complicated by the fact that the limiter will
-    ! change the final density. A related issue is that X will be different before and
-    ! after the hydro update; for simplicity, we'll use the input X.) This only gives
-    ! an approximate prescription for the true floor, but it is good enough.
-    ! If we're just disallowing negative energies, then set the 'small' value to zero.
-
-    call bl_allocate(small_rhoe,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-
-    do k = lo(3) - 1 * dg(3), hi(3) + 1 * dg(3)
-       do j = lo(2) - 1 * dg(2), hi(2) + 1 * dg(2)
-          do i = lo(1) - 1 * dg(1), hi(1) + 1 * dg(1)
-
-             if (allow_small_energy == 0) then
-
-                eos_state % rho = small_dens
-                eos_state % T   = small_temp
-                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) / u(i,j,k,URHO)
-                eos_state % aux = u(i,j,k,UFX:UFX+naux-1) / u(i,j,k,URHO)
-
-                call eos(eos_input_rt, eos_state)
-
-                small_rhoe(i,j,k) = small_dens * eos_state % e
-
-             else if (allow_negative_energy == 0) then
-
-                small_rhoe(i,j,k) = ZERO
-
-             else
-
-                ! No limiting in this case. Set to a value large enough that it should
-                ! never be obtained under normal circumstances.
-
-                small_rhoe(i,j,k) = -1.e200_rt
-
-             endif
-
-          enddo
-       enddo
-    enddo
+    ! but also the stronger requirement that rho > small_dens. We do not limit on pressure
+    ! (or, similarly, internal energy) because those cases are easily fixed by calls to
+    ! reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
+    ! contrast, is very important because calls to enforce_minimum_density can yield
+    ! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
+    ! when a density is negative).
 
     ! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
 
-    call bl_allocate(thetap_dens,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(thetam_dens,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(thetap_rhoe,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
-    call bl_allocate(thetam_rhoe,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call bl_allocate(thetap,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
+    call bl_allocate(thetam,lo(1)-1,hi(1)+1,lo(2)-1,hi(2)+1,lo(3)-1,hi(3)+1)
 
-    thetap_dens(:,:,:) = ONE
-    thetam_dens(:,:,:) = ONE
-    thetap_rhoe(:,:,:) = ONE
-    thetam_rhoe(:,:,:) = ONE
+    thetap(:,:,:) = ONE
+    thetam(:,:,:) = ONE
 
     dir = 1
 
@@ -930,9 +877,9 @@ contains
                 ! the left edge of the zone and so is the "minus" rho. The flux limiter convention
                 ! is analogous to the convention for the hydro reconstruction edge states.
 
-                ! Don't do this if the density or energy is already under the floor.
+                ! Don't do this if the density is already under the floor.
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,URHO)
 
@@ -965,29 +912,7 @@ contains
 
                    ! Solve for theta from (1 - theta) * rhoLF + theta * rho = small_dens.
 
-                   thetap_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                ! Now do the same for energy.
-
-                rhoe = u(i,j,k,UEINT) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
-                   fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
-
-                   drhoeLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) + TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetap_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetap(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -998,7 +923,7 @@ contains
 
              if (i .le. hi(1)) then
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * flux1(i+1,j,k,URHO)
 
@@ -1016,27 +941,7 @@ contains
 
                    rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
-                   thetam_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rhoe = u(i,j,k,UEINT) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * flux1(i+1,j,k,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
-                   fluxR = dflux(u(i+1,j,k,:), q(i+1,j,k,:), dir, [i+1, j, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i,j,k,:) - u(i+1,j,k,:)))
-
-                   drhoeLF = -TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) - TWO * (dt / alpha_x) * (area1(i+1,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetam_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetam(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -1054,30 +959,23 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1) + 1
 
-             ! If an adjacent zone has a floor-violating density or energy, set the flux to zero
-             ! and move on. At that point, the only thing to do is wait for a reset at a later point.
+             ! If an adjacent zone has a floor-violating density, set the flux to zero and move on.
+             ! At that point, the only thing to do is wait for a reset at a later point.
 
-             if (u(i,j,k,URHO) < small_dens .or. u(i-1,j,k,URHO) < small_dens .or. &
-                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i-1,j,k,UEINT) < small_rhoe(i-1,j,k)) then
+             if (u(i,j,k,URHO) < small_dens .or. u(i-1,j,k,URHO) < small_dens) then
 
                 flux1(i,j,k,:) = ZERO
                 cycle
 
              endif
 
-             ! See the discussion after Equation 16 in Hu et al.; the limiting theta for both density and
-             ! internal energy is a multiplicative combination of the two.
-
-             theta = min(thetam_dens(i-1,j,k), thetap_dens(i,j,k)) * min(thetam_rhoe(i-1,j,k), thetap_rhoe(i,j,k))
+             theta = min(thetam(i-1,j,k), thetap(i,j,k))
 
              fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), dir, [i-1, j, k])
              fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), dir, [i  , j, k])
              fluxLF(:) = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_x) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
-             ! Ensure that the fluxes don't violate the floor. It is okay that we are applying
-             ! these in succession multiplicatively because in each case we get a multiplicative
-             ! factor on the flux, and that multiplicative factor is strictly less than one, so
-             ! the (rho e) limiter will always respect preservation of positive density.
+             ! Ensure that the fluxes don't violate the floor.
 
              drhoLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
@@ -1085,14 +983,6 @@ contains
                 fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k,URHO)) / drhoLF)
              else if (u(i-1,j,k,URHO) - drhoLF < small_dens) then
                 fluxLF(:) = fluxLF(:) * abs((small_dens - u(i-1,j,k,URHO)) / drhoLF)
-             endif
-
-             drhoeLF = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-             if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i-1,j,k,UEINT) - drhoeLF < small_rhoe(i-1,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i-1,j,k) - u(i-1,j,k,UEINT)) / drhoeLF)
              endif
 
              flux1(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux1(i,j,k,:)
@@ -1105,14 +995,6 @@ contains
                 flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_dens - u(i-1,j,k,URHO)) / drho)
              endif
 
-             drhoe = TWO * (dt / alpha_x) * (area1(i,j,k) / vol(i,j,k)) * flux1(i,j,k,UEINT)
-
-             if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
-                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i-1,j,k,UEINT) - drhoe < small_rhoe(i-1,j,k)) then
-                flux1(i,j,k,:) = flux1(i,j,k,:) * abs((small_rhoe(i-1,j,k) - u(i-1,j,k,UEINT)) / drhoe)
-             endif
-
           enddo
        enddo
     enddo
@@ -1121,10 +1003,8 @@ contains
     ! so the comments are skipped.
 
 #if (BL_SPACEDIM >= 2)
-    thetap_dens(:,:,:) = ONE
-    thetam_dens(:,:,:) = ONE
-    thetap_rhoe(:,:,:) = ONE
-    thetam_rhoe(:,:,:) = ONE
+    thetap(:,:,:) = ONE
+    thetam(:,:,:) = ONE
 
     dir = 2
 
@@ -1136,7 +1016,7 @@ contains
 
              if (j .ge. lo(2)) then
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
 
@@ -1154,27 +1034,7 @@ contains
 
                    rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
-                   thetap_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rhoe = u(i,j,k,UEINT) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
-                   fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j-1,k,:) - u(i,j,k,:)))
-
-                   drhoeLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) + TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetap_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetap(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -1182,7 +1042,7 @@ contains
 
              if (j .le. hi(2)) then
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * flux2(i,j+1,k,URHO)
 
@@ -1200,27 +1060,7 @@ contains
 
                    rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(URHO)
 
-                   thetam_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rhoe = u(i,j,k,UEINT) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * flux2(i,j+1,k,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
-                   fluxR = dflux(u(i,j+1,k,:), q(i,j+1,k,:), dir, [i, j+1, k])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_y) * (u(i,j,k,:) - u(i,j+1,k,:)))
-
-                   drhoeLF = -TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) - TWO * (dt / alpha_y) * (area2(i,j+1,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetam_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetam(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -1234,15 +1074,14 @@ contains
        do j = lo(2), hi(2) + 1
           do i = lo(1), hi(1)
 
-             if (u(i,j,k,URHO) < small_dens .or. u(i,j-1,k,URHO) < small_dens .or. &
-                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i,j-1,k,UEINT) < small_rhoe(i,j-1,k)) then
+             if (u(i,j,k,URHO) < small_dens .or. u(i,j-1,k,URHO) < small_dens) then
 
                 flux2(i,j,k,:) = ZERO
                 cycle
 
              endif
 
-             theta = min(thetam_dens(i,j-1,k), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j-1,k), thetap_rhoe(i,j,k))
+             theta = min(thetam(i,j-1,k), thetap(i,j,k))
 
              fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), dir, [i, j-1, k])
              fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), dir, [i, j  , k])
@@ -1256,14 +1095,6 @@ contains
                 fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j-1,k,URHO)) / drhoLF)
              endif
 
-             drhoeLF = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-             if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i,j-1,k,UEINT) - drhoeLF < small_rhoe(i,j-1,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j-1,k) - u(i,j-1,k,UEINT)) / drhoeLF)
-             endif
-
              flux2(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux2(i,j,k,:)
 
              drho = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,URHO)
@@ -1272,14 +1103,6 @@ contains
                 flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_dens - u(i,j,k,URHO)) / drho)
              else if (u(i,j-1,k,URHO) - drho < small_dens) then
                 flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_dens - u(i,j-1,k,URHO)) / drho)
-             endif
-
-             drhoe = TWO * (dt / alpha_y) * (area2(i,j,k) / vol(i,j,k)) * flux2(i,j,k,UEINT)
-
-             if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
-                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i,j-1,k,UEINT) - drhoe < small_rhoe(i,j-1,k)) then
-                flux2(i,j,k,:) = flux2(i,j,k,:) * abs((small_rhoe(i,j-1,k) - u(i,j-1,k,UEINT)) / drhoe)
              endif
 
           enddo
@@ -1292,10 +1115,8 @@ contains
     ! so the comments are skipped.
 
 #if (BL_SPACEDIM == 3)
-    thetap_dens(:,:,:) = ONE
-    thetam_dens(:,:,:) = ONE
-    thetap_rhoe(:,:,:) = ONE
-    thetam_rhoe(:,:,:) = ONE
+    thetap(:,:,:) = ONE
+    thetam(:,:,:) = ONE
 
     dir = 3
 
@@ -1307,7 +1128,7 @@ contains
 
              if (k .ge. lo(3)) then
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
 
@@ -1325,27 +1146,7 @@ contains
 
                    rhoLF = u(i,j,k,URHO) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(URHO)
 
-                   thetap_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rhoe = u(i,j,k,UEINT) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
-                   fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k-1,:) - u(i,j,k,:)))
-
-                   drhoeLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) + TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetap_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetap(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -1353,7 +1154,7 @@ contains
 
              if (k .le. hi(3)) then
 
-                if (u(i,j,k,URHO) < small_dens .or. u(i,j,k,UEINT) < small_rhoe(i,j,k)) cycle
+                if (u(i,j,k,URHO) < small_dens) cycle
 
                 rho = u(i,j,k,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * flux3(i,j,k+1,URHO)
 
@@ -1371,27 +1172,7 @@ contains
 
                    rhoLF = u(i,j,k,URHO) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(URHO)
 
-                   thetam_dens(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rhoe = u(i,j,k,UEINT) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * flux3(i,j,k+1,UEINT)
-
-                if (rhoe < small_rhoe(i,j,k)) then
-
-                   fluxL = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
-                   fluxR = dflux(u(i,j,k+1,:), q(i,j,k+1,:), dir, [i, j, k+1])
-                   fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha_z) * (u(i,j,k,:) - u(i,j,k+1,:)))
-
-                   drhoeLF = -TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                      fluxLF = fluxLF * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-                   endif
-
-                   rhoeLF = u(i,j,k,UEINT) - TWO * (dt / alpha_z) * (area3(i,j,k+1) / vol(i,j,k)) * fluxLF(UEINT)
-
-                   thetam_rhoe(i,j,k) = (small_rhoe(i,j,k) - rhoeLF) / (rhoe - rhoeLF)
+                   thetam(i,j,k) = (small_dens - rhoLF) / (rho - rhoLF)
 
                 endif
 
@@ -1405,15 +1186,14 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (u(i,j,k,URHO) < small_dens .or. u(i,j,k-1,URHO) < small_dens .or. &
-                 u(i,j,k,UEINT) < small_rhoe(i,j,k) .or. u(i,j,k-1,UEINT) < small_rhoe(i,j,k-1)) then
+             if (u(i,j,k,URHO) < small_dens .or. u(i,j,k-1,URHO) < small_dens) then
 
                 flux3(i,j,k,:) = ZERO
                 cycle
 
              endif
 
-             theta = min(thetam_dens(i,j,k-1), thetap_dens(i,j,k)) * min(thetam_rhoe(i,j,k-1), thetap_rhoe(i,j,k))
+             theta = min(thetam(i,j,k-1), thetap(i,j,k))
 
              fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), dir, [i, j, k-1])
              fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), dir, [i, j, k  ])
@@ -1427,14 +1207,6 @@ contains
                 fluxLF(:) = fluxLF(:) * abs((small_dens - u(i,j,k-1,URHO)) / drhoLF)
              endif
 
-             drhoeLF = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * fluxLF(UEINT)
-
-             if (u(i,j,k,UEINT) + drhoeLF < small_rhoe(i,j,k)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoeLF)
-             else if (u(i,j,k-1,UEINT) - drhoeLF < small_rhoe(i,j,k-1)) then
-                fluxLF(:) = fluxLF(:) * abs((small_rhoe(i,j,k-1) - u(i,j,k-1,UEINT)) / drhoeLF)
-             endif
-
              flux3(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux3(i,j,k,:)
 
              drho = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,URHO)
@@ -1445,26 +1217,14 @@ contains
                 flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_dens - u(i,j,k-1,URHO)) / drho)
              endif
 
-             drhoe = TWO * (dt / alpha_z) * (area3(i,j,k) / vol(i,j,k)) * flux3(i,j,k,UEINT)
-
-             if (u(i,j,k,UEINT) + drhoe < small_rhoe(i,j,k)) then
-                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_rhoe(i,j,k) - u(i,j,k,UEINT)) / drhoe)
-             else if (u(i,j,k-1,UEINT) - drhoe < small_rhoe(i,j,k-1)) then
-                flux3(i,j,k,:) = flux3(i,j,k,:) * abs((small_rhoe(i,j,k-1) - u(i,j,k-1,UEINT)) / drhoe)
-             endif
-
           enddo
        enddo
     enddo
 
 #endif
 
-    call bl_deallocate(thetap_dens)
-    call bl_deallocate(thetam_dens)
-    call bl_deallocate(thetap_rhoe)
-    call bl_deallocate(thetam_rhoe)
-
-    call bl_deallocate(small_rhoe)
+    call bl_deallocate(thetap)
+    call bl_deallocate(thetam)
 
   end subroutine limit_hydro_fluxes_on_small_dens
 

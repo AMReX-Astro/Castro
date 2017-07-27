@@ -14,7 +14,7 @@ contains
                             reactions,r_lo,r_hi, &
                             weights,w_lo,w_hi, &
                             mask,m_lo,m_hi, &
-                            time,dt_react) bind(C, name="ca_react_state")
+                            time,dt_react,strang_half) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -52,6 +52,7 @@ contains
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
+    integer, intent(in) :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
     type (eos_t) :: eos_state_in, eos_state_out
@@ -218,7 +219,7 @@ contains
                             asrc,as_lo,as_hi, &
                             reactions,r_lo,r_hi, &
                             mask,m_lo,m_hi, &
-                            time,dt_react) bind(C, name="ca_react_state")
+                            time,dt_react,sdc_iter) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -246,11 +247,13 @@ contains
     real(rt)         :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt)         :: time, dt_react
+    integer, intent(in) :: sdc_iter
 
     integer          :: i, j, k, n
     real(rt)         :: rhooInv, rhonInv, rho_e_K, delta_e, delta_rho_e
 
     type (sdc_t) :: burn_state_in, burn_state_out
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -263,7 +266,7 @@ contains
              ! Don't burn on zones inside shock regions, if the relevant option is set.
 
 #ifdef SHOCK_VAR
-             if (state(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
+             if (unew(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
 #endif
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
@@ -317,6 +320,8 @@ contains
              else
                 burn_state_in % k = -1
              endif
+
+             burn_state_in % sdc_iter = sdc_iter
 
              call integrator(burn_state_in, burn_state_out, dt_react, time)
 

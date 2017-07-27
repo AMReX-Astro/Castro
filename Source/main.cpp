@@ -25,10 +25,6 @@
 #include <DumpModel1d.H>
 #endif
 
-#ifdef HAS_XGRAPH
-#include <XGraph1d.H>
-#endif
-
 #include "Castro.H"
 #include "Castro_io.H"
 
@@ -118,13 +114,6 @@ main (int   argc,
     DumpModel *dumpmodelptr = new DumpModel();
 #endif
 
-#ifdef HAS_XGRAPH
-    XGraph1d *xgraphptr = new XGraph1d(*amrptr);
-#endif
-
-#ifdef HAS_XGRAPH
-    xgraphptr->draw(amrptr->levelSteps(0),amrptr->cumTime());
-#endif
 
     // If we set the regrid_on_restart flag and if we are *not* going to take
     //    a time step then we want to go ahead and regrid here.
@@ -154,9 +143,6 @@ main (int   argc,
 	dumpmodelptr->dump(amrptr);
 #endif
 
-#ifdef HAS_XGRAPH
-	xgraphptr->draw(amrptr->levelSteps(0),amrptr->cumTime());
-#endif
 
     }
 
@@ -169,13 +155,6 @@ main (int   argc,
     delete dumpmodelptr;
 #endif
 
-#ifdef HAS_XGRAPH
-    xgraphptr->draw(amrptr->levelSteps(0),amrptr->cumTime(), 1);
-#endif
-
-#ifdef HAS_XGRAPH
-    delete xgraphptr;
-#endif
 
     // Write final checkpoint and plotfile
 

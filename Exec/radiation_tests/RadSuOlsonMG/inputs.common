@@ -32,11 +32,6 @@ amr.plot_file       = plt
 amr.plot_int        = 10000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-xgraph.format = gnu
-xgraph.graph = eint       eint_e         100  -1
-xgraph.graph = Temp       Temp           100  -1
-xgraph.graph = Er0        rad0           100  -1
-xgraph.graph = Er1        rad1           100  -1
 
 # PROBIN FILENAME
 amr.probin_file     = probin.common

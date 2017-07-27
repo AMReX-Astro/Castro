@@ -613,7 +613,7 @@ Castro::writeJobInfo (const std::string& dir)
 
   std::string PrettyLine = std::string(78, '=') + "\n";
   std::string OtherLine = std::string(78, '-') + "\n";
-  std::string SkipSpace = std::string(8, ' ') + "\n";
+  std::string SkipSpace = std::string(8, ' ');
 
   // job information
   jobInfoFile << PrettyLine;

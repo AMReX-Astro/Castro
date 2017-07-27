@@ -111,7 +111,7 @@ Castro::strang_react_first_half(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
-    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, ng);
+    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 1, ng);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
@@ -213,7 +213,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "\n" << "... Entering burner and doing half-timestep of burning." << "\n";
 
-    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, ng);
+    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 2, ng);
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... Leaving burner after completing half-timestep of burning." << "\n";
@@ -235,7 +235,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
 
 void
-Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w, Real time, Real dt_react, int ngrow)
+Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w, Real time, Real dt_react, int strang_half, int ngrow)
 {
 
     BL_PROFILE("Castro::react_state()");
@@ -260,7 +260,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 		       BL_TO_FORTRAN_3D(r[mfi]),
 		       BL_TO_FORTRAN_3D(w[mfi]),
 		       BL_TO_FORTRAN_3D(mask[mfi]),
-		       time, dt_react);
+		       time, dt_react, strang_half);
 
     }
 
@@ -343,7 +343,7 @@ Castro::react_state(Real time, Real dt)
 		       a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
 		       r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
 		       m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
-		       time, dt);
+		       time, dt, sdc_iteration);
 
     }
 

@@ -5,73 +5,88 @@
 # with this source.
 
 
-server=https://github.com/BoxLib-Codes
+amrex_server=https://github.com/AMReX-Codes
+astro_server=https://github.com/AMReX-Astro
+micro_server=https://github.com/StarKiller-astro
 branch=development
 
 #-----------------------------------------------------------------------------
 
 date=$1
+echo date is \"$date\"
 
 pwd=`pwd`
 
 # Castro
 echo "cloning Castro"
-git clone ${server}/Castro.git
-
-echo " "
-echo "resetting to before ${date}"
+git clone ${astro_server}/Castro.git
 cd Castro
 git checkout ${branch}
-hash=`git rev-list -n 1 --before="$date" $branch`
-git reset --hard ${hash}
-
 cd ..
 
-# BoxLib
-echo " "
-echo "cloning BoxLib"
-git clone ${server}/BoxLib.git
+if [ -n "$date" ]
+   then
+       echo " "
+       echo "resetting to before ${date}"
+       cd Castro
+       hash=`git rev-list -n 1 --before="$date" $branch`
+       #git reset --hard ${hash}
+       git checkout ${hash}
+       cd ..
+fi
 
+# AMReX
 echo " "
-echo "resetting to before ${date}"
-cd BoxLib
+echo "cloning amrex"
+git clone ${amrex_server}/amrex.git
+cd amrex
 git checkout ${branch}
-hash=`git rev-list -n 1 --before="$date" $branch`
-git reset --hard ${hash}
-
 cd ..
 
+if [ -n "$date" ]
+   then
+       echo " "
+       echo "resetting to before ${date}"
+       cd amrex
+       hash=`git rev-list -n 1 --before="$date" $branch`
+       #git reset --hard ${hash}
+       git checkout ${hash}
+       cd ..
+fi
 
 # Microphysics
 echo " "
 echo "cloning Microphysics"
-git checkout ${branch}
-git clone ${server}/Microphysics.git
-
-echo " "
-echo "resetting to before ${date}"
+git clone ${micro_server}/Microphysics.git
 cd Microphysics
-hash=`git rev-list -n 1 --before="$date" $branch`
-git reset --hard ${hash}
-
+git checkout ${branch}
 cd ..
 
-
-
-# output the necessary environment changes
-if [ -f exports.sh ]; then
-    echo "removing old exports.sh"
-    rm -f exports.sh
+if [ -n "$date" ]
+   then
+       echo " "
+       echo "resetting to before ${date}"
+       cd Microphysics
+       hash=`git rev-list -n 1 --before="$date" $branch`
+       #git reset --hard ${hash}
+       git checkout ${hash}
+       cd ..
 fi
 
-cat >> exports.sh << EOF 
+# output the necessary environment changes
+if [ -f castro_exports.sh ]; then
+    echo "removing old castro_exports.sh"
+    rm -f castro_exports.sh
+fi
+
+cat >> castro_exports.sh << EOF 
 export CASTRO_HOME="${pwd}/Castro"
 export MICROPHYSICS_HOME="${pwd}/Microphysics"
-export BOXLIB_HOME="${pwd}/BoxLib"
+export AMREX_HOME="${pwd}/amrex"
 EOF
 
 echo " "
-echo "source exports.sh to setup the environment for building"
+echo "source castro_exports.sh to setup the environment for building"
 
 
 

@@ -3,11 +3,14 @@
   T_r = 5.d7
 
   dens = 2.d8
-
   cfrac = 0.d0
+  
+  smallx = 1.e-10
 
   idir = 1
-  frac = 0.333d0
+
+  w_T = 5.d-4
+  center_T = 3.d-1
 /
 
 &tagging
@@ -30,4 +33,7 @@
 &extern
 !  jacobian = 2
 !  centered_diff_jac = T
+!   rtol_enuc = 1.e-8
+   call_eos_in_rhs = T
+   do_constant_volume_burn = T
 /

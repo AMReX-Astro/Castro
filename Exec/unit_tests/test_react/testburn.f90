@@ -1,6 +1,7 @@
 subroutine do_burn() bind(C)
 
   use network
+  use eos_type_module, only : eos_t, eos_input_rt
   use eos_module
   use burner_module
   use actual_burner_module
@@ -22,6 +23,7 @@ subroutine do_burn() bind(C)
 
   real(rt)        , allocatable :: state(:,:,:,:), reactions(:,:,:,:)
   integer, allocatable :: mask(:,:,:)
+  real(rt), allocatable :: weights(:,:,:)
 
   integer :: i, j, k
 
@@ -39,7 +41,7 @@ subroutine do_burn() bind(C)
   enddo
 
   call runtime_init(probin_pass(1:len(trim(probin_file))), len(trim(probin_file)))
-  call set_castro_method_params()
+  call ca_set_castro_method_params()
 
   call network_init()
   call actual_rhs_init()
@@ -69,6 +71,7 @@ subroutine do_burn() bind(C)
   allocate(state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),NVAR))
   allocate(reactions(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),nspec+2))
   allocate(mask(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
+  allocate(weights(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)))
 
   dlogrho = (log10(dens_max) - log10(dens_min)) / w(1)
   dlogT   = (log10(temp_max) - log10(temp_min)) / w(2)
@@ -94,6 +97,7 @@ subroutine do_burn() bind(C)
            state(i,j,k,UMX:UMZ)         = ZERO
 
            mask(i,j,k) = 1
+           weights(i,j,k) = 0.0
 
         enddo
      enddo
@@ -101,7 +105,9 @@ subroutine do_burn() bind(C)
 
   call cpu_time(start)
 
-  call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, mask, lo, hi, time, dt)
+  call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, &
+                      weights, lo, hi, &
+                      mask, lo, hi, time, dt)
 
   call cpu_time(finish)
 

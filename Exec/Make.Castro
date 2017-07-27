@@ -217,13 +217,6 @@ ifeq ($(USE_RAD), TRUE)
    VPATH_LOCATIONS   += $(LAPACK_dir)
 endif
 
-ifeq ($(DIM), 1)
-DEFINES += -DHAS_XGRAPH
-include $(TOP)/Util/plot1d/Make.package
-INCLUDE_LOCATIONS += $(TOP)/Util/plot1d
-VPATH_LOCATIONS   += $(TOP)/Util/plot1d
-endif
-
 
 # AMReX directories -- note the Make.package for these adds these
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we

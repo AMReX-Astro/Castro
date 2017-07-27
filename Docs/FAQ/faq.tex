@@ -107,6 +107,7 @@ make help
   But it might print out thousands (or even millions) of line before
   it hits the segfault.  With {\tt BACKTRACE}, you could do
 
+
 \begin{verbatim}
       #ifdef BL_BACKTRACING
          std::ostringstream ss;
@@ -121,6 +122,19 @@ make help
     hits the segfault, you will only see the last print out.
 
 
+
+\item {\em How can I monitor the state in a zone from the \cpp\ side
+  at various points in the evolution?}
+
+  Given a \multifab\ {\tt mf}, you can dump out the state as:
+\begin{verbatim}
+    print_state(mf, IntVect(D_DECL(10, 20, 30)));
+\end{verbatim}
+  Here, the {\tt IntVect} has the dimension that we were compiled with
+  (and this is handled through the preprocessor {\tt D\_DECL}).  In
+  this case, we are inspecting zone (10, 20, 30), in the global index
+  space.  Note that since a multifab exists only on a single level, the
+  integer indices here refer to the global index space on that level.
 
 \end{enumerate}
 

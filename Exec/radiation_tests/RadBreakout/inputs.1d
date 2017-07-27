@@ -38,15 +38,6 @@ amr.derive_plot_vars = ALL
 # PROBIN FILENAME
 amr.probin_file     = probin.1d.87a.23
 
-xgraph.format = gnu
-xgraph.graph = dens       density        100 -1
-xgraph.graph = Temp       Temp           100 -1
-xgraph.graph = vx         x_velocity     100 -1
-xgraph.graph = Er         rad            100 -1
-xgraph.graph = pres       pressure       100 -1
-xgraph.graph = Ye         Ye             100 -1
-#xgraph.graph = Frlab      Fxrad          100 -1
-#xgraph.graph = lambda     lambda      100 -1
 radiation.plot_com_flux = 1   # comoving frame flux
 radiation.plot_lab_flux = 1   # lab frame flux
 radiation.plot_lambda = 1  

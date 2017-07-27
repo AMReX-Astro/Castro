@@ -1,4 +1,34 @@
 
+\section{Introduction}
+
+There are several different time-evolution methods currently
+implemented in \castro.  As best as possible, they share the same
+driver routines and use preprocessor or runtime variables to separate
+the different code paths.
+
+\begin{itemize}
+\item Strang-splitting: the Strang evolution does the burning on the
+  state for $\Delta t/2$, then updates the hydrodynamics using the
+  burned state, and then does the final $\Delta t/2$ burning.  No
+  explicit coupling of the burning and hydro is done.  Within the
+  Strang code path, there are two methods for doing the hydrodynamics,
+  controlled by \runparam{castro.do\_ctu}.
+  \begin{itemize}
+    \item Corner-transport upwind (CTU): this implements the unsplit, 
+      characteristic tracing method of \cite{colella:1990}.
+
+    \item Method of lines (MOL): this discretizes the space part of 
+      our system without any characteristic tracing and uses an
+      ODE integrator to advance the state.  Multiple stages can be done,
+      each requiring reconstruction, Riemann solve, etc., and the final
+      solution is pieced together from the intermediate stages.
+  \end{itemize}
+
+\item SDC: the SDC path is enabled by the \ifdef{SDC} preprocessor
+  variable.  This iteratively couples the reactions and hydrodynamics together.
+
+\end{itemize}
+
 \section{Overview of a single step (no SDC)}
 \label{flow:sec:nosdc}
 
@@ -12,16 +42,33 @@ of each step.
 \begin{enumerate}
 \item {\em Initialization} 
 
-  This sets up the current level for advancement.  If we are at the
-  start of a coarse level timestep, or we are in the middle of
-  subcycling on a finer level (\code{amr\_iteration} {\tt > 1}), then
-  we swap the \statedata\ from the new to old (e.g., this ensures that
-  the next evolution starts with the result from the previous step).
+  This sets up the current level for advancement.  The following actions
+  are performend:
+  \begin{itemize}
+  \item If we are at the start of a coarse level timestep, or we are
+    in the middle of subcycling on a finer level
+    (\code{amr\_iteration} {\tt > 1}), then swap the \statedata\ from
+    the new to old (e.g., ensures that the next evolution starts with
+    the result from the previous step).
 
-  This also syncs up the level information to the Fortran-side of
-  \castro, does any radiation initialization, and initializes all of
-  the intermediate storage arrays (like those that hold source terms,
-  etc.).
+  \item Do a \code{clean\_state}
+
+  \item Sync up the level information to the Fortran-side of \castro
+
+  \item Do any radiation initialization
+
+  \item Initialize all of the intermediate storage arrays (like those
+    that hold source terms, etc.).
+
+  \item For method of lines integration: allocate the storage for the 
+    intermediate stage updates, \code{k\_mol}, and the \code{Sburn} \multifab\
+    that holds the post burn state.
+
+  \item Zero out all of the fluxes
+
+  \end{itemize}
+
+      
 
 \item {\em Advancement} 
 

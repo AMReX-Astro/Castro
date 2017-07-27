@@ -117,10 +117,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! call the Riemann solver
   idir = 1
 
-  call riemanncg(ql, qr, ilo, jlo, ihi, jhi,  &
-                 gamcl, gamcr, cav, smallc, ilo, jlo, ihi, jhi, &
-                 uflx, ilo, jlo, ihi, jhi, &
-                 qint, ilo, jlo, ihi, jhi, &
+  call riemanncg(ql, qr, [ilo, jlo, 0], [ihi, jhi, 0],  &
+                 gamcl, gamcr, cav, smallc, [ilo, jlo, 0], [ihi, jhi, 0], &
+                 uflx, [ilo, jlo, 0], [ihi, jhi, 0], &
+                 qint, [ilo, jlo, 0], [ihi, jhi, 0], &
                  idir, ilo, ihi-1, jlo, jhi, [ilo-1, jlo-1], [ihi+1, jhi+1])
   
   ! we're done -- abort the code

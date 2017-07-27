@@ -212,10 +212,3 @@ DistributionMapping.strategy = ROUNDROBIN
 DistributionMapping.strategy = KNAPSACK
 DistributionMapping.strategy = SFC
 
-# xgraph.format = gnu
-# xgraph.graph  = rad10    rad10  100 -1
-# xgraph.graph  = rad20    rad20  100 -1
-# xgraph.graph  = rad30    rad30  100 -1
-# xgraph.graph  = rad40    rad40  100 -1
-# xgraph.graph  = rad50    rad50  100 -1
-# xgraph.graph  = rad60    rad60  100 -1
