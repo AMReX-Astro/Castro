@@ -10,16 +10,15 @@ contains
   ! This routine defines enthalpy from the EOS
 
   subroutine make_enthalpy(lo,hi, &
-       state,s_lo,s_hi, &
-       enth ,e_lo,e_hi) &
-       bind(C, name="make_enthalpy")
-
+                           state,s_lo,s_hi, &
+                           enth ,e_lo,e_hi) &
+                           bind(C, name="make_enthalpy")
+    
     use bl_constants_module
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINT, UFS, UFX, diffuse_cutoff_density
-    use conductivity_module
     use eos_type_module
-
+    use eos_module, only : eos
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -49,7 +48,7 @@ contains
        do j = j_lo, j_hi
           do i = i_lo, i_hi
              eos_state%rho    = state(i,j,k,URHO)
-!            eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%T      = state(i,j,k,UTEMP)
              eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
              eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
              eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)

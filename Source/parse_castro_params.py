@@ -192,6 +192,11 @@ class Param(object):
 
         name = self.f90_name
 
+        # for a character, we need to allocate its length.  We allocate
+        # to 1, and the Fortran parmparse will resize
+        if self.dtype == "string":
+            ostr += "    allocate(character(len=1)::{})\n".format(name)
+
         if not self.debug_default is None:
             ostr += "#ifdef DEBUG\n"
             ostr += "    {} = {};\n".format(name, debug_default)
@@ -266,7 +271,7 @@ class Param(object):
         elif self.f90_dtype == "logical":
             tstr = "logical         , save :: {}\n".format(self.f90_name)
         elif self.f90_dtype == "string":
-            tstr = "character (len=128), save :: {}\n".format(self.f90_name)
+            tstr = "character (len=:), allocatable, save :: {}\n".format(self.f90_name)
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
 

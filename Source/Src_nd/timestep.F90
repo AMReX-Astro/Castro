@@ -300,7 +300,7 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call thermal_conductivity(eos_state, cond)
+                call conductivity(eos_state, cond)
 
                 ! maybe we should check (and take action) on negative cv here?
                 D = cond*rho_inv/eos_state%cv
@@ -377,7 +377,7 @@ contains
                 call eos(eos_input_re, eos_state)
 
                 ! we also need the conductivity
-                call thermal_conductivity(eos_state, cond)
+                call conductivity(eos_state, cond)
 
                 D = cond*rho_inv/eos_state%cp
 
