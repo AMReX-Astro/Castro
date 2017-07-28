@@ -31,7 +31,6 @@ contains
     sponge_start_density = sponge_center_density * sponge_start_factor
     
     do j = lo(2),hi(2)
-print *, 'sponge'
        do i = lo(1),hi(1)
         
           rho = uout(i,j,URHO)

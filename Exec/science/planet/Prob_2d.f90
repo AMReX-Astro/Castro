@@ -127,8 +127,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   do j = lo(2), hi(2)
      y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
-!print *, 'yy1',j,y,xlo(2),delta(2),float(j-lo(2)) 
-     do i = lo(1), hi(1)   
+     do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
                                       model_state(:,idens_model))
@@ -147,32 +146,25 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         call eos(eos_input_rt, eos_state)
         state(i,j,UEINT) = eos_state%e
-!        print *,'eos_state%p', eos_state%p,eos_state%rho*eos_state%T*1.3806488D-16*6.02214129D23/eos_state%mu
-!        print *,'gamma',(7.0/5.0-1.0)*state(i,j,URHO)*state(i,j,UEINT),eos_state%e*eos_state%rho*(7.0/5.0-1.0)
-!        print *,'gamma2     ', (eos_state%p/(eos_state%e*eos_state%rho)+1.0)/(7.0/5.0)
-!if( abs((1.38D-16)/(2.34*1.66D-24)/delta(2)*(state(i,j,URHO)*state(i,j,UTEMP)-state(i,j-1,URHO)*state(i,j-1,UTEMP))-0.5d0*(state(i,j,URHO)+state(i,j-1,URHO))*1D3)&
-!>1D-12)then
-                        
+
      end do
-!print *, 'yyy',j,y, state((lo(1)+hi(1))/2,j,URHO),state((lo(1)+hi(1))/2,j,UTEMP)
-!print *, 'yy2',j,y, state((lo(1)+hi(1))/2,j-1,URHO),state((lo(1)+hi(1))/2,j-1,UTEMP)
-if(abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
--state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
-delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)&
->1D-12)then
-print *, 'TOO CRUDE MAPPING',j,y,&
-abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
--state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
-delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
-!print *, state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT),&
-!state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT),&
-!state((lo(1)+hi(1))/2,j,URHO),state((lo(1)+hi(1))/2,j-1,URHO)
-else
-print *, 'NICE MAPPING',j,y,&
-abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
--state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
-delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
-end if
+
+
+    !check for HSE for discretized scheme
+  if(abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)&
+  >1D-12)then
+  print *, 'TOO CRUDE MAPPING',j,y,&
+  abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
+  else
+  print *, 'NICE MAPPING',j,y,&
+  abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
+  end if
 
   end do
 

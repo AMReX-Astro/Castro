@@ -27,10 +27,10 @@ eos_gamma=1.4
   sponge_lower_factor = 0.0
   sponge_upper_factor = 1.0
 
-  sponge_lower_density = 1.0e-7
-  sponge_upper_density = 2.0e-8
+  sponge_lower_density = 1.0e-12
+  sponge_upper_density = 1.0e-13
 
-  sponge_timescale    = 1.e2
+  sponge_timescale    = 1.e-2
 
 
 

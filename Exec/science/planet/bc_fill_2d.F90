@@ -34,58 +34,11 @@ contains
     double precision :: y_base, dens_base, slope
   
     type (eos_t) :: eos_state
-!print *, 'const_grav=',const_grav!   const_grav=-1.0d3
-!print *,'bc:AMReX_FILCC_2D.f, ghost cell upper right(x,y)',adv_h1,adv_h2
-!print *,'bc:AMReX_FILCC_2D.f, ghost cell bottom left(y)',adv_l2
-!print *,'bc:AMReX_FILCC_2D.f, ghost cell bottom left(x,y)',adv_l1,adv_l2
-!print *,'bc:AMReX_FILCC_2D.f, ghost cell upper right(y)',adv_h2
-!print *,'bc:AMReX_FILCC_2D.f, normalcell upper right(x,y)',domhi(1),domhi(2)
-
-!print *,'bc:AMReX_FILCC_2D.f, normalcell bottom left(x,y)',domlo(1),domlo(2)
-!print *, 'bc:AMRex_FICC_2D.f',xlo(1),xlo(2),NVAR,EXT_DIR
-!print *,'BCs(lower):',bc(1,1,1),bc(2,1,1)
-!print *,'BCs(upper):',bc(1,2,1),bc(2,2,1)
-!          do j=adv_h2,adv_l2,-1
-!          if(adv_l1<=adv_h1) then
-!          if(j==adv_h2)then
-!         print*, 'BEFORE----------------------------------------------------------------'
-! write(*,"(A10,f6.3,A10,I3,A10,I3,A10,I3)") 'time1:',time,'ghost',j, 'ghost',adv_l1, 'normal',adv_h1
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time2:',time,'ghost',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!          else if(j==adv_l2)then
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time3:',time,'ghost',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!         print*, 'BEFORE----------------------------------------------------------------'
-!          else
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time4:',time,'normal',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!       end if   
-!       else
-!          if(j==adv_h2)then
-!         print*, '----------------------------------------------------------------'
-! print *, 'time1:',time,'y',xlo(2),'ghost',j, 'ghost',adv_l1, '         normal',domlo(1)
-!  print *, 'time2:',time,'y',xlo(2),'ghost',j,(adv(i,j,UTEMP),i=domlo(1),adv_l1)
-!    else if(j==adv_l2)then
-!         print *, 'time3:',time,'y',xlo(2),'ghost',j,(adv(i,j,UTEMP),i=domlo(1),adv_l1)
-!         print*, '----------------------------------------------------------------'
-!          else
-!          print *, 'time4:',time,'y',xlo(2),'normal',j,(adv(i,j,UTEMP),i=domlo(1),adv_l1)
-!       end if
-
-
-!          end if
-!       end do
-
-  
-
 
     do n = 1,NVAR
        call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
                   domlo,domhi,delta,xlo,bc(1,1,n))
-!print *, 'bc3:AMRex_FICC_2D.f',n,bc(1,1,n),bc(1,2,n),bc(2,1,n),bc(2,2,n)
     enddo
-
-!            do j=domhi(2)+1,adv_h2  
-!            adv(adv_l1:adv_h1,j,UTEMP)=0.0d0
-!          end do
-
     do n = 1, NVAR
          
        ! XLO
@@ -110,18 +63,15 @@ contains
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
 
        y_base = xlo(2) + delta(2)*(float(domlo(2)-adv_l2) + 0.5d0)
-!print *, '1:',adv_l2,URHO        
        do i=adv_l1,adv_h1
 
           dens_base = adv(i,domlo(2),URHO)
 
           ! density slope
           slope = (adv(i,domlo(2)+1,URHO) - adv(i,domlo(2),URHO))/delta(2)
-!print*,'2:',i,adv(i,domlo(2)+1,URHO),adv(i,domlo(2),URHO),slope           
           ! this do loop counts backwards since we want to work downward
           do j=domlo(2)-1,adv_l2,-1
              y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
-!print*,'3:',j,y,xlo(2),j-adv_l2           
              ! zero-gradient catch-all -- this will get the radiation
              ! energy
              adv(i,j,:) = adv(i,j+1,:)
@@ -133,10 +83,6 @@ contains
 
              ! temperature guess and species held constant in BCs
              temp_zone = adv(i,j+1,UTEMP)
-!if(i==adv_l1 .and. j==adv_l2)then
-!print *, 'temp_zone=',temp_zone
-!print *, 'dens_zone=',dens_base,dens_zone,slope,y/1D5,y_base/1D5,adv(i,domlo(2)+1,URHO),adv(i,domlo(2),URHO)
-!end if
 
              X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
              
@@ -159,13 +105,6 @@ contains
              eos_state%xn(:) = X_zone(:)
              eos_state%p = p_want
  
-!if(i==adv_l1 .and. j==adv_l2)then
-!print *, 'temp_zone=',temp_zone
-!print *, 'dens_zone=',dens_base,dens_zone,slope,y/1D5,y_base/1D5,adv(i,domlo(2)+1,URHO),adv(i,domlo(2),URHO\
-!)
-!print *, 'pres_zone=',p_want,pres_above,delta(2),(dens_zone + adv(i,j+1,URHO)),const_grav
-!end if
-
 
             
              call eos(eos_input_rp, eos_state)
@@ -204,10 +143,6 @@ contains
           
           do j=domhi(2)+1,adv_h2
              y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
-!print *,'1_1:',j,y,xlo(2),j-adv_l2
-             ! zero-gradient catch-all -- this will get the radiation
-             ! energy
-!print *,'2_1:',adv(adv_l1,j,UTEMP),adv(adv_l1,j-1,UTEMP)
 
              adv(adv_l1:adv_h1,j,:) = adv(adv_l1:adv_h1,j-1,:)
              adv(adv_l1:adv_h1,j,UTEMP)=min(adv(adv_l1:adv_h1,j-1,UTEMP),temp_zone)
@@ -221,10 +156,6 @@ contains
 
                    temp_zone = interpolate(y,npts_model,model_r, &
                                            model_state(:,itemp_model))
-!if(j==domhi(2)+1 .and. i==domhi(1))then
-!print *,n,'Upper,T  =', temp_zone,adv(domhi(1),domhi(2),UTEMP)
-!print *,n,'Upper,rho=', dens_zone,adv(domhi(1),domhi(2),n)
-!end if 
                    do q = 1, nspec
                       X_zone(q) = interpolate(y,npts_model,model_r, &
                                               model_state(:,ispec_model-1+q))
@@ -252,42 +183,13 @@ contains
                
                 end if
 
-!if(j==domhi(2)+1 .and. i==domhi(1))then
-!print *,n,'upper,T  =', temp_zone,adv(domhi(1),domhi(2),UTEMP),adv(domhi(1),domhi(2)+1,UTEMP)
-!print *,n,'upper,rho=', dens_zone,adv(domhi(1),domhi(2),URHO),adv(domhi(1),domhi(2)+1,URHO)
-!end if
-              
+
              end do
           end do
        end if
      
     end do
 
-!         do j=adv_h2,adv_l2,-1
-     !     if(adv_l1<=adv_h1) then                                                                          
-!          if(j==adv_h2)then
-!         print*, 'AFTER----------------------------------------------------------------'
-! write(*,"(A10,f6.3,A10,I3,A10,I3,A10,I3)") 'time1:',time,'ghost',j, 'ghost',adv_l1, 'normal',adv_h1
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time2:',time,'ghost',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!          else if(j==adv_l2)then
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time3:',time,'ghost',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!         print*, 'AFTER----------------------------------------------------------------'
-!          else
-!         write(*,"(A10,f6.3,A10,I3,10000f15.4)"), 'time4:',time,'normal',j,(adv(i,j,UTEMP),i=adv_l1,adv_h1)
-!       end if
-!       end do
-
-   ! do n = 1, nvar
-   !    if ( bc(2,2,n).eq.FOEXTRAP .and. adv_h2.gt.domhi(2)) then
-          
-!          do j=domhi(2)+1,adv_h2
-!           do j=adv_l2,adv_h2 
-            !adv(adv_l1:adv_h1,j,UTEMP)=0.0d0
-!            adv(adv_l1:adv_h1,j,URHO)=1D7
-!          end do
-   !    end if
-!print *,(adv(adv_l1:adv_h1,j,UTEMP),j=domhi(2)+1,adv_h2)
-   ! end do
 
   end subroutine ca_hypfill
 

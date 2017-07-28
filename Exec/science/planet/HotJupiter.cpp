@@ -1,5 +1,3 @@
-//July 25
-
 #include<iostream>
 #include<cmath>
 #include<fstream>
@@ -15,13 +13,10 @@ int main(){
   double X = 1.0,buffer_height,T_buffer,den_buffer,dP_factor2;
   double P2, dz, den2, T2,error_expected,error,P2_temp;
     int alpha=1, beta=0, count = 0,count_cell,count2=0 , count3=0;
- // static double P[10000000],T[10000000],den[10000000],y[10000000];
   double P[5000],T[5000],den[5000],y[5000];
-  //std::cout.precision(20);
  
   //Declaration Block
   Td = 1500.0e0;       //T_deep : the temperature at the top of the atmosphere[K]
- // Pc = 1.0e9;        //the pressure at the convective-radiation boundary [10^-6 bar]
   P_char = 1.0e6;
   T_char = 250.0e0;
   dP = 1.0e+3;         //dP defaul value
@@ -57,7 +52,7 @@ int main(){
   P1=P_top;
   dP_factor=1.e5;
   dP_factor2=1.e-10*dP_factor;
-  z=z_top;//+0.5*z_top/number_cell;
+  z=z_top;
   P1=P_top;
   count=0;
   error_expected=1.e2/z_top;
@@ -118,7 +113,7 @@ int main(){
       
         den2 = (P2/(R*T2));
         dz = abs ((-P1+P2)* (1.0/grav)/((1.0/2.0)*(den1+den2)));
-        error = dz-z_top/number_cell;//*float(count_cell);
+        error = dz-z_top/number_cell;
         count++;
       if(count % 10000000 == 0){
         if(Pc>P1){
