@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{mathpazo}
+
+\newcommand{\gcc}{\mathrm{g~cm^{-3} }}
+\newcommand{\castro}{{\sffamily{Castro}}}
+
+\begin{document}
+
+\begin{center}
+  {\Large Notes on the Radiation-Driven Planet Convection Problem}
+\end{center}
+
+
+\section{\castro\ Solver Details}
+
+We are using the gray radiation solver.  Weiqun suggests
+\begin{itemize}
+\item {\tt radiation.comoving = 1} ---should be more stable
+\item {\tt radsolve.level\_solver\_flag = 1} ---should be faster than {\tt 0}
+\item {\tt castro.cfl}: the value we were using by default is {\tt
+  0.9}---this may be too high.
+\end{itemize}
+
+
+\section{Opacity}
+
+YM10 suggest the form of the opacity as (Eq.\ 3):
+\begin{equation}
+  \tilde{\kappa} = \tilde{\kappa}_0 \left (\frac{P}{P_\mathrm{kb}} \right)
+\end{equation}
+with $\tilde{\kappa} = 0.18~\mathrm{cm^2~g^{-1}}$, and $P_\mathrm{kb}
+= 1000~\mathrm{bar} = 10^9~\mathrm{erg~cm^{-3}}$.  Note that this form
+of opacity has different units than what \castro\ uses.  For \castro\,
+opacity has units of $\mathrm{cm^{-1}}$, so we have:
+\begin{equation}
+  \kappa = \rho \tilde{\kappa} = \tilde{\kappa}_0 \rho \left ( \frac{P}{P_\mathrm{kb}} \right )
+\end{equation}
+
+\castro\ takes the opacity as a simple power law of density and temperature (without any
+reference values for scaling).  We replace the pressure using the EOS:
+\begin{equation}
+  P = \frac{\rho k T}{\mu m_p}
+\end{equation}
+where $\mu = 2.34$ as specified in YM10, and $T$ is understood to be
+the gas temperature.  Substituting this in, we have:
+\begin{equation}
+  \kappa = \tilde{\kappa}_0 \rho^2 \frac{k T}{\mu m_p P_\mathrm{kb}}
+\end{equation}
+
+Since \castro\ wants $\kappa = \kappa_0 \rho^m T^{-n}$, we evaluate
+this with $\rho = 1~\gcc$ and $T = 1~\mathrm{K}$:
+\begin{equation}
+  \kappa = 6.35 \times 10^{-3} \, \rho^2 T~\mathrm{cm^{-1}}
+\end{equation}
+This can be set in \castro\ as:
+\begin{verbatim}
+radiation.const_kappa_p = 6.35e-3
+radiation.kappa_p.exp_m = 2
+radiation.kappa_p_exp_n = -1
+\end{verbatim}
+
+
+\subsection{Boundary Conditions}
+
+The upper boundary of the domain needs to specify the flux coming from
+the parent star.  Weiqun suggested the Sanchez-Pomraning BC, which is
+a Neumann-like BC that allows for an incoming and outgoing flux.
+
+The form of the flux is $F = cE_r$, where $E_r$ is the radiation
+energy density.  This flux has units of $\mathrm{erg~cm^{-2}~s^{-1}}$.
+We evaluate it as
+\begin{equation}
+  F = cE_r = c a T_\star^4 = 4\sigma T_\star^4
+\end{equation}
+where $T_\star$ is the effective temperature of the stellar flux at
+the planet---this is how the YM10 paper characterizes the radiation
+flux.  Evaluating, we have:
+\begin{equation}
+  F = 3.6\times 10^9~\mathrm{erg~cm^{-2}~s^{-1}}
+\end{equation}
+
+Alternately, we can arrive at this value as:
+\begin{equation}
+  f = \frac{L_\star}{4\pi d^2}
+\end{equation}
+where $L_\star$ is the luminosity of the parent star and $d$ is the
+orbital radius of the planet.  Using Kepler's third law,
+\begin{equation}
+  d^3 = \frac{GM_\star P^2}{4\pi^2}
+\end{equation}
+giving
+\begin{equation}
+  f = \frac{L_\star}{4\pi} \left ( \frac{4 \pi^2}{GM_\star P^2} \right )^{2/3}
+\end{equation}
+Picking $L_\star = L_\odot$ and $M_\star = M_\odot$, and taking $P =
+1~\mathrm{day}$, we get the same value for $f$ as above, $f =
+3.6\times 10^9~\mathrm{erg~cm^{-2}~s^{-1}}$.
+
+For the lower boundary, there should be a flux coming from the
+interior of the planet, but this will be very small compared to the
+flux coming from the star.  For now, we use a standard homogeneous
+Neumann boundary condition.
+
+
+\end{document}
