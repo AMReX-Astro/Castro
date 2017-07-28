@@ -1,0 +1,21 @@
+&fortin
+
+ model_name =  "newmodelcpp.hse"
+
+ apply_vel_field = T
+ velpert_height_loc = 1.8e8
+ velpert_scale = 1e7
+ velpert_amplitude = 1.5e7
+ num_vortices = 0
+
+ zero_vels = F
+ interp_BC = F
+
+ shear_height_loc = 3.8e8
+ shear_amplitude = 5e3
+
+/
+
+&extern
+
+/
