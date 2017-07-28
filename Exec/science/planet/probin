@@ -2,7 +2,7 @@
 
  model_name =  "newmodelcpp.hse"
 
- apply_vel_field = T
+ apply_vel_field = F
  velpert_height_loc = 1.8e8
  velpert_scale = 1e7
  velpert_amplitude = 1.5e7
@@ -17,5 +17,21 @@
 /
 
 &extern
+
+eos_gamma=1.4
+
+/
+
+
+&sponge
+  sponge_lower_factor = 0.0
+  sponge_upper_factor = 1.0
+
+  sponge_lower_density = 1.0e-7
+  sponge_upper_density = 2.0e-8
+
+  sponge_timescale    = 1.e2
+
+
 
 /

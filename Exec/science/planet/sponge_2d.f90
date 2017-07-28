@@ -24,13 +24,14 @@ contains
     double precision :: sponge_start_density
     double precision :: E_added,xmom_added,ymom_added
     
-    sponge_center_density = 2.d-7
+    sponge_center_density = 4.d-8
     sponge_start_factor = 2.0d0
-    sponge_kappa = 1000.d0
+    sponge_kappa = 0.001d0
     
     sponge_start_density = sponge_center_density * sponge_start_factor
     
     do j = lo(2),hi(2)
+print *, 'sponge'
        do i = lo(1),hi(1)
         
           rho = uout(i,j,URHO)
