@@ -123,16 +123,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer i,j,n,vortex
 
   type (eos_t) :: eos_state
-        
+
+
   do j = lo(2), hi(2)
      y = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5d0)
-
-     do i = lo(1), hi(1)   
+     do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
                                       model_state(:,idens_model))
         state(i,j,UTEMP) = interpolate(y,npts_model,model_r, &
                                        model_state(:,itemp_model))
+
+
         do n = 1, nspec
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
@@ -143,10 +145,27 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         eos_state%xn(:) = state(i,j,UFS:)
 
         call eos(eos_input_rt, eos_state)
-
         state(i,j,UEINT) = eos_state%e
 
      end do
+
+
+    !check for HSE for discretized scheme
+  if(abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)&
+  >1D-12)then
+  print *, 'TOO CRUDE MAPPING',j,y,&
+  abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
+  else
+  print *, 'NICE MAPPING',j,y,&
+  abs((7.0/5.0-1.0)*abs(state((lo(1)+hi(1))/2,j,URHO)*state((lo(1)+hi(1))/2,j,UEINT)&
+  -state((lo(1)+hi(1))/2,j-1,URHO)*state((lo(1)+hi(1))/2,j-1,UEINT))/&
+  delta(2)-0.5d0*(state((lo(1)+hi(1))/2,j,URHO)+state((lo(1)+hi(1))/2,j-1,URHO))*1D3)
+  end if
+
   end do
 
   ! switch to conserved quantities

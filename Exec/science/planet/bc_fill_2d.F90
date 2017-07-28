@@ -39,8 +39,6 @@ contains
        call filcc(adv(adv_l1,adv_l2,n),adv_l1,adv_l2,adv_h1,adv_h2, &
                   domlo,domhi,delta,xlo,bc(1,1,n))
     enddo
-
-  
     do n = 1, NVAR
          
        ! XLO
@@ -59,24 +57,21 @@ contains
         
        end if
     enddo
-  
+
     ! YLO -- HSE with linear density profile, T found via iteration
     ! we do all variables at once here
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
 
        y_base = xlo(2) + delta(2)*(float(domlo(2)-adv_l2) + 0.5d0)
-        
        do i=adv_l1,adv_h1
 
           dens_base = adv(i,domlo(2),URHO)
 
           ! density slope
           slope = (adv(i,domlo(2)+1,URHO) - adv(i,domlo(2),URHO))/delta(2)
-           
           ! this do loop counts backwards since we want to work downward
           do j=domlo(2)-1,adv_l2,-1
              y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
-           
              ! zero-gradient catch-all -- this will get the radiation
              ! energy
              adv(i,j,:) = adv(i,j+1,:)
@@ -88,6 +83,7 @@ contains
 
              ! temperature guess and species held constant in BCs
              temp_zone = adv(i,j+1,UTEMP)
+
              X_zone(:) = adv(i,j+1,UFS:UFS-1+nspec)/adv(i,j+1,URHO)
              
              ! get pressure in zone above
@@ -108,7 +104,9 @@ contains
              eos_state%T = temp_zone   ! guess
              eos_state%xn(:) = X_zone(:)
              eos_state%p = p_want
-             
+ 
+
+            
              call eos(eos_input_rp, eos_state)
 
              ! velocity
@@ -138,6 +136,7 @@ contains
     end if
 
   
+  
     ! YHI
     do n = 1, nvar
        if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
@@ -145,10 +144,8 @@ contains
           do j=domhi(2)+1,adv_h2
              y = xlo(2) + delta(2)*(float(j-adv_l2) + 0.5d0)
 
-             ! zero-gradient catch-all -- this will get the radiation
-             ! energy
              adv(adv_l1:adv_h1,j,:) = adv(adv_l1:adv_h1,j-1,:)
-           
+             adv(adv_l1:adv_h1,j,UTEMP)=min(adv(adv_l1:adv_h1,j-1,UTEMP),temp_zone)
              do i=adv_l1,adv_h1
                 
                 ! set all the variables even though we're testing on URHO
@@ -159,7 +156,6 @@ contains
 
                    temp_zone = interpolate(y,npts_model,model_r, &
                                            model_state(:,itemp_model))
-
                    do q = 1, nspec
                       X_zone(q) = interpolate(y,npts_model,model_r, &
                                               model_state(:,ispec_model-1+q))
@@ -174,6 +170,7 @@ contains
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
                    eos_state%xn(:) = X_zone
+
                    
                    call eos(eos_input_rt, eos_state)
                    
@@ -183,14 +180,16 @@ contains
                         0.5d0*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-                 
+               
                 end if
-              
+
+
              end do
           end do
        end if
      
     end do
+
 
   end subroutine ca_hypfill
 
