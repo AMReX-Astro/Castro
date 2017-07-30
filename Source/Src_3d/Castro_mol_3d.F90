@@ -275,6 +275,84 @@ subroutine ca_mol_single_stage(time, &
 
      enddo
 
+     ! use T to define p
+     if (ppm_temp_fix == 1) then
+        do j = lo(2)-1, hi(2)+1
+           do i = lo(1)-1, hi(1)+1
+              
+              eos_state%rho    = qxp(i,j,kc,QRHO)
+              eos_state%T      = qxp(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qxp(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qxp(i,j,kc,QFX:QFX-1+naux)
+
+              call eos(eos_input_rt, eos_state)
+
+              qxp(i,j,kc,QPRES) = eos_state%p
+              qxp(i,j,kc,QREINT) = qxp(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+              eos_state%rho    = qxm(i,j,kc,QRHO)
+              eos_state%T      = qxm(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qxm(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qxm(i,j,kc,QFX:QFX-1+naux)
+              
+              call eos(eos_input_rt, eos_state)
+
+              qxm(i,j,kc,QPRES) = eos_state%p
+              qxm(i,j,kc,QREINT) = qxm(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+              
+              
+              eos_state%rho    = qyp(i,j,kc,QRHO)
+              eos_state%T      = qyp(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qyp(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qyp(i,j,kc,QFX:QFX-1+naux)
+              
+              call eos(eos_input_rt, eos_state)
+
+              qyp(i,j,kc,QPRES) = eos_state%p
+              qyp(i,j,kc,QREINT) = qyp(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+              eos_state%rho    = qym(i,j,kc,QRHO)
+              eos_state%T      = qym(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qym(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qym(i,j,kc,QFX:QFX-1+naux)
+
+              call eos(eos_input_rt, eos_state)
+
+              qym(i,j,kc,QPRES) = eos_state%p
+              qym(i,j,kc,QREINT) = qym(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+
+              eos_state%rho    = qzp(i,j,kc,QRHO)
+              eos_state%T      = qzp(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qzp(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qzp(i,j,kc,QFX:QFX-1+naux)
+              
+              call eos(eos_input_rt, eos_state)
+
+              qzp(i,j,kc,QPRES) = eos_state%p
+              qzp(i,j,kc,QREINT) = qzp(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+              eos_state%rho    = qzm(i,j,kc,QRHO)
+              eos_state%T      = qzm(i,j,kc,QTEMP)
+              eos_state%xn(:)  = qzm(i,j,kc,QFS:QFS-1+nspec)
+              eos_state%aux(:) = qzm(i,j,kc,QFX:QFX-1+naux)
+              
+              call eos(eos_input_rt, eos_state)
+
+              qzm(i,j,kc,QPRES) = eos_state%p
+              qzm(i,j,kc,QREINT) = qzm(i,j,kc,QRHO)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+           
+           enddo
+        enddo
+     endif
+
+
      if (k3d >= lo(3)) then
 
         ! Compute F^x at kc (k3d)

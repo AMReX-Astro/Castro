@@ -191,6 +191,35 @@ subroutine ca_mol_single_stage(time, &
 
   deallocate(sxm, sxp)
 
+  ! use T to define p
+  if (ppm_temp_fix == 1) then
+     do i = lo(1)-1, hi(1)+1
+
+        eos_state%rho    = qxp(i,QRHO)
+        eos_state%T      = qxp(i,QTEMP)
+        eos_state%xn(:)  = qxp(i,QFS:QFS-1+nspec)
+        eos_state%aux(:) = qxp(i,QFX:QFX-1+naux)
+
+        call eos(eos_input_rt, eos_state)
+
+        qxp(i,QPRES) = eos_state%p
+        qxp(i,QREINT) = qxp(i,QRHO)*eos_state%e
+        ! should we try to do something about Gamma_! on interface?
+
+        eos_state%rho    = qxm(i,QRHO)
+        eos_state%T      = qxm(i,QTEMP)
+        eos_state%xn(:)  = qxm(i,QFS:QFS-1+nspec)
+        eos_state%aux(:) = qxm(i,QFX:QFX-1+naux)
+        
+        call eos(eos_input_rt, eos_state)
+
+        qxm(i,QPRES) = eos_state%p
+        qxm(i,QREINT) = qxm(i,QRHO)*eos_state%e
+        ! should we try to do something about Gamma_! on interface?
+
+        enddo
+     enddo
+  endif
 
   ! Get the fluxes from the Riemann solver
   call cmpflx(lo, hi, domlo, domhi, &
