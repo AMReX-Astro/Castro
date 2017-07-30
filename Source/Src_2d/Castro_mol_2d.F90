@@ -230,6 +230,61 @@ subroutine ca_mol_single_stage(time, &
 
   deallocate(sxm, sxp, sym, syp)
 
+  ! use T to define p
+  if (ppm_temp_fix == 1) then
+     do j = lo(2)-1, hi(2)+1
+        do i = lo(1)-1, hi(1)+1
+
+           eos_state%rho    = qxp(i,j,QRHO)
+           eos_state%T      = qxp(i,j,QTEMP)
+           eos_state%xn(:)  = qxp(i,j,QFS:QFS-1+nspec)
+           eos_state%aux(:) = qxp(i,j,QFX:QFX-1+naux)
+
+           call eos(eos_input_rt, eos_state)
+
+           qxp(i,j,QPRES) = eos_state%p
+           qxp(i,j,QREINT) = qxp(i,j,QRHO)*eos_state%e
+           ! should we try to do something about Gamma_! on interface?
+
+           eos_state%rho    = qxm(i,j,QRHO)
+           eos_state%T      = qxm(i,j,QTEMP)
+           eos_state%xn(:)  = qxm(i,j,QFS:QFS-1+nspec)
+           eos_state%aux(:) = qxm(i,j,QFX:QFX-1+naux)
+
+           call eos(eos_input_rt, eos_state)
+
+           qxm(i,j,QPRES) = eos_state%p
+           qxm(i,j,QREINT) = qxm(i,j,QRHO)*eos_state%e
+           ! should we try to do something about Gamma_! on interface?
+
+
+           eos_state%rho    = qyp(i,j,QRHO)
+           eos_state%T      = qyp(i,j,QTEMP)
+           eos_state%xn(:)  = qyp(i,j,QFS:QFS-1+nspec)
+           eos_state%aux(:) = qyp(i,j,QFX:QFX-1+naux)
+
+           call eos(eos_input_rt, eos_state)
+
+           qyp(i,j,QPRES) = eos_state%p
+           qyp(i,j,QREINT) = qyp(i,j,QRHO)*eos_state%e
+           ! should we try to do something about Gamma_! on interface?
+
+           eos_state%rho    = qym(i,j,QRHO)
+           eos_state%T      = qym(i,j,QTEMP)
+           eos_state%xn(:)  = qym(i,j,QFS:QFS-1+nspec)
+           eos_state%aux(:) = qym(i,j,QFX:QFX-1+naux)
+
+           call eos(eos_input_rt, eos_state)
+
+           qym(i,j,QPRES) = eos_state%p
+           qym(i,j,QREINT) = qym(i,j,QRHO)*eos_state%e
+           ! should we try to do something about Gamma_! on interface?
+
+        enddo
+     enddo
+  endif
+
+
 
   ! Get the fluxes from the Riemann solver
   call cmpflx(qxm, qxp, lo_3D-1, hi_3D+2, &
