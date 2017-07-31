@@ -22,7 +22,7 @@ module riemann_module
 
   private
 
-  public cmpflx, shock
+  public cmpflx
 
   real(rt), parameter :: smallu = 1.e-12_rt
 
@@ -202,94 +202,6 @@ contains
 #endif
 
   end subroutine cmpflx
-
-
-  subroutine shock(q, q_lo, q_hi, &
-                   shk, s_lo, s_hi, &
-                   ilo1, ihi1, dx)
-
-    use prob_params_module, only : coord_type
-
-    use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: ilo1, ihi1
-    real(rt)        , intent(in) :: dx
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),NQ)
-    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1))
-
-    integer :: i
-
-    real(rt)         :: divU
-    real(rt)         :: px_pre, px_post
-    real(rt)         :: p_pre, p_post, pjump
-
-    real(rt)         :: rc, rm, rp
-
-    real(rt)        , parameter :: small = 1.e-10_rt
-    real(rt)        , parameter :: eps = 0.33e0_rt
-
-    ! This is a basic multi-dimensional shock detection algorithm.
-    ! This implementation follows Flash, which in turn follows
-    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-    !
-    ! The spirit of this follows the shock detection in Colella &
-    ! Woodward (1984)
-
-    do i = ilo1-1, ihi1+1
-
-       ! construct div{U}
-       if (coord_type == 0) then
-          divU = HALF*(q(i+1,QU) - q(i-1,QU))/dx
-
-       else if (coord_type == 1) then
-          ! cylindrical r
-          rc = dble(i + HALF)*dx
-          rm = dble(i - 1 + HALF)*dx
-          rp = dble(i + 1 + HALF)*dx
-
-          divU = HALF*(rp*q(i+1,QU) - rm*q(i-1,QU))/(rc*dx)
-       else if (coord_type == 2) then
-          rc = dble(i + HALF)*dx
-          rm = dble(i - 1 + HALF)*dx
-          rp = dble(i + 1 + HALF)*dx
-
-          divU = HALF*(rp**2*q(i+1,QU) - rm**2*q(i-1,QU))/(rc**2*dx)
-       else
-          call bl_error("ERROR: invalid coord_type in shock")
-       endif
-
-       ! find the pre- and post-shock pressures in each direction
-       if (q(i+1,QPRES) - q(i-1,QPRES) < ZERO) then
-          px_pre  = q(i+1,QPRES)
-          px_post = q(i-1,QPRES)
-       else
-          px_pre  = q(i-1,QPRES)
-          px_post = q(i+1,QPRES)
-       endif
-
-       ! project the pressures onto the shock direction (trivial in 1-d)
-       p_pre  = px_pre
-       p_post = px_post
-
-       ! test for compression + pressure jump to flag a shock
-       if (p_pre == ZERO) then
-          pjump = ZERO
-       else
-          pjump = eps - (p_post - p_pre)/p_pre
-       endif
-
-       if (pjump < ZERO .and. divU < ZERO) then
-          shk(i) = ONE
-       else
-          shk(i) = ZERO
-       endif
-
-    enddo
-
-  end subroutine shock
-
-
 
 
 ! :::

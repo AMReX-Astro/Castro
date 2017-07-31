@@ -26,11 +26,11 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, ppm_temp_fix
   use advection_util_2d_module, only : divu, normalize_species_fluxes
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, shock
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
-  use riemann_module, only: cmpflx, shock
+  use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef RADIATION  
@@ -142,7 +142,7 @@ subroutine ca_mol_single_stage(time, &
 
     call shock(q, q_lo, q_hi, &
                shk, lo_3D-1, hi_3D+1, &
-               lo, hi, dx, dy)
+               lo_3D, hi_3D, dx_3D)
 
     ! Store the shock data for future use in the burning step.
     do j = lo(2), hi(2)
@@ -162,7 +162,7 @@ subroutine ca_mol_single_stage(time, &
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
                   shk, lo_3D-1, hi_3D+1, &
-                  lo, hi, dx, dy)
+                  lo_3D, hi_3D, dx_3D)
     else
        shk(:,:) = ZERO
     endif

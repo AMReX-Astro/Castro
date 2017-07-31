@@ -22,11 +22,11 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
                                  hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, shock
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
-  use riemann_module, only: cmpflx, shock
+  use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
   use advection_util_1d_module, only : normalize_species_fluxes
@@ -128,7 +128,7 @@ subroutine ca_mol_single_stage(time, &
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),USHK) = ZERO
 
-    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
+    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo_3D, hi_3D, dx_3D)
 
     ! Store the shock data for future use in the burning step.
     do i = lo(1), hi(1)
@@ -143,7 +143,7 @@ subroutine ca_mol_single_stage(time, &
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
+       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo_3D, hi_3D, dx_3D)
     else
        shk(:) = ZERO
     endif

@@ -29,7 +29,7 @@ module riemann_module
 
   private
 
-  public cmpflx, shock
+  public cmpflx
 
   real(rt), parameter :: smallu = 1.e-12_rt
 
@@ -306,114 +306,6 @@ contains
 #endif
 
   end subroutine cmpflx
-
-
-  subroutine shock(q,qd_lo,qd_hi,shk,s_lo,s_hi,lo,hi,dx)
-
-    use prob_params_module, only : coord_type
-    use bl_constants_module
-
-    use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: lo(3), hi(3)
-    real(rt)        , intent(in) :: dx(3)
-    real(rt)        , intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
-    integer :: i, j, k
-
-    real(rt)         :: dxinv, dyinv, dzinv
-    real(rt)         :: divU
-    real(rt)         :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
-    real(rt)         :: e_x, e_y, e_z, d
-    real(rt)         :: p_pre, p_post, pjump
-
-    real(rt)        , parameter :: small = 1.e-10_rt
-    real(rt)        , parameter :: eps = 0.33e0_rt
-
-    ! This is a basic multi-dimensional shock detection algorithm.
-    ! This implementation follows Flash, which in turn follows
-    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-    !
-    ! The spirit of this follows the shock detection in Colella &
-    ! Woodward (1984)
-
-    dxinv = ONE/dx(1)
-    dyinv = ONE/dx(2)
-    dzinv = ONE/dx(3)
-
-    if (coord_type /= 0) then
-       call bl_error("ERROR: invalid geometry in shock()")
-    endif
-
-    do k = lo(3)-1, hi(3)+1
-       do j = lo(2)-1, hi(2)+1
-          do i = lo(1)-1, hi(1)+1
-
-             ! construct div{U}
-             divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv + &
-                    HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv + &
-                    HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
-
-             ! find the pre- and post-shock pressures in each direction
-             if (q(i+1,j,k,QPRES) - q(i-1,j,k,QPRES) < ZERO) then
-                px_pre  = q(i+1,j,k,QPRES)
-                px_post = q(i-1,j,k,QPRES)
-             else
-                px_pre  = q(i-1,j,k,QPRES)
-                px_post = q(i+1,j,k,QPRES)
-             endif
-
-             if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
-                py_pre  = q(i,j+1,k,QPRES)
-                py_post = q(i,j-1,k,QPRES)
-             else
-                py_pre  = q(i,j-1,k,QPRES)
-                py_post = q(i,j+1,k,QPRES)
-             endif
-
-             if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
-                pz_pre  = q(i,j,k+1,QPRES)
-                pz_post = q(i,j,k-1,QPRES)
-             else
-                pz_pre  = q(i,j,k-1,QPRES)
-                pz_post = q(i,j,k+1,QPRES)
-             endif
-
-             ! use compression to create unit vectors for the shock direction
-             e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
-             e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
-             e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
-             d = ONE/(e_x + e_y + e_z + small)
-
-             e_x = e_x*d
-             e_y = e_y*d
-             e_z = e_z*d
-
-             ! project the pressures onto the shock direction
-             p_pre  = e_x*px_pre + e_y*py_pre + e_z*pz_pre
-             p_post = e_x*px_post + e_y*py_post + e_z*pz_post
-
-             ! test for compression + pressure jump to flag a shock
-             if (p_pre == ZERO) then
-                ! this can happen if U = 0, so e_x, ... = 0
-                pjump = ZERO
-             else
-                pjump = eps - (p_post - p_pre)/p_pre
-             endif
-
-             if (pjump < ZERO .and. divU < ZERO) then
-                shk(i,j,k) = ONE
-             else
-                shk(i,j,k) = ZERO
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine shock
 
 
 
