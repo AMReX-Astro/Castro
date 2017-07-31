@@ -29,7 +29,8 @@ else
 
 endif
 
-Conductivity_dir := constant_opacity
+#Conductivity_dir := constant_opacity
+Conductivity_dir := stellar
 
 Bpack   := ./Make.package
 Blocs   := .
