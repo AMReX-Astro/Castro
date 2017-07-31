@@ -3,19 +3,19 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
-    use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-                                   QFS, QFX, &
-                                   NGDNV, GDU, GDPRES, QGAMC, QC, QCSML, &
+  use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+                                 QFS, QFX, &
+                                 NGDNV, GDU, GDPRES, QGAMC, QC, QCSML, &
 #ifdef RADIATION
-                                   GDERADS, GDLAMS, QGAMCG, QLAMS, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
-                                   URHO, UMX, UEDEN, UEINT, &
-                                   small_temp, small_dens, small_pres, &
-                                   npassive, upass_map, qpass_map, &
-                                   cg_maxiter, cg_tol, cg_blend, &
-                                   fix_mass_flux, &
-                                   riemann_solver, ppm_temp_fix, hybrid_riemann, &
-                                   allow_negative_energy
+                                 URHO, UMX, UEDEN, UEINT, &
+                                 small_temp, small_dens, small_pres, &
+                                 npassive, upass_map, qpass_map, &
+                                 cg_maxiter, cg_tol, cg_blend, &
+                                 fix_mass_flux, &
+                                 riemann_solver, ppm_temp_fix, hybrid_riemann, &
+                                 allow_negative_energy
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -49,6 +49,8 @@ contains
 #ifdef RADIATION
     use rad_params_module, only : ngroups
 #endif
+    use actual_riemann_module, only : riemanncg
+
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -182,16 +184,16 @@ contains
                       lam, gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
-                      ilo, ihi, domlo, domhi )
+                      ilo, ihi+1, domlo, domhi )
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
-                      smallc, cavg, &
-                      gamcm, gamcp, &
+                      gamcm, gamcp, cavg, smallc, [ilo, 0, 0], [ihi+1, 0, 0], &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
-                      ilo, ihi)
+                      1, ilo, ihi+1, 0, 0, 0, 0, 0, &
+                      [domlo(1), 0, 0], [domhi(1), 0, 0])
     else
        call bl_error("ERROR: HLLC not support in 1-d yet")
     endif
@@ -203,530 +205,6 @@ contains
 
   end subroutine cmpflx
 
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
-                       smallc, cav, &
-                       gamcl, gamcr, &
-                       uflx, uflx_lo, uflx_hi, &
-                       qint, qg_lo, qg_hi, &
-                       ilo, ihi)
-
-    ! this implements the approximate Riemann solver of Colella & Glaz (1985)
-
-    use bl_error_module
-    use network, only : nspec, naux
-    use eos_type_module
-    use eos_module
-    use riemann_util_module
-
-    use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , parameter :: small = 1.e-8_rt
-
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
-
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1), NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1), NQ)
-    real(rt)         ::  gamcl(ilo:ihi+1)
-    real(rt)         ::  gamcr(ilo:ihi+1)
-    real(rt)         ::    cav(ilo:ihi+1)
-    real(rt)         :: smallc(ilo:ihi+1)
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1), NVAR)
-    real(rt)         ::  qint(qg_lo(1):qg_hi(1), NGDNV)
-
-    integer :: ilo,ihi
-    integer :: n, nqp, ipassive
-
-    real(rt)         :: rgdnv,ustar,gamgdnv,v1gdnv,v2gdnv
-    real(rt)         :: rl, ul, v1l, v2l, pl, rel
-    real(rt)         :: rr, ur, v1r, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
-
-    real(rt)         :: gcl, gcr
-    real(rt)         :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    real(rt)         :: zm, zp
-    real(rt)         :: denom, dpditer, dpjmp
-    real(rt)         :: gamc_bar, game_bar
-    real(rt)         :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
-
-    integer :: iter, iter_max
-    real(rt)         :: tol
-    real(rt)         :: err
-
-    logical :: converged
-
-    real(rt)         :: pstnm1
-    real(rt)         :: taul, taur, tauo
-    real(rt)         :: ustarm, ustarp, ustnm1, ustnp1
-    real(rt)         :: pstarl, pstarc, pstaru, pfuncc, pfuncu
-
-    real(rt)        , parameter :: weakwv = 1.e-3_rt
-
-    real(rt)        , allocatable :: pstar_hist(:), pstar_hist_extra(:)
-
-    type (eos_t) :: eos_state
-
-    integer :: k
-
-    if (cg_blend .eq. 2 .and. cg_maxiter < 5) then
-
-       call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
-
-    endif
-
-    tol = cg_tol
-    iter_max = cg_maxiter
-
-    allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(2*iter_max))
-
-    do k = ilo, ihi+1
-
-       ! left state
-       rl  = max( ql(k,QRHO), small_dens)
-
-       ul  = ql(k,QU)
-       v1l = ql(k,QV)
-       v2l = ql(k,QW)
-
-       pl  = ql(k,QPRES)
-       rel = ql(k,QREINT)
-       gcl = gamcl(k)
-
-       ! sometimes we come in here with negative energy or pressure
-       ! note: reset both in either case, to remain thermo
-       ! consistent
-       if (rel <= ZERO .or. pl <= small_pres) then
-          print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
-          eos_state % T   = small_temp
-          eos_state % rho = rl
-          eos_state % xn  = ql(k,QFS:QFS-1+nspec)
-          eos_state % aux = ql(k,QFX:QFX-1+naux)
-
-          call eos(eos_input_rt, eos_state)
-
-          rel = rl*eos_state%e
-          pl  = eos_state%p
-          gcl = eos_state%gam1
-       endif
-
-       ! right state
-       rr  = max( qr(k,QRHO), small_dens)
-
-       ur  = qr(k,QU)
-       v1r  = qr(k,QV)
-       v2r  = qr(k,QW)
-
-       pr  = qr(k,QPRES)
-       rer = qr(k,QREINT)
-       gcr = gamcr(k)
-
-       if (rer <= ZERO .or. pr <= small_pres) then
-          print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
-          eos_state % T   = small_temp
-          eos_state % rho = rr
-          eos_state % xn  = qr(k,QFS:QFS-1+nspec)
-          eos_state % aux = qr(k,QFX:QFX-1+naux)
-
-          call eos(eos_input_rt, eos_state)
-
-          rer = rr*eos_state%e
-          pr  = eos_state%p
-          gcr = eos_state%gam1
-       endif
-
-       ! common quantities
-       taul = ONE/rl
-       taur = ONE/rr
-
-       ! lagrangian sound speeds
-       clsql = gcl*pl*rl
-       clsqr = gcr*pr*rr
-
-
-       ! Note: in the original Colella & Glaz paper, they predicted
-       ! gamma_e to the interfaces using a special (non-hyperbolic)
-       ! evolution equation.  In Castro, we instead bring (rho e)
-       ! to the edges, so we construct the necessary gamma_e here from
-       ! what we have on the interfaces.
-       gamel = pl/rel + ONE
-       gamer = pr/rer + ONE
-
-       ! these should consider a wider average of the cell-centered
-       ! gammas
-       gmin = min(gamel, gamer, ONE, 4.e0_rt/3.e0_rt)
-       gmax = max(gamel, gamer, TWO, 5.e0_rt/3.e0_rt)
-
-       game_bar = HALF*(gamel + gamer)
-       gamc_bar = HALF*(gcl + gcr)
-
-       gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
-
-       csmall = smallc(k)
-       wsmall = small_dens*csmall
-       wl = max(wsmall,sqrt(abs(clsql)))
-       wr = max(wsmall,sqrt(abs(clsqr)))
-
-       ! make an initial guess for pstar -- this is a two-shock
-       ! approximation
-       !  pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-       pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-       pstar = max(pstar,small_pres)
-
-       ! get the shock speeds -- this computes W_s from CG Eq. 34
-       call wsqge(pl,taul,gamel,gdot,  &
-                  gamstar,pstar,wlsq,clsql,gmin,gmax)
-
-       call wsqge(pr,taur,gamer,gdot,  &
-                  gamstar,pstar,wrsq,clsqr,gmin,gmax)
-
-       pstnm1 = pstar
-
-       wl = sqrt(wlsq)
-       wr = sqrt(wrsq)
-
-       ! R-H jump conditions give ustar across each wave -- these should
-       ! be equal when we are done iterating
-       ustarp = ul - (pstar-pl)/wl
-       ustarm = ur + (pstar-pr)/wr
-
-       ! revise our pstar guess
-       !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-       pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-       pstar = max(pstar,small_pres)
-
-       ! secant iteration
-       converged = .false.
-       iter = 1
-       do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
-
-          call wsqge(pl,taul,gamel,gdot,  &
-                     gamstar,pstar,wlsq,clsql,gmin,gmax)
-
-          call wsqge(pr,taur,gamer,gdot,  &
-                     gamstar,pstar,wrsq,clsqr,gmin,gmax)
-
-          wl = ONE / sqrt(wlsq)
-          wr = ONE / sqrt(wrsq)
-          ustnm1 = ustarm
-          ustnp1 = ustarp
-          ustarm = ur-(pr-pstar)*wr
-          ustarp = ul+(pl-pstar)*wl
-
-          dpditer=abs(pstnm1-pstar)
-          zp=abs(ustarp-ustnp1)
-          if(zp-weakwv*cav(k) <= ZERO)then
-             zp = dpditer*wl
-          endif
-
-          zm=abs(ustarm-ustnm1)
-          if(zm-weakwv*cav(k) <= ZERO)then
-             zm = dpditer*wr
-          endif
-
-          ! the new pstar is found via CG Eq. 18
-          denom=dpditer/max(zp+zm,small*(cav(k)))
-          pstnm1 = pstar
-          pstar=pstar-denom*(ustarm-ustarp)
-          pstar=max(pstar,small_pres)
-
-          err = abs(pstar - pstnm1)
-          if (err < tol*pstar) converged = .true.
-
-          pstar_hist(iter) = pstar
-
-          iter = iter + 1
-
-       enddo
-
-       ! If we failed to converge using the secant iteration, we can either
-       ! stop here; or, revert to the original two-shock estimate for pstar;
-       ! or do a bisection root find using the bounds established by the most
-       ! recent iterations.
-
-       if (.not. converged) then
-
-          if (cg_blend .eq. 0) then
-
-             print *, 'pstar history: '
-             do iter = 1, iter_max
-                print *, iter, pstar_hist(iter)
-             enddo
-
-             print *, ' '
-             print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-             print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
-             call bl_error("ERROR: non-convergence in the Riemann solver")
-
-          else if (cg_blend .eq. 1) then
-
-             pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-
-          else if (cg_blend .eq. 2) then
-
-             pstarl = minval(pstar_hist(iter_max-5:iter_max))
-             pstaru = maxval(pstar_hist(iter_max-5:iter_max))
-
-             iter = 1
-
-             do while (iter <= 2 * iter_max .and. .not. converged)
-
-                pstarc = HALF * (pstaru + pstarl)
-
-                pstar_hist_extra(iter) = pstarc
-
-                call wsqge(pl,taul,gamel,gdot,  &
-                     gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                call wsqge(pr,taur,gamer,gdot,  &
-                     gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                wl = ONE / sqrt(wlsq)
-                wr = ONE / sqrt(wrsq)
-
-                ustarm = ur-(pr-pstar)*wr
-                ustarp = ul+(pl-pstar)*wl
-
-                pfuncc = ustarp - ustarm
-
-                if ( HALF * (pstaru - pstarl) < cg_tol * pstarc ) then
-                   converged = .true.
-                endif
-
-                iter = iter + 1
-
-                call wsqge(pl,taul,gamel,gdot,  &
-                     gamstar,pstaru,wlsq,clsql,gmin,gmax)
-
-                call wsqge(pr,taur,gamer,gdot,  &
-                     gamstar,pstaru,wrsq,clsqr,gmin,gmax)
-
-                wl = ONE / sqrt(wlsq)
-                wr = ONE / sqrt(wrsq)
-
-                ustarm = ur-(pr-pstar)*wr
-                ustarp = ul+(pl-pstar)*wl
-
-                pfuncu = ustarp - ustarm
-
-                if (pfuncc * pfuncu < ZERO) then
-
-                   pstarl = pstarc
-
-                else
-
-                   pstaru = pstarc
-
-                endif
-
-             enddo
-
-             if (.not. converged) then
-
-                print *, 'pstar history: '
-                do iter = 1, iter_max
-                   print *, iter, pstar_hist(iter)
-                enddo
-                do iter = 1, 2 * iter_max
-                   print *, iter + iter_max, pstar_hist_extra(iter)
-                enddo
-
-                print *, ' '
-                print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-                print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-
-                call bl_error("ERROR: non-convergence in the Riemann solver")
-
-             endif
-
-          else
-
-             call bl_error("ERROR: unrecognized cg_blend option.")
-
-          endif
-
-       endif
-
-       ! we converged! construct the single ustar for the region
-       ! between the left and right waves, using the updated wave speeds
-       ustarm = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-       ustarp = ul+(pl-pstar)*wl
-
-       ustar = HALF* ( ustarp + ustarm )
-
-       ! for symmetry preservation, if ustar is really small, then we
-       ! set it to zero
-       if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-          ustar = ZERO
-       endif
-
-       ! sample the solution -- here we look first at the direction
-       ! that the contact is moving.  This tells us if we need to
-       ! worry about the L/L* states or the R*/R states.
-       if (ustar > ZERO) then
-          ro = rl
-          uo = ul
-          po = pl
-          tauo = taul
-          !reo = rel
-          gamco = gcl
-          gameo = gamel
-
-       else if (ustar < ZERO) then
-          ro = rr
-          uo = ur
-          po = pr
-          tauo = taur
-          !reo = rer
-          gamco = gcr
-          gameo = gamer
-
-       else
-          ro = HALF*(rl+rr)
-          uo = HALF*(ul+ur)
-          po = HALF*(pl+pr)
-          tauo = HALF*(taul+taur)
-
-          gamco = HALF*(gcl+gcr)
-          gameo = HALF*(gamel + gamer)
-       endif
-
-       ! use tau = 1/rho as the independent variable here
-       ro = max(small_dens, ONE/tauo)
-       tauo = ONE/ro
-
-       co = sqrt(abs(gamco*po/ro))
-       co = max(csmall,co)
-       clsq = (co*ro)**2
-
-       ! now that we know which state (left or right) we need to worry
-       ! about, get the value of gamstar and wosq across the wave we
-       ! are dealing with.
-       call wsqge(po,tauo,gameo,gdot,   &
-                  gamstar,pstar,wosq,clsq,gmin,gmax)
-
-       sgnm = sign(ONE,ustar)
-
-       wo = sqrt(wosq)
-       dpjmp = pstar - po
-
-       ! is this max really necessary?
-       !rstar=max(1.-ro*dpjmp/wosq,(gameo-1.)/(gameo+1.))
-       rstar=ONE-ro*dpjmp/wosq
-       rstar=ro/rstar
-       rstar = max(small_dens,rstar)
-
-       !entho = (reo/ro + po/ro)/co**2
-       !estar = reo + (pstar - po)*entho
-
-       cstar = sqrt(abs(gamco*pstar/rstar))
-       cstar = max(cstar,csmall)
-
-       spout = co - sgnm*uo
-       spin = cstar - sgnm*ustar
-
-       !ushock = HALF*(spin + spout)
-       ushock = wo/ro - sgnm*uo
-
-       if (pstar-po >= ZERO) then
-          spin = ushock
-          spout = ushock
-       endif
-
-       ! if (spout-spin .eq. ZERO) then
-       !   scr = small*cav(k)
-       !  else
-       !     scr = spout-spin
-       !  endif
-       !  frac = (ONE + (spout + spin)/scr)*HALF
-       !  frac = max(ZERO,min(ONE,frac))
-
-       frac = HALF*(ONE + (spin + spout)/max(spout-spin,spin+spout, small*cav(k)))
-
-       if (ustar > ZERO) then
-          v1gdnv = v1l
-          v2gdnv = v2l
-       else if (ustar < ZERO) then
-          v1gdnv = v1r
-          v2gdnv = v2r
-       else
-          v1gdnv = HALF*(v1l+v1r)
-          v2gdnv = HALF*(v2l+v2r)
-       endif
-
-       ! linearly interpolate between the star and normal state -- this covers the
-       ! case where we are inside the rarefaction fan.
-       rgdnv = frac*rstar + (ONE - frac)*ro
-       qint(k,GDU) = frac*ustar + (ONE - frac)*uo
-       qint(k,GDPRES) = frac*pstar + (ONE - frac)*po
-       gamgdnv =  frac*gamstar + (ONE-frac)*gameo
-
-       ! now handle the cases where instead we are fully in the
-       ! star or fully in the original (l/r) state
-       if (spout < ZERO) then
-          rgdnv = ro
-          qint(k,GDU) = uo
-          qint(k,GDPRES) = po
-          gamgdnv = gameo
-       endif
-
-       if (spin >= ZERO) then
-          rgdnv = rstar
-          qint(k,GDU) = ustar
-          qint(k,GDPRES) = pstar
-          gamgdnv = gamstar
-       endif
-
-       qint(k,GDPRES) = max(qint(k,GDPRES),small_pres)
-
-       ! Compute fluxes, order as conserved state (not q)
-       uflx(k,URHO) = rgdnv*qint(k,GDU)
-
-       ! note: here we do not include the pressure, since in 1-d,
-       ! for some geometries, div{F} + grad{p} cannot be written
-       ! in a flux difference form
-       uflx(k,UMX) = uflx(k,URHO)*qint(k,GDU)
-
-       ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-       rhoetot = qint(k,GDPRES)/(gamgdnv - ONE) + &
-            HALF*rgdnv*(qint(k,GDU)**2 + v1gdnv**2 + v2gdnv**2)
-
-       uflx(k,UEDEN) = qint(k,GDU)*(rhoetot + qint(k,GDPRES))
-       uflx(k,UEINT) = qint(k,GDU)*qint(k,GDPRES)/(gamgdnv - ONE)
-
-       ! passively advected quantities -- only the contact matters
-       ! note: this also includes the y- and z-velocity flux
-       do ipassive = 1, npassive
-          n  = upass_map(ipassive)
-          nqp = qpass_map(ipassive)
-
-          if (ustar > ZERO) then
-             uflx(k,n) = uflx(k,URHO)*ql(k,nqp)
-          else if (ustar < ZERO) then
-             uflx(k,n) = uflx(k,URHO)*qr(k,nqp)
-          else
-             qavg = HALF * (ql(k,nqp) + qr(k,nqp))
-             uflx(k,n) = uflx(k,URHO)*qavg
-          endif
-
-       enddo
-
-    enddo
-
-    deallocate(pstar_hist)
-    deallocate(pstar_hist_extra)
-
-  end subroutine riemanncg
 
 ! :::
 ! ::: ------------------------------------------------------------------
@@ -766,14 +244,14 @@ contains
     real(rt)         ql(qpd_lo(1):qpd_hi(1), NQ)
     real(rt)         qr(qpd_lo(1):qpd_hi(1), NQ)
 
-    real(rt)           cav(ilo:ihi+1), smallc(ilo:ihi+1)
-    real(rt)         gamcl(ilo:ihi+1), gamcr(ilo:ihi+1)
+    real(rt)           cav(ilo:ihi), smallc(ilo:ihi)
+    real(rt)         gamcl(ilo:ihi), gamcr(ilo:ihi)
     real(rt)          uflx(uflx_lo(1):uflx_hi(1), NVAR)
     real(rt)          qint( qg_lo(1): qg_hi(1), NGDNV)
 
 #ifdef RADIATION
-    real(rt)         lam(ilo-1:ihi+2, 0:ngroups-1)
-    real(rt)         gamcgl(ilo:ihi+1),gamcgr(ilo:ihi+1)
+    real(rt)         lam(ilo-1:ihi+1, 0:ngroups-1)
+    real(rt)         gamcgl(ilo:ihi),gamcgr(ilo:ihi)
     real(rt)          rflx(rflx_lo(1):rflx_hi(1), 0:ngroups-1)
 
     real(rt)        , dimension(0:ngroups-1) :: erl, err
@@ -807,9 +285,9 @@ contains
 
     fix_mass_flux_hi = (fix_mass_flux == 1) .and. &
                        (physbc_hi(1) == Outflow) .and. &
-                       (ihi == domhi(1))
+                       (ihi == domhi(1)+1)
 
-    do k = ilo, ihi+1
+    do k = ilo, ihi
        rl  = ql(k,QRHO)
        ul  = ql(k,QU)
        v1l = ql(k,QV)
