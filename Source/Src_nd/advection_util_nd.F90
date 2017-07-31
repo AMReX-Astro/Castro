@@ -6,7 +6,7 @@ module advection_util_module
   private
 
   public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens
+         limit_hydro_fluxes_on_small_dens, shock
 
 contains
 
@@ -20,6 +20,7 @@ contains
     use bl_constants_module, only : ZERO
 
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -370,7 +371,7 @@ contains
                    print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
                    print *,'>>> ... density             ', q(i,j,k,QRHO)
                 end if
-                
+
                 if (coury .gt. ONE) then
                    print *,'   '
                    call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
@@ -398,7 +399,7 @@ contains
                 if (dim == 3) then
                    courtmp = courtmp + courz
                 endif
-                
+
                 ! note: it might not be 1 for all RK integrators
                 if (courtmp > ONE) then
                    print *,'   '
@@ -407,7 +408,7 @@ contains
                    print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
                    print *,'>>> ... density             ', q(i,j,k,QRHO)
                 endif
-                
+
                 courno = max(courno, courtmp)
              endif
           enddo
@@ -690,7 +691,7 @@ contains
     enddo
 
   end subroutine srctoprim
-  
+
 
 
   ! Given a conservative state and its corresponding primitive state, calculate the
@@ -1227,5 +1228,170 @@ contains
     call bl_deallocate(thetam)
 
   end subroutine limit_hydro_fluxes_on_small_dens
+
+
+  subroutine shock(q, qd_lo, qd_hi, shk, s_lo, s_hi, lo, hi, dx)
+
+    use meth_params_module, only : QPRES, QU, QV, QW, NQ
+    use prob_params_module, only : coord_type, dg
+    use bl_constants_module
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+
+    integer :: i, j, k
+
+    real(rt) :: dxinv, dyinv, dzinv
+    real(rt) :: divU
+    real(rt) :: px_pre, px_post, py_pre, py_post, pz_pre, pz_post
+    real(rt) :: e_x, e_y, e_z, d
+    real(rt) :: p_pre, p_post, pjump
+
+    real(rt), parameter :: small = 1.e-10_rt
+    real(rt), parameter :: eps = 0.33e0_rt
+
+    real(rt) :: rm, rc, rp
+
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+
+    dxinv = ONE/dx(1)
+    dyinv = ONE/dx(2)
+    dzinv = ONE/dx(3)
+
+    if (coord_type /= 0) then
+       call bl_error("ERROR: invalid geometry in shock()")
+    endif
+
+    do k = lo(3)-dg(3), hi(3)+dg(3)
+       do j = lo(2)-dg(2), hi(2)+dg(2)
+          do i = lo(1)-dg(1), hi(1)+dg(1)
+
+             ! construct div{U}
+             if (coord_type == 0) then
+                ! Cartesian
+                divU = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
+#if (BL_SPACEDIM >= 2)
+                divU = divU + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
+#endif
+#if (BL_SPACEDIM == 3)
+                divU = divU + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
+#endif
+             elseif (coord_type == 1) then
+                ! r-z
+                rc = dble(i + HALF)*dx(1)
+                rm = dble(i - 1 + HALF)*dx(1)
+                rp = dble(i + 1 + HALF)*dx(1)
+
+#if (BL_SPACEDIM == 1)
+                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
+#endif
+#if (BL_SPACEDIM == 2)
+                divU = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
+                       HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
+#endif
+
+             elseif (coord_type == 2) then
+                ! 1-d spherical
+                rc = dble(i + HALF)*dx(1)
+                rm = dble(i - 1 + HALF)*dx(1)
+                rp = dble(i + 1 + HALF)*dx(1)
+
+                divU = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
+
+             else
+                call bl_error("ERROR: invalid coord_type in shock")
+             endif
+
+
+             ! find the pre- and post-shock pressures in each direction
+             if (q(i+1,j,k,QPRES) - q(i-1,j,k,QPRES) < ZERO) then
+                px_pre  = q(i+1,j,k,QPRES)
+                px_post = q(i-1,j,k,QPRES)
+             else
+                px_pre  = q(i-1,j,k,QPRES)
+                px_post = q(i+1,j,k,QPRES)
+             endif
+
+#if (BL_SPACEDIM >= 2)
+             if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
+                py_pre  = q(i,j+1,k,QPRES)
+                py_post = q(i,j-1,k,QPRES)
+             else
+                py_pre  = q(i,j-1,k,QPRES)
+                py_post = q(i,j+1,k,QPRES)
+             endif
+#else
+             py_pre = 0.0_rt
+             py_post = 0.0_rt
+#endif
+
+#if (BL_SPACEDIM == 3)
+             if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
+                pz_pre  = q(i,j,k+1,QPRES)
+                pz_post = q(i,j,k-1,QPRES)
+             else
+                pz_pre  = q(i,j,k-1,QPRES)
+                pz_post = q(i,j,k+1,QPRES)
+             endif
+#else
+             pz_pre = 0.0_rt
+             pz_post = 0.0_rt
+#endif
+
+             ! use compression to create unit vectors for the shock direction
+             e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
+#if (BL_SPACEDIM >= 2)
+             e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
+#else
+             e_y = 0.0_rt
+#endif
+#if (BL_SPACEDIM == 3)
+             e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
+#else
+             e_z = 0.0_rt
+#endif
+             d = ONE/(e_x + e_y + e_z + small)
+
+             e_x = e_x*d
+             e_y = e_y*d
+             e_z = e_z*d
+
+             ! project the pressures onto the shock direction
+             p_pre  = e_x*px_pre + e_y*py_pre + e_z*pz_pre
+             p_post = e_x*px_post + e_y*py_post + e_z*pz_post
+
+             ! test for compression + pressure jump to flag a shock
+             if (p_pre == ZERO) then
+                ! this can happen if U = 0, so e_x, ... = 0
+                pjump = ZERO
+             else
+                pjump = eps - (p_post - p_pre)/p_pre
+             endif
+
+             if (pjump < ZERO .and. divU < ZERO) then
+                shk(i,j,k) = ONE
+             else
+                shk(i,j,k) = ZERO
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine shock
+
+
 
 end module advection_util_module

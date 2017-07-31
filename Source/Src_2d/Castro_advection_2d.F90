@@ -60,11 +60,12 @@ contains
     use trace_ppm_module, only : trace_ppm
 #endif
     use transverse_module, only : transx, transy
-    use riemann_module, only: cmpflx, shock
+    use riemann_module, only: cmpflx
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
     use amrex_fort_module, only : rt => amrex_real
+    use advection_util_module, only : shock
 
     implicit none
 
@@ -175,7 +176,7 @@ contains
 
     call shock(q, q_lo, q_hi, &
                shk, shk_lo, shk_hi, &
-               lo, hi, dx, dy)
+               [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
 
     ! Store the shock data for future use in the burning step.
 
@@ -196,7 +197,7 @@ contains
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
                   shk, shk_lo, shk_hi, &
-                  lo, hi, dx, dy)
+                  [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
     else
        shk(:,:) = ZERO
     endif

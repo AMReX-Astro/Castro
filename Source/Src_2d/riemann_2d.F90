@@ -3,7 +3,7 @@ module riemann_module
   use bl_types
   use bl_constants_module
   use riemann_util_module
-
+  use actual_riemann_module
   use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, &
                                  QFX, URHO, UMX, UMY, UEDEN, UEINT, &
@@ -28,7 +28,7 @@ module riemann_module
 
   private
 
-  public cmpflx, shock, riemanncg, riemannus
+  public cmpflx, riemannus
 
   real(rt), parameter :: smallu = 1.e-12_rt
 
@@ -83,11 +83,14 @@ contains
 
     real(rt)        , allocatable :: smallc(:,:), cavg(:,:)
     real(rt)        , allocatable :: gamcm(:,:), gamcp(:,:)
-#ifdef RADIATION    
+#ifdef RADIATION
     real(rt)        , allocatable :: gamcgm(:,:), gamcgp(:,:), lam(:,:,:)
 #endif
-    
+
+    ! these will refer to the zone interfaces that we solve the
+    ! Riemann problem across
     integer :: imin, imax, jmin, jmax
+
     integer :: is_shock
     real(rt)         :: cl, cr
     type (eos_t) :: eos_state
@@ -96,7 +99,7 @@ contains
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
-#ifdef RADIATION   
+#ifdef RADIATION
     allocate ( gamcgm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate ( gamcgp(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (    lam(ilo-1:ihi+1,jlo-1:jhi+1,0:ngroups-1) )
@@ -113,8 +116,20 @@ contains
 #endif
 
     if (idir == 1) then
-       do j = jlo, jhi
-          do i = ilo, ihi+1
+       imin = ilo
+       imax = ihi+1
+       jmin = jlo
+       jmax = jhi
+    else
+       imin = ilo
+       imax = ihi
+       jmin = jlo
+       jmax = jhi+1
+    endif
+
+    if (idir == 1) then
+       do j = jmin, jmax
+          do i = imin, imax
              smallc(i,j) = max( qaux(i,j,QCSML), qaux(i-1,j,QCSML) )
              cavg(i,j) = HALF*( qaux(i,j,QC) + qaux(i-1,j,QC) )
              gamcm(i,j) = qaux(i-1,j,QGAMC)
@@ -127,8 +142,8 @@ contains
        enddo
 
     else
-       do j = jlo, jhi+1
-          do i = ilo, ihi
+       do j = jmin, jmax
+          do i = imin, imax
              smallc(i,j) = max( qaux(i,j,QCSML), qaux(i,j-1,QCSML) )
              cavg(i,j) = HALF*( qaux(i,j,QC) + qaux(i,j-1,QC) )
              gamcm(i,j) = qaux(i,j-1,QGAMC)
@@ -156,18 +171,6 @@ contains
        ! we want to take the edge states of rho, p, and X, and get
        ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
-
-       if (idir == 1) then
-          imin = ilo
-          imax = ihi+1
-          jmin = jlo
-          jmax = jhi
-       else
-          imin = ilo
-          imax = ihi
-          jmin = jlo
-          jmax = jhi+1
-       endif
 
        do j = jmin, jmax
           do i = imin, imax
@@ -233,7 +236,7 @@ contains
                       lam, gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
-                      idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                      idir, imin, imax, jmin, jmax, domlo, domhi)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -241,7 +244,8 @@ contains
                       gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
-                      idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                      idir, imin, imax, jmin, jmax, 0, 0, 0, &
+                      [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -249,7 +253,7 @@ contains
                  gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                  flx, flx_lo, flx_hi, &
                  qint, qg_lo, qg_hi, &
-                 idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                 idir, imin, imax, jmin, jmax, domlo, domhi)
     else
        call bl_error("ERROR: invalid value of riemann_solver")
     endif
@@ -257,17 +261,6 @@ contains
     if (hybrid_riemann == 1) then
        ! correct the fluxes using an HLL scheme if we are in a shock
        ! and doing the hybrid approach
-       if (idir == 1) then
-          imin = ilo
-          imax = ihi+1
-          jmin = jlo
-          jmax = jhi
-       else
-          imin = ilo
-          imax = ihi
-          jmin = jlo
-          jmax = jhi+1
-       endif
 
        do j = jmin, jmax
           do i = imin, imax
@@ -306,648 +299,6 @@ contains
   end subroutine cmpflx
 
 
-  subroutine shock(q, q_lo, q_hi, &
-                   shk, s_lo, s_hi, &
-                   lo, hi, dx, dy)
-
-    use prob_params_module, only : coord_type
-
-    use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: lo(2), hi(2)
-    real(rt)        , intent(in) :: dx, dy
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
-    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
-
-    integer :: i, j
-
-    real(rt)         :: divU
-    real(rt)         :: px_pre, px_post, py_pre, py_post
-    real(rt)         :: e_x, e_y, d
-    real(rt)         :: p_pre, p_post, pjump
-
-    real(rt)         :: rc, rm, rp
-
-    real(rt)        , parameter :: small = 1.e-10_rt
-    real(rt)        , parameter :: eps = 0.33e0_rt
-
-    ! This is a basic multi-dimensional shock detection algorithm.
-    ! This implementation follows Flash, which in turn follows
-    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-    !
-    ! The spirit of this follows the shock detection in Colella &
-    ! Woodward (1984)
-
-    do j = lo(2)-1, hi(2)+1
-       do i = lo(1)-1, hi(1)+1
-
-          ! construct div{U}
-          if (coord_type == 0) then
-             divU = HALF*(q(i+1,j,QU) - q(i-1,j,QU))/dx + &
-                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
-          else if (coord_type == 1) then
-             ! r-z
-             rc = dble(i + HALF)*dx
-             rm = dble(i - 1 + HALF)*dx
-             rp = dble(i + 1 + HALF)*dx
-
-             divU = HALF*(rp*q(i+1,j,QU) - rm*q(i-1,j,QU))/(rc*dx) + &
-                    HALF*(q(i,j+1,QV) - q(i,j-1,QV))/dy
-          else
-             call bl_error("ERROR: invalid coord_type in shock")
-          endif
-             
-          ! find the pre- and post-shock pressures in each direction
-          if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
-             px_pre  = q(i+1,j,QPRES)
-             px_post = q(i-1,j,QPRES)
-          else
-             px_pre  = q(i-1,j,QPRES)
-             px_post = q(i+1,j,QPRES)
-          endif
-
-          if (q(i,j+1,QPRES) - q(i,j-1,QPRES) < ZERO) then
-             py_pre  = q(i,j+1,QPRES)
-             py_post = q(i,j-1,QPRES)
-          else
-             py_pre  = q(i,j-1,QPRES)
-             py_post = q(i,j+1,QPRES)
-          endif
-
-          ! use compression to create unit vectors for the shock direction
-          e_x = (q(i+1,j,QU) - q(i-1,j,QU))**2
-          e_y = (q(i,j+1,QV) - q(i,j-1,QV))**2
-          d = ONE/(e_x + e_y + small)
-
-          e_x = e_x*d
-          e_y = e_y*d
-
-          ! project the pressures onto the shock direction
-          p_pre  = e_x*px_pre + e_y*py_pre
-          p_post = e_x*px_post + e_y*py_post
-
-          ! test for compression + pressure jump to flag a shock
-          if (p_pre == ZERO) then
-             ! this can arise if e_x = e_y = 0 (U = 0)
-             pjump = ZERO
-          else
-             pjump = eps - (p_post - p_pre)/p_pre
-          endif
-
-          if (pjump < ZERO .and. divU < ZERO) then
-             shk(i,j) = ONE
-          else
-             shk(i,j) = ZERO
-          endif
-
-       enddo
-    enddo
-
-  end subroutine shock
-
-
-! :::
-! ::: ------------------------------------------------------------------
-! :::
-
-  subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
-                       gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
-                       uflx, uflx_lo, uflx_hi, &
-                       qint, qg_lo, qg_hi, &
-                       idir,ilo1,ihi1,ilo2,ihi2,domlo,domhi)
-
-    ! this implements the approximate Riemann solver of Colella & Glaz (1985)
-
-    use bl_error_module
-    use network, only : nspec, naux
-    use eos_type_module
-    use eos_module
-    use prob_params_module, only : mom_flux_has_p
-
-    use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , parameter:: small = 1.e-8_rt
-    real(rt)        , parameter :: small_u = 1.e-10_rt
-
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
-    integer :: idir,ilo1,ihi1,ilo2,ihi2
-    integer :: domlo(2),domhi(2)
-
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
-
-    integer :: i,j,ilo,jlo,ihi,jhi, ipassive
-    integer :: n, nqp
-
-    real(rt)         :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
-    real(rt)         :: rl, ul, vl, v2l, pl, rel
-    real(rt)         :: rr, ur, vr, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
-
-    real(rt)         :: gcl, gcr
-    real(rt)         :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    real(rt)         :: zl, zr
-    real(rt)         :: denom, dpditer, dpjmp
-    real(rt)         :: gamc_bar, game_bar
-    real(rt)         :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
-
-    integer :: iter, iter_max
-    real(rt)         :: tol
-    real(rt)         :: err
-
-    logical :: converged
-
-    real(rt)         :: pstar_old
-    real(rt)         :: taul, taur, tauo
-    real(rt)         :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt)         :: pstar_lo, pstar_hi
-
-    real(rt)        , parameter :: weakwv = 1.e-3_rt
-
-    real(rt)        , allocatable :: pstar_hist(:), pstar_hist_extra(:)
-
-    type (eos_t) :: eos_state
-
-    integer :: iu, iv1, iv2
-
-    if (cg_blend .eq. 2 .and. cg_maxiter < 5) then
-
-       call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
-
-    endif
-
-    tol = cg_tol
-    iter_max = cg_maxiter
-
-    !  set min/max based on normal direction
-    if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
-       iu = QU
-       iv1 = QV
-       iv2 = QW
-    else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
-       iu = QV
-       iv1 = QU
-       iv2 = QW
-    endif
-
-    allocate (pstar_hist(iter_max))
-    allocate (pstar_hist_extra(iter_max))
-
-    do j = jlo, jhi
-       do i = ilo, ihi
-
-          ! left state
-          rl = max(ql(i,j,QRHO),small_dens)
-
-          ! pick left velocities based on direction
-          ul = ql(i,j,iu)
-          vl = ql(i,j,iv1)
-          v2l = ql(i,j,iv2)
-
-          pl  = ql(i,j,QPRES )
-          rel = ql(i,j,QREINT)
-          gcl = gamcl(i,j)
-
-          ! sometimes we come in here with negative energy or pressure
-          ! note: reset both in either case, to remain thermo
-          ! consistent
-          if (rel <= ZERO .or. pl <= small_pres) then
-             print *, "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: ", rel, pl, small_pres
-             eos_state % T   = small_temp
-             eos_state % rho = rl
-             eos_state % xn  = ql(i,j,QFS:QFS-1+nspec)
-             eos_state % aux = ql(i,j,QFX:QFX-1+naux)
-
-             call eos(eos_input_rt, eos_state)
-
-             rel = rl*eos_state%e
-             pl  = eos_state%p
-             gcl = eos_state%gam1
-          endif
-
-          ! right state
-          rr = max(qr(i,j,QRHO),small_dens)
-
-          ! pick right velocities based on direction
-          if (idir == 1) then
-             ur = qr(i,j,QU)
-             vr = qr(i,j,QV)
-             v2r = qr(i,j,QW)
-          else
-             ur = qr(i,j,QV)
-             vr = qr(i,j,QU)
-             v2r = qr(i,j,QW)
-          endif
-
-          pr  = qr(i,j,QPRES)
-          rer = qr(i,j,QREINT)
-          gcr = gamcr(i,j)
-
-          if (rer <= ZERO .or. pr <= small_pres) then
-             print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
-             eos_state % T   = small_temp
-             eos_state % rho = rr
-             eos_state % xn  = qr(i,j,QFS:QFS-1+nspec)
-             eos_state % aux = qr(i,j,QFX:QFX-1+naux)
-
-             call eos(eos_input_rt, eos_state)
-
-             rer = rr*eos_state%e
-             pr  = eos_state%p
-             gcr = eos_state%gam1
-          endif
-
-          ! common quantities
-          taul = ONE/rl
-          taur = ONE/rr
-
-          ! lagrangian sound speeds
-          clsql = gcl*pl*rl
-          clsqr = gcr*pr*rr
-
-
-          ! Note: in the original Colella & Glaz paper, they predicted
-          ! gamma_e to the interfaces using a special (non-hyperbolic)
-          ! evolution equation.  In Castro, we instead bring (rho e)
-          ! to the edges, so we construct the necessary gamma_e here from
-          ! what we have on the interfaces.
-          gamel = pl/rel + ONE
-          gamer = pr/rer + ONE
-
-          ! these should consider a wider average of the cell-centered
-          ! gammas
-          gmin = min(gamel, gamer, ONE, FOUR3RD)
-          gmax = max(gamel, gamer, TWO, FIVE3RD)
-
-          game_bar = HALF*(gamel + gamer)
-          gamc_bar = HALF*(gcl + gcr)
-
-          gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
-
-          csmall = smallc(i,j)
-          wsmall = small_dens*csmall
-          wl = max(wsmall,sqrt(abs(clsql)))
-          wr = max(wsmall,sqrt(abs(clsqr)))
-
-          ! make an initial guess for pstar -- this is a two-shock
-          ! approximation
-          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-          pstar = max(pstar,small_pres)
-
-          ! get the shock speeds -- this computes W_s from CG Eq. 34
-          call wsqge(pl,taul,gamel,gdot,  &
-                     gamstar,pstar,wlsq,clsql,gmin,gmax)
-
-          call wsqge(pr,taur,gamer,gdot,  &
-                     gamstar,pstar,wrsq,clsqr,gmin,gmax)
-
-          pstar_old = pstar
-
-          wl = sqrt(wlsq)
-          wr = sqrt(wrsq)
-
-          ! R-H jump conditions give ustar across each wave -- these should
-          ! be equal when we are done iterating
-          ustar_l = ul - (pstar-pl)/wl
-          ustar_r = ur + (pstar-pr)/wr
-
-          ! revise our pstar guess
-          !pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
-          pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-          pstar = max(pstar,small_pres)
-
-          ! secant iteration
-          converged = .false.
-          iter = 1
-          do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
-
-             call wsqge(pl,taul,gamel,gdot,  &
-                        gamstar,pstar,wlsq,clsql,gmin,gmax)
-
-             call wsqge(pr,taur,gamer,gdot,  &
-                        gamstar,pstar,wrsq,clsqr,gmin,gmax)
-
-             wl = ONE / sqrt(wlsq)
-             wr = ONE / sqrt(wrsq)
-
-             ustar_l_old = ustar_l
-             ustar_r_old = ustar_r
-
-             ! note that wl, wr here are already inverses
-             ustar_l = ul - (pstar - pl)*wl
-             ustar_r = ur + (pstar - pr)*wr
-
-             dpditer = pstar - pstar_old
-
-             zl = ustar_l - ustar_l_old
-             !if (zp-weakwv*cav(i,j) <= ZERO) then
-             !   zp = dpditer*wl
-             !endif
-
-             zr = ustar_r - ustar_r_old
-             !if (zm-weakwv*cav(i,j) <= ZERO) then
-             !   zm = dpditer*wr
-             !endif
-             
-             ! the new pstar is found via CG Eq. 18
-
-             !denom = zp + zm
-             denom = zl - zr
-             denom = (ustar_l - ustar_r) - (ustar_l_old - ustar_r_old)
-
-             pstar_old = pstar
-
-             if (abs(denom) > small_u .and. abs(dpditer) > small_pres) then
-                pstar = pstar - (ustar_l - ustar_r)*dpditer/denom
-             endif
-
-             pstar = max(pstar, small_pres)
-
-             err = abs(pstar - pstar_old)
-             if (err < tol*pstar) converged = .true.
-
-             pstar_hist(iter) = pstar
-
-             iter = iter + 1
-
-          enddo
-
-          ! If we failed to converge using the secant iteration, we can either
-          ! stop here; or, revert to the original two-shock estimate for pstar;
-          ! or do a bisection root find using the bounds established by the most
-          ! recent iterations.
-
-          if (.not. converged) then
-
-             if (cg_blend .eq. 0) then
-
-                print *, 'pstar history: '
-                do iter = 1, iter_max
-                   print *, iter, pstar_hist(iter)
-                enddo
-
-                print *, ' '
-                print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-                print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-                print *, 'cav, smallc:',  cav(i,j), csmall
-                call bl_error("ERROR: non-convergence in the Riemann solver")
-
-             else if (cg_blend .eq. 1) then
-
-                pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
-
-             else if (cg_blend .eq. 2) then
-
-                ! first try to find a reasonable bounds 
-                pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
-                pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
-
-                call pstar_bisection(pstar_lo, pstar_hi, &
-                                     ul, pl, taul, gamel, clsql, &
-                                     ur, pr, taur, gamer, clsqr, &
-                                     gdot, gmin, gmax, &
-                                     pstar, gamstar, converged, pstar_hist_extra)
-
-                if (.not. converged) then
-                   ! abort -- doesn't seem solvable
-                   print *, 'pstar history: '
-                   do iter = 1, iter_max
-                      print *, iter, pstar_hist(iter)
-                   enddo
-
-                   do iter = 1, iter_max
-                      print *, iter+iter_max, pstar_hist_extra(iter)
-                   enddo
-
-                   print *, ' '
-                   print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
-                   print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-                   print *, 'cav, smallc:',  cav(i,j), csmall
-                   call bl_error("ERROR: non-convergence in the Riemann solver")
-
-                endif
-
-             else
-
-                call bl_error("ERROR: unrecognized cg_blend option.")
-
-             endif
-
-          endif
-
-
-          ! we converged!  construct the single ustar for the region
-          ! between the left and right waves, using the updated wave speeds
-          ustar_r = ur-(pr-pstar)*wr  ! careful -- here wl, wr are 1/W
-          ustar_l = ul+(pl-pstar)*wl
-
-          ustar = HALF*(ustar_l + ustar_r)
-
-          ! for symmetry preservation, if ustar is really small, then we
-          ! set it to zero
-          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-             ustar = ZERO
-          endif
-
-          ! sample the solution -- here we look first at the direction
-          ! that the contact is moving.  This tells us if we need to
-          ! worry about the L/L* states or the R*/R states.
-          if (ustar .gt. ZERO) then
-             ro = rl
-             uo = ul
-             po = pl
-             tauo = taul
-             !reo = rel
-             gamco = gcl
-             gameo = gamel
-
-          else if (ustar .lt. ZERO) then
-             ro = rr
-             uo = ur
-             po = pr
-             tauo = taur
-             !reo = rer
-             gamco = gcr
-             gameo = gamer
-          else
-             ro = HALF*(rl+rr)
-             uo = HALF*(ul+ur)
-             po = HALF*(pl+pr)
-             tauo = HALF*(taul+taur)
-             !reo = HALF*(rel+rer)
-             gamco = HALF*(gcl+gcr)
-             gameo = HALF*(gamel + gamer)
-          endif
-
-          ! use tau = 1/rho as the independent variable here
-          ro = max(small_dens,ONE/tauo)
-          tauo = ONE/ro
-
-          co = sqrt(abs(gamco*po/ro))
-          co = max(csmall,co)
-          clsq = (co*ro)**2
-
-          ! now that we know which state (left or right) we need to worry
-          ! about, get the value of gamstar and wosq across the wave we
-          ! are dealing with.
-          call wsqge(po,tauo,gameo,gdot,   &
-                     gamstar,pstar,wosq,clsq,gmin,gmax)
-
-          sgnm = sign(ONE,ustar)
-
-          wo = sqrt(wosq)
-          dpjmp = pstar - po
-
-          ! is this max really necessary?
-          !rstar=max(ONE-ro*dpjmp/wosq, (gameo-ONE)/(gameo+ONE))
-          rstar=ONE-ro*dpjmp/wosq
-          rstar=ro/rstar
-          rstar = max(small_dens,rstar)
-
-          !entho = (reo/ro + po/ro)/co**2
-          !estar = reo + (pstar - po)*entho
-
-          cstar = sqrt(abs(gamco*pstar/rstar))
-          cstar = max(cstar,csmall)
-
-
-          spout = co - sgnm*uo
-          spin = cstar - sgnm*ustar
-
-          !ushock = HALF*(spin + spout)
-          ushock = wo/ro - sgnm*uo
-
-          if (pstar-po .ge. ZERO) then
-             spin = ushock
-             spout = ushock
-          endif
-          ! if (spout-spin .eq. ZERO) then
-          !    scr = small*cav(i,j)
-          ! else
-          !    scr = spout-spin
-          ! endif
-          ! frac = (ONE + (spout + spin)/scr)*HALF
-          ! frac = max(ZERO,min(ONE,frac))
-
-          frac = HALF*(ONE + (spin + spout)/max(spout-spin,spin+spout, small*cav(i,j)))
-
-          ! the transverse velocity states only depend on the
-          ! direction that the contact moves
-          if (ustar .gt. ZERO) then
-             vgdnv = vl
-             wgdnv = v2l
-          else if (ustar .lt. ZERO) then
-             vgdnv = vr
-             wgdnv = v2r
-          else
-             vgdnv = HALF*(vl+vr)
-             wgdnv = HALF*(v2l+v2r)
-          endif
-
-          ! linearly interpolate between the star and normal state -- this covers the
-          ! case where we are inside the rarefaction fan.
-          rgdnv = frac*rstar + (ONE - frac)*ro
-          qint(i,j,iu) = frac*ustar + (ONE - frac)*uo
-          qint(i,j,iv1) = vgdnv
-          qint(i,j,iv2) = wgdnv
-
-          qint(i,j,GDPRES) = frac*pstar + (ONE - frac)*po
-          gamgdnv =  frac*gamstar + (ONE-frac)*gameo
-
-          ! now handle the cases where instead we are fully in the
-          ! star or fully in the original (l/r) state
-          if (spout .lt. ZERO) then
-             rgdnv = ro
-             qint(i,j,iu) = uo
-             qint(i,j,GDPRES) = po
-             gamgdnv = gameo
-          endif
-          if (spin .ge. ZERO) then
-             rgdnv = rstar
-             qint(i,j,iu) = ustar
-             qint(i,j,GDPRES) = pstar
-             gamgdnv = gamstar
-          endif
-
-          qint(i,j,GDGAME) = gamgdnv
-
-          qint(i,j,GDPRES) = max(qint(i,j,GDPRES),small_pres)
-
-          ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          qint(i,j,iu) = bc_test(idir, i, j, domlo, domhi) * qint(i,j,iu)
-
-          ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,URHO) = rgdnv*qint(i,j,iu)
-
-          ! note: for axisymmetric geometries, we do not include the
-          ! pressure in the r-direction, since div{F} + grad{p} cannot
-          ! be written in a flux difference form
-          if (idir == 1) then
-             uflx(i,j,UMX) = uflx(i,j,URHO)*qint(i,j,iu)
-             uflx(i,j,UMY) = uflx(i,j,URHO)*vgdnv
-             if (mom_flux_has_p(idir)%comp(UMX)) then
-                uflx(i,j,UMX) = uflx(i,j,UMX) + qint(i,j,GDPRES)
-             endif
-          else
-             uflx(i,j,UMX) = uflx(i,j,URHO)*vgdnv
-             uflx(i,j,UMY) = uflx(i,j,URHO)*qint(i,j,iu) + qint(i,j,GDPRES)
-          endif
-
-          ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-          rhoetot = qint(i,j,GDPRES)/(gamgdnv - ONE) + &
-               HALF*rgdnv*(qint(i,j,iu)**2 + vgdnv**2 + wgdnv**2)
-
-          uflx(i,j,UEDEN) = qint(i,j,iu)*(rhoetot + qint(i,j,GDPRES))
-          uflx(i,j,UEINT) = qint(i,j,iu)*qint(i,j,GDPRES)/(gamgdnv - ONE)
-
-          ! advected quantities -- only the contact matters
-          ! note: this includes the z-velocity flux
-          do ipassive = 1, npassive
-             n  = upass_map(ipassive)
-             nqp = qpass_map(ipassive)
-
-             if (ustar .gt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*ql(i,j,nqp)
-             else if (ustar .lt. ZERO) then
-                uflx(i,j,n) = uflx(i,j,URHO)*qr(i,j,nqp)
-             else
-                qavg = HALF * (ql(i,j,nqp) + qr(i,j,nqp))
-                uflx(i,j,n) = uflx(i,j,URHO)*qavg
-             endif
-          enddo
-
-       enddo
-    enddo
-
-    deallocate(pstar_hist_extra)
-    deallocate(pstar_hist)
-
-  end subroutine riemanncg
 
 ! :::
 ! ::: ------------------------------------------------------------------
@@ -962,40 +313,40 @@ contains
                        lam, gamcgl, gamcgr, &
                        rflx, rflx_lo, rflx_hi, &
 #endif
-                       idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(3), gd_hi(3)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
 #ifdef RADIATION
-    integer :: rflx_lo(3), rflx_hi(3)
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
 #endif
-    integer :: idir, ilo1, ihi1, ilo2, ihi2
-    integer :: domlo(2),domhi(2)
+    integer, intent(in) :: idir
+    integer, intent(in) :: ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(2), domhi(2)
 
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
+    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt), intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 #ifdef RADIATION
-    real(rt)         ::    lam(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),0:ngroups-1)
-    real(rt)         :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
+    real(rt), intent(in) ::    lam(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),0:ngroups-1)
+    real(rt), intent(in) :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
 #endif
 
-    integer :: ilo,ihi,jlo,jhi
     integer :: n, nqp
     integer :: i, j, ipassive
 
@@ -1003,24 +354,24 @@ contains
     integer :: g
 #endif
 
-    real(rt)         :: rgd, vgd, wgd, regd, ustar
+    real(rt) :: rgd, vgd, wgd, regd, ustar
 #ifdef RADIATION
-    real(rt)        , dimension(0:ngroups-1) :: erl, err
+    real(rt), dimension(0:ngroups-1) :: erl, err
 #endif
-    real(rt)         :: rl, ul, vl, v2l, pl, rel
-    real(rt)         :: rr, ur, vr, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot, scr
-    real(rt)         :: rstar, cstar, estar, pstar
-    real(rt)         :: ro, uo, po, reo, co, gamco, entho, drho
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
+    real(rt) :: rl, ul, vl, v2l, pl, rel
+    real(rt) :: rr, ur, vr, v2r, pr, rer
+    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: rstar, cstar, estar, pstar
+    real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall,qavg
 
 #ifdef RADIATION
-    real(rt)         :: regdnv_g, pgdnv_g, pgdnv_t
-    real(rt)         :: estar_g, pstar_g
-    real(rt)        , dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
-    real(rt)         :: eddf, f1
-    real(rt)         :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
+    real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
+    real(rt) :: estar_g, pstar_g
+    real(rt), dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
+    real(rt) :: eddf, f1
+    real(rt) :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
 #endif
 
     integer :: iu, iv1, iv2
@@ -1028,20 +379,10 @@ contains
     !************************************************************
     !  set min/max based on normal direction
     if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
        iu = QU
        iv1 = QV
        iv2 = QW
     else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -1384,7 +725,7 @@ contains
                   gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
                   uflx, uflx_lo, uflx_hi, &
                   qint, qg_lo, qg_hi, &
-                  idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                  idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     ! this is an implementation of the HLLC solver described in Toro's
     ! book.  it uses the simplest estimate of the wave speeds, since
@@ -1396,58 +737,48 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
-    integer :: idir, ilo1, ihi1, ilo2, ihi2
-    integer :: domlo(2),domhi(2)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(3), gd_hi(3)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: idir 
+    integer, intent(in) :: ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
+    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt), intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
-    integer :: ilo,ihi,jlo,jhi
     integer :: i, j
     integer :: bnd_fac
-    
-    !real(rt)         :: regd
-    real(rt)         :: ustar
-    real(rt)         :: rl, ul, pl, rel
-    real(rt)         :: rr, ur, pr, rer
-    real(rt)         :: wl, wr, scr
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall
 
-    real(rt)         :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
-    real(rt)         :: S_l, S_r, S_c
+    !real(rt)         :: regd
+    real(rt) :: ustar
+    real(rt) :: rl, ul, pl, rel
+    real(rt) :: rr, ur, pr, rer
+    real(rt) :: wl, wr, scr
+    real(rt) :: rstar, cstar, pstar
+    real(rt) :: ro, uo, po, co, gamco
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall
+
+    real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
+    real(rt) :: S_l, S_r, S_c
 
     integer :: iu, iv1, iv2
 
     !  set min/max based on normal direction
     if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
        iu = QU
        iv1 = QV
        iv2 = QW
     else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -1558,7 +889,7 @@ contains
           ! now we do the HLLC construction
 
           bnd_fac = bc_test(idir, i, j, domlo, domhi)
-          
+
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
