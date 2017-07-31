@@ -49,6 +49,7 @@ contains
                     shk, s_lo, s_hi, &
                     idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
 
+    use actual_riemann_module
     use mempool_module, only : bl_allocate, bl_deallocate
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
