@@ -29,6 +29,11 @@ the different code paths.
 
 \end{itemize}
 
+Several helper functions are used throughout:
+\begin{itemize}
+  \item \code{clean\_state}:
+\end{itemize}
+
 \section{Overview of a single step (no SDC)}
 \label{flow:sec:nosdc}
 
@@ -72,11 +77,21 @@ of each step.
 
 \item {\em Advancement} 
 
-  This is calls \code{do\_advance} to take a single step,
-  incorporating hydrodynamics, reactions, and source terms.  For
-  radiation-hydrodynamics, this step does the advective (hyperbolic)
-  portion of the radiation update only.
+  The update strategy differs for CTU vs MOL:
+  \begin{itemize}
+  \item CTU: Calls \code{do\_advance} to take a single step,
+    incorporating hydrodynamics, reactions, and source terms.
 
+  \item MOL: Call \code{do\_advance} \variable{MOL\_STAGES} times
+    (i.e., once for each of the intermediate stages in the ODE
+    integration).  Within {\tt do\_advance} we will use the stage
+    number, \variable{mol\_iteration}, to do an pre- or post-hydro
+    sources.
+
+  \end{itemize}
+
+  In either case, for radiation-hydrodynamics, this step does the
+  advective (hyperbolic) portion of the radiation update only.
   Source terms, including gravity, rotation, and diffusion are
   included in this step, and are time-centered to achieve second-order
   accuracy.
