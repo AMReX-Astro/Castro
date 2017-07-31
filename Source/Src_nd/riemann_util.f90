@@ -55,7 +55,8 @@ contains
 
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
 
-    ! compute the lagrangian wave speeds.
+    ! compute the lagrangian wave speeds -- this is the approximate
+    ! version for the Colella & Glaz algorithm
 
     real(rt)        , intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
     real(rt)        , intent(out) :: wsq, gstar
@@ -100,6 +101,9 @@ contains
     ! we want to zero
     ! f(p*) = u*_l(p*) - u*_r(p*)
     ! we'll do bisection
+    !
+    ! this version is for the approximate Colella & Glaz 
+    ! version
 
     use meth_params_module, only : cg_maxiter, cg_tol
 
