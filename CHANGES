@@ -20,6 +20,12 @@
      in Microphysics/.  Also, Castro can now use the stellar
      conductivity that is part of StarKiller.
 
+  -- the StarKiller-astro Microphysics repo now uses a denser table
+     for the Helmholtz EOS (thanks to Frank Timmes).  If you are using
+     this EOS, the new table will be soft-linked to your build
+     directory automatically.  If you have an old copy laying around,
+     it might fail to run, with an I/O error.
+
 # 17.07
 
   -- start of some code cleaning for eventual GPU offload support

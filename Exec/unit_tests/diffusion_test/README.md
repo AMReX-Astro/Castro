@@ -1,3 +1,5 @@
+# Problem Setup
+
 This is a pure diffusion problem (no hydro).  It uses the explicit
 diffusion solver in Castro to diffuse a Gaussian thermal pulse.
 Because diffusion in Castro is incorporated in the energy equation, we
@@ -20,6 +22,15 @@ on the timestep,
 
 dt < 0.5 dx**2/D
 
-Note: currently Castro does not enforce this directly.  For this problem,
-we enforce it by setting castro.fixed_dt to a safe timestep.
 
+# Testing
+
+The problem creates a derived variable, `analytic`, which is the
+analytic solution at the time of the plotfile output.  This allows you
+to compare the current solution to the analytic solution to assess the
+error.
+
+It also will use the Castro problem-specific post-simulation hooks (in
+`Prob.cpp`) to output the L-inf norm of the error (numerical vs
+analyic solution) at the end of the simulation.  This can be used
+for convergence testing.
