@@ -19,8 +19,9 @@ subroutine ca_mol_single_stage(time, &
   use meth_params_module, only : NQ, QVAR, QU, QPRES, &
                                  UMX, UMY, UMZ, UTEMP, USHK, UEINT, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
+                                 QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
-                                 hybrid_riemann
+                                 hybrid_riemann, ppm_temp_fix
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
@@ -29,6 +30,9 @@ subroutine ca_mol_single_stage(time, &
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
   use advection_util_1d_module, only : normalize_species_fluxes
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use network, only : nspec, naux
 
   implicit none
 
@@ -92,6 +96,8 @@ subroutine ca_mol_single_stage(time, &
 
   real(rt) :: div1
 
+  type(eos_t) :: eos_state
+  
   ngf = 1
 
   lo_3D   = [lo(1), 0, 0]
@@ -217,7 +223,6 @@ subroutine ca_mol_single_stage(time, &
         qxm(i,QREINT) = qxm(i,QRHO)*eos_state%e
         ! should we try to do something about Gamma_! on interface?
 
-        enddo
      enddo
   endif
 

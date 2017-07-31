@@ -23,7 +23,8 @@ subroutine ca_mol_single_stage(time, &
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
                                  use_flattening, QPRES, NQAUX, &
-                                 first_order_hydro, difmag, hybrid_riemann
+                                 QTEMP, QFS, QFX, QREINT, QRHO, &
+                                 first_order_hydro, difmag, hybrid_riemann, ppm_temp_fix
   use advection_util_2d_module, only : divu, normalize_species_fluxes
   use advection_util_module, only : compute_cfl
   use bl_constants_module, only : ZERO, HALF, ONE
@@ -35,6 +36,10 @@ subroutine ca_mol_single_stage(time, &
 #ifdef RADIATION  
   use rad_params_module, only : ngroups
 #endif
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use network, only : nspec, naux
+  
   implicit none
 
   integer, intent(in) :: lo(2), hi(2), verbose
@@ -105,6 +110,8 @@ subroutine ca_mol_single_stage(time, &
 
   integer :: i, j, n
 
+  type (eos_t) :: eos_state
+  
   ngf = 1
 
   lo_3D   = [lo(1), lo(2), 0]
