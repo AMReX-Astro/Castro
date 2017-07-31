@@ -109,8 +109,8 @@ contains
     real(rt)         :: cl, cr
     type (eos_t) :: eos_state
 
-    gd_lo = (/ ilo, jlo /)
-    gd_hi = (/ ihi, jhi /)
+    gd_lo = [ ilo, jlo ]
+    gd_hi = [ ihi, jhi ]
 
     call bl_allocate ( smallc, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
     call bl_allocate (   cavg, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))

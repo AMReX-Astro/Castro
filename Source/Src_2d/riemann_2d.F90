@@ -83,11 +83,14 @@ contains
 
     real(rt)        , allocatable :: smallc(:,:), cavg(:,:)
     real(rt)        , allocatable :: gamcm(:,:), gamcp(:,:)
-#ifdef RADIATION    
+#ifdef RADIATION
     real(rt)        , allocatable :: gamcgm(:,:), gamcgp(:,:), lam(:,:,:)
 #endif
-    
+
+    ! these will refer to the zone interfaces that we solve the
+    ! Riemann problem across
     integer :: imin, imax, jmin, jmax
+
     integer :: is_shock
     real(rt)         :: cl, cr
     type (eos_t) :: eos_state
@@ -96,7 +99,7 @@ contains
     allocate (   cavg(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (  gamcp(ilo-1:ihi+1,jlo-1:jhi+1) )
-#ifdef RADIATION   
+#ifdef RADIATION
     allocate ( gamcgm(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate ( gamcgp(ilo-1:ihi+1,jlo-1:jhi+1) )
     allocate (    lam(ilo-1:ihi+1,jlo-1:jhi+1,0:ngroups-1) )
@@ -113,8 +116,20 @@ contains
 #endif
 
     if (idir == 1) then
-       do j = jlo, jhi
-          do i = ilo, ihi+1
+       imin = ilo
+       imax = ihi+1
+       jmin = jlo
+       jmax = jhi
+    else
+       imin = ilo
+       imax = ihi
+       jmin = jlo
+       jmax = jhi+1
+    endif
+
+    if (idir == 1) then
+       do j = jmin, jmax
+          do i = imin, imax
              smallc(i,j) = max( qaux(i,j,QCSML), qaux(i-1,j,QCSML) )
              cavg(i,j) = HALF*( qaux(i,j,QC) + qaux(i-1,j,QC) )
              gamcm(i,j) = qaux(i-1,j,QGAMC)
@@ -127,8 +142,8 @@ contains
        enddo
 
     else
-       do j = jlo, jhi+1
-          do i = ilo, ihi
+       do j = jmin, jmax
+          do i = imin, imax
              smallc(i,j) = max( qaux(i,j,QCSML), qaux(i,j-1,QCSML) )
              cavg(i,j) = HALF*( qaux(i,j,QC) + qaux(i,j-1,QC) )
              gamcm(i,j) = qaux(i,j-1,QGAMC)
@@ -156,18 +171,6 @@ contains
        ! we want to take the edge states of rho, p, and X, and get
        ! new values for gamc and (rho e) on the edges that are
        ! thermodynamically consistent.
-
-       if (idir == 1) then
-          imin = ilo
-          imax = ihi+1
-          jmin = jlo
-          jmax = jhi
-       else
-          imin = ilo
-          imax = ihi
-          jmin = jlo
-          jmax = jhi+1
-       endif
 
        do j = jmin, jmax
           do i = imin, imax
@@ -233,7 +236,7 @@ contains
                       lam, gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
-                      idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                      idir, imin, imax, jmin, jmax, domlo, domhi)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -241,7 +244,7 @@ contains
                       gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
-                      idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                      idir, imin, imax, jmin, jmax, domlo, domhi)
 
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -249,7 +252,7 @@ contains
                  gamcm, gamcp, cavg, smallc, [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0], &
                  flx, flx_lo, flx_hi, &
                  qint, qg_lo, qg_hi, &
-                 idir, ilo, ihi, jlo, jhi, domlo, domhi)
+                 idir, imin, imax, jmin, jmax, domlo, domhi)
     else
        call bl_error("ERROR: invalid value of riemann_solver")
     endif
@@ -257,17 +260,6 @@ contains
     if (hybrid_riemann == 1) then
        ! correct the fluxes using an HLL scheme if we are in a shock
        ! and doing the hybrid approach
-       if (idir == 1) then
-          imin = ilo
-          imax = ihi+1
-          jmin = jlo
-          jmax = jhi
-       else
-          imin = ilo
-          imax = ihi
-          jmin = jlo
-          jmax = jhi+1
-       endif
 
        do j = jmin, jmax
           do i = imin, imax
@@ -316,21 +308,21 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: lo(2), hi(2)
-    real(rt)        , intent(in) :: dx, dy
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
-    real(rt)        , intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
+    real(rt), intent(in) :: dx, dy
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
+    real(rt), intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2))
 
     integer :: i, j
 
-    real(rt)         :: divU
-    real(rt)         :: px_pre, px_post, py_pre, py_post
-    real(rt)         :: e_x, e_y, d
-    real(rt)         :: p_pre, p_post, pjump
+    real(rt) :: divU
+    real(rt) :: px_pre, px_post, py_pre, py_post
+    real(rt) :: e_x, e_y, d
+    real(rt) :: p_pre, p_post, pjump
 
-    real(rt)         :: rc, rm, rp
+    real(rt) :: rc, rm, rp
 
-    real(rt)        , parameter :: small = 1.e-10_rt
-    real(rt)        , parameter :: eps = 0.33e0_rt
+    real(rt), parameter :: small = 1.e-10_rt
+    real(rt), parameter :: eps = 0.33e0_rt
 
     ! This is a basic multi-dimensional shock detection algorithm.
     ! This implementation follows Flash, which in turn follows
@@ -357,7 +349,7 @@ contains
           else
              call bl_error("ERROR: invalid coord_type in shock")
           endif
-             
+
           ! find the pre- and post-shock pressures in each direction
           if (q(i+1,j,QPRES) - q(i-1,j,QPRES) < ZERO) then
              px_pre  = q(i+1,j,QPRES)
@@ -415,7 +407,7 @@ contains
                        gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
                        uflx, uflx_lo, uflx_hi, &
                        qint, qg_lo, qg_hi, &
-                       idir,ilo1,ihi1,ilo2,ihi2,domlo,domhi)
+                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     ! this implements the approximate Riemann solver of Colella & Glaz (1985)
 
@@ -429,56 +421,58 @@ contains
     real(rt)        , parameter:: small = 1.e-8_rt
     real(rt)        , parameter :: small_u = 1.e-10_rt
 
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
-    integer :: idir,ilo1,ihi1,ilo2,ihi2
-    integer :: domlo(2),domhi(2)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(3), gd_hi(3)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: idir
+    ! these are the interfaces we are looping over
+    integer, intent(in) :: ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
+    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt), intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
-    integer :: i,j,ilo,jlo,ihi,jhi, ipassive
+    integer :: i, j, ipassive
     integer :: n, nqp
 
-    real(rt)         :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
-    real(rt)         :: rl, ul, vl, v2l, pl, rel
-    real(rt)         :: rr, ur, vr, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
+    real(rt) :: rgdnv,vgdnv,wgdnv,ustar,gamgdnv
+    real(rt) :: rl, ul, vl, v2l, pl, rel
+    real(rt) :: rr, ur, vr, v2r, pr, rer
+    real(rt) :: wl, wr, rhoetot
+    real(rt) :: rstar, cstar, pstar
+    real(rt) :: ro, uo, po, co, gamco
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall,qavg
 
-    real(rt)         :: gcl, gcr
-    real(rt)         :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    real(rt)         :: zl, zr
-    real(rt)         :: denom, dpditer, dpjmp
-    real(rt)         :: gamc_bar, game_bar
-    real(rt)         :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
+    real(rt) :: gcl, gcr
+    real(rt) :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
+    real(rt) :: zl, zr
+    real(rt) :: denom, dpditer, dpjmp
+    real(rt) :: gamc_bar, game_bar
+    real(rt) :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
     integer :: iter, iter_max
-    real(rt)         :: tol
-    real(rt)         :: err
+    real(rt) :: tol
+    real(rt) :: err
 
     logical :: converged
 
-    real(rt)         :: pstar_old
-    real(rt)         :: taul, taur, tauo
-    real(rt)         :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt)         :: pstar_lo, pstar_hi
+    real(rt) :: pstar_old
+    real(rt) :: taul, taur, tauo
+    real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
+    real(rt) :: pstar_lo, pstar_hi
 
-    real(rt)        , parameter :: weakwv = 1.e-3_rt
+    real(rt), parameter :: weakwv = 1.e-3_rt
 
-    real(rt)        , allocatable :: pstar_hist(:), pstar_hist_extra(:)
+    real(rt), allocatable :: pstar_hist(:), pstar_hist_extra(:)
 
     type (eos_t) :: eos_state
 
@@ -495,20 +489,10 @@ contains
 
     !  set min/max based on normal direction
     if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
        iu = QU
        iv1 = QV
        iv2 = QW
     else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -673,7 +657,7 @@ contains
              !if (zm-weakwv*cav(i,j) <= ZERO) then
              !   zm = dpditer*wr
              !endif
-             
+
              ! the new pstar is found via CG Eq. 18
 
              !denom = zp + zm
@@ -723,7 +707,7 @@ contains
 
              else if (cg_blend .eq. 2) then
 
-                ! first try to find a reasonable bounds 
+                ! first try to find a reasonable bounds
                 pstar_lo = minval(pstar_hist(iter_max-5:iter_max))
                 pstar_hi = maxval(pstar_hist(iter_max-5:iter_max))
 
@@ -962,40 +946,40 @@ contains
                        lam, gamcgl, gamcgr, &
                        rflx, rflx_lo, rflx_hi, &
 #endif
-                       idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                       idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(3), gd_hi(3)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
 #ifdef RADIATION
-    integer :: rflx_lo(3), rflx_hi(3)
+    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
 #endif
-    integer :: idir, ilo1, ihi1, ilo2, ihi2
-    integer :: domlo(2),domhi(2)
+    integer, intent(in) :: idir
+    integer, intent(in) :: ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(2), domhi(2)
 
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
+    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt), intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 #ifdef RADIATION
-    real(rt)         ::    lam(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),0:ngroups-1)
-    real(rt)         :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
+    real(rt), intent(in) ::    lam(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2),0:ngroups-1)
+    real(rt), intent(in) :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),0:ngroups-1)
 #endif
 
-    integer :: ilo,ihi,jlo,jhi
     integer :: n, nqp
     integer :: i, j, ipassive
 
@@ -1003,24 +987,24 @@ contains
     integer :: g
 #endif
 
-    real(rt)         :: rgd, vgd, wgd, regd, ustar
+    real(rt) :: rgd, vgd, wgd, regd, ustar
 #ifdef RADIATION
-    real(rt)        , dimension(0:ngroups-1) :: erl, err
+    real(rt), dimension(0:ngroups-1) :: erl, err
 #endif
-    real(rt)         :: rl, ul, vl, v2l, pl, rel
-    real(rt)         :: rr, ur, vr, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot, scr
-    real(rt)         :: rstar, cstar, estar, pstar
-    real(rt)         :: ro, uo, po, reo, co, gamco, entho, drho
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
+    real(rt) :: rl, ul, vl, v2l, pl, rel
+    real(rt) :: rr, ur, vr, v2r, pr, rer
+    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: rstar, cstar, estar, pstar
+    real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall,qavg
 
 #ifdef RADIATION
-    real(rt)         :: regdnv_g, pgdnv_g, pgdnv_t
-    real(rt)         :: estar_g, pstar_g
-    real(rt)        , dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
-    real(rt)         :: eddf, f1
-    real(rt)         :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
+    real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
+    real(rt) :: estar_g, pstar_g
+    real(rt), dimension(0:ngroups-1) :: lambda, reo_r, po_r, estar_r, regdnv_r
+    real(rt) :: eddf, f1
+    real(rt) :: co_g, gamco_g, pl_g, po_g, pr_g, rel_g, reo_g, rer_g
 #endif
 
     integer :: iu, iv1, iv2
@@ -1028,20 +1012,10 @@ contains
     !************************************************************
     !  set min/max based on normal direction
     if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
        iu = QU
        iv1 = QV
        iv2 = QW
     else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -1384,7 +1358,7 @@ contains
                   gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
                   uflx, uflx_lo, uflx_hi, &
                   qint, qg_lo, qg_hi, &
-                  idir, ilo1, ihi1, ilo2, ihi2, domlo, domhi)
+                  idir, ilo, ihi, jlo, jhi, domlo, domhi)
 
     ! this is an implementation of the HLLC solver described in Toro's
     ! book.  it uses the simplest estimate of the wave speeds, since
@@ -1396,58 +1370,48 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , parameter:: small = 1.e-8_rt
 
-    integer :: qpd_lo(3), qpd_hi(3)
-    integer :: gd_lo(3), gd_hi(3)
-    integer :: uflx_lo(3), uflx_hi(3)
-    integer :: qg_lo(3), qg_hi(3)
-    integer :: idir, ilo1, ihi1, ilo2, ihi2
-    integer :: domlo(2),domhi(2)
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(3), gd_hi(3)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: qg_lo(3), qg_hi(3)
+    integer, intent(in) :: idir 
+    integer, intent(in) :: ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(2),domhi(2)
 
-    real(rt)         :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
-    real(rt)         :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ)
 
-    real(rt)         :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt)         :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
-    real(rt)         :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
+    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),NVAR)
+    real(rt), intent(inout) :: qint(qg_lo(1):qg_hi(1),qg_lo(2):qg_hi(2),NGDNV)
 
-    integer :: ilo,ihi,jlo,jhi
     integer :: i, j
     integer :: bnd_fac
-    
-    !real(rt)         :: regd
-    real(rt)         :: ustar
-    real(rt)         :: rl, ul, pl, rel
-    real(rt)         :: rr, ur, pr, rer
-    real(rt)         :: wl, wr, scr
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall
 
-    real(rt)         :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
-    real(rt)         :: S_l, S_r, S_c
+    !real(rt)         :: regd
+    real(rt) :: ustar
+    real(rt) :: rl, ul, pl, rel
+    real(rt) :: rr, ur, pr, rer
+    real(rt) :: wl, wr, scr
+    real(rt) :: rstar, cstar, pstar
+    real(rt) :: ro, uo, po, co, gamco
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall
+
+    real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
+    real(rt) :: S_l, S_r, S_c
 
     integer :: iu, iv1, iv2
 
     !  set min/max based on normal direction
     if (idir == 1) then
-       ilo = ilo1
-       ihi = ihi1 + 1
-       jlo = ilo2
-       jhi = ihi2
-
        iu = QU
        iv1 = QV
        iv2 = QW
     else
-       ilo = ilo1
-       ihi = ihi1
-       jlo = ilo2
-       jhi = ihi2+1
-
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -1558,7 +1522,7 @@ contains
           ! now we do the HLLC construction
 
           bnd_fac = bc_test(idir, i, j, domlo, domhi)
-          
+
           ! use the simplest estimates of the wave speeds
           S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
           S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
