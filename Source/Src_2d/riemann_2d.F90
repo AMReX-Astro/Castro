@@ -873,6 +873,9 @@ contains
           ! case where we are inside the rarefaction fan.
           rgdnv = frac*rstar + (ONE - frac)*ro
           qint(i,j,iu) = frac*ustar + (ONE - frac)*uo
+          qint(i,j,iv1) = vgdnv
+          qint(i,j,iv2) = wgdnv
+
           qint(i,j,GDPRES) = frac*pstar + (ONE - frac)*po
           gamgdnv =  frac*gamstar + (ONE-frac)*gameo
 
