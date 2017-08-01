@@ -144,7 +144,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
   allocate(q1(q1_lo(1):q1_hi(1), q1_lo(2):q1_hi(2), NGDNV))
-  allocate(q2(q2_lo(2):q2_hi(2), q2_lo(2):q2_hi(2), NGDNV))
+  allocate(q2(q2_lo(1):q2_hi(1), q2_lo(2):q2_hi(2), NGDNV))
 
   dx = delta(1)
   dy = delta(2)
