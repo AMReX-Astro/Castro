@@ -1,5 +1,10 @@
 # changes since the last release:
 
+  -- the Riemann solvers have been merged into a single
+     dimensional-agnostic version in Src_nd.  In 2-d there was an
+     issue with how the Godunov state for the CG solver was stored on
+     interfaces, which would affect the internal enery evolution.
+
 # 17.08
 
   -- the option castro.limit_fluxes_on_small_dens now only limits
@@ -15,7 +20,7 @@
 
   -- the XGRAPH stuff that output xmgr-compatible 1-d ASCII profiles
 
-  -- fixed a bug where the gravity runtime parameters were not 
+  -- fixed a bug where the gravity runtime parameters were not
      being properly initialized in the Fortran side of the code.
 
   -- the viscosity routine is now separate from conductivity
