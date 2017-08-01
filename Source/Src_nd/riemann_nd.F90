@@ -10,11 +10,13 @@ module actual_riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp
+  use riemann_util_module
+
   implicit none
 
   private
 
-  public :: riemanncg, riemannus
+  public :: riemanncg, riemannus, hllc
 
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
@@ -128,20 +130,20 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt)         :: bnd_fac_x, bnd_fac_y, bnd_fac_z
 
-    if (cg_blend .eq. 2 .and. cg_maxiter < 5) then
+    if (cg_blend == 2 .and. cg_maxiter < 5) then
 
        call bl_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
 
     endif
 
-    if (idir .eq. 1) then
+    if (idir == 1) then
        iu = QU
        iv1 = QV
        iv2 = QW
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-    else if (idir .eq. 2) then
+    else if (idir == 2) then
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -158,14 +160,14 @@ contains
     end if
 
     ! do we want to force the flux to zero at the boundary?
-    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
-         .or.         physbc_lo(idir) .eq. SlipWall &
-         .or.         physbc_lo(idir) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
-         .or.         physbc_hi(idir) .eq. SlipWall &
-         .or.         physbc_hi(idir) .eq. NoSlipWall)
+    special_bnd_lo = (physbc_lo(idir) == Symmetry &
+         .or.         physbc_lo(idir) == SlipWall &
+         .or.         physbc_lo(idir) == NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) == Symmetry &
+         .or.         physbc_hi(idir) == SlipWall &
+         .or.         physbc_hi(idir) == NoSlipWall)
 
-    if (idir .eq. 1) then
+    if (idir == 1) then
        special_bnd_lo_x = special_bnd_lo
        special_bnd_hi_x = special_bnd_hi
     else
@@ -174,9 +176,9 @@ contains
     end if
 
     bnd_fac_z = ONE
-    if (idir.eq.3) then
-       if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
-            k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
+    if (idir==3) then
+       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
+            k3d == domhi(3)+1 .and. special_bnd_hi ) then
           bnd_fac_z = ZERO
        end if
     end if
@@ -191,9 +193,9 @@ contains
     do j = jlo, jhi
 
        bnd_fac_y = ONE
-       if (idir .eq. 2) then
-          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
+       if (idir == 2) then
+          if ( j == domlo(2)   .and. special_bnd_lo .or. &
+               j == domhi(2)+1 .and. special_bnd_hi ) then
              bnd_fac_y = ZERO
           end if
        end if
@@ -392,11 +394,11 @@ contains
                 print *, 'cav, smallc:', cav(i,j), csmall
                 call bl_error("ERROR: non-convergence in the Riemann solver")
 
-             else if (cg_blend .eq. 1) then
+             else if (cg_blend == 1) then
 
                 pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr)
 
-             else if (cg_blend .eq. 2) then
+             else if (cg_blend == 2) then
 
                 ! first try to find a reasonable bounds
                 pstarl = minval(pstar_hist(iter_max-5:iter_max))
@@ -514,7 +516,7 @@ contains
              spout = ushock
           endif
 
-          !if (spout-spin .eq. ZERO) then
+          !if (spout-spin == ZERO) then
           !   scr = small*cav(i,j)
           !else
           !   scr = spout-spin
@@ -728,7 +730,7 @@ contains
 
     call bl_allocate(us1d,ilo,ihi)
 
-    if (idir .eq. 1) then
+    if (idir == 1) then
        iu = QU
        iv1 = QV
        iv2 = QW
@@ -736,7 +738,7 @@ contains
        im2 = UMY
        im3 = UMZ
 
-    else if (idir .eq. 2) then
+    else if (idir == 2) then
        iu = QV
        iv1 = QU
        iv2 = QW
@@ -753,14 +755,14 @@ contains
        im3 = UMY
     end if
 
-    special_bnd_lo = (physbc_lo(idir) .eq. Symmetry &
-         .or.         physbc_lo(idir) .eq. SlipWall &
-         .or.         physbc_lo(idir) .eq. NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) .eq. Symmetry &
-         .or.         physbc_hi(idir) .eq. SlipWall &
-         .or.         physbc_hi(idir) .eq. NoSlipWall)
+    special_bnd_lo = (physbc_lo(idir) == Symmetry &
+         .or.         physbc_lo(idir) == SlipWall &
+         .or.         physbc_lo(idir) == NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) == Symmetry &
+         .or.         physbc_hi(idir) == SlipWall &
+         .or.         physbc_hi(idir) == NoSlipWall)
 
-    if (idir .eq. 1) then
+    if (idir == 1) then
        special_bnd_lo_x = special_bnd_lo
        special_bnd_hi_x = special_bnd_hi
     else
@@ -769,9 +771,9 @@ contains
     end if
 
     bnd_fac_z = ONE
-    if (idir .eq. 3) then
-       if ( k3d .eq. domlo(3)   .and. special_bnd_lo .or. &
-            k3d .eq. domhi(3)+1 .and. special_bnd_hi ) then
+    if (idir == 3) then
+       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
+            k3d == domhi(3)+1 .and. special_bnd_hi ) then
           bnd_fac_z = ZERO
        end if
     end if
@@ -779,9 +781,9 @@ contains
     do j = jlo, jhi
 
        bnd_fac_y = ONE
-       if (idir .eq. 2) then
-          if ( j .eq. domlo(2)   .and. special_bnd_lo .or. &
-               j .eq. domhi(2)+1 .and. special_bnd_hi ) then
+       if (idir == 2) then
+          if ( j == domlo(2)   .and. special_bnd_lo .or. &
+               j == domhi(2)+1 .and. special_bnd_hi ) then
              bnd_fac_y = ZERO
           end if
        end if
@@ -1018,8 +1020,8 @@ contains
           u_adv = qint(i,j,kc,iu)
 
           ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-          if ( special_bnd_lo_x .and. i.eq.domlo(1) .or. &
-               special_bnd_hi_x .and. i.eq.domhi(1)+1 ) then
+          if ( special_bnd_lo_x .and. i==domlo(1) .or. &
+               special_bnd_hi_x .and. i==domhi(1)+1 ) then
              bnd_fac_x = ZERO
           else
              bnd_fac_x = ONE
@@ -1058,7 +1060,7 @@ contains
           us1d(i) = ustar
 
 #ifdef RADIATION
-          if (fspace_type.eq.1) then
+          if (fspace_type==1) then
              do g=0,ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -1097,5 +1099,286 @@ contains
     call bl_deallocate(us1d)
 
   end subroutine riemannus
+
+
+  subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
+                  gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                  uflx, uflx_lo, uflx_hi, &
+                  qint, q_lo, q_hi, &
+                  idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                  domlo, domhi)
+
+
+    ! this is an implementation of the HLLC solver described in Toro's
+    ! book.  it uses the simplest estimate of the wave speeds, since
+    ! those should work for a general EOS.  We also initially do the
+    ! CGF Riemann construction to get pstar and ustar, since we'll
+    ! need to know the pressure and velocity on the interface for the
+    ! pdV term in the internal energy update.
+
+    use mempool_module, only : bl_allocate, bl_deallocate
+    use prob_params_module, only : physbc_lo, physbc_hi, &
+                                   Symmetry, SlipWall, NoSlipWall
+
+    implicit none
+
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: gd_lo(2), gd_hi(2)
+    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: idir, ilo, ihi, jlo, jhi
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(in) ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    integer, intent(in) :: kc, kflux, k3d
+
+    ! Note:
+    !
+    !  k3d: the k corresponding to the full 3d array -- it should be
+    !       used for print statements or tests against domlo, domhi,
+    !       etc
+    !
+    !  kc: the k corresponding to the 2-wide slab of k-planes, so in
+    !      this routine it takes values only of 1 or 2
+    !
+    !  kflux: used for indexing the uflx array -- in the initial calls
+    !         to cmpflx when uflx = {fx,fy,fxy,fyx,fz,fxz,fzx,fyz,fzy}, 
+    !         kflux = kc, but in later calls, when uflx = {flux1,flux2,flux3},
+    !         kflux = k3d
+
+    integer :: i, j
+
+    real(rt) :: rgdnv, regdnv
+    real(rt) :: rl, ul, v1l, v2l, pl, rel
+    real(rt) :: rr, ur, v1r, v2r, pr, rer
+    real(rt) :: wl, wr, scr
+    real(rt) :: rstar, cstar, estar, pstar, ustar
+    real(rt) :: ro, uo, po, reo, co, gamco, entho
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall
+
+    integer :: iu, iv1, iv2
+    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
+    integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
+    real(rt) :: wwinv, roinv, co2inv
+
+    real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
+    real(rt) :: S_l, S_r, S_c
+
+    if (idir == 1) then
+       iu = QU
+       iv1 = QV
+       iv2 = QW
+    else if (idir == 2) then
+       iu = QV
+       iv1 = QU
+       iv2 = QW
+    else
+       iu = QW
+       iv1 = QU
+       iv2 = QV
+    end if
+
+    special_bnd_lo = (physbc_lo(idir) == Symmetry &
+         .or.         physbc_lo(idir) == SlipWall &
+         .or.         physbc_lo(idir) == NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) == Symmetry &
+         .or.         physbc_hi(idir) == SlipWall &
+         .or.         physbc_hi(idir) == NoSlipWall)
+
+    if (idir == 1) then
+       special_bnd_lo_x = special_bnd_lo
+       special_bnd_hi_x = special_bnd_hi
+    else
+       special_bnd_lo_x = .false.
+       special_bnd_hi_x = .false.
+    end if
+
+    bnd_fac_z = 1
+    if (idir == 3) then
+       if ( k3d == domlo(3)   .and. special_bnd_lo .or. &
+            k3d == domhi(3)+1 .and. special_bnd_hi ) then
+          bnd_fac_z = 0
+       end if
+    end if
+
+    do j = jlo, jhi
+
+       bnd_fac_y = 1
+       if (idir == 2) then
+          if ( j == domlo(2)   .and. special_bnd_lo .or. &
+               j == domhi(2)+1 .and. special_bnd_hi ) then
+             bnd_fac_y = 0
+          end if
+       end if
+
+       !dir$ ivdep
+       do i = ilo, ihi
+
+          rl = max(ql(i,j,kc,QRHO), small_dens)
+
+          ! pick left velocities based on direction
+          ul  = ql(i,j,kc,iu)
+          v1l = ql(i,j,kc,iv1)
+          v2l = ql(i,j,kc,iv2)
+
+          pl  = max(ql(i,j,kc,QPRES ), small_pres)
+          rel = ql(i,j,kc,QREINT)
+
+          rr = max(qr(i,j,kc,QRHO), small_dens)
+
+          ! pick right velocities based on direction
+          ur  = qr(i,j,kc,iu)
+          v1r = qr(i,j,kc,iv1)
+          v2r = qr(i,j,kc,iv2)
+
+          pr  = max(qr(i,j,kc,QPRES), small_pres)
+          rer = qr(i,j,kc,QREINT)
+
+          ! now we essentially do the CGF solver to get p and u on the
+          ! interface, but we won't use these in any flux construction.
+          csmall = smallc(i,j)
+          wsmall = small_dens*csmall
+          wl = max(wsmall, sqrt(abs(gamcl(i,j)*pl*rl)))
+          wr = max(wsmall, sqrt(abs(gamcr(i,j)*pr*rr)))
+
+          wwinv = ONE/(wl + wr)
+          pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
+          ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+
+          pstar = max(pstar, small_pres)
+          ! for symmetry preservation, if ustar is really small, then we
+          ! set it to zero
+          if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
+             ustar = ZERO
+          endif
+
+          if (ustar > ZERO) then
+             ro = rl
+             uo = ul
+             po = pl
+             reo = rel
+             gamco = gamcl(i,j)
+
+          else if (ustar < ZERO) then
+             ro = rr
+             uo = ur
+             po = pr
+             reo = rer
+             gamco = gamcr(i,j)
+          else
+             ro = HALF*(rl+rr)
+             uo = HALF*(ul+ur)
+             po = HALF*(pl+pr)
+             reo = HALF*(rel+rer)
+             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
+          endif
+          ro = max(small_dens, ro)
+
+          roinv = ONE/ro
+          co = sqrt(abs(gamco*po*roinv))
+          co = max(csmall, co)
+          co2inv = ONE/(co*co)
+
+          rstar = ro + (pstar - po)*co2inv
+          rstar = max(small_dens, rstar)
+
+          entho = (reo + po)*co2inv/ro
+          estar = reo + (pstar - po)*entho
+
+          cstar = sqrt(abs(gamco*pstar/rstar))
+          cstar = max(cstar, csmall)
+
+          sgnm = sign(ONE, ustar)
+          spout = co - sgnm*uo
+          spin = cstar - sgnm*ustar
+          ushock = HALF*(spin + spout)
+
+          if (pstar-po > ZERO) then
+             spin = ushock
+             spout = ushock
+          endif
+          if (spout-spin == ZERO) then
+             scr = small*cav(i,j)
+          else
+             scr = spout-spin
+          endif
+          frac = (ONE + (spout + spin)/scr)*HALF
+          frac = max(ZERO, min(ONE, frac))
+
+          rgdnv = frac*rstar + (ONE - frac)*ro
+          regdnv = frac*estar + (ONE - frac)*reo
+
+          qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
+          qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
+          qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
+
+
+          ! now we do the HLLC construction
+
+
+          ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
+          if ( special_bnd_lo_x .and. i== domlo(1) .or. &
+               special_bnd_hi_x .and. i== domhi(1)+1 ) then
+             bnd_fac_x = 0
+          else
+             bnd_fac_x = 1
+          end if
+
+          bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+
+          ! use the simplest estimates of the wave speeds
+          S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
+          S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
+
+          ! estimate of the contact speed -- this is Toro Eq. 10.8
+          S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
+               (rl*(S_l - ul) - rr*(S_r - ur))
+
+          if (S_r <= ZERO) then
+             ! R region
+             call cons_state(qr(i,j,kc,:), U_state)
+             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+
+          else if (S_r > ZERO .and. S_c <= ZERO) then
+             ! R* region
+             call cons_state(qr(i,j,kc,:), U_state)
+             call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+
+             call HLLC_state(idir, S_r, S_c, qr(i,j,kc,:), U_hllc_state)
+
+             ! correct the flux
+             F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
+
+          else if (S_c > ZERO .and. S_l < ZERO) then
+             ! L* region
+             call cons_state(ql(i,j,kc,:), U_state)
+             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+
+             call HLLC_state(idir, S_l, S_c, ql(i,j,kc,:), U_hllc_state)
+
+             ! correct the flux
+             F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
+
+          else
+             ! L region
+             call cons_state(ql(i,j,kc,:), U_state)
+             call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+
+          endif
+
+          uflx(i,j,kflux,:) = F_state(:)
+       enddo
+    enddo
+
+  end subroutine HLLC
+
 
 end module actual_riemann_module
