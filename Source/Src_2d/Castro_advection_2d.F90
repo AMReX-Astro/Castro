@@ -146,12 +146,12 @@ contains
 
     allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
-    allocate (  qm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate (  qp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qxm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qxp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qym(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qyp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate (  qm(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate (  qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qxm(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qxp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qym(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qyp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
 
     allocate (  fx(tflx_lo(1):tflx_hi(1),tflx_lo(2):tflx_hi(2),NVAR) )
     allocate (  fy(tfly_lo(1):tfly_hi(1),tfly_lo(2):tfly_hi(2),NVAR) )
