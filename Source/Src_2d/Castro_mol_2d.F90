@@ -104,6 +104,8 @@ subroutine ca_mol_single_stage(time, &
   real(rt) :: dx, dy
 
   integer :: lo_3D(3), hi_3D(3)
+  integer :: shk_lo(3), shk_hi(3)
+  integer :: qs_lo(3), qs_hi(3)
   real(rt) :: dx_3D(3)
 
   real(rt) :: div1
@@ -114,11 +116,17 @@ subroutine ca_mol_single_stage(time, &
   
   ngf = 1
 
-  lo_3D   = [lo(1), lo(2), 0]
-  hi_3D   = [hi(1), hi(2), 0]
+  lo_3D  = [lo(1), lo(2), 0]
+  hi_3D  = [hi(1), hi(2), 0]
 
-  dx_3D   = [delta(1), delta(2), ZERO]
+  dx_3D  = [delta(1), delta(2), ZERO]
 
+  shk_lo = [lo(1)-1, lo(2)-1, 0]
+  shk_hi = [hi(1)+1, hi(2)+1, 0]
+
+  qs_lo = [lo(1)-1, lo(2)-1, 0]
+  qs_hi = [hi(1)+2, hi(2)+2, 0]
+  
   allocate(flatn(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
 
   allocate(q1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), NGDNV))
@@ -130,7 +138,7 @@ subroutine ca_mol_single_stage(time, &
   allocate(rfly(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), ngroups))
 #endif
 
-  allocate(shk(lo(1)-1:hi(1)+1, lo(2)-1:hi(2)+1))
+  allocate(shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2)))
   allocate(pdivu(lo(1):hi(1), lo(2):hi(2)))
 
   dx = delta(1)
@@ -141,7 +149,7 @@ subroutine ca_mol_single_stage(time, &
     uout(lo(1):hi(1),lo(2):hi(2),USHK) = ZERO
 
     call shock(q, q_lo, q_hi, &
-               shk, lo_3D-1, hi_3D+1, &
+               shk, shk_lo, shk_hi, &
                lo_3D, hi_3D, dx_3D)
 
     ! Store the shock data for future use in the burning step.
@@ -161,7 +169,7 @@ subroutine ca_mol_single_stage(time, &
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
-                  shk, lo_3D-1, hi_3D+1, &
+                  shk, shk_lo, shk_hi, &
                   lo_3D, hi_3D, dx_3D)
     else
        shk(:,:) = ZERO
@@ -197,10 +205,10 @@ subroutine ca_mol_single_stage(time, &
   ! qm and qp are the left and right states for an interface -- they
   ! are defined for a particular interface, with the convention that
   ! qm(i) and qp(i) correspond to the i-1/2 interface
-  allocate ( qxm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-  allocate ( qxp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-  allocate ( qym(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-  allocate ( qyp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+  allocate ( qxm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),NQ) )
+  allocate ( qxp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),NQ) )
+  allocate ( qym(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),NQ) )
+  allocate ( qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),NQ) )
 
   ! Do PPM reconstruction
   do n = 1, QVAR
@@ -294,25 +302,25 @@ subroutine ca_mol_single_stage(time, &
 
 
   ! Get the fluxes from the Riemann solver
-  call cmpflx(qxm, qxp, lo_3D-1, hi_3D+2, &
+  call cmpflx(qxm, qxp, qs_lo, qs_hi, &
               flux1, flux1_lo, flux1_hi, &
               q1, flux1_lo, flux1_hi, &
 #ifdef RADIATION
               rflx, flux1_lo, flux1_hi, &
 #endif
               qaux, qa_lo, qa_hi, &
-              shk, lo_3D-1, hi_3D+1, &
+              shk, shk_lo, shk_hi, &
               1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
 
-  call cmpflx(qym, qyp, lo_3D-1, hi_3D+2, &
+  call cmpflx(qym, qyp, qs_lo, qs_hi, &
               flux2, flux2_lo, flux2_hi, &
               q2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
               rfly, flux2_lo, flux2_hi, &
 #endif
               qaux, qa_lo, qa_hi, &
-              shk, lo_3D-1, hi_3D+1, &
+              shk, shk_lo, shk_hi, &
               2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
   deallocate(qxm, qxp, qym, qyp)
