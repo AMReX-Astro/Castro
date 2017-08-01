@@ -8,10 +8,19 @@ module actual_riemann_module
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
+#ifdef RADIATION
+                                 qrad, qradhi, qptot, qreitot, fspace_type, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
+#endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp
   use riemann_util_module
 
+#ifdef RADIATION
+    use rad_params_module, only : ngroups
+    use fluxlimiter_module, only : Edd_factor
+#endif
+  
   implicit none
 
   private
