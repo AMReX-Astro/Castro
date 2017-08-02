@@ -13,7 +13,8 @@ module actual_riemann_module
                                  GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
                                  npassive, upass_map, qpass_map, &
-                                 small_dens, small_pres, small_temp
+                                 small_dens, small_pres, small_temp, &
+                                 use_eos_in_riemann
   use riemann_util_module
 
 #ifdef RADIATION
@@ -664,6 +665,10 @@ contains
     use hybrid_advection_module, only : compute_hybrid_flux
 #endif
 
+    use eos_type_module, only : eos_t, eos_input_rp
+    use eos_module, only : eos
+    use network, only : nspec
+
     implicit none
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
@@ -746,6 +751,9 @@ contains
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     real(rt) :: wwinv, roinv, co2inv
+
+    type(eos_t) :: eos_state
+    real(rt), dimension(nspec) :: xn
 
     call bl_allocate(us1d,ilo,ihi)
 
@@ -1086,6 +1094,38 @@ contains
           qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 #endif
+
+
+          ! we are potentially thermodynamically inconsistent, fix that
+          ! here
+          if (use_eos_in_riemann == 1) then
+             ! we need to know the species -- they only jump across
+             ! the contact
+             if (ustar > ZERO) then
+                xn(:) = ql(i,j,kc,QFS:QFS-1+nspec)
+
+             else if (ustar < ZERO) then
+                xn(:) = qr(i,j,kc,QFS:QFS-1+nspec)
+             else
+                xn(:) = HALF*(ql(i,j,kc,QFS:QFS-1+nspec) + &
+                              qr(i,j,kc,QFS:QFS-1+nspec))
+             endif
+
+             eos_state % rho = qint(i,j,kc,GDRHO)
+             eos_state % p = qint(i,j,kc,QPRES)
+             eos_state % xn(:) = xn(:)
+             eos_state % T = 1.e4  ! a guess
+
+             call eos(eos_input_rp, eos_state)
+
+             qint(i,j,kc,GDGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
+#ifdef RADIATION
+             regdnv_g = eos_state % rho * eos_state % e
+#else
+             regdnv = eos_state % rho * eos_state % e
+#endif
+          endif
+
 
           ! ------------------------------------------------------------------
           ! compute the fluxes
