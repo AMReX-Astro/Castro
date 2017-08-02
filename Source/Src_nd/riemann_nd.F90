@@ -636,6 +636,14 @@ contains
   end subroutine riemanncg
 
 
+  !===========================================================================
+  ! Colella, Glaz, and Ferguson solver
+  !
+  ! this is a 2-shock solver that uses a very simple approximation for the
+  ! star state, and carries an auxillary jump condition for (rho e) to 
+  ! deal with a real gas
+  !===========================================================================
+
   subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
                        gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
                        uflx, uflx_lo, uflx_hi, &
@@ -687,6 +695,8 @@ contains
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),rflx_lo(3):rflx_hi(3),0:ngroups-1)
 #endif
 
+    integer, intent(in) :: kc, kflux, k3d
+
     ! Note:
     !
     !  k3d: the k corresponding to the full 3d array -- it should be
@@ -701,43 +711,46 @@ contains
     !         kflux = kc, but in later calls, when uflx = {flux1,flux2,flux3},
     !         kflux = k3d
 
-    integer :: i,j,kc,kflux,k3d
+    integer :: i, j
     integer :: n, nqp, ipassive
 
-    real(rt)         :: regdnv
-    real(rt)         :: rl, ul, v1l, v2l, pl, rel
-    real(rt)         :: rr, ur, v1r, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot, scr
-    real(rt)         :: rstar, cstar, estar, pstar, ustar
-    real(rt)         :: ro, uo, po, reo, co, gamco, entho, drho
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
+    real(rt) :: regdnv
+    real(rt) :: rl, ul, v1l, v2l, pl, rel
+    real(rt) :: rr, ur, v1r, v2r, pr, rer
+    real(rt) :: wl, wr, rhoetot, scr
+    real(rt) :: rstar, cstar, estar, pstar, ustar
+    real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall,qavg
 
 #ifdef RADIATION
-    real(rt)        , dimension(0:ngroups-1) :: erl, err
-    real(rt)         :: reo_g, po_g, co_g, gamco_g
-    real(rt)         :: pl_g, rel_g, pr_g, rer_g
-    real(rt)         :: regdnv_g, pgdnv_g, pgdnv_t
-    real(rt)         :: estar_g, pstar_g
-    real(rt)        , dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
-    real(rt)         :: eddf, f1
+    real(rt), dimension(0:ngroups-1) :: erl, err
+    real(rt) :: reo_g, po_g, co_g, gamco_g
+    real(rt) :: pl_g, rel_g, pr_g, rer_g
+    real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
+    real(rt) :: estar_g, pstar_g
+    real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
+    real(rt) :: eddf, f1
     integer :: g
 #endif
 
-    real(rt)        , pointer :: us1d(:)
+    real(rt), pointer :: us1d(:)
 
 #ifdef ROTATION
-    real(rt)         :: vel(3)
+    real(rt) :: vel(3)
 #endif
 
-    real(rt)         :: u_adv
+    real(rt) :: u_adv
 
     integer :: iu, iv1, iv2, im1, im2, im3
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    real(rt)         :: bnd_fac_x, bnd_fac_y, bnd_fac_z
-    real(rt)         :: wwinv, roinv, co2inv
+    real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+    real(rt) :: wwinv, roinv, co2inv
 
     call bl_allocate(us1d,ilo,ihi)
+
+    ! set integer pointers for the normal and transverse velocity and
+    ! momentum
 
     if (idir == 1) then
        iu = QU
@@ -800,6 +813,10 @@ contains
        !dir$ ivdep
        do i = ilo, ihi
 
+          ! ------------------------------------------------------------------
+          ! set the left and right states for this interface
+          ! ------------------------------------------------------------------
+
 #ifdef RADIATION
           if (idir == 1) then
              laml = lam(i-1,j,k3d,:)
@@ -826,7 +843,7 @@ contains
           rel_g = ql(i,j,kc,QREINT)
 #else
           pl  = max(ql(i,j,kc,QPRES ), small_pres)
-          rel =     ql(i,j,kc,QREINT)
+          rel = ql(i,j,kc,QREINT)
 #endif
 
           rr = max(qr(i,j,kc,QRHO), small_dens)
@@ -844,24 +861,39 @@ contains
           rer_g = qr(i,j,kc,QREINT)
 #else
           pr  = max(qr(i,j,kc,QPRES), small_pres)
-          rer =     qr(i,j,kc,QREINT)
+          rer = qr(i,j,kc,QREINT)
 #endif
+
+          ! ------------------------------------------------------------------
+          ! estimate the star state: pstar, ustar
+          ! ------------------------------------------------------------------
 
           csmall = smallc(i,j)
           wsmall = small_dens*csmall
-          wl = max(wsmall,sqrt(abs(gamcl(i,j)*pl*rl)))
-          wr = max(wsmall,sqrt(abs(gamcr(i,j)*pr*rr)))
+
+          ! this is Castro I: Eq. 33
+          wl = max(wsmall, sqrt(abs(gamcl(i,j)*pl*rl)))
+          wr = max(wsmall, sqrt(abs(gamcr(i,j)*pr*rr)))
 
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
           ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
 
-          pstar = max(pstar,small_pres)
+          pstar = max(pstar, small_pres)
+
           ! for symmetry preservation, if ustar is really small, then we
           ! set it to zero
           if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
              ustar = ZERO
           endif
+
+          ! ------------------------------------------------------------------
+          ! look at the contact to determine which region we are in
+          ! ------------------------------------------------------------------
+
+          ! this just determines which of the left or right states is still
+          ! in play.  We still need to look at the other wave to determine
+          ! if the star state or this state is on the interface.
 
           if (ustar > ZERO) then
              ro = rl
@@ -921,6 +953,26 @@ contains
           co = max(csmall,co)
           co2inv = ONE/(co*co)
 
+          ! we can already deal with the transverse velocities -- they
+          ! only jump across the contact
+          if (ustar > ZERO) then
+             qint(i,j,kc,iv1) = v1l
+             qint(i,j,kc,iv2) = v2l
+
+          else if (ustar < ZERO) then
+             qint(i,j,kc,iv1) = v1r
+             qint(i,j,kc,iv2) = v2r
+
+          else
+             qint(i,j,kc,iv1) = HALF*(v1l+v1r)
+             qint(i,j,kc,iv2) = HALF*(v2l+v2r)
+          endif
+
+
+          ! ------------------------------------------------------------------
+          ! compute the rest of the star state
+          ! ------------------------------------------------------------------
+
           drho = (pstar - po)*co2inv
           rstar = ro + drho
           rstar = max(small_dens, rstar)
@@ -939,9 +991,21 @@ contains
           cstar = sqrt(abs(gamco*pstar/rstar))
           cstar = max(cstar, csmall)
 
+          ! ------------------------------------------------------------------
+          ! finish sampling the solution 
+          ! ------------------------------------------------------------------          
+
+          ! look at the remaining wave to determine if the star state or the 
+          ! 'o' state above is on the interface
+
           sgnm = sign(ONE, ustar)
+
+          ! the values of u +/- c on either side of the non-contact
+          ! wave
           spout = co - sgnm*uo
           spin = cstar - sgnm*ustar
+
+          ! a simple estimate of the shock speed
           ushock = HALF*(spin + spout)
 
           if (pstar-po > ZERO) then
@@ -955,21 +1019,10 @@ contains
              scr = spout-spin
           endif
 
+          ! interpolate for the case that we are in a rarefaction
           frac = (ONE + (spout + spin)/scr)*HALF
           frac = max(ZERO, min(ONE, frac))
 
-          if (ustar > ZERO) then
-             qint(i,j,kc,iv1) = v1l
-             qint(i,j,kc,iv2) = v2l
-
-          else if (ustar < ZERO) then
-             qint(i,j,kc,iv1) = v1r
-             qint(i,j,kc,iv2) = v2r
-
-          else
-             qint(i,j,kc,iv1) = HALF*(v1l+v1r)
-             qint(i,j,kc,iv2) = HALF*(v2l+v2r)
-          endif
           qint(i,j,kc,GDRHO) = frac*rstar + (ONE - frac)*ro
           qint(i,j,kc,iu  ) = frac*ustar + (ONE - frac)*uo
 
@@ -983,7 +1036,14 @@ contains
           regdnv = frac*estar + (ONE - frac)*reo
 #endif
 
+          ! as it stands now, we set things assuming that the rarefaction
+          ! spans the interface.  We overwrite that here depending on the
+          ! wave speeds
+
+          ! look at the speeds on either side of the remaining wave
+          ! to determine which region we are in
           if (spout < ZERO) then
+             ! the l or r state is on the interface
              qint(i,j,kc,GDRHO) = ro
              qint(i,j,kc,iu  ) = uo
 #ifdef RADIATION
@@ -998,6 +1058,7 @@ contains
           endif
 
           if (spin >= ZERO) then
+             ! the star state is on the interface
              qint(i,j,kc,GDRHO) = rstar
              qint(i,j,kc,iu  ) = ustar
 #ifdef RADIATION
@@ -1025,6 +1086,13 @@ contains
           qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
           qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
 #endif
+
+          ! ------------------------------------------------------------------
+          ! compute the fluxes
+          ! ------------------------------------------------------------------
+
+          ! we just found the state on the interface, now we use this to 
+          ! evaluate the fluxes
 
           u_adv = qint(i,j,kc,iu)
 
