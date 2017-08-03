@@ -2,11 +2,12 @@ module actual_riemann_module
 
   use amrex_fort_module, only : rt => amrex_real
   use bl_constants_module
-  use meth_params_module, only : NQ, NVAR, &
+  use meth_params_module, only : NQ, NVAR, NQAUX, &
                                  URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UFX, &
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
+                                 QC, QGAMC, QCSML, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
@@ -34,7 +35,7 @@ module actual_riemann_module
 contains
 
   subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
-                       gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                       qaux, qa_lo, qa_hi, &
                        uflx, uflx_lo, uflx_hi, &
                        qint, q_lo, q_hi, &
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
@@ -62,7 +63,7 @@ contains
     implicit none
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-    integer, intent(in) :: gd_lo(2), gd_hi(2)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, ilo, ihi, jlo, jhi
@@ -70,12 +71,14 @@ contains
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+
+    ! note: qaux comes in dimensioned as the fully box, so use k3d to 
+    ! index in z
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+
+    integer, intent(in) :: kc, kflux, k3d
 
     ! Note:
     !
@@ -91,54 +94,52 @@ contains
     !         kflux = kc, but in later calls, when uflx = {flux1,flux2,flux3},
     !         kflux = k3d
 
-    integer :: i,j,kc,kflux,k3d
+    integer :: i, j
     integer :: n, nqp, ipassive
 
-    real(rt)         :: ustar,gamgdnv
-    real(rt)         :: rl, ul, v1l, v2l, pl, rel
-    real(rt)         :: rr, ur, v1r, v2r, pr, rer
-    real(rt)         :: wl, wr, rhoetot
-   !real(rt)         :: scr
-    real(rt)         :: rstar, cstar, pstar
-    real(rt)         :: ro, uo, po, co, gamco
-    real(rt)         :: sgnm, spin, spout, ushock, frac
-    real(rt)         :: wsmall, csmall,qavg
+    real(rt) :: ustar,gamgdnv
+    real(rt) :: rl, ul, v1l, v2l, pl, rel
+    real(rt) :: rr, ur, v1r, v2r, pr, rer
+    real(rt) :: wl, wr, rhoetot
 
-    real(rt)         :: gcl, gcr
-    real(rt)         :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
-    real(rt)         :: zm, zp
-    real(rt)         :: denom, dpditer, dpjmp
-    real(rt)         :: gamc_bar, game_bar
-    real(rt)         :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
+    real(rt) :: rstar, cstar, pstar
+    real(rt) :: ro, uo, po, co, gamco
+    real(rt) :: sgnm, spin, spout, ushock, frac
+    real(rt) :: wsmall, csmall, qavg
+    real(rt) :: cavg
+
+    real(rt) :: gcl, gcr
+    real(rt) :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
+    real(rt) :: zm, zp
+    real(rt) :: denom, dpditer, dpjmp
+    real(rt) :: gamc_bar, game_bar
+    real(rt) :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
     integer :: iter, iter_max
-    real(rt)         :: tol
-    real(rt)         :: err
+    real(rt) :: tol
+    real(rt) :: err
 
     logical :: converged
 
-    real(rt)         :: pstar_old
-    real(rt)         :: taul, taur, tauo
-    real(rt)         :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
-    real(rt)         :: pstarl, pstarc, pstaru, pfuncc, pfuncu
+    real(rt) :: pstar_old
+    real(rt) :: taul, taur, tauo
+    real(rt) :: ustar_r, ustar_l, ustar_r_old, ustar_l_old
+    real(rt) :: pstarl, pstarc, pstaru, pfuncc, pfuncu
 
-    real(rt)        , parameter :: weakwv = 1.e-3_rt
+    real(rt), parameter :: weakwv = 1.e-3_rt
 
-    real(rt)        , pointer :: pstar_hist(:), pstar_hist_extra(:)
+    real(rt), pointer :: pstar_hist(:), pstar_hist_extra(:)
 
     type (eos_t) :: eos_state
 
-    real(rt)        , pointer :: us1d(:)
+    real(rt), pointer :: us1d(:)
 
-#ifdef ROTATION
-    real(rt)         :: vel(3)
-#endif
+    real(rt) :: u_adv
 
-    real(rt)         :: u_adv
-
-    integer :: iu, iv1, iv2, im1, im2, im3
+    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    real(rt)         :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+    real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
+
 
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
@@ -153,6 +154,9 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
+       sx = 1
+       sy = 0
+       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -160,6 +164,9 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
+       sx = 0
+       sy = 1
+       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -167,6 +174,9 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
+       sx = 0
+       sy = 0
+       sz = 1
     end if
 
     ! do we want to force the flux to zero at the boundary?
@@ -222,7 +232,7 @@ contains
 
           pl  = ql(i,j,kc,QPRES)
           rel = ql(i,j,kc,QREINT)
-          gcl = gamcl(i,j)
+          gcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
 
           ! sometime we come in here with negative energy or pressure
           ! note: reset both in either case, to remain thermo
@@ -252,7 +262,7 @@ contains
 
           pr  = qr(i,j,kc,QPRES)
           rer = qr(i,j,kc,QREINT)
-          gcr = gamcr(i,j)
+          gcr = qaux(i,j,k3d,QGAMC)
 
           if (rer <= ZERO .or. pr < small_pres) then
              print *, "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: ", rer, pr, small_pres
@@ -278,6 +288,8 @@ contains
           clsql = gcl*pl*rl
           clsqr = gcr*pr*rr
 
+          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML))
+          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
 
           ! Note: in the original Colella & Glaz paper, they predicted
           ! gamma_e to the interfaces using a special (non-hyperbolic)
@@ -297,7 +309,6 @@ contains
 
           gdot = TWO*(ONE - game_bar/gamc_bar)*(game_bar - ONE)
 
-          csmall = smallc(i,j)
           wsmall = small_dens*csmall
           wl = max(wsmall,sqrt(abs(clsql)))
           wr = max(wsmall,sqrt(abs(clsqr)))
@@ -360,17 +371,17 @@ contains
              ! actually the Z_p = |dp*/du*_p| defined in CG, by rather
              ! simply |du*_p| (or something that looks like dp/Z!).
              zp = abs(ustar_l - ustar_l_old)
-             if (zp-weakwv*cav(i,j) <= ZERO) then
+             if (zp - weakwv*cavg <= ZERO) then
                 zp = dpditer*wl
              endif
 
              zm = abs(ustar_r - ustar_r_old)
-             if (zm-weakwv*cav(i,j) <= ZERO) then
+             if (zm - weakwv*cavg <= ZERO) then
                 zm = dpditer*wr
              endif
 
              ! the new pstar is found via CG Eq. 18
-             denom = dpditer/max(zp+zm, small*(cav(i,j)))
+             denom = dpditer/max(zp+zm, small*cavg)
              pstar_old = pstar
              pstar = pstar - denom*(ustar_r - ustar_l)
              pstar = max(pstar, small_pres)
@@ -401,7 +412,7 @@ contains
                 print *, ' '
                 print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                 print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-                print *, 'cav, smallc:', cav(i,j), csmall
+                print *, 'cavg, smallc:', cavg, csmall
                 call bl_error("ERROR: non-convergence in the Riemann solver")
 
              else if (cg_blend == 1) then
@@ -433,7 +444,7 @@ contains
                    print *, ' '
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
-                   print *, 'cav, smallc:', cav(i,j), csmall
+                   print *, 'cavg, smallc:', cavg, csmall
                    call bl_error("ERROR: non-convergence in the Riemann solver")
 
                 endif
@@ -527,14 +538,14 @@ contains
           endif
 
           !if (spout-spin == ZERO) then
-          !   scr = small*cav(i,j)
+          !   scr = small*cavg
           !else
           !   scr = spout-spin
           !endif
           !frac = (ONE + (spout + spin)/scr)*HALF
           !frac = max(ZERO,min(ONE,frac))
 
-          frac = HALF*(ONE + (spin + spout)/max(spout-spin, spin+spout, small*cav(i,j)))
+          frac = HALF*(ONE + (spin + spout)/max(spout-spin, spin+spout, small*cavg))
 
           ! the transverse velocity states only depend on the
           ! direction that the contact moves
@@ -644,14 +655,13 @@ contains
   ! star state, and carries an auxillary jump condition for (rho e) to 
   ! deal with a real gas
   !===========================================================================
-
+  !gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+  !gamcgl, gamcgr, &
   subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
-                       gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                       qaux, qa_lo, qa_hi, &
                        uflx, uflx_lo, uflx_hi, &
                        qint, q_lo, q_hi, &
 #ifdef RADIATION
-                       lam, lam_lo, lam_hi, &
-                       gamcgl, gamcgr, &
                        rflx, rflx_lo, rflx_hi, &
 #endif
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
@@ -672,31 +682,26 @@ contains
     implicit none
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-    integer, intent(in) :: gd_lo(2), gd_hi(2)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir,ilo,ihi,jlo,jhi
     integer, intent(in) :: domlo(3),domhi(3)
 
 #ifdef RADIATION
-    integer, intent(in) :: lam_lo(3), lam_hi(3)
     integer, intent(in) :: rflx_lo(3),rflx_hi(3)
 #endif
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
 
-    real(rt), intent(in) :: gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+    ! note: qaux comes in dimensioned as the fully box, so use k3d to 
+    ! index in z
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
 
 #ifdef RADIATION
-    real(rt), intent(in) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: gamcgl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: gamcgr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),rflx_lo(3):rflx_hi(3),0:ngroups-1)
 #endif
 
@@ -726,7 +731,8 @@ contains
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall,qavg
+    real(rt) :: wsmall, csmall, qavg
+    real(rt) :: cavg, gamcl, gamcr
 
 #ifdef RADIATION
     real(rt), dimension(0:ngroups-1) :: erl, err
@@ -741,13 +747,9 @@ contains
 
     real(rt), pointer :: us1d(:)
 
-#ifdef ROTATION
-    real(rt) :: vel(3)
-#endif
-
     real(rt) :: u_adv
 
-    integer :: iu, iv1, iv2, im1, im2, im3
+    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
     real(rt) :: wwinv, roinv, co2inv
@@ -767,7 +769,9 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-
+       sx = 1
+       sy = 0
+       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -775,7 +779,9 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
-
+       sx = 0
+       sy = 1
+       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -783,6 +789,9 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
+       sx = 0
+       sy = 0
+       sz = 1
     end if
 
     special_bnd_lo = (physbc_lo(idir) == Symmetry &
@@ -826,14 +835,8 @@ contains
           ! ------------------------------------------------------------------
 
 #ifdef RADIATION
-          if (idir == 1) then
-             laml = lam(i-1,j,k3d,:)
-          elseif (idir == 2) then
-             laml = lam(i,j-1,k3d,:)
-          else
-             laml = lam(i,j,k3d-1,:)
-          end if
-          lamr = lam(i,j,k3d,:)
+          laml(:) = qaux(i-sx,j-sy,k3d-sz,QLAMS:QLAMS+ngroups-1)
+          lamr(:) = qaux(i,j,k3d,QLAMS:QLAMS+ngroups-1)
 #endif
 
           rl = max(ql(i,j,kc,QRHO), small_dens)
@@ -876,12 +879,20 @@ contains
           ! estimate the star state: pstar, ustar
           ! ------------------------------------------------------------------
 
-          csmall = smallc(i,j)
+          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML))
+          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
+          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+          gamcr = qaux(i,j,k3d,QGAMC)
+#ifdef RADIATION
+          gamcgl = qaux(i-sx,j-sy,k3d-sz,QGAMCG)
+          gamcgr = qaux(i,j,k3d,QGAMCG)
+#endif
+
           wsmall = small_dens*csmall
 
           ! this is Castro I: Eq. 33
-          wl = max(wsmall, sqrt(abs(gamcl(i,j)*pl*rl)))
-          wr = max(wsmall, sqrt(abs(gamcr(i,j)*pr*rr)))
+          wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
+          wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
 
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
@@ -908,14 +919,14 @@ contains
              uo = ul
              po = pl
              reo = rel
-             gamco = gamcl(i,j)
+             gamco = gamcl
 #ifdef RADIATION
              lambda = laml
              po_g = pl_g
              po_r(:) = erl(:) * lambda(:)
              reo_r(:) = erl(:)
              reo_g = rel_g
-             gamco_g = gamcgl(i,j)
+             gamco_g = gamcgl
 #endif
 
           else if (ustar < ZERO) then
@@ -923,22 +934,22 @@ contains
              uo = ur
              po = pr
              reo = rer
-             gamco = gamcr(i,j)
+             gamco = gamcr
 #ifdef RADIATION
              lambda = lamr
              po_g = pr_g
              po_r(:) = err(:) * lambda(:)
              reo_r(:) = err(:)
              reo_g = rer_g
-             gamco_g = gamcgr(i,j)
+             gamco_g = gamcgr
 #endif
 
           else
-             ro = HALF*(rl+rr)
-             uo = HALF*(ul+ur)
-             po = HALF*(pl+pr)
-             reo = HALF*(rel+rer)
-             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
+             ro = HALF*(rl + rr)
+             uo = HALF*(ul + ur)
+             po = HALF*(pl + pr)
+             reo = HALF*(rel + rer)
+             gamco = HALF*(gamcl + gamcr)
 #ifdef RADIATION
              do g=0, ngroups-1
                 lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
@@ -1022,7 +1033,7 @@ contains
           endif
 
           if (spout-spin == ZERO) then
-             scr = small*cav(i,j)
+             scr = small*cavg
           else
              scr = spout-spin
           endif
@@ -1219,7 +1230,7 @@ contains
 
 
   subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
-                  gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
+                  qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
                   qint, q_lo, q_hi, &
                   idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
@@ -1240,7 +1251,7 @@ contains
     implicit none
 
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-    integer, intent(in) :: gd_lo(2), gd_hi(2)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: idir, ilo, ihi, jlo, jhi
@@ -1248,10 +1259,11 @@ contains
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: qr(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) ::  gamcl(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) ::  gamcr(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) ::    cav(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
-    real(rt), intent(in) :: smallc(gd_lo(1):gd_hi(1),gd_lo(2):gd_hi(2))
+
+    ! note: qaux comes in dimensioned as the fully box, so use k3d to 
+    ! index in z
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
     integer, intent(in) :: kc, kflux, k3d
@@ -1280,8 +1292,9 @@ contains
     real(rt) :: ro, uo, po, reo, co, gamco, entho
     real(rt) :: sgnm, spin, spout, ushock, frac
     real(rt) :: wsmall, csmall
+    real(rt) :: cavg, gamcl, gamcr
 
-    integer :: iu, iv1, iv2
+    integer :: iu, iv1, iv2, sx, sy, sz
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
     real(rt) :: wwinv, roinv, co2inv
@@ -1293,14 +1306,23 @@ contains
        iu = QU
        iv1 = QV
        iv2 = QW
+       sx = 1
+       sy = 0
+       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
        iv2 = QW
+       sx = 0
+       sy = 1
+       sz = 0
     else
        iu = QW
        iv1 = QU
        iv2 = QV
+       sx = 0
+       sy = 0
+       sz = 1
     end if
 
     special_bnd_lo = (physbc_lo(idir) == Symmetry &
@@ -1361,10 +1383,14 @@ contains
 
           ! now we essentially do the CGF solver to get p and u on the
           ! interface, but we won't use these in any flux construction.
-          csmall = smallc(i,j)
+          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML) )
+          cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
+          gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
+          gamcr = qaux(i,j,k3d,QGAMC)
+
           wsmall = small_dens*csmall
-          wl = max(wsmall, sqrt(abs(gamcl(i,j)*pl*rl)))
-          wr = max(wsmall, sqrt(abs(gamcr(i,j)*pr*rr)))
+          wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
+          wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
 
           wwinv = ONE/(wl + wr)
           pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
@@ -1382,20 +1408,20 @@ contains
              uo = ul
              po = pl
              reo = rel
-             gamco = gamcl(i,j)
+             gamco = gamcl
 
           else if (ustar < ZERO) then
              ro = rr
              uo = ur
              po = pr
              reo = rer
-             gamco = gamcr(i,j)
+             gamco = gamcr
           else
-             ro = HALF*(rl+rr)
-             uo = HALF*(ul+ur)
-             po = HALF*(pl+pr)
-             reo = HALF*(rel+rer)
-             gamco = HALF*(gamcl(i,j)+gamcr(i,j))
+             ro = HALF*(rl + rr)
+             uo = HALF*(ul + ur)
+             po = HALF*(pl + pr)
+             reo = HALF*(rel + rer)
+             gamco = HALF*(gamcl + gamcr)
           endif
           ro = max(small_dens, ro)
 
@@ -1423,7 +1449,7 @@ contains
              spout = ushock
           endif
           if (spout-spin == ZERO) then
-             scr = small*cav(i,j)
+             scr = small*cavg
           else
              scr = spout-spin
           endif
@@ -1452,8 +1478,8 @@ contains
           bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! use the simplest estimates of the wave speeds
-          S_l = min(ul - sqrt(gamcl(i,j)*pl/rl), ur - sqrt(gamcr(i,j)*pr/rr))
-          S_r = max(ul + sqrt(gamcl(i,j)*pl/rl), ur + sqrt(gamcr(i,j)*pr/rr))
+          S_l = min(ul - sqrt(gamcl*pl/rl), ur - sqrt(gamcr*pr/rr))
+          S_r = max(ul + sqrt(gamcl*pl/rl), ur + sqrt(gamcr*pr/rr))
 
           ! estimate of the contact speed -- this is Toro Eq. 10.8
           S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &

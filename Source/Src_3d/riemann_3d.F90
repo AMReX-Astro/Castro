@@ -98,78 +98,10 @@ contains
     ! local variables
 
     integer i, j
-    integer :: gd_lo(2), gd_hi(2)
-    real(rt)        , pointer :: smallc(:,:), cavg(:,:)
-    real(rt)        , pointer :: gamcm(:,:), gamcp(:,:)
-#ifdef RADIATION
-    real(rt)        , pointer :: gamcgm(:,:), gamcgp(:,:)
-    real(rt)        , pointer :: lam(:,:,:,:)
-#endif
 
     integer :: is_shock
     real(rt)         :: cl, cr
     type (eos_t) :: eos_state
-
-    gd_lo = [ ilo, jlo ]
-    gd_hi = [ ihi, jhi ]
-
-    call bl_allocate ( smallc, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-    call bl_allocate (   cavg, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-    call bl_allocate (  gamcm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-    call bl_allocate (  gamcp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-#ifdef RADIATION
-    call bl_allocate ( gamcgm, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-    call bl_allocate ( gamcgp, gd_lo(1),gd_hi(1),gd_lo(2),gd_hi(2))
-    call bl_allocate ( lam, qa_lo(1), qa_hi(1), qa_lo(2), qa_hi(2), qa_lo(3), qa_hi(3), 0, ngroups-1)
-#endif
-
-    if (idir == 1) then
-       do j = jlo, jhi
-          !dir$ ivdep
-          do i = ilo, ihi
-             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i-1,j,k3d,QCSML) )
-             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i-1,j,k3d,QC) )
-             gamcm(i,j) = qaux(i-1,j,k3d,QGAMC)
-             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
-#ifdef RADIATION
-             gamcgm(i,j) = qaux(i-1,j,k3d,QGAMCG)
-             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
-#endif
-          enddo
-       enddo
-    elseif (idir == 2) then
-       do j = jlo, jhi
-          !dir$ ivdep
-          do i = ilo, ihi
-             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i,j-1,k3d,QCSML) )
-             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i,j-1,k3d,QC) )
-             gamcm(i,j) = qaux(i,j-1,k3d,QGAMC)
-             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
-#ifdef RADIATION
-             gamcgm(i,j) = qaux(i,j-1,k3d,QGAMCG)
-             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
-#endif
-          enddo
-       enddo
-    else
-       do j = jlo, jhi
-          !dir$ ivdep
-          do i = ilo, ihi
-             smallc(i,j) = max( qaux(i,j,k3d,QCSML), qaux(i,j,k3d-1,QCSML) )
-             cavg(i,j) = HALF*( qaux(i,j,k3d,QC) + qaux(i,j,k3d-1,QC) )
-             gamcm(i,j) = qaux(i,j,k3d-1,QGAMC)
-             gamcp(i,j) = qaux(i,j,k3d,QGAMC)
-#ifdef RADIATION
-             gamcgm(i,j) = qaux(i,j,k3d-1,QGAMCG)
-             gamcgp(i,j) = qaux(i,j,k3d,QGAMCG)
-#endif
-          enddo
-       enddo
-    endif
-
-#ifdef RADIATION
-    lam(:,:,:,0:ngroups-1) = qaux(:,:,:,QLAMS:QLAMS+ngroups-1)
-#endif
 
     if (ppm_temp_fix == 2) then
        ! recompute the thermodynamics on the interface to make it
@@ -197,7 +129,7 @@ contains
 
              qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qm(i,j,kc,QPRES)  = eos_state % p
-             gamcm(i,j)        = eos_state % gam1
+             !gamcm(i,j)        = eos_state % gam1
 
           enddo
        enddo
@@ -216,7 +148,7 @@ contains
 
              qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
              qp(i,j,kc,QPRES)  = eos_state % p
-             gamcp(i,j)        = eos_state % gam1
+             !gamcp(i,j)        = eos_state % gam1
 
           enddo
        enddo
@@ -227,12 +159,10 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson solver
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                      qaux, qa_lo, qa_hi, &
                       flx, flx_lo, flx_hi, &
                       qint, q_lo, q_hi, &
 #ifdef RADIATION
-                      lam, qa_lo, qa_hi, &
-                      gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
@@ -240,7 +170,7 @@ contains
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                      qaux, qa_lo, qa_hi, &
                       flx, flx_lo, flx_hi, &
                       qint, q_lo, q_hi, &
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
@@ -248,7 +178,7 @@ contains
     elseif (riemann_solver == 2) then
        ! HLLC
        call HLLC(qm, qp, qpd_lo, qpd_hi, &
-                 gamcm, gamcp, cavg, smallc, gd_lo, gd_hi, &
+                 qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
                  qint, q_lo, q_hi, &
                  idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
@@ -295,16 +225,6 @@ contains
        enddo
 
     endif
-
-    call bl_deallocate(smallc)
-    call bl_deallocate(  cavg)
-    call bl_deallocate( gamcm)
-    call bl_deallocate( gamcp)
-#ifdef RADIATION
-    call bl_deallocate(gamcgm)
-    call bl_deallocate(gamcgp)
-    call bl_deallocate(lam)
-#endif
 
   end subroutine cmpflx
 
