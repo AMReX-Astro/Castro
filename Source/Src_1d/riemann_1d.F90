@@ -77,39 +77,8 @@ contains
 
     ! Local variables
     integer i
-    real(rt)        , allocatable :: smallc(:), cavg(:), gamcp(:), gamcm(:)
-#ifdef RADIATION
-    real(rt)        , allocatable :: gamcgp(:), gamcgm(:), lam(:,:)
-#endif
 
     type (eos_t) :: eos_state
-
-    allocate ( smallc(ilo:ihi+1) )
-    allocate ( cavg(ilo:ihi+1) )
-    allocate ( gamcp(ilo:ihi+1) )
-    allocate ( gamcm(ilo:ihi+1) )
-#ifdef RADIATION
-    allocate (gamcgp(ilo:ihi+1) )
-    allocate (gamcgm(ilo:ihi+1) )
-    allocate (lam(ilo-1:ihi+1,0:ngroups-1) )
-#endif
-
-    do i = ilo, ihi+1
-       smallc(i) = max( qaux(i,QCSML), qaux(i-1,QCSML) )
-       cavg(i) = HALF*( qaux(i,QC) + qaux(i-1,QC) )
-       gamcm(i) = qaux(i-1,QGAMC)
-       gamcp(i) = qaux(i,QGAMC)
-#ifdef RADIATION
-       gamcgm (i) = qaux(i-1,QGAMCG)
-       gamcgp (i) = qaux(i,QGAMCG)
-#endif
-    enddo
-
-#ifdef RADIATION
-    do i = ilo-1, ihi+1
-       lam(i,:) = qaux(i,QLAMS:QLAMS+ngroups-1)
-    enddo
-#endif
 
 
     if (ppm_temp_fix == 2) then
@@ -144,7 +113,7 @@ contains
 
           qm(i,QREINT) = qm(i,QRHO)*eos_state%e
           qm(i,QPRES) = eos_state%p
-          gamcm(i) = eos_state%gam1
+          !gamcm(i) = eos_state%gam1
 
 
           ! plus state
@@ -165,7 +134,7 @@ contains
           
           qp(i,QREINT) = qp(i,QRHO)*eos_state%e
           qp(i,QPRES) = eos_state%p
-          gamcp(i) = eos_state%gam1
+          !gamcp(i) = eos_state%gam1
           
        enddo
 
@@ -176,12 +145,10 @@ contains
     if (riemann_solver == 0) then
        ! Colella, Glaz, & Ferguson
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, [ilo, 0, 0], [ihi+1, 0, 0], &
+                      qaux, qa_lo, qa_hi, &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
 #ifdef RADIATION
-                      lam, [ilo-1, 0, 0], [ihi+1, 0, 0], &
-                      gamcgm, gamcgp, &
                       rflx, rflx_lo, rflx_hi, &
 #endif
                       1, ilo, ihi+1, 0, 0, 0, 0, 0, &
@@ -190,7 +157,7 @@ contains
     elseif (riemann_solver == 1) then
        ! Colella & Glaz
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
-                      gamcm, gamcp, cavg, smallc, [ilo, 0, 0], [ihi+1, 0, 0], &
+                      qaux, qa_lo, qa_hi, &
                       flx, flx_lo, flx_hi, &
                       qint, qg_lo, qg_hi, &
                       1, ilo, ihi+1, 0, 0, 0, 0, 0, &
@@ -198,11 +165,6 @@ contains
     else
        call bl_error("ERROR: HLLC not support in 1-d yet")
     endif
-
-    deallocate (smallc,cavg,gamcm,gamcp)
-#ifdef RADIATION
-    deallocate(gamcgm,gamcgp,lam)
-#endif
 
   end subroutine cmpflx
 
