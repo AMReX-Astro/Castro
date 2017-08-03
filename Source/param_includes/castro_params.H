@@ -98,6 +98,9 @@ static int diffuse_vel;
 #ifdef DIFFUSION
 static amrex::Real diffuse_cutoff_density;
 #endif
+#ifdef DIFFUSION
+static amrex::Real diffuse_cond_scale_fac;
+#endif
 static int do_grav;
 static int moving_center;
 static int grav_source_type;

@@ -1,7 +1,7 @@
 &fortin
 
   rho_fuel = 2.d6
-  T_fuel = 3.81e8
+  T_fuel = 5.e7
 
   T_ash = 2.e9
   
@@ -33,6 +33,7 @@
 /
 
 &extern
-
+  rtol_spec = 1.d-10
+  atol_spec = 1.d-10
   
 /

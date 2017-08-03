@@ -98,6 +98,9 @@ pp.query("diffuse_vel", diffuse_vel);
 #ifdef DIFFUSION
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 #endif
+#ifdef DIFFUSION
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
+#endif
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
 pp.query("grav_source_type", grav_source_type);

@@ -294,7 +294,8 @@ contains
 
     use bl_constants_module
     use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, diffuse_cutoff_density, small_temp
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
+         diffuse_cutoff_density, diffuse_cond_scale_fac, small_temp
     use prob_params_module, only : dg
     use conductivity_module
     use eos_type_module
@@ -342,7 +343,7 @@ contains
              else
                 cond = ZERO
              endif
-             coef_cc(i,j,k) = cond
+             coef_cc(i,j,k) = diffuse_cond_scale_fac * cond
           enddo
        enddo
     enddo
