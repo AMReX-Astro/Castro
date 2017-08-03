@@ -743,6 +743,7 @@ contains
     real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
     real(rt) :: eddf, f1
     integer :: g
+    real(rt) :: gamcgl, gamcgr
 #endif
 
     real(rt), pointer :: us1d(:)
@@ -955,11 +956,11 @@ contains
                 lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
              end do
 
-             reo_r(:) = 0.5e0_rt*(erl(:)+err(:))
-             reo_g = 0.5e0_rt*(rel_g+rer_g)
+             reo_r(:) = 0.5e0_rt*(erl(:) + err(:))
+             reo_g = 0.5e0_rt*(rel_g + rer_g)
              po_r(:) = lambda(:) * reo_r(:)
-             gamco_g = 0.5e0_rt*(gamcgl(i,j)+gamcgr(i,j))
-             po_g = 0.5*(pr_g+pl_g)
+             gamco_g = 0.5e0_rt*(gamcgl + gamcgr)
+             po_g = 0.5*(pr_g + pl_g)
 #endif
 
           endif
