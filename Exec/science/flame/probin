@@ -34,5 +34,7 @@
 
 &extern
 
+ rtol_spec = 1.d-10
+ atol_spec = 1.d-10
   
 /
