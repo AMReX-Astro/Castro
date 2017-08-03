@@ -43,12 +43,37 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
     BL_PROFILE("Castro::flame_speed_properties()");
 
     const Real* dx = geom.CellSize();
+  std::vector<std::string> spec_names;
+  for (int i = 0; i < NumSpec; i++) {
+    int len = 20;
+    Array<int> int_spec_names(len);
+    // This call return the actual length of each string in "len"
+    ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
+    char char_spec_names[len+1];
+    for (int j = 0; j < len; j++)
+      char_spec_names[j] = int_spec_names[j];
+    char_spec_names[len] = '\0';
+    spec_names.push_back(std::string(char_spec_names));
+  }
 
-    auto mf = derive("omegadot_He4",time,0);
+  std::string name;
 
-    BL_ASSERT(mf != nullptr);
+  for (auto nm : spec_names) {
+    if (nm == "He4") {
+      name = "omegado5Bt_He4";
+      break;
+    }
 
-    Real rho_fuel_dot_temp = 0.0;
+    if (nm == "he4") {
+      name = "omegadot_he4";
+      break;
+    }
+    
+  }
+
+  auto mf = derive(name, time, 0);
+  BL_ASSERT(mf != nullptr);
+  Real rho_fuel_dot_temp = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:rho_fuel_dot_temp)
