@@ -155,6 +155,7 @@ module meth_params_module
   real(rt), save :: react_rho_max
   integer         , save :: disable_shock_burning
   real(rt), save :: diffuse_cutoff_density
+  real(rt), save :: diffuse_cond_scale_fac
   integer         , save :: do_grav
   integer         , save :: grav_source_type
   integer         , save :: do_rotation
@@ -193,13 +194,13 @@ module meth_params_module
   !$acc create(dtnuc_mode, dxnuc, do_react) &
   !$acc create(react_T_min, react_T_max, react_rho_min) &
   !$acc create(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+  !$acc create(do_rotation, rot_period, rot_period_dot) &
+  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, grown_factor, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -289,6 +290,7 @@ contains
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
     diffuse_cutoff_density = -1.d200;
+    diffuse_cond_scale_fac = 1.0d0;
     do_grav = -1;
     grav_source_type = 4;
     do_rotation = -1;
@@ -367,6 +369,9 @@ contains
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
 #endif
+#ifdef DIFFUSION
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
@@ -428,13 +433,13 @@ contains
     !$acc device(dtnuc_mode, dxnuc, do_react) &
     !$acc device(react_T_min, react_T_max, react_rho_min) &
     !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags

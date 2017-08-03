@@ -97,6 +97,9 @@ int         Castro::diffuse_vel = 0;
 #ifdef DIFFUSION
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 #endif
+#ifdef DIFFUSION
+amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
+#endif
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;
