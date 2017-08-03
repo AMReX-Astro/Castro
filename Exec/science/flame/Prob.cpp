@@ -60,7 +60,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
   for (auto nm : spec_names) {
     if (nm == "He4") {
-      name = "omegado5Bt_He4";
+      name = "omegadot_He4";
       break;
     }
 
