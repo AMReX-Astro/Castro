@@ -111,6 +111,7 @@ contains
     ! temporary interface values of the parabola
     real(rt), allocatable :: sxm(:), sxp(:)
 
+    integer :: I_lo(3), I_hi(3)
 
     fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
          .and. (ilo == domlo(1))
@@ -133,14 +134,17 @@ contains
     hdt = HALF * dt
     dtdx = dt/dx
 
-    allocate(Ip(ilo-1:ihi+1,3, NQ))
-    allocate(Im(ilo-1:ihi+1,3, NQ))
+    I_lo = [ilo-1, 0, 0]
+    I_hi = [ihi+1, 0, 0]
+
+    allocate(Ip(I_lo(1):I_hi(1),3,NQ))
+    allocate(Im(I_lo(1):I_hi(1),3,NQ))
 
     if (ppm_trace_sources == 1) then
-       allocate(Ip_src(ilo-1:ihi+1,3,QVAR))
-       allocate(Im_src(ilo-1:ihi+1,3,QVAR))
+       allocate(Ip_src(I_lo(1):I_hi(1),3,QVAR))
+       allocate(Im_src(I_lo(1):I_hi(1),3,QVAR))
     endif
-
+   
     allocate(sxm(q_lo(1):q_hi(1)))
     allocate(sxp(q_lo(1):q_hi(1)))
 
@@ -178,30 +182,30 @@ contains
     do n = 1, NQ
        call ppm_reconstruct(q(:,n), q_lo, q_hi, &
                             flatn, q_lo, q_hi, &
-                            sxm, sxp, &
-                            ilo, ihi, dx)
+                            sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                            ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
        call ppm_int_profile(q(:,n), q_lo, q_hi, &
                             q(:,QU), q_lo, q_hi, &
                             qaux(:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, &
-                            Ip(:,:,n), Im(:,:,n), &
-                            ilo, ihi, dx, dt)
+                            sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                            Ip(:,:,n), Im(:,:,n), I_lo, I_hi, &
+                            ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
     end do
 
     if (ppm_trace_sources == 1) then
        do n = 1, QVAR
           call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, &
-                               ilo, ihi, dx)
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
           call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, &
-                               Ip_src(:,:,n), Im_src(:,:,n), &
-                               ilo, ihi, dx, dt)
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        enddo
     endif
 

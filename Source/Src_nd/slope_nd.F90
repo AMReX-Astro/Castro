@@ -48,10 +48,10 @@ contains
     ilo = min(ilo1, ilo2)
     ihi = max(ihi1, ihi2)
 
-    call bl_allocate(dsgn, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(dlim, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(  df, ilo-2,ihi+2,ilo-2,ihi+2)
-    call bl_allocate(dcen, ilo-2,ihi+2,ilo-2,ihi+2)
+    call bl_allocate(dsgn, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(dlim, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(  df, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
+    call bl_allocate(dcen, ilo-2, ihi+2, ilo-2*dg(2), ihi+2*dg(2))
 
     if (plm_iorder == 1) then
 

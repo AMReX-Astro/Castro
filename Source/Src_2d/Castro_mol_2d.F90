@@ -199,8 +199,8 @@ subroutine ca_mol_single_stage(time, &
   do n = 1, QVAR
      call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
                           flatn, q_lo, q_hi, &
-                          sxm, sxp, sym, syp, &
-                          lo(1), lo(2), hi(1), hi(2), dx, dy)
+                          sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
+                          lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
 
      ! Construct the interface states -- this is essentially just a
      ! reshuffling of interface states from zone-center indexing to

@@ -384,7 +384,8 @@ contains
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
              call ppm_int_profile(q(:,:,:,n  ), qd_lo, qd_hi, &
-                                  q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  qaux(:,:,:,QC), qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   Ip(:,:,:,:,:,n), Im(:,:,:,:,:,n), It_lo, It_hi, &
                                   lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
@@ -398,7 +399,8 @@ contains
                                      lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
                 call ppm_int_profile(srcQ(:,:,:,n), src_lo, src_hi, &
-                                     q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+                                     q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                     qaux(:,:,:,QC), qa_lo, qa_hi, &
                                      sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                      Ip_src(:,:,:,:,:,n), Im_src(:,:,:,:,:,n), It_lo, It_hi, &
                                      lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
@@ -407,13 +409,14 @@ contains
 
           ! this probably doesn't support radiation
           if (ppm_temp_fix /= 1) then
-             call ppm_reconstruct(qaux(:,:,:,QGAMC), qd_lo, qd_hi, &
+             call ppm_reconstruct(qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
                                   flatn, qd_lo, qd_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-             call ppm_int_profile(qaux(:,:,:,QGAMC), qd_lo, qd_hi, &
-                                  q(:,:,:,QU:QW), qaux(:,:,:,QC), qd_lo, qd_hi, &
+             call ppm_int_profile(qaux(:,:,:,QGAMC), qa_lo, qa_hi, &
+                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  qaux(:,:,:,QC), qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   Ip_gc(:,:,:,:,:,1), Im_gc(:,:,:,:,:,1), It_lo, It_hi, &
                                   lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
