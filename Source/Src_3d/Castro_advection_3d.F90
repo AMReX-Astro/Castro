@@ -481,17 +481,15 @@ contains
 #endif
 
           ! Compute all slopes at kc (k3d)
-          call uslope(q,flatn,qd_lo,qd_hi, &
-                      dqx,dqy,dqz,qt_lo,qt_hi, &
-                      lo(1),lo(2),hi(1),hi(2),kc,k3d)
+          call uslope(q, flatn, qd_lo, qd_hi, &
+                      dqx, dqy, dqz, qt_lo, qt_hi, &
+                      lo(1), lo(2), hi(1), hi(2), kc, k3d)
 
           if (use_pslope .eq. 1) &
-               call pslope(q(:,:,:,QPRES),q(:,:,:,QRHO), &
-                           flatn,qd_lo,qd_hi, &
-                           dqx(:,:,:,QPRES),dqy(:,:,:,QPRES),dqz(:,:,:,QPRES), &
-                           qt_lo,qt_hi, &
-                           srcQ,src_lo,src_hi, &
-                           lo(1),lo(2),hi(1),hi(2),kc,k3d,dx)
+               call pslope(q, flatn, qd_lo, qd_hi, &
+                           dqx, dqy, dqz, qt_lo, qt_hi, &
+                           srcQ, src_lo, src_hi, &
+                           lo(1), lo(2), hi(1), hi(2), kc, k3d, dx)
 
           ! Compute U_x and U_y at kc (k3d)
           call tracexy(q,qaux(:,:,:,QC),qd_lo,qd_hi, &

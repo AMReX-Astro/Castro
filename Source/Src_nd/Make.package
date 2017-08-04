@@ -16,6 +16,7 @@ ca_F90EXE_sources += Derive_nd.F90
 ca_f90EXE_sources += problem_derive_nd.f90
 ca_F90EXE_sources += sponge_nd.F90
 ca_f90EXE_sources += riemann_util.f90
+ca_F90EXE_sources += slope_nd.F90
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
 ca_F90EXE_sources += hybrid_advection_nd.F90

@@ -84,14 +84,14 @@ contains
     else
 
        call uslope(q, flatn, q_lo, q_hi, &
-                   dq, qpd_lo, qpd_hi, &
-                   ilo, ihi)
+                   dq, dq, dq, qpd_lo, qpd_hi, &
+                   ilo, 0, ihi, 0, 0, 0)
 
        if (use_pslope .eq. 1) &
             call pslope(q, flatn, q_lo, q_hi, &
-                        dq, qpd_lo, qpd_hi, &
+                        dq, dq, dq, qpd_lo, qpd_hi, &
                         srcQ, src_lo, src_hi, &
-                        ilo,ihi,dx)
+                        ilo, 0, ihi, 0, 0, 0, [dx, ZERO, ZERO])
 
     endif
 

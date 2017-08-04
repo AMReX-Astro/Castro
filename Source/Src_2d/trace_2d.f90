@@ -19,7 +19,8 @@ contains
     use meth_params_module, only : plm_iorder, QVAR, QRHO, QU, QV, &
                                    QREINT, QPRES, QC, NQ, NQAUX, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type, use_pslope
-    use slope_module, only : uslope, pslope, multid_slope
+    use slope_module, only : uslope, pslope
+    use multid_slope_module, only : multid_slope
     use bl_constants_module
 
     use amrex_fort_module, only : rt => amrex_real
@@ -86,23 +87,15 @@ contains
        ! these are piecewise linear slopes.  The limiter is a 4th order
        ! limiter, but the overall method will be second order.
        call uslope(q, flatn, q_lo, q_hi, &
-                   dqx, qpd_lo, qpd_hi, &
-                   ilo1,ilo2,ihi1,ihi2,1)
+                   dqx, dqy, dqx, qpd_lo, qpd_hi, &  ! second dqx is dummy
+                   ilo1, ilo2, ihi1, ihi2, 0, 0)
 
-       call uslope(q, flatn, q_lo, q_hi, &
-                   dqy, qpd_lo, qpd_hi, &
-                   ilo1,ilo2,ihi1,ihi2,2)
-
-       if (use_pslope .eq. 1) then
+       if (use_pslope == 1) then
           call pslope(q, flatn, q_lo, q_hi, &
-                      dqx(:,:,QPRES), qpd_lo, qpd_hi, &
+                      dqx, dqy, dqx, qpd_lo, qpd_hi, &  ! second dqx is dummy
                       src, src_lo, src_hi, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,1)
+                      ilo1, ilo2, ihi1, ihi2, 0, 0, [dx, dy, ZERO])
 
-          call pslope(q, flatn, q_lo, q_hi, &
-                      dqy(:,:,QPRES), qpd_lo, qpd_hi, &
-                      src, src_lo, src_hi, &
-                      ilo1,ilo2,ihi1,ihi2,dx,dy,2)
        endif
 
     elseif (plm_iorder == -2) then
