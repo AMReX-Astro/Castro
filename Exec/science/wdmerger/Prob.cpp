@@ -826,13 +826,11 @@ void Castro::check_to_stop(Real time) {
 
       if (amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
-	dump_file.open("dump_and_continue", std::ofstream::out);
+	dump_file.open("dump_and_stop", std::ofstream::out);
 	dump_file.close();
-	dump_file.open("plot_and_continue", std::ofstream::out);
+	dump_file.open("plot_and_stop", std::ofstream::out);
 	dump_file.close();
       }
-
-      stopJob();
 
     }
 
