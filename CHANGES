@@ -5,6 +5,9 @@
      issue with how the Godunov state for the CG solver was stored on
      interfaces, which would affect the internal enery evolution.
 
+  -- the PLM and PPM reconstruction routines were merged into
+     a single dimensional-agnostic version in Src_nd.
+
 # 17.08
 
   -- the option castro.limit_fluxes_on_small_dens now only limits
