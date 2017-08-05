@@ -29,7 +29,7 @@ contains
     integer  :: domlo(3), domhi(3)
     integer  :: dir
 
-    idx = (/ i, j, k /)
+    idx = [ i, j, k ]
 
     dx(:) = dx_level(:,amr_level)
     domlo = domlo_level(:,amr_level)

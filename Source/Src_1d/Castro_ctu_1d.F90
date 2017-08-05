@@ -101,6 +101,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   integer i,ngf
 
   integer :: lo_3D(3), hi_3D(3)
+  integer :: q1_lo(3), q1_hi(3)
   real(rt)         :: dx_3D(3)
 
   ngf = 1
@@ -109,11 +110,14 @@ subroutine ca_ctu_update(is_finest_level, time, &
   hi_3D   = [hi(1), 0, 0]
   dx_3D   = [delta(1), ZERO, ZERO]
 
+  q1_lo   = [flux_lo(1)-1, 0, 0]
+  q1_hi   = [flux_hi(1)+1, 0, 0]
+
   allocate( flatn(q_lo(1):q_hi(1)))
 
   allocate(   div(lo(1):hi(1)+1))
   allocate( pdivu(lo(1):hi(1)  ))
-  allocate(    q1(flux_lo(1)-1:flux_hi(1)+1,NGDNV))
+  allocate(    q1(q1_lo(1):q1_hi(1), NGDNV))
 
   dx = delta(1)
 
@@ -149,7 +153,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #ifdef RADIATION
                radflux,radflux_lo, radflux_hi, &
 #endif
-               q1, flux_lo-1, flux_hi+1, &
+               q1, q1_lo, q1_hi, &
                dloga, dloga_lo, dloga_hi)
 
 
@@ -172,7 +176,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
               update, updt_lo, updt_hi, &
               q, q_lo, q_hi, &
               flux, flux_lo, flux_hi, &
-              q1, flux_lo-1, flux_hi+1, &
+              q1, q1_lo, q1_hi, &
 #ifdef RADIATION
               Erin, Erin_lo, Erin_hi, &
               Erout, Erout_lo, Erout_hi, &

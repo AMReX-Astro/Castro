@@ -42,7 +42,7 @@ contains
     use meth_params_module, only : QVAR, NQ, NVAR, &
                                    NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann
-    use riemann_module, only : cmpflx, shock
+    use riemann_module, only : cmpflx
     use trace_module, only : trace
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -55,6 +55,8 @@ contains
 #endif
 
     use amrex_fort_module, only : rt => amrex_real
+    use advection_util_module, only : shock
+
     implicit none
 
     integer, intent(in) :: lo(1), hi(1)
@@ -107,7 +109,7 @@ contains
 
     call shock(q, q_lo, q_hi, &
                shk, shk_lo, shk_hi, &
-               ilo, ihi, dx)
+               [ilo, 0, 0], [ihi, 0, 0], [dx, ZERO, ZERO])
 
     ! Store the shock data for future use in the burning step.
     do i = ilo, ihi
@@ -124,7 +126,7 @@ contains
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
                   shk, shk_lo, shk_hi, &
-                  ilo, ihi, dx)
+                  [ilo, 0, 0], [ihi, 0, 0], [dx, ZERO, ZERO])
     else
        shk(:) = ZERO
     endif

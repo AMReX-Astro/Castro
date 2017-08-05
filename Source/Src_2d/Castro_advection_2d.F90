@@ -60,11 +60,12 @@ contains
     use trace_ppm_module, only : trace_ppm
 #endif
     use transverse_module, only : transx, transy
-    use riemann_module, only: cmpflx, shock
+    use riemann_module, only: cmpflx
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
     use amrex_fort_module, only : rt => amrex_real
+    use advection_util_module, only : shock
 
     implicit none
 
@@ -145,12 +146,12 @@ contains
 
     allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
-    allocate (  qm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate (  qp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qxm(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qxp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qym(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
-    allocate ( qyp(lo(1)-1:hi(1)+2,lo(2)-1:hi(2)+2,NQ) )
+    allocate (  qm(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate (  qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qxm(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qxp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qym(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
+    allocate ( qyp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),NQ) )
 
     allocate (  fx(tflx_lo(1):tflx_hi(1),tflx_lo(2):tflx_hi(2),NVAR) )
     allocate (  fy(tfly_lo(1):tfly_hi(1),tfly_lo(2):tfly_hi(2),NVAR) )
@@ -175,7 +176,7 @@ contains
 
     call shock(q, q_lo, q_hi, &
                shk, shk_lo, shk_hi, &
-               lo, hi, dx, dy)
+               [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
 
     ! Store the shock data for future use in the burning step.
 
@@ -196,7 +197,7 @@ contains
     if (hybrid_riemann == 1) then
        call shock(q, q_lo, q_hi, &
                   shk, shk_lo, shk_hi, &
-                  lo, hi, dx, dy)
+                  [lo(1), lo(2), 0], [hi(1), hi(2), 0], [dx, dy, ZERO])
     else
        shk(:,:) = ZERO
     endif
