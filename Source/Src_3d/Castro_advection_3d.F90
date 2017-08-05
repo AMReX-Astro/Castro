@@ -66,7 +66,7 @@ contains
     use actual_network, only : nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
-    use riemann_module, only: cmpflx, shock
+    use riemann_module, only: cmpflx
     use bl_constants_module
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -77,7 +77,7 @@ contains
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
 #endif
-
+    use advection_util_module, only : shock
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 

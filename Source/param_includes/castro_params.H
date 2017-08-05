@@ -30,6 +30,7 @@ static int riemann_solver;
 static int cg_maxiter;
 static amrex::Real cg_tol;
 static int cg_blend;
+static int use_eos_in_riemann;
 static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;

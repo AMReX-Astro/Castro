@@ -19,16 +19,20 @@ subroutine ca_mol_single_stage(time, &
   use meth_params_module, only : NQ, QVAR, QU, QPRES, &
                                  UMX, UMY, UMZ, UTEMP, USHK, UEINT, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
+                                 QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
-                                 hybrid_riemann
-  use advection_util_module, only : compute_cfl
+                                 hybrid_riemann, ppm_temp_fix
+  use advection_util_module, only : compute_cfl, shock
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
-  use riemann_module, only: cmpflx, shock
+  use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
   use advection_util_1d_module, only : normalize_species_fluxes
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use network, only : nspec, naux
 
   implicit none
 
@@ -92,6 +96,8 @@ subroutine ca_mol_single_stage(time, &
 
   real(rt) :: div1
 
+  type(eos_t) :: eos_state
+  
   ngf = 1
 
   lo_3D   = [lo(1), 0, 0]
@@ -122,7 +128,7 @@ subroutine ca_mol_single_stage(time, &
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),USHK) = ZERO
 
-    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
+    call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo_3D, hi_3D, dx_3D)
 
     ! Store the shock data for future use in the burning step.
     do i = lo(1), hi(1)
@@ -137,7 +143,7 @@ subroutine ca_mol_single_stage(time, &
     ! multidimensional shock detection -- this will be used to do the
     ! hybrid Riemann solver
     if (hybrid_riemann == 1) then
-       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo(1), hi(1), dx)
+       call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo_3D, hi_3D, dx_3D)
     else
        shk(:) = ZERO
     endif
@@ -191,6 +197,34 @@ subroutine ca_mol_single_stage(time, &
 
   deallocate(sxm, sxp)
 
+  ! use T to define p
+  if (ppm_temp_fix == 1) then
+     do i = lo(1)-1, hi(1)+1
+
+        eos_state%rho    = qxp(i,QRHO)
+        eos_state%T      = qxp(i,QTEMP)
+        eos_state%xn(:)  = qxp(i,QFS:QFS-1+nspec)
+        eos_state%aux(:) = qxp(i,QFX:QFX-1+naux)
+
+        call eos(eos_input_rt, eos_state)
+
+        qxp(i,QPRES) = eos_state%p
+        qxp(i,QREINT) = qxp(i,QRHO)*eos_state%e
+        ! should we try to do something about Gamma_! on interface?
+
+        eos_state%rho    = qxm(i,QRHO)
+        eos_state%T      = qxm(i,QTEMP)
+        eos_state%xn(:)  = qxm(i,QFS:QFS-1+nspec)
+        eos_state%aux(:) = qxm(i,QFX:QFX-1+naux)
+        
+        call eos(eos_input_rt, eos_state)
+
+        qxm(i,QPRES) = eos_state%p
+        qxm(i,QREINT) = qxm(i,QRHO)*eos_state%e
+        ! should we try to do something about Gamma_! on interface?
+
+     enddo
+  endif
 
   ! Get the fluxes from the Riemann solver
   call cmpflx(lo, hi, domlo, domhi, &

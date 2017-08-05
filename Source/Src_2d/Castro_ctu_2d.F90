@@ -119,6 +119,9 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)         dx,dy
 
   integer :: lo_3D(3), hi_3D(3)
+  integer :: q1_lo(3), q1_hi(3)
+  integer :: q2_lo(3), q2_hi(3)
+
   real(rt)         :: dx_3D(3)
 
   
@@ -129,13 +132,19 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   dx_3D   = [delta(1), delta(2), ZERO]
 
+  q1_lo = [flux1_lo(1)-1, flux1_lo(2)-1, 0]
+  q1_hi = [flux1_hi(1)+1, flux1_hi(2)+1, 0]
+
+  q2_lo = [flux2_lo(1)-1, flux2_lo(2)-1, 0]
+  q2_hi = [flux2_hi(1)+1, flux2_hi(2)+1, 0]
+  
   allocate( flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2)))
 
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
   allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
-  allocate(q1(flux1_lo(1)-1:flux1_hi(1)+1,flux1_lo(2)-1:flux1_hi(2)+1,NGDNV))
-  allocate(q2(flux2_lo(1)-1:flux2_hi(1)+1,flux2_lo(2)-1:flux2_hi(2)+1,NGDNV))
+  allocate(q1(q1_lo(1):q1_hi(1), q1_lo(2):q1_hi(2), NGDNV))
+  allocate(q2(q2_lo(1):q2_hi(1), q2_lo(2):q2_hi(2), NGDNV))
 
   dx = delta(1)
   dy = delta(2)
@@ -174,8 +183,8 @@ subroutine ca_ctu_update(is_finest_level, time, &
                radflux1, radflux1_lo, radflux1_hi, &
                radflux2, radflux2_lo, radflux2_hi, &
 #endif               
-               q1, flux1_lo-1, flux1_hi+1, &
-               q2, flux2_lo-1, flux2_hi+1, &
+               q1, q1_lo, q1_hi, &
+               q2, q2_lo, q2_hi, &
                area1, area1_lo, area1_hi, &
                area2, area2_lo, area2_hi, &
                pdivu, vol, vol_lo, vol_hi, &
@@ -193,8 +202,8 @@ subroutine ca_ctu_update(is_finest_level, time, &
               q, q_lo, q_hi, &
               uout,  uout_lo, uout_hi, &
               update, updt_lo, updt_hi, &
-              q1, flux1_lo-1, flux1_hi+1, &
-              q2, flux2_lo-1, flux2_hi+1, &
+              q1, q1_lo, q1_hi, &
+              q2, q2_lo, q2_hi, &
               flux1, flux1_lo, flux1_hi, &
               flux2, flux2_lo, flux2_hi, &
 #ifdef RADIATION
