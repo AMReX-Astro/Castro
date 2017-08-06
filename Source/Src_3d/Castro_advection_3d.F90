@@ -474,7 +474,7 @@ contains
                            qaux, qa_lo, qa_hi, &
                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
                            qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                           lo(1), lo(2), hi(1), hi(2), dt, kc, k3d)
+                           lo(1), lo(2), hi(1), hi(2), dx, dt, kc, k3d)
 #endif
 
        else

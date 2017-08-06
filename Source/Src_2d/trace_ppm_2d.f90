@@ -100,21 +100,6 @@ contains
 
     real(rt)         :: tau_s
 
-    real(rt)        , allocatable :: Ip(:,:,:,:,:)
-    real(rt)        , allocatable :: Im(:,:,:,:,:)
-
-    real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
-    real(rt)        , allocatable :: Im_src(:,:,:,:,:)
-
-    ! gamma_c/1 on the interfaces
-    real(rt)        , allocatable :: Ip_gc(:,:,:,:,:)
-    real(rt)        , allocatable :: Im_gc(:,:,:,:,:)
-
-    ! temporary interface values of the parabola
-    real(rt), allocatable :: sxm(:,:), sxp(:,:), sym(:,:), syp(:,:)
-    
-    integer :: I_lo(3), I_hi(3)
-
     type (eos_t) :: eos_state
 
     if (ppm_type == 0) then
@@ -125,27 +110,7 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
 
-    I_lo = [ilo1-1, ilo2-1, 0]
-    I_hi = [ihi1+1, ihi2+1, 0]
-
-    ! indices: (x, y, dimension, wave, variable)
-    allocate(Ip(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-    allocate(Im(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-
-    if (ppm_trace_sources == 1) then
-       allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-       allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
-    endif
-
-    allocate(Ip_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
-    allocate(Im_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
-
     hdt = HALF * dt
-
-    allocate(sxm(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
-    allocate(sxp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
-    allocate(sym(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
-    allocate(syp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
 
 
     !=========================================================================
@@ -173,93 +138,6 @@ contains
     ! in terms of the characteristic varaibles, and then add all the
     ! jumps that are moving toward the interface to the reference
     ! state to get the full state on that interface.
-
-
-    ! Compute Ip and Im -- this does the parabolic reconstruction,
-    ! limiting, and returns the integral of each profile under each
-    ! wave to each interface
-    do n = 1, QVAR
-       call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
-                            flatn, q_lo, q_hi, &
-                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
-                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
-
-       call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
-                            q(:,:,QU:QV), q_lo, q_hi, &
-                            qaux(:,:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
-                            Ip(:,:,:,:,n), Im(:,:,:,:,n), I_lo, I_hi, &
-                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
-    end do
-
-    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-    if (ppm_temp_fix == 1) then
-       do j = ilo2-1, ihi2+1
-          do i = ilo1-1, ihi1+1
-             do idim = 1, 2
-                do iwave = 1, 3
-                   eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
-                   eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
-                   eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
-                   eos_state%aux   = Ip(i,j,idim,iwave,QFX:QFX-1+naux)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   Ip(i,j,idim,iwave,QPRES) = eos_state%p
-                   Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO)*eos_state%e
-                   Ip_gc(i,j,idim,iwave,1) = eos_state%gam1
-
-                   eos_state%rho   = Im(i,j,idim,iwave,QRHO)
-                   eos_state%T     = Im(i,j,idim,iwave,QTEMP)
-                   eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
-                   eos_state%aux   = Im(i,j,idim,iwave,QFX:QFX-1+naux)
-
-                   call eos(eos_input_rt, eos_state)
-
-                   Im(i,j,idim,iwave,QPRES) = eos_state%p
-                   Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO)*eos_state%e
-                   Im_gc(i,j,idim,iwave,1) = eos_state%gam1
-                enddo
-             enddo
-          enddo
-       enddo
-
-    endif
-
-    ! get an edge-based gam1 here if we didn't get it from the EOS
-    ! call above (for ppm_temp_fix = 1)
-    if (ppm_temp_fix /= 1) then
-       call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
-                            flatn, q_lo, q_hi, &
-                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
-                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
-
-       call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
-                            q(:,:,QU:QV), q_lo, q_hi, &
-                            qaux(:,:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
-                            Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), I_lo, I_hi, &
-                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
-    endif
-
-    if (ppm_trace_sources == 1) then
-       do n = 1, QVAR
-          call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
-                               flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
-                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
-
-          call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
-                               q(:,:,QU:QV), q_lo, q_hi, &
-                               qaux(:,:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
-                               Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), I_lo, I_hi, &
-                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
-       enddo
-    endif
-
-    deallocate(sxm, sxp, sym, syp)
 
 
     !-------------------------------------------------------------------------

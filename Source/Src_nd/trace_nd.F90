@@ -2,6 +2,7 @@ module trace_module
 
   use amrex_error_module, only : amrex_error
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : dg
 
   implicit none
 

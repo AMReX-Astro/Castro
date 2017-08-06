@@ -49,7 +49,7 @@ contains
                      dloga, dloga_lo, dloga_hi, &
                      domlo, domhi)
 
-    use meth_params_module, only : QVAR, NVAR, ppm_type, hybrid_riemann, &
+    use meth_params_module, only : NQ, QVAR, NVAR, ppm_type, hybrid_riemann, &
                                    GDU, GDV, GDPRES, NGDNV, NQ, &
                                    NQAUX
     use trace_module, only : trace
@@ -132,6 +132,23 @@ contains
     integer :: shk_lo(3), shk_hi(3)
     integer :: qp_lo(3), qp_hi(3)
 
+    real(rt)        , allocatable :: Ip(:,:,:,:,:)
+    real(rt)        , allocatable :: Im(:,:,:,:,:)
+
+    real(rt)        , allocatable :: Ip_src(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_src(:,:,:,:,:)
+
+    ! gamma_c/1 on the interfaces
+    real(rt)        , allocatable :: Ip_gc(:,:,:,:,:)
+    real(rt)        , allocatable :: Im_gc(:,:,:,:,:)
+
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:,:), sxp(:,:), sym(:,:), syp(:,:)
+
+    real(rt)        , allocatable :: dqx(:,:,:), dqy(:,:,:)
+    
+    integer :: I_lo(3), I_hi(3)
+
     tflx_lo = [lo(1), lo(2)-1, 0]
     tflx_hi = [hi(1)+1, hi(2)+1, 0]
 
@@ -143,6 +160,29 @@ contains
 
     qp_lo = [lo(1)-1, lo(2)-1, 0]
     qp_hi = [hi(1)+2, hi(2)+2, 0]
+
+
+    I_lo = [ilo1-1, ilo2-1, 0]
+    I_hi = [ihi1+1, ihi2+1, 0]
+
+    if (ppm_type > 0) then
+       ! indices: (x, y, dimension, wave, variable)
+       allocate(Ip(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
+       allocate(Im(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, NQ))
+       
+       if (ppm_trace_sources == 1) then
+          allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+          allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+       endif
+
+       allocate(Ip_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
+       allocate(Im_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
+
+       allocate(sxm(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+       allocate(sxp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+       allocate(sym(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+       allocate(syp(q_lo(1):q_hi(1), q_lo(2):q_hi(2)))
+    endif
 
     allocate ( qgdxtmp(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),NGDNV))
 
@@ -203,7 +243,135 @@ contains
     endif
 #endif
 
-    ! NOTE: Geometry terms need to be punched through
+    if (ppm_type == 0) then
+
+       allocate(dqx(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ))
+       allocate(dqy(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),NQ))
+
+       ! Compute slopes
+       if (plm_iorder == 1) then
+          dqx(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:NQ) = ZERO
+          dqy(ilo1-1:ihi1+1,ilo2-1:ihi2+1,1:NQ) = ZERO
+
+       elseif (plm_iorder == 2) then
+          ! these are piecewise linear slopes.  The limiter is a 4th order
+          ! limiter, but the overall method will be second order.
+          call uslope(q, flatn, q_lo, q_hi, &
+                      dqx, dqy, dqx, qpd_lo, qpd_hi, &  ! second dqx is dummy
+                      ilo1, ilo2, ihi1, ihi2, 0, 0)
+
+          if (use_pslope == 1) then
+             call pslope(q, flatn, q_lo, q_hi, &
+                         dqx, dqy, dqx, qpd_lo, qpd_hi, &  ! second dqx is dummy
+                         src, src_lo, src_hi, &
+                         ilo1, ilo2, ihi1, ihi2, 0, 0, [dx, dy, ZERO])
+
+          endif
+
+       elseif (plm_iorder == -2) then
+          ! these are also piecewise linear, but it uses a multidimensional
+          ! reconstruction based on the BDS advection method to construct
+          ! the x- and y-slopes together
+          do n = 1, NQ
+             call multid_slope(q(:,:,n), flatn, q_lo, q_hi, &
+                               dqx(:,:,n), dqy(:,:,n), qpd_lo, qpd_hi, &
+                               dx, dy, &
+                               ilo1, ilo2, ihi1, ihi2)
+          enddo
+
+       else
+          call bl_error("ERROR: invalid value of islope")
+          
+       endif       
+
+    else
+
+       ! Compute Ip and Im -- this does the parabolic reconstruction,
+       ! limiting, and returns the integral of each profile under each
+       ! wave to each interface
+       do n = 1, NQ
+          call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
+
+          call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
+                               q(:,:,QU:QV), q_lo, q_hi, &
+                               qaux(:,:,QC), qa_lo, qa_hi, &
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
+                               Ip(:,:,:,:,n), Im(:,:,:,:,n), I_lo, I_hi, &
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
+       end do
+
+       ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+       ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+       if (ppm_temp_fix == 1) then
+          do j = ilo2-1, ihi2+1
+             do i = ilo1-1, ihi1+1
+                do idim = 1, 2
+                   do iwave = 1, 3
+                      eos_state%rho   = Ip(i,j,idim,iwave,QRHO)
+                      eos_state%T     = Ip(i,j,idim,iwave,QTEMP)
+                      eos_state%xn(:) = Ip(i,j,idim,iwave,QFS:QFS-1+nspec)
+                      eos_state%aux   = Ip(i,j,idim,iwave,QFX:QFX-1+naux)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      Ip(i,j,idim,iwave,QPRES) = eos_state%p
+                      Ip(i,j,idim,iwave,QREINT) = Ip(i,j,idim,iwave,QRHO)*eos_state%e
+                      Ip_gc(i,j,idim,iwave,1) = eos_state%gam1
+
+                      eos_state%rho   = Im(i,j,idim,iwave,QRHO)
+                      eos_state%T     = Im(i,j,idim,iwave,QTEMP)
+                      eos_state%xn(:) = Im(i,j,idim,iwave,QFS:QFS-1+nspec)
+                      eos_state%aux   = Im(i,j,idim,iwave,QFX:QFX-1+naux)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      Im(i,j,idim,iwave,QPRES) = eos_state%p
+                      Im(i,j,idim,iwave,QREINT) = Im(i,j,idim,iwave,QRHO)*eos_state%e
+                      Im_gc(i,j,idim,iwave,1) = eos_state%gam1
+                   enddo
+                enddo
+             enddo
+          enddo
+
+       endif
+
+       ! get an edge-based gam1 here if we didn't get it from the EOS
+       ! call above (for ppm_temp_fix = 1)
+       if (ppm_temp_fix /= 1) then
+          call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
+          
+          call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
+                               q(:,:,QU:QV), q_lo, q_hi, &
+                               qaux(:,:,QC), qa_lo, qa_hi, &
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                               Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), I_lo, I_hi, &
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
+       endif
+
+       if (ppm_trace_sources == 1) then
+          do n = 1, QVAR
+             call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
+                                  flatn, q_lo, q_hi, &
+                                  sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
+                                  ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
+
+             call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
+                                  q(:,:,QU:QV), q_lo, q_hi, &
+                                  qaux(:,:,QC), qa_lo, qa_hi, &
+                                  sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                                  Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), I_lo, I_hi, &
+                                  ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
+          enddo
+       endif
+
+       deallocate(sxm, sxp, sym, syp)
+    endif
 
     ! Trace to edges w/o transverse flux correction terms.  Here,
     !      qxm and qxp will be the states on either side of the x interfaces
@@ -236,6 +404,14 @@ contains
                       srcQ, src_lo, src_hi, &
                       lo(1),lo(2),hi(1),hi(2),dx,dy,dt)
 #endif
+
+
+       deallocate(Ip,Im)
+       deallocate(Ip_gc,Im_gc)
+       if (ppm_trace_sources == 1) then
+          deallocate(Ip_src,Im_src)
+       endif
+
     end if
 
     ! Solve the Riemann problem in the x-direction using these first
