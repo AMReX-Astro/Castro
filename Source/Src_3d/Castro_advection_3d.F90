@@ -470,11 +470,11 @@ contains
                                qxm, qxp, qym, qyp, qt_lo, qt_hi, &
                                lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 #else
-          call tracexy_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
-                           Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
-                           qxm,qxp,qym,qyp,qt_lo,qt_hi, &
-                           qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                           lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
+          call tracexy_ppm(q, flatn, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
+                           qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                           lo(1), lo(2), hi(1), hi(2), dt, kc, k3d)
 #endif
 
        else
@@ -573,17 +573,17 @@ contains
           ! Compute U_z at kc (k3d)
           if (ppm_type .gt. 0) then
 #ifdef RADIATION
-          call tracez_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
-                              Ip, Im, Ip_src, Im_src, &
-                              qzm, qzp, qt_lo, qt_hi, &
-                              lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
+             call tracez_ppm_rad(q, qaux, flatn, qd_lo, qd_hi, &
+                                 Ip, Im, Ip_src, Im_src, &
+                                 qzm, qzp, qt_lo, qt_hi, &
+                                 lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
 
 #else
-             call tracez_ppm(q,qaux(:,:,:,QC),flatn,qd_lo,qd_hi, &
-                             Ip,Im,Ip_src,Im_src,Ip_gc,Im_gc,It_lo,It_hi, &
-                             qzm,qzp,qt_lo,qt_hi, &
-                             qaux(:,:,:,QGAMC),qd_lo,qd_hi, &
-                             lo(1),lo(2),hi(1),hi(2),dt,km,kc,k3d)
+             call tracez_ppm(q, flatn, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
+                             qzm, qzp, qt_lo, qt_hi, &
+                             lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
 #endif
           else
              ! we should not land here with radiation
