@@ -187,6 +187,7 @@ include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
+
 # Note that this should be located after the include of the EOS and Network includes
 # since it has actions that depend on variables set there.
 
@@ -304,7 +305,12 @@ f90EXE_sources += extern.f90
 
 EXTERN_TEMPLATE := $(TOP)/Source/extern_probin.template
 
-EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_CORE))
+EXTERN_SEARCH := $(EXTERN_CORE)
+ifdef MICROPHYSICS_HOME
+   EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
+endif
+
+EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
 extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
