@@ -801,17 +801,17 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    material_lost_through_boundary_temp[i] = 0.0;
 
 	// Subcycle until we've reached the target time.
+        // Compare against a slightly number to avoid
+        // roundoff concerns.
 
-	while (subcycle_time < time + dt) {
+        Real eps = 1.0e-10;
+
+	while (subcycle_time < time + (1.0 - eps) * dt) {
 
 	    // Shorten the last timestep so that we don't overshoot
-	    // the ending time. We want to protect against taking
-	    // a very small last timestep due to precision issues,
-	    // so subtract a small number from that time.
+	    // the ending time.
 
-	    Real eps = 1.0e-10 * dt;
-
-	    if (subcycle_time + dt_advance > time + dt - eps)
+	    if (subcycle_time + dt_advance > time + dt)
 	        dt_advance = (time + dt) - subcycle_time;
 
 	    if (verbose && ParallelDescriptor::IOProcessor()) {
