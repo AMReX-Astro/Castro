@@ -505,6 +505,22 @@ contains
 
   end subroutine ca_set_castro_method_params
 
+
+  subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
+    implicit none
+
+    deallocate(xl_ext_bc_type)
+    deallocate(xr_ext_bc_type)
+    deallocate(yl_ext_bc_type)
+    deallocate(yr_ext_bc_type)
+    deallocate(zl_ext_bc_type)
+    deallocate(zr_ext_bc_type)
+
+
+    
+  end subroutine ca_finalize_meth_params
+
+
 #ifdef RADIATION
   subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
        bind(C, name="ca_init_radhydro_pars")
@@ -512,6 +528,9 @@ contains
     use rad_params_module, only : ngroups
 
     use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
 

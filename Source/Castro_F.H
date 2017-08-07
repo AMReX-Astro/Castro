@@ -64,6 +64,7 @@ extern "C"
 #endif
      const int* gravity_type, const int& gravity_type_len);
 
+  void ca_finalize_meth_params();
 
   void ca_set_castro_method_params();
 
