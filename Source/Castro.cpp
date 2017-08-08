@@ -183,6 +183,8 @@ Castro::variableCleanUp ()
     desc_lst.clear();
 
     ca_finalize_meth_params();
+
+    network_finalize();
 }
 
 void
@@ -2831,6 +2833,12 @@ void
 Castro::network_init ()
 {
    ca_network_init();
+}
+
+void
+Castro::network_finalize ()
+{
+   ca_network_finalize();
 }
 
 void
