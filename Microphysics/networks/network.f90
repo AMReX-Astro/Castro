@@ -16,6 +16,8 @@
 !  network_init          -- initialize the isotope properties
 !
 !  network_species_index -- return the index of the species given its name
+!
+!  network_finalize      -- do any network cleanup
 
 module network
 
@@ -35,7 +37,7 @@ module network
 
 contains
 
-  subroutine network_init
+  subroutine network_init()
 
     use bl_error_module, only : bl_error
     use bl_constants_module, only : ONE
@@ -84,5 +86,12 @@ contains
     enddo
 
   end function network_species_index
+
+  subroutine network_finalize()
+    implicit none
+
+    call actual_network_finalize()
+
+  end subroutine network_finalize
 
 end module network

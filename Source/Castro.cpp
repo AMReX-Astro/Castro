@@ -138,7 +138,7 @@ int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::num_state_type = 0;
 
 // Note: Castro::variableSetUp is in Castro_setup.cpp
-
+// variableCleanUp is called once at the end of a simulation
 void
 Castro::variableCleanUp ()
 {
@@ -181,6 +181,10 @@ Castro::variableCleanUp ()
 #endif
 
     desc_lst.clear();
+
+    ca_finalize_meth_params();
+
+    network_finalize();
 }
 
 void
@@ -2829,6 +2833,12 @@ void
 Castro::network_init ()
 {
    ca_network_init();
+}
+
+void
+Castro::network_finalize ()
+{
+   ca_network_finalize();
 }
 
 void

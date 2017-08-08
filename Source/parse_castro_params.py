@@ -368,6 +368,16 @@ def write_meth_module(plist, meth_template):
                     else:
                         mo.write(", ")
 
+        elif line.find("@@free_castro_params@@") >= 0:
+
+            params_free = [q for q in params if q.in_fortran == 1 and q.f90_dtype == "string"]
+
+            for p in params_free:
+                mo.write("    deallocate({})\n".format(p.f90_name))
+                
+            mo.write("\n\n")
+
+
         else:
             mo.write(line)
 

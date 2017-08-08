@@ -10,6 +10,8 @@ extern "C"
 
   void ca_network_init();
 
+  void ca_network_finalize();
+
   void burner_init();
 
   void ca_extern_init(const int* name, const int* namlen);
@@ -64,6 +66,7 @@ extern "C"
 #endif
      const int* gravity_type, const int& gravity_type_len);
 
+  void ca_finalize_meth_params();
 
   void ca_set_castro_method_params();
 

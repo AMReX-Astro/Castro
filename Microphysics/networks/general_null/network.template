@@ -24,7 +24,7 @@ module actual_network
   integer, parameter :: nspec_evolve = @@NSPEC@@
   integer, parameter :: naux =  @@NAUX@@
 
-  character (len=16), save :: spec_names(nspec) 
+  character (len=16), save :: spec_names(nspec)
   character (len= 5), save :: short_spec_names(nspec)
   character (len=16), save :: aux_names(naux)
   character (len= 5), save :: short_aux_names(naux)
@@ -35,7 +35,7 @@ module actual_network
   integer, parameter :: num_rate_groups = 1
 
 contains
-  
+
   subroutine actual_network_init
 
     @@SPEC_NAMES@@
@@ -49,5 +49,14 @@ contains
     @@AUX_NAMES@@
 
   end subroutine actual_network_init
+
+  subroutine actual_network_finalize
+
+    implicit none
+
+    ! Nothing to do here.
+
+  end subroutine actual_network_finalize
+
 
 end module actual_network
