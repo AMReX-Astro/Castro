@@ -15,23 +15,29 @@ contains
   subroutine tracexy(q, c, qd_lo, qd_hi, &
                      dqx, dqy, dq_lo, dq_hi, &
                      qxm, qxp, qym, qyp, qpd_lo, qpd_hi, &
-                     ilo1, ilo2, ihi1, ihi2, dx, dt, kc, k3d)
+#if (BL_SPACEDIM < 3)
+                     dloga, dloga_lo, dloga_hi, &
+#endif
+                     ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
+                     dx, dt, kc, k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, &
-                                   npassive, qpass_map, small_dens, small_pres, ppm_type
+                                   npassive, qpass_map, small_dens, small_pres, &
+                                   ppm_type, fix_mass_flux
     use bl_constants_module
-
+    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: kc, k3d
-
+    integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     real(rt), intent(in) :: c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
@@ -42,6 +48,7 @@ contains
     real(rt), intent(inout) :: qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
     real(rt), intent(inout) :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
     real(rt), intent(inout) :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -61,6 +68,8 @@ contains
     real(rt) :: spzero
     real(rt) :: rho_ref, u_ref, v_ref, w_ref, p_ref, rhoe_ref
     real(rt) :: e(3)
+    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     dtdx = dt/dx(1)
 #if (BL_SPACEDIM >= 2)
@@ -71,6 +80,11 @@ contains
        print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
        call amrex_error("Error:: trace_3d.f90 :: tracexy")
     end if
+
+    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
+         .and. (ilo1 == domlo(1))
+    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
+         .and. (ihi1 == domhi(1))
 
 
     !-----------------------------------------------------------------------
@@ -169,10 +183,10 @@ contains
 
 #if (BL_SPACEDIM < 3)
           ! geometry source terms
-          if (dloga(i,j,kc) /= ZERO) then
+          if (dloga(i,j,k3d) /= ZERO) then
              courn = dtdx*(cc + abs(u))
-             eta = (ONE-courn)/(cc*dt*abs(dloga(i,j)))
-             dlogatmp = min(eta, ONE)*dloga(i,j,kc)
+             eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k3d)))
+             dlogatmp = min(eta, ONE)*dloga(i,j,k3d)
              sourcr = -HALF*dt*rho*dlogatmp*u
              sourcp = sourcr*csq
              source = sourcp*enth
@@ -194,18 +208,18 @@ contains
 #if (BL_SPACEDIM == 1)
     ! Enforce constant mass flux rate if specified
     if (fix_mass_flux_lo) then
-       qxm(ilo,j,kc,QRHO  ) = q(domlo(1)-1,j,kc,QRHO)
-       qxm(ilo,j,kc,QU    ) = q(domlo(1)-1,j,kc,QU  )
-       qxm(ilo,j,kc,QPRES ) = q(domlo(1)-1,j,kc,QPRES)
-       qxm(ilo,j,kc,QREINT) = q(domlo(1)-1,j,kc,QREINT)
+       qxm(ilo1,j,kc,QRHO  ) = q(domlo(1)-1,j,k3d,QRHO)
+       qxm(ilo1,j,kc,QU    ) = q(domlo(1)-1,j,k3d,QU  )
+       qxm(ilo1,j,kc,QPRES ) = q(domlo(1)-1,j,k3d,QPRES)
+       qxm(ilo1,j,kc,QREINT) = q(domlo(1)-1,j,k3d,QREINT)
     end if
 
     ! Enforce constant mass flux rate if specified
     if (fix_mass_flux_hi) then
-       qxp(ihi+1,j,kc,QRHO  ) = q(domhi(1)+1,j,kc,QRHO)
-       qxp(ihi+1,j,kc,QU    ) = q(domhi(1)+1,j,kc,QU  )
-       qxp(ihi+1,j,kc,QPRES ) = q(domhi(1)+1,j,kc,QPRES)
-       qxp(ihi+1,j,kc,QREINT) = q(domhi(1)+1,j,kc,QREINT)
+       qxp(ihi1+1,j,kc,QRHO  ) = q(domhi(1)+1,j,k3d,QRHO)
+       qxp(ihi1+1,j,kc,QU    ) = q(domhi(1)+1,j,k3d,QU  )
+       qxp(ihi1+1,j,kc,QPRES ) = q(domhi(1)+1,j,k3d,QPRES)
+       qxp(ihi1+1,j,kc,QREINT) = q(domhi(1)+1,j,k3d,QREINT)
     end if
 #endif
 
@@ -242,10 +256,8 @@ contains
           enddo
 
 #if (BL_SPACEDIM == 1)
-       if (fix_mass_flux_hi) then
-          qxp(ihi+1,j,kc,n) = q(ihi+1,j,kc,n)
-          qxm(ilo,j,kc,n) = q(ilo-1,j,kc,n)
-       endif
+       if (fix_mass_flux_hi) qxp(ihi1+1,j,kc,n) = q(ihi1+1,j,k3d,n)
+       if (fix_mass_flux_lo) qxm(ilo1,j,kc,n) = q(ilo1-1,j,k3d,n)
 #endif
 
        enddo
@@ -388,7 +400,8 @@ contains
   subroutine tracez(q, c, qd_lo, qd_hi, &
                     dqz, dq_lo, dq_hi, &
                     qzm, qzp, qpd_lo, qpd_hi, &
-                    ilo1, ilo2, ihi1, ihi2, dx, dt, km, kc, k3d)
+                    ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
+                    dx, dt, km, kc, k3d)
 
     use network, only : nspec, naux
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
@@ -404,7 +417,7 @@ contains
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: km, kc, k3d
-
+    integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
     real(rt), intent(in) :: c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
