@@ -167,6 +167,48 @@ contains
              qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
           endif
 
+#if (BL_SPACEDIM < 3)
+          ! geometry source terms
+          if (dloga(i,j,kc) /= ZERO) then
+             courn = dtdx*(cc + abs(u))
+             eta = (ONE-courn)/(cc*dt*abs(dloga(i,j)))
+             dlogatmp = min(eta, ONE)*dloga(i,j,kc)
+             sourcr = -HALF*dt*rho*dlogatmp*u
+             sourcp = sourcr*csq
+             source = sourcp*enth
+             if (i .le. ihi1) then
+                qxm(i+1,j,kc,QRHO) = qxm(i+1,j,kc,QRHO) + sourcr
+                qxm(i+1,j,kc,QRHO) = max(qxm(i+1,j,kc,QRHO),small_dens)
+                qxm(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES) + sourcp
+                qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + source
+             end if
+             if (i .ge. ilo1) then
+                qxp(i,j,kc,QRHO) = qxp(i,j,kc,QRHO) + sourcr
+                qxp(i,j,kc,QRHO) = max(qxp(i,j,kc,QRHO),small_dens)
+                qxp(i,j,kc,QPRES) = qxp(i,j,kc,QPRES) + sourcp
+                qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + source
+             end if
+          endif
+#endif
+
+#if (BL_SPACEDIM == 1)
+    ! Enforce constant mass flux rate if specified
+    if (fix_mass_flux_lo) then
+       qxm(ilo,j,kc,QRHO  ) = q(domlo(1)-1,j,kc,QRHO)
+       qxm(ilo,j,kc,QU    ) = q(domlo(1)-1,j,kc,QU  )
+       qxm(ilo,j,kc,QPRES ) = q(domlo(1)-1,j,kc,QPRES)
+       qxm(ilo,j,kc,QREINT) = q(domlo(1)-1,j,kc,QREINT)
+    end if
+
+    ! Enforce constant mass flux rate if specified
+    if (fix_mass_flux_hi) then
+       qxp(ihi+1,j,kc,QRHO  ) = q(domhi(1)+1,j,kc,QRHO)
+       qxp(ihi+1,j,kc,QU    ) = q(domhi(1)+1,j,kc,QU  )
+       qxp(ihi+1,j,kc,QPRES ) = q(domhi(1)+1,j,kc,QPRES)
+       qxp(ihi+1,j,kc,QREINT) = q(domhi(1)+1,j,kc,QREINT)
+    end if
+#endif
+
        enddo
     enddo
 
@@ -198,6 +240,13 @@ contains
              acmpleft = HALF*(ONE - spzero )*dqx(i,j,kc,n)
              qxm(i+1,j,kc,n) = q(i,j,k3d,n) + acmpleft
           enddo
+
+#if (BL_SPACEDIM == 1)
+       if (fix_mass_flux_hi) then
+          qxp(ihi+1,j,kc,n) = q(ihi+1,j,kc,n)
+          qxm(ilo,j,kc,n) = q(ilo-1,j,kc,n)
+       endif
+#endif
 
        enddo
     enddo
@@ -238,6 +287,8 @@ contains
           e(2) = v
           e(3) = v + cc
 
+          ! construct the right state on the j-1/2 interface
+
           rho_ref = rho - HALF*(ONE + dtdy*min(e(1), ZERO))*drho
           u_ref = u - HALF*(ONE + dtdy*min(e(1), ZERO))*du
           v_ref = v - HALF*(ONE + dtdy*min(e(1), ZERO))*dv
@@ -263,6 +314,8 @@ contains
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
              qyp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
           end if
+
+          ! construct the left state on the j+1/2 interface
 
           rho_ref = rho + HALF*(ONE - dtdy*max(e(3), ZERO))*drho
           u_ref = u + HALF*(ONE - dtdy*max(e(3), ZERO))*du
