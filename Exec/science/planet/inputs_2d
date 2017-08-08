@@ -6,7 +6,7 @@ stop_time = 8.64e4
 geometry.is_periodic = 1      0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0      0.0
-geometry.prob_hi     = 1.0e10  1.0e10
+geometry.prob_hi     = 4.0e9  4.0e9
 amr.n_cell           = 1024     1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
