@@ -170,6 +170,16 @@ contains
              qxp(i,j,kc,QPRES) = p_ref + (apright + amright)*csq
              qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES), small_pres)
              qxp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
+
+             ! add the source terms in 1-d, since we don't do this in
+             ! the transverse routines
+#if (BL_SPACEDIM == 1)
+             qxp(i,j,kc,QRHO  ) = qxp(i,j,kc,QRHO  ) + HALF*dt*srcQ(i,j,k3d,QRHO)
+             qxp(i,j,kc,QRHO  ) = max(small_dens, qxp(i,j,kc,QRHO))
+             qxp(i,j,kc,QU    ) = qxp(i,j,kc,QU    ) + HALF*dt*srcQ(i,j,k3d,QU)
+             qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
+             qxp(i,j,kc,QPRES ) = qxp(i,j,kc,QPRES ) + HALF*dt*srcQ(i,j,k3d,QPRES)
+#endif
           end if
 
           ! now construct the left state on the i+1 interface
@@ -198,6 +208,16 @@ contains
              qxm(i+1,j,kc,QPRES) = p_ref + (apleft + amleft)*csq
              qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES), small_pres)
              qxm(i+1,j,kc,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
+
+             ! add the source terms in 1-d, since we don't do this in
+             ! the transverse routines
+#if (BL_SPACEDIM == 1)
+             qxm(i+1,j,kc,QRHO  ) = qxm(i+1,j,kc,QRHO  ) + HALF*dt*srcQ(i,j,k3d,QRHO)
+             qxm(i+1,j,kc,QRHO  ) = max(small_dens, qxm(i+1,j,kc,QRHO))
+             qxm(i+1,j,kc,QU    ) = qxm(i+1,j,kc,QU    ) + HALF*dt*srcQ(i,j,k3d,QU)
+             qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
+             qxm(i+1,j,kc,QPRES ) = qxm(i+1,j,kc,QPRES ) + HALF*dt*srcQ(i,j,k3d,QPRES)
+#endif             
           endif
 
 #if (BL_SPACEDIM < 3)
