@@ -470,11 +470,12 @@ contains
                                qxm, qxp, qym, qyp, qt_lo, qt_hi, &
                                lo(1),lo(2),hi(1),hi(2),dt,kc,k3d)
 #else
-          call tracexy_ppm(q, flatn, qd_lo, qd_hi, &
+          call tracexy_ppm(q, qd_lo, qd_hi, &
                            qaux, qa_lo, qa_hi, &
                            Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
                            qxm, qxp, qym, qyp, qt_lo, qt_hi, &
-                           lo(1), lo(2), hi(1), hi(2), dx, dt, kc, k3d)
+                           lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                           dx, dt, kc, k3d)
 #endif
 
        else
@@ -495,10 +496,12 @@ contains
                            lo(1), lo(2), hi(1), hi(2), kc, k3d, dx)
 
           ! Compute U_x and U_y at kc (k3d)
-          call tracexy(q,qaux(:,:,:,QC),qd_lo,qd_hi, &
-                       dqx,dqy,qt_lo,qt_hi, &
-                       qxm,qxp,qym,qyp,qt_lo,qt_hi, &
-                       lo(1),lo(2),hi(1),hi(2),dx,dt,kc,k3d)
+          call tracexy(q, qd_lo, qd_hi, &
+                       qaux, qa_lo, qa_hi, &
+                       dqx, dqy, qt_lo, qt_hi, &
+                       qxm, qxp, qym, qyp, qt_lo, qt_hi, &
+                       lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                       dx, dt, kc, k3d)
 
        end if
 
@@ -579,18 +582,21 @@ contains
                                  lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
 
 #else
-             call tracez_ppm(q, flatn, qd_lo, qd_hi, &
+             call tracez_ppm(q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
                              Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, It_lo, It_hi, &
                              qzm, qzp, qt_lo, qt_hi, &
-                             lo(1), lo(2), hi(1), hi(2), dt, km, kc, k3d)
+                             lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                             dt, km, kc, k3d)
 #endif
           else
              ! we should not land here with radiation
-             call tracez(q,qaux(:,:,:,QC),qd_lo,qd_hi, &
-                         dqz,qt_lo,qt_hi, &
-                         qzm,qzp,qt_lo,qt_hi, &
-                         lo(1),lo(2),hi(1),hi(2),dx,dt,km,kc,k3d)
+             call tracez(q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         dqz, qt_lo, qt_hi, &
+                         qzm, qzp, qt_lo, qt_hi, &
+                         lo(1), lo(2), hi(1), hi(2), domlo, domhi, &
+                         dx, dt, km, kc, k3d)
           end if
 
           ! Compute \tilde{F}^z at kc (k3d)
