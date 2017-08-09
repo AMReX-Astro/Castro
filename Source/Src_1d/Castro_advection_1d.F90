@@ -40,15 +40,17 @@ contains
                      dloga, dloga_lo, dloga_hi)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
+                                   QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, &
                                    NQAUX, NGDNV, &
-                                   ppm_type, hybrid_riemann
+                                   ppm_type, hybrid_riemann, &
+                                   use_pslope, plm_iorder, ppm_temp_fix, ppm_trace_sources
     use riemann_module, only : cmpflx
-    use trace_module, only : trace
+    use trace_module, only : tracexy
 #ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
 #else
-    use trace_ppm_module, only : trace_ppm
+    use trace_ppm_module, only : tracexy_ppm
 #endif
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK
@@ -56,6 +58,11 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     use advection_util_module, only : shock
+    use eos_type_module, only : eos_t, eos_input_rt
+    use eos_module, only : eos
+    use network, only : nspec, naux
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
+    use slope_module, only : uslope, pslope
 
     implicit none
 
@@ -88,21 +95,59 @@ contains
 
     real(rt)        , allocatable :: shk(:)
 
-    integer :: i
+    integer :: i, n, iwave
 
     ! Left and right state arrays (edge centered, cell centered)
     real(rt)        , allocatable:: dq(:,:), qm(:,:), qp(:,:)
 
     integer :: qp_lo(3), qp_hi(3)
     integer :: shk_lo(3), shk_hi(3)
+    integer :: I_lo(3), I_hi(3)
 
+    real(rt), allocatable :: Ip(:,:,:)
+    real(rt), allocatable :: Im(:,:,:)
+
+    real(rt), allocatable :: Ip_src(:,:,:)
+    real(rt), allocatable :: Im_src(:,:,:)
+
+    ! gamma_c/1 on the interfaces
+    real(rt), allocatable :: Ip_gc(:,:,:)
+    real(rt), allocatable :: Im_gc(:,:,:)
+
+    ! temporary interface values of the parabola
+    real(rt), allocatable :: sxm(:), sxp(:)
+
+    type(eos_t) :: eos_state
+    
     qp_lo = [ilo-1, 0, 0]
     qp_hi = [ihi+2, 0, 0]
 
     shk_lo = [ilo-1, 0, 0]
     shk_hi = [ihi+1, 0, 0]
 
+    I_lo = [ilo-1, 0, 0]
+    I_hi = [ihi+1, 0, 0]
+
+    
+    if (ppm_type > 0) then
+       ! indices: (x, y, dimension, wave, variable)
+       allocate(Ip(I_lo(1):I_hi(1), 3, NQ))
+       allocate(Im(I_lo(1):I_hi(1), 3, NQ))
+       
+       if (ppm_trace_sources == 1) then
+          allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
+          allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
+       endif
+
+       allocate(Ip_gc(I_lo(1):I_hi(1), 3, 1))
+       allocate(Im_gc(I_lo(1):I_hi(1), 3, 1))
+
+       allocate(sxm(q_lo(1):q_hi(1)))
+       allocate(sxp(q_lo(1):q_hi(1)))
+    endif
+
     allocate (shk(shk_lo(1):shk_hi(1)))
+
 
 #ifdef SHOCK_VAR
     uout(ilo:ihi,USHK) = ZERO
@@ -132,13 +177,117 @@ contains
     endif
 #endif
 
-
-
     ! Work arrays to hold 3 planes of riemann state and conservative fluxes
     allocate ( qm(qp_lo(1):qp_hi(1),NQ))
     allocate ( qp(qp_lo(1):qp_hi(1),NQ))
 
-    ! Trace to edges w/o transverse flux correction terms
+    if (ppm_type == 0) then
+       allocate(dq(q_lo(1):q_hi(1),NQ))
+
+       if (plm_iorder == 1) then
+          dq(ilo-1:ihi+1,1:NQ) = ZERO
+
+       else
+          ! piecewise linear slope
+          call uslope(q, flatn, q_lo, q_hi, &
+                      dq, dq, dq, q_lo, q_hi, &
+                      ilo, 0, ihi, 0, 0, 0)
+
+          if (use_pslope == 1) &
+               call pslope(q, flatn, q_lo, q_hi, &
+                           dq, dq, dq, q_lo, q_hi, &
+                           srcQ, src_lo, src_hi, &
+                           ilo, 0, ihi, 0, 0, 0, [dx, ZERO, ZERO])
+
+       endif
+
+    else
+
+       ! Compute Ip and Im -- this does the parabolic reconstruction,
+       ! limiting, and returns the integral of each profile under each
+       ! wave to each interface
+       do n = 1, NQ
+          call ppm_reconstruct(q(:,n), q_lo, q_hi, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
+          
+          call ppm_int_profile(q(:,n), q_lo, q_hi, &
+                               q(:,QU), q_lo, q_hi, &
+                               qaux(:,QC), qa_lo, qa_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               Ip(:,:,n), Im(:,:,n), I_lo, I_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
+       enddo
+
+       ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+       ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+       if (ppm_temp_fix == 1) then
+          do i = ilo-1, ihi+1
+             do iwave = 1, 3
+                eos_state%rho   = Ip(i,iwave,QRHO)
+                eos_state%T     = Ip(i,iwave,QTEMP)
+                eos_state%xn(:) = Ip(i,iwave,QFS:QFS-1+nspec)
+                eos_state%aux   = Ip(i,iwave,QFX:QFX-1+naux)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                Ip(i,iwave,QPRES) = eos_state%p
+                Ip(i,iwave,QREINT) = Ip(i,iwave,QRHO)*eos_state%e
+                Ip_gc(i,iwave,1) = eos_state%gam1
+                
+                eos_state%rho   = Im(i,iwave,QRHO)
+                eos_state%T     = Im(i,iwave,QTEMP)
+                eos_state%xn(:) = Im(i,iwave,QFS:QFS-1+nspec)
+                eos_state%aux   = Im(i,iwave,QFX:QFX-1+naux)
+                
+                call eos(eos_input_rt, eos_state)
+                
+                Im(i,iwave,QPRES) = eos_state%p
+                Im(i,iwave,QREINT) = Im(i,iwave,QRHO)*eos_state%e
+                Im_gc(i,iwave,1) = eos_state%gam1
+             enddo
+          enddo
+          
+       endif
+
+
+       ! get an edge-based gam1 here if we didn't get it from the EOS
+       ! call above (for ppm_temp_fix = 1)
+       if (ppm_temp_fix /= 1) then
+          call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &  ! extras are dummy
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
+
+          call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
+                               q(:,QU), q_lo, q_hi, &
+                               qaux(:,QC), qa_lo, qa_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &   ! extras are dummy
+                               Ip_gc(:,:,1), Im_gc(:,:,1), I_lo, I_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
+       endif
+
+       if (ppm_trace_sources == 1) then
+          do n = 1, QVAR
+             call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
+                                  flatn, q_lo, q_hi, &
+                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                                  ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
+             
+             call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
+                                  q(:,QU), q_lo, q_hi, &
+                                  qaux(:,QC), qa_lo, qa_hi, &
+                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                                  Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
+                                  ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
+          enddo
+       endif
+
+       deallocate(sxm, sxp)
+    endif
+
+    ! Trace to edges 
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
        call trace_ppm_rad(q, flatn, q_lo, q_hi, &
@@ -148,25 +297,28 @@ contains
                           qm, qp, qp_lo, qp_hi, &
                           ilo, ihi, domlo, domhi, dx, dt)
 #else
-       call trace_ppm(q, flatn, q_lo, q_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      dloga, dloga_lo, dloga_hi, &
-                      srcQ, src_lo, src_hi, &
-                      qm, qp, qp_lo, qp_hi, &
-                      ilo, ihi, domlo, domhi, dx, dt)
+       call tracexy_ppm(q, q_lo, q_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc, I_lo, I_hi, &
+                        qm, qp, qm, qp, qp_lo, qp_hi, &
+                        dloga, dloga_lo, dloga_hi, &
+                        srcQ, src_lo, src_hi, &
+                        ilo, 0, ihi, 0, [domlo(1), 0, 0], [domhi(1), 0, 0], &
+                        [dx, ZERO, ZERO], dt, 0, 0)
 #endif
     else
 #ifdef RADIATION
        call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
 #else
-       allocate ( dq(ilo-1:ihi+1,NQ))
 
-       call trace(q, dq, flatn, q_lo, q_hi, &
-                  qaux, qa_lo, qa_hi, &
-                  dloga, dloga_lo, dloga_hi, &
-                  srcQ, src_lo, src_hi, &
-                  qm, qp, qp_lo, qp_hi, &
-                  ilo, ihi, domlo, domhi, dx, dt)
+       call tracexy(q, q_lo, q_hi, &
+                    qaux, qa_lo, qa_hi, &
+                    dq, dq, q_lo, q_hi, &
+                    qm, qp, qm, qp, qp_lo, qp_hi, &
+                    dloga, dloga_lo, dloga_hi, &
+                    srcQ, src_lo, src_hi, &
+                    ilo, 0, ihi, 0, [domlo(1), 0, 0], [domhi(1), 0, 0], &
+                    [dx, ZERO, ZERO], dt, 0, 0)
 
        deallocate(dq)
 #endif

@@ -12,43 +12,62 @@ module trace_module
 
 contains
 
-  subroutine tracexy(q, c, qd_lo, qd_hi, &
+  subroutine tracexy(q, q_lo, q_hi, &
+                     qaux, qa_lo, qa_hi, &
                      dqx, dqy, dq_lo, dq_hi, &
                      qxm, qxp, qym, qyp, qpd_lo, qpd_hi, &
 #if (BL_SPACEDIM < 3)
                      dloga, dloga_lo, dloga_hi, &
 #endif
+#if (BL_SPACEDIM == 1)
+                     SrcQ, src_lo, Src_hi, &
+#endif
                      ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
                      dx, dt, kc, k3d)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
     use bl_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
+
     implicit none
 
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+#if (BL_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+#endif
+#if (BL_SPACEDIM == 1)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+#endif
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: kc, k3d
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    real(rt), intent(in) :: c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
 
-    real(rt), intent(in) ::  dqx(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),QVAR)
-    real(rt), intent(in) ::  dqy(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),QVAR)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(inout) :: qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    real(rt), intent(inout) :: qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    real(rt), intent(inout) :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    real(rt), intent(inout) :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    real(rt), intent(in) ::  dqx(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+    real(rt), intent(in) ::  dqy(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+
+    real(rt), intent(inout) :: qxm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qxp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qym(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qyp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+
+#if (BL_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
+#endif
+#if (BL_SPACEDIM == 1)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)    
+#endif
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -98,7 +117,7 @@ contains
     do j = ilo2-dg(2), ihi2+dg(2)
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j,k3d)
+          cc = qaux(i,j,k3d,QC)
           csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
@@ -271,7 +290,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j,k3d)
+          cc = qaux(i,j,k3d,QC)
           csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
@@ -397,14 +416,15 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  subroutine tracez(q, c, qd_lo, qd_hi, &
+  subroutine tracez(q, q_lo, q_hi, &
+                    qaux, qa_lo, qa_hi, &
                     dqz, dq_lo, dq_hi, &
                     qzm, qzp, qpd_lo, qpd_hi, &
                     ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
                     dx, dt, km, kc, k3d)
 
     use network, only : nspec, naux
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, ppm_type
     use bl_constants_module
@@ -412,18 +432,19 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: km, kc, k3d
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),QVAR)
-    real(rt), intent(in) :: c(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: dqz(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),QVAR)
-    real(rt), intent(inout) :: qzm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
-    real(rt), intent(inout) :: qzp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),QVAR)
+    real(rt), intent(in) :: dqz(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+    real(rt), intent(inout) :: qzm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qzp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -450,7 +471,7 @@ contains
     do j = ilo2-1, ihi2+1
        do i = ilo1-1, ihi1+1
 
-          cc = c(i,j,k3d)
+          cc = qaux(i,j,k3d,QC)
           csq = cc**2
           rho = q(i,j,k3d,QRHO)
           u = q(i,j,k3d,QU)
@@ -503,7 +524,7 @@ contains
           qzp(i,j,kc,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
           ! repeat above with km (k3d-1) to get qzm at kc
-          cc = c(i,j,k3d-1)
+          cc = qaux(i,j,k3d-1,QC)
           csq = cc**2
           rho = q(i,j,k3d-1,QRHO)
           u = q(i,j,k3d-1,QU)
