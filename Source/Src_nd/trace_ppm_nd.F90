@@ -367,7 +367,15 @@ contains
                 qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
                 qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + hdt*Im_src(i,j,kc,1,2,QW)
              endif
-
+             
+#if (BL_SPACEDIM == 1)
+             ! if we did not trace sources, then add them here (for 1-d; 2- and 3-d will
+             ! get them in the transverse parts)
+             if (ppm_trace_sources == 0) then
+                qxp(i,j,kc,QU) = qxp(i,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
+             endif
+#endif
+             
           end if
 
 
@@ -526,10 +534,21 @@ contains
              qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
              qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
 
+             ! the transverse velocities only jump across the middle wave, so there
+             ! is no tracing needed
              if (ppm_trace_sources == 1) then
                 qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
                 qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + hdt*Ip_src(i,j,kc,1,2,QW)
              endif
+
+#if (BL_SPACEDIM == 1)
+             ! if we did not trace sources, then add them here (for 1-d; 2- and 3-d will
+             ! get them in the transverse parts)
+             if (ppm_trace_sources == 0) then
+                qxm(i+1,j,kc,QU) = qxm(i+1,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
+             endif
+#endif             
+
 
           end if
 
