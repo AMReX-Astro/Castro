@@ -374,6 +374,12 @@ contains
              if (ppm_trace_sources == 0) then
                 qxp(i,j,kc,QU) = qxp(i,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
              endif
+
+             ! add source terms -- there is no corresponding trans 
+             qxp(i,j,kc,QRHO) = qxp(i,j,kc,QRHO) + HALF*dt*srcQ(i,j,k3d,QRHO)
+             qxp(i,j,kc,QRHO  ) = max(small_dens, qxp(i,j,kc,QRHO))
+             qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
+             qxp(i,j,kc,QPRES ) = qxp(i,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
 #endif
              
           end if
@@ -547,8 +553,13 @@ contains
              if (ppm_trace_sources == 0) then
                 qxm(i+1,j,kc,QU) = qxm(i+1,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
              endif
-#endif             
 
+             ! add remaining sources here
+             qxm(i+1,j,kc,QRHO) = qxm(i+1,j,kc,QRHO) + HALF*dt*srcQ(i,j,k3d,QRHO)
+             qxm(i+1,j,kc,QRHO) = max(small_dens, qxm(i+1,j,kc,QRHO))
+             qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
+             qxm(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
+#endif             
 
           end if
 
