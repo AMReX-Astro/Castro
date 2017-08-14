@@ -8,7 +8,7 @@ top=`pwd`
 for p in `find . -mindepth 2 -maxdepth 2 -type d`
   do
     cd $p
-    make clean > /dev/null
+    make realclean > /dev/null
     cd ${top}
   done
 
