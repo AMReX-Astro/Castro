@@ -8,6 +8,11 @@
   -- the PLM and PPM reconstruction routines were merged into
      a single dimensional-agnostic version in Src_nd.
 
+  -- the characteristic tracing routines were merged into
+     dimensional-agnostic versions in Src_nd.  This change fixed
+     and outstanding issue -- the PLM reconstruction in 1-d now
+     uses a reference state. (issue #11)
+
 # 17.08
 
   -- the option castro.limit_fluxes_on_small_dens now only limits
