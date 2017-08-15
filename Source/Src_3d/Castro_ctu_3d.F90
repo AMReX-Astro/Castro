@@ -37,8 +37,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
                                  use_flattening, &
                                  first_order_hydro
-  use advection_util_3d_module, only : divu
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, divu
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
 #ifdef RADIATION

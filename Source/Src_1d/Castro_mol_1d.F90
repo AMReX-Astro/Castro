@@ -22,14 +22,13 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
                                  hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, shock
+  use advection_util_module, only : compute_cfl, shock, normalize_species_fluxes
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
   use riemann_module, only: cmpflx
   use ppm_module, only : ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
-  use advection_util_1d_module, only : normalize_species_fluxes
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
@@ -273,7 +272,7 @@ subroutine ca_mol_single_stage(time, &
   enddo
 
   ! Normalize the species fluxes
-  call normalize_species_fluxes(flux,flux_lo(1),flux_hi(1),lo,hi)
+  call normalize_species_fluxes(flux, flux_lo(1), flux_hi(1), lo_3D, hi_3D)
 
 
   ! Make the update for this state

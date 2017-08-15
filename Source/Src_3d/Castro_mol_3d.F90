@@ -27,8 +27,8 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_3d_module, only : divu, normalize_species_fluxes
-  use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens, shock
+  use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens, shock, &
+                                    divu, normalize_species_fluxes
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx

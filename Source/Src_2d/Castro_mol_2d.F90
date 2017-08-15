@@ -25,8 +25,7 @@ subroutine ca_mol_single_stage(time, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, ppm_temp_fix
-  use advection_util_2d_module, only : divu, normalize_species_fluxes
-  use advection_util_module, only : compute_cfl, shock
+  use advection_util_module, only : compute_cfl, shock, divu, normalize_species_fluxes
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
@@ -343,8 +342,8 @@ subroutine ca_mol_single_stage(time, &
   ! this is used for the artifical viscosity
   allocate(div(lo(1):hi(1)+1 ,lo(2):hi(2)+1))
 
-  call divu(lo, hi, q, q_lo(1), q_lo(2), q_hi(1), q_hi(2), &
-            delta, div, lo(1), lo(2), hi(1)+1, hi(2)+1)
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3D, div, [lo(1), lo(2), 0], [hi(1)+1, hi(2)+1, 0])
 
   do n = 1, NVAR
      if (n == UTEMP) then

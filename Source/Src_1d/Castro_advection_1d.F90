@@ -370,8 +370,7 @@ contains
                                    GDU, GDPRES, &
 #endif
                                    limit_fluxes_on_small_dens, NGDNV, GDPRES, NQ
-    use advection_util_1d_module, only: normalize_species_fluxes
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -481,7 +480,7 @@ contains
     endif
 
     ! Normalize the species fluxes.
-    call normalize_species_fluxes(flux, flux_lo, flux_hi, lo, hi)
+    call normalize_species_fluxes(flux, flux_lo, flux_hi, [lo(1), 0, 0], [hi(1), 0, 0])
 
 #ifdef RADIATION
     ! now do the radiation energy groups parts

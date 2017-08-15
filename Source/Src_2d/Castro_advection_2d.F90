@@ -568,8 +568,7 @@ contains
                                    limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
-    use advection_util_2d_module, only : normalize_species_fluxes
-    use advection_util_module, only: limit_hydro_fluxes_on_small_dens
+     use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 #ifdef RADIATION
@@ -710,7 +709,7 @@ contains
 
     call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
                                   flux2, flux2_lo, flux2_hi, &
-                                  lo,hi)
+                                  [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
 #ifdef RADIATION
     do g = 0, ngroups-1

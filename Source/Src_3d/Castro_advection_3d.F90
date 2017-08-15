@@ -959,8 +959,7 @@ contains
                                    GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif                                   
                                    track_grid_losses, limit_fluxes_on_small_dens
-    use advection_util_3d_module, only : normalize_species_fluxes
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
     use amrinfo_module, only : amr_level

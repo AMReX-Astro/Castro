@@ -37,8 +37,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
                                  use_flattening, QPRES, NQAUX, &
                                  first_order_hydro
-  use advection_util_2d_module, only : divu
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, divu
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : mom_flux_has_p
@@ -194,8 +193,8 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   ! this is used for the artifical viscosity
-  call divu(lo,hi,q,q_lo(1),q_lo(2),q_hi(1),q_hi(2), &
-            delta,div,lo(1),lo(2),hi(1)+1,hi(2)+1)
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3d, div, [lo(1), lo(2), 0], [hi(1)+1,hi(2)+1, 0])
 
   ! Conservative update
   call consup(uin,  uin_lo,  uin_hi, &
