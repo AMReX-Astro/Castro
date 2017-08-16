@@ -385,7 +385,6 @@ subroutine ca_mol_single_stage(time, &
                                 [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
 
-
   ! Make the update for this state
 
   ! For hydro, we will create an update source term that is
