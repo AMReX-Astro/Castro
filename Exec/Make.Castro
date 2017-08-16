@@ -252,12 +252,26 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
 
 # Castro directories
-Bdirs 	:= Source Source/param_includes Source/Src_$(DIM)d Source/Src_nd \
-           constants Util/model_parser
+# Castro directories
+Bdirs := Source/driver Source/driver/param_includes Source/hydro Source/problems Source/source_terms constants Util/model_parser
 
+ifeq ($(USE_DIFFUSION), TRUE)
+  Bdirs += Source/diffusion
+endif
+ifeq ($(USE_GRAV), TRUE)
+  Bdirs += Source/gravity
+endif
+ifeq ($(USE_PARTICLES), TRUE)
+  Bdirs += Source/particles
+endif
 ifeq ($(USE_RAD), TRUE)
-Bdirs +=   Source/Radiation Source/Radiation/_interpbndry \
-           Source/Radiation/RadSrc_$(DIM)d Source/Radiation/RadSrc_nd
+  Bdirs += Source/radiation Source/radiation/_interpbndry
+endif
+ifeq ($(USE_REACTIONS), TRUE)
+  Bdirs += Source/reactions
+endif
+ifeq ($(USE_ROTATION), TRUE)
+  Bdirs += Source/rotation
 endif
 
 Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
@@ -303,7 +317,7 @@ include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
 # runtime parameter support for extern/ routines
 f90EXE_sources += extern.f90
 
-EXTERN_TEMPLATE := $(TOP)/Source/extern_probin.template
+EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 EXTERN_SEARCH := $(EXTERN_CORE)
 ifdef MICROPHYSICS_HOME

@@ -1,0 +1,9 @@
+# sources used with diffusion
+# included when USE_DIFFUSION=TRUE
+
+CEXE_sources += Castro_diffusion.cpp
+CEXE_sources += Diffusion.cpp
+CEXE_headers += Diffusion.H 
+
+ca_f90EXE_sources += Diffusion_nd.f90 
+ca_f90EXE_sources += Enthalpy_nd.f90

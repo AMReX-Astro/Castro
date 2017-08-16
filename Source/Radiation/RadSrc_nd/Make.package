@@ -1,6 +1,0 @@
-ifeq ($(USE_RAD), TRUE)
-ca_f90EXE_sources += rad_params.f90 blackbody.f90 \
-                  Rad_nd.f90 fluxlimiter.f90 RadHydro_nd.f90 filter.f90 \
-                  RadDerive_nd.f90 rad_util.f90
-ca_F90EXE_sources += kavg.F90
-endif

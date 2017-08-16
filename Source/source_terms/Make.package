@@ -1,0 +1,18 @@
+# source term sources -- this is always included
+
+CEXE_sources += Castro_sources.cpp
+CEXE_sources += Castro_sponge.cpp
+CEXE_sources += Castro_external.cpp
+
+ca_f90EXE_sources += update_sponge_params.f90
+ca_F90EXE_sources += sponge_nd.F90
+
+ifeq ($(DIMENSION_AGNOSTIC), TRUE)
+  ca_F90EXE_sources += ext_src_nd.F90
+else
+  ca_f90EXE_sources += ext_src_$(DIM)d.f90
+endif
+
+
+
+
