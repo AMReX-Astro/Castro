@@ -37,21 +37,21 @@ ca_f90EXE_sources += io.f90
 ca_f90EXE_sources += math.f90
 ca_F90EXE_sources += meth_params.F90
 
-NEED_MGUTIL :=
+NEED_MGUTIL =
 
 ifeq ($(USE_GRAV), TRUE)
-  NEED_MGUTIL := TRUE
+  NEED_MGUTIL = TRUE
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
-  NEED_MGUTIL := TRUE
+  NEED_MGUTIL = TRUE
 endif
 
-ifeq ($(NEED_MGUTIL), TRUE)
+ifdef NEED_MGUTIL
   ifeq ($(DIM), 1)
     ca_f90EXE_sources += MGutils_1d.f90
   endif
-  ifeq ($(DIM), 1)
+  ifeq ($(DIM), 2)
     ca_f90EXE_sources += MGutils_2d.f90
   endif
 endif
