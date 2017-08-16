@@ -382,7 +382,7 @@ subroutine ca_mol_single_stage(time, &
   ! Normalize the species fluxes
   call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
                                 flux2, flux2_lo, flux2_hi, &
-                                lo,hi)
+                                [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
 
   ! Make the update for this state
