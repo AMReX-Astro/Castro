@@ -267,7 +267,7 @@ endif
 ifeq ($(USE_RAD), TRUE)
   Bdirs += Source/radiation Source/radiation/_interpbndry
 endif
-ifeq ($(USE_REACTIONS), TRUE)
+ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
 endif
 ifeq ($(USE_ROTATION), TRUE)
