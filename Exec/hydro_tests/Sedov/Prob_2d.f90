@@ -4,7 +4,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
-  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_type_module, only : eos_t, eos_input_rt, eos_input_rp
   use eos_module, only : eos
   use network, only: nspec
   use amrex_fort_module, only : rt => amrex_real
@@ -14,7 +14,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: init, namlen
   integer :: name(namlen)
   real(rt) :: problo(2), probhi(2)
-  real(rt) :: xn_zone(nspec)
   type(eos_t) :: eos_state
 
   integer :: untin,i
@@ -53,11 +52,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin,fortin)
   close(unit=untin)
 
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
 
   ! override the pressure iwth the temperature
   if (temp_ambient > ZERO) then
-     xn_zone(:) = ZERO
-     xn_zone(1) = ONE
 
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
@@ -68,6 +67,17 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      p_ambient = eos_state % p
 
   endif
+
+  ! Calculate ambient state data
+
+  eos_state % rho = dens_ambient
+  eos_state % p   = p_ambient
+  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % xn  = xn_zone
+
+  call eos(eos_input_rp, eos_state)
+
+  e_ambient = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -122,11 +132,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer :: i,j, ii, jj
   real(rt)         :: vol_pert, vol_ambient
-  real(rt) :: xn_zone(nspec), e_zone
+  real(rt) :: e_zone
   type(eos_t) :: eos_state
-
-  xn_zone(:) = ZERO
-  xn_zone(1) = ONE
 
   ! Cylindrical problem in Cartesian coordinates
   if (probtype .eq. 21) then

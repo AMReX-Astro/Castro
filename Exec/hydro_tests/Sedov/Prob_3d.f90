@@ -3,14 +3,18 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
-
   use amrex_fort_module, only : rt => amrex_real
+  use eos_type_module, only: eos_t, eos_input_rp
+  use eos_module, only: eos
+
   implicit none
   integer :: init, namlen
   integer :: name(namlen)
   real(rt)         :: problo(3), probhi(3)
 
   integer :: untin,i
+
+  type(eos_t) :: eos_state
 
   namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
        r_init, nsub
@@ -45,6 +49,17 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center(1) = (problo(1)+probhi(1))/2.e0_rt
   center(2) = (problo(2)+probhi(2))/2.e0_rt
   center(3) = (problo(3)+probhi(3))/2.e0_rt
+
+  ! Calculate ambient state data
+
+  eos_state % rho = dens_ambient
+  eos_state % p   = p_ambient
+  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % xn  = xn_zone
+
+  call eos(eos_input_rp, eos_state)
+
+  e_ambient = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -101,11 +116,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer :: i,j,k, ii, jj, kk
   integer :: npert, nambient
-  real(rt) :: xn_zone(nspec), e_zone
+  real(rt) :: e_zone
   type(eos_t) :: eos_state
-
-  xn_zone(:) = ZERO
-  xn_zone(1) = ONE
 
   if (probtype .eq. 32) then
 
