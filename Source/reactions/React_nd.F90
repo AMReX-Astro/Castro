@@ -9,12 +9,12 @@ contains
 
 #ifndef SDC
 
-  subroutine ca_react_state(lo,hi, &
-                            state,s_lo,s_hi, &
-                            reactions,r_lo,r_hi, &
-                            weights,w_lo,w_hi, &
-                            mask,m_lo,m_hi, &
-                            time,dt_react,strang_half) bind(C, name="ca_react_state")
+  subroutine ca_react_state(lo, hi, &
+                            state, s_lo, s_hi, &
+                            reactions, r_lo, r_hi, &
+                            weights, w_lo, w_hi, &
+                            mask, m_lo, m_hi, &
+                            time, dt_react, strang_half) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &

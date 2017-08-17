@@ -3,6 +3,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
+  use eos_type_module, only: eos_t, eos_input_rp
+  use eos_module, only: eos
+  use bl_constants_module, only: ZERO, ONE
+
   implicit none
 
   integer :: init, namlen
@@ -13,6 +17,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
            r_init, nsub
+
+  type(eos_t) :: eos_state
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -41,6 +47,20 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   center(1) = 0.e0_rt
+
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
+
+  ! Calculate ambient state data
+
+  eos_state % rho = dens_ambient
+  eos_state % p   = p_ambient
+  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % xn  = xn_zone
+
+  call eos(eos_input_rp, eos_state)
+
+  e_ambient = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -94,11 +114,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer :: i,ii
   real(rt)         :: vol_pert, vol_ambient
-  real(rt) :: xn_zone(nspec), e_zone
+  real(rt) :: e_zone
   type(eos_t) :: eos_state
-
-  xn_zone(:) = ZERO
-  xn_zone(1) = ONE
 
   dx_sub = delta(1)/dble(nsub)
 
