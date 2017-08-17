@@ -7,6 +7,7 @@ HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 TOP := $(CASTRO_HOME)
 
+# default microphysics locations
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
@@ -14,11 +15,14 @@ VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
 EBASE = Castro
 
-# EXTERN_CORE is simply a list of the directories we use in EOS, Networks and Util
-# this list will be searched for runtime parameters
+# EXTERN_CORE is simply a list of the directories we use in EOS,
+# Networks and Util this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
+
+all: $(executable)
+	@echo SUCCESS
 
 # Castro uses a coarse grained OMP approach
 DEFINES += -DCRSEGRNDOMP
@@ -26,35 +30,58 @@ DEFINES += -DCRSEGRNDOMP
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
 
+# OpenACC support
 ifeq ($(USE_ACC), TRUE)
-   DEFINES += -DACC
+  DEFINES += -DACC
 endif
 
+USE_MG = FALSE
+
+#------------------------------------------------------------------------------
+# Castro directories
+#------------------------------------------------------------------------------
+
+Bdirs := Source/driver Source/driver/param_includes \
+         Source/hydro Source/problems Source/source_terms \
+         constants Util/model_parser
+
+# add / define any special physics we need
 ifeq ($(USE_GRAV), TRUE)
-   DEFINES += -DGRAVITY
-   ifndef USE_SELF_GRAV
-      USE_SELF_GRAV = TRUE
-   endif
-   ifeq ($(USE_SELF_GRAV), TRUE)
-      DEFINES += -DSELF_GRAVITY
-   endif
+  Bdirs += Source/gravity
+  DEFINES += -DGRAVITY
+  USE_MG = TRUE
+
+  ifndef USE_SELF_GRAV
+    USE_SELF_GRAV = TRUE
+  endif
+
+  ifeq ($(USE_SELF_GRAV), TRUE)
+    DEFINES += -DSELF_GRAVITY
+  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
-   DEFINES += -DGR_GRAV
+  DEFINES += -DGR_GRAV
+endif
+
+ifeq ($(USE_POINTMASS), TRUE)
+   DEFINES += -DPOINTMASS
 endif
 
 ifeq ($(USE_REACT), TRUE)
-   DEFINES += -DREACTIONS
+  Bdirs += Source/reactions
+  DEFINES += -DREACTIONS
 endif
 
 ifeq ($(USE_SDC), TRUE)
-   USERSuffix   = .SDC
-   DEFINES += -DSDC
+  USERSuffix = .SDC
+  DEFINES += -DSDC
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
-   DEFINES += -DDIFFUSION
+  Bdirs += Source/diffusion
+  DEFINES += -DDIFFUSION
+  USE_MG = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -71,25 +98,25 @@ ifeq ($(USE_AUX_UPDATE), TRUE)
    DEFINES += -DAUX_UPDATE
 endif
 
-ifeq ($(USE_POINTMASS), TRUE)
-   DEFINES += -DPOINTMASS
-endif
-
 ifeq ($(USE_POST_SIM), TRUE)
    DEFINES += -DDO_PROBLEM_POST_SIMULATION
 endif
 
 ifeq ($(USE_RAD), TRUE)
-   DEFINES += -DRADIATION
-   DEFINES += -DRAD_INTERP
+  Bdirs += Source/radiation Source/radiation/_interpbndry
+  DEFINES += -DRADIATION
+  DEFINES += -DRAD_INTERP
+  USE_HYPRE := TRUE
 
-   ifeq ($(USE_NEUTRINO), TRUE)
-      DEFINES += -DNEUTRINO
-      USERSuffix   = .Neutrino
-      ifeq ($(USE_DUMPMODEL), TRUE)
-         DEFINES += -DHAS_DUMPMODEL
-      endif
-   endif
+  EXTERN_CORE += $(TOP)/Util/LAPACK
+
+  ifeq ($(USE_NEUTRINO), TRUE)
+    DEFINES += -DNEUTRINO
+    USERSuffix = .Neutrino
+    ifeq ($(USE_DUMPMODEL), TRUE)
+      DEFINES += -DHAS_DUMPMODEL
+    endif
+  endif
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -102,33 +129,47 @@ ifeq ($(USE_MAESTRO_INIT), TRUE)
 endif
 
 ifeq ($(USE_ROTATION), TRUE)
-   DEFINES += -DROTATION
+  Bdirs += Source/rotation
+  DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_PARTICLES), TRUE)
+  Bdirs += Source/particles
+endif
+
+Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
+Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
+
+
+#------------------------------------------------------------------------------
+# AMReX
+#------------------------------------------------------------------------------
+
+# core AMReX directories -- note the Make.package for these adds these
+# directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
+# don't need to do it here
+
+Pdirs 	:= Base AmrCore Amr Boundary
+
+ifeq ($(USE_PARTICLES), TRUE)
+ Pdirs += Particle
 endif
 
 ifeq ($(USE_RAD), TRUE)
-   USE_HYPRE := TRUE
+  Pdirs += LinearSolvers/C_CellMG
 endif
 
-ifeq ($(USE_HYPRE), TRUE)
-   ifeq ($(USE_OMP), TRUE)
-      INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-      LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-   else
-      INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-      LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-   endif
-   LIBRARIES += -lHYPRE
+Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
+
+ifeq ($(USE_MG), TRUE)
+   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
+   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
 endif
 
-ifeq ($(USE_HDF5), TRUE)
-   INCLUDE_LOCATIONS += $(HDF5_DIR)/include
-   INCLUDE_LOCATIONS += $(HDF5_INCL)
-   LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
-   LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
-endif
 
-all: $(executable)
-	@echo SUCCESS
+#------------------------------------------------------------------------------
+# microphysics 
+#------------------------------------------------------------------------------
 
 ifdef MICROPHYSICS_HOME
    EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
@@ -156,10 +197,9 @@ endif
    VISC_PATH := $(VISC_HOME)/constant
 endif
 
-# Problems can specify the input file for general_null by
-# setting GENERAL_NET_INPUTS directly (full path) or just
-# specifying the name of the inputs file as NETWORK_INPUTS
-# and let us sort it out
+# Problems can specify the input file for general_null by setting
+# GENERAL_NET_INPUTS directly (full path) or just specifying the name
+# of the inputs file as NETWORK_INPUTS and let us sort it out
 ifndef GENERAL_NET_INPUTS
    ifneq "$(wildcard $(NETWORK_INPUTS))" ""
       GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
@@ -168,13 +208,11 @@ ifndef GENERAL_NET_INPUTS
    endif
 endif
 
-include $(EOS_HOME)/Make.package
-include $(EOS_PATH)/Make.package
 EXTERN_CORE += $(EOS_HOME)
 EXTERN_CORE += $(EOS_PATH)
 
-# the helmholtz EOS has an include file -- also add a target to link the table
-# into the problem directory.
+# the helmholtz EOS has an include file -- also add a target to link
+# the table into the problem directory.
 ifeq ($(findstring helmholtz, $(EOS_dir)), helmholtz)
    all: table
 endif
@@ -182,25 +220,20 @@ endif
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
-include $(NETWORK_HOME)/Make.package
-include $(NETWORK_PATH)/Make.package
 EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
-
-# Note that this should be located after the include of the EOS and Network includes
-# since it has actions that depend on variables set there.
+# Note that this should be located after the include of the EOS and
+# Network includes since it has actions that depend on variables set
+# there.
 
 ifdef MICROPHYSICS_HOME
-   include $(MICROPHYSICS_HOME)/EOS/Make.package
-   include $(MICROPHYSICS_HOME)/networks/Make.package
+  EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
+  EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
-   include $(TOP)/Microphysics/conductivity/Make.package
-   include $(COND_HOME)/Make.package
-   include $(COND_PATH)/Make.package
-   include $(VISC_PATH)/Make.package
+   EXTERN_CORE += $(TOP)/Microphysics/conductivity
    EXTERN_CORE += $(COND_HOME)
    EXTERN_CORE += $(COND_PATH)
    EXTERN_CORE += $(VISC_PATH)
@@ -208,79 +241,41 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
    OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
-   include $(OPAC_PATH)/Make.package
    EXTERN_CORE += $(OPAC_PATH)
 endif
 
-INCLUDE_LOCATIONS += $(EOS_HOME) $(EOS_PATH)
-VPATH_LOCATIONS   += $(EOS_HOME) $(EOS_PATH)
+Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
+Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
-INCLUDE_LOCATIONS += $(NETWORK_HOME) $(NETWORK_PATH)
-VPATH_LOCATIONS   += $(NETWORK_HOME) $(NETWORK_PATH)
 
-ifeq ($(USE_DIFFUSION), TRUE)
-   INCLUDE_LOCATIONS += $(COND_HOME) $(COND_PATH) $(VISC_PATH)
-   VPATH_LOCATIONS   += $(COND_HOME) $(COND_PATH) $(VISC_PATH)
+#------------------------------------------------------------------------------
+# external libraries
+#------------------------------------------------------------------------------
+
+ifeq ($(USE_HYPRE), TRUE)
+  ifeq ($(USE_OMP), TRUE)
+    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
+    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
+  else
+    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+  endif
+  LIBRARIES += -lHYPRE
 endif
 
-ifeq ($(USE_RAD), TRUE)
-   INCLUDE_LOCATIONS += $(OPAC_PATH)
-   VPATH_LOCATIONS   += $(OPAC_PATH)
-
-   LAPACK_dir    := $(TOP)/Util/LAPACK
-   include $(LAPACK_dir)/Make.package
-   EXTERN_CORE += $(TOP)/Util/LAPACK
-   INCLUDE_LOCATIONS += $(LAPACK_dir)
-   VPATH_LOCATIONS   += $(LAPACK_dir)
+ifeq ($(USE_HDF5), TRUE)
+  INCLUDE_LOCATIONS += $(HDF5_DIR)/include
+  INCLUDE_LOCATIONS += $(HDF5_INCL)
+  LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
+  LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
 endif
 
 
-# AMReX directories -- note the Make.package for these adds these
-# directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
-# don't need to do it here
-Pdirs 	:= Base AmrCore Amr Boundary
-
-ifeq ($(USE_PARTICLES), TRUE)
-  Pdirs += Particle
-endif
-
-ifeq ($(USE_RAD), TRUE)
-   Pdirs += LinearSolvers/C_CellMG
-endif
-
-Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
-
-
-# Castro directories
-# Castro directories
-Bdirs := Source/driver Source/driver/param_includes Source/hydro Source/problems Source/source_terms constants Util/model_parser
-
-ifeq ($(USE_DIFFUSION), TRUE)
-  Bdirs += Source/diffusion
-endif
-ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity
-endif
-ifeq ($(USE_PARTICLES), TRUE)
-  Bdirs += Source/particles
-endif
-ifeq ($(USE_RAD), TRUE)
-  Bdirs += Source/radiation Source/radiation/_interpbndry
-endif
-ifeq ($(USE_REACT), TRUE)
-  Bdirs += Source/reactions
-endif
-ifeq ($(USE_ROTATION), TRUE)
-  Bdirs += Source/rotation
-endif
-
-Bpack	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
-Blocs	+= $(foreach dir, $(Bdirs), $(TOP)/$(dir))
+#------------------------------------------------------------------------------
+# include all of the necessary directories
+#------------------------------------------------------------------------------
 
 include $(Bpack)
-
-INCLUDE_LOCATIONS += $(Blocs)
-VPATH_LOCATIONS   += $(Blocs)
 
 ifeq ($(MEGA_FORTRAN), TRUE)
    F90EXE_sources += mega_f.F90
@@ -293,33 +288,23 @@ endif
 mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
 	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
 
-# these are for finding runtime parameters
-EXTERN_CORE += $(TOP)/constants
-EXTERN_CORE += $(TOP)/Util/model_parser
+INCLUDE_LOCATIONS += $(Blocs)
+VPATH_LOCATIONS   += $(Blocs)
 
-USE_MG = FALSE
-
-ifeq ($(USE_GRAV), TRUE)
-   USE_MG = TRUE
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
-   USE_MG = TRUE
-endif
-
-ifeq ($(USE_MG), TRUE)
-   include $(AMREX_HOME)/Src/LinearSolvers/C_to_F_MG/Make.package
-   include $(AMREX_HOME)/Src/LinearSolvers/F_MG/FParallelMG.mak
-endif
 
 include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
+
+#------------------------------------------------------------------------------
+# runtime parameters
+#------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
 f90EXE_sources += extern.f90
 
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
-EXTERN_SEARCH := $(EXTERN_CORE)
+# these are for finding runtime parameters
+EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser
 ifdef MICROPHYSICS_HOME
    EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 endif
@@ -331,8 +316,11 @@ extern.f90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            -t $(EXTERN_TEMPLATE) -o extern.f90 -n extern \
            --pa "$(EXTERN_PARAMETERS)"
 
+#------------------------------------------------------------------------------
+# build info
+#------------------------------------------------------------------------------
+
 # job_info support
-#CEXE_sources += AMReX_buildInfo.cpp
 CEXE_headers += $(AMREX_HOME)/Tools/C_scripts/AMReX_buildInfo.H
 INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
 
@@ -347,9 +335,9 @@ ifeq ($(USE_RAD), TRUE)
    MNAMES += OPACITY=$(OPAC_PATH)
 endif
 
-# we make AMReX_buildInfo.cpp as we make the .o file, so we can delete it
-# immediately.  this way if the build is interrupted, we are guaranteed
-# to remake it
+# we make AMReX_buildInfo.cpp as we make the .o file, so we can delete
+# it immediately.  this way if the build is interrupted, we are
+# guaranteed to remake it
 
 objForExecs += $(objEXETempDir)/AMReX_buildInfo.o
 
@@ -377,28 +365,30 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 
 
+#------------------------------------------------------------------------------
+# finish up
+#------------------------------------------------------------------------------
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
 clean::
 	$(SILENT) $(RM) extern.f90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 
-# Older versions of CASTRO generated a
-# "network.f90" file when using the
-# general_null network, which conflicts
-# with our generalized network.f90 file.
-# So we should delete the local copy if
-# we are trying to rebuild from an old directory.
+# Older versions of CASTRO generated a "network.f90" file when using
+# the general_null network, which conflicts with our generalized
+# network.f90 file.  So we should delete the local copy if we are
+# trying to rebuild from an old directory.
 
 clean::
 	$(RM) network.f90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 
-#-----------------------------------------------------------------------------
 # for debugging.  To see the value of a Makefile variable,
-# e.g. Fmlocs, simply do "make print-Fmlocs".  This will
-# print out the value.
+# e.g. Fmlocs, simply do "make print-Fmlocs".  This will print out the
+# value.
+
 print-%::
 	@echo "$* is $($*)"
 	@$(RM) AMReX_buildInfo.cpp

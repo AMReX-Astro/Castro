@@ -26,7 +26,7 @@ INTEGRATOR_DIR := BS
 f90EXE_sources += testburn.f90
 
 BLOCS = .
-EXTERN_CORE = .
+EXTERN_SEARCH = .
 
 CASTRO_HOME := ../../..
 
