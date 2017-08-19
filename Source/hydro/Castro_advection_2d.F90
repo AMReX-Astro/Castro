@@ -58,7 +58,7 @@ contains
     use trace_module, only : tracexy
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : trace_ppm_rad
+    use trace_ppm_rad_module, only : tracexy_ppm_rad
 #else
     use trace_ppm_module, only : tracexy_ppm
 #endif
@@ -401,13 +401,13 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call trace_ppm_rad(q, flatn, q_lo, q_hi, &
-                          qaux, qa_lo, qa_hi, &
-                          dloga, dloga_lo, dloga_hi, &
-                          qxm, qxp, qym, qyp, qp_lo, qp_hi, &
-                          srcQ, src_lo, src_hi, &
-                          lo(1), lo(2), hi(1), hi(2), dx, dy, dt)
-
+       call tracexy_ppm_rad(q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &            
+                            qxm, qxp, qym, qyp, qp_lo, qp_hi, &
+                            dloga, dloga_lo, dloga_hi, &
+                            lo(1), lo(2), hi(1), hi(2), [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0], &
+                            [dx, dy, ZERO], dt, 0, 0)
 #else
        call tracexy_ppm(q, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &

@@ -48,7 +48,7 @@ contains
     use trace_module, only : tracexy
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use trace_ppm_rad_module, only : trace_ppm_rad
+    use trace_ppm_rad_module, only : tracexy_ppm_rad
 #else
     use trace_ppm_module, only : tracexy_ppm
 #endif
@@ -290,12 +290,14 @@ contains
     ! Trace to edges 
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
-       call trace_ppm_rad(q, flatn, q_lo, q_hi, &
-                          qaux, qa_lo, qa_hi, &
-                          dloga, dloga_lo, dloga_hi, &
-                          srcQ, src_lo, src_hi, &
-                          qm, qp, qp_lo, qp_hi, &
-                          ilo, ihi, domlo, domhi, dx, dt)
+       call tracexy_ppm_rad(q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
+                            qm, qp, qm, qp, qp_lo, qp_hi, &
+                            dloga, dloga_lo, dloga_hi, &
+                            srcQ, src_lo, src_hi, &
+                            ilo, 0, ihi, 0, [domlo(1), 0, 0], [domhi(1), 0, 0], &
+                            [dx, ZERO, ZERO], dt, 0, 0)
 #else
        call tracexy_ppm(q, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &

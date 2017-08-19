@@ -103,33 +103,34 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt)         :: cc, csq, cgassq, Clag
-    real(rt)         :: rho, u, v, w, p, rhoe_g, h_g, tau
-    real(rt)         :: ptot, gam_g, game
+    real(rt) :: cc, csq, cgassq, Clag
+    real(rt) :: rho, u, v, w, p, rhoe_g, h_g, tau
+    real(rt) :: ptot, gam_g, game
 
-    real(rt)         :: drho, dptot, drhoe_g
-    real(rt)         :: de, dge, dtau
-    real(rt)         :: dup, dvp, dptotp
-    real(rt)         :: dum, dvm, dptotm
+    real(rt) :: drho, dptot, drhoe_g
+    real(rt) :: de, dge, dtau
+    real(rt) :: dup, dvp, dptotp
+    real(rt) :: dum, dvm, dptotm
 
-    real(rt)         :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
-    real(rt)         :: tau_ref
-    real(rt)         :: ptot_ref
+    real(rt) :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: tau_ref
+    real(rt) :: ptot_ref
 
-    real(rt)         :: gam_ref, game_ref, gfactor
+    real(rt) :: gam_ref, game_ref, gfactor
 
-    real(rt)         :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt) :: alpham, alphap, alpha0r, alpha0e_g
+    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp, sourcer(0:ngroups-1)
+    real(rt) :: tau_s, e_s
 
-    real(rt)         :: tau_s, e_s
+    real(rt), dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
+    real(rt), dimension(0:ngroups-1) :: lam0, lamp, lamm
 
-    real(rt)        , dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    real(rt)        , dimension(0:ngroups-1) :: lam0, lamp, lamm
+    real(rt), dimension(0:ngroups-1) :: er_ref
 
-    real(rt)        , dimension(0:ngroups-1) :: er_ref
+    real(rt) :: er_foo
 
-
-    real(rt)         :: er_foo
-
+    logical :: fix_mass_flux_lo, fix_mass_flux_hi
+    
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call bl_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
@@ -647,8 +648,8 @@ contains
                 qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + source
                 qxp(i,j,kc,qrad:qradhi) = qxp(i,j,kc,qrad:qradhi) + sourcer(:)
                 ! qxp(i  ,qptot ) = sum(lamp(:)*qxp(i,qrad:qradhi)) + qxp(i,QPRES)
-                qxp(i,qptot) = qxp(i,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
-                qxp(i  ,qreitot) = sum(qxp(i,qrad:qradhi))  + qxp(i,QREINT)
+                qxp(i,j,kc,qptot) = qxp(i,j,kc,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
+                qxp(i,j,kc,qreitot) = sum(qxp(i,j,kc,qrad:qradhi))  + qxp(i,j,kc,QREINT)
              end if
           endif
 
@@ -1208,11 +1209,11 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:2,1:3,1:3,NQ)
-    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:2,1:3,1:3,NQ)
+    real(rt), intent(in) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
+    real(rt), intent(in) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:2,1:3,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:2,1:3,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
+    real(rt), intent(in) :: Im_src(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:3,1:3,QVAR)
 
 
     real(rt), intent(inout) :: qzm(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
