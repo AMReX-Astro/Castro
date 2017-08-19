@@ -23,7 +23,7 @@ explicitly requires a timestep limiter of
 \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 \end{equation}
 (this is implemented in \code{ca\_estdt\_temp\_diffusion} in {\tt
-  Castro/Source/Src\_nd/timestep.F90}).
+  Castro/Source/driver/timestep.F90}).
 
 Support for diffusion must be compiled into the code by setting {\tt
   USE\_DIFFUSION = TRUE} in your {\tt GNUmakefile}.  It is treated

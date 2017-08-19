@@ -42,7 +42,7 @@ USE_MG = FALSE
 #------------------------------------------------------------------------------
 
 Bdirs := Source/driver Source/driver/param_includes \
-         Source/hydro Source/problems Source/source_terms \
+         Source/hydro Source/problems Source/sources \
          constants Util/model_parser
 
 # add / define any special physics we need

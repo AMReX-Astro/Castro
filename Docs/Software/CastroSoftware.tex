@@ -52,18 +52,23 @@ division between \cpp\ and Fortran.
   \item {\tt conductivity/}: the thermal conductivity
   \item {\tt EOS/}: the equation of state
   \item {\tt networks/}: the nuclear reaction networks
+  \item {\tt opacity/}: the radiative opacity (used with radiation)
+  \item {\tt viscosity/}: the viscous transport coefficient
   \end{itemize}
 
 \item {\tt Source/}: source code.  In this main directory is all of
-  the \cpp\ code.  The associated Fortran code is in the following
-  sub-directories:
+  the code.  Sources are mixed \cpp\ and Fortran and are organized by topic as:
   \begin{itemize}
-  \item {\tt Src\_1d}: one-dimensional Fortran code
-  \item {\tt Src\_2d}: two-dimensional Fortran code
-  \item {\tt Src\_3d}: three-dimensional Fortran code
-  \item {\tt Src\_nd}: dimension agnostic Fortran code---this is code that
-    is written in a generic fashion so that it can be called regardless
-    of the dimensionality of the problem.
+  \item {\tt diffusion/} : thermal diffusion code
+  \item {\tt driver/} : the main driver, I/O, runtime parameter support
+  \item {\tt gravity/} : self-gravity code
+  \item {\tt hydro/} : the compressible hydrodynamics code
+  \item {\tt particles/} : support for particles
+  \item {\tt problems/} : template code for implementing a problem
+  \item {\tt radiation/} : the implicit radiation solve code
+  \item {\tt reactions/} : nuclear reaction code
+  \item {\tt rotation/} : rotating code
+  \item {\tt sources/} : hydrodynamics source terms support
   \end{itemize}
 \item {\tt Util/}: a catch-all for additional things you may need
   \begin{itemize}
@@ -473,10 +478,9 @@ A few comments about this code
    higher dimension values if we are running in 1- or 2D.
 
    Passing the data in this 3D fashion is a newer approach in \castro.
-   This enables writing {\em dimension agnostic code}, like that found
-   in {\tt Src\_nd/}.  There are many other approaches that will pass
-   only the {\tt DIM} values of {\tt lo} and {\tt hi} using alternate
-   macros in {\tt ArrayLim.H}.
+   This enables writing {\em dimension agnostic code}.  There are many
+   other approaches that will pass only the {\tt DIM} values of {\tt
+     lo} and {\tt hi} using alternate macros in {\tt ArrayLim.H}.
 
 \item {\tt fab.dataPtr()} returns a {\tt double *}---a pointer to the
   data region.  This is what is passed to Fortran.
