@@ -85,21 +85,23 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
-   ifeq ($(DIM), 3)
-      DEFINES += -DHYBRID_MOMENTUM
-   endif
+  ifeq ($(DIM), 3)
+    DEFINES += -DHYBRID_MOMENTUM
+  else
+    $(error USE_HYBRID_MOMENTUM requires 3-d)
+  endif
 endif
 
 ifeq ($(USE_SHOCK_VAR), TRUE)
-   DEFINES += -DSHOCK_VAR
+  DEFINES += -DSHOCK_VAR
 endif
 
 ifeq ($(USE_AUX_UPDATE), TRUE)
-   DEFINES += -DAUX_UPDATE
+  DEFINES += -DAUX_UPDATE
 endif
 
 ifeq ($(USE_POST_SIM), TRUE)
-   DEFINES += -DDO_PROBLEM_POST_SIMULATION
+  DEFINES += -DDO_PROBLEM_POST_SIMULATION
 endif
 
 ifeq ($(USE_RAD), TRUE)
