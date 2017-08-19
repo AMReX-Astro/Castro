@@ -141,12 +141,13 @@
 
 
 \rowcolor{tableShade}
+\runparamNS{diffuse\_cond\_scale\_fac}{castro} &  scaling factor for conductivity & 1.0 \\
 \runparamNS{diffuse\_cutoff\_density}{castro} &  set a cutoff density for diffusion -- we zero the term out below this density & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{diffuse\_enth}{castro} &  enable enthalpy diffusion & 0 \\
-\rowcolor{tableShade}
 \runparamNS{diffuse\_spec}{castro} &  enable species diffusion & 0 \\
-\runparamNS{diffuse\_temp}{castro} &  enable thermal diffusion & 0 \\
 \rowcolor{tableShade}
+\runparamNS{diffuse\_temp}{castro} &  enable thermal diffusion & 0 \\
 \runparamNS{diffuse\_vel}{castro} &  enable velocity diffusion & 0 \\
 
 
@@ -301,56 +302,59 @@
 \runparamNS{density\_reset\_method}{castro} &  Which method to use when resetting a negative/small density 1 = Reset to characteristics of adjacent zone with largest density 2 = Use average of all adjacent zones for all state variables 3 = Reset to the original zone state before the hydro update & 1 \\
 \runparamNS{difmag}{castro} &  the coefficient of the artificial viscosity & 0.1 \\
 \rowcolor{tableShade}
+\runparamNS{do\_ctu}{castro} &  do we do the CTU unsplit method or a method-of-lines approach? & 1 \\
 \runparamNS{do\_hydro}{castro} &  permits hydro to be turned on and off for running pure rad problems & -1 \\
+\rowcolor{tableShade}
 \runparamNS{do\_sponge}{castro} &  permits sponge to be turned on and off & 0 \\
-\rowcolor{tableShade}
 \runparamNS{dual\_energy\_eta1}{castro} &  Threshold value of (E - K) / E such that above eta1, the hydrodynamic pressure is derived from E - K; otherwise, we use the internal energy variable UEINT. & 1.0e0 \\
+\rowcolor{tableShade}
 \runparamNS{dual\_energy\_eta2}{castro} &  Threshold value of (E - K) / E such that above eta2, we update the internal energy variable UEINT to match E - K. Below this, UEINT remains unchanged. & 1.0e-4 \\
-\rowcolor{tableShade}
 \runparamNS{dual\_energy\_eta3}{castro} &  Threshold value of (E - K) / E such that above eta3, the temperature used in the burning module is derived from E-K; otherwise, we use UEINT. & 1.0e0 \\
+\rowcolor{tableShade}
 \runparamNS{dual\_energy\_update\_E\_from\_e}{castro} &  Allow internal energy resets and temperature flooring to change the total energy variable UEDEN in addition to the internal energy variable UEINT. & 1 \\
-\rowcolor{tableShade}
 \runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
+\rowcolor{tableShade}
 \runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_interp\_temp}{castro} &  if we are doing HSE boundary conditions, should we get the temperature via interpolation (using model\_parser) or hold it constant? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_reflect\_vels}{castro} &  if we are doing HSE boundary conditions, how do we treat the velocity? reflect? or outflow? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_zero\_vels}{castro} &  if we are doing HSE boundary conditions, do we zero the velocity? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{keep\_sources\_until\_end}{castro} &  retain source terms until end of timestep & 0 \\
-\rowcolor{tableShade}
 \runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_reference\_eigenvectors}{castro} &  do we use the reference state in evaluating the eigenvectors? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_temp\_fix}{castro} &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_trace\_sources}{castro} &  to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation) & 1 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_type}{castro} &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
+\rowcolor{tableShade}
 \runparamNS{riemann\_solver}{castro} &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
-\rowcolor{tableShade}
 \runparamNS{small\_dens}{castro} &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_ener}{castro} &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_pres}{castro} &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_temp}{castro} &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
+\rowcolor{tableShade}
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
-\rowcolor{tableShade}
 \runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 1 \\
+\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
-\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
-\runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
 \rowcolor{tableShade}
+\runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
 \runparamNS{update\_state\_between\_sources}{castro} &  should we update the state in between evaluations of the new-time source terms & 1 \\
+\rowcolor{tableShade}
 \runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
+\runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
 \rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
@@ -552,6 +556,7 @@
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
 \rowcolor{tableShade}
+\runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 

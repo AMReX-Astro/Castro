@@ -61,7 +61,7 @@ Mfooter = r"""
 
 """
 
-param_file = "../../Source/_cpp_parameters"
+param_file = "../../Source/driver/_cpp_parameters"
 
 
 class Parameter(object):
