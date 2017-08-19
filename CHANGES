@@ -1,5 +1,9 @@
 # changes since the last release:
 
+  -- the Source/ directory structure has been reorganized,
+     putting the source files into directories by physics and 
+     eliminating the Src_1d, Src_2d, ... subdirectories
+
   -- the Riemann solvers have been merged into a single
      dimensional-agnostic version in Src_nd.  In 2-d there was an
      issue with how the Godunov state for the CG solver was stored on
