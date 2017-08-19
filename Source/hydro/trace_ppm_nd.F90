@@ -22,7 +22,7 @@ contains
                          dloga, dloga_lo, dloga_hi, &
 #endif
 #if (BL_SPACEDIM == 1)
-                         SrcQ, src_lo, Src_hi, &
+                         SrcQ, src_lo, src_hi, &
 #endif
                          ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
                          dx, dt, kc, k3d)
@@ -126,7 +126,7 @@ contains
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call bl_error("Error:: trace_ppm_3d.f90 :: tracexy_ppm")
+       call bl_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 
     hdt = HALF * dt
