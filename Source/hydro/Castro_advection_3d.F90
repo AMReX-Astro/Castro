@@ -55,7 +55,7 @@ contains
                                    QC, QGAMC, NQAUX, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    ppm_type, &
-                                   use_pslope, ppm_trace_sources, ppm_temp_fix, &
+                                   use_pslope, ppm_temp_fix, &
                                    hybrid_riemann
     use trace_ppm_module, only : tracexy_ppm, tracez_ppm
     use trace_module, only : tracexy, tracez
@@ -391,21 +391,20 @@ contains
                                   lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
           end do
 
-          if (ppm_trace_sources .eq. 1) then
-             do n=1,QVAR
-                call ppm_reconstruct(srcQ(:,:,:,n), src_lo, src_hi, &
-                                     flatn, qd_lo, qd_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
+          ! source terms
+          do n=1,QVAR
+             call ppm_reconstruct(srcQ(:,:,:,n), src_lo, src_hi, &
+                                  flatn, qd_lo, qd_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
-                call ppm_int_profile(srcQ(:,:,:,n), src_lo, src_hi, &
-                                     q(:,:,:,QU:QW), qd_lo, qd_hi, &
-                                     qaux(:,:,:,QC), qa_lo, qa_hi, &
-                                     sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
-                                     Ip_src(:,:,:,:,:,n), Im_src(:,:,:,:,:,n), It_lo, It_hi, &
-                                     lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
-             enddo
-          endif
+             call ppm_int_profile(srcQ(:,:,:,n), src_lo, src_hi, &
+                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  qaux(:,:,:,QC), qa_lo, qa_hi, &
+                                  sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
+                                  Ip_src(:,:,:,:,:,n), Im_src(:,:,:,:,:,n), It_lo, It_hi, &
+                                  lo(1), lo(2), hi(1), hi(2), dx, dt, k3d, kc)
+          enddo
 
           ! this probably doesn't support radiation
           if (ppm_temp_fix /= 1) then

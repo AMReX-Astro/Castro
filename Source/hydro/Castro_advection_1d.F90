@@ -43,7 +43,7 @@ contains
                                    QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, &
                                    NQAUX, NGDNV, &
                                    ppm_type, hybrid_riemann, &
-                                   use_pslope, plm_iorder, ppm_temp_fix, ppm_trace_sources
+                                   use_pslope, plm_iorder, ppm_temp_fix
     use riemann_module, only : cmpflx
     use trace_module, only : tracexy
 #ifdef RADIATION
@@ -134,10 +134,8 @@ contains
        allocate(Ip(I_lo(1):I_hi(1), 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), 3, NQ))
        
-       if (ppm_trace_sources == 1) then
-          allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
-          allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
-       endif
+       allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
+       allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
 
        allocate(Ip_gc(I_lo(1):I_hi(1), 3, 1))
        allocate(Im_gc(I_lo(1):I_hi(1), 3, 1))
@@ -268,21 +266,19 @@ contains
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        endif
 
-       if (ppm_trace_sources == 1) then
-          do n = 1, QVAR
-             call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
-                                  flatn, q_lo, q_hi, &
-                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
-                                  ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
+       do n = 1, QVAR
+          call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
+                               flatn, q_lo, q_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
              
-             call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
-                                  q(:,QU), q_lo, q_hi, &
-                                  qaux(:,QC), qa_lo, qa_hi, &
-                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
-                                  Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
-                                  ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
-          enddo
-       endif
+          call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
+                               q(:,QU), q_lo, q_hi, &
+                               qaux(:,QC), qa_lo, qa_hi, &
+                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
+                               ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
+       enddo
 
        deallocate(sxm, sxp)
     endif

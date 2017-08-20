@@ -16,7 +16,7 @@ module transverse_module
                                  NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                  small_pres, small_temp, &
                                  npassive, upass_map, qpass_map, &
-                                 ppm_predict_gammae, ppm_trace_sources, ppm_type, &
+                                 ppm_predict_gammae, ppm_type, &
                                  transverse_use_eos, transverse_reset_density, transverse_reset_rhoe
 #ifdef RADIATION
   use rad_params_module, only : ngroups
@@ -2449,9 +2449,9 @@ contains
           qpo(i,j,kc,QV    ) = rvnewr/rrnewr
           qpo(i,j,kc,QW    ) = rwnewr/rrnewr
 
-          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! for ppm_type > 0 we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+          if (ppm_type == 0) then
              qpo(i,j,kc,QU:QW) = qpo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
           endif
 
@@ -2579,9 +2579,9 @@ contains
           qmo(i,j,kc,QV    ) = rvnewl/rrnewl
           qmo(i,j,kc,QW    ) = rwnewl/rrnewl
 
-          ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+          ! for ppm_type > 0 we already added the piecewise parabolic traced
           ! source terms to the normal edge states.
-          if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+          if (ppm_type == 0) then
              qmo(i,j,kc,QU:QW) = qmo(i,j,kc,QU:QW) + hdt * srcQ(i,j,k3d-1,QU:QW)
           endif
 
@@ -2890,9 +2890,9 @@ contains
              qpo(i,j,km,QV    ) = rvnewr/rrnewr
              qpo(i,j,km,QW    ) = rwnewr/rrnewr
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
                 qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
@@ -2994,9 +2994,9 @@ contains
              qmo(i,j+1,km,QV    ) = rvnewl/rrnewl
              qmo(i,j+1,km,QW    ) = rwnewl/rrnewl
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
                 qmo(i,j+1,km,QU:QW) = qmo(i,j+1,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
@@ -3308,9 +3308,9 @@ contains
              qpo(i,j,km,QV    ) = rvnewr/rrnewr
              qpo(i,j,km,QW    ) = rwnewr/rrnewr
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
                 qpo(i,j,km,QU:QW) = qpo(i,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 
@@ -3415,9 +3415,9 @@ contains
              qmo(i+1,j,km,QV     ) = rvnewl/rrnewl
              qmo(i+1,j,km,QW     ) = rwnewl/rrnewl
 
-             ! if ppm_trace_sources == 1, then we already added the piecewise parabolic traced
+             ! for ppm_type > 0 we already added the piecewise parabolic traced
              ! source terms to the normal edge states.
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             if (ppm_type == 0) then
                 qmo(i+1,j,km,QU:QW) = qmo(i+1,j,km,QU:QW) + hdt * srcQ(i,j,k3d,QU:QW)
              endif
 

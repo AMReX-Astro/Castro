@@ -14,7 +14,7 @@ module transverse_module
 #endif
                                  small_pres, small_temp, &
                                  npassive, qpass_map, upass_map, &
-                                 transverse_use_eos, ppm_type, ppm_trace_sources, &
+                                 transverse_use_eos, ppm_type, &
                                  transverse_reset_density, transverse_reset_rhoe, &
                                  ppm_predict_gammae
   use prob_params_module, only : mom_flux_has_p
@@ -264,10 +264,9 @@ contains
              qpo(i,j,QU  ) = runewr/rhotmp
              qpo(i,j,QV  ) = rvnewr/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
                 qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
@@ -401,10 +400,9 @@ contains
              qmo(i,j+1,QU  ) = runewl/rhotmp
              qmo(i,j+1,QV  ) = rvnewl/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
                 qmo(i,j+1,QU:QV) = qmo(i,j+1,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
@@ -691,10 +689,9 @@ contains
              qpo(i,j,QU    ) = runewr/rhotmp
              qpo(i,j,QV    ) = rvnewr/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
                 qpo(i,j,QU:QV) = qpo(i,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
@@ -811,10 +808,9 @@ contains
              qmo(i+1,j,QU    ) = runewl/rhotmp
              qmo(i+1,j,QV    ) = rvnewl/rhotmp
 
-             ! if ppm_trace_sources == 1, then we already added the
-             ! piecewise parabolic traced source terms to the normal edge
-             ! states
-             if (ppm_trace_sources == 0 .or. ppm_type == 0) then
+             ! for ppm_type > 0 we already added the piecewise
+             ! parabolic traced source terms to the normal edge states
+             if (ppm_type == 0) then
                 qmo(i+1,j,QU:QV) = qmo(i+1,j,QU:QV) + hdt*srcQ(i,j,QU:QV)
              endif
 
