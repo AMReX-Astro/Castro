@@ -291,7 +291,6 @@ contains
                             Ip, Im, Ip_src, Im_src, I_lo, I_hi, &
                             qm, qp, qm, qp, qp_lo, qp_hi, &
                             dloga, dloga_lo, dloga_hi, &
-                            srcQ, src_lo, src_hi, &
                             ilo, 0, ihi, 0, [domlo(1), 0, 0], [domhi(1), 0, 0], &
                             [dx, ZERO, ZERO], dt, 0, 0)
 #else

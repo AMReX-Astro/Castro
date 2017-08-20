@@ -1336,7 +1336,7 @@ contains
           drhoe_g = rhoe_g_ref - Ip(i,j,km,3,2,QREINT) - hdt*Ip_src(i,j,km,3,2,QREINT)
 
           ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO) + hdt*ONE/Ip_src(i,j,km,3,2,QRHO)/Ip(i,j,km,3,2,QRHO)**2
+          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO) + hdt*Ip_src(i,j,km,3,2,QRHO)/Ip(i,j,km,3,2,QRHO)**2
 
           dwp = w_ref - Ip(i,j,km,3,3,QW) - hdt*Ip_src(i,j,km,3,3,QW)
           dptotp = p_ref - Ip(i,j,km,3,3,QPRES) - hdt*Ip_src(i,j,km,3,3,QPRES)
