@@ -37,7 +37,7 @@ contains
                                    fix_mass_flux
     use bl_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-                                                 
+
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -75,7 +75,7 @@ contains
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
 #if (BL_SPACEDIM == 1)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)    
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 #endif
     real(rt), intent(in) :: dt, dx(3)
 
@@ -367,7 +367,7 @@ contains
                 qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
                 qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + hdt*Im_src(i,j,kc,1,2,QW)
              endif
-             
+
 #if (BL_SPACEDIM == 1)
              ! if we did not trace sources, then add them here (for 1-d; 2- and 3-d will
              ! get them in the transverse parts)
@@ -375,13 +375,13 @@ contains
                 qxp(i,j,kc,QU) = qxp(i,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
              endif
 
-             ! add source terms -- there is no corresponding trans 
+             ! add source terms -- there is no corresponding trans
              qxp(i,j,kc,QRHO) = qxp(i,j,kc,QRHO) + HALF*dt*srcQ(i,j,k3d,QRHO)
              qxp(i,j,kc,QRHO  ) = max(small_dens, qxp(i,j,kc,QRHO))
              qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
              qxp(i,j,kc,QPRES ) = qxp(i,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
 #endif
-             
+
           end if
 
 
@@ -559,7 +559,7 @@ contains
              qxm(i+1,j,kc,QRHO) = max(small_dens, qxm(i+1,j,kc,QRHO))
              qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
              qxm(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
-#endif             
+#endif
 
           end if
 
@@ -622,6 +622,12 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
        do j = ilo2-dg(2), ihi2+dg(2)
 
           ! Plus state on face i
@@ -1035,6 +1041,11 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
 
        ! Plus state on face j
        do j = ilo2, ihi2+1
@@ -1553,6 +1564,12 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1
 

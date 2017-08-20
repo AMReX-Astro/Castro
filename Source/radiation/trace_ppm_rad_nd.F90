@@ -652,8 +652,9 @@ contains
                 qxp(i,j,kc,qreitot) = sum(qxp(i,j,kc,qrad:qradhi))  + qxp(i,j,kc,QREINT)
              end if
           endif
+#endif
 
-
+#if (BL_SPACEDIM == 1)
           ! Enforce constant mass flux rate if specified
           if (fix_mass_flux_lo) then
              qxm(ilo1,j,kc,QRHO   ) = q(domlo(1)-1,j,k3d,QRHO)
@@ -687,6 +688,12 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
        do j = ilo2-dg(2), ihi2+dg(2)
 
           ! Plus state on face i
@@ -1139,6 +1146,11 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
 
        ! Plus state on face j
        do j = ilo2, ihi2+1
@@ -1723,6 +1735,12 @@ contains
     ! Do all of the passively advected quantities in one loop
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1
 
