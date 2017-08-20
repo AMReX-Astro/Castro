@@ -228,7 +228,9 @@ contains
              drho = rho_ref - Im(i,j,kc,1,2,QRHO) - hdt*Im_src(i,j,kc,1,2,QRHO)
              dptot = p_ref - Im(i,j,kc,1,2,QPRES) - hdt*Im_src(i,j,kc,1,2,QPRES)
              drhoe_g = rhoe_g_ref - Im(i,j,kc,1,2,QREINT) - hdt*Im_src(i,j,kc,1,2,QREINT)
-             dtau = tau_ref - ONE/Im(i,j,kc,1,2,QRHO) - hdt*ONE/Im_src(i,j,kc,1,2,QRHO)  ! check this
+
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtau = tau_ref - ONE/Im(i,j,kc,1,2,QRHO) + hdt*Im_src(i,j,kc,1,2,QRHO)/Im(i,j,kc,1,2,QRHO)**2
 
              dup = u_ref - Im(i,j,kc,1,3,QU) - hdt*Im_src(i,j,kc,1,3,QU)
              dptotp = p_ref - Im(i,j,kc,1,3,QPRES) - hdt*Im_src(i,j,kc,1,3,QPRES)
@@ -385,7 +387,9 @@ contains
              drho = rho_ref - Ip(i,j,kc,1,2,QRHO) - hdt*Ip_src(i,j,kc,1,2,QRHO)
              dptot = p_ref - Ip(i,j,kc,1,2,QPRES) - hdt*Ip_src(i,j,kc,1,2,QPRES)
              drhoe_g = rhoe_g_ref - Ip(i,j,kc,1,2,QREINT) - hdt*Ip_src(i,j,kc,1,2,QREINT)
-             dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO) - hdt*ONE/Ip_src(i,j,kc,1,2,QRHO)
+
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO) + hdt*Ip_src(i,j,kc,1,2,QRHO)/Ip(i,j,kc,1,2,QRHO)**2
 
              dup = u_ref - Ip(i,j,kc,1,3,QU) - hdt*Ip_src(i,j,kc,1,3,QU)
              dptotp = p_ref - Ip(i,j,kc,1,3,QPRES) - hdt*Ip_src(i,j,kc,1,3,QPRES)
@@ -673,7 +677,9 @@ contains
              drho = rho_ref - Im(i,j,kc,2,2,QRHO) - hdt*Im_src(i,j,kc,2,2,QRHO)
              dptot = p_ref - Im(i,j,kc,2,2,QPRES) - hdt*Im_src(i,j,kc,2,2,QPRES)
              drhoe_g = rhoe_g_ref - Im(i,j,kc,2,2,QREINT) - hdt*Im_src(i,j,kc,2,2,QREINT)
-             dtau = tau_ref - ONE/Im(i,j,kc,2,2,QRHO) - hdt*ONE/Im_src(i,j,kc,2,2,QRHO)
+
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtau = tau_ref - ONE/Im(i,j,kc,2,2,QRHO) + hdt*Im_src(i,j,kc,2,2,QRHO)/Im(i,j,kc,2,2,QRHO)**2
 
              dvp = v_ref - Im(i,j,kc,2,3,QV) - hdt*Im_src(i,j,kc,2,3,QV)
              dptotp = p_ref - Im(i,j,kc,2,3,QPRES) - hdt*Im_src(i,j,kc,2,3,QPRES)
@@ -824,7 +830,9 @@ contains
              drho = rho_ref - Ip(i,j,kc,2,2,QRHO) - hdt*Ip_src(i,j,kc,2,2,QRHO)
              dptot = p_ref - Ip(i,j,kc,2,2,QPRES) - hdt*Ip_src(i,j,kc,2,2,QPRES)
              drhoe_g = rhoe_g_ref - Ip(i,j,kc,2,2,QREINT) - hdt*Ip_src(i,j,kc,2,2,QREINT)
-             dtau = tau_ref - ONE/Ip(i,j,kc,2,2,QRHO) - hdt*ONE/Ip_src(i,j,kc,2,2,QRHO)
+
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtau = tau_ref - ONE/Ip(i,j,kc,2,2,QRHO) + hdt*Ip_src(i,j,kc,2,2,QRHO)/Ip(i,j,kc,2,2,QRHO)**2
 
              dvp = v_ref - Ip(i,j,kc,2,3,QV) - hdt*Ip_src(i,j,kc,2,3,QV)
              dptotp = p_ref - Ip(i,j,kc,2,3,QPRES) - hdt*Ip_src(i,j,kc,2,3,QPRES)
@@ -1153,7 +1161,9 @@ contains
           drho = rho_ref - Im(i,j,kc,3,2,QRHO) - hdt*Im_src(i,j,kc,3,2,QRHO)
           dptot = p_ref - Im(i,j,kc,3,2,QPRES) - hdt*Im_src(i,j,kc,3,2,QPRES)
           drhoe_g = rhoe_g_ref - Im(i,j,kc,3,2,QREINT) - hdt*Im_src(i,j,kc,3,2,QREINT)
-          dtau = tau_ref - ONE/Im(i,j,kc,3,2,QRHO) - hdt*ONE/Im_src(i,j,kc,3,2,QRHO)
+
+          ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+          dtau = tau_ref - ONE/Im(i,j,kc,3,2,QRHO) + hdt*Im_src(i,j,kc,3,2,QRHO)/Im(i,j,kc,3,2,QRHO)**2
 
           dwp = w_ref - Im(i,j,kc,3,3,QW) - hdt*Im_src(i,j,kc,3,3,QW)
           dptotp = p_ref - Im(i,j,kc,3,3,QPRES) - hdt*Im_src(i,j,kc,3,3,QPRES)
@@ -1324,7 +1334,9 @@ contains
           drho = rho_ref - Ip(i,j,km,3,2,QRHO) - hdt*Ip_src(i,j,km,3,2,QRHO)
           dptot = p_ref - Ip(i,j,km,3,2,QPRES) - hdt*Ip_src(i,j,km,3,2,QPRES)
           drhoe_g = rhoe_g_ref - Ip(i,j,km,3,2,QREINT) - hdt*Ip_src(i,j,km,3,2,QREINT)
-          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO) - hdt*ONE/Ip_src(i,j,km,3,2,QRHO)
+
+          ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO) + hdt*ONE/Ip_src(i,j,km,3,2,QRHO)/Ip(i,j,km,3,2,QRHO)**2
 
           dwp = w_ref - Ip(i,j,km,3,3,QW) - hdt*Ip_src(i,j,km,3,3,QW)
           dptotp = p_ref - Ip(i,j,km,3,3,QPRES) - hdt*Ip_src(i,j,km,3,3,QPRES)
