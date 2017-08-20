@@ -779,13 +779,6 @@ For the reconstruction of the interface states, the following apply:
   Values of 1 and 2 are both piecewise parabolic reconstruction, with
   2 using updated limiters that better preserve extrema.
 
-\item \runparam{castro.ppm\_trace\_sources} reconstructs the gravitational
-  and rotational acceleration as a parabola and then constructs the
-  integrals under this parabola for the three characteristic waves and
-  then puts the gravitational and rotational source term into the
-  characteristic projection when doing the interface states (0 or 1;
-  default: 1)
-
 \item \runparam{castro.ppm\_temp\_fix} does various attempts to use the
   temperature in the reconstruction of the interface states.  This
   is experimental.
