@@ -108,6 +108,32 @@ extern "C"
 #endif
 #endif
 
+  void ca_apply_metric
+    (const int* lo, const int* hi,
+     D_DECL(const int* xlo, const int *ylo, const int *zlo),
+     D_DECL(const int* xhi, const int *yhi, const int *zhi),
+     BL_FORT_FAB_ARG(cc),
+     D_DECL(const BL_FORT_FAB_ARG(xedge),
+            const BL_FORT_FAB_ARG(yedge),
+            const BL_FORT_FAB_ARG(zedge)), 
+            const amrex::Real* dx, const int* coord_type);
+
+  void ca_weight_cc
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     const amrex::Real* dx, const int* coord_type);
+
+  void ca_unweight_cc
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(cc),
+     const amrex::Real* dx, const int* coord_type);
+
+  void ca_unweight_edges
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG(edge),
+     const amrex::Real* dx, const int* coord_type, const int* idir);
+
+
 #ifdef HYBRID_MOMENTUM
   void ca_init_hybrid_momentum
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));

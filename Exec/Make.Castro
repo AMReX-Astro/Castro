@@ -82,8 +82,6 @@ ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
   USE_MG = TRUE
-  # we need a header from gravity
-  INCLUDE_LOCATIONS += $(TOP)/Source/gravity
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
