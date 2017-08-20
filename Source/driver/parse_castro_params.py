@@ -288,7 +288,7 @@ def write_meth_module(plist, meth_template):
     except:
         sys.exit("invalid template file")
 
-    try: mo = open("Src_nd/meth_params.F90", "w")
+    try: mo = open("meth_params.F90", "w")
     except:
         sys.exit("unable to open meth_params.F90 for writing")
 
