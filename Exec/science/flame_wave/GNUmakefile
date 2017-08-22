@@ -24,7 +24,7 @@ ifdef MICROPHYSICS_HOME
   EOS_dir     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  Network_dir := triple_alpha_plus_cago
+  Network_dir := aprox13
 
 else
 
@@ -32,7 +32,7 @@ else
 
 endif
 
-Conductivity_dir := constant_opacity
+Conductivity_dir := stellar
 
 Bpack   := ./Make.package
 Blocs   := .
