@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use model_parser_module
@@ -12,18 +12,18 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt)         problo(2), probhi(2)
 
   integer untin,i
-  
+
   namelist /fortin/ model_name, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
                     H_min, cutoff_density
-  
+
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
-  if (namlen .gt. maxlen) call bl_error("probin file name too long")
+  if (namlen > maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -32,12 +32,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! Namelist defaults
   H_min = 1.e-4_rt
   cutoff_density = 500.e0_rt
-  
-  
+
+
   dtemp = 3.81e8_rt
   x_half_max = 1.2e5_rt
   x_half_width = 3.6e4_rt
-  
+
   interp_BC = .false.
   zero_vels = .false.
 
@@ -70,9 +70,9 @@ end subroutine amrex_probinit
 ! ::: delta     => cell size
 ! ::: xlo,xhi   => physical locations of lower left and upper
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_h1,state_h2, &
-                       delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, state_l1, state_l2, state_h1, state_h2, &
+                       delta, xlo, xhi)
 
   use bl_constants_module
   use probdata_module
@@ -83,7 +83,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only: problo
   use network, only: nspec
   use model_parser_module
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -102,9 +102,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   type (eos_t) :: eos_state
 
+  state(i,j,UFS:UFS-1+nspec) = ZERO
+
   do j = lo(2), hi(2)
      y = problo(2) + (dble(j)+HALF)*delta(2)
-     
+
      do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
@@ -138,7 +140,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEINT)
         state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)
-        
+
         do n = 1, nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
         end do
@@ -147,20 +149,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
   ! Initial velocities = 0
-  state(:,:,UMX:UMZ) = 0.e0_rt 
+  state(:,:,UMX:UMZ) = 0.e0_rt
 
   ! Now add the perturbation
   do j = lo(2), hi(2)
      y = problo(2) + (dble(j)+HALF)*delta(2)
-     
+
      do i = lo(1), hi(1)
         x = problo(1) + (dble(i)+HALF)*delta(1)
-        
+
         if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 1.0e5_rt) then
            state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
-                (ONE + exp((x-x_half_max)/x_half_width))   
-        end if 
- 
+                (ONE + exp((x-x_half_max)/x_half_width))
+        end if
+
         do n = 1,nspec
            state(i,j,UFS+n-1) = state(i,j,UFS+n-1) / state(i,j,URHO)
         end do
