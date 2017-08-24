@@ -102,5 +102,13 @@ if __name__ == "__main__":
 
     ax_s.plot(t, v)
     ax_w.plot(t, w)
+
+    ax_s.set_yscale("log")
+    ax_w.set_yscale("log")
+
+    ax_w.set_xlabel("time (s)")
+    ax_s.set_ylabel("flame speed (cm/s)")
+    ax_w.set_ylabel("flame width (cm)")
+
     plt.savefig("speed.png")
 
