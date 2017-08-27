@@ -95,19 +95,33 @@ See the \maestro\ User's Guide
 
 \subsection{Edison compilers}
 
-The default compilers on edison are the Intel compilers.  Intel version 15.0
-works well with \castro.
-
 \begin{itemize}
-\item Intel compilers later than 16.0.2 have a bug that causes segfaults when using the 
-  {\tt F\_MG} multigrid (e.g., self-gravity)
+\item Intel compilers
 
-\item To compile the code with Intel compilers, you need to explicitly load GCC 4.9.3,
-e.g. as:
-\begin{verbatim}
-module load gcc/4.9.3
-\end{verbatim}
-Otherwise you will get compilation errors due to incompatibilities in the header files.
+  The default compilers on edison are the Intel compilers.  
+
+  The Intel 17.0.2 compilers produce code that crashes at runtime when self-gravity
+  is used (the error is in the {\tt F\_MG} directory.  This appears to be an issue since
+  16.0.2.
+
+  At the moment, avoid Intel compilers on Edison.
+
+%% \item To compile the code with Intel compilers, you need to explicitly load GCC 4.9.3,
+%% e.g. as:
+%% \begin{verbatim}
+%% module load gcc/4.9.3
+%% \end{verbatim}
+%% Otherwise you will get compilation errors due to incompatibilities in the header files.
+
+\item Cray compilers
+
+  The Cray compilers (CCE 8.6.1) fail to link the code.  This is likely an issue interacting
+  with the GCC headers
+
+\item GNU
+
+  The GNU compilers (6.3) seem to work fine.
+
 \end{itemize}
 
 
