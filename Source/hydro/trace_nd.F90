@@ -268,6 +268,11 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
+
        do j = ilo2-dg(2), ihi2+dg(2)
 
           ! Right state
@@ -399,6 +404,11 @@ contains
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
 
        do i = ilo1-1, ihi1+1
 
@@ -601,6 +611,11 @@ contains
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
+
+       ! For DIM < 3, the velocities are included in the passive
+       ! quantities.  But we already dealt with all 3 velocity
+       ! components above, so don't process them here.
+       if (n == QU .or. n == QV .or. n == QW) cycle
 
        do j = ilo2-1, ihi2+1
           do i = ilo1-1, ihi1+1

@@ -1,7 +1,7 @@
 # changes since the last release:
 
   -- the Source/ directory structure has been reorganized,
-     putting the source files into directories by physics and 
+     putting the source files into directories by physics and
      eliminating the Src_1d, Src_2d, ... subdirectories
 
   -- the Riemann solvers have been merged into a single
@@ -10,12 +10,12 @@
      interfaces, which would affect the internal enery evolution.
 
   -- the PLM and PPM reconstruction routines were merged into
-     a single dimensional-agnostic version in Src_nd.
+     a single dimensional-agnostic version in hydro/
 
   -- the characteristic tracing routines were merged into
-     dimensional-agnostic versions in Src_nd.  This change fixed
-     and outstanding issue -- the PLM reconstruction in 1-d now
-     uses a reference state. (issue #11)
+     dimensional-agnostic versions in hydro/ and radiation/.  This
+     change fixed and outstanding issue -- the PLM reconstruction in
+     1-d now uses a reference state. (issue #11)
 
 # 17.08
 
@@ -59,8 +59,8 @@
 
   -- we now require the AMReX library instead of the BoxLib library
 
-  -- the Microphysics repository that we rely on for the EOS and 
-     reaction networks is now part of the starkiller-astro github. 
+  -- the Microphysics repository that we rely on for the EOS and
+     reaction networks is now part of the starkiller-astro github.
      You can change your clone to refer to this via:
 
      git remote set-url origin ssh://git@github.com/starkiller-astro/Microphysics
@@ -165,7 +165,7 @@
 
 * 16.11
 
-  -- we now distinguish between gravity (which can include a 
+  -- we now distinguish between gravity (which can include a
      constant gravitational acceleration) and self-gravity,
      with the GRAVITY and SELF_GRAVITY preprocessor directives
 
@@ -247,7 +247,7 @@
   -- enthalpy, species, and temperature diffusion are now properly
      time-centered (issue #22), and a bug in the hi boundary
      inflow boundary conditions for diffusion was fixed (issue #41)
-  
+
   -- a flux limiter has been added that limits the size of the hydro
      fluxes if they would cause rho or (rho e) to go negative. This
      can be used with castro.limit_hydro_fluxes_on_small_dens = 1.
@@ -326,7 +326,7 @@
      slightly better coupling of the Coriolis force in the momentum
      equation by doing an implicit velocity update
 
-     We also make ppm_trace_sources = 1 the default -- this does 
+     We also make ppm_trace_sources = 1 the default -- this does
      parabolic reconstruction of the momentum sources and traces
      under them when constructing the interface states
 

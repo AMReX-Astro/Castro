@@ -1,8 +1,7 @@
 #include <AMReX_ParmParse.H>
 #include "Diffusion.H"
 #include "Castro.H"
-#include <Gravity_F.H>
-
+#include "Castro_F.H"
 #include <AMReX_FMultiGrid.H>
 
 #define MAX_LEV 15
