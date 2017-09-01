@@ -1,23 +1,25 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use bl_constants_module
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
-  use amrex_fort_module, only : rt => amrex_real
-  use eos_type_module, only: eos_t, eos_input_rp
+  use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt)         :: problo(3), probhi(3)
 
-  integer :: untin,i
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
+
+  integer :: untin, i
 
   type(eos_t) :: eos_state
 
   namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub
+       r_init, nsub, temp_ambient
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -38,17 +40,33 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
   r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
+  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
+
+  ! set local variable defaults
+  center(1) = HALF*(problo(1) + probhi(1))
+  center(2) = HALF*(problo(2) + probhi(2))
+  center(3) = HALF*(problo(3) + probhi(3))
 
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
-  ! set local variable defaults
-  center(1) = (problo(1)+probhi(1))/2.e0_rt
-  center(2) = (problo(2)+probhi(2))/2.e0_rt
-  center(3) = (problo(3)+probhi(3))/2.e0_rt
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
+
+  ! override the pressure iwth the temperature
+  if (temp_ambient > ZERO) then
+
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = temp_ambient
+
+     call eos(eos_input_rt, eos_state)
+
+     p_ambient = eos_state % p
+
+  endif
 
   ! Calculate ambient state data
 

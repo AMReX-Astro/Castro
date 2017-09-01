@@ -6,17 +6,17 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use bl_error_module
   use eos_type_module, only : eos_t, eos_input_rt, eos_input_rp
   use eos_module, only : eos
-  use network, only: nspec
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(2), probhi(2)
-  type(eos_t) :: eos_state
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(2), probhi(2)
 
-  integer :: untin,i
+  integer :: untin, i
+
+  type(eos_t) :: eos_state
 
   namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
        r_init, nsub, temp_ambient
@@ -42,14 +42,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   nsub = 4
   temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
 
-  !     Set explosion center
-  center(1) = (problo(1)+probhi(1))/2.e0_rt
-  center(2) = (problo(2)+probhi(2))/2.e0_rt
+  ! set explosion center
+  center(1) = HALF*(problo(1) + probhi(1))
+  center(2) = HALF*(problo(2) + probhi(2))
 
-  !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  ! Read namelists
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
 
   xn_zone(:) = ZERO
