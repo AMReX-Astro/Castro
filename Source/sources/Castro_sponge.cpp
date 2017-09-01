@@ -39,6 +39,7 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 void
 Castro::construct_new_sponge_source(Real time, Real dt)
 {
+    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
     int ng = 0;
@@ -63,12 +64,12 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
+        for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
         {
             const Box& bx = mfi.tilebox();
 
             ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                      BL_TO_FORTRAN_3D(Sborder[mfi]),
+                      BL_TO_FORTRAN_3D(S_old[mfi]),
                       BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
                       BL_TO_FORTRAN_3D(volume[mfi]),
                       ZFILL(dx), dt, old_time, mult_factor);

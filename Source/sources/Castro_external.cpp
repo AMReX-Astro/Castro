@@ -48,7 +48,7 @@ Castro::construct_new_ext_source(Real time, Real dt)
     Real old_time = time - dt;
     Real mult_factor = -0.5;
 
-    fill_ext_source(old_time, dt, Sborder, Sborder, src, ng);
+    fill_ext_source(old_time, dt, S_old, S_old, src, ng);
 
     MultiFab::Saxpy(*new_sources[ext_src], mult_factor, src, 0, 0, NUM_STATE, ng);
 
