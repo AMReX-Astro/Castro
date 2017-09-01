@@ -1,6 +1,5 @@
 &fortin
 
-  probtype = 23
   r_init = 0.01
   p_ambient = 1.d-5
   exp_energy = 1.0
