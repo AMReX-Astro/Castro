@@ -517,7 +517,7 @@ public:
 
     void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
 
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const int ng, const amrex::Real mult_factor);
 
     void hybrid_sync(amrex::MultiFab& state);
 #endif

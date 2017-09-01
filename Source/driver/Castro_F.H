@@ -141,7 +141,8 @@ extern "C"
   void ca_hybrid_hydro_source
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources));
+     BL_FORT_FAB_ARG_3D(sources),
+     const amrex::Real mult_factor);
 
   void ca_hybrid_update
     (const int* lo, const int* hi,
