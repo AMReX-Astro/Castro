@@ -475,13 +475,13 @@ public:
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
     void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t);
+                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, Real mult_factor = 1.0);
 #endif
 #endif
 
