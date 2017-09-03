@@ -19,6 +19,18 @@ EBASE = Castro
 # Networks and Util this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
+
+# need to put any build suffices before Make.defs
+ifeq ($(USE_SDC), TRUE)
+  USERSuffix = .SDC
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  ifeq ($(USE_NEUTRINO), TRUE)
+    USERSuffix = .Neutrino
+  endif
+endif
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 all: $(executable)
@@ -74,7 +86,6 @@ ifeq ($(USE_REACT), TRUE)
 endif
 
 ifeq ($(USE_SDC), TRUE)
-  USERSuffix = .SDC
   DEFINES += -DSDC
 endif
 
@@ -114,7 +125,6 @@ ifeq ($(USE_RAD), TRUE)
 
   ifeq ($(USE_NEUTRINO), TRUE)
     DEFINES += -DNEUTRINO
-    USERSuffix = .Neutrino
     ifeq ($(USE_DUMPMODEL), TRUE)
       DEFINES += -DHAS_DUMPMODEL
     endif
