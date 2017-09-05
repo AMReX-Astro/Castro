@@ -509,12 +509,24 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
-    deallocate(xl_ext_bc_type)
-    deallocate(xr_ext_bc_type)
-    deallocate(yl_ext_bc_type)
-    deallocate(yr_ext_bc_type)
-    deallocate(zl_ext_bc_type)
-    deallocate(zr_ext_bc_type)
+    if (allocated(xl_ext_bc_type)) then
+        deallocate(xl_ext_bc_type)
+    end if
+    if (allocated(xr_ext_bc_type)) then
+        deallocate(xr_ext_bc_type)
+    end if
+    if (allocated(yl_ext_bc_type)) then
+        deallocate(yl_ext_bc_type)
+    end if
+    if (allocated(yr_ext_bc_type)) then
+        deallocate(yr_ext_bc_type)
+    end if
+    if (allocated(zl_ext_bc_type)) then
+        deallocate(zl_ext_bc_type)
+    end if
+    if (allocated(zr_ext_bc_type)) then
+        deallocate(zr_ext_bc_type)
+    end if
 
 
     
