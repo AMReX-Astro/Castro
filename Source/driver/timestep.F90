@@ -118,7 +118,7 @@ contains
 
     use bl_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_mode
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold, dtnuc_mode
     use prob_params_module, only : dim
 #if naux > 0
     use meth_params_module, only : UFX
@@ -134,23 +134,30 @@ contains
 
     implicit none
 
-    integer          :: so_lo(3), so_hi(3)
-    integer          :: sn_lo(3), sn_hi(3)
-    integer          :: ro_lo(3), ro_hi(3)
-    integer          :: rn_lo(3), rn_hi(3)
-    integer          :: lo(3), hi(3)
-    real(rt)         :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-    real(rt)         :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt)         :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
-    real(rt)         :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
-    real(rt)         :: dx(3), dt, dt_old
+    integer,  intent(in) :: so_lo(3), so_hi(3)
+    integer,  intent(in) :: sn_lo(3), sn_hi(3)
+    integer,  intent(in) :: ro_lo(3), ro_hi(3)
+    integer,  intent(in) :: rn_lo(3), rn_hi(3)
+    integer,  intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt), intent(in) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt), intent(in) :: dx(3), dt_old
+    real(rt), intent(inout) :: dt
 
-    real(rt)         :: e, X(nspec), dedt, dXdt(nspec)
-    integer          :: i, j, k
+    real(rt)      :: e, X(nspec), dedt, dXdt(nspec)
+    integer       :: i, j, k
+    integer       :: n
 
-    type (burn_t)    :: state_old, state_new
-    type (eos_t)     :: eos_state
-    real(rt)         :: rhooinv, rhoninv
+    type (burn_t) :: state_old, state_new
+    type (eos_t)  :: eos_state
+    real(rt)      :: rhooinv, rhoninv
+
+    ! Set a floor on the minimum size of a derivative. This floor
+    ! is small enough such that it will result in no timestep limiting.
+
+    real(rt), parameter :: derivative_floor = 1.e-50_rt
 
     ! We want to limit the timestep so that it is not larger than
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
@@ -164,7 +171,10 @@ contains
     ! good estimate for the current timestep's burning.
     !
     ! We do the same thing for the species, using a timestep
-    ! limiter dtnuc_X * (X_k / (dX_k/dt)).
+    ! limiter dtnuc_X * (X_k / (dX_k/dt)). To prevent changes
+    ! due to trace isotopes that we probably are not interested in,
+    ! only apply the limiter to species with an abundance greater
+    ! than a user-specified threshold.
     !
     ! To estimate de/dt and dX/dt, we are going to call the RHS of the
     ! burner given the current state data. We need to do an EOS
@@ -236,8 +246,21 @@ contains
 
              endif
 
-             dedt = max(abs(dedt), 1.e-50_rt)
-             dXdt = max(abs(dXdt), 1.e-50_rt)
+             ! Apply a floor to the derivatives. This ensures that we don't
+             ! divide by zero; it also gives us a quick method to disable
+             ! the timestep limiting, because the floor is small enough
+             ! that the implied timestep will be very large, and thus
+             ! ignored compared to other limiters.
+
+             dedt = max(abs(dedt), derivative_floor)
+
+             do n = 1, nspec
+                if (X(n) .ge. dtnuc_X_threshold) then
+                   dXdt(n) = max(abs(dXdt(n)), derivative_floor)
+                else
+                   dXdt(n) = derivative_floor
+                end if
+             end do
 
              dt = min(dt, dtnuc_e * e / dedt)
              dt = min(dt, dtnuc_X * minval(X / dXdt))
@@ -424,7 +447,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
                                   cfl, do_hydro
 #ifdef REACTIONS
-    use meth_params_module, only: dtnuc_e, dtnuc_X, do_react
+    use meth_params_module, only: dtnuc_e, dtnuc_X, dtnuc_X_threshold, do_react
     use extern_probin_module, only: small_x
 #endif
     use prob_params_module, only: dim
@@ -451,6 +474,7 @@ contains
     real(rt)         :: dx(3), dt_old, dt_new
 
     integer          :: i, j, k
+    integer          :: n
     real(rt)         :: rhooinv, rhoninv
 #ifdef REACTIONS
     real(rt)         :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
@@ -459,9 +483,10 @@ contains
 #endif
     real(rt)         :: tau_CFL
 
-
     real(rt)         :: v(3), c
     type (eos_t)     :: eos_state
+
+    real(rt), parameter :: derivative_floor = 1.e-50_rt
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -510,6 +535,7 @@ contains
 
 #ifdef REACTIONS
              ! Burning stability criterion
+             ! See ca_estdt_burning for an explanation of these limiters.
 
              if (do_react .eq. 1) then
 
@@ -518,7 +544,14 @@ contains
                 X_avg = max(small_x, HALF * (X_old + X_new))
                 X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
 
-                X_dot = max(abs(X_dot), 1.e-50_rt)
+                do n = 1, nspec
+                   if (X_avg(n) .ge. dtnuc_X_threshold) then
+                      X_dot(n) = max(abs(X_dot(n)), derivative_floor)
+                   else
+                      X_dot(n) = derivative_floor
+                   end if
+                end do
+
                 tau_X = minval( X_avg / X_dot )
 
                 e_old = s_old(i,j,k,UEINT) * rhooinv
@@ -526,7 +559,7 @@ contains
                 e_avg = HALF * (e_old + e_new)
                 e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
 
-                e_dot = max(abs(e_dot), 1.e-50_rt)
+                e_dot = max(abs(e_dot), derivative_floor)
                 tau_e = e_avg / e_dot
 
                 if (dt_old > dtnuc_e * tau_e) then
