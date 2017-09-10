@@ -298,6 +298,11 @@ dtnuc_e                      Real          1.e200             y
 # {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
 dtnuc_X                      Real          1.e200             y
 
+# If we are using the timestep limiter based on changes in $X$, set a threshold
+# on the species abundance below which the limiter is not applied. This helps
+# prevent the timestep from becoming very small due to changes in trace species.
+dtnuc_X_threshold            Real          1.e-3              y
+
 # If we are doing burning timestep limiting, choose the method for
 # estimating $\dot{e}$ and $\dot{X}$.
 # 1 == call the burner's RHS for an instantaneous calculation

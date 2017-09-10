@@ -74,6 +74,7 @@ amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 int         Castro::sdc_iters = 2;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;
+amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
 int         Castro::dtnuc_mode = 1;
 amrex::Real Castro::dxnuc = 1.e200;
 int         Castro::do_react = -1;
