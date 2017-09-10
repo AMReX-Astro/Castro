@@ -33,7 +33,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
                                  NGDNV, GDU, GDPRES, first_order_hydro
   use bl_constants_module, only : ZERO, HALF, ONE
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, divu
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
 #ifdef RADIATION
@@ -165,9 +165,8 @@ subroutine ca_ctu_update(is_finest_level, time, &
   end do
 
   ! Define divu on surroundingNodes(lo,hi)
-  do i = lo(1), hi(1)+1
-     div(i) = (q(i,QU) - q(i-1,QU)) / dx
-  enddo
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3D, div, [lo(1), 0, 0], [hi(1)+1, 0, 0])
 
 
   ! Conservative update
