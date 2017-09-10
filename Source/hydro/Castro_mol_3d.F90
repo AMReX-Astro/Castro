@@ -102,8 +102,8 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
-  real(rt)        , pointer :: sxm(:,:,:,:), sym(:,:,:,:), szm(:,:,:,:)
-  real(rt)        , pointer :: sxp(:,:,:,:), syp(:,:,:,:), szp(:,:,:,:)
+  real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
+  real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
 
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
@@ -144,12 +144,12 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
 #endif
 
-  call bl_allocate(sxm, st_lo, st_hi, NQ)
-  call bl_allocate(sxp, st_lo, st_hi, NQ)
-  call bl_allocate(sym, st_lo, st_hi, NQ)
-  call bl_allocate(syp, st_lo, st_hi, NQ)
-  call bl_allocate(szm, st_lo, st_hi, NQ)
-  call bl_allocate(szp, st_lo, st_hi, NQ)
+  call bl_allocate(sxm, st_lo, st_hi)
+  call bl_allocate(sxp, st_lo, st_hi)
+  call bl_allocate(sym, st_lo, st_hi)
+  call bl_allocate(syp, st_lo, st_hi)
+  call bl_allocate(szm, st_lo, st_hi)
+  call bl_allocate(szp, st_lo, st_hi)
 
   call bl_allocate ( qxm, It_lo, It_hi, NQ)
   call bl_allocate ( qxp, It_lo, It_hi, NQ)
@@ -242,8 +242,7 @@ subroutine ca_mol_single_stage(time, &
      do n = 1, NQ
         call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
                              flatn, q_lo, q_hi, &
-                             sxm(:,:,:,n), sxp(:,:,:,n), sym(:,:,:,n), &
-                             syp(:,:,:,n), szm(:,:,:,n), szp(:,:,:,n), st_lo, st_hi, &
+                             sxm, sxp, sym, syp, szm, szp, st_lo, st_hi, &
                              lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
         ! Construct the interface states -- this is essentially just a
@@ -255,26 +254,26 @@ subroutine ca_mol_single_stage(time, &
               ! x-edges
 
               ! left state at i-1/2 interface
-              qxm(i,j,kc,n) = sxp(i-1,j,kc,n)
+              qxm(i,j,kc,n) = sxp(i-1,j,kc)
 
               ! right state at i-1/2 interface
-              qxp(i,j,kc,n) = sxm(i,j,kc,n)
+              qxp(i,j,kc,n) = sxm(i,j,kc)
 
               ! y-edges
 
               ! left state at j-1/2 interface
-              qym(i,j,kc,n) = syp(i,j-1,kc,n)
+              qym(i,j,kc,n) = syp(i,j-1,kc)
 
               ! right state at j-1/2 interface
-              qyp(i,j,kc,n) = sym(i,j,kc,n)
+              qyp(i,j,kc,n) = sym(i,j,kc)
 
               ! z-edges
 
               ! left state at k3d-1/2 interface
-              qzm(i,j,kc,n) = szp(i,j,km,n)
+              qzm(i,j,km,n) = szp(i,j,kc)
 
               ! right state at k3d-1/2 interface
-              qzp(i,j,kc,n) = szm(i,j,kc,n)
+              qzp(i,j,kc,n) = szm(i,j,kc)
 
            enddo
         enddo
