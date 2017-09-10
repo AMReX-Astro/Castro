@@ -12,11 +12,23 @@ subroutine ca_mol_single_stage(time, &
                                update_flux, uf_lo, uf_hi, &
                                dx, dt, &
                                flux1, flux1_lo, flux1_hi, &
+#if BL_SPACEDIM >= 2
                                flux2, flux2_lo, flux2_hi, &
+#endif
+#if BL_SPACEDIM == 3
                                flux3, flux3_lo, flux3_hi, &
+#endif
                                area1, area1_lo, area1_hi, &
+#if BL_SPACEDIM >= 2
                                area2, area2_lo, area2_hi, &
+#endif
+#if BL_SPACEDIM == 3
                                area3, area3_lo, area3_hi, &
+#endif
+#if BL_SPACEDIM < 3
+                               pradial, p_lo, p_hi, &
+                               dloga, dloga_lo, dloga_hi, &
+#endif
                                vol, vol_lo, vol_hi, &
                                courno, verbose) bind(C, name="ca_mol_single_stage")
 
@@ -57,29 +69,45 @@ subroutine ca_mol_single_stage(time, &
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-  integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-  integer, intent(in) :: flux3_lo(3), flux3_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
+#if BL_SPACEDIM >= 2
+  integer, intent(in) :: flux2_lo(3), flux2_hi(3)
   integer, intent(in) :: area2_lo(3), area2_hi(3)
+#endif
+#if BL_SPACEDIM == 3
+  integer, intent(in) :: flux3_lo(3), flux3_hi(3)
   integer, intent(in) :: area3_lo(3), area3_hi(3)
+#endif
+#if BL_SPACEDIM <= 2
+  integer, intent(in) :: p_lo(3), p_hi(3)
+  integer, intent(in) :: dloga_lo(3), dloga_hi(3)
+#endif
   integer, intent(in) :: vol_lo(3), vol_hi(3)
 
-  real(rt)        , intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-  real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
-  real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-  real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
-  real(rt)        , intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
-  real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
-  real(rt)        , intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
-  real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
-  real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
-  real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
-  real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
-  real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
-  real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
-  real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
-  real(rt)        , intent(in) :: dx(3), dt, time
-  real(rt)        , intent(inout) :: courno
+  real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
+  real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
+  real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+  real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+  real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
+  real(rt) intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
+  real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
+  real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
+  real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
+#if BL_SPACEDIM >= 2
+  real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
+  real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
+#endif
+#if BL_SPACEDIM == 3
+  real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
+  real(rt) intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+#endif
+#if BL_SPACEDIM <= 2
+  real(rt) intent(in) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
+  real(rt) intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
+#endif
+  real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
+  real(rt), intent(in) :: dx(3), dt, time
+  real(rt), intent(inout) :: courno
 
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
@@ -146,19 +174,21 @@ subroutine ca_mol_single_stage(time, &
 
   call bl_allocate(sxm, st_lo, st_hi, NQ)
   call bl_allocate(sxp, st_lo, st_hi, NQ)
+  call bl_allocate(qxm, It_lo, It_hi, NQ)
+  call bl_allocate(qxp, It_lo, It_hi, NQ)
+
+#if BL_SPACEDIM >= 2
   call bl_allocate(sym, st_lo, st_hi, NQ)
   call bl_allocate(syp, st_lo, st_hi, NQ)
+  call bl_allocate(qym, It_lo, It_hi, NQ)
+  call bl_allocate(qyp, It_lo, It_hi, NQ)
+#endif
+#if BL_SPACEDIM == 3
   call bl_allocate(szm, st_lo, st_hi, NQ)
   call bl_allocate(szp, st_lo, st_hi, NQ)
-
-  call bl_allocate ( qxm, It_lo, It_hi, NQ)
-  call bl_allocate ( qxp, It_lo, It_hi, NQ)
-
-  call bl_allocate ( qym, It_lo, It_hi, NQ)
-  call bl_allocate ( qyp, It_lo, It_hi, NQ)
-
-  call bl_allocate ( qzm, It_lo, It_hi, NQ)
-  call bl_allocate ( qzp, It_lo, It_hi, NQ)
+  call bl_allocate(qzm, It_lo, It_hi, NQ)
+  call bl_allocate(qzp, It_lo, It_hi, NQ)
+#endif
 
   call bl_allocate(qint, It_lo, It_hi, NGDNV)
 
@@ -204,12 +234,13 @@ subroutine ca_mol_single_stage(time, &
                    lo, hi, dt, dx, courno)
 
   ! Compute flattening coefficient for slope calculations.
-  call bl_allocate( flatn, q_lo, q_hi)
+  call bl_allocate(flatn, q_lo, q_hi)
 
   if (first_order_hydro == 1) then
      flatn = ZERO
   elseif (use_flattening == 1) then
-     call uflatten(lo - ngf, hi + ngf, &
+     call uflatten([lo(1)-ngf, lo(2)-ngf*dg(2), lo(3)-ngf*dg(3)], &
+                   [hi(1)+ngf, hi(2)+ngf*dg(2), hi(3)+ngf*dg(3)], &
                    q, flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
@@ -229,15 +260,22 @@ subroutine ca_mol_single_stage(time, &
   ! data in the planar arrays.
 
   ! Initialize kc (current k-level) and km (previous k-level)
+#if BL_SPACEDIM == 3
   kc = 1
   km = 2
+#else
+  kc = 0
+  km = 0
+#endif
 
-  do k3d = lo(3)-1, hi(3)+1
+  do k3d = lo(3)-dg(3), hi(3)+dg(3)
 
+#if BL_SPACEDIM == 3
      ! Swap pointers to levels
      kt = km
      km = kc
      kc = kt
+#endif
 
      do n = 1, NQ
         call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
@@ -249,7 +287,7 @@ subroutine ca_mol_single_stage(time, &
         ! Construct the interface states -- this is essentially just a
         ! reshuffling of interface states from zone-center indexing to
         ! edge-centered indexing
-        do j = lo(2)-1, hi(2)+1
+        do j = lo(2)-dg(2), hi(2)+dg(2)
            do i = lo(1)-1, hi(1)+1
 
               ! x-edges
