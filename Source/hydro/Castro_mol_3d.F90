@@ -130,8 +130,8 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , pointer:: shk(:,:,:)
 
   ! temporary interface values of the parabola
-  real(rt)        , pointer :: sxm(:,:,:,:), sym(:,:,:,:), szm(:,:,:,:)
-  real(rt)        , pointer :: sxp(:,:,:,:), syp(:,:,:,:), szp(:,:,:,:)
+  real(rt)        , pointer :: sxm(:,:,:), sym(:,:,:), szm(:,:,:)
+  real(rt)        , pointer :: sxp(:,:,:), syp(:,:,:), szp(:,:,:)
 
   real(rt)        , pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
   real(rt)        , pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
@@ -172,20 +172,20 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
 #endif
 
-  call bl_allocate(sxm, st_lo, st_hi, NQ)
-  call bl_allocate(sxp, st_lo, st_hi, NQ)
+  call bl_allocate(sxm, st_lo, st_hi)
+  call bl_allocate(sxp, st_lo, st_hi)
   call bl_allocate(qxm, It_lo, It_hi, NQ)
   call bl_allocate(qxp, It_lo, It_hi, NQ)
 
 #if BL_SPACEDIM >= 2
-  call bl_allocate(sym, st_lo, st_hi, NQ)
-  call bl_allocate(syp, st_lo, st_hi, NQ)
+  call bl_allocate(sym, st_lo, st_hi)
+  call bl_allocate(syp, st_lo, st_hi)
   call bl_allocate(qym, It_lo, It_hi, NQ)
   call bl_allocate(qyp, It_lo, It_hi, NQ)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(szm, st_lo, st_hi, NQ)
-  call bl_allocate(szp, st_lo, st_hi, NQ)
+  call bl_allocate(szm, st_lo, st_hi)
+  call bl_allocate(szp, st_lo, st_hi)
   call bl_allocate(qzm, It_lo, It_hi, NQ)
   call bl_allocate(qzp, It_lo, It_hi, NQ)
 #endif
@@ -280,8 +280,14 @@ subroutine ca_mol_single_stage(time, &
      do n = 1, NQ
         call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
                              flatn, q_lo, q_hi, &
-                             sxm(:,:,:,n), sxp(:,:,:,n), sym(:,:,:,n), &
-                             syp(:,:,:,n), szm(:,:,:,n), szp(:,:,:,n), st_lo, st_hi, &
+                             sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                             sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                             szm, szp, &
+#endif
+                             st_lo, st_hi, &
                              lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
         ! Construct the interface states -- this is essentially just a
@@ -293,26 +299,30 @@ subroutine ca_mol_single_stage(time, &
               ! x-edges
 
               ! left state at i-1/2 interface
-              qxm(i,j,kc,n) = sxp(i-1,j,kc,n)
+              qxm(i,j,kc,n) = sxp(i-1,j,kc)
 
               ! right state at i-1/2 interface
-              qxp(i,j,kc,n) = sxm(i,j,kc,n)
+              qxp(i,j,kc,n) = sxm(i,j,kc)
 
+#if BL_SPACEDIM >= 2
               ! y-edges
 
               ! left state at j-1/2 interface
-              qym(i,j,kc,n) = syp(i,j-1,kc,n)
+              qym(i,j,kc,n) = syp(i,j-1,kc)
 
               ! right state at j-1/2 interface
-              qyp(i,j,kc,n) = sym(i,j,kc,n)
+              qyp(i,j,kc,n) = sym(i,j,kc)
+#endif
 
+#if BL_SPACEDIM == 3
               ! z-edges
 
               ! left state at k3d-1/2 interface
-              qzm(i,j,kc,n) = szp(i,j,km,n)
+              qzm(i,j,km,n) = szp(i,j,kc)
 
               ! right state at k3d-1/2 interface
-              qzp(i,j,kc,n) = szm(i,j,kc,n)
+              qzp(i,j,kc,n) = szm(i,j,kc)
+#endif
 
            enddo
         enddo
@@ -323,7 +333,7 @@ subroutine ca_mol_single_stage(time, &
      if (ppm_temp_fix == 1) then
         do j = lo(2)-1, hi(2)+1
            do i = lo(1)-1, hi(1)+1
-              
+
               eos_state%rho    = qxp(i,j,kc,QRHO)
               eos_state%T      = qxp(i,j,kc,QTEMP)
               eos_state%xn(:)  = qxp(i,j,kc,QFS:QFS-1+nspec)
@@ -339,19 +349,19 @@ subroutine ca_mol_single_stage(time, &
               eos_state%T      = qxm(i,j,kc,QTEMP)
               eos_state%xn(:)  = qxm(i,j,kc,QFS:QFS-1+nspec)
               eos_state%aux(:) = qxm(i,j,kc,QFX:QFX-1+naux)
-              
+
               call eos(eos_input_rt, eos_state)
 
               qxm(i,j,kc,QPRES) = eos_state%p
               qxm(i,j,kc,QREINT) = qxm(i,j,kc,QRHO)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
-              
-              
+
+#if BL_SPACEDIM >= 2
               eos_state%rho    = qyp(i,j,kc,QRHO)
               eos_state%T      = qyp(i,j,kc,QTEMP)
               eos_state%xn(:)  = qyp(i,j,kc,QFS:QFS-1+nspec)
               eos_state%aux(:) = qyp(i,j,kc,QFX:QFX-1+naux)
-              
+
               call eos(eos_input_rt, eos_state)
 
               qyp(i,j,kc,QPRES) = eos_state%p
@@ -368,13 +378,14 @@ subroutine ca_mol_single_stage(time, &
               qym(i,j,kc,QPRES) = eos_state%p
               qym(i,j,kc,QREINT) = qym(i,j,kc,QRHO)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
+#endif
 
-
+#if BL_SPACEDIM == 3
               eos_state%rho    = qzp(i,j,kc,QRHO)
               eos_state%T      = qzp(i,j,kc,QTEMP)
               eos_state%xn(:)  = qzp(i,j,kc,QFS:QFS-1+nspec)
               eos_state%aux(:) = qzp(i,j,kc,QFX:QFX-1+naux)
-              
+
               call eos(eos_input_rt, eos_state)
 
               qzp(i,j,kc,QPRES) = eos_state%p
@@ -385,13 +396,14 @@ subroutine ca_mol_single_stage(time, &
               eos_state%T      = qzm(i,j,kc,QTEMP)
               eos_state%xn(:)  = qzm(i,j,kc,QFS:QFS-1+nspec)
               eos_state%aux(:) = qzm(i,j,kc,QFX:QFX-1+naux)
-              
+
               call eos(eos_input_rt, eos_state)
 
               qzm(i,j,kc,QPRES) = eos_state%p
               qzm(i,j,kc,QREINT) = qzm(i,j,kc,QRHO)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
-           
+#endif
+
            enddo
         enddo
      endif
@@ -417,6 +429,7 @@ subroutine ca_mol_single_stage(time, &
               enddo
            enddo
 
+#if BL_SPACEDIM >= 2
            ! Compute F^y at kc (k3d)
            call cmpflx(qym, qyp, It_lo, It_hi, &
                        flux2, flux2_lo, flux2_hi, &
@@ -434,7 +447,9 @@ subroutine ca_mol_single_stage(time, &
               enddo
            enddo
         endif  ! hi(3) check
+#endif
 
+#if BL_SPACEDIM == 3
         ! Compute F^z at kc (k3d)
 
         call cmpflx(qzm, qzp, It_lo, It_hi, &
@@ -452,9 +467,9 @@ subroutine ca_mol_single_stage(time, &
               q3(i,j,k3d,:) = qint(i,j,kc,:)
            enddo
         enddo
+#endif
 
      endif
-     
 
   enddo
 
@@ -462,19 +477,22 @@ subroutine ca_mol_single_stage(time, &
 
   call bl_deallocate(sxm)
   call bl_deallocate(sxp)
-  call bl_deallocate(sym)
-  call bl_deallocate(syp)
-  call bl_deallocate(szm)
-  call bl_deallocate(szp)
-
   call bl_deallocate(qxm)
   call bl_deallocate(qxp)
 
+#if BL_SPACEDIM >= 2
+  call bl_deallocate(sym)
+  call bl_deallocate(syp)
   call bl_deallocate(qym)
   call bl_deallocate(qyp)
+#endif
 
+#if BL_SPACEDIM == 3
+  call bl_deallocate(szm)
+  call bl_deallocate(szp)
   call bl_deallocate(qzm)
   call bl_deallocate(qzp)
+#endif
 
   call bl_deallocate(qint)
   call bl_deallocate(shk)
@@ -483,6 +501,11 @@ subroutine ca_mol_single_stage(time, &
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,dx,div,lo,hi+1)
 
+#if BL_SPACEDIM == 1
+
+#elif BL_SPACEDIM == 2
+
+#else
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -496,6 +519,7 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
+#endif
 
   do n = 1, NVAR
 
