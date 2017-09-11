@@ -502,14 +502,23 @@ subroutine ca_mol_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)])
 
-#if BL_SPACEDIM == 1
-
-#elif BL_SPACEDIM == 2
-
-#else
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
+
+#if BL_SPACEDIM == 1
+           pdivu(i,j,k) = HALF * &
+                (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
+                (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
+
+#elif BL_SPACEDIM == 2
+        pdivu(i,j,k) = HALF*( &
+             (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
+             (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,kGDU)*area1(i,j,k)) + &
+             (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
+             (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
+
+#else
            pdivu(i,j,k) = &
                 HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
                      (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
@@ -517,52 +526,62 @@ subroutine ca_mol_single_stage(time, &
                      (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2) + &
                 HALF*(q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
                      (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
+#endif
         enddo
      enddo
   enddo
-#endif
+
 
   do n = 1, NVAR
 
      if ( n == UTEMP ) then
         flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+#if BL_SPACEDIM >= 2
         flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+#endif
+#if BL_SPACEDIM == 3
         flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+#endif
 
 #ifdef SHOCK_VAR
      else if ( n == USHK ) then
         flux1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+#if BL_SPACEDIM >= 2
         flux2(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+#endif
+#if BL_SPACEDIM == 3
         flux3(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+#endif
 #endif
 
      else
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
-                 div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + &
-                                div(i,j,k+1) + div(i,j+1,k+1))
-                 div1 = difmag*min(ZERO,div1)
+                 div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
+                                div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
+                 div1 = difmag*min(ZERO, div1)
 
                  flux1(i,j,k,n) = flux1(i,j,k,n) + &
                       dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
               enddo
            enddo
         enddo
-
+#if BL_SPACEDIM >= 2
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
                  div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                                div(i,j,k+1) + div(i+1,j,k+1))
-                 div1 = difmag*min(ZERO,div1)
+                                div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
+                 div1 = difmag*min(ZERO, div1)
 
                  flux2(i,j,k,n) = flux2(i,j,k,n) + &
                       dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
               enddo
            enddo
         enddo
-
+#endif
+#if BL_SPACEDIM == 3
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
@@ -575,7 +594,7 @@ subroutine ca_mol_single_stage(time, &
               enddo
            enddo
         enddo
-
+#endif
      endif
 
   enddo
@@ -586,17 +605,25 @@ subroutine ca_mol_single_stage(time, &
                                            vol,vol_lo,vol_hi, &
                                            flux1,flux1_lo,flux1_hi, &
                                            area1,area1_lo,area1_hi, &
+#if BL_SPACEDIM >= 2
                                            flux2,flux2_lo,flux2_hi, &
                                            area2,area2_lo,area2_hi, &
+#endif
+#if BL_SPACEDIM == 3
                                            flux3,flux3_lo,flux3_hi, &
                                            area3,area3_lo,area3_hi, &
+#endif
                                            lo,hi,dt,dx)
 
   endif
 
   call normalize_species_fluxes(flux1,flux1_lo,flux1_hi, &
+#if BL_SPACEDIM >= 2
                                 flux2,flux2_lo,flux2_hi, &
+#endif
+#if BL_SPACEDIM == 3
                                 flux3,flux3_lo,flux3_hi, &
+#endif
                                 lo,hi)
 
   ! For hydro, we will create an update source term that is
@@ -606,12 +633,22 @@ subroutine ca_mol_single_stage(time, &
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
-              
+
+#if BL_SPACEDIM == 1
+              update(i,j,k,n) = update(i,j,k,n) + &
+                   (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) ) / vol(i,j,k)
+
+#elif BL_SPACEDIM == 2
+              update(i,j,k,n) = update(i,j,k,n) + &
+                   (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
+                    flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
+
+#else
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
                     flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
-
+#endif
               ! Add the p div(u) source term to (rho e).
               if (n .eq. UEINT) then
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
@@ -628,6 +665,7 @@ subroutine ca_mol_single_stage(time, &
      enddo
   enddo
 
+#if BL_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
@@ -635,6 +673,13 @@ subroutine ca_mol_single_stage(time, &
                                    q2, flux2_lo, flux2_hi, &
                                    q3, flux3_lo, flux3_hi)
 #endif
+#endif
+
+TODO:
+need to deal with p in the flxues
+need to deal with pradial
+need to merge the cmpflx stuff
+
 
   ! Scale the fluxes for the form we expect later in refluxing.
 
@@ -648,6 +693,7 @@ subroutine ca_mol_single_stage(time, &
      enddo
   enddo
 
+#if BL_SPACEDIM >= 2
   do n = 1, NVAR
      do k = lo(3), hi(3)
         do j = lo(2), hi(2) + 1
@@ -657,7 +703,9 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
+#endif
 
+#if BL_SPACEDIM == 3
   do n = 1, NVAR
      do k = lo(3), hi(3) + 1
         do j = lo(2), hi(2)
@@ -667,7 +715,7 @@ subroutine ca_mol_single_stage(time, &
         enddo
      enddo
   enddo
-
+#endif
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
