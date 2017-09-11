@@ -1,5 +1,8 @@
 # changes since the last release:
 
+  -- fixed a bug in the artifical viscosity in 1-d in
+     non-Cartesian geometries (issue #175)
+
 # 17.09
 
   -- the Source/ directory structure has been reorganized,
