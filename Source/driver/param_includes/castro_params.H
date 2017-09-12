@@ -75,6 +75,7 @@ static amrex::Real retry_neg_dens_factor;
 static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
+static amrex::Real dtnuc_X_threshold;
 static int dtnuc_mode;
 static amrex::Real dxnuc;
 static int do_react;

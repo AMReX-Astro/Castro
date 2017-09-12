@@ -1495,13 +1495,15 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine divu(lo, hi, q, q_lo, q_hi, dx, div, div_lo, div_hi)
+  subroutine divu(lo, hi, &
+                  q, q_lo, q_hi, &
+                  dx, div, div_lo, div_hi)
 
-    ! this computes the node-centered divergence
-    
+    ! this computes the *node-centered* divergence
+
     use meth_params_module, only : QU, QV, QW, NQ
     use bl_constants_module
-    use prob_params_module, only : dg, coord_type
+    use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -1524,35 +1526,66 @@ contains
        do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)+1
 
-#if (BL_SPACEDIM == 2)
+#if BL_SPACEDIM == 1
+             if (coord_type == 0) then
+                div(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) / dx(1)
+
+             else if (coord_type == 1) then
+                ! axisymmetric
+                if (i == 0) then
+                   div(i,j,k) = ZERO
+                else
+                   rl = (dble(i)-HALF) * dx(1) + problo(1)
+                   rr = (dble(i)+HALF) * dx(1) + problo(1)
+                   rc = (dble(i)     ) * dx(1) + problo(1)
+
+                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1,j,k,QU)) / dx(1) / rc
+                endif
+             else
+                ! spherical
+                if (i == 0) then
+                   div(i,j,k) = ZERO
+                else
+                   rl = (dble(i)-HALF) * dx(1) + problo(1)
+                   rr = (dble(i)+HALF) * dx(1) + problo(1)
+                   rc = (dble(i)     ) * dx(1) + problo(1)
+
+                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1,j,k,QU)) / dx(1) / rc**2
+                endif
+
+             endif
+
+#endif
+
+#if BL_SPACEDIM == 2
              if (coord_type == 0) then
                 ux = HALF*(q(i,j,k,QU) - q(i-1,j,k,QU) + q(i,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
                 vy = HALF*(q(i,j,k,QV) - q(i,j-1,k,QV) + q(i-1,j,k,QV) - q(i-1,j-1,k,QV))/dx(2)
 
              else
-          
+
                 if (i == 0) then
                    ux = ZERO
                    vy = ZERO   ! is this part correct?
-             
-                else 
-                   rl = (dble(i)-HALF) * dx(1)
-                   rr = (dble(i)+HALF) * dx(1)
-                   rc = (dble(i)     ) * dx(1)
-             
+
+                else
+                   rl = (dble(i)-HALF) * dx(1) + problo(1)
+                   rr = (dble(i)+HALF) * dx(1) + problo(1)
+                   rc = (dble(i)     ) * dx(1) + problo(1)
+
                    ! These are transverse averages in the y-direction
                    ul = HALF * (q(i-1,j,k,QU) + q(i-1,j-1,k,QU))
                    ur = HALF * (q(i  ,j,k,QU) + q(i  ,j-1,k,QU))
-                
+
                    ! Take 1/r d/dr(r*u)
                    ux = (rr*ur - rl*ul) / dx(1) / rc
-                
+
                    ! These are transverse averages in the x-direction
                    vb = HALF * (q(i,j-1,k,QV) + q(i-1,j-1,k,QV))
                    vt = HALF * (q(i,j  ,k,QV) + q(i-1,j  ,k,QV))
-                
+
                    vy = (vt - vb) / dx(2)
-             
+
                 end if
 
              endif
@@ -1560,7 +1593,7 @@ contains
              div(i,j,k) = ux + vy
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if BL_SPACEDIM == 3
              ux = FOURTH*( &
                     + q(i  ,j  ,k  ,QU) - q(i-1,j  ,k  ,QU) &
                     + q(i  ,j  ,k-1,QU) - q(i-1,j  ,k-1,QU) &

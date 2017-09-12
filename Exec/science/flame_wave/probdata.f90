@@ -5,7 +5,7 @@ module probdata_module
 
   real(rt)        , save :: dtemp, x_half_max, x_half_width
 
-  real(rt)        , save :: H_min, cutoff_density
+  real(rt)        , save :: X_min, cutoff_density
   ! lower boundary
   logical         , save :: interp_BC, zero_vels
 
