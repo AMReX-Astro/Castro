@@ -15,7 +15,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ model_name, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
-                    H_min, cutoff_density
+                    X_min, cutoff_density
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -30,7 +30,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   end do
 
   ! Namelist defaults
-  H_min = 1.e-4_rt
+  X_min = 1.e-4_rt
   cutoff_density = 500.e0_rt
 
 
