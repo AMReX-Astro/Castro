@@ -22,7 +22,7 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
                                  hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, shock, normalize_species_fluxes
+  use advection_util_module, only : compute_cfl, shock, normalize_species_fluxes, divu
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
@@ -247,9 +247,8 @@ subroutine ca_mol_single_stage(time, &
   ! Compute the artifical viscosity
   allocate(div(lo(1):hi(1)+1))
 
-  do i = lo(1), hi(1)+1
-     div(i) = (q(i,QU) - q(i-1,QU)) / dx
-  enddo
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3D, div, [lo(1), 0, 0], [hi(1)+1, 0, 0])
 
   do n = 1, NVAR
      if ( n == UTEMP ) then
@@ -265,7 +264,7 @@ subroutine ca_mol_single_stage(time, &
      else
         ! add the artifical viscosity
         do i = lo(1),hi(1)+1
-           div1 = difmag*min(ZERO,div(i))
+           div1 = difmag*min(ZERO, div(i))
            flux(i,n) = flux(i,n) + dx*div1*(uin(i,n) - uin(i-1,n))
         enddo
      endif
