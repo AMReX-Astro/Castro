@@ -27,6 +27,7 @@ section_sources = Preface/Preface.tex \
 		  MAESTRO_restart/MAESTRO_restart.tex \
                   Visualization/CastroVisualization.tex \
                   Verification/Verification.tex \
+		   Particles/Particles.tex \
                   castrosymbols.tex
 
 
