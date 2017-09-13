@@ -2,17 +2,17 @@
 
  model_name =  "newmodelcpp.hse"
 
- apply_vel_field = F
- velpert_height_loc = 1.8e8
- velpert_scale = 1e7
- velpert_amplitude = 1.5e7
- num_vortices = 0
+ apply_vel_field = T
+ velpert_height_loc = 0.8e9
+ velpert_scale = 0.8e7
+ velpert_amplitude = 0.8e6
+ num_vortices = 100
 
  zero_vels = F
  interp_BC = F
 
- shear_height_loc = 3.8e8
- shear_amplitude = 5e3
+ shear_height_loc = 3.8e38
+ shear_amplitude = 5e0
 
 /
 
@@ -27,10 +27,10 @@ eos_gamma=1.4
   sponge_lower_factor = 0.0
   sponge_upper_factor = 1.0
 
-  sponge_lower_density = 1.0e-12
+  sponge_lower_density = 1.1e-15
   sponge_upper_density = 1.0e-13
 
-  sponge_timescale    = 1.e-2
+  sponge_timescale    = 5.e3
 
 
 

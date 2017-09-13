@@ -359,7 +359,7 @@ contains
 #endif
                     area, area_lo, area_hi, &
                     vol, vol_lo, vol_hi, &
-                    div, pdivu, lo, hi, dx, dt, &
+                    div, lo, hi, dx, dt, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
@@ -372,7 +372,7 @@ contains
                                    GDU, GDPRES, &
 #endif
                                    limit_fluxes_on_small_dens, NGDNV, GDPRES, NQ
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use prob_params_module, only : domlo_level, domhi_level, center, coord_type
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
@@ -417,7 +417,6 @@ contains
     real(rt)        , intent(in) :: area( area_lo(1): area_hi(1))
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1)
-    real(rt)        , intent(in) :: pdivu(lo(1):hi(1)  )
     real(rt)        , intent(in) :: dx, dt
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
@@ -439,6 +438,15 @@ contains
     real(rt)         :: urho_new, umx_new1, umy_new1, umz_new1
     real(rt)         :: umx_new2, umy_new2, umz_new2
 #endif
+    real(rt)        , allocatable :: pdivu(:)
+
+    allocate( pdivu(lo(1):hi(1)  ))
+
+    call calc_pdivu([lo(1), 0, 0], [hi(1), 0, 0], &
+                    q1, q1_lo, q1_hi, &
+                    area, area_lo, area_hi, &
+                    vol, vol_lo, vol_hi, &
+                    [dx, ZERO, ZERO], pdivu, [lo(1), 0, 0], [hi(1), 0, 0])
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -690,6 +698,8 @@ contains
        endif
 
     endif
+
+    deallocate(pdivu)
 
   end subroutine consup
 

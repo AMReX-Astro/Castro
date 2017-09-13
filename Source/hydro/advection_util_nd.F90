@@ -6,7 +6,7 @@ module advection_util_module
   private
 
   public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, shock, divu, normalize_species_fluxes
+         limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes
 
 contains
 
@@ -1620,5 +1620,92 @@ contains
     enddo
 
   end subroutine divu
+
+
+! :::
+! ::: ------------------------------------------------------------------
+! :::
+
+  subroutine calc_pdivu(lo, hi, &
+                        q1, q1_lo, q1_hi, &
+                        area1, a1_lo, a1_hi, &
+#if BL_SPACEDIM >= 2
+                        q2, q2_lo, q2_hi, &
+                        area2, a2_lo, a2_hi, &
+#endif
+#if BL_SPACEDIM == 3
+                        q3, q3_lo, q3_hi, &
+                        area3, a3_lo, a3_hi, &
+#endif
+                        vol, v_lo, v_hi, &
+                        dx, pdivu, div_lo, div_hi)
+
+    ! this computes the *node-centered* divergence
+
+    use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
+    use bl_constants_module
+    use amrex_fort_module, only : rt => amrex_real
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer, intent(in) :: div_lo(3), div_hi(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(inout) :: pdivu(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+
+    integer, intent(in) :: q1_lo(3), q1_hi(3)
+    integer, intent(in) :: a1_lo(3), a1_hi(3)
+    real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
+    real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
+#if BL_SPACEDIM >= 2
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: a2_lo(3), a2_hi(3)
+    real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
+    real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
+#endif
+#if BL_SPACEDIM == 3
+    integer, intent(in) :: q3_lo(3), q3_hi(3)
+    integer, intent(in) :: a3_lo(3), a3_hi(3)
+    real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
+    real(rt), intent(in) :: area3(a3_lo(1):a3_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
+#endif
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+
+    integer  :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+#if BL_SPACEDIM == 1
+             pdivu(i,j,k) = HALF * &
+                  (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
+                  (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
+#endif
+
+#if BL_SPACEDIM == 2
+             pdivu(i,j,k) = HALF*( &
+                  (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
+                  (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) + &
+                  (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
+                  (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
+#endif
+
+#if BL_SPACEDIM == 3
+             pdivu(i,j,k) = &
+                  HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
+                       (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
+                  HALF*(q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
+                       (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2) + &
+                  HALF*(q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
+                       (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
+#endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine calc_pdivu
 
 end module advection_util_module
