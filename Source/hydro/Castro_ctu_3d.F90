@@ -112,7 +112,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
   real(rt)        , pointer:: div(:,:,:)
-  real(rt)        , pointer:: pdivu(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , pointer:: q1(:,:,:,:)
@@ -126,7 +125,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   ngf = 1
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
   q1_lo = flux1_lo - 1
   q1_hi = flux1_hi + 1
@@ -180,7 +178,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                q1, q1_lo, q1_hi, &
                q2, q2_lo, q2_hi, &
                q3, q3_lo, q3_hi, &
-               pdivu, domlo, domhi)
+               domlo, domhi)
 
 
   call bl_deallocate( flatn)
@@ -211,13 +209,12 @@ subroutine ca_ctu_update(is_finest_level, time, &
               area2, area2_lo, area2_hi, &
               area3, area3_lo, area3_hi, &
               vol, vol_lo, vol_hi, &
-              div,pdivu,lo,hi,delta,dt, &
+              div, lo,hi,delta,dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
   call bl_deallocate(   div)
-  call bl_deallocate( pdivu)
 
   call bl_deallocate(    q1)
   call bl_deallocate(    q2)
