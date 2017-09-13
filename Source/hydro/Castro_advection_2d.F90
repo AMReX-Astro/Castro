@@ -45,7 +45,7 @@ contains
                      q2, q2_lo, q2_hi, &
                      area1, area1_lo, area1_hi, &
                      area2, area2_lo, area2_hi, &
-                     pdivu, vol, vol_lo, vol_hi, &
+                     vol, vol_lo, vol_hi, &
                      dloga, dloga_lo, dloga_hi, &
                      domlo, domhi)
 
@@ -114,7 +114,6 @@ contains
 #endif
     real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2))
     real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2))
-    real(rt)        , intent(inout) :: pdivu(lo(1):hi(1),lo(2):hi(2))
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
 
     ! Left and right state arrays (edge centered, cell centered)
@@ -501,19 +500,6 @@ contains
                 shk, shk_lo, shk_hi, &
                 2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
 
-    ! Construct p div{U} -- this will be used as a source to the internal
-    ! energy update.  Note we construct this using the interface states
-    ! returned from the Riemann solver.
-    do j = lo(2), hi(2)
-       do i = lo(1), hi(1)
-          pdivu(i,j) = HALF*( &
-               (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
-               (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
-               (q2(i,j+1,GDPRES) + q2(i,j,GDPRES)) * &
-               (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
-       end do
-    end do
-
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)
 #ifdef RADIATION
@@ -546,7 +532,7 @@ contains
                      area1, area1_lo, area1_hi, &
                      area2, area2_lo, area2_hi, &
                      vol, vol_lo, vol_hi, &
-                     div,pdivu,lo,hi,dx,dy,dt, &
+                     div, lo,hi,dx,dy,dt, &
                      mass_lost,xmom_lost,ymom_lost,zmom_lost, &
                      eden_lost,xang_lost,yang_lost,zang_lost, &
                      verbose)
@@ -562,7 +548,7 @@ contains
                                    limit_fluxes_on_small_dens, NQ
     use prob_params_module, only : mom_flux_has_p, domlo_level, domhi_level, center
     use bl_constants_module, only : ZERO, HALF
-     use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
+    use advection_util_module, only: limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
     use amrinfo_module, only : amr_level
 #ifdef RADIATION
@@ -615,7 +601,6 @@ contains
     real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2))
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1)
-    real(rt)        , intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2))
     real(rt)        , intent(in) :: dx, dy, dt
     real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
     real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
@@ -642,6 +627,17 @@ contains
     real(rt)         :: umx_new1, umy_new1, umz_new1
     real(rt)         :: umx_new2, umy_new2, umz_new2
 #endif
+    real(rt)        , allocatable :: pdivu(:,:)
+
+    allocate(pdivu(lo(1):hi(1), lo(2):hi(2)))
+
+    call calc_pdivu([lo(1), lo(2), 0], [hi(1), hi(2), 0], &
+                    q1, flux1_lo, flux1_hi, &
+                    area1, area1_lo, area1_hi, &
+                    q2, flux2_lo, flux2_hi, &
+                    area2, area2_lo, area2_hi, &
+                    vol, vol_lo, vol_hi, &
+                    [dx, dy, ZERO], pdivu, [lo(1), lo(2), 0], [hi(1), hi(2), 0])
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -1058,6 +1054,8 @@ contains
        endif
 
     endif
+
+    deallocate(pdivu)
 
   end subroutine consup
 

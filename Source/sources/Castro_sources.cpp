@@ -91,10 +91,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // S_new -- note that this addition is for full dt, since we
     // will do a predictor-corrector on the sources to allow for
     // state-dependent sources.
-    
-    // note: this is not needed for MOL, since the sources will
-    // be applied as part of the overall integration
-    
+
     MultiFab& S_new = get_new_data(State_Type);
     
     for (int n = 0; n < num_src; ++n)

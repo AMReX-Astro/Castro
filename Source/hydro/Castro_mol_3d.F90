@@ -28,7 +28,7 @@ subroutine ca_mol_single_stage(time, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens, shock, &
-                                    divu, normalize_species_fluxes
+                                    divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
@@ -441,22 +441,18 @@ subroutine ca_mol_single_stage(time, &
   call bl_deallocate(shk)
 
 
-  ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo,hi,q,q_lo,q_hi,dx,div,lo,hi+1)
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           pdivu(i,j,k) = &
-                HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-                     (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
-                HALF*(q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-                     (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2) + &
-                HALF*(q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
-                     (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
-        enddo
-     enddo
-  enddo
+  call calc_pdivu(lo, hi, &
+                  q1, flux1_lo, flux1_hi, &
+                  area1, area1_lo, area1_hi, &
+                  q2, flux2_lo, flux2_hi, &
+                  area2, area2_lo, area2_hi, &
+                  q3, flux3_lo, flux3_hi, &
+                  area3, area3_lo, area3_hi, &
+                  vol, vol_lo, vol_hi, &
+                  dx, pdivu, lo, hi)
+
 
   do n = 1, NVAR
 
@@ -473,15 +469,16 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
      else
+        ! do the artificial viscosity
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
                  div1 = FOURTH*(div(i,j,k) + div(i,j+1,k) + &
                                 div(i,j,k+1) + div(i,j+1,k+1))
-                 div1 = difmag*min(ZERO,div1)
+                 div1 = difmag*min(ZERO, div1)
 
                  flux1(i,j,k,n) = flux1(i,j,k,n) + &
-                      dx(1) * div1 * (uin(i,j,k,n)-uin(i-1,j,k,n))
+                      dx(1) * div1 * (uin(i,j,k,n) - uin(i-1,j,k,n))
               enddo
            enddo
         enddo
@@ -491,10 +488,10 @@ subroutine ca_mol_single_stage(time, &
               do i = lo(1), hi(1)
                  div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
                                 div(i,j,k+1) + div(i+1,j,k+1))
-                 div1 = difmag*min(ZERO,div1)
+                 div1 = difmag*min(ZERO, div1)
 
                  flux2(i,j,k,n) = flux2(i,j,k,n) + &
-                      dx(2) * div1 * (uin(i,j,k,n)-uin(i,j-1,k,n))
+                      dx(2) * div1 * (uin(i,j,k,n) - uin(i,j-1,k,n))
               enddo
            enddo
         enddo
@@ -504,10 +501,10 @@ subroutine ca_mol_single_stage(time, &
               do i = lo(1), hi(1)
                  div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
                                 div(i,j+1,k) + div(i+1,j+1,k))
-                 div1 = difmag*min(ZERO,div1)
+                 div1 = difmag*min(ZERO, div1)
 
                  flux3(i,j,k,n) = flux3(i,j,k,n) + &
-                      dx(3) * div1 * (uin(i,j,k,n)-uin(i,j,k-1,n))
+                      dx(3) * div1 * (uin(i,j,k,n) - uin(i,j,k-1,n))
               enddo
            enddo
         enddo

@@ -194,11 +194,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (apply_vel_field) then
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(float(j-lo(2)) + HALF)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
         ydist = y - velpert_height_loc
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(float(i-lo(1)) + HALF)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
            if (y >= shear_height_loc) then 
               state(:,:,UMX) = state(:,:,URHO)*shear_amplitude
@@ -212,21 +212,23 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               xdist = x - xloc_vortices(vortex)
 
-              r = sqrt(xdist**2 + ydist**2)
+              r = sqrt(xdist**2.0_rt + ydist**2.0_rt)
 
               upert(1) = upert(1) - (ydist/velpert_scale) * &
-                   velpert_amplitude * exp( -r**2/(TWO*velpert_scale**2)) &
+                   velpert_amplitude * exp( -r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
                    * (ONE)**vortex
 
               upert(2) = upert(2) + (xdist/velpert_scale) * &
-                   velpert_amplitude * exp(-r**2/(TWO*velpert_scale**2)) &
+                   velpert_amplitude * exp(-r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
                    * (-ONE)**vortex
-           enddo
 
+           enddo
+     
            state(i,j,UMX) = state(i,j,UMX) + state(i,j,URHO) * upert(1)
            state(i,j,UMY) = state(i,j,UMY) + state(i,j,URHO) * upert(2)
 
-           state(i,j,UEDEN) = state(i,j,UEDEN) + HALF*(state(i,j,UMX)**2 + state(i,j,UMY)**2)/state(i,j,URHO)
+           state(i,j,UEDEN) = state(i,j,UEDEN) + HALF*(state(i,j,UMX)**2.0_rt &
+            + state(i,j,UMY)**2.0_rt)/state(i,j,URHO)
         end do
      end do
 
