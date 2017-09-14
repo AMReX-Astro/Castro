@@ -381,7 +381,6 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   use meth_params_module
   use network, only : nspec, naux
-  use parallel, only : parallel_initialize
   use eos_module, only: eos_init
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
@@ -407,8 +406,6 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   integer :: i
   integer :: ioproc
-
-  call parallel_initialize()
 
   !---------------------------------------------------------------------
   ! conserved state components
