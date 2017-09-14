@@ -54,10 +54,19 @@ USE_MG = FALSE
 #------------------------------------------------------------------------------
 
 Bdirs := Source/driver Source/driver/param_includes \
-         Source/hydro Source/problems Source/sources \
+         Source/problems Source/sources \
          constants Util/model_parser
 
+
 # add / define any special physics we need
+
+ifeq ($(USE_MHD), TRUE)
+  Bdirs += Source/mhd
+  DEFINES += -DMHD
+else
+  Bdirs += Source/hydro
+endif
+
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
