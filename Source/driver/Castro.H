@@ -619,6 +619,17 @@ protected:
     amrex::Array<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
 
+    //
+    // Temporary fluxes that only live for the length of the timestep.
+    //
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > current_fluxes;
+#if (BL_SPACEDIM <= 2)
+    amrex::MultiFab         current_P_radial;
+#endif
+#ifdef RADIATION
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > current_rad_fluxes;
+#endif
+
     amrex::FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
