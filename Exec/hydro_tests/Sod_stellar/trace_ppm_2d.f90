@@ -100,8 +100,10 @@ contains
 
     real(rt)         :: eval(3), beta(3), rvec(3,3), lvec(3,3), dq(3)
 
-    type (eos_t) :: eos_state
+    integer :: I_lo(3), I_hi(3)
 
+    type (eos_t) :: eos_state
+   
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in trace_ppm with ppm_type = 0'
        call bl_error("Error:: ppm_2d.f90 :: trace_ppm")
@@ -110,14 +112,20 @@ contains
     dtdx = dt/dx
     dtdy = dt/dy
 
+    I_lo = [ilo1-1, ilo2-1, 0]
+    I_hi = [ihi1+1, ihi2+1, 0]
+
     ! indices: (x, y, dimension, wave, variable)
-    allocate(Ip(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
-    allocate(Im(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
+    allocate(Ip(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+    allocate(Im(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
 
     if (ppm_trace_sources == 1) then
-       allocate(Ip_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
-       allocate(Im_src(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,QVAR))
+       allocate(Ip_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
+       allocate(Im_src(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, QVAR))
     endif
+
+    allocate(Ip_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
+    allocate(Im_gc(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
 
     ! tau = 1/rho
     allocate(tau(q_lo(1):q_hi(1),q_lo(2):q_hi(2)))
@@ -132,12 +140,9 @@ contains
     enddo
 
     if (ppm_temp_fix == 3) then
-       allocate(Ip_tau(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
-       allocate(Im_tau(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
+       allocate(Ip_tau(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
+       allocate(Im_tau(I_lo(1):I_hi(1), I_lo(2):I_hi(2), 2, 3, 1))
     endif
-
-    allocate(Ip_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
-    allocate(Im_gc(ilo1-1:ihi1+1,ilo2-1:ihi2+1,2,3,1))
 
     hdt = HALF * dt
 
@@ -180,15 +185,15 @@ contains
     do n=1,QVAR
        call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
                             flatn, q_lo, q_hi, &
-                            sxm, sxp, sym, syp, &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
 
        call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
                             q(:,:,QU:QV), q_lo, q_hi, &
                             qaux(:,:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, sym, syp, &
-                            Ip(:,:,:,:,n), Im(:,:,:,:,n), &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            Ip(:,:,:,:,n), Im(:,:,:,:,n), I_lo, I_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
     end do
 
     ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -231,30 +236,30 @@ contains
     if (ppm_temp_fix /= 1) then
        call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
                             flatn, q_lo, q_hi, &
-                            sxm, sxp, sym, syp, &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
 
        call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
                             q(:,:,QU:QV), q_lo, q_hi, &
                             qaux(:,:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, sym, syp, &
-                            Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), I_lo, I_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
     endif
 
 
     if (ppm_temp_fix == 3) then
        call ppm_reconstruct(tau(:,:), q_lo, q_hi, &
                             flatn, q_lo, q_hi, &
-                            sxm, sxp, sym, syp, &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
 
        call ppm_int_profile(tau(:,:), q_lo, q_hi, &
                             q(:,:,QU:QV), q_lo, q_hi, &
                             qaux(:,:,QC), qa_lo, qa_hi, &
-                            sxm, sxp, sym, syp, &
-                            Ip_tau(:,:,:,:,1), Im_tau(:,:,:,:,1), &
-                            ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+                            sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                            Ip_tau(:,:,:,:,1), Im_tau(:,:,:,:,1), I_lo, I_hi, &
+                            ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
     endif
 
     ! if desired, do parabolic reconstruction of the momentum sources
@@ -263,15 +268,15 @@ contains
        do n = 1, QVAR
           call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, &
-                               ilo1, ilo2, ihi1, ihi2, dx, dy)
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], 0, 0)
 
           call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
                                q(:,:,QU:QV), q_lo, q_hi, &
                                qaux(:,:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, &
-                               Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), &
-                               ilo1, ilo2, ihi1, ihi2, dx, dy, dt)
+                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                               Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), I_lo, I_hi, &
+                               ilo1, ilo2, ihi1, ihi2, [dx, dy, ZERO], dt, 0, 0)
        enddo
     endif
 

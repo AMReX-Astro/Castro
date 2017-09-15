@@ -414,7 +414,7 @@ With {\tt PrescribedGrav}\footnote{Note: The {\tt PrescribedGrav}
   University of Gottingen.}, gravity can be defined as a function that
 is specified by the user.  The option is allowed in 2D and 3D.  To
 define the gravity vector, copy {\tt prescribe\_grav\_nd.f90} from
-{\tt Src\_nd} to your run directory.  The makefile system will always
+{\tt Source/gravity/} to your run directory.  The makefile system will always
 choose this local copy of the file over the one in another directory.
 Then define the components of gravity inside a loop over the grid
 inside the file.  If your problem uses a radial gravity in the form
@@ -443,7 +443,7 @@ and the mass deleted is added to the pointmass.  (If there is
 expansion, and the density lowers, then the point mass is reduced and
 the mass is added back to the grid).  This calculation is done in {\tt
   pm\_compute\_delta\_mass()} in {\tt
-  Source/Src\_nd/pointmass\_nd.f90}.
+  Source/gravity/pointmass\_nd.f90}.
 
 
 

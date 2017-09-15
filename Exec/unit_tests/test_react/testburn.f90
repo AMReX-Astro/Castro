@@ -107,7 +107,7 @@ subroutine do_burn() bind(C)
 
   call ca_react_state(lo, hi, state, lo, hi, reactions, lo, hi, &
                       weights, lo, hi, &
-                      mask, lo, hi, time, dt)
+                      mask, lo, hi, time, dt, 0)
 
   call cpu_time(finish)
 

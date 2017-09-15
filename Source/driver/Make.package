@@ -1,0 +1,63 @@
+# these are the files that should be needed for any Castro build
+
+ca_f90EXE_sources += amrinfo.f90
+
+ifeq ($(DIMENSION_AGNOSTIC), TRUE)
+ca_F90EXE_sources += filcc_nd.F90
+endif
+
+CEXE_sources += Castro.cpp
+CEXE_sources += Castro_advance.cpp
+CEXE_sources += Castro_setup.cpp
+CEXE_sources += Castro_error.cpp
+CEXE_sources += Castro_io.cpp
+CEXE_sources += CastroBld.cpp
+CEXE_sources += main.cpp
+
+CEXE_headers += Castro.H
+CEXE_headers += Castro_io.H
+
+CEXE_sources += sum_utils.cpp
+CEXE_sources += sum_integrated_quantities.cpp
+
+FEXE_headers += Castro_F.H
+FEXE_headers += Castro_error_F.H
+FEXE_headers += Derive_F.H
+
+ca_F90EXE_sources += castro_c_interfaces_nd.F90
+ifeq ($(USE_CUDA), TRUE)
+  ca_F90EXE_sources += castro_cuda_interfaces_nd.F90
+endif
+
+ca_F90EXE_sources += Castro_nd.F90
+ca_F90EXE_sources += Castro_util.F90
+ca_F90EXE_sources += Derive_nd.F90
+ca_f90EXE_sources += interpolate.f90
+ca_f90EXE_sources += io.f90
+ca_f90EXE_sources += math.f90
+ca_F90EXE_sources += meth_params.F90
+
+NEED_MGUTIL =
+
+ifeq ($(USE_GRAV), TRUE)
+  NEED_MGUTIL = TRUE
+endif
+
+ifeq ($(USE_DIFFUSION), TRUE)
+  NEED_MGUTIL = TRUE
+endif
+
+ifdef NEED_MGUTIL
+  ifeq ($(DIM), 1)
+    ca_f90EXE_sources += MGutils_1d.f90
+  endif
+  ifeq ($(DIM), 2)
+    ca_f90EXE_sources += MGutils_2d.f90
+  endif
+endif
+
+ca_f90EXE_sources += prob_params.f90
+ca_f90EXE_sources += sums_nd.f90
+ca_f90EXE_sources += Tagging_nd.f90
+ca_F90EXE_sources += timestep.F90
+

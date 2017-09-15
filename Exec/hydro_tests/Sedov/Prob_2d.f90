@@ -1,20 +1,25 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use bl_constants_module
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
-
+  use eos_type_module, only : eos_t, eos_input_rt, eos_input_rp
+  use eos_module, only : eos
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt)         :: problo(2), probhi(2)
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(2), probhi(2)
 
-  integer :: untin,i
+  integer :: untin, i
 
-  namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub
+  type(eos_t) :: eos_state
+
+  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
+       r_init, nsub, temp_ambient
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -35,16 +40,43 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
   r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
+  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
 
-  !     Set explosion center
-  center(1) = (problo(1)+probhi(1))/2.e0_rt
-  center(2) = (problo(2)+probhi(2))/2.e0_rt
+  ! set explosion center
+  center(1) = HALF*(problo(1) + probhi(1))
+  center(2) = HALF*(problo(2) + probhi(2))
 
-  !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  ! Read namelists
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
+
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
+
+  ! override the pressure iwth the temperature
+  if (temp_ambient > ZERO) then
+
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = temp_ambient
+
+     call eos(eos_input_rt, eos_state)
+
+     p_ambient = eos_state % p
+
+  endif
+
+  ! Calculate ambient state data
+
+  eos_state % rho = dens_ambient
+  eos_state % p   = p_ambient
+  eos_state % T   = 1.d5 ! Initial guess for iterations
+  eos_state % xn  = xn_zone
+
+  call eos(eos_input_rp, eos_state)
+
+  e_ambient = eos_state % e
 
 end subroutine amrex_probinit
 
@@ -76,12 +108,12 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use probdata_module
   use bl_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
-  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
-  use prob_params_module, only : center
+  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use prob_params_module, only : center, coord_type
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
   use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
+  use eos_type_module, only : eos_t, eos_input_rp, eos_input_re, eos_input_rt
 
   implicit none
 
@@ -99,14 +131,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   integer :: i,j, ii, jj
   real(rt)         :: vol_pert, vol_ambient
-  real(rt) :: xn_zone(nspec), e_zone
+  real(rt) :: e_zone
   type(eos_t) :: eos_state
 
-  xn_zone(:) = ZERO
-  xn_zone(1) = ONE
-
   ! Cylindrical problem in Cartesian coordinates
-  if (probtype .eq. 21) then
+  if (coord_type == 0) then
 
      ! set explosion pressure -- we will convert the point-explosion
      ! energy into a corresponding pressure distributed throughout the
@@ -118,7 +147,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
+     eos_state % T = 1000.00 ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -141,7 +170,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
                  dist = (center(1)-xx)**2 + (center(2)-yy)**2
 
-                 if(dist <= r_init**2) then
+                 if (dist <= r_init**2) then
                     vol_pert    = vol_pert    + 1.e0_rt
                  else
                     vol_ambient = vol_ambient + 1.e0_rt
@@ -155,6 +184,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            eos_state % p = p_zone
            eos_state % rho = dens_ambient
            eos_state % xn(:) = xn_zone(:)
+           eos_state % T = 1000.0   ! initial guess
 
            call eos(eos_input_rp, eos_state)
 
@@ -170,85 +200,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            state(i,j,UFS) = state(i,j,URHO)
 
-        enddo
-     enddo
-
-
-  ! Cylindrical problem in cylindrical coordinates
-  else if (probtype .eq. 22) then
-
-     !  set explosion pressure -- we will convert the point-explosion
-     !  energy into a corresponding pressure distributed throughout
-     !  the perturbed volume
-     vctr = M_PI*r_init**2
-
-     e_zone = exp_energy/vctr/dens_ambient
-
-     eos_state % e = e_zone
-     eos_state % rho = dens_ambient
-     eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
-
-     call eos(eos_input_re, eos_state)
-
-     p_exp = eos_state % p
-
-     j = lo(2)
-
-     do i = lo(1), hi(1)
-        xmin = xlo(1) + delta(1)*dble(i-lo(1))
-
-        vol_pert    = 0.e0_rt
-        vol_ambient = 0.e0_rt
-
-        do ii = 0, nsub-1
-           xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
-
-           dist = xx
-
-           if (dist <= r_init) then
-              vol_pert    = vol_pert    + dist
-           else
-              vol_ambient = vol_ambient + dist
-           endif
+           state(i,j,UTEMP) = eos_state % T
 
         enddo
-
-        p_zone = (vol_pert*p_exp + vol_ambient*p_ambient)/ (vol_pert + vol_ambient)
-
-        eos_state % p = p_zone
-        eos_state % rho = dens_ambient
-        eos_state % xn(:) = xn_zone(:)
-
-        call eos(eos_input_rp, eos_state)
-
-        eint = dens_ambient * eos_state % e
-
-        state(i,j,URHO) = dens_ambient
-        state(i,j,UMX:UMZ) = 0.e0_rt
-
-        state(i,j,UEDEN) = eint + &
-             0.5e0_rt*(sum(state(i,j,UMX:UMZ)**2)/state(i,j,URHO))
-
-        state(i,j,UEINT) = eint
-
-        state(i,j,UFS) = state(i,j,URHO)
-
      enddo
-
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           state(i,j,URHO ) = state(i,lo(2),URHO)
-           state(i,j,UMX:UMZ) = 0.e0_rt
-           state(i,j,UEDEN) = state(i,lo(2),UEDEN)
-           state(i,j,UEINT) = state(i,lo(2),UEINT)
-           state(i,j,UFS  ) = state(i,lo(2),UFS)
-        end do
-     enddo
-
 
   ! Spherical problem in cylindrical (axisymmetric) coordinates
-  else if (probtype .eq. 23) then
+  else if (coord_type == 1) then
 
      ! set explosion pressure -- we will convert the point-explosion
      ! energy into a corresponding pressure distributed throughout the
@@ -260,7 +218,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      eos_state % e = e_zone
      eos_state % rho = dens_ambient
      eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
+     eos_state % T = 1000.0  ! initial guess
 
      call eos(eos_input_re, eos_state)
 
@@ -320,11 +278,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
            state(i,j,UFS) = state(i,j,URHO)
 
+           state(i,j,UTEMP) = eos_state % T
+
         enddo
      enddo
 
   else
-     call bl_abort('Dont know this probtype')
+     call bl_abort('Dont know this geometry')
   end if
 
 end subroutine ca_initdata
