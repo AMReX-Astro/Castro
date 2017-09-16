@@ -127,6 +127,8 @@
 
   renormalize_abundances = T
 
+  MAX_TEMP = 1.d10
+
   ! Note that not every network has tabular
   ! rates enabled, so for some networks the
   ! following option will have no effect.
