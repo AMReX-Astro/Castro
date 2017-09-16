@@ -638,9 +638,9 @@ contains
     allocate(pdivu(lo(1):hi(1), lo(2):hi(2)))
 
     call calc_pdivu([lo(1), lo(2), 0], [hi(1), hi(2), 0], &
-                    q1, flux1_lo, flux1_hi, &
+                    q1, q1_lo, q1_hi, &
                     area1, area1_lo, area1_hi, &
-                    q2, flux2_lo, flux2_hi, &
+                    q2, q2_lo, q2_hi, &
                     area2, area2_lo, area2_hi, &
                     vol, vol_lo, vol_hi, &
                     [dx, dy, ZERO], pdivu, [lo(1), lo(2), 0], [hi(1), hi(2), 0])
