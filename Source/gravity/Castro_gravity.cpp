@@ -302,9 +302,9 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(grav_new[mfi]),
 #endif
 			BL_TO_FORTRAN_3D(volume[mfi]),
-			BL_TO_FORTRAN_3D((*current_fluxes[0])[mfi]),
-			BL_TO_FORTRAN_3D((*current_fluxes[1])[mfi]),
-			BL_TO_FORTRAN_3D((*current_fluxes[2])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
 			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
 			ZFILL(dx),dt,&time);
 

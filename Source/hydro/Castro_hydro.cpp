@@ -112,6 +112,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
     {
 
+      FArrayBox flux[BL_SPACEDIM];
+#if (BL_SPACEDIM <= 2)
+      FArrayBox pradial(Box::TheUnitBox(),1);
+#endif
+#ifdef RADIATION
+      FArrayBox rad_flux[BL_SPACEDIM];
+#endif
       FArrayBox q, qaux, src_q;
 
       int priv_nstep_fsp = -1;
@@ -181,6 +188,20 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 #endif
 #endif
+	  // Allocate fabs for fluxes
+	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
+	    const Box& bxtmp = amrex::surroundingNodes(bx,i);
+	    flux[i].resize(bxtmp,NUM_STATE);
+#ifdef RADIATION
+	    rad_flux[i].resize(bxtmp,Radiation::nGroups);
+#endif
+	  }
+
+#if (BL_SPACEDIM <= 2)
+	  if (!Geometry::IsCartesian()) {
+	    pradial.resize(amrex::surroundingNodes(bx,0),1);
+	  }
+#endif
 
 	  ca_ctu_update
 	    (&is_finest_level, &time,
@@ -196,16 +217,16 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     BL_TO_FORTRAN_3D(src_q),
 	     BL_TO_FORTRAN_3D(source_out),
 	     dx, &dt,
-	     D_DECL(BL_TO_FORTRAN_3D((*current_fluxes[0])[mfi]),
-		    BL_TO_FORTRAN_3D((*current_fluxes[1])[mfi]),
-		    BL_TO_FORTRAN_3D((*current_fluxes[2])[mfi])),
+	     D_DECL(BL_TO_FORTRAN_3D(flux[0]),
+		    BL_TO_FORTRAN_3D(flux[1]),
+		    BL_TO_FORTRAN_3D(flux[2])),
 #ifdef RADIATION
-	     D_DECL(BL_TO_FORTRAN_3D((*current_rad_fluxes[0])[mfi]),
-		    BL_TO_FORTRAN_3D((*current_rad_fluxes[1])[mfi]),
-		    BL_TO_FORTRAN_3D((*current_rad_fluxes[2])[mfi])),
+	     D_DECL(BL_TO_FORTRAN_3D(rad_flux[0]),
+		    BL_TO_FORTRAN_3D(rad_flux[1]),
+		    BL_TO_FORTRAN_3D(rad_flux[2])),
 #endif
 #if (BL_SPACEDIM < 3)
-	     BL_TO_FORTRAN_3D(current_P_radial[mfi]),
+	     BL_TO_FORTRAN_3D(pradial),
 #endif
 	     D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
 		    BL_TO_FORTRAN_3D(area[1][mfi]),
@@ -229,14 +250,14 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 	  for (int i = 0; i < BL_SPACEDIM ; i++) {
 #ifndef SDC
-	    (*fluxes    [i])[mfi].plus((*    current_fluxes[i])[mfi],mfi.nodaltilebox(i),0,0,NUM_STATE);
+	    (*fluxes    [i])[mfi].plus(    flux[i],mfi.nodaltilebox(i),0,0,NUM_STATE);
 #ifdef RADIATION
-	    (*rad_fluxes[i])[mfi].plus((*current_rad_fluxes[i])[mfi],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].plus(rad_flux[i],mfi.nodaltilebox(i),0,0,Radiation::nGroups);
 #endif
 #else
-	    (*fluxes    [i])[mfi].copy((*    current_fluxes[i])[mfi],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
+	    (*fluxes    [i])[mfi].copy(    flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,NUM_STATE);
 #ifdef RADIATION
-	    (*rad_fluxes[i])[mfi].copy((*current_rad_fluxes[i])[mfi],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
+	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
 	  }
@@ -244,9 +265,9 @@ Castro::construct_hydro_source(Real time, Real dt)
 #if (BL_SPACEDIM <= 2)
 	  if (!Geometry::IsCartesian()) {
 #ifndef SDC
-	    P_radial[mfi].plus(current_P_radial[mfi],mfi.nodaltilebox(0),0,0,1);
+	    P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
 #else
-	    P_radial[mfi].copy(current_P_radial[mfi],mfi.nodaltilebox(0),0,mfi.nodaltilebox(0),0,1);
+	    P_radial[mfi].copy(pradial,mfi.nodaltilebox(0),0,mfi.nodaltilebox(0),0,1);
 #endif
 	  }
 #endif

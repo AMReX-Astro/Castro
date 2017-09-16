@@ -590,7 +590,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       Sburn.define(grids, dmap, NUM_STATE, 0);
     }
 
-    // Zero out the stored and current fluxes.
+    // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
 	fluxes[dir]->setVal(0.0);
@@ -604,42 +604,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (Radiation::rad_hydro_combined)
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	    rad_fluxes[dir]->setVal(0.0);
-#endif
-
-    current_fluxes.resize(3);
-
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	current_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
-
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-	current_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
-
-#if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
-	current_P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
-#endif
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-	current_rad_fluxes.resize(BL_SPACEDIM);
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
-	    current_rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
-	}
-    }
-#endif
-
-    for (int dir = 0; dir < 3; ++dir)
-	current_fluxes[dir]->setVal(0.0);
-
-#if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
-	current_P_radial.setVal(0.0);
-#endif
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	    current_rad_fluxes[dir]->setVal(0.0);
 #endif
 
 }
@@ -685,22 +649,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
-
-    for (int dir = 0; dir < 3; ++dir)
-	current_fluxes[dir].reset();
-
-#if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
-	current_P_radial.clear();
-#endif
-
-#ifdef RADIATION
-    if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
-	    current_rad_fluxes[dir].reset();
-	}
-    }
-#endif
 
 }
 
@@ -845,11 +793,6 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  state[k].setTimeLevel(time, 0.0, 0.0);
 
 	}
-
-#ifdef SELF_GRAVITY
-        if (do_grav)
-            gravity->swapTimeLevels(level);
-#endif
 
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
