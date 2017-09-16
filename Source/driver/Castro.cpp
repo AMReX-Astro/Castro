@@ -2241,22 +2241,6 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->Reflux(crse_lev.hydro_source, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
-#ifdef GRAVITY
-            // Store the updated mass_fluxes for use in the gravity source term.
-
-            crse_lev.mass_fluxes.resize(3);
-
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
-                crse_lev.mass_fluxes[i].reset(new MultiFab(crse_lev.getEdgeBoxArray(i), crse_lev.dmap, 1, 0));
-                MultiFab::Copy(*crse_lev.mass_fluxes[i], *crse_lev.fluxes[i], Density, 0, 1, 0);
-            }
-
-            for (int i = BL_SPACEDIM; i < 3; ++i) {
-                crse_lev.mass_fluxes[i].reset(new MultiFab(crse_lev.get_new_data(State_Type).boxArray(), crse_lev.dmap, 1, 0));
-                crse_lev.mass_fluxes[i]->setVal(0.0);
-            }
-#endif
-
 	}
 
 	// We no longer need the flux register data, so clear it out.
@@ -2389,6 +2373,22 @@ Castro::reflux(int crse_level, int fine_level)
     if (update_sources_after_reflux) {
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
+
+#ifdef GRAVITY
+            // Store the updated mass_fluxes for use in the gravity source term.
+
+            getLevel(lev).mass_fluxes.resize(3);
+
+            for (int i = 0; i < BL_SPACEDIM; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).getEdgeBoxArray(i), getLevel(lev).dmap, 1, 0));
+                MultiFab::Copy(*getLevel(lev).mass_fluxes[i], *getLevel(lev).fluxes[i], Density, 0, 1, 0);
+            }
+
+            for (int i = BL_SPACEDIM; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).get_new_data(State_Type).boxArray(), getLevel(lev).dmap, 1, 0));
+                getLevel(lev).mass_fluxes[i]->setVal(0.0);
+            }
+#endif
 
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
