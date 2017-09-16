@@ -38,16 +38,16 @@ endif
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 
-EOS_dir ?= helmholtz
+EOS_DIR ?= helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 
-Network_dir ?= aprox13
+NETWORK_DIR ?= aprox13
 
 # If using general_null, make sure we have a reasonable set of isotopes.
 
-ifeq ($(Network_dir), general_null)
-	GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(Network_dir)/aprox13.net
+ifeq ($(NETWORK_DIR), general_null)
+	GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/aprox13.net
 endif
 
 # Location where the source files are coming from.
