@@ -1019,6 +1019,13 @@ Castro::update_relaxation(Real time, Real dt) {
 
     Real omega = 0.5 * ( std::sqrt((fp / mass_p) / ap) + std::sqrt((fs / mass_s) / as) );
 
+    std::cout << "force_p " << force_p[0] << " " << force_p[1] << " " << force_p[2] << "\n";
+    std::cout << "force_s " << force_s[0] << " " << force_s[1] << " " << force_s[2] << "\n";
+    std::cout << "com_s " << com_p[0] << " " << com_p[1] << " " << com_p[2] << "\n";
+    std::cout << "com_s " << com_s[0] << " " << com_s[1] << " " << com_s[2] << "\n";
+    std::cout << "mass_p " << mass_p << "\n";
+    std::cout << "mass_s " << mass_s << "\n";
+
     Real period = 2.0 * M_PI / omega;
 
     if (amrex::ParallelDescriptor::IOProcessor()) {
