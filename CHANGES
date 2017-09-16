@@ -3,6 +3,9 @@
   -- fixed a bug in the artifical viscosity in 1-d in
      non-Cartesian geometries (issue #175)
 
+  -- the README.md now describes the process to become a
+     "core developer" of Castro, and what this means.
+
 # 17.09
 
   -- the Source/ directory structure has been reorganized,

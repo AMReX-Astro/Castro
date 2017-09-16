@@ -55,6 +55,10 @@ Development generally follows the following ideas:
     Castro and target the `development` branch.  (If you mistakenly
     target `master`, we can change it for you.)
 
+    Please add a line to `CHANGES` summarizing your change if it
+    is a bug fix or new feature.  Reference the PR or issue as
+    appropriate
+
     If there are a number of small commits making up the PR, we may
     wish to squash commits upon merge to have a clean history.
     *Please ensure that your PR title and first post are descriptive,
