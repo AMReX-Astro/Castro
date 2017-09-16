@@ -2241,6 +2241,22 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->Reflux(crse_lev.hydro_source, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
 
+#ifdef GRAVITY
+            // Store the updated mass_fluxes for use in the gravity source term.
+
+            crse_lev.mass_fluxes.resize(3);
+
+            for (int i = 0; i < BL_SPACEDIM; ++i) {
+                crse_lev.mass_fluxes[i].reset(new MultiFab(crse_lev.getEdgeBoxArray(i), crse_lev.dmap, 1, 0));
+                MultiFab::Copy(*crse_lev.mass_fluxes[i], *crse_lev.fluxes[i], Density, 0, 1, 0);
+            }
+
+            for (int i = BL_SPACEDIM; i < 3; ++i) {
+                crse_lev.mass_fluxes[i].reset(new MultiFab(crse_lev.get_new_data(State_Type).boxArray(), crse_lev.dmap, 1, 0));
+                crse_lev.mass_fluxes[i]->setVal(0.0);
+            }
+#endif
+
 	}
 
 	// We no longer need the flux register data, so clear it out.
@@ -2388,6 +2404,13 @@ Castro::reflux(int crse_level, int fine_level)
 	    getLevel(lev).clean_state(S_new);
 
 	    getLevel(lev).do_new_sources(time, dt);
+
+#ifdef GRAVITY
+            // Clear out the mass flux data, we no longer need it.
+            for (int i = 0; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset();
+            }
+#endif
 
 	}
 

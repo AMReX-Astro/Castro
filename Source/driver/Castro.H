@@ -619,6 +619,8 @@ protected:
     amrex::Array<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
 
+    amrex::Array<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
+
     amrex::FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
