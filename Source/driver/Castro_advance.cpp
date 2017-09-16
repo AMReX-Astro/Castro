@@ -707,7 +707,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
-    if (dt_subcycle < dt) {
+    // Do the retry if the suggested timestep is smaller than the actual one.
+    // A user-specified tolerance parameter can be used here to prevent
+    // retries that are caused by small differences.
+
+    if (dt_subcycle * (1.0 + retry_tolerance) < dt) {
 
 	// Do a basic sanity check to make sure we're not about to overflow.
 

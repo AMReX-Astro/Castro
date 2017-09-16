@@ -272,9 +272,12 @@ change_max                   Real          1.1
 # on the same level until we reach the original target time.
 use_retry                    int           0
 
-# Check for a possible post-timestep regrid if certain stability
-# criteria were violated.
-use_post_step_regrid         int           0
+# Tolerance to use when evaluating whether to do a retry.
+# The timestep suggested by the retry will be multiplied by
+# (1 + this factor) before comparing the actual timestep to it.
+# If set to some number slightly larger than zero, then this
+# prevents retries that are caused by small numerical differences.
+retry_tolerance              Real          0.0
 
 # Do not permit more retry timesteps than this parameter.
 # Set to a negative value to disable this criterion.
@@ -284,6 +287,10 @@ retry_max_subcycles          int           1000
 # if a retry is triggered by a negative density. If this is set to a negative
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
+
+# Check for a possible post-timestep regrid if certain stability
+# criteria were violated.
+use_post_step_regrid         int           0
 
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
