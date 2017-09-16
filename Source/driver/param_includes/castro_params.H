@@ -71,6 +71,7 @@ static amrex::Real change_max;
 static int use_retry;
 static amrex::Real retry_tolerance;
 static int retry_max_subcycles;
+static int retry_clamp_subcycles;
 static amrex::Real retry_neg_dens_factor;
 static int use_post_step_regrid;
 static int sdc_iters;

@@ -71,6 +71,7 @@ pp.query("change_max", change_max);
 pp.query("use_retry", use_retry);
 pp.query("retry_tolerance", retry_tolerance);
 pp.query("retry_max_subcycles", retry_max_subcycles);
+pp.query("retry_clamp_subcycles", retry_clamp_subcycles);
 pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("sdc_iters", sdc_iters);

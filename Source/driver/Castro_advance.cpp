@@ -732,16 +732,20 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	// Abort if we would take more subcycled timesteps than the user has permitted.
 
 	if (retry_max_subcycles > 0 && sub_ncycle > retry_max_subcycles) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
-	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
-                      << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
-                      << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
-	  }
-	  amrex::Abort("Error: too many retry timesteps.");
+            if (retry_clamp_subcycles) {
+                sub_ncycle = retry_max_subcycles;
+            } else {
+                if (ParallelDescriptor::IOProcessor()) {
+                    std::cout << std::endl;
+                    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+                    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                              << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
+                    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
+                              << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
+                              << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
+                }
+                amrex::Abort("Error: too many retry timesteps.");
+            }
 	}
 
 	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
