@@ -17,17 +17,17 @@ CASTRO_HOME  := ../../..
 
 ifdef MICROPHYSICS_HOME
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_dir     := gamma_law_general
+  EOS_DIR     := gamma_law_general
 else
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
 endif
 
 # This sets the EOS directory in Castro/EOS
-EOS_dir     := gamma_law_general
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in Castro/Networks
-Network_dir := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(Network_dir)/gammalaw.net
+NETWORK_DIR := general_null
+GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/gammalaw.net
 
 Bpack   := ./Make.package
 Blocs   := .

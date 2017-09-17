@@ -14,8 +14,8 @@ USE_NEUTRINO = FALSE
 
 CASTRO_HOME = ../../..
 
-EOS_dir     = breakout
-Network_dir = breakout
+EOS_DIR     = breakout
+NETWORK_DIR = breakout
 Opacity_dir = breakout
 
 Bpack   := ./Make.package
