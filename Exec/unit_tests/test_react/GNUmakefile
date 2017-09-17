@@ -17,9 +17,9 @@ USE_ACC = TRUE
 # programs to be compiled
 ALL: testburn.ex table
 
-EOS_dir := helmholtz
+EOS_DIR := helmholtz
 
-Network_dir := aprox13
+NETWORK_DIR := aprox13
 
 INTEGRATOR_DIR := BS
 

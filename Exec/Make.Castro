@@ -13,6 +13,19 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# backwards compatibility
+ifdef Network_dir
+  ifndef NETWORK_DIR
+    NETWORK_DIR := $(Network_dir)
+  endif
+endif
+
+ifdef EOS_dir
+  ifndef EOS_DIR
+    EOS_DIR := $(EOS_dir)
+  endif
+endif
+
 EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS,
@@ -184,8 +197,8 @@ endif
 #------------------------------------------------------------------------------
 
 ifdef MICROPHYSICS_HOME
-   EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_dir))
-   NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(Network_dir))
+   EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
+   NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(Conductivity_dir))
 endif
@@ -194,12 +207,12 @@ endif
 # if the EOS / network / conductivity name exists in
 # Castro/Microphysics, then use that version
 
-ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_dir)) )" ""
-   EOS_PATH := $(EOS_HOME)/$(strip $(EOS_dir))
+ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_DIR)) )" ""
+   EOS_PATH := $(EOS_HOME)/$(strip $(EOS_DIR))
 endif
 
-ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(Network_dir)) )" ""
-   NETWORK_PATH := $(NETWORK_HOME)/$(strip $(Network_dir))
+ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR)) )" ""
+   NETWORK_PATH := $(NETWORK_HOME)/$(strip $(NETWORK_DIR))
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -225,7 +238,7 @@ EXTERN_CORE += $(EOS_PATH)
 
 # the helmholtz EOS has an include file -- also add a target to link
 # the table into the problem directory.
-ifeq ($(findstring helmholtz, $(EOS_dir)), helmholtz)
+ifeq ($(findstring helmholtz, $(EOS_DIR)), helmholtz)
    all: table
 endif
 

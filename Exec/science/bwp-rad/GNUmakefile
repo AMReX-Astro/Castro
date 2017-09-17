@@ -23,10 +23,10 @@ CASTRO_HOME = ../../..
 ifdef MICROPHYSICS_HOME
 
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_dir     := gamma_law_general
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-Network_dir := general_null
+NETWORK_DIR := general_null
 NETWORK_INPUTS := H_He.net
 
 else

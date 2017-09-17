@@ -3,6 +3,15 @@
   -- fixed a bug in the artifical viscosity in 1-d in
      non-Cartesian geometries (issue #175)
 
+  -- the README.md now describes the process to become a
+     "core developer" of Castro, and what this means.
+
+  -- Network_dir has been renamed NETWORK_DIR and EOS_dir has been
+     renamed EOS_DIR.  All of the problem GNUmakefiles have been
+     updated.  The old names will continue to work in the near future,
+     but users are encouraged to change any of their problems
+     to use the new all-caps names.
+
 # 17.09
 
   -- the Source/ directory structure has been reorganized,
