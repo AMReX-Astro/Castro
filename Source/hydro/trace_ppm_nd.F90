@@ -245,10 +245,14 @@ contains
              dptot = p_ref - Im(i,j,kc,1,2,QPRES)
              drhoe_g = rhoe_g_ref - Im(i,j,kc,1,2,QREINT)
 
+             dTm = temp_ref - Im(i,j,kc,1,1,QTEMP)
+             dT0 = temp_ref - Im(i,j,kc,1,2,QTEMP)
+             dTp = temp_ref - Im(i,j,kc,1,3,QTEMP)
+
              ! we are treating tau as 1/rho, but we could have reconstructed 
              ! it separately
              dtaum = tau_ref - ONE/Im(i,j,kc,1,1,QRHO)
-             dtau = tau_ref - ONE/Im(i,j,kc,1,2,QRHO)
+             dtau  = tau_ref - ONE/Im(i,j,kc,1,2,QRHO)
              dtaup = tau_ref - ONE/Im(i,j,kc,1,3,QRHO)
 
              dup = u_ref - Im(i,j,kc,1,3,QU)
@@ -477,6 +481,10 @@ contains
              drho = rho_ref - Ip(i,j,kc,1,2,QRHO)
              dptot = p_ref - Ip(i,j,kc,1,2,QPRES)
              drhoe_g = rhoe_g_ref - Ip(i,j,kc,1,2,QREINT)
+
+             dTm = temp_ref - Ip(i,j,kc,1,1,QTEMP)
+             dT0 = temp_ref - Ip(i,j,kc,1,2,QTEMP)
+             dTp = temp_ref - Ip(i,j,kc,1,3,QTEMP)
 
              dtaum = tau_ref - ONE/Ip(i,j,kc,1,1,QRHO)
              dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO)
@@ -883,6 +891,10 @@ contains
              dptot = p_ref - Im(i,j,kc,2,2,QPRES)
              drhoe_g = rhoe_g_ref - Im(i,j,kc,2,2,QREINT)
 
+             dTm = temp_ref - Im(i,j,kc,2,1,QTEMP)
+             dT0 = temp_ref - Im(i,j,kc,2,2,QTEMP)
+             dTp = temp_ref - Im(i,j,kc,2,3,QTEMP)
+
              dtaum = tau_ref - ONE/Im(i,j,kc,2,1,QRHO)
              dtau = tau_ref - ONE/Im(i,j,kc,2,2,QRHO)
              dtaup = tau_ref - ONE/Im(i,j,kc,2,3,QRHO)
@@ -1089,6 +1101,10 @@ contains
              drho = rho_ref - Ip(i,j,kc,2,2,QRHO)
              dptot = p_ref - Ip(i,j,kc,2,2,QPRES)
              drhoe_g = rhoe_g_ref - Ip(i,j,kc,2,2,QREINT)
+
+             dTm = temp_ref - Ip(i,j,kc,2,1,QTEMP)
+             dT0 = temp_ref - Ip(i,j,kc,2,2,QTEMP)
+             dTp = temp_ref - Ip(i,j,kc,2,3,QTEMP)
 
              dtaum = tau_ref - ONE/Ip(i,j,kc,2,1,QRHO)
              dtau = tau_ref - ONE/Ip(i,j,kc,2,2,QRHO)
@@ -1523,6 +1539,10 @@ contains
           dptot = p_ref - Im(i,j,kc,3,2,QPRES)
           drhoe_g = rhoe_g_ref - Im(i,j,kc,3,2,QREINT)
 
+          dTm = temp_ref - Im(i,j,kc,3,1,QTEMP)
+          dT0 = temp_ref - Im(i,j,kc,3,2,QTEMP)
+          dTp = temp_ref - Im(i,j,kc,3,3,QTEMP)
+
           dtaum = tau_ref - ONE/Im(i,j,kc,3,1,QRHO)
           dtau = tau_ref - ONE/Im(i,j,kc,3,2,QRHO)
           dtaup = tau_ref - ONE/Im(i,j,kc,3,3,QRHO)
@@ -1752,6 +1772,10 @@ contains
           dtaum = tau_ref - ONE/Ip(i,j,km,3,1,QRHO)
           dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO)
           dtaup = tau_ref - ONE/Ip(i,j,km,3,3,QRHO)
+
+          dTm = temp_ref - Ip(i,j,km,3,1,QTEMP)
+          dT0 = temp_ref - Ip(i,j,km,3,2,QTEMP)
+          dTp = temp_ref - Ip(i,j,km,3,3,QTEMP)
 
           dwp = w_ref - Ip(i,j,km,3,3,QW)
           dptotp = p_ref - Ip(i,j,km,3,3,QPRES)
