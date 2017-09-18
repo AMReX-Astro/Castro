@@ -24,7 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !     
-  integer, parametr :: maxlen = 256
+  integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
