@@ -29,13 +29,15 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QGAME, QC, QGAMC, &
+                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_trace_sources, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, &
+                                   npassive, qpass_map, ppm_temp_fix, &
                                    fix_mass_flux
     use bl_constants_module
+    use eos_type_module, only : eos_t, eos_input_rt
+    use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     use amrex_fort_module, only : rt => amrex_real
@@ -83,6 +85,8 @@ contains
     integer :: i, j
     integer :: n, ipassive
 
+    type(eos_t) :: eos_state
+
     real(rt) :: hdt
 
     ! To allow for easy integration of radiation, we adopt the
@@ -104,7 +108,7 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq, cgassq, Clag
-    real(rt) :: rho, u, v, w, p, rhoe_g, h_g
+    real(rt) :: rho, u, v, w, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 
     real(rt) :: drho, dptot, drhoe_g
@@ -112,12 +116,13 @@ contains
     real(rt) :: dup, dvp, dptotp
     real(rt) :: dum, dvm, dptotm
     real(rt) :: dT0, dTp, dTm
+    real(rt) :: p_r, p_T
 
     real(rt) :: rho_ref, u_ref, v_ref, p_ref, rhoe_g_ref, h_g_ref, temp_ref
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
+    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev, temp_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -392,7 +397,7 @@ contains
                 qxp(i,j,kc,QRHO ) = ONE/tau_s
 
                 qxp(i,j,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-                qxp(i,j,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                qxp(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
@@ -475,7 +480,7 @@ contains
 
              dtaum = tau_ref - ONE/Ip(i,j,kc,1,1,QRHO)
              dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO)
-             dtap = tau_ref - ONE/Ip(i,j,kc,1,3,QRHO)
+             dtaup = tau_ref - ONE/Ip(i,j,kc,1,3,QRHO)
 
              dup = u_ref - Ip(i,j,kc,1,3,QU)
              dptotp = p_ref - Ip(i,j,kc,1,3,QPRES)
@@ -619,7 +624,7 @@ contains
                 qxm(i+1,j,kc,QRHO ) = ONE/tau_s
 
                 qxm(i+1,j,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-                qxm(i+1,j,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                qxm(i+1,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
@@ -776,32 +781,32 @@ contains
 
              if (i >= ilo1) then
                 ! plus face
-                eos_state%T     = qxp(i,j,QTEMP)
-                eos_state%rho   = qxp(i,j,QRHO)
-                eos_state%xn(:) = qxp(i,j,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qxp(i,j,QFX:QFX-1+naux)
+                eos_state%T     = qxp(i,j,kc,QTEMP)
+                eos_state%rho   = qxp(i,j,kc,QRHO)
+                eos_state%xn(:) = qxp(i,j,kc,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qxp(i,j,kc,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qxp(i,j,QPRES) = eos_state%p
-                qxp(i,j,QREINT) = qxp(i,j,QRHO)*eos_state%e
+                qxp(i,j,kc,QPRES) = eos_state%p
+                qxp(i,j,kc,QREINT) = qxp(i,j,kc,QRHO)*eos_state%e
 
-                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+                qxp(i,j,kc,QPRES) = max(qxp(i,j,kc,QPRES), small_pres)
              endif
 
              if (i <= ihi1) then
                 ! minus face
-                eos_state%T     = qxm(i+1,j,QTEMP)
-                eos_state%rho   = qxm(i+1,j,QRHO)
-                eos_state%xn(:) = qxm(i+1,j,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qxm(i+1,j,QFX:QFX-1+naux)
+                eos_state%T     = qxm(i+1,j,kc,QTEMP)
+                eos_state%rho   = qxm(i+1,j,kc,QRHO)
+                eos_state%xn(:) = qxm(i+1,j,kc,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qxm(i+1,j,kc,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qxm(i+1,j,QPRES) = eos_state%p
-                qxm(i+1,j,QREINT) = qxm(i+1,j,QRHO)*eos_state%e
+                qxm(i+1,j,kc,QPRES) = eos_state%p
+                qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QRHO)*eos_state%e
 
-                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+                qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES), small_pres)
              endif
 
           enddo
@@ -960,8 +965,8 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
+                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dvm - p_T*dTm/Clag_ev)/Clag_ev
+                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dvp - p_T*dTp/Clag_ev)/Clag_ev
                 alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
 
                 ! not used, but needed to prevent bad invalid ops
@@ -1022,8 +1027,8 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qyp(i,j,kc,QRHO ) = ONE/tau_s
 
-                qyp(i,j,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-                qyp(i,j,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                qyp(i,j,kc,QU   ) = v_ref + (alpham - alphap)*Clag_ev
+                qyp(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
@@ -1167,8 +1172,8 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
+                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dvm - p_T*dTm/Clag_ev)/Clag_ev
+                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dvp - p_T*dTp/Clag_ev)/Clag_ev
                 alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
 
                 ! not used, but needed to prevent bad invalid ops
@@ -1229,8 +1234,8 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qym(i,j+1,kc,QRHO ) = ONE/tau_s
 
-                qym(i,j+1,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-                qym(i,j+1,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                qym(i,j+1,kc,QU   ) = v_ref + (alpham - alphap)*Clag_ev
+                qym(i,j+1,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
@@ -1307,32 +1312,32 @@ contains
 
              if (j >= ilo2) then
                 ! plus face
-                eos_state%T     = qyp(i,j,QTEMP)
-                eos_state%rho   = qyp(i,j,QRHO)
-                eos_state%xn(:) = qyp(i,j,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qyp(i,j,QFX:QFX-1+naux)
+                eos_state%T     = qyp(i,j,kc,QTEMP)
+                eos_state%rho   = qyp(i,j,kc,QRHO)
+                eos_state%xn(:) = qyp(i,j,kc,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qyp(i,j,kc,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qyp(i,j,QPRES) = eos_state%p
-                qyp(i,j,QREINT) = qyp(i,j,QRHO)*eos_state%e
+                qyp(i,j,kc,QPRES) = eos_state%p
+                qyp(i,j,kc,QREINT) = qyp(i,j,kc,QRHO)*eos_state%e
 
-                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+                qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
              endif
 
              if (j <= ihi2) then
                 ! minus face
-                eos_state%T     = qym(i,j+1,QTEMP)
-                eos_state%rho   = qym(i,j+1,QRHO)
-                eos_state%xn(:) = qym(i,j+1,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qym(i,j+1,QFX:QFX-1+naux)
+                eos_state%T     = qym(i,j+1,kc,QTEMP)
+                eos_state%rho   = qym(i,j+1,kc,QRHO)
+                eos_state%xn(:) = qym(i,j+1,kc,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qym(i,j+1,kc,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qym(i,j+1,QPRES) = eos_state%p
-                qym(i,j+1,QREINT) = qxm(i,j+1,QRHO)*eos_state%e
+                qym(i,j+1,kc,QPRES) = eos_state%p
+                qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QRHO)*eos_state%e
 
-                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+                qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES), small_pres)
              endif
 
           enddo
@@ -1354,14 +1359,17 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QGAME, QC, QGAMC, &
+                                   QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_trace_sources, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
+                                   ppm_temp_fix, &
                                    npassive, qpass_map
     use bl_constants_module
-
+    use eos_type_module, only : eos_t, eos_input_rt
+    use eos_module, only : eos
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: qd_lo(3), qd_hi(3)
@@ -1414,23 +1422,27 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq, cgassq, Clag
-    real(rt) :: rho, u, v, w, p, rhoe_g, h_g
+    real(rt) :: rho, u, v, w, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 
     real(rt) :: drho, dptot, drhoe_g
-    real(rt) :: de, dge, dtau, dtaum. dtaup
+    real(rt) :: de, dge, dtau, dtaum, dtaup
     real(rt) :: dwp, dptotp
     real(rt) :: dwm, dptotm
+    real(rt) :: dT0, dTp, dTm
+    real(rt) :: p_r, p_T
 
-    real(rt) :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: rho_ref, w_ref, p_ref, rhoe_g_ref, h_g_ref, temp_ref
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev
+    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, p_ev, h_g_ev, tau_ev, temp_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
 
     real(rt) :: tau_s, e_s
+
+    type(eos_t) :: eos_state
 
     hdt = HALF * dt
 
@@ -1591,8 +1603,8 @@ contains
              p_r = eos_state%dpdr
              p_T = eos_state%dpdT
 
-             alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-             alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
+             alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dwm - p_T*dTm/Clag_ev)/Clag_ev
+             alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dwp - p_T*dTp/Clag_ev)/Clag_ev
              alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
 
              ! not used, but needed to prevent bad invalid ops
@@ -1651,8 +1663,8 @@ contains
              tau_s = tau_ref + alphap + alpham + alpha0r
              qzp(i,j,kc,QRHO ) = ONE/tau_s
 
-             qzp(i,j,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-             qzp(i,j,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+             qzp(i,j,kc,QU   ) = w_ref + (alpham - alphap)*Clag_ev
+             qzp(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                   rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
              ! we defer getting the pressure until later, once we do the species
@@ -1816,8 +1828,8 @@ contains
              p_r = eos_state%dpdr
              p_T = eos_state%dpdT
 
-             alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-             alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
+             alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dwm - p_T*dTm/Clag_ev)/Clag_ev
+             alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dwp - p_T*dTp/Clag_ev)/Clag_ev
              alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
 
              ! not used, but needed to prevent bad invalid ops
@@ -1877,8 +1889,8 @@ contains
              tau_s = tau_ref + alphap + alpham + alpha0r
              qzm(i,j,kc,QRHO ) = ONE/tau_s
 
-             qzm(i,j,kc,QU   ) = u_ref + (alpham - alphap)*Clag_ev
-             qzm(i,j,kc,QTEMP) = T_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+             qzm(i,j,kc,QU   ) = w_ref + (alpham - alphap)*Clag_ev
+             qzm(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                   rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
              ! we defer getting the pressure until later, once we do the species
@@ -1944,7 +1956,40 @@ contains
     enddo
 
     if (ppm_temp_fix == 3) then
-       ! TODO
+       ! we predicted T, now make p, (rho e) consistent
+
+       do j = ilo2-1, ihi2+1
+          do i = ilo1-1, ihi1+1
+
+             ! plus face
+             eos_state%T     = qzp(i,j,kc,QTEMP)
+             eos_state%rho   = qzp(i,j,kc,QRHO)
+             eos_state%xn(:) = qzp(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%aux(:) = qzp(i,j,kc,QFX:QFX-1+naux)
+
+             call eos(eos_input_rt, eos_state)
+
+             qzp(i,j,kc,QPRES) = eos_state%p
+             qzp(i,j,kc,QREINT) = qzp(i,j,kc,QRHO)*eos_state%e
+             qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES), small_pres)
+
+
+             ! minus face
+             eos_state%T     = qzm(i,j,kc,QTEMP)
+             eos_state%rho   = qzm(i,j,kc,QRHO)
+             eos_state%xn(:) = qzm(i,j,kc,QFS:QFS-1+nspec)
+             eos_state%aux(:) = qzm(i,j,kc,QFX:QFX-1+naux)
+
+             call eos(eos_input_rt, eos_state)
+
+             qzm(i,j,kc,QPRES) = eos_state%p
+             qzm(i,j,kc,QREINT) = qzm(i,j,kc,QRHO)*eos_state%e
+
+             qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES), small_pres)
+
+          enddo
+       enddo
+
     endif
 
   end subroutine tracez_ppm
