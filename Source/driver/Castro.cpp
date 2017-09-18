@@ -2544,9 +2544,9 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	const Box& bx = mfi.growntilebox();
 
-	FArrayBox& stateold = S_old[mfi];
+	const FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
-	FArrayBox& vol      = volume[mfi];
+	const FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
 	
 	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
@@ -2886,7 +2886,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    print_fortran_warnings, &idx);
+			    &print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output

@@ -102,8 +102,8 @@ extern "C"
   void ca_compute_avgstate
     (const int* lo, const int* hi, 
      const amrex::Real* dx, const amrex::Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG_3D(S  ), const amrex::Real* avgden,
-     const BL_FORT_FAB_ARG_3D(Vol), const amrex::Real* avgvol,
+     const BL_FORT_FAB_ARG_3D(S  ),  amrex::Real* avgden,
+     const BL_FORT_FAB_ARG_3D(Vol),  amrex::Real* avgvol,
      const amrex::Real* problo, const int* numpts_1d);
 #endif
 #endif
@@ -154,24 +154,24 @@ extern "C"
 		  const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
 		  const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
 #endif
-		  const amrex::Real* q, const int* q_lo, const int* q_hi,
-		  const amrex::Real* qaux, const int* qa_lo, const int* qa_hi, const int* idx);
+		  amrex::Real* q, const int* q_lo, const int* q_hi,
+		  amrex::Real* qaux, const int* qa_lo, const int* qa_hi, const int* idx);
 
   void ca_srctoprim(const int* lo,   const int* hi,
 		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
 		    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
 		    const amrex::Real* src, const int* src_lo, const int* src_hi,
-		    const amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi, const int* idx);
+		          amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi, const int* idx);
 
   void ca_check_initial_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state), const int* idx);
+    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int* idx);
 
   void ca_enforce_minimum_density
     (const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
-     const amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
+           amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
      const int* lo, const int* hi,
-     const amrex::Real* frac_change, const int* verbose, const int* idx);
+           amrex::Real* frac_change, const int* verbose, const int* idx);
 
   void ca_normalize_species
     (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi, const int* idx);
@@ -182,14 +182,14 @@ extern "C"
 		      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int* idx);
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state), const int* idx);
 
   void ca_enforce_consistent_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state), const int* idx);
 
   void ca_reset_internal_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
-     const int& verbose, const int* idx);
+     const int* verbose, const int* idx);
 
 #ifdef DIMENSION_AGNOSTIC
 
