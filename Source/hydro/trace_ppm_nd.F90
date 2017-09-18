@@ -768,7 +768,44 @@ contains
     enddo
 
     if (ppm_temp_fix == 3) then
-       ! TODO -- make p consistent
+
+       ! we predicted T, now make p, (rho e) consistent
+
+       do j = ilo2-dg(2), ihi2+dg(2)
+          do i = ilo1-1, ihi1+1
+
+             if (i >= ilo1) then
+                ! plus face
+                eos_state%T     = qxp(i,j,QTEMP)
+                eos_state%rho   = qxp(i,j,QRHO)
+                eos_state%xn(:) = qxp(i,j,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qxp(i,j,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qxp(i,j,QPRES) = eos_state%p
+                qxp(i,j,QREINT) = qxp(i,j,QRHO)*eos_state%e
+
+                qxp(i,j,QPRES) = max(qxp(i,j,QPRES), small_pres)
+             endif
+
+             if (i <= ihi1) then
+                ! minus face
+                eos_state%T     = qxm(i+1,j,QTEMP)
+                eos_state%rho   = qxm(i+1,j,QRHO)
+                eos_state%xn(:) = qxm(i+1,j,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qxm(i+1,j,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qxm(i+1,j,QPRES) = eos_state%p
+                qxm(i+1,j,QREINT) = qxm(i+1,j,QRHO)*eos_state%e
+
+                qxm(i+1,j,QPRES) = max(qxm(i+1,j,QPRES), small_pres)
+             endif
+
+          enddo
+       enddo
     endif
 
 
@@ -1265,7 +1302,41 @@ contains
     enddo
 
     if (ppm_temp_fix == 3) then
-       ! TODO: make p consistent
+       do j = ilo2-1, ihi2+1
+          do i = ilo1-1, ihi1+1
+
+             if (j >= ilo2) then
+                ! plus face
+                eos_state%T     = qyp(i,j,QTEMP)
+                eos_state%rho   = qyp(i,j,QRHO)
+                eos_state%xn(:) = qyp(i,j,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qyp(i,j,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qyp(i,j,QPRES) = eos_state%p
+                qyp(i,j,QREINT) = qyp(i,j,QRHO)*eos_state%e
+
+                qyp(i,j,QPRES) = max(qyp(i,j,QPRES), small_pres)
+             endif
+
+             if (j <= ihi2) then
+                ! minus face
+                eos_state%T     = qym(i,j+1,QTEMP)
+                eos_state%rho   = qym(i,j+1,QRHO)
+                eos_state%xn(:) = qym(i,j+1,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qym(i,j+1,QFX:QFX-1+naux)
+
+                call eos(eos_input_rt, eos_state)
+
+                qym(i,j+1,QPRES) = eos_state%p
+                qym(i,j+1,QREINT) = qxm(i,j+1,QRHO)*eos_state%e
+
+                qym(i,j+1,QPRES) = max(qym(i,j+1,QPRES), small_pres)
+             endif
+
+          enddo
+       enddo
 
     endif
 #endif
