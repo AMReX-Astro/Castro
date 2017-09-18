@@ -24,8 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !     
-  integer maxlen
-  parameter (maxlen=256)
+  integer, parametr :: maxlen = 256
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
@@ -54,8 +53,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
 
   !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
