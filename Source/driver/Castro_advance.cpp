@@ -809,11 +809,6 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	}
 
-#ifdef SELF_GRAVITY
-        if (do_grav)
-            gravity->swapTimeLevels(level);
-#endif
-
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
 	    material_lost_through_boundary_temp[i] = 0.0;
@@ -856,8 +851,16 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	    }
 
 #ifdef SELF_GRAVITY
-	    if (do_grav)
-	        gravity->swapTimeLevels(level);
+            // Swap the time levels. Only do this after the first iteration;
+            // during the first iteration the old gravity (grad_phi_prev)
+            // has the correct composite value due to the original advance,
+            // and we want to keep it.
+
+            if (sub_iteration > 1) {
+                if (do_grav) {
+                    gravity->swapTimeLevels(level);
+                }
+            }
 #endif
 
 	    do_advance(subcycle_time,dt_advance,amr_iteration,amr_ncycle);
