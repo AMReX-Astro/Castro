@@ -278,6 +278,7 @@ contains
                 h_g_ev = h_g
                 p_ev    = p
                 tau_ev  = ONE/rho
+                temp_ev = temp
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -286,6 +287,7 @@ contains
                 h_g_ev = h_g_ref
                 p_ev    = p_ref
                 tau_ev  = tau_ref
+                temp_ev = temp_ref
              endif
 
              if (ppm_temp_fix < 3) then
@@ -512,6 +514,7 @@ contains
                 h_g_ev = h_g
                 p_ev    = p
                 tau_ev  = ONE/rho
+                temp_ev = temp
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -520,6 +523,7 @@ contains
                 h_g_ev = h_g_ref
                 p_ev    = p_ref
                 tau_ev  = tau_ref
+                temp_ev = temp_ref
              endif
 
              if (ppm_temp_fix < 3) then
@@ -920,6 +924,7 @@ contains
                 h_g_ev = h_g
                 p_ev    = p
                 tau_ev  = ONE/rho
+                temp_ev = temp
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -928,6 +933,7 @@ contains
                 h_g_ev = h_g_ref
                 p_ev    = p_ref
                 tau_ev  = tau_ref
+                temp_ev = temp_ref
              endif
 
              if (ppm_temp_fix < 3) then
@@ -1039,7 +1045,7 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qyp(i,j,kc,QRHO ) = ONE/tau_s
 
-                qyp(i,j,kc,QU   ) = v_ref + (alpham - alphap)*Clag_ev
+                qyp(i,j,kc,QV   ) = v_ref + (alpham - alphap)*Clag_ev
                 qyp(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
@@ -1132,6 +1138,7 @@ contains
                 h_g_ev = h_g
                 p_ev    = p
                 tau_ev  = ONE/rho
+                temp_ev = temp
              else
                 rho_ev  = rho_ref
                 cc_ev   = cc_ref
@@ -1140,6 +1147,7 @@ contains
                 h_g_ev = h_g_ref
                 p_ev    = p_ref
                 tau_ev  = tau_ref
+                temp_ev = temp_ref
              endif
 
              if (ppm_temp_fix < 3) then
@@ -1250,7 +1258,7 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qym(i,j+1,kc,QRHO ) = ONE/tau_s
 
-                qym(i,j+1,kc,QU   ) = v_ref + (alpham - alphap)*Clag_ev
+                qym(i,j+1,kc,QV   ) = v_ref + (alpham - alphap)*Clag_ev
                 qym(i,j+1,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
@@ -1568,6 +1576,7 @@ contains
              h_g_ev = h_g
              p_ev    = p
              tau_ev  = ONE/rho
+             temp_ev = temp
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -1576,6 +1585,7 @@ contains
              h_g_ev = h_g_ref
              p_ev    = p_ref
              tau_ev  = tau_ref
+             temp_ev = temp_ref
           endif
 
           if (ppm_temp_fix < 3) then
@@ -1683,7 +1693,7 @@ contains
              tau_s = tau_ref + alphap + alpham + alpha0r
              qzp(i,j,kc,QRHO ) = ONE/tau_s
 
-             qzp(i,j,kc,QU   ) = w_ref + (alpham - alphap)*Clag_ev
+             qzp(i,j,kc,QW   ) = w_ref + (alpham - alphap)*Clag_ev
              qzp(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                   rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
@@ -1798,6 +1808,7 @@ contains
              h_g_ev = h_g
              p_ev    = p
              tau_ev  = ONE/rho
+             temp_ev = temp
           else
              rho_ev  = rho_ref
              cc_ev   = cc_ref
@@ -1806,6 +1817,7 @@ contains
              h_g_ev = h_g_ref
              p_ev    = p_ref
              tau_ev  = tau_ref
+             temp_ev = temp_ref
           endif
 
           if (ppm_temp_fix < 3) then
@@ -1913,7 +1925,7 @@ contains
              tau_s = tau_ref + alphap + alpham + alpha0r
              qzm(i,j,kc,QRHO ) = ONE/tau_s
 
-             qzm(i,j,kc,QU   ) = w_ref + (alpham - alphap)*Clag_ev
+             qzm(i,j,kc,QW   ) = w_ref + (alpham - alphap)*Clag_ev
              qzm(i,j,kc,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                   rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
