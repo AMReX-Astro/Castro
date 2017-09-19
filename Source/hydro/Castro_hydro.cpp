@@ -260,6 +260,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
+            (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
 	  }
 
 #if (BL_SPACEDIM <= 2)
