@@ -15,11 +15,11 @@ USE_GRAV   = TRUE
 CASTRO_HOME  := ../../..
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS
-EOS_dir     := multigamma
+EOS_DIR     := multigamma
 
 # This sets the network directory in $(CASTRO_HOME)/Networks
-Network_dir := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(Network_dir)/simple3.net
+NETWORK_DIR := general_null
+GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/simple3.net
 
 Bpack   := ./Make.package
 Blocs   := .
