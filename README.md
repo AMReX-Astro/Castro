@@ -57,7 +57,13 @@ Development generally follows the following ideas:
 
     Please add a line to `CHANGES` summarizing your change if it
     is a bug fix or new feature.  Reference the PR or issue as
-    appropriate
+    appropriate. Additionally, if your change fixes a bug (or if
+    you find a bug but do not fix it), and there is no current
+    issue describing the bug, please file a separate issue describing
+    the bug, regardless of how significant the bug is. If possible,
+    in both the `CHANGES` file and the issue, please cite the pull
+    request numbers or git commit hashes where the problem was
+    introduced and fixed, respectively.
 
     If there are a number of small commits making up the PR, we may
     wish to squash commits upon merge to have a clean history.
