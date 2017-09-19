@@ -20,11 +20,11 @@ extern "C"
 
   void ca_get_num_aux(int* naux);
 
-  void ca_get_spec_names(int* spec_names, int* ispec, int* len);
+  void ca_get_spec_names(int* spec_names, const int* ispec, int* len);
 
-  void ca_get_spec_az(int* ispec, amrex::Real* A, amrex::Real* Z);
+  void ca_get_spec_az(const int* ispec, amrex::Real* A, amrex::Real* Z);
 
-  void ca_get_aux_names(int* aux_names, int* iaux, int* len);
+  void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
 
   void ca_get_qvar(int* qvar);
 
@@ -46,10 +46,10 @@ extern "C"
   void get_numpts_1d(int* numpts_1d);
   void set_numpts_1d(int* numpts_1d);
   void allocate_outflow_data(const int* n1d, const int* nc);
-  void set_old_outflow_data(amrex::Real* radial, amrex::Real* time,
-			    int* numpts, int* nc);
-  void set_new_outflow_data(amrex::Real* radial, amrex::Real* time,
-			    int* numpts, int* nc);
+  void set_old_outflow_data(const amrex::Real* radial, const amrex::Real* time,
+			    const int* numpts, const int* nc);
+  void set_new_outflow_data(const amrex::Real* radial, const amrex::Real* time,
+			    const int* numpts, const int* nc);
   void swap_outflow_data();
 #endif
 #endif

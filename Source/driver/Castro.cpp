@@ -750,8 +750,8 @@ Castro::setGridInfo ()
 
     if (level == 0) {
 
-      int max_level = parent->maxLevel();
-      int nlevs = max_level + 1;
+      const int max_level = parent->maxLevel();
+      const int nlevs = max_level + 1;
 
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
@@ -963,8 +963,8 @@ Castro::initData ()
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       int nc = S_new.nComp();
-       int n1d = get_numpts();
+       const int nc = S_new.nComp();
+       const int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -2850,7 +2850,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  int probin_file_length = probin_file.length();
+  const int probin_file_length = probin_file.length();
   Array<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
@@ -2972,7 +2972,7 @@ Castro::set_special_tagging_flag(Real time)
    if (!do_special_tagging) return;
 
    MultiFab& S_new = get_new_data(State_Type);
-   Real max_den = S_new.norm0(Density);
+   const Real max_den = S_new.norm0(Density);
 
    int flag_was_changed = 0;
    ca_set_special_tagging_flag(max_den,&flag_was_changed);
@@ -3030,7 +3030,7 @@ Castro::make_radial_data(int is_new)
 
    if (is_new == 1) {
       MultiFab& S = get_new_data(State_Type);
-      int nc = S.nComp();
+      const int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3066,13 +3066,13 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real new_time = state[State_Type].curTime();
+      const Real new_time = state[State_Type].curTime();
       set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
    }
    else
    {
       MultiFab& S = get_old_data(State_Type);
-      int nc = S.nComp();
+      const int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3108,7 +3108,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real old_time = state[State_Type].prevTime();
+      const Real old_time = state[State_Type].prevTime();
       set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
    }
 

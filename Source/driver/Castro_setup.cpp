@@ -191,7 +191,7 @@ Castro::variableSetUp ()
       cnt += NumAdv;
     }
 
-  int dm = BL_SPACEDIM;
+  const int dm = BL_SPACEDIM;
 
   // Get the number of species from the network model.
   ca_get_num_spec(&NumSpec);
@@ -231,7 +231,7 @@ Castro::variableSetUp ()
   // manually, since the Fortran parmparse doesn't support strings
   std::string gravity_type = "none";
   pp.query("gravity_type", gravity_type);
-  int gravity_type_length = gravity_type.length();
+  const int gravity_type_length = gravity_type.length();
   Array<int> gravity_type_name(gravity_type_length);
 
   for (int i = 0; i < gravity_type_length; i++)
@@ -261,7 +261,7 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
-  int coord_type = Geometry::Coord();
+  const int coord_type = Geometry::Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
   Array<Real> center(BL_SPACEDIM, 0.0);
@@ -275,7 +275,7 @@ Castro::variableSetUp ()
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
 
-  int probin_file_length = probin_file.length();
+  const int probin_file_length = probin_file.length();
   Array<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
