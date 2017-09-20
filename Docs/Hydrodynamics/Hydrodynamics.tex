@@ -1049,23 +1049,22 @@ Need to document {\tt allow\_negative\_energy} and {\tt allow\_small\_energy}
 \subsection{Flux Limiting}
 \label{app:hydro:flux_limiting}
 
-Multi-dimensional hydrodynamic white dwarf simulations often have
-numerical artifacts that result from the sharp surface between the
-white dwarf and the ambient material in the simulation domain, which
-is difficult to resolve. A somewhat common issue, especially at low
-resolution, is negative densities that occur as a result of a hydro
-update.  \castro\ contains a prescription for dealing with negative
-densities, that resets the negative density to be similar to nearby
-zones. Various choices exist for how to do this, such as resetting it
-to the original zone density before the update or resetting it to some
-linear combination of the density of nearby zones.  The reset is
-problematic because the strategy is not unique and no choice is
-clearly better than the rest in all cases. Additionally, it is not
-specified at all how to reset momenta in such a case. Consequently, we
-desired to improve the situation by limiting fluxes such that negative
-densities could not occur, so that such a reset would in practice
-always be avoided. Our solution implements the positivity-preserving
-method of \cite{hu:2013}.  This behavior is controlled by
+Multi-dimensional hydrodynamic simulations often have numerical
+artifacts that result from the sharp density gradients.  A somewhat
+common issue, especially at low resolution, is negative densities that
+occur as a result of a hydro update.  \castro\ contains a prescription
+for dealing with negative densities, that resets the negative density
+to be similar to nearby zones. Various choices exist for how to do
+this, such as resetting it to the original zone density before the
+update or resetting it to some linear combination of the density of
+nearby zones.  The reset is problematic because the strategy is not
+unique and no choice is clearly better than the rest in all
+cases. Additionally, it is not specified at all how to reset momenta
+in such a case. Consequently, we desired to improve the situation by
+limiting fluxes such that negative densities could not occur, so that
+such a reset would in practice always be avoided. Our solution
+implements the positivity-preserving method of \cite{hu:2013}.  This
+behavior is controlled by
 \runparam{castro.limit\_fluxes\_on\_small\_dens}.
 
 
@@ -1091,7 +1090,8 @@ $\alpha$ is a scalar that ensures multi-dimensional correctness
   i}$ using the cell-centered quantities $\mathbf{U}$. The scalar
 $\theta_{{\rm i}+1/2}$ is chosen at every interface by calculating the
 update that would be obtained from \autoref{eq:limited_flux}, setting
-the density component equal to some small, positive value, and solving
+the density component equal to a value just larger than the density floor,
+\runparam{castro.small\_dens}, and solving
 for the value of $\theta$ at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 $\theta \approx 1$ and the original hydrodynamic update is recovered.
