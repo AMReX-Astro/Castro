@@ -83,11 +83,11 @@ contains
 
                 Sr(:) = snew(i,j,k,UMX:UMZ) * update_factor(r, rho, dt) / dt
 
-                src(UMX:UMZ) = HALF * Sr(:) + HALF * src(UMX:UMZ)
+                src(UMX:UMZ) = HALF * Sr(:) - HALF * src(UMX:UMZ)
 
                 SrE = dot_product(snew(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
-                src(UEDEN) = HALF * SrE + HALF * src(UEDEN)
+                src(UEDEN) = HALF * SrE - HALF * src(UEDEN)
 
              end if
 
