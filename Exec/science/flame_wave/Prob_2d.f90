@@ -102,7 +102,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   type (eos_t) :: eos_state
 
-  state(i,j,UFS:UFS-1+nspec) = ZERO
 
   do j = lo(2), hi(2)
      y = problo(2) + (dble(j)+HALF)*delta(2)
@@ -113,6 +112,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                        model_state(:,idens_model))
         state(i,j,UTEMP) = interpolate(y,npts_model,model_r, &
                                        model_state(:,itemp_model))
+
+        state(i,j,UFS:UFS-1+nspec) = ZERO
+
         do n = 1, nspec
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
