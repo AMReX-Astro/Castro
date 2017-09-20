@@ -1,5 +1,8 @@
 # changes since the last release:
 
+  -- A minor error in the gravity source terms was fixed (#109).
+     This error should not normally have been observable.
+
   -- fixed a bug in the artifical viscosity in 1-d in
      non-Cartesian geometries (issue #175)
 
@@ -13,11 +16,12 @@
      to use the new all-caps names.
 
   -- the density flux limiting functionality now has a small 
-     tolerance (#185)
+     tolerance (#185). It has also been documented (#193).
 
   -- the timestep retry is now conservative -- this was accomplished
      by saving the density fluxes to use in the conservative gravity
-     update (#178)
+     update (#178). Also, a bug in the timestep retry for Poisson
+     gravity was fixed (#188).
 
 # 17.09
 
