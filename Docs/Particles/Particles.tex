@@ -1,11 +1,9 @@
-%I erazed lines related to mass, but I left all others assuming they are implemented in the code.
+%I erazed lines related to mass, but I left all others assuming they were implemented in the code.
 %It is possible that there are wrong explanations, so please correct them before actually merging.
-
-% \documentclass[11pt]{article}
-%\usepackage{graphicx}
- 
- 
-%\begin{document}
+%I added a few examples including figures, but please feel free to remove them as you prefer. 
+%When I compile with the figures, it does not compile by complaining plot files are not found. 
+%Also, if the examples with the figures are to be included in the manual, depending on the configuration of the figures, {left} {right} \textit{bottom} panels should be altered accordingly. 
+%I also provide the parameter tables in a separate tex file (particle_parameters.txt). But I do know know how to compile with that file, so it may cause some errors.
 
 
 
@@ -76,7 +74,6 @@ To enable this option, set \\
 
 \noindent {\tt {\bf castro.particle\_initrandom\_count = }} particle \# (e.g., 10000).
 
-%I erated variables related to mass.
 
 \section{Particle movement}
 %I did not remove this part just in case this is implemented in the code. But if not, please remove it.
@@ -88,7 +85,7 @@ To enable this option, set \\
 
 \noindent This updates the particle positions at the end of each coarse time step using a 
 random number between 0 and 1 multiplied by $0.25 \Delta x$ where $\Delta x$ refers to the cell size .
-%I am not sure if this is true
+
 
 \vspace{0.1in}
 \noindent On the other hand, by setting \\
@@ -96,7 +93,6 @@ random number between 0 and 1 multiplied by $0.25 \Delta x$ where $\Delta x$ ref
 \noindent {\tt {\bf  castro.particle\_move\_type = Gravitational}} \\
 
 the motion of particles are governed by their self-gravity.
-%I think since we do not provide the particle mass, this may not be in the code.
 
 
 
@@ -149,7 +145,6 @@ ${\rm index1}~~{\rm index2}~~x~~ y~~ z~~ t~~ v_{\rm x} ~~v_{\rm y}~~ v_{\rm z}~~
 	\caption{These plots show an example of how the output data can be post-processed and visualized for particles advected with a fluid motion in a model planetary atmosphere. The initial position of the data are given via an input file (Section \ref{particle:manualplacement}) 
 		\textit{Left} panel : the time evolution of the heights of particles. The solid line represents the average height and the shaded regions indicate the maximum and minimum values of the height for all particles at a given time. \textit{Right} panel : the velocities in $y$-direction ($v_{\rm y}$) of all particles. Different dot types refer to different particles. \textit{Bottom} panel : same as the \textit{right} panel. However, this shows the average velocity (solid line) and the maximum and minimum velocities at a given time (shaded region). The \textit{left} and \textit{bottom} panels are made after post-processing the data. See perturbation for more detail of the vortex variables ($N_{\rm vol}, A_{\rm vol}$ and $\sigma_{\rm vol}$).}
 \end{figure}
-%Depending on the configuration of the figures, {left} {right} \textit{bottom} panels should be altered accordingly.
 
 
 \subsection{Run-time Screen Output}
