@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we time center the sponge?
-time_center_sponge           int           1
-
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
 

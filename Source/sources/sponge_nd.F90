@@ -10,8 +10,8 @@ module sponge_module
 
 contains
 
-  subroutine ca_sponge(lo,hi,state,state_lo,state_hi,source,src_lo,src_hi, &
-                       vol,vol_lo,vol_hi,dx,dt,time) &
+  subroutine ca_sponge(lo,hi,sold,sold_lo,sold_hi,snew,snew_lo,snew_hi,source,src_lo,src_hi, &
+                       vol,vol_lo,vol_hi,dx,dt,time,is_new) &
                        bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
@@ -26,18 +26,21 @@ contains
     implicit none
 
     integer          :: lo(3),hi(3)
-    integer          :: state_lo(3), state_hi(3)
+    integer          :: sold_lo(3), sold_hi(3)
+    integer          :: snew_lo(3), snew_hi(3)
     integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
-    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt)         :: sold(sold_lo(1):sold_hi(1),sold_lo(2):sold_hi(2),sold_lo(3):sold_hi(3),NVAR)
+    real(rt)         :: snew(snew_lo(1):snew_hi(1),snew_lo(2):snew_hi(2),snew_lo(3):snew_hi(3),NVAR)
     real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)         :: dx(3), dt, time
+    integer, value   :: is_new
 
     ! Local variables
 
     real(rt)         :: r(3), radius
-    real(rt)         :: ke_old
+    real(rt)         :: Sr(3), SrE
     real(rt)         :: sponge_factor, alpha
     real(rt)         :: delta_r, delta_rho
     real(rt)         :: rho, rhoInv
@@ -45,7 +48,7 @@ contains
 
     integer          :: i, j, k
 
-    real(rt)         :: src(NVAR), snew(NVAR)
+    real(rt)         :: src(NVAR)
 
     ! Radial distance between upper and lower boundaries.
 
@@ -74,13 +77,10 @@ contains
           do i = lo(1), hi(1)
              r(1) = problo(1) + dble(i + HALF) * dx(1) - center(1)
 
-             rho = state(i,j,k,URHO)
+             rho = sold(i,j,k,URHO)
              rhoInv = ONE / rho
 
              src = ZERO
-             snew = state(i,j,k,:)
-
-             ke_old  = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
 
              ! Apply radial sponge. By default sponge_lower_radius will be zero
              ! so this sponge is applied only if set by the user.
@@ -136,22 +136,32 @@ contains
                 update_factor = -alpha * sponge_factor
              endif
 
-             src(UMX:UMZ) = snew(UMX:UMZ) * update_factor / dt
+             Sr(:) = sold(i,j,k,UMX:UMZ) * update_factor / dt
 
-             snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
+             src(UMX:UMZ) = Sr(:)
+
+             SrE = dot_product(sold(i,j,k,UMX:UMZ) * rhoInv, Sr)
+             src(UEDEN) = SrE
+
+             ! For the new-time source term, do the corrector.
+
+             if (is_new == 1) then
+
+                Sr(:) = snew(i,j,k,UMX:UMZ) * update_factor / dt
+
+                src(UMX:UMZ) = HALF * Sr(:) + HALF * src(UMX:UMZ)
+
+                rhoInv = ONE / snew(i,j,k,URHO)
+
+                SrE = dot_product(snew(i,j,k,UMX:UMZ) * rhoInv, Sr)
+
+                src(UEDEN) = HALF * SrE + HALF * src(UEDEN)
+
+             end if
 
 #ifdef HYBRID_MOMENTUM
              call add_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
-
-             snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif
-
-             ! Note that this is different from the technique we use elsewhere,
-             ! where ener_src = v . mom_src.
-
-             src(UEDEN) = src(UEDEN) + (HALF * sum(snew(UMX:UMZ)**2) * rhoInv - ke_old) / dt
-
-             snew(UEDEN) = snew(UEDEN) + dt * src(UEDEN)
 
              ! Add terms to the source array.
 
