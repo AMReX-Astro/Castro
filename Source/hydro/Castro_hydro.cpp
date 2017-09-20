@@ -103,10 +103,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 #ifdef _OPENMP
 #ifdef RADIATION
-#pragma omp parallel
+#pragma omp parallel reduction(max:courno, max:nstep_fsp)
 #else
 #pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
+                     reduction(max:courno)
 #endif
 #endif
     {
@@ -259,6 +260,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
+            (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
 	  }
 
 #if (BL_SPACEDIM <= 2)
@@ -272,15 +274,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
       } // MFIter loop
 
-#ifdef _OPENMP
-#pragma omp critical (hydro_courno)
-#endif
-      {
-	courno = std::max(courno,cflLoc);
+      courno = std::max(courno,cflLoc);
 #ifdef RADIATION
-	nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
+      nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
-      }
     }  // end of omp parallel region
 
     BL_PROFILE_VAR_STOP(CA_UMDRV);
@@ -418,7 +415,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
 #ifdef _OPENMP
-#pragma omp parallel
+#ifdef RADIATION
+#pragma omp parallel reduction(max:courno, max:nstep_fsp)
+#else
+#pragma omp parallel reduction(max:courno)
+#endif
 #endif
   {
 
@@ -545,15 +546,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
       } // MFIter loop
 
-#ifdef _OPENMP
-#pragma omp critical (hydro_courno)
-#endif
-    {
-      courno = std::max(courno,cflLoc);
+    courno = std::max(courno,cflLoc);
 #ifdef RADIATION
-      nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
+    nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
-    }
   }  // end of omp parallel region
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);

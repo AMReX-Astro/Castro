@@ -31,7 +31,7 @@ Castro::advance (Real time,
   //
   // arguments:
   //    time          : the current simulation time
-  //    dt            : the timestep to advance (e.g., go from time to 
+  //    dt            : the timestep to advance (e.g., go from time to
   //                    time + dt)
   //    amr_iteration : where we are in the current AMR subcycle.  Each
   //                    level will take a number of steps to reach the
@@ -199,12 +199,10 @@ Castro::do_advance (Real time,
 
 
       // Construct the old-time sources from Sborder.  For both CTU
-      // and integration, this will already be applied to S_new (with
-      // full dt weighting), to be correctly later.  Note: this
-      // implies that we do not use the sources as integrate by the
-      // MOL integrator.  Also note -- this does not affect the
-      // prediction of the interface state, an explict source will be
-      // traced there as needed.
+      // and MOL integration, this will already be applied to S_new
+      // (with full dt weighting), to be correctly later.  Note --
+      // this does not affect the prediction of the interface state,
+      // an explict source will be traced there as needed.
 
 #ifdef SELF_GRAVITY
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
@@ -220,13 +218,13 @@ Castro::do_advance (Real time,
     }
 
     // Do the hydro update.  We build directly off of Sborder, which
-    // is the state that has already seen the burn 
+    // is the state that has already seen the burn
 
     if (do_hydro)
     {
       if (do_ctu) {
         construct_hydro_source(time, dt);
-	apply_source_to_state(S_new, hydro_source, dt);      
+	apply_source_to_state(S_new, hydro_source, dt);
       } else {
         construct_mol_hydro_source(time, dt);
       }
@@ -239,12 +237,12 @@ Castro::do_advance (Real time,
       // we just finished the last stage of the MOL integration.
       // Construct S_new now using the weighted sum of the k_mol
       // updates
-            
+
       // Apply the update -- we need to build on Sburn, so
       // start with that state
       MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
       MultiFab::Saxpy(S_new, dt, hydro_source, 0, 0, S_new.nComp(), 0);
-      
+
       // define the temperature now
       clean_state(S_new);
 
@@ -262,7 +260,7 @@ Castro::do_advance (Real time,
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
-    
+
     if (do_ctu || mol_iteration == MOL_STAGES-1) {
 
 #ifdef SELF_GRAVITY
@@ -369,7 +367,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     } else {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
-      
+
       if (mol_iteration == 0) {
 
 	// first MOL stage
@@ -382,7 +380,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// the initial state for the kth stage follows the Butcher
 	// tableau.  We need to create the proper state starting with
 	// the result after the first dt/2 burn (which we copied into
-	// Sburn) and we need to fill ghost cells.  
+	// Sburn) and we need to fill ghost cells.
 
 	// We'll overwrite S_new with this information, since we don't
 	// need it anymorebuild this state temporarily in S_new (which
@@ -535,7 +533,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     clean_state(get_old_data(State_Type));
 
     // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
-    
+
     if (use_retry) {
 
       // Store the old and new time levels.
@@ -565,7 +563,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       }
 
       // This array holds the hydrodynamics update.
-      
+
       hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
@@ -607,6 +605,18 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	    rad_fluxes[dir]->setVal(0.0);
 #endif
+
+    mass_fluxes.resize(3);
+
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+        mass_fluxes[dir]->setVal(0.0);
+    }
+
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+        mass_fluxes[dir]->setVal(0.0);
+    }
 
 }
 
@@ -651,6 +661,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
+
+    for (int dir = 0; dir < 3; ++dir)
+	mass_fluxes[dir].reset();
 
 }
 
@@ -709,7 +722,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
-    if (dt_subcycle < dt) {
+    // Do the retry if the suggested timestep is smaller than the actual one.
+    // A user-specified tolerance parameter can be used here to prevent
+    // retries that are caused by small differences.
+
+    if (dt_subcycle * (1.0 + retry_tolerance) < dt) {
 
 	// Do a basic sanity check to make sure we're not about to overflow.
 
@@ -730,16 +747,20 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	// Abort if we would take more subcycled timesteps than the user has permitted.
 
 	if (retry_max_subcycles > 0 && sub_ncycle > retry_max_subcycles) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
-	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
-                      << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl 
-                      << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
-	  }
-	  amrex::Abort("Error: too many retry timesteps.");
+            if (retry_clamp_subcycles) {
+                sub_ncycle = retry_max_subcycles;
+            } else {
+                if (ParallelDescriptor::IOProcessor()) {
+                    std::cout << std::endl;
+                    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+                    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                              << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
+                    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
+                              << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
+                              << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
+                }
+                amrex::Abort("Error: too many retry timesteps.");
+            }
 	}
 
 	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
@@ -795,6 +816,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  state[k].setTimeLevel(time, 0.0, 0.0);
 
 	}
+
+#ifdef SELF_GRAVITY
+        if (do_grav)
+            gravity->swapTimeLevels(level);
+#endif
 
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
@@ -881,4 +907,3 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     return dt_new;
 
 }
-

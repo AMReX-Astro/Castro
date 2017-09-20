@@ -19,7 +19,7 @@
 
   relaxation_damping_timescale = -1.0d0
   relaxation_density_cutoff = 1.0d3
-  relaxation_implicit = F
+  relaxation_implicit = T
 
   radial_damping_factor = -1.0d2
   initial_radial_velocity_factor = -1.0d-3
@@ -127,9 +127,11 @@
 
   renormalize_abundances = T
 
-  ! Note that use_tables is a network
-  ! specific parameter that will not apply
-  ! to every network.
+  MAX_TEMP = 1.d10
+
+  ! Note that not every network has tabular
+  ! rates enabled, so for some networks the
+  ! following option will have no effect.
 
   use_tables = T
 

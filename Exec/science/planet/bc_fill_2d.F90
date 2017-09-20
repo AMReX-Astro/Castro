@@ -1,4 +1,4 @@
-!AUG25
+!AUG10
 module bc_fill_module
   use bc_ext_fill_module
   use bl_constants_module
@@ -201,10 +201,10 @@ contains
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                
 
-
              end do
           end do
-      end if
+       end if
+
 
   end subroutine ca_hypfill
 
@@ -232,6 +232,11 @@ contains
     real(rt) :: y_base, dens_base, slope
     real(rt) TOL
 
+    ! Note: this function should not be needed, technically, but is
+    ! provided to filpatch because there are many times in the algorithm
+    ! when just the density is needed.  We try to rig up the filling so
+    ! that the same function is called here and in hypfill where all the
+    ! states are filled.
 
     call filcc(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,bc)
 
@@ -309,7 +314,7 @@ contains
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
-
+ 
   end subroutine ca_gravzfill
 
 
@@ -347,6 +352,9 @@ contains
     integer :: j
 
     call filcc(rad,rad_l1,rad_l2,rad_h1,rad_h2,domlo,domhi,delta,xlo,bc)
+
+    ! we are inflow at the lower boundary, so we need to take the appropriate
+    ! action for the radiation here (during the hydro step)
 
     ! this do loop counts backwards since we want to work downward
     !YLO

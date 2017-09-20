@@ -146,6 +146,7 @@ module meth_params_module
   real(rt), save :: cfl
   real(rt), save :: dtnuc_e
   real(rt), save :: dtnuc_X
+  real(rt), save :: dtnuc_X_threshold
   integer         , save :: dtnuc_mode
   real(rt), save :: dxnuc
   integer         , save :: do_react
@@ -191,16 +192,16 @@ module meth_params_module
   !$acc create(do_sponge, sponge_implicit, first_order_hydro) &
   !$acc create(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
   !$acc create(cfl, dtnuc_e, dtnuc_X) &
-  !$acc create(dtnuc_mode, dxnuc, do_react) &
-  !$acc create(react_T_min, react_T_max, react_rho_min) &
-  !$acc create(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-  !$acc create(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-  !$acc create(do_rotation, rot_period, rot_period_dot) &
-  !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-  !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
-  !$acc create(do_acc, grown_factor, track_grid_losses) &
-  !$acc create(const_grav, get_g_from_phi)
+  !$acc create(dtnuc_X_threshold, dtnuc_mode, dxnuc) &
+  !$acc create(do_react, react_T_min, react_T_max) &
+  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
+  !$acc create(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
+  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -281,6 +282,7 @@ contains
     cfl = 0.8d0;
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
+    dtnuc_X_threshold = 1.d-3;
     dtnuc_mode = 1;
     dxnuc = 1.d200;
     do_react = -1;
@@ -358,6 +360,7 @@ contains
     call pp%query("cfl", cfl)
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
+    call pp%query("dtnuc_X_threshold", dtnuc_X_threshold)
     call pp%query("dtnuc_mode", dtnuc_mode)
     call pp%query("dxnuc", dxnuc)
     call pp%query("do_react", do_react)
@@ -430,16 +433,16 @@ contains
     !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
     !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
-    !$acc device(dtnuc_mode, dxnuc, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, diffuse_cutoff_density) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(dtnuc_X_threshold, dtnuc_mode, dxnuc) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -506,12 +509,24 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
-    deallocate(xl_ext_bc_type)
-    deallocate(xr_ext_bc_type)
-    deallocate(yl_ext_bc_type)
-    deallocate(yr_ext_bc_type)
-    deallocate(zl_ext_bc_type)
-    deallocate(zr_ext_bc_type)
+    if (allocated(xl_ext_bc_type)) then
+        deallocate(xl_ext_bc_type)
+    end if
+    if (allocated(xr_ext_bc_type)) then
+        deallocate(xr_ext_bc_type)
+    end if
+    if (allocated(yl_ext_bc_type)) then
+        deallocate(yl_ext_bc_type)
+    end if
+    if (allocated(yr_ext_bc_type)) then
+        deallocate(yr_ext_bc_type)
+    end if
+    if (allocated(zl_ext_bc_type)) then
+        deallocate(zl_ext_bc_type)
+    end if
+    if (allocated(zr_ext_bc_type)) then
+        deallocate(zr_ext_bc_type)
+    end if
 
 
     

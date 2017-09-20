@@ -24,12 +24,15 @@ module load python
 \end{verbatim}
 
 \subsection{Cray}
-The preferred compilers on titan at OLCF are the Cray compilers.  The
-8.4.x and 8.5.0 compilers work well.  Note, you will need to swap
-the default PGI environment to use Cray:
+Note, you will need to swap the default PGI environment to use Cray:
 \begin{verbatim}
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
+
+To compile and link we need to use the CCE/8.5.7 compilers and 
+{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
+work.
+
 
 \subsection{PGI}
 
@@ -95,23 +98,45 @@ See the \maestro\ User's Guide
 
 \subsection{Edison compilers}
 
-The default compilers on edison are the Intel compilers.  Intel version 15.0
-works well with \castro.
-
 \begin{itemize}
-\item Intel compilers later than 16.0.2 have a bug that causes segfaults when using the 
-  {\tt F\_MG} multigrid (e.g., self-gravity)
+\item Intel compilers
 
-\item To compile the code with Intel compilers, you need to explicitly load GCC 4.9.3,
-e.g. as:
-\begin{verbatim}
-module load gcc/4.9.3
-\end{verbatim}
-Otherwise you will get compilation errors due to incompatibilities in the header files.
+  The default compilers on edison are the Intel compilers.  
+
+  The Intel 17.0.2 compilers produce code that crashes at runtime when self-gravity
+  is used (the error is in the {\tt F\_MG} directory.  This appears to be an issue since
+  16.0.2.
+
+  At the moment, avoid Intel compilers on Edison.
+
+%% \item To compile the code with Intel compilers, you need to explicitly load GCC 4.9.3,
+%% e.g. as:
+%% \begin{verbatim}
+%% module load gcc/4.9.3
+%% \end{verbatim}
+%% Otherwise you will get compilation errors due to incompatibilities in the header files.
+
+\item Cray compilers
+
+  \begin{itemize}
+    \item The Cray compilers (CCE 8.6.1) fail to link the code.  This
+      is likely an issue interacting with the GCC headers
+
+    \item We can compile and link with CCE 8.5.7 by doing:
+      \begin{verbatim}
+module swap cce{,/8.5.7}
+module swap cray-mpich{,/7.5.5}
+module swap cray-libsci{,/16.11.1}
+      \end{verbatim}
+   \end{itemize}
+\item GNU
+
+  The GNU compilers (6.3) seem to work fine.
+
 \end{itemize}
 
 
-\subsection{Cori compilers}
+\subsection{Cori (KNL) compilers}
 
 To compile with Cray compilers on Cori, we need to swap the compiler
 wrappers to use the AVX-512 instruction set supported on the Intel Phi

@@ -21,11 +21,11 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 
-EOS_dir   := gamma_law
+EOS_DIR   := gamma_law
 
 # This sets the network directory in Castro/Networks
-Network_dir := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(Network_dir)/gammalaw.net
+NETWORK_DIR := general_null
+GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/gammalaw.net
 
 Bpack   += $(TEST_DIR)/Make.package
 Blocs   += $(TEST_DIR)

@@ -3,13 +3,12 @@ module riemann_module
   use bl_types
   use bl_constants_module
 
-  use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+  use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QPRES, QREINT, &
                                  QFS, QFX, &
                                  NGDNV, GDU, GDPRES, QGAMC, QC, QCSML, &
 #ifdef RADIATION
                                  GDERADS, GDLAMS, QGAMCG, QLAMS, &
 #endif
-                                 URHO, UMX, UEDEN, UEINT, &
                                  small_temp, small_dens, small_pres, &
                                  npassive, upass_map, qpass_map, &
                                  cg_maxiter, cg_tol, cg_blend, &

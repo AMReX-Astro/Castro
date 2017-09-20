@@ -1096,33 +1096,29 @@ Castro::estTimeStep (Real dt_old)
 	  // Compute radiation + hydro limited timestep.
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
-	  {
-	      Real dt = max_dt / cfl;
+        {
+          Real dt = max_dt / cfl;
 
-	      const MultiFab& radMF = get_new_data(Rad_Type);
-	      FArrayBox gPr;
+          const MultiFab& radMF = get_new_data(Rad_Type);
+          FArrayBox gPr;
 
-	      for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
-	      {
-	          const Box& tbox = mfi.tilebox();
-	          const Box& vbox = mfi.validbox();
+          for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
+            {
+              const Box& tbox = mfi.tilebox();
+              const Box& vbox = mfi.validbox();
 
-		  gPr.resize(tbox);
-		  radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
+              gPr.resize(tbox);
+              radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 
-		  ca_estdt_rad(BL_TO_FORTRAN(stateMF[mfi]),
-			       BL_TO_FORTRAN(gPr),
-			       tbox.loVect(),tbox.hiVect(),dx,&dt);
-              }
-#ifdef _OPENMP
-#pragma omp critical (castro_estdt_rad)
-#endif
-	      {
-	          estdt_hydro = std::min(estdt_hydro,dt);
-              }
-          }
+              ca_estdt_rad(BL_TO_FORTRAN(stateMF[mfi]),
+                           BL_TO_FORTRAN(gPr),
+                           tbox.loVect(),tbox.hiVect(),dx,&dt);
+            }
+          estdt_hydro = std::min(estdt_hydro, dt);
+        }
+
       }
       else
       {
@@ -1131,9 +1127,9 @@ Castro::estTimeStep (Real dt_old)
 	  // Compute hydro-limited timestep.
 	if (do_hydro)
 	  {
-
+            
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
 	    {
 	      Real dt = max_dt / cfl;
@@ -1146,13 +1142,8 @@ Castro::estTimeStep (Real dt_old)
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
 			   ZFILL(dx),&dt);
 		}
-#ifdef _OPENMP
-#pragma omp critical (castro_estdt)
-#endif
-	      {
-		estdt_hydro = std::min(estdt_hydro,dt);
-	      }
-	    }
+              estdt_hydro = std::min(estdt_hydro, dt);
+            }
 	  }
 
 #ifdef DIFFUSION
@@ -1162,48 +1153,38 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(estdt_hydro)
 #endif
-	    {
-	      Real dt = max_dt / cfl;
+          {
+            Real dt = max_dt / cfl;
 
-	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-		{
-		  const Box& box = mfi.tilebox();
-		  ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-			  	          BL_TO_FORTRAN_3D(stateMF[mfi]),
-				          ZFILL(dx),&dt);
-		}
-#ifdef _OPENMP
-#pragma omp critical (castro_estdt)
-#endif
-	      {
-		estdt_hydro = std::min(estdt_hydro,dt);
-	      }
-	    }
+            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+              {
+                const Box& box = mfi.tilebox();
+                ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+                                        BL_TO_FORTRAN_3D(stateMF[mfi]),
+                                        ZFILL(dx),&dt);
+              }
+            estdt_hydro = std::min(estdt_hydro, dt);
+          }
 	}
 	if (diffuse_enth)
 	{
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
-	    {
-	      Real dt = max_dt / cfl;
-
-	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-		{
-		  const Box& box = mfi.tilebox();
-		  ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-				          BL_TO_FORTRAN_3D(stateMF[mfi]),
-				          ZFILL(dx),&dt);
-		}
-#ifdef _OPENMP
-#pragma omp critical (castro_estdt)
-#endif
-	      {
-		estdt_hydro = std::min(estdt_hydro,dt);
-	      }
-	    }
+          {
+            Real dt = max_dt / cfl;
+              
+            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+              {
+                const Box& box = mfi.tilebox();
+                ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+                                        BL_TO_FORTRAN_3D(stateMF[mfi]),
+                                        ZFILL(dx),&dt);
+              }
+            estdt_hydro = std::min(estdt_hydro, dt);
+          }
 	}
 #endif  // diffusion
 
@@ -1236,59 +1217,53 @@ Castro::estTimeStep (Real dt_old)
         // Compute burning-limited timestep.
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(min:estdt_burn)
 #endif
-        {
-            Real dt = max_dt;
+      {
+        Real dt = max_dt;
+        
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+          {
+            const Box& box = mfi.validbox();
+            
+            if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
 
-	    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-	    {
-	        const Box& box = mfi.validbox();
+              MultiFab& S_old = get_old_data(State_Type);
+              MultiFab& R_old = get_old_data(Reactions_Type);
 
-		if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
+              ca_estdt_burning(BL_TO_FORTRAN_3D(S_old[mfi]),
+                               BL_TO_FORTRAN_3D(S_new[mfi]),
+                               BL_TO_FORTRAN_3D(R_old[mfi]),
+                               BL_TO_FORTRAN_3D(R_new[mfi]),
+                               ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                               ZFILL(dx),&dt_old,&dt);
+              
+            } else {
+              
+              ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
+                               BL_TO_FORTRAN_3D(S_new[mfi]),
+                               BL_TO_FORTRAN_3D(R_new[mfi]),
+                               BL_TO_FORTRAN_3D(R_new[mfi]),
+                               ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                               ZFILL(dx),&dt_old,&dt);
 
-		  MultiFab& S_old = get_old_data(State_Type);
-		  MultiFab& R_old = get_old_data(Reactions_Type);
+            }
 
-		  ca_estdt_burning(BL_TO_FORTRAN_3D(S_old[mfi]),
-                                   BL_TO_FORTRAN_3D(S_new[mfi]),
-				   BL_TO_FORTRAN_3D(R_old[mfi]),
-				   BL_TO_FORTRAN_3D(R_new[mfi]),
-				   ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-				   ZFILL(dx),&dt_old,&dt);
+          }
+        estdt_burn = std::min(estdt_burn,dt);
+      }
 
-		} else {
+      ParallelDescriptor::ReduceRealMin(estdt_burn);
 
-		  ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
-                                   BL_TO_FORTRAN_3D(S_new[mfi]),
-				   BL_TO_FORTRAN_3D(R_new[mfi]),
-				   BL_TO_FORTRAN_3D(R_new[mfi]),
-				   ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-				   ZFILL(dx),&dt_old,&dt);
+      if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt)
+        std::cout << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
 
-		}
+      // Determine if this is more restrictive than the hydro limiting
 
-	    }
-#ifdef _OPENMP
-#pragma omp critical (castro_estdt_burning)
-#endif
-	    {
-	        estdt_burn = std::min(estdt_burn,dt);
-	    }
-
-        }
-
-	ParallelDescriptor::ReduceRealMin(estdt_burn);
-
-	if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt)
-	  std::cout << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
-
-	// Determine if this is more restrictive than the hydro limiting
-
-	if (estdt_burn < estdt) {
-	  limiter = "burning";
-	  estdt = estdt_burn;
-	}
+      if (estdt_burn < estdt) {
+        limiter = "burning";
+        estdt = estdt_burn;
+      }
     }
 #endif
 
@@ -1705,7 +1680,8 @@ Castro::check_for_post_regrid (Real time)
 #ifdef REACTIONS
     // Check whether we violated the burning stability criterion. This
     // will manifest as any zones at this time signifying that they
-    // need to be tagged that do not have corresponding zones on the fine level.
+    // need to be tagged that do not have corresponding zones on the
+    // fine level.
 
     if (level < parent->maxLevel()) {
 
@@ -2386,6 +2362,22 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
+#ifdef GRAVITY
+            // Store the updated mass_fluxes for use in the gravity source term.
+
+            getLevel(lev).mass_fluxes.resize(3);
+
+            for (int i = 0; i < BL_SPACEDIM; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).getEdgeBoxArray(i), getLevel(lev).dmap, 1, 0));
+                MultiFab::Copy(*getLevel(lev).mass_fluxes[i], *getLevel(lev).fluxes[i], Density, 0, 1, 0);
+            }
+
+            for (int i = BL_SPACEDIM; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).get_new_data(State_Type).boxArray(), getLevel(lev).dmap, 1, 0));
+                getLevel(lev).mass_fluxes[i]->setVal(0.0);
+            }
+#endif
+
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
@@ -2400,6 +2392,13 @@ Castro::reflux(int crse_level, int fine_level)
 	    getLevel(lev).clean_state(S_new);
 
 	    getLevel(lev).do_new_sources(time, dt);
+
+#ifdef GRAVITY
+            // Clear out the mass flux data, we no longer need it.
+            for (int i = 0; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset();
+            }
+#endif
 
 	}
 
