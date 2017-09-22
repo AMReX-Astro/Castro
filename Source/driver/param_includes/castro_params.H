@@ -68,6 +68,8 @@ static amrex::Real max_dt;
 static amrex::Real cfl;
 static amrex::Real init_shrink;
 static amrex::Real change_max;
+static int plot_per_is_exact;
+static int small_plot_per_is_exact;
 static int use_retry;
 static amrex::Real retry_tolerance;
 static int retry_max_subcycles;
