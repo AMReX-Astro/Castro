@@ -744,8 +744,8 @@ protected:
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
 
-    static int       lastDtPlotLimited;
-    static Real      lastDtBeforePlotLimiting;
+    static int         lastDtPlotLimited;
+    static amrex::Real lastDtBeforePlotLimiting;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;
