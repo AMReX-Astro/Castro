@@ -426,6 +426,7 @@ Castro::restart (Amr&     papa,
             amrex::Error("reset_checkpoint_step only makes sense when amr.regrid_on_restart=1");
 
         parent->setLevelSteps(level, reset_checkpoint_step);
+        parent->setLevelCount(level, reset_checkpoint_step);
 
     }
 }
