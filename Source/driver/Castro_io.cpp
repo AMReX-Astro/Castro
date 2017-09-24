@@ -409,13 +409,17 @@ Castro::restart (Amr&     papa,
         if (!parent->RegridOnRestart())
             amrex::Error("reset_checkpoint_time only makes sense when amr.regrid_on_restart=1");
 
+        const Real cur_time = get_state_data(State_Type).curTime();
+        const Real prev_time = get_state_data(State_Type).prevTime();
+        const Real dt = cur_time - prev_time;
+
         parent->setStartTime(reset_checkpoint_time);
         parent->setCumTime(reset_checkpoint_time);
 
         for (int n = 0; n < num_state_type; ++n) {
             StateData& state = get_state_data(n);
-            state.setOldTimeLevel(reset_checkpoint_time);
-            state.setNewTimeLevel(reset_checkpoint_time);
+            state.setOldTimeLevel(reset_checkpoint_time-dt);
+            state.setNewTimeLevel(reset_checkpoint_time   );
         }
 
     }
