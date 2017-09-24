@@ -686,6 +686,34 @@ void Castro::problem_post_restart() {
 
   get_total_ener_array(total_ener_array);
 
+  // If we're restarting from a checkpoint at t = 0 but don't yet
+  // have diagnostics, we want to generate the headers and the t = 0
+  // data at this time so that future timestep diagnostics make sense.
+
+  Real time = state[State_Type].curTime();
+
+  if (time == 0.0) {
+
+      if (parent->NumDataLogs() > 0) {
+
+          bool do_sums = false;
+
+          const std::string datalogname = parent->DataLogName(0);
+
+          std::ifstream log;
+          log.open(datalogname, std::ios::ate);
+
+          if (log.tellg() == 0)
+              do_sums = true;
+          log.close();
+
+          if (do_sums)
+              sum_integrated_quantities();
+
+      }
+
+  }
+
 }
 
 #endif
