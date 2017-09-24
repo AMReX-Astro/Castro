@@ -159,3 +159,5 @@ pp.query("show_center_of_mass", show_center_of_mass);
 pp.query("hard_cfl_limit", hard_cfl_limit);
 pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
+pp.query("reset_checkpoint_time", reset_checkpoint_time);
+pp.query("reset_checkpoint_step", reset_checkpoint_step);

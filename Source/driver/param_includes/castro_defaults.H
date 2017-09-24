@@ -171,3 +171,5 @@ int         Castro::show_center_of_mass = 0;
 int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
+amrex::Real Castro::reset_checkpoint_time = -1.e200;
+int         Castro::reset_checkpoint_step = -1;

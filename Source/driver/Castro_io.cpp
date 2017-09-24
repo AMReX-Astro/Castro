@@ -401,6 +401,33 @@ Castro::restart (Amr&     papa,
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
     }
 #endif
+
+    // If we want, we can restart the checkpoint at a new time.
+
+    if (reset_checkpoint_time > -1.e199) {
+
+        if (!parent->RegridOnRestart())
+            amrex::Error("reset_checkpoint_time only makes sense when amr.regrid_on_restart=1");
+
+        parent->setStartTime(reset_checkpoint_time);
+        parent->setCumTime(reset_checkpoint_time);
+
+        for (int n = 0; n < num_state_type; ++n) {
+            StateData& state = get_state_data(n);
+            state.setOldTimeLevel(reset_checkpoint_time);
+            state.setNewTimeLevel(reset_checkpoint_time);
+        }
+
+    }
+
+    if (reset_checkpoint_step > -1) {
+
+        if (!parent->RegridOnRestart())
+            amrex::Error("reset_checkpoint_step only makes sense when amr.regrid_on_restart=1");
+
+        parent->setLevelSteps(level, reset_checkpoint_step);
+
+    }
 }
 
 void

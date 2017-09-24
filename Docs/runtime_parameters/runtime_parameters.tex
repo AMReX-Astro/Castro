@@ -63,9 +63,9 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[castro :  diagnostics
- parameters]{castro :  diagnostics
- parameters} \label{table: castro :  diagnostics
+\caption[castro :  diagnostics, I/O
+ parameters]{castro :  diagnostics, I/O
+ parameters} \label{table: castro :  diagnostics, I/O
  parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
@@ -96,6 +96,9 @@
 \rowcolor{tableShade}
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
 \runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
+\rowcolor{tableShade}
+\runparamNS{reset\_checkpoint\_step}{castro} &  Do we want to reset the number of steps in the checkpoint? This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1, (which require that max_step and stop_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1 \\
+\runparamNS{reset\_checkpoint\_time}{castro} &  Do we want to reset the time in the checkpoint? This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1, (which require that max_step and stop_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
 \runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\

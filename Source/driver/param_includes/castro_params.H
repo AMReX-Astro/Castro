@@ -159,3 +159,5 @@ static int show_center_of_mass;
 static int hard_cfl_limit;
 static std::string job_name;
 static int output_at_completion;
+static amrex::Real reset_checkpoint_time;
+static int reset_checkpoint_step;
