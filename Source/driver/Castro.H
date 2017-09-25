@@ -247,7 +247,9 @@ public:
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
-
+#ifdef MHD
+    void just_the_mhd(amrex::Real time, amrex::Real dt);
+#endif
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
 
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);

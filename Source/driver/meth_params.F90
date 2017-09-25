@@ -19,6 +19,10 @@ module meth_params_module
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
+#ifdef MHD
+  integer, parameter     :: MAXADV  = 5
+  integer, parameter     :: NMAG    = 3
+#endif
 
   ! NTHERM: number of thermodynamic variables
   integer, save :: NTHERM, NVAR
@@ -28,6 +32,9 @@ module meth_params_module
   ! QTHERM: number of primitive variables
   integer, save :: QTHERM, QVAR
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
+#ifdef MHD
+  integer, save :: QMAGX, QMAGY, QMAGZ
+#endif
   integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
 #ifdef RADIATION
   integer, save :: QGAMCG, QCG, QLAMS

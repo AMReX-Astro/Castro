@@ -222,12 +222,17 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
+#ifndef MHD    
       if (do_ctu) {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
       } else {
         construct_mol_hydro_source(time, dt);
       }
+#else
+      // See Nyx_advance
+      just_the_mhd(time, dt);
+#endif
     }
 
     // For MOL integration, we are done with this stage, unless it is

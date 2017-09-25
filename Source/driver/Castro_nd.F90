@@ -497,6 +497,13 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   QPRES   = QLAST + 1
   QREINT  = QLAST + 2
 
+#ifdef MHD
+  QMAGX   = QLAST + 3  ! Bx centered
+  QMAGY   = QLAST + 4  ! By centered
+  QMAGZ   = QLAST + 5  ! Bz centered
+  !change QTHERM ? 
+#endif
+
   QTEMP   = QTHERM ! = QLAST + 3
 
   if (numadv >= 1) then
