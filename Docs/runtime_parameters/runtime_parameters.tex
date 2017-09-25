@@ -63,9 +63,9 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[castro :  diagnostics
- parameters]{castro :  diagnostics
- parameters} \label{table: castro :  diagnostics
+\caption[castro :  diagnostics, I/O
+ parameters]{castro :  diagnostics, I/O
+ parameters} \label{table: castro :  diagnostics, I/O
  parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
@@ -96,6 +96,9 @@
 \rowcolor{tableShade}
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
 \runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
+\rowcolor{tableShade}
+\runparamNS{reset\_checkpoint\_step}{castro} &  Do we want to reset the number of steps in the checkpoint? This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1, (which require that max_step and stop_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1 \\
+\runparamNS{reset\_checkpoint\_time}{castro} &  Do we want to reset the time in the checkpoint? This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1, (which require that max_step and stop_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
 \runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
@@ -553,14 +556,18 @@
 \runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \rowcolor{tableShade}
 \runparamNS{max\_dt}{castro} &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
+\runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
+\rowcolor{tableShade}
+\runparamNS{retry\_clamp\_subcycles}{castro} &  If we do request more than the maximum number of subcycles, should we fail, or should we clamp to that maximum number and perform that many? & 0 \\
 \runparamNS{retry\_max\_subcycles}{castro} &  Do not permit more retry timesteps than this parameter. Set to a negative value to disable this criterion. & 1000 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
 \runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.0 \\
 \rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
-\runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
+\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
+\runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 

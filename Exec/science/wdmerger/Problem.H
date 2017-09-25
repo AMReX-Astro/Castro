@@ -76,6 +76,8 @@ void update_relaxation(amrex::Real time, amrex::Real dt);
 // Input parameters
 
 static int use_stopping_criterion;
+static int use_energy_stopping_criterion;
+static amrex::Real density_stopping_criterion;
 
 // Data we want to store, for interfacing with the Fortran
 
