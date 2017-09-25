@@ -11,7 +11,7 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
   use probdata_module
   use interpolate_module
   use model_parser_module
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -30,7 +30,7 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
 
   type (eos_t) :: eos_state
 
-  do k=lo(3),hi(3)  
+  do k=lo(3),hi(3)
      do j=lo(2),hi(2)
         y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
         pres = interpolate(y,npts_model,model_r, &
@@ -40,7 +40,7 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
 
            eos_state%rho = u(i,j,k,URHO)
            eos_state%T = u(i,j,k,UTEMP)
-           eos_state%xn(:) = u(i,j,k,UFS:)/u(i,j,k,URHO)
+           eos_state%xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
 
            call eos(eos_input_rt, eos_state)
 
@@ -70,7 +70,7 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
   use probdata_module
   use interpolate_module
   use model_parser_module
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -99,19 +99,19 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
 
            eos_state%rho = u(i,j,k,URHO)
            eos_state%T = u(i,j,k,UTEMP)
-           eos_state%xn(:) = u(i,j,k,UFS:)/u(i,j,k,URHO)
+           eos_state%xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
 
            call eos(eos_input_rt, eos_state)
-           
+
            u(i,j,k,UEINT) = eos_state%e
            pres_local = eos_state%p
-           
+
            p(i,j,k,1) = (pres_local - pres) / pres
 
         end do
      end do
   end do
-     
+
 end subroutine ca_derpioverp0
 
 !-----------------------------------------------------------------------
@@ -122,12 +122,12 @@ subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
                          bind(C, name="ca_derrhopert")
 
   use network, only : nspec, naux
-  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
   use model_parser_module
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -168,12 +168,12 @@ subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
                        bind(C, name="ca_dertpert")
 
   use network, only : nspec, naux
-  use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX, &
+  use meth_params_module, only : URHO, UEINT, UTEMP, &
                                  allow_negative_energy
   use probdata_module
   use interpolate_module
   use model_parser_module
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -200,7 +200,7 @@ subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
         do i=lo(1),hi(1)
            p(i,j,k,1) = u(i,j,k,UTEMP) - temp
         end do
-        
+
      end do
   end do
 
