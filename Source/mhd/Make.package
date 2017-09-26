@@ -3,4 +3,4 @@
 CEXE_sources += Castro_mhd.cpp
 
 ca_F90EXE_sources += advection_util_nd.F90
-
+ca_F90EXE_sources += Castro_advection_mhd_3d.F90

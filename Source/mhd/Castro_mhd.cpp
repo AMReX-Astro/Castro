@@ -8,4 +8,7 @@ Castro::just_the_mhd(Real time, Real dt)
 {
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;
+
+      ca_advance_mhd();
+
 }

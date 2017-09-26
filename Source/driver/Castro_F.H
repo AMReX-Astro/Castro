@@ -770,6 +770,10 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, const int* coord_type);
 
+#ifdef MHD
+  void ca_advance_mhd();
+#endif
+
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
