@@ -829,7 +829,7 @@ void Castro::check_to_stop(Real time) {
 
           }
 
-          if (ts_te_curr_max >= 0.1 * dxnuc) {
+          if (ts_te_curr_max >= ts_te_stopping_criterion * dxnuc) {
 
               jobDoneStatus = 1;
 
