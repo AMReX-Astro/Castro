@@ -15,7 +15,7 @@ int Castro::relaxation_is_done = 0;
 int Castro::problem = -1;
 int Castro::use_stopping_criterion = 1;
 int Castro::use_energy_stopping_criterion = 0;
-Real Castro::density_stopping_criterion = 1.e200;
+Real Castro::ts_te_stopping_criterion = 1.e20;
 
 Real Castro::mass_p = 0.0;
 Real Castro::mass_s = 0.0;
@@ -614,7 +614,7 @@ void Castro::problem_post_init() {
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("density_stopping_criterion", density_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
 
   // Get the problem number fom Fortran.
 
@@ -668,7 +668,7 @@ void Castro::problem_post_restart() {
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("density_stopping_criterion", density_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
 
   // Get the problem number from Fortran.
 
@@ -829,14 +829,14 @@ void Castro::check_to_stop(Real time) {
 
           }
 
-          if (rho_curr_max > density_stopping_criterion) {
+          if (ts_te_curr_max >= 0.1 * dxnuc) {
 
               jobDoneStatus = 1;
 
               set_job_status(&jobDoneStatus);
 
               amrex::Print() << std::endl
-                             << "Ending simulation because density has surpassed threshold."
+                             << "Ending simulation because we are approaching unstable burning."
                              << std::endl;
 
           }
