@@ -611,6 +611,18 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	    rad_fluxes[dir]->setVal(0.0);
 #endif
 
+    mass_fluxes.resize(3);
+
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+        mass_fluxes[dir]->setVal(0.0);
+    }
+
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+        mass_fluxes[dir]->setVal(0.0);
+    }
+
 }
 
 
@@ -654,6 +666,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
+
+    for (int dir = 0; dir < 3; ++dir)
+	mass_fluxes[dir].reset();
 
 }
 
@@ -712,7 +727,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     ParallelDescriptor::ReduceRealMin(dt_subcycle);
 
-    if (dt_subcycle < dt) {
+    // Do the retry if the suggested timestep is smaller than the actual one.
+    // A user-specified tolerance parameter can be used here to prevent
+    // retries that are caused by small differences.
+
+    if (dt_subcycle * (1.0 + retry_tolerance) < dt) {
 
 	// Do a basic sanity check to make sure we're not about to overflow.
 
@@ -733,16 +752,20 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	// Abort if we would take more subcycled timesteps than the user has permitted.
 
 	if (retry_max_subcycles > 0 && sub_ncycle > retry_max_subcycles) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
-	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
-                      << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
-                      << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
-	  }
-	  amrex::Abort("Error: too many retry timesteps.");
+            if (retry_clamp_subcycles) {
+                sub_ncycle = retry_max_subcycles;
+            } else {
+                if (ParallelDescriptor::IOProcessor()) {
+                    std::cout << std::endl;
+                    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+                    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                              << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
+                    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
+                              << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
+                              << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
+                }
+                amrex::Abort("Error: too many retry timesteps.");
+            }
 	}
 
 	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
@@ -798,6 +821,11 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  state[k].setTimeLevel(time, 0.0, 0.0);
 
 	}
+
+#ifdef SELF_GRAVITY
+        if (do_grav)
+            gravity->swapTimeLevels(level);
+#endif
 
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
