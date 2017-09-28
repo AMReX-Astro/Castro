@@ -15,7 +15,7 @@ int Castro::relaxation_is_done = 0;
 int Castro::problem = -1;
 int Castro::use_stopping_criterion = 1;
 int Castro::use_energy_stopping_criterion = 0;
-Real Castro::ts_te_stopping_criterion = 1.e20;
+Real Castro::ts_te_stopping_criterion = 1.e200;
 
 Real Castro::mass_p = 0.0;
 Real Castro::mass_s = 0.0;
@@ -829,14 +829,14 @@ void Castro::check_to_stop(Real time) {
 
           }
 
-          if (ts_te_curr_max >= ts_te_stopping_criterion * dxnuc) {
+          if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
               jobDoneStatus = 1;
 
               set_job_status(&jobDoneStatus);
 
               amrex::Print() << std::endl
-                             << "Ending simulation because we are approaching unstable burning."
+                             << "Ending simulation because we are above the threshold for unstable burning."
                              << std::endl;
 
           }
