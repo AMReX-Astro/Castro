@@ -105,6 +105,8 @@ extern "C"
 
   void set_extrema(const amrex::Real* T_max, const amrex::Real* rho_max, const amrex::Real* ts_te_max);
 
+  void get_extrema(amrex::Real* T_max, amrex::Real* rho_max, amrex::Real* ts_te_max);
+
   void get_job_status(int* job_status);
 
   void set_job_status(int* job_status);
