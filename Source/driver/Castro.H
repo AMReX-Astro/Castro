@@ -127,6 +127,11 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     amrex::VisMF::How     how) override;
+    void plotFileOutput(const std::string& dir,
+                        ostream& os,
+                        amrex::VisMF::How how,
+                        const int is_small);
+
     void writeJobInfo (const std::string& dir);
 
     //
@@ -743,6 +748,9 @@ protected:
     static amrex::ErrorList err_list;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+
+    static int         lastDtPlotLimited;
+    static amrex::Real lastDtBeforePlotLimiting;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;

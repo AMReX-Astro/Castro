@@ -1045,3 +1045,56 @@ Need to document {\tt density\_reset\_method}
 Need to document {\tt allow\_negative\_energy} and {\tt allow\_small\_energy}
 
 
+
+\subsection{Flux Limiting}
+\label{app:hydro:flux_limiting}
+
+Multi-dimensional hydrodynamic simulations often have numerical
+artifacts that result from the sharp density gradients.  A somewhat
+common issue, especially at low resolution, is negative densities that
+occur as a result of a hydro update.  \castro\ contains a prescription
+for dealing with negative densities, that resets the negative density
+to be similar to nearby zones. Various choices exist for how to do
+this, such as resetting it to the original zone density before the
+update or resetting it to some linear combination of the density of
+nearby zones.  The reset is problematic because the strategy is not
+unique and no choice is clearly better than the rest in all
+cases. Additionally, it is not specified at all how to reset momenta
+in such a case. Consequently, we desired to improve the situation by
+limiting fluxes such that negative densities could not occur, so that
+such a reset would in practice always be avoided. Our solution
+implements the positivity-preserving method of \cite{hu:2013}.  This
+behavior is controlled by
+\runparam{castro.limit\_fluxes\_on\_small\_dens}.
+
+
+A hydrodynamical update to a zone can be broken down into an update
+over every face of the zone where a flux crosses the face over the
+timestep.  The central insight of the positivity-preserving method is
+that if the update over every face is positivity-preserving, then the
+total update must be positivity-preserving as well.  To guarantee
+positivity preservation at the zone edge ${\rm i}+1/2$, the flux
+$\mathbf{F}^{n+1/2}_{{\rm i}+1/2}$ at that face is modified to become:
+\begin{equation}
+  \mathbf{F}^{n+1/2}_{{\rm i}+1/2} \rightarrow \theta_{{\rm i}+1/2} \mathbf{F}^{n+1/2}_{{\rm i}+1/2} + (1 - \theta_{{\rm i}+1/2}) \mathbf{F}^{LF}_{{\rm i}+1/2}, \label{eq:limited_flux}
+\end{equation}
+where $0 \leq \theta_{{\rm i}+1/2} \leq 1$ is a scalar, and $\mathbf{F}^{LF}_{{\rm i}+1/2}$ is the Lax-Friedrichs flux,
+\begin{equation}
+  \mathbf{F}^{LF}_{{\rm i}+1/2} = \frac{1}{2}\left[\mathbf{F}^{n}_{{\rm i}} + \mathbf{F}^{n}_{{\rm i}+1} + \text{CFL}\frac{\Delta x}{\Delta t} \frac{1}{\alpha}\left(\mathbf{U}^{n}_{{\rm i}} - \mathbf{U}^{n}_{{\rm i}+1}\right)\right],
+\end{equation}
+where $0 < \text{CFL} < 1$ is the CFL safety factor (the method is
+guaranteed to preserve positivity as long as $\text{CFL} < 1/2$), and
+$\alpha$ is a scalar that ensures multi-dimensional correctness
+($\alpha = 1$ in 1D, $1/2$ in 2D, $1/3$ in 3D).  $\mathbf{F}_{{\rm
+    i}}$ is the flux of material evaluated at the zone center ${\rm
+  i}$ using the cell-centered quantities $\mathbf{U}$. The scalar
+$\theta_{{\rm i}+1/2}$ is chosen at every interface by calculating the
+update that would be obtained from \autoref{eq:limited_flux}, setting
+the density component equal to a value just larger than the density floor,
+\runparam{castro.small\_dens}, and solving
+for the value of $\theta$ at the interface that makes the equality
+hold. In regions where the density is not at risk of going negative,
+$\theta \approx 1$ and the original hydrodynamic update is recovered.
+Further discussion, including a proof of the method, a description of
+multi-dimensional effects, and test verification problems, can be
+found in \cite{hu:2013}.
