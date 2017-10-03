@@ -2043,7 +2043,7 @@ void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2059,7 +2059,7 @@ void
 Gravity::unweight_edges(int level, const Array<MultiFab*>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
