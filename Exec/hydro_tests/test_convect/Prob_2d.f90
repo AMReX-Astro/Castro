@@ -22,7 +22,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  ! Build "probin" filename from C++ land -- 
+  ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
 
@@ -31,7 +31,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-  
+
 
   ! Namelist defaults
   apply_vel_field = .false.
@@ -73,16 +73,16 @@ end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -106,24 +106,24 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
-        
+
   integer level, nscal
   integer lo(2), hi(2)
   integer state_l1,state_l2,state_h1,state_h2
   real(rt)         xlo(2), xhi(2), time, delta(2)
   real(rt)         state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  
+
   real(rt)         xdist,ydist,x,y,r,upert(2)
   integer i,j,n,vortex
 
   real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
-        
+
   do j = lo(2), hi(2)
      y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
 
-     do i = lo(1), hi(1)   
+     do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
                                       model_state(:,idens_model))
@@ -133,7 +133,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
         enddo
-        
+
      enddo
   enddo
 
@@ -141,7 +141,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      do i = lo(1), hi(1)
         eos_state%rho = state(i,j,URHO)
         eos_state%T = state(i,j,UTEMP)
-        eos_state%xn(:) = state(i,j,UFS:)
+        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
 
         call eos(eos_input_rt, eos_state)
 
@@ -151,16 +151,16 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      end do
   end do
 
-  do j = lo(2), hi(2)     
-     do i = lo(1), hi(1)   
-        
+  do j = lo(2), hi(2)
+     do i = lo(1), hi(1)
+
         state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEINT)
         state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)
 
         do n = 1,nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
         end do
-        
+
      enddo
   enddo
 
@@ -202,6 +202,5 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      end do
 
   endif
-  
-end subroutine ca_initdata
 
+end subroutine ca_initdata

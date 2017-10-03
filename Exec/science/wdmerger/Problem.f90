@@ -910,13 +910,32 @@ subroutine set_extrema(T_max, rho_max, ts_te_max) bind(C,name='set_extrema')
 
   implicit none
 
-  double precision :: T_max, rho_max, ts_te_max
+  double precision, intent(in) :: T_max, rho_max, ts_te_max
 
   T_global_max     = T_max
   rho_global_max   = rho_max
   ts_te_global_max = ts_te_max
 
 end subroutine set_extrema
+
+
+
+! Retrieves the global extrema.
+
+subroutine get_extrema(T_max, rho_max, ts_te_max) bind(C,name='get_extrema')
+
+  use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
+
+  implicit none
+
+  double precision, intent(inout) :: T_max, rho_max, ts_te_max
+
+  T_max     = T_global_max
+  rho_max   = rho_global_max
+  ts_te_max = ts_te_global_max
+
+end subroutine get_extrema
+
 
 
 ! Returns whether the simulation is done.

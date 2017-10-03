@@ -510,14 +510,14 @@ job_name                     string        ""
 output_at_completion         int           1
 
 # Do we want to reset the time in the checkpoint?
-# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
-# (which require that max_step and stop_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_time        Real          -1.e200
 
 # Do we want to reset the number of steps in the checkpoint?
-# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
-# (which require that max_step and stop_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
