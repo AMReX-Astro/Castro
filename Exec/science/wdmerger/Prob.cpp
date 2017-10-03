@@ -686,6 +686,14 @@ void Castro::problem_post_restart() {
 
   get_total_ener_array(total_ener_array);
 
+  // Get the extrema.
+
+  get_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
+
+  T_curr_max = T_global_max;
+  rho_curr_max = rho_global_max;
+  ts_te_curr_max = ts_te_global_max;
+
   // If we're restarting from a checkpoint at t = 0 but don't yet
   // have diagnostics, we want to generate the headers and the t = 0
   // data at this time so that future timestep diagnostics make sense.
@@ -876,8 +884,6 @@ void Castro::check_to_stop(Real time) {
       if (amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
-	dump_file.close();
-	dump_file.open("plot_and_stop", std::ofstream::out);
 	dump_file.close();
       }
 

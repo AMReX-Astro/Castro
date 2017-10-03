@@ -1,5 +1,9 @@
 # changes since the last release:
 
+  -- Fixed a bug in the fix for #188.
+
+# 17.10
+
   -- It is sometimes useful to be able to do some sort of initialization
      phase in your simulation, stop with a checkpoint, and then restart
      (possibly with different options) to do the main phase of the run.
