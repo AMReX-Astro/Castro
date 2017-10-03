@@ -15,7 +15,7 @@ int Castro::relaxation_is_done = 0;
 int Castro::problem = -1;
 int Castro::use_stopping_criterion = 1;
 int Castro::use_energy_stopping_criterion = 0;
-Real Castro::density_stopping_criterion = 1.e200;
+Real Castro::ts_te_stopping_criterion = 1.e200;
 
 Real Castro::mass_p = 0.0;
 Real Castro::mass_s = 0.0;
@@ -614,7 +614,7 @@ void Castro::problem_post_init() {
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("density_stopping_criterion", density_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
 
   // Get the problem number fom Fortran.
 
@@ -668,7 +668,7 @@ void Castro::problem_post_restart() {
 
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("density_stopping_criterion", density_stopping_criterion);
+  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
 
   // Get the problem number from Fortran.
 
@@ -685,6 +685,42 @@ void Castro::problem_post_restart() {
   // Get the energy data from Fortran.
 
   get_total_ener_array(total_ener_array);
+
+  // Get the extrema.
+
+  get_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
+
+  T_curr_max = T_global_max;
+  rho_curr_max = rho_global_max;
+  ts_te_curr_max = ts_te_global_max;
+
+  // If we're restarting from a checkpoint at t = 0 but don't yet
+  // have diagnostics, we want to generate the headers and the t = 0
+  // data at this time so that future timestep diagnostics make sense.
+
+  Real time = state[State_Type].curTime();
+
+  if (time == 0.0) {
+
+      if (parent->NumDataLogs() > 0) {
+
+          bool do_sums = false;
+
+          const std::string datalogname = parent->DataLogName(0);
+
+          std::ifstream log;
+          log.open(datalogname, std::ios::ate);
+
+          if (log.tellg() == 0)
+              do_sums = true;
+          log.close();
+
+          if (do_sums)
+              sum_integrated_quantities();
+
+      }
+
+  }
 
 }
 
@@ -801,14 +837,14 @@ void Castro::check_to_stop(Real time) {
 
           }
 
-          if (rho_curr_max > density_stopping_criterion) {
+          if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
               jobDoneStatus = 1;
 
               set_job_status(&jobDoneStatus);
 
               amrex::Print() << std::endl
-                             << "Ending simulation because density has surpassed threshold."
+                             << "Ending simulation because we are above the threshold for unstable burning."
                              << std::endl;
 
           }
@@ -848,8 +884,6 @@ void Castro::check_to_stop(Real time) {
       if (amrex::ParallelDescriptor::IOProcessor()) {
 	std::ofstream dump_file;
 	dump_file.open("dump_and_stop", std::ofstream::out);
-	dump_file.close();
-	dump_file.open("plot_and_stop", std::ofstream::out);
 	dump_file.close();
       }
 

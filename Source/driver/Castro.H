@@ -127,6 +127,11 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     amrex::VisMF::How     how) override;
+    void plotFileOutput(const std::string& dir,
+                        ostream& os,
+                        amrex::VisMF::How how,
+                        const int is_small);
+
     void writeJobInfo (const std::string& dir);
 
     //
