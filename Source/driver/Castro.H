@@ -243,6 +243,8 @@ public:
 
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
+    amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
@@ -805,7 +807,7 @@ protected:
 
     // counters for various retries in Castro
 
-    // retry capability
+    // subcycle capability
     int sub_iteration;
     int sub_ncycle;
   
