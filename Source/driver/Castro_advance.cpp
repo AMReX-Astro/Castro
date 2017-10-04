@@ -742,7 +742,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  amrex::Abort("Error: integer overflow in retry.");
 	}
 
-        int sub_ncycle = ceil(dt / dt_subcycle);
+        sub_ncycle = ceil(dt / dt_subcycle);
 
 	// Abort if we would take more subcycled timesteps than the user has permitted.
 
@@ -784,10 +784,6 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  std::cout << std::endl;
 	}
 
-	Real subcycle_time = time;
-	int sub_iteration = 1;
-	Real dt_advance = dt / sub_ncycle;
-
 	// Restore the original values of the state data.
 
 	for (int k = 0; k < num_state_type; k++) {
@@ -798,115 +794,124 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	  if (prev_state[k]->hasNewData())
 	      state[k].copyNew(*prev_state[k]);
 
-	  // Anticipate the swapTimeLevels to come.
-
-	  if (k == Source_Type)
-	      state[k].swapTimeLevels(0.0);
-#ifdef SDC
-	  else if (k == SDC_Source_Type)
-	      state[k].swapTimeLevels(0.0);
-#ifdef REACTIONS
-	  else if (k == SDC_React_Type)
-	      state[k].swapTimeLevels(0.0);
-#endif
-#endif
-
-	  state[k].swapTimeLevels(0.0);
-
-	  state[k].setTimeLevel(time, 0.0, 0.0);
-
 	}
 
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
 	    material_lost_through_boundary_temp[i] = 0.0;
 
-	// Subcycle until we've reached the target time.
-        // Compare against a slightly smaller number to
-        // avoid roundoff concerns.
-
-        Real eps = 1.0e-14;
-
-	while (subcycle_time < (1.0 - eps) * (time + dt)) {
-
-	    // Shorten the last timestep so that we don't overshoot
-	    // the ending time.
-
-	    if (subcycle_time + dt_advance > time + dt)
-	        dt_advance = (time + dt) - subcycle_time;
-
-	    if (verbose && ParallelDescriptor::IOProcessor()) {
-	        std::cout << "  Beginning retry subcycle " << sub_iteration << " of " << sub_ncycle
-		          << ", starting at time " << subcycle_time
-		         << " with dt = " << dt_advance << std::endl << std::endl;
-	    }
-
-	    for (int k = 0; k < num_state_type; k++) {
-
-	        if (k == Source_Type)
-		    state[k].swapTimeLevels(0.0);
-#ifdef SDC
-		else if (k == SDC_Source_Type)
-		    state[k].swapTimeLevels(0.0);
-#ifdef REACTIONS
-		else if (k == SDC_React_Type)
-		    state[k].swapTimeLevels(0.0);
-#endif
-#endif
-
-		state[k].swapTimeLevels(dt_advance);
-
-	    }
-
-#ifdef SELF_GRAVITY
-            // Swap the time levels. Only do this after the first iteration;
-            // during the first iteration the old gravity (grad_phi_prev)
-            // has the correct composite value due to the original advance,
-            // and we want to keep it.
-
-            if (sub_iteration > 1) {
-                if (do_grav) {
-                    gravity->swapTimeLevels(level);
-                }
-            }
-#endif
-
-	    do_advance(subcycle_time,dt_advance,amr_iteration,amr_ncycle);
-
-	    if (verbose && ParallelDescriptor::IOProcessor()) {
-	        std::cout << std::endl;
-	        std::cout << "  Retry subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
-	        std::cout << std::endl;
-	    }
-
-	  subcycle_time += dt_advance;
-	  sub_iteration += 1;
-
-	}
-
-	// We want to return this subcycled timestep as a suggestion,
-	// if it is smaller than what the hydro estimates.
-
-	dt_new = std::min(dt_new, dt_subcycle);
-
-	if (verbose && ParallelDescriptor::IOProcessor())
-            std::cout << "  Retry subcycling complete" << std::endl << std::endl;
-
-	// Finally, copy the original data back to the old state
-	// data so that externally it appears like we took only
-	// a single timestep.
-
-	for (int k = 0; k < num_state_type; k++) {
-
-           if (prev_state[k]->hasOldData())
-	      state[k].copyOld(*prev_state[k]);
-
-	   state[k].setTimeLevel(time + dt, dt, 0.0);
-
-	}
+        dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
 
     }
 
     return dt_new;
+
+}
+
+
+
+Real
+Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
+{
+
+    // Subcycle until we've reached the target time.
+    // Compare against a slightly smaller number to
+    // avoid roundoff concerns.
+
+    Real eps = 1.0e-14;
+
+    Real subcycle_time = time;
+    Real dt_subcycle = dt / sub_ncycle;
+    Real dt_advance = dt_subcycle;
+
+    Real dt_new = 1.e200;
+
+    sub_iteration = 1;
+
+    while (subcycle_time < (1.0 - eps) * (time + dt)) {
+
+        // Shorten the last timestep so that we don't overshoot
+        // the ending time.
+
+        if (subcycle_time + dt_advance > (time + dt))
+            dt_advance = (time + dt) - subcycle_time;
+
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << "  Beginning subcycle " << sub_iteration << " of " << sub_ncycle
+                      << ", starting at time " << subcycle_time
+                      << " with dt = " << dt_advance << std::endl << std::endl;
+        }
+
+        // Swap the time levels. Only do this after the first iteration;
+        // we assume that the values coming into this routine are
+        // consistent in the sense that the "old" data is really the time
+        // level n data. For a normal advance this is guaranteed by the
+        // swap in initialize_advance and for a retry this is done prior
+        // to entering this routine.
+
+        if (sub_iteration > 1) {
+
+            for (int k = 0; k < num_state_type; k++) {
+
+                if (k == Source_Type)
+                    state[k].swapTimeLevels(0.0);
+#ifdef SDC
+                else if (k == SDC_Source_Type)
+                    state[k].swapTimeLevels(0.0);
+#ifdef REACTIONS
+                else if (k == SDC_React_Type)
+                    state[k].swapTimeLevels(0.0);
+#endif
+#endif
+
+                state[k].swapTimeLevels(0.0);
+
+            }
+
+#ifdef SELF_GRAVITY
+            if (do_grav) {
+                gravity->swapTimeLevels(level);
+            }
+#endif
+
+        }
+
+        // Set the relevant time levels.
+
+        for (int k = 0; k < num_state_type; k++)
+            state[k].setTimeLevel(subcycle_time + dt_advance, dt_advance, 0.0);
+
+        do_advance(subcycle_time, dt_advance, amr_iteration, amr_ncycle);
+
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << std::endl;
+            std::cout << "  Subcycle " << sub_iteration << " of " << sub_ncycle << " completed" << std::endl;
+            std::cout << std::endl;
+        }
+
+        subcycle_time += dt_advance;
+        sub_iteration += 1;
+
+    }
+
+    // We want to return this subcycled timestep as a suggestion.
+
+    dt_new = std::min(dt_new, dt_subcycle);
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "  Subcycling complete" << std::endl << std::endl;
+
+    // Finally, copy the original data back to the old state
+    // data so that externally it appears like we took only
+    // a single timestep.
+
+    for (int k = 0; k < num_state_type; k++) {
+
+        if (prev_state[k]->hasOldData())
+            state[k].copyOld(*prev_state[k]);
+
+        state[k].setTimeLevel(time + dt, dt, 0.0);
+
+    }
 
 }
