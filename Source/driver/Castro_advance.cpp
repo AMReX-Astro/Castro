@@ -94,11 +94,16 @@ Castro::advance (Real time,
 
     if (do_ctu) {
 
-      // CTU method is just a single update
-      sub_iteration = 0;
-      sub_ncycle = 0;
+        if (do_subcycle) {
 
-      dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
+            dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
+            
+        }
+        else {
+
+            dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
+
+        }
 
     } else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
@@ -456,22 +461,63 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 void
 Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
-
     // Save the current iteration.
 
     iteration = amr_iteration;
 
-    // If the level below this just triggered a special regrid,
-    // the coarse contribution to this level's FluxRegister
-    // is no longer valid because the grids have, in general, changed.
-    // Zero it out, and add them back using the saved copy of the fluxes.
+    do_subcycle = false;
+    sub_iteration = 0;
+    sub_ncycle = 0;
+    dt_subcycle = 1.e200;
 
-    if (use_post_step_regrid && level > 0)
-	if (getLevel(level-1).post_step_regrid && amr_iteration == 1)
+    if (use_post_step_regrid && level > 0) {
+
+	if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
+
+            // If the level below this just triggered a special regrid,
+            // the coarse contribution to this level's FluxRegister
+            // is no longer valid because the grids have, in general, changed.
+            // Zero it out, and add them back using the saved copy of the fluxes.
+
 	    getLevel(level-1).FluxRegCrseInit();
+
+            // If we're coming off a new regrid at the end of the last coarse
+            // timestep, then we want to subcycle this timestep at the timestep
+            // suggested by this level, since the data on this level will not
+            // have been taken into account when calculating the timestep
+            // constraint using the coarser data. This is true even if the level
+            // previously existed, because in general there can be new data at this
+            // level as a result of the regrid.
+
+            // This step MUST be done before the time level swap because estTimeStep
+            // looks at the "new" time data for calculating the timestep constraint.
+            // It should also be done before the call to ca_set_amr_info since estTimeStep
+            // temporarily resets the level data.
+
+            dt_subcycle = estTimeStep(dt);
+
+            if (dt_subcycle < dt) {
+
+                sub_ncycle = ceil(dt / dt_subcycle);
+
+                if (ParallelDescriptor::IOProcessor()) {
+                    std::cout << std::endl;
+                    std::cout << "  Subcycling with maximum dt = " << dt_subcycle << " at level " << level
+                              << " to avoid timestep constraint violations after a post-timestep regrid."
+                              << std::endl << std::endl;
+                }
+
+                do_subcycle = true;
+
+            }
+
+        }
+
+    }
+
+    // Pass some information about the state of the simulation to a Fortran module.
+
+    ca_set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
 
     // The option of whether to do a multilevel initialization is
     // controlled within the radiation class.  This step belongs
@@ -674,7 +720,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     Real dt_new = 1.e200;
-    Real dt_subcycle = 1.e200;
+    Real dt_sub = 1.e200;
 
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -687,7 +733,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     const Real* dx = geom.CellSize();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:dt_subcycle)
+#pragma omp parallel reduction(min:dt_sub)
 #endif
     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
 
@@ -703,7 +749,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 			  BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
 			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
-			  &dt, &dt_subcycle);
+			  &dt, &dt_sub);
 
     }
 
@@ -716,17 +762,19 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
         ParallelDescriptor::ReduceRealMin(frac_change);
 
 	if (frac_change < 0.0)
-	  dt_subcycle = std::min(dt_subcycle, dt * -(retry_neg_dens_factor / frac_change));
+	  dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
 
     }
 
-    ParallelDescriptor::ReduceRealMin(dt_subcycle);
+    ParallelDescriptor::ReduceRealMin(dt_sub);
 
     // Do the retry if the suggested timestep is smaller than the actual one.
     // A user-specified tolerance parameter can be used here to prevent
     // retries that are caused by small differences.
 
-    if (dt_subcycle * (1.0 + retry_tolerance) < dt) {
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle)) {
+
+        dt_subcycle = dt_sub;
 
 	// Do a basic sanity check to make sure we're not about to overflow.
 
@@ -821,7 +869,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
     Real eps = 1.0e-14;
 
     Real subcycle_time = time;
-    Real dt_subcycle = dt / sub_ncycle;
+    dt_subcycle = dt / sub_ncycle;
     Real dt_advance = dt_subcycle;
 
     Real dt_new = 1.e200;

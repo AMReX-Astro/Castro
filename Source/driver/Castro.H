@@ -810,6 +810,8 @@ protected:
     // subcycle capability
     int sub_iteration;
     int sub_ncycle;
+    bool do_subcycle;
+    amrex::Real dt_subcycle;
   
     // sdc
     int sdc_iteration;
