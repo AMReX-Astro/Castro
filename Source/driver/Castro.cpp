@@ -1169,7 +1169,7 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel reduction(estdt_hydro)
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
           {
             Real dt = max_dt / cfl;
