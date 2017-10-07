@@ -726,3 +726,138 @@ subroutine ca_dersecondarymask(mask,mask_lo,mask_hi,ncomp_mask, &
   enddo
 
 end subroutine ca_dersecondarymask
+
+
+
+subroutine ca_derignitionradius(ignition_radius,ir_lo,ir_hi,ncomp_ir, &
+                                u,u_lo,u_hi,ncomp_u, &
+                                lo,hi,domlo,domhi, &
+                                dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derignitionradius')
+
+  use bl_constants_module, only: ZERO, HALF, ONE
+  use meth_params_module, only: URHO, UTEMP, UFS
+  use network, only: network_species_index
+  use prob_params_module, only: dg
+
+  implicit none
+
+  integer          :: ir_lo(3), ir_hi(3), ncomp_ir ! == 1
+  integer          :: u_lo(3), u_hi(3), ncomp_u ! == NVAR
+  integer          :: lo(3), hi(3), domlo(3), domhi(3)
+  double precision :: ignition_radius(ir_lo(1):ir_hi(1),ir_lo(2):ir_hi(2),ir_lo(3):ir_hi(3),ncomp_ir)
+  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  double precision :: dx(3), xlo(3), time, dt
+  integer          :: bc(3,2,ncomp_u), level, grid_no
+
+  integer          :: i, j, k
+
+  double precision, parameter :: beta = 0.018d0
+  double precision, parameter :: T_0 = 1.5d9
+
+  integer          :: iC12
+  double precision :: alpha, theta, deltaT, T_m, T_b, T_a
+  double precision :: X_C, rho, T
+
+  ! The following critical T gradient calculation comes from
+  ! Garg and Chang (2017). It is appropriate for C+O material
+  ! with X(C) ~ 0.5.
+
+  iC12 = network_species_index("carbon-12")
+
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+
+           T = u(i,j,k,UTEMP)
+           rho = u(i,j,k,URHO)
+           X_C = u(i,j,k,UFS+ic12-1) / u(i,j,k,URHO)
+
+           ! Search all adjacent zones for the largest temperature gradient.
+
+           T_m    = T
+           deltaT = ZERO
+
+           T_a = u(i-1*dg(1),j,k,UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = max(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           T_a = u(i+1*dg(1),j,k,UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = max(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           T_a = u(i,j-1*dg(2),k,UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = max(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           T_a = u(i,j+1*dg(2),k,UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = max(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           T_a = u(i,j,k-1*dg(3),UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = min(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           T_a = u(i,j,k+1*dg(3),UTEMP)
+
+           if (abs(T_a - T) > deltaT) then
+              T_b = min(T_a, T)
+              T_m = max(T_a, T)
+              deltaT = T_m - T_b
+           end if
+
+           ! If we're below or above the temperature range for which
+           ! we have a fit, skip this zone by setting it to zero.
+
+           if (T_m < 1.6d9 .or. T_m > 2.8d9) then
+
+              ignition_radius(i,j,k,1) = ZERO
+              cycle
+
+           endif
+
+           ! Estimate alpha and theta by linearly interpolating
+           ! between the values given in Table 2.
+
+           if (T_m >= 1.6d9 .and. T_m < 1.8d9) then
+              theta = 8.9d-3 + (8.1d-4 - 8.9d-3) / (1.8d9 - 1.6d9) * (T_m - 1.6d9)
+              alpha = 22.0d0 + (22.0d0 - 21.0d0) / (1.8d9 - 1.6d9) * (T_m - 1.6d9)
+           else if (T_m >= 1.8d9 .and. T_m < 2.0d9) then
+              theta = 8.1d-4 + (1.0d-4 - 8.1d-4) / (2.0d9 - 1.8d9) * (T_m - 1.8d9)
+              alpha = 21.0d0 + (20.3d0 - 21.0d0) / (2.0d9 - 1.8d9) * (T_m - 1.8d9)
+           else if (T_m >= 2.0d9 .and. T_m < 2.4d9) then
+              theta = 1.0d-4 + (3.4d-6 - 1.0d-4) / (2.4d9 - 2.0d9) * (T_m - 2.0d9)
+              alpha = 20.3d0 + (18.8d0 - 20.3d0) / (2.4d9 - 2.0d9) * (T_m - 2.0d9)
+           else if (T_m >= 2.4d9 .and. T_m <= 2.8d9) then
+              theta = 3.4d-6 + (2.7d-7 - 3.4d-6) / (2.8d9 - 2.4d9) * (T_m - 2.4d9)
+              alpha = 18.8d0 + (17.7d0 - 18.8d0) / (2.8d9 - 2.4d9) * (T_m - 2.4d9)
+           end if
+
+           ignition_radius(i,j,k,1) = 4.6d5 * (beta / 0.018d0) * ((alpha - ONE) / 20.0d0) * &
+                                              (theta / 1.0d-3) * (deltaT / T_m) * (X_C / HALF)**(-2) * &
+                                              (1.d7 / rho) * (HALF * (ONE + T_0 / T_m))**(-alpha)
+
+        enddo
+     enddo
+  enddo
+
+end subroutine ca_derignitionradius

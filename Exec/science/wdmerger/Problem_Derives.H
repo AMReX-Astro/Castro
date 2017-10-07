@@ -105,3 +105,11 @@
     derive_lst.addComponent("secondarymask",desc_lst,PhiRot_Type,0,1);
 #endif
 #endif
+
+#ifdef REACTIONS
+    //
+    // Critical radius for spontaneous detonation
+    //
+    derive_lst.add("ignition_radius",IndexType::TheCellType(),1,ca_derignitionradius,grow_box_by_one);
+    derive_lst.addComponent("ignition_radius",desc_lst,State_Type,Density,NUM_STATE);
+#endif

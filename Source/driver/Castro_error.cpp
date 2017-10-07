@@ -5,6 +5,7 @@
 # include "Radiation.H"
 # include "RAD_F.H"
 #endif
+#include <Castro_prob_err_F.H>
 
 using std::string;
 using namespace amrex;
@@ -45,5 +46,12 @@ Castro::ErrorSetUp ()
       err_list.add("rad",1,ErrorRec::Special,ca_raderror);
     }
 #endif
+
+    // Save the number of built-in functions; this will help us
+    // distinguish between those, and the ones the user is about to add.
+
+    num_err_list_default = err_list.size();
+
+#include <Castro_prob_err_list.H>
 
 }
