@@ -13,6 +13,8 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 
     old_sources[sponge_src]->setVal(0.0);
 
+    if (!do_sponge) return;
+
     update_sponge_params(&time);
 
     const Real *dx = geom.CellSize();
