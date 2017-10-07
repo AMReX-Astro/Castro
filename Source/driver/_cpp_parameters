@@ -285,15 +285,6 @@ use_retry                    int           0
 # prevents retries that are caused by small numerical differences.
 retry_tolerance              Real          0.0
 
-# Do not permit more retry timesteps than this parameter.
-# Set to a negative value to disable this criterion.
-retry_max_subcycles          int           1000
-
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-retry_clamp_subcycles        int           0
-
 # If we're doing retries, set the target threshold for changes in density
 # if a retry is triggered by a negative density. If this is set to a negative
 # number then it will disable retries using this criterion.
@@ -302,6 +293,15 @@ retry_neg_dens_factor        Real          1.e-1
 # Check for a possible post-timestep regrid if certain stability
 # criteria were violated.
 use_post_step_regrid         int           0
+
+# Do not permit more subcycled timesteps than this parameter.
+# Set to a negative value to disable this criterion.
+max_subcycles                int           10
+
+# If we do request more than the maximum number of subcycles,
+# should we fail, or should we clamp to that maximum number
+# and perform that many?
+clamp_subcycles              int           1
 
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
