@@ -7,8 +7,6 @@ using namespace amrex;
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
-    MultiFab& S_new = get_new_data(State_Type);
-
     int ng = Sborder.nGrow();
 
     old_sources[sponge_src]->setVal(0.0);
