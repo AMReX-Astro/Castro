@@ -17,11 +17,11 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Derive_F.H>
+#include <Castro_error_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
-#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -52,10 +52,14 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
+int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_STATE     = -1;
 int          Castro::NUM_GROW      = -1;
+
+int          Castro::lastDtPlotLimited = 0;
+Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
 Real         Castro::frac_change   = 1.e200;
 
@@ -1165,7 +1169,7 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel reduction(estdt_hydro)
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
           {
             Real dt = max_dt / cfl;
@@ -1333,22 +1337,36 @@ Castro::computeNewDt (int                   finest_level,
        else
        {
           //
-          // Limit dt's by change_max * old dt
+          // Limit dt's by change_max * old dt,
+          // if we didn't limit the last timestep
+          // to hit a plotfile interval.
           //
-          for (i = 0; i <= finest_level; i++)
-          {
-             if (verbose && ParallelDescriptor::IOProcessor())
-                 if (dt_min[i] > change_max*dt_level[i])
-                 {
-                        std::cout << "Castro::compute_new_dt : limiting dt at level "
-                             << i << '\n';
-                        std::cout << " ... new dt computed: " << dt_min[i]
-                             << '\n';
-                        std::cout << " ... but limiting to: "
-                             << change_max * dt_level[i] << " = " << change_max
-                             << " * " << dt_level[i] << '\n';
-                 }
-              dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
+          if (lastDtPlotLimited) {
+
+              dt_min[0] = std::min(dt_min[0], lastDtBeforePlotLimiting);
+
+              lastDtPlotLimited = 0;
+              lastDtBeforePlotLimiting = 0.0;
+
+          }
+          else {
+
+              for (i = 0; i <= finest_level; i++)
+              {
+                  if (verbose && ParallelDescriptor::IOProcessor())
+                      if (dt_min[i] > change_max*dt_level[i])
+                      {
+                          std::cout << "Castro::compute_new_dt : limiting dt at level "
+                                    << i << '\n';
+                          std::cout << " ... new dt computed: " << dt_min[i]
+                                    << '\n';
+                          std::cout << " ... but limiting to: "
+                                    << change_max * dt_level[i] << " = " << change_max
+                                    << " * " << dt_level[i] << '\n';
+                      }
+                  dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
+              }
+
           }
        }
     }
@@ -1363,13 +1381,87 @@ Castro::computeNewDt (int                   finest_level,
     }
 
     //
+    // Optionally, limit dt's by the value of
+    // plot_per or small_plot_per.
+    //
+    if (plot_per_is_exact) {
+
+        const Real plot_per = parent->plotPer();
+
+        if (plot_per > 0.0) {
+
+            const Real epsDt = 1.e-4*dt_0;
+            const Real cur_time = state[State_Type].curTime();
+
+            // Calculate the new dt by comparing to the dt needed to get
+            // to the next multiple of plot_per.
+
+            const Real dtMod = std::fmod(cur_time, plot_per);
+
+            Real newPlotDt;
+
+            // Note that if we are just about exactly on a multiple of plot_per,
+            // then we need to be careful to avoid floating point issues.
+
+            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+                newPlotDt = plot_per + (plot_per - dtMod);
+            }
+            else {
+                newPlotDt = plot_per - dtMod;
+            }
+
+            if (newPlotDt < dt_0) {
+                lastDtPlotLimited = 1;
+                lastDtBeforePlotLimiting = dt_0;
+                dt_0 = std::max(epsDt, newPlotDt);
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+            }
+
+        }
+
+    }
+
+    if (small_plot_per_is_exact) {
+
+        const Real small_plot_per = parent->smallplotPer();
+
+        if (small_plot_per > 0.0) {
+
+            const Real epsDt = 1.e-4*dt_0;
+            const Real cur_time = state[State_Type].curTime();
+
+            const Real dtMod = std::fmod(cur_time, small_plot_per);
+
+            Real newSmallPlotDt;
+
+            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+                newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
+            }
+            else {
+                newSmallPlotDt = small_plot_per - dtMod;
+            }
+
+            if (newSmallPlotDt < dt_0) {
+                lastDtPlotLimited = 1;
+                lastDtBeforePlotLimiting = dt_0;
+                dt_0 = std::max(epsDt, newSmallPlotDt);
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+            }
+
+        }
+
+    }
+
+    //
     // Limit dt's by the value of stop_time.
     //
     const Real eps = 0.001*dt_0;
-    Real cur_time  = state[State_Type].curTime();
+    Real cur_time = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps))
+        if ((cur_time + dt_0) > (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
+            amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+        }
     }
 
     n_factor = 1;
@@ -1715,6 +1807,13 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
+
+        // Apply all user-specified tagging routines in case the user desires to override this.
+
+        for (int i = num_err_list_default; i < err_list.size(); ++i)
+            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
+
+        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
 
 	// Globally collate the tags.
 
@@ -2374,6 +2473,22 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
+#ifdef GRAVITY
+            // Store the updated mass_fluxes for use in the gravity source term.
+
+            getLevel(lev).mass_fluxes.resize(3);
+
+            for (int i = 0; i < BL_SPACEDIM; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).getEdgeBoxArray(i), getLevel(lev).dmap, 1, 0));
+                MultiFab::Copy(*getLevel(lev).mass_fluxes[i], *getLevel(lev).fluxes[i], Density, 0, 1, 0);
+            }
+
+            for (int i = BL_SPACEDIM; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).get_new_data(State_Type).boxArray(), getLevel(lev).dmap, 1, 0));
+                getLevel(lev).mass_fluxes[i]->setVal(0.0);
+            }
+#endif
+
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
@@ -2388,6 +2503,13 @@ Castro::reflux(int crse_level, int fine_level)
 	    getLevel(lev).clean_state(S_new);
 
 	    getLevel(lev).do_new_sources(time, dt);
+
+#ifdef GRAVITY
+            // Clear out the mass flux data, we no longer need it.
+            for (int i = 0; i < 3; ++i) {
+                getLevel(lev).mass_fluxes[i].reset();
+            }
+#endif
 
 	}
 
@@ -2621,12 +2743,34 @@ Castro::errorEst (TagBoxArray& tags,
     if (post_step_regrid)
 	t = get_state_data(State_Type).curTime();
 
-    // Apply each of the built-in tagging functions.
+    // Apply each of the specified tagging functions.
 
-    for (int j = 0; j < err_list.size(); j++)
+    for (int j = 0; j < num_err_list_default; j++)
 	apply_tagging_func(tags, clearval, tagval, t, j);
 
+    // Now apply the user-specified tagging functions.
+    // Include problem-specific hooks before and after.
+
+    problem_pre_tagging_hook(tags, clearval, tagval, t);
+
+    for (int j = num_err_list_default; j < err_list.size(); j++)
+        apply_tagging_func(tags, clearval, tagval, t, j);
+
     // Now we'll tag any user-specified zones using the full state array.
+
+    apply_problem_tags(tags, clearval, tagval, time);
+
+    problem_post_tagging_hook(tags, clearval, tagval, t);
+}
+
+
+
+void
+Castro::apply_problem_tags (TagBoxArray& tags,
+                            int          clearval,
+                            int          tagval,
+                            Real         time)
+{
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -2677,6 +2821,7 @@ Castro::errorEst (TagBoxArray& tags,
             tagfab.tags_and_untags(itags, tilebx);
 	}
     }
+
 }
 
 

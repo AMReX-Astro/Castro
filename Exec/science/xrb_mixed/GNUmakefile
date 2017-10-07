@@ -19,10 +19,10 @@ CASTRO_HOME = ../../..
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_dir     := helmholtz
+EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-Network_dir := rprox
+NETWORK_DIR := rprox
 
 else
 

@@ -718,6 +718,36 @@ contains
 
 
 
+  ! Given an index, determine whether it is on a domain corner or not.
+
+  logical function is_domain_corner(idx) result(is_corner)
+
+    use prob_params_module, only: domlo_level, domhi_level
+    use amrinfo_module, only: amr_level
+
+    implicit none
+
+    integer, intent(in) :: idx(3)
+
+    integer :: domlo(3), domhi(3)
+
+    is_corner = .false.
+
+    domlo(:) = domlo_level(:, amr_level)
+    domhi(:) = domhi_level(:, amr_level)
+
+    if (idx(1) < domlo(1) .or. idx(1) > domhi(1)) then
+       if (idx(2) < domlo(2) .or. idx(2) > domhi(2)) then
+          if (idx(3) < domlo(3) .or. idx(3) > domhi(3)) then
+             is_corner = .true.
+          end if
+       end if
+    end if
+
+  end function is_domain_corner
+
+
+
   subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
 
     use prob_params_module, only: center
