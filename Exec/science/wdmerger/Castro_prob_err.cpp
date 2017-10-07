@@ -1,5 +1,5 @@
 #include <Castro.H>
-#include <Problem_F.H>
+#include <Castro_prob_err_F.H>
 
 using namespace amrex;
 
@@ -12,9 +12,10 @@ Castro::problem_pre_tagging_hook(TagBoxArray& tags,
 
     // Determine if we have any hotspots
     // that are larger than the resolution
-    // on this level.
+    // on this level. Skip it if we've already
+    // detected an ignition.
 
-    int num_zones_ignited = 0;
+    if (num_zones_ignited > 0 || ignition_level >= 0) return;
 
     auto ignition_radius_mf = derive("ignition_radius", time, 0);
 
@@ -22,12 +23,12 @@ Castro::problem_pre_tagging_hook(TagBoxArray& tags,
 
     MultiFab& state = get_new_data(State_Type);
 
+    int num_zones = 0;
+
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:num_zones_ignited)
+#pragma omp parallel reduction(+:num_zones)
 #endif
     for (MFIter mfi(*ignition_radius_mf,true); mfi.isValid(); ++mfi) {
-
-        int num_ignited = 0;
 
         FArrayBox& ignition_fab = (*ignition_radius_mf)[mfi];
 
@@ -38,13 +39,16 @@ Castro::problem_pre_tagging_hook(TagBoxArray& tags,
         find_ignited_zones(ARLIM_3D(lo), ARLIM_3D(hi),
                            BL_TO_FORTRAN_3D(ignition_fab),
                            BL_TO_FORTRAN_3D(state[mfi]),
-                           ZFILL(dx), &num_ignited);
-
-        num_zones_ignited += num_ignited;
+                           ZFILL(dx), &num_zones, &level);
 
     }
 
-    amrex::ParallelDescriptor::ReduceIntSum(num_zones_ignited);
+    amrex::ParallelDescriptor::ReduceIntSum(num_zones);
+
+    num_zones_ignited = num_zones;
+
+    if (num_zones_ignited > 0)
+        ignition_level = level;
 
     set_num_zones_ignited(&num_zones_ignited, &level);
 

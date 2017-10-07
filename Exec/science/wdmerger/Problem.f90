@@ -1069,11 +1069,22 @@ subroutine set_num_zones_ignited(num_zones, lev) bind(C,name='set_num_zones_igni
 
   integer, intent(in) :: num_zones, lev
 
-  ! Only ignite once.
-
-  if (num_zones_ignited == 0 .and. num_zones > 0) then
-     num_zones_ignited = num_zones
-     ignition_level = lev
-  end if
+  num_zones_ignited = num_zones
+  ignition_level = lev
 
 end subroutine set_num_zones_ignited
+
+
+
+! Get the number of ignited zones.
+
+subroutine get_num_zones_ignited(num_zones, lev) bind(C,name='get_num_zones_ignited')
+
+  use probdata_module, only: num_zones_ignited, ignition_level
+
+  integer, intent(inout) :: num_zones, lev
+
+  num_zones = num_zones_ignited
+  lev = ignition_level
+
+end subroutine get_num_zones_ignited
