@@ -10,7 +10,7 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
   use prob_params_module, only: center
   use meth_params_module, only: rot_period
   use probdata_module, only: jobIsDone, signalJobIsNotDone, num_previous_ener_timesteps, total_ener_array, &
-                             relaxation_is_done
+                             relaxation_is_done, num_zones_ignited, ignition_level
 
   implicit none
 
@@ -84,6 +84,13 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
 
 
 
+  open (unit=un, file=trim(dir)//"/Ignition", status="unknown")
+
+  write (un,*) num_zones_ignited, ignition_level
+
+  close (un)
+
+
   ! If the job is done, write a file in the checkpoint indicating this.
 
   if (jobIsDone) then
@@ -114,7 +121,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, problem, &
                              T_global_max, rho_global_max, ts_te_global_max, &
                              jobIsDone, num_previous_ener_timesteps, total_ener_array, &
-                             problem, relaxation_is_done
+                             problem, relaxation_is_done, num_zones_ignited, ignition_level
   use wdmerger_util_module, only: turn_off_relaxation
   use problem_io_module, only: ioproc
   use prob_params_module, only: center
@@ -244,6 +251,18 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
      call turn_off_relaxation(-1.0d0)
 
   endif
+
+
+
+  open (unit=un, file=trim(dir)//"/Ignition", status="old", IOSTAT = stat)
+
+  if (stat .eq. 0) then
+
+     read (un,*) num_zones_ignited, ignition_level
+
+     close (un)
+
+  end if
 
 
 
@@ -1039,3 +1058,22 @@ subroutine set_total_ener_array(ener_array_in) bind(C,name='set_total_ener_array
   total_ener_array(:) = ener_array_in(:)
 
 end subroutine set_total_ener_array
+
+
+
+! Set the number of ignited zones.
+
+subroutine set_num_zones_ignited(num_zones, lev) bind(C,name='set_num_zones_ignited')
+
+  use probdata_module, only: num_zones_ignited, ignition_level
+
+  integer, intent(in) :: num_zones, lev
+
+  ! Only ignite once.
+
+  if (num_zones_ignited == 0 .and. num_zones > 0) then
+     num_zones_ignited = num_zones
+     ignition_level = lev
+  end if
+
+end subroutine set_num_zones_ignited
