@@ -283,7 +283,7 @@ use_retry                    int           0
 # (1 + this factor) before comparing the actual timestep to it.
 # If set to some number slightly larger than zero, then this
 # prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.0
+retry_tolerance              Real          0.02
 
 # If we're doing retries, set the target threshold for changes in density
 # if a retry is triggered by a negative density. If this is set to a negative

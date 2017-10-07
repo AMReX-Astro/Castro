@@ -562,7 +562,7 @@
 \runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
-\runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.0 \\
+\runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.02 \\
 \rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
 \runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
