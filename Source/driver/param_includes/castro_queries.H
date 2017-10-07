@@ -47,7 +47,6 @@ pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 pp.query("sponge_implicit", sponge_implicit);
-pp.query("time_center_sponge", time_center_sponge);
 pp.query("update_state_between_sources", update_state_between_sources);
 pp.query("keep_sources_until_end", keep_sources_until_end);
 pp.query("source_term_predictor", source_term_predictor);

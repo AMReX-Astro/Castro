@@ -47,7 +47,6 @@ int         Castro::allow_negative_energy = 0;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-int         Castro::time_center_sponge = 1;
 int         Castro::update_state_between_sources = 1;
 int         Castro::keep_sources_until_end = 0;
 int         Castro::source_term_predictor = 0;
