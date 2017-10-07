@@ -31,7 +31,8 @@ module swap PrgEnv-pgi PrgEnv-cray
 
 Current status of Cray compilers:
 \begin{itemize}
-\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}
+\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
+  (and also appears at NERSC).
 \item CCE/8.6.1 do not seem to be installed correctly, and compiler
   components cannot be found.  A bug ticket was filed.
 \end{itemize}
