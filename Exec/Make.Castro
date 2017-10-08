@@ -26,6 +26,12 @@ ifdef EOS_dir
   endif
 endif
 
+ifdef Conductivity_dir
+  ifndef CONDUCTIVITY_DIR
+    CONDUCTIVITY_DIR := $(Conductivity_dir)
+  endif
+endif
+
 EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS,
