@@ -10,7 +10,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer,  intent(in) :: init, namlen
   integer,  intent(in) :: name(namlen)
-  real(rt), intent(in) :: problo(2), probhi(2)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   integer :: untin,i
 
@@ -42,9 +42,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
 
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
 
   ! get the species indices
@@ -67,6 +66,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn(:) = smallx
   xn(ic12) = cfrac
   xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
+
 
 end subroutine amrex_probinit
 
@@ -93,7 +93,7 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_h1,state_h2, &
+                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
                        delta,xlo,xhi)
 
   use network, only: nspec
@@ -107,46 +107,45 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   implicit none
 
   integer,  intent(in   ) :: level, nscal
-  integer,  intent(in   ) :: lo(2), hi(2)
-  integer,  intent(in   ) :: state_l1,state_l2,state_h1,state_h2
-  real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-  real(rt), intent(in   ) :: time, delta(2)
-  real(rt), intent(in   ) :: xlo(2), xhi(2)
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
+  real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  real(rt), intent(in   ) :: time, delta(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3)
 
   real(rt) :: sigma, width, c_T
-  real(rt) :: xcen, ycen
-  integer  :: i, j
+  real(rt) :: xcen
+  integer  :: i, j, k
 
   type (eos_t) :: eos_state
   
   width = w_T * (probhi(1) - problo(1))
   c_T = problo(1) + center_T * (probhi(1) - problo(1))
 
-  do j = lo(2), hi(2)
-     ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
 
-     do i = lo(1), hi(1)
-        xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
+           state(i,j,k,URHO ) = dens
 
-        state(i,j,URHO ) = dens
+           sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
 
-        sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
+           state(i,j,k,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
-        state(i,j,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*xn(1:nspec)
 
-        state(i,j,UFS:UFS-1+nspec) = state(i,j,URHO)*xn(1:nspec)
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%xn(:) = xn
 
-        eos_state%rho = state(i,j,URHO)
-        eos_state%T = state(i,j,UTEMP)
-        eos_state%xn(:) = xn
+           call eos(eos_input_rt, eos_state)
 
-        call eos(eos_input_rt, eos_state)
-
-        state(i,j,UMX  ) = 0.e0_rt
-        state(i,j,UMY  ) = 0.e0_rt
-        state(i,j,UEDEN) = state(i,j,URHO)*eos_state%e
-        state(i,j,UEINT) = state(i,j,URHO)*eos_state%e
-
+           state(i,j,k,UMX  ) = 0.e0_rt
+           state(i,j,k,UMY  ) = 0.e0_rt
+           state(i,j,k,UEDEN) = state(i,j,k,URHO)*eos_state%e
+           state(i,j,k,UEINT) = state(i,j,k,URHO)*eos_state%e
+        enddo
      enddo
   enddo
 

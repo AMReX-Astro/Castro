@@ -776,59 +776,10 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
         dt_subcycle = dt_sub;
 
-	// Do a basic sanity check to make sure we're not about to overflow.
-
-        if (dt_subcycle * INT_MAX < dt) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	    std::cout << "  The retry mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this would imply a number of timesteps that overflows an integer." << std::endl;
-	    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
-                      << "  to avoid unstable timesteps." << std::endl;
-	  }
-	  amrex::Abort("Error: integer overflow in retry.");
-	}
-
-        sub_ncycle = ceil(dt / dt_subcycle);
-
-	// Abort if we would take more subcycled timesteps than the user has permitted.
-
-	if (retry_max_subcycles > 0 && sub_ncycle > retry_max_subcycles) {
-            if (retry_clamp_subcycles) {
-                sub_ncycle = retry_max_subcycles;
-            } else {
-                if (ParallelDescriptor::IOProcessor()) {
-                    std::cout << std::endl;
-                    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-                    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                              << "  but this is more than the maximum number of permitted retry substeps, " << retry_max_subcycles << "." << std::endl;
-                    std::cout << "  The code will abort. Consider decreasing the CFL parameter, castro.cfl," << std::endl
-                              << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
-                              << "  castro.retry_max_subcycles to permit more subcycled timesteps." << std::endl;
-                }
-                amrex::Abort("Error: too many retry timesteps.");
-            }
-	}
-
-	// Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
-
-	if (dt_subcycle < dt_cutoff) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << std::endl;
-	    std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	    std::cout << "  The retry mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                      << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                      << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
-	  }
-	  amrex::Abort("Error: retry timesteps too short.");
-	}
-
 	if (verbose && ParallelDescriptor::IOProcessor()) {
 	  std::cout << std::endl;
 	  std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-	  std::cout << "  Performing a retry, with " << sub_ncycle
-		    << " subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+	  std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
 	  std::cout << std::endl;
 	}
 
@@ -862,6 +813,64 @@ Real
 Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int amr_ncycle)
 {
 
+    // Check the input number of subcycles against various safety conditions.
+
+    // Do a basic sanity check to make sure we're not about to overflow.
+
+    if (dt_subcycle * INT_MAX < dt) {
+        if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                      << "  but this would imply a number of timesteps that overflows an integer." << std::endl;
+	    std::cout << "  The code will abort. Consider using a stronger stability criterion" << std::endl
+                      << "  to avoid unstable timesteps." << std::endl;
+        }
+        amrex::Abort("Error: integer overflow in subcycling.");
+    }
+
+    sub_ncycle = ceil(dt / dt_subcycle);
+
+    // Abort if we would take more subcycled timesteps than the user has permitted.
+
+    if (max_subcycles > 0 && sub_ncycle > max_subcycles) {
+        if (clamp_subcycles) {
+            if (ParallelDescriptor::IOProcessor()) {
+                std::cout << std::endl;
+                std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                          << "  but this is more than the maximum number of permitted subcycles, " << max_subcycles << "." << std::endl;
+                std::cout << "  The code will decrease the number of subcycles to this maximum, and the subcycled timestep" << std::endl
+                          << "  will be updated to dt = " << dt / max_subcycles << "." << std::endl;
+                std::cout << "  If you want more subcycles you can update the max_subcycles parameter." << std::endl;
+                std::cout << "  If you would prefer the simulation to stop when this maximum number is" << std::endl
+                          << "  exceeded, set castro.clamp_subcycles = 0." << std::endl;
+            }
+
+            sub_ncycle = max_subcycles;
+        } else {
+            if (ParallelDescriptor::IOProcessor()) {
+                std::cout << std::endl;
+                std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                          << "  but this is more than the maximum number of permitted subcycles, " << max_subcycles << "." << std::endl;
+                std::cout << "  The code will abort. Consider using a stronger stability criterion" << std::endl
+                          << "  to avoid unstable timesteps, or consider increasing the parameter " << std::endl
+                          << "  castro.max_subcycles to permit more subcycled timesteps." << std::endl;
+            }
+            amrex::Abort("Error: too many subcycled timesteps.");
+        }
+    }
+
+    // Abort if our subcycled timestep would be shorter than the minimum permitted timestep.
+
+    if (dt_subcycle < dt_cutoff) {
+        if (ParallelDescriptor::IOProcessor()) {
+	    std::cout << std::endl;
+	    std::cout << "  The subcycle mechanism requested " << sub_ncycle << " subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                      << "  but this timestep is shorter than the user-defined minimum, " << std::endl
+                      << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+	  }
+	  amrex::Abort("Error: subcycled timesteps too short.");
+    }
+
     // Subcycle until we've reached the target time.
     // Compare against a slightly smaller number to
     // avoid roundoff concerns.
@@ -885,6 +894,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             dt_advance = (time + dt) - subcycle_time;
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << std::endl;
             std::cout << "  Beginning subcycle " << sub_iteration << " of " << sub_ncycle
                       << ", starting at time " << subcycle_time
                       << " with dt = " << dt_advance << std::endl << std::endl;

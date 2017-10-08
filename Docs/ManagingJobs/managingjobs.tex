@@ -29,37 +29,31 @@ Note, you will need to swap the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
-To compile and link we need to use the CCE/8.5.7 compilers and 
-{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
-work.
+Current status of Cray compilers:
+\begin{itemize}
+\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
+  (and also appears at NERSC).
+\item CCE/8.6.1 do not seem to be installed correctly, and compiler
+  components cannot be found.  A bug ticket was filed.
+\end{itemize}
+
+%To compile and link we need to use the CCE/8.5.7 compilers and 
+%{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
+%work.
 
 
 \subsection{PGI}
 
 If you are using OpenACC on the GPUs, then you need to use the PGI
 compilers instead.  It is best to use the latest available PGI
-compilers, which are 16.10 at this writing.  
+compilers, which are 17.7 at this writing.  
 \begin{verbatim}
-module swap pgi pgi/16.10.0
+module swap pgi pgi/17.7
 \end{verbatim}
 
-Unfortunately, those are set to use GCC 4.3 header files, which don't
-support the latest \cpp\ standard, so you will need to write your
-own config file.  First load a newer gcc:
-\begin{verbatim}
-module load gcc/4.9.3
-\end{verbatim}
+These seem to build the code without problems.
 
-Then do:
-\begin{verbatim}
-/opt/pgi/16.10.0/linux86-64/16.10/bin/makelocalrc -o /opt/pgi/16.10.0/linux86-64/16.10/bin \
-  -gcc /opt/gcc/4.9.3/bin/gcc -gpp /opt/gcc/4.9.3/bin/g++ \
-  -g77 /opt/gcc/4.9.3/bin/gfortran -x -net > ~/.mypgcpprc
-\end{verbatim}
-(Note this is a one-line command)
-
-You will need to keep this file up to date with the PGI compiler you are trying to use.
-
+This is perhaps out of date:
 Finally, to use OpenACC, you need to make the CUDA libraries available to the PGI compiler:
 \begin{verbatim}
 module load craype-accel-nvidia35
