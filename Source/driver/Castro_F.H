@@ -191,6 +191,18 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
      const int& verbose, const int* idx);
 
+  void ca_generic_single_fill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const amrex::Real* dx, const amrex::Real* glo, 
+     const amrex::Real* time, const int* bc);
+
+  void ca_generic_multi_fill
+    (BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const amrex::Real* dx, const amrex::Real* glo, 
+     const amrex::Real* time, const int* bc);
+
 #ifdef DIMENSION_AGNOSTIC
 
   void ca_hypfill
