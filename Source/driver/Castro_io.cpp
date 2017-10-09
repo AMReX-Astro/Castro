@@ -1067,7 +1067,35 @@ Castro::writeSmallPlotFile (const std::string& dir,
                 desc_lst[typ].getType() == IndexType::TheCellType())
                 plot_var_map.push_back(std::pair<int,int>(typ,comp));
 
-    int n_data_items = plot_var_map.size();
+    int num_derive = 0;
+    std::list<std::string> derive_names;
+    const std::list<DeriveRec>& dlist = derive_lst.dlist();
+
+    for (std::list<DeriveRec>::const_iterator it = dlist.begin();
+	 it != dlist.end();
+	 ++it)
+    {
+        if (parent->isDeriveSmallPlotVar(it->name()))
+        {
+#ifdef PARTICLES
+            if (it->name() == "particle_count" ||
+                it->name() == "total_particle_count")
+            {
+                if (Castro::theTracerPC())
+                {
+                    derive_names.push_back(it->name());
+                    num_derive++;
+                }
+            } else
+#endif
+	    {
+		derive_names.push_back(it->name());
+		num_derive++;
+	    }
+	}
+    }
+
+    int n_data_items = plot_var_map.size() + num_derive;
 
     Real cur_time = state[State_Type].curTime();
 
@@ -1091,6 +1119,13 @@ Castro::writeSmallPlotFile (const std::string& dir,
 	    int typ = plot_var_map[i].first;
 	    int comp = plot_var_map[i].second;
 	    os << desc_lst[typ].name(comp) << '\n';
+        }
+
+	for ( std::list<std::string>::iterator it = derive_names.begin();
+	      it != derive_names.end(); ++it)
+        {
+	    const DeriveRec* rec = derive_lst.get(*it);
+            os << rec->variableName(0) << '\n';
         }
 
         os << BL_SPACEDIM << '\n';
@@ -1192,6 +1227,19 @@ Castro::writeSmallPlotFile (const std::string& dir,
 	this_dat = &state[typ].newData();
 	MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
 	cnt++;
+    }
+    //
+    // Cull data from derived variables.
+    //
+    if (derive_names.size() > 0)
+    {
+	for (std::list<std::string>::iterator it = derive_names.begin();
+	     it != derive_names.end(); ++it)
+	{
+	    auto derive_dat = derive(*it,cur_time,nGrow);
+	    MultiFab::Copy(plotMF,*derive_dat,0,cnt,1,nGrow);
+	    cnt++;
+	}
     }
 
     //

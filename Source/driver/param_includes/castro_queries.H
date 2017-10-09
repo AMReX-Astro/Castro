@@ -68,6 +68,8 @@ pp.query("max_dt", max_dt);
 pp.query("cfl", cfl);
 pp.query("init_shrink", init_shrink);
 pp.query("change_max", change_max);
+pp.query("plot_per_is_exact", plot_per_is_exact);
+pp.query("small_plot_per_is_exact", small_plot_per_is_exact);
 pp.query("use_retry", use_retry);
 pp.query("retry_tolerance", retry_tolerance);
 pp.query("retry_max_subcycles", retry_max_subcycles);

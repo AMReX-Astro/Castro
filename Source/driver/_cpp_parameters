@@ -266,6 +266,12 @@ init_shrink                  Real          1.0
 # the next.
 change_max                   Real          1.1
 
+# enforce that the AMR plot interval must be hit exactly
+plot_per_is_exact            int           0
+
+# enforce that the AMR small plot interval must be hit exactly
+small_plot_per_is_exact      int           0
+
 # Retry a timestep if it violated the timestep-limiting criteria over
 # the course of an advance. The criteria will suggest a new timestep
 # that satisfies the criteria, and we will do subcycled timesteps
