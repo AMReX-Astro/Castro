@@ -24,6 +24,8 @@ FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
 FEXE_headers += Derive_F.H
 
+ca_F90EXE_sources += generic_fill.F90
+
 ca_F90EXE_sources += castro_c_interfaces_nd.F90
 ifeq ($(USE_CUDA), TRUE)
   ca_F90EXE_sources += castro_cuda_interfaces_nd.F90
