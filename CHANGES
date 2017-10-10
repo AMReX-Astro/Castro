@@ -1,5 +1,35 @@
 # changes since the last release:
 
+  -- The sponge is now always time centered. The option to
+     do otherwise was introduced in 17.02, and has now been
+     removed. Additionally, the form of the energy source
+     term has been corrected for the time centered case,
+     and brought into line with how we do the energy source
+     term for other sources. (Issue #7, Issue #57)
+
+  -- Fixed a bug in the fix for #188.
+
+  -- Conductivity_dir has been renamed CONDUCTIVITY_DIR to be consistent
+     with EOS_DIR and NETWORK_DIR
+
+# 17.10
+
+  -- It is sometimes useful to be able to do some sort of initialization
+     phase in your simulation, stop with a checkpoint, and then restart
+     (possibly with different options) to do the main phase of the run.
+     In this case, you may want to reset the simulation time to zero for
+     analysis purposes. The new option castro.reset_checkpoint_time allows
+     you to do this: by setting it to the time you want, the checkpoint you
+     generate will have this new time. Similarly, castro.reset_checkpoint_step
+     allows you to reset the timestep number (for example, to 0). Both options
+     only work when you're using amr.checkpoint_on_restart=1, which itself
+     requires amr.regrid_on_restart=1. This option is only intended to be used
+     for the case where you're generating this checkpoint, so you also need
+     to temporarily set max_step and stop_time to the target values you're
+     resetting them to, to prevent further steps after the restart. After you
+     have the new checkpoint, then you can undo those temporary variables
+     and continue your run as usual.
+
   -- A minor error in the gravity source terms was fixed (#109).
      This error should not normally have been observable.
 

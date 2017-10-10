@@ -6,6 +6,10 @@ CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 FEXE_headers += Problem_Derive_F.H
 
+CEXE_headers += Castro_prob_err_list.H
+CEXE_sources += Castro_prob_err.cpp
+FEXE_headers += Castro_prob_err_F.H
+
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
   ca_F90EXE_sources += bc_fill_$(DIM)d.F90
   ca_f90EXE_sources += Prob_$(DIM)d.f90
