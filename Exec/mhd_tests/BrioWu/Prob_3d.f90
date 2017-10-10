@@ -19,7 +19,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   type(eos_t) :: eos_state
 
   namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub, temp_ambient
+       r_init, nsub, temp_ambient, &
+       p_l, u_l, rho_l, p_r, u_r, rho_r, frac, &
+       B_x_l, B_y_l, B_z_l, B_x_r, B_y_r, B_z_r
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -41,6 +43,21 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
   temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
+
+  u_l = 0.0
+  rho_l = 1.0
+  B_x_l = 0.75
+  B_y_l = 1.0
+  B_z_l = 0.0
+  p_l = 1.0
+
+  u_r = 0.0
+  rho_r = 0.125
+  B_x_r = 0.75
+  B_y_r = -1.0
+  B_z_r = 0.0
+  p_r = 0.1
+  frac = 0.5
 
   ! set local variable defaults
   center(1) = HALF*(problo(1) + probhi(1))
