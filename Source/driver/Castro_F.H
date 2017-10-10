@@ -599,9 +599,9 @@ extern "C"
 
 #ifdef POINTMASS
   void pm_compute_delta_mass
-    (const amrex::Real* pm_delta_mass, const int* lo, const int* hi,
+    ( amrex::Real* pm_delta_mass, const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(stateout),
+     const BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(volume),
      const amrex::Real* problo, const amrex::Real* dx,
      const amrex::Real* time, const amrex::Real* dt);
@@ -640,10 +640,10 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(grav_new),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     BL_FORT_FAB_ARG_3D(source),
+     const BL_FORT_FAB_ARG_3D(xflux),
+     const BL_FORT_FAB_ARG_3D(yflux),
+     const BL_FORT_FAB_ARG_3D(zflux),
+     const BL_FORT_FAB_ARG_3D(source),
      const amrex::Real* dx, const amrex::Real& dt, const amrex::Real* time);
 #endif
 

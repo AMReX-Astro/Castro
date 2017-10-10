@@ -17,17 +17,17 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: coord_type
-    integer          :: rhl1, rhl2, rhl3, rhh1, rhh2, rhh3
-    integer          :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
-    integer          :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
-    integer          :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
-    real(rt)         :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
-    real(rt)         :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
-    real(rt)         :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
-    real(rt)         :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
-    real(rt)         :: dx(3),problo(3)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: coord_type
+    integer , intent(in   ) :: rhl1, rhl2, rhl3, rhh1, rhh2, rhh3
+    integer , intent(in   ) :: ecxl1, ecxl2, ecxl3, ecxh1, ecxh2, ecxh3
+    integer , intent(in   ) :: ecyl1, ecyl2, ecyl3, ecyh1, ecyh2, ecyh3
+    integer , intent(in   ) :: eczl1, eczl2, eczl3, eczh1, eczh2, eczh3
+    real(rt), intent(inout) :: rhs(rhl1:rhh1,rhl2:rhh2,rhl3:rhh3)
+    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1,ecxl2:ecxh2, ecxl3:ecxh3)
+    real(rt), intent(in   ) :: ecy(ecyl1:ecyh1,ecyl2:ecyh2, ecyl3:ecyh3)
+    real(rt), intent(in   ) :: ecz(eczl1:eczh1,eczl2:eczh2, eczl3:eczh3)
+    real(rt), intent(in   ) :: dx(3),problo(3)
 
     ! Local variables
     integer          :: i,j,k
@@ -60,16 +60,16 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3),hi(3)
-    real(rt)         :: dx(3),dr
-    real(rt)         :: problo(3)
+    integer , intent(in   ) :: lo(3),hi(3)
+    real(rt), intent(in   ) :: dx(3),dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer          :: n1d,drdxfac,level
-    real(rt)         :: radial_mass(0:n1d-1)
-    real(rt)         :: radial_vol (0:n1d-1)
+    integer , intent(in   ) :: n1d,drdxfac,level
+    real(rt), intent(inout) :: radial_mass(0:n1d-1)
+    real(rt), intent(inout) :: radial_vol (0:n1d-1)
 
-    integer          :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
-    real(rt)         :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
+    integer , intent(in   ) :: r_l1,r_l2,r_l3,r_h1,r_h2,r_h3
+    real(rt), intent(in   ) :: state(r_l1:r_h1,r_l2:r_h2,r_l3:r_h3,NVAR)
 
     integer          :: i,j,k,index
     integer          :: ii,jj,kk
@@ -162,15 +162,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3),hi(3)
-    real(rt)         :: dx(3),dr
-    real(rt)         :: problo(3)
+    integer , intent(in   ) :: lo(3),hi(3)
+    real(rt), intent(in   ) :: dx(3),dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer          :: n1d,level
-    real(rt)         :: radial_grav(0:n1d-1)
+    integer , intent(in   ) :: n1d,level
+    real(rt), intent(in   ) :: radial_grav(0:n1d-1)
 
-    integer          :: g_l1,g_l2,g_l3,g_h1,g_h2,g_h3
-    real(rt)         :: grav(g_l1:g_h1,g_l2:g_h2,g_l3:g_h3,3)
+    integer , intent(in   ) :: g_l1,g_l2,g_l3,g_h1,g_h2,g_h3
+    real(rt), intent(inout) :: grav(g_l1:g_h1,g_l2:g_h2,g_l3:g_h3,3)
 
     integer          :: i,j,k,index
     real(rt)         :: x,y,z,r,mag_grav
@@ -259,17 +259,17 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: domlo(3),domhi(3)
-    real(rt)         :: dx(3),dr
-    real(rt)         :: problo(3)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: domlo(3),domhi(3)
+    real(rt), intent(in   ) :: dx(3),dr
+    real(rt), intent(in   ) :: problo(3)
 
-    integer          :: numpts_1d
-    real(rt)         :: radial_phi(0:numpts_1d-1)
-    integer          :: fill_interior
+    integer , intent(in   ) :: numpts_1d
+    real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
+    integer , intent(in   ) :: fill_interior
 
-    integer          :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
-    real(rt)         :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
+    integer , intent(in   ) :: p_l1,p_l2,p_l3,p_h1,p_h2,p_h3
+    real(rt), intent(inout) :: phi(p_l1:p_h1,p_l2:p_h2,p_l3:p_h3)
 
     integer          :: i,j,k,index
     real(rt)         :: x,y,z,r
