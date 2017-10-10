@@ -1,10 +1,7 @@
 # these are the files that should be needed for any Castro build
 
 ca_f90EXE_sources += amrinfo.f90
-
-ifeq ($(DIMENSION_AGNOSTIC), TRUE)
 ca_F90EXE_sources += filcc_nd.F90
-endif
 
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
