@@ -9,6 +9,9 @@
 
   -- Fixed a bug in the fix for #188.
 
+  -- Conductivity_dir has been renamed CONDUCTIVITY_DIR to be consistent
+     with EOS_DIR and NETWORK_DIR
+
 # 17.10
 
   -- It is sometimes useful to be able to do some sort of initialization
