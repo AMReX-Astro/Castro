@@ -374,25 +374,25 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: bclo(3), bchi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: dx(3), bcdx(3)
-    real(rt)         :: problo(3), probhi(3)
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: bclo(3), bchi(3)
+    integer , intent(in   ) :: r_lo(3), r_hi(3)
+    integer , intent(in   ) :: v_lo(3), v_hi(3)
+    real(rt), intent(in   ) :: dx(3), bcdx(3)
+    real(rt), intent(in   ) :: problo(3), probhi(3)
 
-    integer          :: symmetry_type
-    integer          :: lo_bc(3), hi_bc(3)
+    integer , intent(in   ) :: symmetry_type
+    integer , intent(in   ) :: lo_bc(3), hi_bc(3)
 
-    real(rt)         :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
-    real(rt)         :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
-    real(rt)         :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
-    real(rt)         :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
-    real(rt)         :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
-    real(rt)         :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt), intent(out) :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt), intent(out) :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt), intent(out) :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt), intent(out) :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt), intent(out) :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt), intent(out) :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k, l, m, n, b
     real(rt)         :: r
@@ -626,18 +626,18 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: bclo(3), bchi(3)
-    integer          :: p_lo(3), p_hi(3)
+    integer, intent(in   ) :: lo(3), hi(3)
+    integer, intent(in   ) :: bclo(3), bchi(3)
+    integer, intent(in   ) :: p_lo(3), p_hi(3)
 
-    real(rt)         :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
-    real(rt)         :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
-    real(rt)         :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
-    real(rt)         :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
-    real(rt)         :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
-    real(rt)         :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt), intent(in   ) :: bcXYLo(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt), intent(in   ) :: bcXYHi(bclo(1):bchi(1),bclo(2):bchi(2))
+    real(rt), intent(in   ) :: bcXZLo(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt), intent(in   ) :: bcXZHi(bclo(1):bchi(1),bclo(3):bchi(3))
+    real(rt), intent(in   ) :: bcYZLo(bclo(2):bchi(2),bclo(3):bchi(3))
+    real(rt), intent(in   ) :: bcYZHi(bclo(2):bchi(2),bclo(3):bchi(3))
 
-    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
     integer          :: i, j, k
 

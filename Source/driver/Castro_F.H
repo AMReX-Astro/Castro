@@ -553,7 +553,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(qaux), 
-     BL_FORT_FAB_ARG_3D(srcU),
+     const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      BL_FORT_FAB_ARG_3D(update_flux),
      const amrex::Real dx[], const amrex::Real* dt,

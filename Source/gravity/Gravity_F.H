@@ -30,7 +30,7 @@ extern "C"
     (const int lo[], const int hi[], 
      const amrex::Real* dx, const amrex::Real* dr,
      const BL_FORT_FAB_ARG(S), 
-     const amrex::Real* avgpres, 
+     amrex::Real* avgpres, 
      const amrex::Real* problo, const int* numpts_1d, 
      const int* drdxfac, const int* level); 
 
