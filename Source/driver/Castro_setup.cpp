@@ -520,7 +520,8 @@ Castro::variableSetUp ()
   for (int i = 0; i < NUM_STATE; i++)
     state_type_source_names[i] = name[i] + "_source";
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -537,13 +538,14 @@ Castro::variableSetUp ()
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
       state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
       sprintf(buf, "sdc_react_source_%d", i);
       set_scalar_bc(bc,phys_bc);
-      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_denfill));
+      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
   }
 #endif
 #endif

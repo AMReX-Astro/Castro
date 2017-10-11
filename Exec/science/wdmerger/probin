@@ -87,9 +87,11 @@
 
 &sponge
 
-  sponge_lower_radius = 3.840d9
-  sponge_upper_radius = 4.352d9
-  sponge_timescale    = 0.01d0
+  sponge_lower_radius  = 0.0d0
+  sponge_upper_radius  = 0.0d0
+  sponge_lower_density = 0.0d0
+  sponge_upper_density = 0.0d0
+  sponge_timescale     = 0.01d0
 
 /
 
@@ -126,6 +128,8 @@
   retry_burn = T
 
   renormalize_abundances = T
+
+  MAX_TEMP = 1.d10
 
   ! Note that not every network has tabular
   ! rates enabled, so for some networks the

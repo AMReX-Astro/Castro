@@ -21,10 +21,10 @@ CASTRO_HOME  := ../../..
 ifdef MICROPHYSICS_HOME
 
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_dir     := helmholtz
+  EOS_DIR     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  Network_dir := aprox13
+  NETWORK_DIR := aprox13
 
 else
 
@@ -32,7 +32,7 @@ else
 
 endif
 
-Conductivity_dir := stellar
+CONDUCTIVITY_DIR := stellar
 
 Bpack   := ./Make.package
 Blocs   := .

@@ -12,9 +12,9 @@ USE_NEUTRINO = FALSE
 
 CASTRO_HOME = ../../..
 
-EOS_dir     := gamma_law
+EOS_DIR     := gamma_law
 
-Network_dir := general_null
+NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := null

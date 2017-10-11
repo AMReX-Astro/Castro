@@ -76,6 +76,8 @@ void update_relaxation(amrex::Real time, amrex::Real dt);
 // Input parameters
 
 static int use_stopping_criterion;
+static int use_energy_stopping_criterion;
+static amrex::Real ts_te_stopping_criterion;
 
 // Data we want to store, for interfacing with the Fortran
 
@@ -136,3 +138,8 @@ static amrex::Real ts_te_curr_max;
 
 static const int num_previous_ener_timesteps = 5;
 static amrex::Real total_ener_array[num_previous_ener_timesteps];
+
+// Status of zone ignitions.
+
+static int num_zones_ignited;
+static int ignition_level;

@@ -166,7 +166,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         eos_state%rho = state(j,URHO)
         eos_state%T = state(j,UTEMP)
-        eos_state%xn(:) = state(j,UFS:)
+        eos_state%xn(:) = state(j,UFS:UFS-1+nspec)
 
         call eos(eos_input_rt, eos_state)
         state(j,UEINT) = eos_state%e

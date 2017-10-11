@@ -63,9 +63,9 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[castro :  diagnostics
- parameters]{castro :  diagnostics
- parameters} \label{table: castro :  diagnostics
+\caption[castro :  diagnostics, I/O
+ parameters]{castro :  diagnostics, I/O
+ parameters} \label{table: castro :  diagnostics, I/O
  parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
@@ -96,6 +96,9 @@
 \rowcolor{tableShade}
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
 \runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
+\rowcolor{tableShade}
+\runparamNS{reset\_checkpoint\_step}{castro} &  Do we want to reset the number of steps in the checkpoint? This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1, (which require that max\_step and stop\_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1 \\
+\runparamNS{reset\_checkpoint\_time}{castro} &  Do we want to reset the time in the checkpoint? This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1, (which require that max\_step and stop\_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
 \runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
@@ -345,27 +348,26 @@
 \runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
 \rowcolor{tableShade}
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
-\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 1 \\
-\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
+\rowcolor{tableShade}
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
-\rowcolor{tableShade}
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
+\rowcolor{tableShade}
 \runparamNS{update\_state\_between\_sources}{castro} &  should we update the state in between evaluations of the new-time source terms & 1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
+\rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
+\rowcolor{tableShade}
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
-\rowcolor{tableShade}
 \runparamNS{xl\_ext\_bc\_type}{castro} &  if we are doing an external -x boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{xr\_ext\_bc\_type}{castro} &  if we are doing an external +x boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{yl\_ext\_bc\_type}{castro} &  if we are doing an external -y boundary condition, who do we interpret it? & "" \\
-\runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
 \rowcolor{tableShade}
+\runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
 \runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{zr\_ext\_bc\_type}{castro} &  if we are doing an external +z boundary condition, who do we interpret it? & "" \\
 
 
@@ -451,15 +453,17 @@
 \runparamNS{do\_react}{castro} &  permits reactions to be turned on and off -- mostly for efficiency's sake & -1 \\
 \rowcolor{tableShade}
 \runparamNS{dtnuc\_X}{castro} &  Limit the timestep based on how much the burning can change the species mass fractions of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(X / \dot{X})$. & 1.e200 \\
+\runparamNS{dtnuc\_X\_threshold}{castro} &  If we are using the timestep limiter based on changes in $X$, set a threshold on the species abundance below which the limiter is not applied. This helps prevent the timestep from becoming very small due to changes in trace species. & 1.e-3 \\
+\rowcolor{tableShade}
 \runparamNS{dtnuc\_e}{castro} &  Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$. & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
+\rowcolor{tableShade}
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
-\runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
 \rowcolor{tableShade}
+\runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
 \runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
 
 
@@ -544,17 +548,23 @@
 \runparamNS{cfl}{castro} &  the effective Courant number to use---we will not allow the hydrodynamic waves to cross more than this fraction of a zone over a single timestep & 0.8 \\
 \runparamNS{change\_max}{castro} &  the maximum factor by which the timestep can increase from one step to the next. & 1.1 \\
 \rowcolor{tableShade}
+\runparamNS{clamp\_subcycles}{castro} &  If we do request more than the maximum number of subcycles, should we fail, or should we clamp to that maximum number and perform that many? & 1 \\
 \runparamNS{dt\_cutoff}{castro} &  the smallest valid timestep---if we go below this, we abort & 0.0 \\
+\rowcolor{tableShade}
 \runparamNS{fixed\_dt}{castro} &  a fixed timestep to use for all steps (negative turns it off) & -1.0 \\
-\rowcolor{tableShade}
 \runparamNS{init\_shrink}{castro} &  a factor by which to reduce the first timestep from that requested by the timestep estimators & 1.0 \\
-\runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \rowcolor{tableShade}
+\runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \runparamNS{max\_dt}{castro} &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
-\runparamNS{retry\_max\_subcycles}{castro} &  Do not permit more retry timesteps than this parameter. Set to a negative value to disable this criterion. & 1000 \\
+\rowcolor{tableShade}
+\runparamNS{max\_subcycles}{castro} &  Do not permit more subcycled timesteps than this parameter. Set to a negative value to disable this criterion. & 10 \\
+\runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
+\runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.02 \\
+\rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
+\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
