@@ -508,7 +508,7 @@ extern "C"
 #endif
      BL_FORT_FAB_ARG_3D(q),
      BL_FORT_FAB_ARG_3D(qaux),
-     BL_FORT_FAB_ARG_3D(src_q),
+     const BL_FORT_FAB_ARG_3D(src_q),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real dx[], const amrex::Real* dt,
      D_DECL(BL_FORT_FAB_ARG_3D(xflux),
@@ -717,15 +717,15 @@ extern "C"
   void ca_react_state
     (const int* lo, const int* hi,
      const amrex::Real* uold, const int* uo_lo, const int* uo_hi,
-     const amrex::Real* unew, const int* un_lo, const int* un_hi,
+     amrex::Real* unew, const int* un_lo, const int* un_hi,
      const amrex::Real* asrc, const int* as_lo, const int* as_hi,
-     const amrex::Real* reactions, const int* r_lo, const int* r_hi,
+     amrex::Real* reactions, const int* r_lo, const int* r_hi,
      const int* mask, const int* m_lo, const int* m_hi,
      const amrex::Real& time, const amrex::Real& dt_react, const int& sdc_iter);
 #else
   void ca_react_state
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
      BL_FORT_FAB_ARG_3D(weights),
      const BL_FORT_IFAB_ARG_3D(mask),

@@ -58,7 +58,7 @@ extern "C"
 #endif
 
   void ca_integrate_phi
-    (const amrex::Real* avgden, const amrex::Real* radial_grav,
+    (const amrex::Real* avgden, amrex::Real* radial_grav,
      amrex::Real* radial_phi, 
      const amrex::Real* dr, const int* numpts_1d);
 

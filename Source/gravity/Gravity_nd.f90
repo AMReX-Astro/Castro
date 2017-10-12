@@ -166,7 +166,7 @@ contains
     implicit none
     integer , intent(in   ) :: numpts_1d
     real(rt), intent(in   ) :: mass(0:numpts_1d-1)
-    real(rt), intent(in   ) :: grav(0:numpts_1d-1)
+    real(rt), intent(inout) :: grav(0:numpts_1d-1)
     real(rt), intent(inout) :: phi(0:numpts_1d-1)
     real(rt), intent(in   ) :: dr
 
