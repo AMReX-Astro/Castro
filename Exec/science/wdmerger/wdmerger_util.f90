@@ -1173,4 +1173,59 @@ contains
 
   end subroutine sum_force_on_stars
 
+
+
+  subroutine find_ignited_zones(lo, hi, &
+                                ignition_radius, ir_lo, ir_hi, &
+                                state, s_lo, s_hi, &
+                                dx, num_zones, level) &
+                                bind(C,name='find_ignited_zones')
+
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
+    use prob_params_module, only: dim
+    use network, only: network_species_index
+
+    implicit none
+
+    integer :: lo(3), hi(3)
+    integer :: ir_lo(3), ir_hi(3)
+    integer :: s_lo(3), s_hi(3)
+
+    double precision :: ignition_radius(ir_lo(1):ir_hi(1),ir_lo(2):ir_hi(2),ir_lo(3):ir_hi(3))
+    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    double precision :: dx(3)
+
+    integer :: num_zones, level
+
+    integer :: i, j, k
+
+    double precision, parameter :: safety_factor = 0.1d0
+
+    integer :: iC12
+
+    iC12 = network_species_index("carbon-12")
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (maxval(dx(1:dim)) < safety_factor * ignition_radius(i,j,k)) then
+
+                num_zones = num_zones + 1
+
+                print *, "  Zone ignited on level ", level, " with ignition radius ", ignition_radius(i,j,k), " at zone "
+                print *, "  Zone ignited at (i,j,k) = ", i, j, k
+                print *, "  Zone ignited with T = ", state(i,j,k,UTEMP)
+                print *, "  Zone ignited with rho = ", state(i,j,k,URHO)
+                print *, "  Zone ignited with X_C = ", state(i,j,k,UFS+iC12-1) / state(i,j,k,URHO)
+
+             end if
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine find_ignited_zones
+
 end module wdmerger_util_module

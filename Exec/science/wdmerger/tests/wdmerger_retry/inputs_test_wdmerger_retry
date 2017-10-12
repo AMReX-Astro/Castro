@@ -73,12 +73,6 @@ castro.use_retry = 1
 # Disable retries based on negative density resets
 castro.retry_neg_dens_factor = -1.0
 
-# Set a maximum number of retries
-castro.retry_max_subcycles = 10
-
-# Don't crash if we request too many
-castro.retry_clamp_subcycles = 1
-
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
