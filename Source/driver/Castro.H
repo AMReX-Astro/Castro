@@ -243,6 +243,8 @@ public:
 
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
+    amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
@@ -401,9 +403,20 @@ public:
 			   int          ngrow = 0) override;
 
     //
+    // Apply the set_problem_tags routine.
+    //
+    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+
+    //
     // Apply a given tagging function.
     //
     void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+
+    //
+    // Hooks for problem-specific operations before and after applying custom tagging.
+    //
+    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
+    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
     // Returns a MultiFab containing the derived data for this level.
     // If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
@@ -746,6 +759,7 @@ protected:
     static int       radius_grow;
     static int       verbose;
     static amrex::ErrorList err_list;
+    static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
 
@@ -805,9 +819,11 @@ protected:
 
     // counters for various retries in Castro
 
-    // retry capability
+    // subcycle capability
     int sub_iteration;
     int sub_ncycle;
+    bool do_subcycle;
+    amrex::Real dt_subcycle;
   
     // sdc
     int sdc_iteration;

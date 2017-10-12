@@ -29,7 +29,7 @@ else
 
 endif
 
-Conductivity_dir := constant
+CONDUCTIVITY_DIR := constant
 
 Bpack   := ./Make.package
 Blocs   := .
