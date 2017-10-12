@@ -507,7 +507,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(Erout),
 #endif
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(qaux),
+     const BL_FORT_FAB_ARG_3D(qaux),
      const BL_FORT_FAB_ARG_3D(src_q),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real dx[], const amrex::Real* dt,

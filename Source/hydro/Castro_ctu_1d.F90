@@ -69,7 +69,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , intent(in) ::      uin(  uin_lo(1):  uin_hi(1),NVAR)
   real(rt)        , intent(inout) ::  uout( uout_lo(1): uout_hi(1),NVAR)
   real(rt)        , intent(inout) ::     q(    q_lo(1):    q_hi(1),NQ)
-  real(rt)        , intent(inout) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
+  real(rt)        , intent(in) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
   real(rt)        , intent(in) ::     srcQ(  srQ_lo(1):  srQ_hi(1),QVAR)
   real(rt)        , intent(inout) :: update(updt_lo(1): updt_hi(1),NVAR)
   real(rt)        , intent(inout) ::  flux( flux_lo(1): flux_hi(1),NVAR)

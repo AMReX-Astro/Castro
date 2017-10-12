@@ -1238,7 +1238,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: bc(3,2,nc)
     real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(in) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer, intent(in) :: level, grid_no
     real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
