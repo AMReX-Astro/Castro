@@ -1,5 +1,12 @@
 # changes since the last release:
 
+  -- A bug was fixed in non-Cartesian simulations with AMR
+     (1D spherical and 2D cylindrical). The bug was introduced
+     around version 17.02 and resulted in incorrect synchronization
+     of the pressure term in the momentum equations. The effect
+     would have manifested as non-conservation of momentum or
+     strange effects at coarse-fine interfaces.
+
   -- The sponge is now always time centered. The option to
      do otherwise was introduced in 17.02, and has now been
      removed. Additionally, the form of the energy source
