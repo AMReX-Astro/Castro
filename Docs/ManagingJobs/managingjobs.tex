@@ -40,6 +40,7 @@ module swap cce/8.6.1
 module load cray-mpich-compat/v7
 module swap craype/2.5.12
 \end{verbatim}
+  However, unfortunately the same compiler bug as above appears.
 \end{itemize}
 
 %To compile and link we need to use the CCE/8.5.7 compilers and 
@@ -155,7 +156,7 @@ simply do:
 \begin{verbatim}
 module load cray-tpsl
 \end{verbatim}
-There is no need to set {\tt HYPRE\_DIR}, but not however that the 
+There is no need to set {\tt HYPRE\_DIR}, but note however that the 
 dependency checker script ({\tt BoxLib/Tools/C\_scripts/mkdep}) will
 complain about:
 \begin{verbatim}
