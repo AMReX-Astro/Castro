@@ -705,10 +705,10 @@ Castro::initMFs()
 	// over the full set of fine timesteps to equal P_radial.
 
 #if (BL_SPACEDIM == 1)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0;
 #elif (BL_SPACEDIM == 2)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
 
