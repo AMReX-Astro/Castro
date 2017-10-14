@@ -414,6 +414,37 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
+#ifdef RADIATION
+  MultiFab q(grids, dmap, QRADVAR, NUM_GROW);
+#else
+  MultiFab q(grids, dmap, QVAR, NUM_GROW);
+#endif
+
+  MultiFab qaux(grids, dmap, NQAUX, NUM_GROW);
+
+  const int* domain_lo = geom.Domain().loVect();
+  const int* domain_hi = geom.Domain().hiVect();
+
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbx = mfi.growntilebox(NUM_GROW);
+      const int idx = mfi.tileIndex();
+
+      // Convert the conservative state to the primitive variable state.
+      // This fills both q and qaux.
+
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+#ifdef RADIATION
+                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+#endif
+                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                 &idx);
+
+  }
+
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:courno, max:nstep_fsp)
@@ -430,14 +461,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     FArrayBox rad_flux[BL_SPACEDIM];
 #endif
-    FArrayBox q, qaux;
 
     int priv_nstep_fsp = -1;
 
     Real cflLoc = -1.0e+200;
-
-    const int*  domain_lo = geom.Domain().loVect();
-    const int*  domain_hi = geom.Domain().hiVect();
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
@@ -464,28 +491,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 	FArrayBox& vol = volume[mfi];
 
-#ifdef RADIATION
-	q.resize(qbx, QRADVAR);
-#else
-	q.resize(qbx, QVAR);
-#endif
-	qaux.resize(qbx, NQAUX);
-
-	// convert the conservative state to the primitive variable state.
-	// this fills both q and qaux.
-
-	const int idx = mfi.tileIndex();
-
-	ca_ctoprim(ARLIM_3D(qbx.loVect()), ARLIM_3D(qbx.hiVect()),
-		   statein.dataPtr(), ARLIM_3D(statein.loVect()), ARLIM_3D(statein.hiVect()),
-#ifdef RADIATION
-		   Er.dataPtr(), ARLIM_3D(Er.loVect()), ARLIM_3D(Er.hiVect()),
-		   lam.dataPtr(), ARLIM_3D(lam.loVect()), ARLIM_3D(lam.hiVect()),
-#endif
-		   q.dataPtr(), ARLIM_3D(q.loVect()), ARLIM_3D(q.hiVect()),
-		   qaux.dataPtr(), ARLIM_3D(qaux.loVect()), ARLIM_3D(qaux.hiVect()), &idx);
-
-
 	// Allocate fabs for fluxes
 	for (int i = 0; i < BL_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
@@ -507,8 +512,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	   &(b_mol[mol_iteration]),
 	   BL_TO_FORTRAN_3D(statein), 
 	   BL_TO_FORTRAN_3D(stateout),
-	   BL_TO_FORTRAN_3D(q),
-	   BL_TO_FORTRAN_3D(qaux),
+	   BL_TO_FORTRAN_3D(q[mfi]),
+	   BL_TO_FORTRAN_3D(qaux[mfi]),
 	   BL_TO_FORTRAN_3D(source_in),
 	   BL_TO_FORTRAN_3D(source_out),
 	   BL_TO_FORTRAN_3D(source_hydro_only),
