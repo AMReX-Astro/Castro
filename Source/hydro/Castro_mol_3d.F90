@@ -18,7 +18,7 @@ subroutine ca_mol_single_stage(time, &
                                area2, area2_lo, area2_hi, &
                                area3, area3_lo, area3_hi, &
                                vol, vol_lo, vol_hi, &
-                               courno, verbose) bind(C, name="ca_mol_single_stage")
+                               verbose) bind(C, name="ca_mol_single_stage")
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
@@ -27,7 +27,7 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, limit_hydro_fluxes_on_small_dens, shock, &
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
@@ -79,7 +79,6 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
   real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt)        , intent(in) :: dx(3), dt, time
-  real(rt)        , intent(inout) :: courno
 
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
@@ -197,11 +196,6 @@ subroutine ca_mol_single_stage(time, &
        shk(:,:,:) = ZERO
     endif
 #endif
-
-  ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lo, hi, dt, dx, courno)
 
   ! Compute flattening coefficient for slope calculations.
   call bl_allocate( flatn, q_lo, q_hi)

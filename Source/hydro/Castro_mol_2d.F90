@@ -18,14 +18,14 @@ subroutine ca_mol_single_stage(time, &
                                area2, area2_lo, area2_hi, &
                                dloga, dloga_lo, dloga_hi, &
                                vol, vol_lo, vol_hi, &
-                               courno, verbose) bind(C, name="ca_mol_single_stage")
+                               verbose) bind(C, name="ca_mol_single_stage")
 
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
                                  UTEMP, UEINT, USHK, UMX, GDU, GDV, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, shock, divu, normalize_species_fluxes, calc_pdivu
+  use advection_util_module, only : shock, divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
@@ -74,7 +74,6 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
   real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2))
   real(rt)        , intent(in) :: delta(2), dt, time
-  real(rt)        , intent(inout) :: courno
 
   ! Automatic arrays for workspace
   real(rt)        , allocatable :: flatn(:,:)
@@ -174,12 +173,6 @@ subroutine ca_mol_single_stage(time, &
        shk(:,:) = ZERO
     endif
 #endif
-
-
-  ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lo_3D, hi_3D, dt, dx_3D, courno)
 
   ! Compute flattening coefficient for slope calculations.
   if (first_order_hydro == 1) then

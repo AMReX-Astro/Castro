@@ -160,13 +160,30 @@ Castro::construct_hydro_source(Real time, Real dt)
       
   }
 
+
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(max:courno)
+#endif
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
+                     BL_TO_FORTRAN_ANYD(q[mfi]),
+                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                     &dt, dx, &courno);
+
+  }
+
+
+
 #ifdef _OPENMP
 #ifdef RADIATION
-#pragma omp parallel reduction(max:courno, max:nstep_fsp)
+#pragma omp parallel reduction(max:nstep_fsp)
 #else
 #pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost) \
-                     reduction(max:courno)
+		     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
 #endif
     {
@@ -181,7 +198,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
       int priv_nstep_fsp = -1;
 
-      Real cflLoc = -1.0e+200;
       int is_finest_level = (level == finest_level) ? 1 : 0;
 
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
@@ -245,7 +261,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	     BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
 	     BL_TO_FORTRAN_3D(volume[mfi]),
-	     &cflLoc, verbose,
+	     verbose,
 #ifdef RADIATION
 	     &priv_nstep_fsp,
 #endif
@@ -284,7 +300,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
       } // MFIter loop
 
-      courno = std::max(courno,cflLoc);
 #ifdef RADIATION
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
@@ -458,6 +473,24 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   }
 
+
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(max:courno)
+#endif
+  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
+                     BL_TO_FORTRAN_ANYD(q[mfi]),
+                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                     &dt, dx, &courno);
+
+  }
+
+
+
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:courno, max:nstep_fsp)
@@ -476,8 +509,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
 
     int priv_nstep_fsp = -1;
-
-    Real cflLoc = -1.0e+200;
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
@@ -544,7 +575,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	   BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
 	   BL_TO_FORTRAN_3D(volume[mfi]),
-	   &cflLoc, verbose);
+	   verbose);
 
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
@@ -564,7 +595,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
       } // MFIter loop
 
-    courno = std::max(courno,cflLoc);
 #ifdef RADIATION
     nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
