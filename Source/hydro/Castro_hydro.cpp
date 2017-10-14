@@ -114,6 +114,9 @@ Castro::construct_hydro_source(Real time, Real dt)
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
@@ -432,6 +435,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
   for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
