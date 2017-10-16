@@ -689,7 +689,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     }
 
     Real cur_time = state[State_Type].curTime();
-    set_special_tagging_flag(cur_time);
 
     if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
 

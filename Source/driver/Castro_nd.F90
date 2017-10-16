@@ -837,19 +837,6 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
 
 end subroutine ca_set_grid_info
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-subroutine ca_set_special_tagging_flag(dummy,flag) &
-     bind(C, name="ca_set_special_tagging_flag")
-
-  use amrex_fort_module, only: rt => amrex_real
-
-  real(rt), intent(in) :: dummy
-  integer, intent(in)  :: flag
-
-end subroutine ca_set_special_tagging_flag
 
 ! :::
 ! ::: ----------------------------------------------------------------
