@@ -846,8 +846,8 @@ subroutine ca_set_special_tagging_flag(dummy,flag) &
 
   use amrex_fort_module, only: rt => amrex_real
 
-  real(rt) :: dummy
-  integer  :: flag
+  real(rt), intent(in) :: dummy
+  integer, intent(in)  :: flag
 
 end subroutine ca_set_special_tagging_flag
 
@@ -863,8 +863,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   use tagging_module
   use amrex_fort_module, only: rt => amrex_real
 
-  integer :: namlen
-  integer :: name(namlen)
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
 
   integer :: un, i, status
 
@@ -949,8 +949,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   use sponge_module
   use amrex_fort_module, only: rt => amrex_real
 
-  integer :: namlen
-  integer :: name(namlen)
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
 
   integer :: un, i, status
 

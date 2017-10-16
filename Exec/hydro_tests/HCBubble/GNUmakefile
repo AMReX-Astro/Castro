@@ -3,7 +3,7 @@ PRECISION  = DOUBLE
 PROFILE    = TRUE
 COMM_PROFILE    = TRUE
 
-DEBUG      = TRUE
+DEBUG      = FALSE
 
 DIM        = 3
 
