@@ -16,10 +16,10 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: p_lo(3), p_hi(3)
-    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt)         :: dx(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: p_lo(3), p_hi(3)
+    real(rt), intent(out) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in) :: dx(3)
 
     ! Local variables
     !     integer          :: i, j, k

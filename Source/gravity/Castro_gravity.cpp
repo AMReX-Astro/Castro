@@ -227,8 +227,8 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 {
 
 #ifdef SELF_GRAVITY
-    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-    MultiFab& grav_old = get_old_data(Gravity_Type);
+    const MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    const MultiFab& grav_old = get_old_data(Gravity_Type);
 #endif
 
     old_sources[grav_src]->setVal(0.0);

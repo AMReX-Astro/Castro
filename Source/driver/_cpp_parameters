@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we time center the sponge?
-time_center_sponge           int           1
-
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
 
@@ -266,6 +263,12 @@ init_shrink                  Real          1.0
 # the next.
 change_max                   Real          1.1
 
+# enforce that the AMR plot interval must be hit exactly
+plot_per_is_exact            int           0
+
+# enforce that the AMR small plot interval must be hit exactly
+small_plot_per_is_exact      int           0
+
 # Retry a timestep if it violated the timestep-limiting criteria over
 # the course of an advance. The criteria will suggest a new timestep
 # that satisfies the criteria, and we will do subcycled timesteps
@@ -277,16 +280,7 @@ use_retry                    int           0
 # (1 + this factor) before comparing the actual timestep to it.
 # If set to some number slightly larger than zero, then this
 # prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.0
-
-# Do not permit more retry timesteps than this parameter.
-# Set to a negative value to disable this criterion.
-retry_max_subcycles          int           1000
-
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-retry_clamp_subcycles        int           0
+retry_tolerance              Real          0.02
 
 # If we're doing retries, set the target threshold for changes in density
 # if a retry is triggered by a negative density. If this is set to a negative
@@ -296,6 +290,15 @@ retry_neg_dens_factor        Real          1.e-1
 # Check for a possible post-timestep regrid if certain stability
 # criteria were violated.
 use_post_step_regrid         int           0
+
+# Do not permit more subcycled timesteps than this parameter.
+# Set to a negative value to disable this criterion.
+max_subcycles                int           10
+
+# If we do request more than the maximum number of subcycles,
+# should we fail, or should we clamp to that maximum number
+# and perform that many?
+clamp_subcycles              int           1
 
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
@@ -468,7 +471,7 @@ spherical_star               int           0
 
 
 #-----------------------------------------------------------------------------
-# category: diagnostics
+# category: diagnostics, I/O
 #-----------------------------------------------------------------------------
 
 # display warnings in Fortran90 routines
@@ -502,6 +505,19 @@ job_name                     string        ""
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1
+
+# Do we want to reset the time in the checkpoint?
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# and you set it to value greater than this default value.
+reset_checkpoint_time        Real          -1.e200
+
+# Do we want to reset the number of steps in the checkpoint?
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# and you set it to value greater than this default value.
+reset_checkpoint_step        int           -1
+
 
 
 

@@ -46,16 +46,12 @@
 			\runparamNS{particles.particle\_restart\_file}{castro} &  We can add new particles at restart and this variable refers to the name of a file, containing the information of a new set of particles, in the the same format as the input file from {\tt particles.particle\_init\_file} &  \\
 			\rowcolor{tableShade}
 			\runparamNS{particles.timestamp\_dir}{castro} &  This variable defines the name of a directory for output. The directory is made as a simulation starts and the output files are stored in the directory. &  \\
-			\runparamNS{castro.castro.particle\_init\_type}{castro} &  The initial positions of particles are randomly determined if it is set ``Random''  &  \\
 			\rowcolor{tableShade}
-			\runparamNS{castro.particle\_initrandom\_count}{castro} &  This variable defines the total number of particles randomly positioned on a fluid.  &  \\
-			\runparamNS{castro.particle\_move\_type}{castro} &  This variable decides the types of particle motion ({\bf Random} or {\bf Gravitational}) &  \\
-						\rowcolor{tableShade}
 			\runparamNS{particles.timestamp\_density}{castro} &  This decides whether the local densities at given positions of particles are stored (stored if 1)  &  0\\
 			\runparamNS{particles.timestamp\_temperature}{castro} &  This decides whether the local temperature at given positions of particles are stored (stored if 1) & 0 \\
 						\rowcolor{tableShade}
 \runparamNS{particles.v }{castro} &  verbosity  &  0\\
-\runparamNS{particles.write\_in\_plotfile }{castro} &  The particle positions and velocities will be written in a binary file in each plotfile directory if 1. & 0 \\			
+\runparamNS{particles.write\_in\_plotfile }{castro} &  The particle positions and velocities will be written in a binary file in each plotfile directory if 1. & 1 \\			
 		\end{longtable}
 	\end{center}
 	

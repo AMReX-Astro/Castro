@@ -17,11 +17,11 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Derive_F.H>
+#include <Castro_error_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
-#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -52,10 +52,14 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
+int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_STATE     = -1;
 int          Castro::NUM_GROW      = -1;
+
+int          Castro::lastDtPlotLimited = 0;
+Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
 Real         Castro::frac_change   = 1.e200;
 
@@ -701,10 +705,10 @@ Castro::initMFs()
 	// over the full set of fine timesteps to equal P_radial.
 
 #if (BL_SPACEDIM == 1)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0;
 #elif (BL_SPACEDIM == 2)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
 
@@ -750,8 +754,8 @@ Castro::setGridInfo ()
 
     if (level == 0) {
 
-      int max_level = parent->maxLevel();
-      int nlevs = max_level + 1;
+      const int max_level = parent->maxLevel();
+      const int nlevs = max_level + 1;
 
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
@@ -963,8 +967,8 @@ Castro::initData ()
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       int nc = S_new.nComp();
-       int n1d = get_numpts();
+       const int nc = S_new.nComp();
+       const int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -1165,7 +1169,7 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel reduction(estdt_hydro)
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
           {
             Real dt = max_dt / cfl;
@@ -1333,22 +1337,36 @@ Castro::computeNewDt (int                   finest_level,
        else
        {
           //
-          // Limit dt's by change_max * old dt
+          // Limit dt's by change_max * old dt,
+          // if we didn't limit the last timestep
+          // to hit a plotfile interval.
           //
-          for (i = 0; i <= finest_level; i++)
-          {
-             if (verbose && ParallelDescriptor::IOProcessor())
-                 if (dt_min[i] > change_max*dt_level[i])
-                 {
-                        std::cout << "Castro::compute_new_dt : limiting dt at level "
-                             << i << '\n';
-                        std::cout << " ... new dt computed: " << dt_min[i]
-                             << '\n';
-                        std::cout << " ... but limiting to: "
-                             << change_max * dt_level[i] << " = " << change_max
-                             << " * " << dt_level[i] << '\n';
-                 }
-              dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
+          if (lastDtPlotLimited) {
+
+              dt_min[0] = std::min(dt_min[0], lastDtBeforePlotLimiting);
+
+              lastDtPlotLimited = 0;
+              lastDtBeforePlotLimiting = 0.0;
+
+          }
+          else {
+
+              for (i = 0; i <= finest_level; i++)
+              {
+                  if (verbose && ParallelDescriptor::IOProcessor())
+                      if (dt_min[i] > change_max*dt_level[i])
+                      {
+                          std::cout << "Castro::compute_new_dt : limiting dt at level "
+                                    << i << '\n';
+                          std::cout << " ... new dt computed: " << dt_min[i]
+                                    << '\n';
+                          std::cout << " ... but limiting to: "
+                                    << change_max * dt_level[i] << " = " << change_max
+                                    << " * " << dt_level[i] << '\n';
+                      }
+                  dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
+              }
+
           }
        }
     }
@@ -1363,13 +1381,87 @@ Castro::computeNewDt (int                   finest_level,
     }
 
     //
+    // Optionally, limit dt's by the value of
+    // plot_per or small_plot_per.
+    //
+    if (plot_per_is_exact) {
+
+        const Real plot_per = parent->plotPer();
+
+        if (plot_per > 0.0) {
+
+            const Real epsDt = 1.e-4*dt_0;
+            const Real cur_time = state[State_Type].curTime();
+
+            // Calculate the new dt by comparing to the dt needed to get
+            // to the next multiple of plot_per.
+
+            const Real dtMod = std::fmod(cur_time, plot_per);
+
+            Real newPlotDt;
+
+            // Note that if we are just about exactly on a multiple of plot_per,
+            // then we need to be careful to avoid floating point issues.
+
+            if (dtMod > plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+                newPlotDt = plot_per + (plot_per - dtMod);
+            }
+            else {
+                newPlotDt = plot_per - dtMod;
+            }
+
+            if (newPlotDt < dt_0) {
+                lastDtPlotLimited = 1;
+                lastDtBeforePlotLimiting = dt_0;
+                dt_0 = std::max(epsDt, newPlotDt);
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+            }
+
+        }
+
+    }
+
+    if (small_plot_per_is_exact) {
+
+        const Real small_plot_per = parent->smallplotPer();
+
+        if (small_plot_per > 0.0) {
+
+            const Real epsDt = 1.e-4*dt_0;
+            const Real cur_time = state[State_Type].curTime();
+
+            const Real dtMod = std::fmod(cur_time, small_plot_per);
+
+            Real newSmallPlotDt;
+
+            if (dtMod > small_plot_per * (1.0e0 - std::numeric_limits<float>::epsilon())) {
+                newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
+            }
+            else {
+                newSmallPlotDt = small_plot_per - dtMod;
+            }
+
+            if (newSmallPlotDt < dt_0) {
+                lastDtPlotLimited = 1;
+                lastDtBeforePlotLimiting = dt_0;
+                dt_0 = std::max(epsDt, newSmallPlotDt);
+                amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+            }
+
+        }
+
+    }
+
+    //
     // Limit dt's by the value of stop_time.
     //
     const Real eps = 0.001*dt_0;
-    Real cur_time  = state[State_Type].curTime();
+    Real cur_time = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps))
+        if ((cur_time + dt_0) > (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
+            amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+        }
     }
 
     n_factor = 1;
@@ -1715,6 +1807,13 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
+
+        // Apply all user-specified tagging routines in case the user desires to override this.
+
+        for (int i = num_err_list_default; i < err_list.size(); ++i)
+            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
+
+        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
 
 	// Globally collate the tags.
 
@@ -2544,9 +2643,9 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	const Box& bx = mfi.growntilebox();
 
-	FArrayBox& stateold = S_old[mfi];
+	const FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
-	FArrayBox& vol      = volume[mfi];
+	const FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
 	
 	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
@@ -2644,12 +2743,34 @@ Castro::errorEst (TagBoxArray& tags,
     if (post_step_regrid)
 	t = get_state_data(State_Type).curTime();
 
-    // Apply each of the built-in tagging functions.
+    // Apply each of the specified tagging functions.
 
-    for (int j = 0; j < err_list.size(); j++)
+    for (int j = 0; j < num_err_list_default; j++)
 	apply_tagging_func(tags, clearval, tagval, t, j);
 
+    // Now apply the user-specified tagging functions.
+    // Include problem-specific hooks before and after.
+
+    problem_pre_tagging_hook(tags, clearval, tagval, t);
+
+    for (int j = num_err_list_default; j < err_list.size(); j++)
+        apply_tagging_func(tags, clearval, tagval, t, j);
+
     // Now we'll tag any user-specified zones using the full state array.
+
+    apply_problem_tags(tags, clearval, tagval, time);
+
+    problem_post_tagging_hook(tags, clearval, tagval, t);
+}
+
+
+
+void
+Castro::apply_problem_tags (TagBoxArray& tags,
+                            int          clearval,
+                            int          tagval,
+                            Real         time)
+{
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -2700,6 +2821,7 @@ Castro::errorEst (TagBoxArray& tags,
             tagfab.tags_and_untags(itags, tilebx);
 	}
     }
+
 }
 
 
@@ -2850,7 +2972,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  int probin_file_length = probin_file.length();
+  const int probin_file_length = probin_file.length();
   Array<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
@@ -2886,7 +3008,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    print_fortran_warnings, &idx);
+			    &print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output
@@ -2972,7 +3094,7 @@ Castro::set_special_tagging_flag(Real time)
    if (!do_special_tagging) return;
 
    MultiFab& S_new = get_new_data(State_Type);
-   Real max_den = S_new.norm0(Density);
+   const Real max_den = S_new.norm0(Density);
 
    int flag_was_changed = 0;
    ca_set_special_tagging_flag(max_den,&flag_was_changed);
@@ -3030,7 +3152,7 @@ Castro::make_radial_data(int is_new)
 
    if (is_new == 1) {
       MultiFab& S = get_new_data(State_Type);
-      int nc = S.nComp();
+      const int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3066,13 +3188,13 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real new_time = state[State_Type].curTime();
+      const Real new_time = state[State_Type].curTime();
       set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
    }
    else
    {
       MultiFab& S = get_old_data(State_Type);
-      int nc = S.nComp();
+      const int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3108,7 +3230,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real old_time = state[State_Type].prevTime();
+      const Real old_time = state[State_Type].prevTime();
       set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
    }
 

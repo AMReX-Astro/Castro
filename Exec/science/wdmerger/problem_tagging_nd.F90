@@ -24,6 +24,7 @@ contains
                                stellar_density_threshold, &
                                temperature_tagging_threshold, &
                                center_tagging_radius, &
+                               num_zones_ignited, ignition_level, &
                                com_P, com_S, roche_rad_P, roche_rad_S, &
                                problem
 
@@ -130,6 +131,12 @@ contains
                 endif
 
              endif
+
+             ! If we've ignited, clear the tagging.
+
+             if (problem == 0 .and. num_zones_ignited > 0 .and. level >= ignition_level) then
+                tag(i,j,k) = clear
+             end if
 
              ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 

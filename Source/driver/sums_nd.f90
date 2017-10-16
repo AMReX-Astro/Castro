@@ -15,12 +15,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: mass, dx(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: mass
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 
@@ -46,12 +47,12 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: mass, dx(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: mass, dx(3)
+    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 
@@ -78,13 +79,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: idir
-    integer          :: lo(3), hi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: mass, dx(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: idir
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: mass
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
     real(rt)         :: x, y, z
@@ -158,13 +160,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: idir1, idir2
-    integer          :: lo(3), hi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: mass, dx(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: idir1, idir2
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: mass
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
     real(rt)         :: x, y, z
@@ -188,7 +191,7 @@ contains
           endif
           x = x + symlo1 + symhi1
           if (idir2 .eq. 0) then
-             do k = lo(3), hi(3)
+             do k = lo(5), hi(3)
                 do j = lo(2), hi(2)
                    mass = mass + rho(i,j,k) * vol(i,j,k) * x * x
                 enddo
@@ -330,13 +333,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: idir
-    integer          :: lo(3), hi(3)
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: mass, dx(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: idir
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: mass
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
     real(rt)         :: x, y, z
@@ -384,15 +388,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: f1_lo(3), f1_hi(3)
-    integer          :: f2_lo(3), f2_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: product
-    real(rt)         :: dx(3)
-    real(rt)         :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
-    real(rt)         :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: f1_lo(3), f1_hi(3)
+    integer, intent(in) :: f2_lo(3), f2_hi(3)
+    integer, intent(in) :: v_lo(3), v_hi(3)
+    real(rt), intent(inout) :: product
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in) :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt), intent(in) :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     integer          :: i, j, k
 
