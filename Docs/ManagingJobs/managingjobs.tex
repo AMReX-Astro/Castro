@@ -33,8 +33,14 @@ Current status of Cray compilers:
 \begin{itemize}
 \item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
   (and also appears at NERSC).
-\item CCE/8.6.1 do not seem to be installed correctly, and compiler
-  components cannot be found.  A bug ticket was filed.
+\item CCE/8.6.1 need newer versions of the PE to be loaded.  It is suggested to do:
+\begin{verbatim}
+module swap PrgEnv-{pgi,cray}
+module swap cce/8.6.1
+module load cray-mpich-compat/v7
+module swap craype/2.5.12
+\end{verbatim}
+  However, unfortunately the same compiler bug as above appears.
 \end{itemize}
 
 %To compile and link we need to use the CCE/8.5.7 compilers and 
@@ -150,7 +156,7 @@ simply do:
 \begin{verbatim}
 module load cray-tpsl
 \end{verbatim}
-There is no need to set {\tt HYPRE\_DIR}, but not however that the 
+There is no need to set {\tt HYPRE\_DIR}, but note however that the 
 dependency checker script ({\tt BoxLib/Tools/C\_scripts/mkdep}) will
 complain about:
 \begin{verbatim}
