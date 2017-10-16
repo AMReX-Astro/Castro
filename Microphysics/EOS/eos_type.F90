@@ -183,6 +183,7 @@ contains
 
   end subroutine composition
 
+#ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state)
@@ -196,7 +197,6 @@ contains
 
     type (eos_t), intent(inout) :: state
 
-#ifdef EXTRA_THERMO
     state % dpdX(:) = state % dpdA * (state % abar * aion_inv(:))   &
                                    * (aion(:) - state % abar) &
                     + state % dpdZ * (state % abar * aion_inv(:))   &
@@ -214,10 +214,9 @@ contains
                        *  state % dPdX(:) / state % dPdr
 
     endif
-#endif
 
   end subroutine composition_derivatives
-
+#endif
 
 
   ! Normalize the mass fractions: they must be individually positive
