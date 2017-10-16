@@ -133,19 +133,23 @@ module eos_type_module
     real(dp_t) :: mu
     real(dp_t) :: mu_e
     real(dp_t) :: y_e
+#ifdef EXTRA_THERMO
     real(dp_t) :: dedX(nspec)
     real(dp_t) :: dpdX(nspec)
     real(dp_t) :: dhdX(nspec)
+#endif
     real(dp_t) :: gam1
     real(dp_t) :: cs
 
     real(dp_t) :: abar
     real(dp_t) :: zbar
-    real(dp_t) :: dpdA
 
+#ifdef EXTRA_THERMO
+    real(dp_t) :: dpdA
     real(dp_t) :: dpdZ
     real(dp_t) :: dedA
     real(dp_t) :: dedZ
+#endif
 
   end type eos_t
 
@@ -179,6 +183,7 @@ contains
 
   end subroutine composition
 
+#ifdef EXTRA_THERMO
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state)
@@ -211,7 +216,7 @@ contains
     endif
 
   end subroutine composition_derivatives
-
+#endif
 
 
   ! Normalize the mass fractions: they must be individually positive
