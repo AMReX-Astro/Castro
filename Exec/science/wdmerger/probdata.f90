@@ -208,6 +208,12 @@ module probdata_module
 
 
 
+  ! Number of zones that have passed the critical radius for thermonuclear ignition
+  integer,          save :: num_zones_ignited = 0
+
+  ! Level on which the initial ignition happened; negative means it hasn't happened yet
+  integer,          save :: ignition_level = -1
+
   ! Relaxation parameters for problem 3
 
   double precision, save :: relaxation_damping_timescale = -1.0d0

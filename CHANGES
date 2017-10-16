@@ -1,6 +1,16 @@
 # changes since the last release:
 
+  -- The sponge is now always time centered. The option to
+     do otherwise was introduced in 17.02, and has now been
+     removed. Additionally, the form of the energy source
+     term has been corrected for the time centered case,
+     and brought into line with how we do the energy source
+     term for other sources. (Issue #7, Issue #57)
+
   -- Fixed a bug in the fix for #188.
+
+  -- Conductivity_dir has been renamed CONDUCTIVITY_DIR to be consistent
+     with EOS_DIR and NETWORK_DIR
 
 # 17.10
 
