@@ -962,7 +962,6 @@ Castro::initData ()
 
 #endif // MAESTRO_INIT
 
-    set_special_tagging_flag(cur_time);
 
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -1739,7 +1738,6 @@ Castro::post_restart ()
          }
 #endif
 
-    set_special_tagging_flag(cur_time);
 
     // initialize the Godunov state array used in hydro -- we wait
     // until here so that ngroups is defined (if needed) in
@@ -3088,24 +3086,6 @@ Castro::computeTemp(MultiFab& State)
     }
 }
 
-void
-Castro::set_special_tagging_flag(Real time)
-{
-   if (!do_special_tagging) return;
-
-   MultiFab& S_new = get_new_data(State_Type);
-   const Real max_den = S_new.norm0(Density);
-
-   int flag_was_changed = 0;
-   ca_set_special_tagging_flag(max_den,&flag_was_changed);
-   if (ParallelDescriptor::IOProcessor()) {
-      if (flag_was_changed == 1) {
-        std::ofstream os("Bounce_time",std::ios::out);
-        os << "T_Bounce " << time << std::endl;
-        os.close();
-      }
-   }
-}
 
 #ifdef SELF_GRAVITY
 int
