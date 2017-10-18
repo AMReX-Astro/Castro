@@ -160,7 +160,7 @@ void
 Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Array<std::unique_ptr<MultiFab> >& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -192,7 +192,7 @@ void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -208,7 +208,7 @@ void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif

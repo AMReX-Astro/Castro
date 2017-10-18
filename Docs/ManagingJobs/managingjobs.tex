@@ -29,37 +29,37 @@ Note, you will need to swap the default PGI environment to use Cray:
 module swap PrgEnv-pgi PrgEnv-cray
 \end{verbatim}
 
-Current status of Cray compilers:
-\begin{itemize}
-\item CCE/8.5.7 fail with OpenMP in {\tt AMReX\_BoxArray.cpp}.  This is a known compiler bug
-  (and also appears at NERSC).
-\item CCE/8.6.1 need newer versions of the PE to be loaded.  It is suggested to do:
-\begin{verbatim}
-module swap PrgEnv-{pgi,cray}
-module swap cce/8.6.1
-module load cray-mpich-compat/v7
-module swap craype/2.5.12
-\end{verbatim}
-  However, unfortunately the same compiler bug as above appears.
-\end{itemize}
-
-%To compile and link we need to use the CCE/8.5.7 compilers and 
-%{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
-%work.
+To compile and link we need to use the CCE/8.5.7 compilers and 
+{\tt cray-mpich/7.5.2}.  Note that {\tt cray-mpich/7.6.0} does not
+work.
 
 
 \subsection{PGI}
 
 If you are using OpenACC on the GPUs, then you need to use the PGI
 compilers instead.  It is best to use the latest available PGI
-compilers, which are 17.7 at this writing.  
+compilers, which are 16.10 at this writing.  
 \begin{verbatim}
-module swap pgi pgi/17.7
+module swap pgi pgi/16.10.0
 \end{verbatim}
 
-These seem to build the code without problems.
+Unfortunately, those are set to use GCC 4.3 header files, which don't
+support the latest \cpp\ standard, so you will need to write your
+own config file.  First load a newer gcc:
+\begin{verbatim}
+module load gcc/4.9.3
+\end{verbatim}
 
-This is perhaps out of date:
+Then do:
+\begin{verbatim}
+/opt/pgi/16.10.0/linux86-64/16.10/bin/makelocalrc -o /opt/pgi/16.10.0/linux86-64/16.10/bin \
+  -gcc /opt/gcc/4.9.3/bin/gcc -gpp /opt/gcc/4.9.3/bin/g++ \
+  -g77 /opt/gcc/4.9.3/bin/gfortran -x -net > ~/.mypgcpprc
+\end{verbatim}
+(Note this is a one-line command)
+
+You will need to keep this file up to date with the PGI compiler you are trying to use.
+
 Finally, to use OpenACC, you need to make the CUDA libraries available to the PGI compiler:
 \begin{verbatim}
 module load craype-accel-nvidia35
@@ -156,7 +156,7 @@ simply do:
 \begin{verbatim}
 module load cray-tpsl
 \end{verbatim}
-There is no need to set {\tt HYPRE\_DIR}, but note however that the 
+There is no need to set {\tt HYPRE\_DIR}, but not however that the 
 dependency checker script ({\tt BoxLib/Tools/C\_scripts/mkdep}) will
 complain about:
 \begin{verbatim}

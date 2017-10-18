@@ -29,7 +29,7 @@ contains
     use fundamental_constants_module, only: Gconst
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt), intent(inout) :: Gconst_out
+    real(rt)         :: Gconst_out
 
     Gconst_out = Gconst
 
@@ -55,11 +55,11 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: mass(0:numpts_1d-1)
-    real(rt), intent(in   ) ::  den(0:numpts_1d-1)
-    real(rt), intent(inout) :: grav(0:numpts_1d-1)
-    real(rt), intent(in   ) :: max_radius,dr
+    integer          :: numpts_1d
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         ::  den(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: max_radius,dr
 
     integer          :: i
     real(rt)         :: rc,rlo,rhi,halfdr
@@ -164,13 +164,13 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: mass(0:numpts_1d-1)
-    real(rt), intent(inout) :: grav(0:numpts_1d-1)
-    real(rt), intent(inout) :: phi(0:numpts_1d-1)
-    real(rt), intent(in   ) :: dr
-
+    integer          :: numpts_1d
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: phi(0:numpts_1d-1)
+    real(rt)         :: dr
     real(rt)         :: gravBC, phiBC
+
     integer          :: i
     real(rt)         :: mass_encl,rhi
 
@@ -211,12 +211,12 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) ::  rho(0:numpts_1d-1)
-    real(rt), intent(in   ) :: mass(0:numpts_1d-1)
-    real(rt), intent(in   ) :: pres(0:numpts_1d-1)
-    real(rt), intent(inout) :: grav(0:numpts_1d-1)
-    real(rt), intent(in   ):: dr
+    integer          :: numpts_1d
+    real(rt)         ::  rho(0:numpts_1d-1)
+    real(rt)         :: mass(0:numpts_1d-1)
+    real(rt)         :: pres(0:numpts_1d-1)
+    real(rt)         :: grav(0:numpts_1d-1)
+    real(rt)         :: dr
 
     integer          :: i
     real(rt)         :: mass_encl,rc,rlo,rhi,halfdr
@@ -302,7 +302,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lnum, lo_bc(3), hi_bc(3)
+    integer :: lnum, lo_bc(3), hi_bc(3)
 
     integer :: b, l, m
 
@@ -433,16 +433,16 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(3), hi(3)
-    integer , intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: dx(3)
+    integer          :: lo(3), hi(3)
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: dx(3)
 
-    integer , intent(in   ) :: lnum, npts, boundary_only
-    real(rt), intent(in   ) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    real(rt), intent(in   ) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    integer          :: lnum, npts, boundary_only
+    real(rt)         :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
-    integer , intent(in   ) :: p_lo(3), p_hi(3)
-    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    integer          :: p_lo(3), p_hi(3)
+    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
     integer          :: i, j, k
     integer          :: l, m, n, nlo
@@ -583,13 +583,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: domlo(3),domhi(3)
-    real(rt), intent(in   ) :: dx(3)
-    integer , intent(in   ) :: boundary_only, npts, lnum
+    integer          :: lo(3),hi(3)
+    integer          :: domlo(3),domhi(3)
+    real(rt)         :: dx(3)
+    integer          :: boundary_only, npts, lnum
 
-    real(rt), intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    real(rt), intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt)         :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     integer          :: r_lo(3), r_hi(3)
     integer          :: v_lo(3), v_hi(3)

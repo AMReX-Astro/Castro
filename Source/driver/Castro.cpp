@@ -17,11 +17,11 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Derive_F.H>
-#include <Castro_error_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -52,7 +52,6 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
-int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_STATE     = -1;
@@ -705,10 +704,10 @@ Castro::initMFs()
 	// over the full set of fine timesteps to equal P_radial.
 
 #if (BL_SPACEDIM == 1)
-	pres_crse_scale = -1.0;
+	pres_crse_scale = 1.0;
 	pres_fine_scale = 1.0;
 #elif (BL_SPACEDIM == 2)
-	pres_crse_scale = -1.0;
+	pres_crse_scale = 1.0;
 	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
 
@@ -754,8 +753,8 @@ Castro::setGridInfo ()
 
     if (level == 0) {
 
-      const int max_level = parent->maxLevel();
-      const int nlevs = max_level + 1;
+      int max_level = parent->maxLevel();
+      int nlevs = max_level + 1;
 
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
@@ -962,12 +961,13 @@ Castro::initData ()
 
 #endif // MAESTRO_INIT
 
+    set_special_tagging_flag(cur_time);
 
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
+       int nc = S_new.nComp();
+       int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -1168,7 +1168,7 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
+#pragma omp parallel reduction(estdt_hydro)
 #endif
           {
             Real dt = max_dt / cfl;
@@ -1738,6 +1738,7 @@ Castro::post_restart ()
          }
 #endif
 
+    set_special_tagging_flag(cur_time);
 
     // initialize the Godunov state array used in hydro -- we wait
     // until here so that ngroups is defined (if needed) in
@@ -1805,13 +1806,6 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
-
-        // Apply all user-specified tagging routines in case the user desires to override this.
-
-        for (int i = num_err_list_default; i < err_list.size(); ++i)
-            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
-
-        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
 
 	// Globally collate the tags.
 
@@ -2641,9 +2635,9 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	const Box& bx = mfi.growntilebox();
 
-	const FArrayBox& stateold = S_old[mfi];
+	FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
-	const FArrayBox& vol      = volume[mfi];
+	FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
 	
 	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
@@ -2741,34 +2735,12 @@ Castro::errorEst (TagBoxArray& tags,
     if (post_step_regrid)
 	t = get_state_data(State_Type).curTime();
 
-    // Apply each of the specified tagging functions.
+    // Apply each of the built-in tagging functions.
 
-    for (int j = 0; j < num_err_list_default; j++)
+    for (int j = 0; j < err_list.size(); j++)
 	apply_tagging_func(tags, clearval, tagval, t, j);
 
-    // Now apply the user-specified tagging functions.
-    // Include problem-specific hooks before and after.
-
-    problem_pre_tagging_hook(tags, clearval, tagval, t);
-
-    for (int j = num_err_list_default; j < err_list.size(); j++)
-        apply_tagging_func(tags, clearval, tagval, t, j);
-
     // Now we'll tag any user-specified zones using the full state array.
-
-    apply_problem_tags(tags, clearval, tagval, time);
-
-    problem_post_tagging_hook(tags, clearval, tagval, t);
-}
-
-
-
-void
-Castro::apply_problem_tags (TagBoxArray& tags,
-                            int          clearval,
-                            int          tagval,
-                            Real         time)
-{
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -2819,7 +2791,6 @@ Castro::apply_problem_tags (TagBoxArray& tags,
             tagfab.tags_and_untags(itags, tilebx);
 	}
     }
-
 }
 
 
@@ -2970,7 +2941,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  const int probin_file_length = probin_file.length();
+  int probin_file_length = probin_file.length();
   Array<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
@@ -3006,7 +2977,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    &print_fortran_warnings, &idx);
+			    print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output
@@ -3086,6 +3057,24 @@ Castro::computeTemp(MultiFab& State)
     }
 }
 
+void
+Castro::set_special_tagging_flag(Real time)
+{
+   if (!do_special_tagging) return;
+
+   MultiFab& S_new = get_new_data(State_Type);
+   Real max_den = S_new.norm0(Density);
+
+   int flag_was_changed = 0;
+   ca_set_special_tagging_flag(max_den,&flag_was_changed);
+   if (ParallelDescriptor::IOProcessor()) {
+      if (flag_was_changed == 1) {
+        std::ofstream os("Bounce_time",std::ios::out);
+        os << "T_Bounce " << time << std::endl;
+        os.close();
+      }
+   }
+}
 
 #ifdef SELF_GRAVITY
 int
@@ -3132,7 +3121,7 @@ Castro::make_radial_data(int is_new)
 
    if (is_new == 1) {
       MultiFab& S = get_new_data(State_Type);
-      const int nc = S.nComp();
+      int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3168,13 +3157,13 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      const Real new_time = state[State_Type].curTime();
+      Real new_time = state[State_Type].curTime();
       set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
    }
    else
    {
       MultiFab& S = get_old_data(State_Type);
-      const int nc = S.nComp();
+      int nc = S.nComp();
       Array<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
@@ -3210,7 +3199,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      const Real old_time = state[State_Type].prevTime();
+      Real old_time = state[State_Type].prevTime();
       set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
    }
 

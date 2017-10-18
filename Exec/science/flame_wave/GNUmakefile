@@ -32,7 +32,7 @@ else
 
 endif
 
-CONDUCTIVITY_DIR := stellar
+Conductivity_dir := stellar
 
 Bpack   := ./Make.package
 Blocs   := .

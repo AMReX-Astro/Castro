@@ -1,7 +1,7 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = FALSE
+DEBUG      = TRUE
 
 DIM        = 1
 
@@ -30,7 +30,7 @@ else
 endif
 
 #Conductivity_dir := constant_opacity
-CONDUCTIVITY_DIR := stellar
+Conductivity_dir := stellar
 
 Bpack   := ./Make.package
 Blocs   := .

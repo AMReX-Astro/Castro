@@ -17,10 +17,10 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: g_lo(3), g_hi(3)
-    real(rt), intent(out):: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),dim)
-    real(rt), intent(in) :: dx(3)
+    integer          :: lo(3), hi(3)
+    integer          :: g_lo(3), g_hi(3)
+    real(rt)         :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),dim)
+    real(rt)         :: dx(3)
 
     ! Local variables
     !     integer          :: i, j, k

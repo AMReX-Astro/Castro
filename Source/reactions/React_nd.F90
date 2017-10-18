@@ -39,16 +39,16 @@ contains
 
     implicit none
 
-    integer , intent(in   ) :: lo(3), hi(3)
-    integer , intent(in   ) :: s_lo(3), s_hi(3)
-    integer , intent(in   ) :: r_lo(3), r_hi(3)
-    integer , intent(in   ) :: w_lo(3), w_hi(3)
-    integer , intent(in   ) :: m_lo(3), m_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
-    real(rt), intent(inout) :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
-    integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    real(rt), intent(in   ) :: time, dt_react
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3)
+    integer          :: r_lo(3), r_hi(3)
+    integer          :: w_lo(3), w_hi(3)
+    integer          :: m_lo(3), m_hi(3)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    real(rt)         :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
+    integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt)         :: time, dt_react
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, rho_e_K, delta_e, delta_rho_e, dx_min
@@ -235,19 +235,19 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(3), hi(3)
-    integer , intent(in   ) :: uo_lo(3), uo_hi(3)
-    integer , intent(in   ) :: un_lo(3), un_hi(3)
-    integer , intent(in   ) :: as_lo(3), as_hi(3)
-    integer , intent(in   ) :: r_lo(3), r_hi(3)
-    integer , intent(in   ) :: m_lo(3), m_hi(3)
-    real(rt), intent(in   ) :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    real(rt), intent(inout) :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
-    real(rt), intent(in   ) :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
-    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
-    integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    real(rt), intent(inout) :: time, dt_react
-    integer , intent(in   ) :: sdc_iter
+    integer          :: lo(3), hi(3)
+    integer          :: uo_lo(3), uo_hi(3)
+    integer          :: un_lo(3), un_hi(3)
+    integer          :: as_lo(3), as_hi(3)
+    integer          :: r_lo(3), r_hi(3)
+    integer          :: m_lo(3), m_hi(3)
+    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt)         :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
+    real(rt)         :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    integer          :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt)         :: time, dt_react
+    integer, intent(in) :: sdc_iter
 
     integer          :: i, j, k, n
     real(rt)         :: rhooInv, rhonInv, rho_e_K, delta_e, delta_rho_e

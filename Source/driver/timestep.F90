@@ -27,13 +27,12 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(inout) :: dt
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt)         :: dx(3), dt, dt_tmp
 
-    real(rt)         :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3, dt_tmp
+    real(rt)         :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3
     integer          :: i, j, k
 
     type (eos_t) :: eos_state
@@ -291,11 +290,10 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(inout) :: dt
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: dx(3), dt
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
@@ -369,11 +367,10 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(inout) ::  dt
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3)
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt)         :: dx(3), dt
 
     real(rt)         :: dt1, dt2, dt3, rho_inv
     integer          :: i, j, k
@@ -461,21 +458,20 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: so_lo(3), so_hi(3)
-    integer, intent(in) :: sn_lo(3), sn_hi(3)
+    integer          :: lo(3), hi(3)
+    integer          :: so_lo(3), so_hi(3)
+    integer          :: sn_lo(3), sn_hi(3)
 #ifdef REACTIONS
-    integer, intent(in) :: ro_lo(3), ro_hi(3)
-    integer, intent(in) :: rn_lo(3), rn_hi(3)
+    integer          :: ro_lo(3), ro_hi(3)
+    integer          :: rn_lo(3), rn_hi(3)
 #endif
-    real(rt), intent(in) :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-    real(rt), intent(in) :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt)         :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
+    real(rt)         :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
 #ifdef REACTIONS
-    real(rt), intent(in) :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
-    real(rt), intent(in) :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt)         :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
+    real(rt)         :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
 #endif
-    real(rt), intent(in) :: dx(3), dt_old
-    real(rt), intent(inout) :: dt_new
+    real(rt)         :: dx(3), dt_old, dt_new
 
     integer          :: i, j, k
     integer          :: n

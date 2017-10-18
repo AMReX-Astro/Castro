@@ -78,8 +78,8 @@ class Parameter(object):
         """ the value is what we sort based on """
         return self.category + "." + self.var
 
-    def __lt__(self, other):
-        return self.value() < other.value()
+    def __cmp__(self, other):
+        return cmp(self.value(), other.value())
 
 
 def make_tex_table():
