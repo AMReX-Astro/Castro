@@ -7,7 +7,7 @@ module actual_riemann_module
                                  UEDEN, UEINT, UFS, UFX, &
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
-                                 QC, QGAMC, QCSML, &
+                                 QC, QGAMC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
@@ -288,7 +288,7 @@ contains
           clsql = gcl*pl*rl
           clsqr = gcr*pr*rr
 
-          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML))
+          csmall = max( small, max( small*qaux(i,j,k3d,QC), small * qaux(i-sx,j-sy,k3d-sz,QC)) ) 
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
 
           ! Note: in the original Colella & Glaz paper, they predicted
@@ -880,7 +880,7 @@ contains
           ! estimate the star state: pstar, ustar
           ! ------------------------------------------------------------------
 
-          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML))
+          csmall = max( small, max( small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC))  )
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
           gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
           gamcr = qaux(i,j,k3d,QGAMC)
@@ -1384,7 +1384,7 @@ contains
 
           ! now we essentially do the CGF solver to get p and u on the
           ! interface, but we won't use these in any flux construction.
-          csmall = max(qaux(i,j,k3d,QCSML), qaux(i-sx,j-sy,k3d-sz,QCSML) )
+          csmall = max( small, max(small * qaux(i,j,k3d,QC) , small * qaux(i-sx,j-sy,k3d-sz,QC)) )
           cavg = HALF*(qaux(i,j,k3d,QC) + qaux(i-sx,j-sy,k3d-sz,QC))
           gamcl = qaux(i-sx,j-sy,k3d-sz,QGAMC)
           gamcr = qaux(i,j,k3d,QGAMC)

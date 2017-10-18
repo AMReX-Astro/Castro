@@ -528,8 +528,6 @@ public:
 
     amrex::Real get_point_mass ();
 
-    void set_special_tagging_flag (amrex::Real time);
-
 #ifdef HYBRID_MOMENTUM
     void construct_old_hybrid_source(amrex::Real time, amrex::Real dt);
 
