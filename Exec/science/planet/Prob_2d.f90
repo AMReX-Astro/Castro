@@ -164,7 +164,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         eos_state%rho = state(i,j,URHO)
         eos_state%T = state(i,j,UTEMP)
-        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
+        eos_state%xn(:) = state(i,j,UFS:)
 
         call eos(eos_input_rt, eos_state)
         state(i,j,UEINT) = eos_state%e
@@ -216,7 +216,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               upert(1) = upert(1) - (ydist/velpert_scale) * &
                    velpert_amplitude * exp( -r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
-                   * (ONE)**vortex
+                   * (-ONE)**vortex
 
               upert(2) = upert(2) + (xdist/velpert_scale) * &
                    velpert_amplitude * exp(-r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &

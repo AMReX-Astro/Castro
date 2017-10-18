@@ -1,0 +1,37 @@
+&fortin
+
+ model_name =  "newmodelcpp.hse"
+
+ apply_vel_field = F
+ velpert_height_loc = 0.0e0
+ velpert_scale = 0e0
+ velpert_amplitude = 0.0e0
+ num_vortices = 0
+
+ zero_vels = F
+ interp_BC = F
+
+ shear_height_loc = 1.3e9
+ shear_amplitude = 44708
+
+/
+
+&extern
+
+eos_gamma=1.4
+
+/
+
+
+&sponge
+  sponge_lower_factor = 0.0
+  sponge_upper_factor = 1.0
+
+  sponge_lower_density = 1.1e-15
+  sponge_upper_density = 1.0e-13
+
+  sponge_timescale    = 5.e3
+
+
+
+/

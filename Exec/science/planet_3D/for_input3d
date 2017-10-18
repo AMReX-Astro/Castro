@@ -1,0 +1,33 @@
+Td                                   [K] =  3000
+T_char                               [K] =  750
+height (z_top)                  [10^9cm] =  11
+width_height_ratio                       =  1
+T_buffer                             [K] =  1e-25
+den_top                         [g/cm^3] =  0.01
+constant g                      [cm/s^3] =  -1000
+constant rho
+width                               [cm] =  1.1e+10
+number of cells in y                     =  64
+number of cells in x                     =  64
+incoming flux                [10^9g/s^3] =  18.3719988
+buffer height                    [1e9cm] =  5.477
+height at P=1mbar               [10^9cm] =  2.3203125
+----------------------------------------
+rho_buffer/rho_top (<10^-10)          =  3.552651806e-18
+cell size (<40)                  [km] =  1718.75
+height at P=1mbar            [10^9cm] =  2.3203125
+Convective zone with P at the bottom of   42272.25023
+kappa0                       [g/cm^3] =  0.00635
+Td                                [K] =  3000
+T_1                               [K] =  750
+Pc                              [bar] =  268.6517394
+Tc                                [K] =  3707.792751
+density_c                    [g/cm^3] =  0.002039181595
+optical depth        (radiative zone) =  6352.428866
+optical depth (radiative+ convective) =  635255082.9
+light crossing time               [s] =  0.005729166667
+At optical depth=1, 
+   z                             [km] =  19765.625
+   density                   [g/cm^3] =  2.2783839e-05
+   T                              [K] =  3000.081726
+   P                            [bar] =  2.428724711
