@@ -1,3 +1,4 @@
+!Aug10
 module bc_ext_fill_module
 
   use bl_constants_module
@@ -184,7 +185,7 @@ contains
 
                          ! zero normal momentum causes pi waves to pass through
                          adv(i,j,UMX) = ZERO
-                         adv(i,j,UMY) = ZERO
+                         adv(i,j,UMX) = ZERO
                          adv(i,j,UMZ) = ZERO
 
                       else
@@ -229,7 +230,7 @@ contains
 
              do j = domlo(2)-1, adv_l2, -1
                 y = problo(2) + delta(2)*(dble(j) + HALF)
-                  do i = adv_l1, adv_h1
+
                    ! set all the variables even though we're testing on URHO
                    if (n == URHO) then
 
@@ -265,9 +266,9 @@ contains
                       adv(i,j,UTEMP) = temp_zone
                       adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                    endif
-                  end do
-              enddo
-          endif  ! yl_ext check
+
+                enddo
+          endif  ! xl_ext check
 
 
        endif
@@ -329,7 +330,7 @@ contains
 
                 enddo
             enddo
-          endif  ! yr_ext check
+          endif  ! xr_ext check
 
        endif
 

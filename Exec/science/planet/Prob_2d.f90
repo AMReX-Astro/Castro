@@ -216,7 +216,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               upert(1) = upert(1) - (ydist/velpert_scale) * &
                    velpert_amplitude * exp( -r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
-                   * (-ONE)**vortex
+                   * (ONE)**vortex
 
               upert(2) = upert(2) + (xdist/velpert_scale) * &
                    velpert_amplitude * exp(-r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
