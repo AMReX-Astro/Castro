@@ -27,7 +27,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   real(rt) :: max_hse_err, dpdr, rhog, hse_err, dr_model
 
-  ! Build "probin" filename from C++ land -- 
+  ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
 
@@ -36,7 +36,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
-  
+
 
   ! Namelist defaults
   apply_vel_field = .false.
@@ -48,7 +48,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   interp_BC = .false.
   zero_vels = .false.
   shear_height_loc = 0.0d0
-  
+
   ! Read namelists
   untin = 9
   open(untin,file=probin(1:namlen),form='formatted',status='old')
@@ -100,16 +100,16 @@ end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -120,8 +120,8 @@ end subroutine amrex_probinit
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
 subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_l3,state_h1,state_h2, &
-                       state_h3,delta,xlo,xhi)
+     state,state_l1,state_l2,state_l3,state_h1,state_h2, &
+     state_h3,delta,xlo,xhi)
 
   use bl_constants_module
   use probdata_module
@@ -134,116 +134,115 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
-        
+
   integer level, nscal
   integer lo(3), hi(3)
   integer state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
   real(rt) :: xlo(3), xhi(3), time, delta(3)
   real(rt) :: state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
-  
+
   real(rt) :: xdist,ydist,zdist,x,y,z,r,upert(3)
   integer i,j,k,n,vortex
 
   type (eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-    z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
-    do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
+     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
 
-        state(i,j,k,URHO)  = interpolate(z,npts_model,model_r, &
-                                      model_state(:,idens_model))
-        state(i,j,k,UTEMP) = interpolate(z,npts_model,model_r, &
-                                       model_state(:,itemp_model))
+           state(i,j,k,URHO)  = interpolate(z,npts_model,model_r, &
+                model_state(:,idens_model))
+           state(i,j,k,UTEMP) = interpolate(z,npts_model,model_r, &
+                model_state(:,itemp_model))
 
 
-        do n = 1, nspec
-           state(i,j,k,UFS-1+n) = interpolate(z,npts_model,model_r, &
-                                            model_state(:,ispec_model-1+n))
-        enddo
-        
-        eos_state%rho = state(i,j,k,URHO)
-        eos_state%T = state(i,j,k,UTEMP)
-        eos_state%xn(:) = state(i,j,k,UFS:)
+           do n = 1, nspec
+              state(i,j,k,UFS-1+n) = interpolate(z,npts_model,model_r, &
+                   model_state(:,ispec_model-1+n))
+           enddo
 
-        call eos(eos_input_rt, eos_state)
-        state(i,j,k,UEINT) = eos_state%e
+           eos_state%rho = state(i,j,k,URHO)
+           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%xn(:) = state(i,j,k,UFS:)
 
+           call eos(eos_input_rt, eos_state)
+           state(i,j,k,UEINT) = eos_state%e
+
+        end do
      end do
-    end do
   end do
 
   ! switch to conserved quantities
   do k = lo(3), hi(3)
-    do j = lo(2), hi(2)
-     do i = lo(1), hi(1)   
-        
-        state(i,j,k,UEDEN) = state(i,j,k,URHO) * state(i,j,k,UEINT)
-        state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
 
-        do n = 1,nspec
-           state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
-        end do
-        
-     enddo
-    end do
+           state(i,j,k,UEDEN) = state(i,j,k,URHO) * state(i,j,k,UEINT)
+           state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT)
+
+           do n = 1,nspec
+              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+           end do
+
+        enddo
+     end do
   enddo
 
   ! Initial velocities
-  state(:,:,:, UMX:UMZ) = ZERO
-  
+  state(:,:,:,UMX:UMZ) = ZERO
+
   ! Now add the velocity perturbation (update the kinetic energy too)
   if (apply_vel_field) then
-    do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(j-lo(3)) + HALF)
-     zdist = z - velpert_height_loc
-      do i = lo(1), hi(1)
-        x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
+     do k = lo(3), hi(3)
+        z = xlo(3) + delta(3)*(dble(j-lo(3)) + HALF)
+        zdist = z - velpert_height_loc
+        do i = lo(1), hi(1)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
-        if (z >= shear_height_loc) then
-            state(:,:,:,UMX) = state(:,:,:,URHO)*shear_amplitude
-            state(:,:,:,UMY) = ZERO
-            state(:,:,:,UMZ) = ZERO
-        endif
-           
-        upert = ZERO
+           if (z >= shear_height_loc) then
+              state(:,:,:,UMX) = state(:,:,:,URHO)*shear_amplitude
+              state(:,:,:,UMY) = ZERO
+              state(:,:,:,UMZ) = ZERO
+           endif
 
-        ! loop over each vortex
-        do vortex = 1, num_vortices
+           upert = ZERO
 
-          xdist = x - xloc_vortices(vortex)
-          r = sqrt(xdist**2.0_rt + zdist**2.0_rt)
+           ! loop over each vortex
+           do vortex = 1, num_vortices
 
-          upert(1) = upert(1) - (zdist/velpert_scale) * &
-                  velpert_amplitude * exp( -r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
+              xdist = x - xloc_vortices(vortex)
+              r = sqrt(xdist**2 + zdist**2)
+
+              upert(1) = upert(1) - (zdist/velpert_scale) * &
+                   velpert_amplitude * exp( -r**2/(TWO*velpert_scale**2)) &
                    * (-ONE)**vortex
 
-          upert(3) = upert(3) + (xdist/velpert_scale) * &
-                   velpert_amplitude * exp(-r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
+              upert(3) = upert(3) + (xdist/velpert_scale) * &
+                   velpert_amplitude * exp(-r**2/(TWO*velpert_scale**2)) &
                    * (-ONE)**vortex
-       enddo
-        do j=lo(1), hi(1)
-          if(mod(j,int(abs(xhi(2)-xlo(2)/delta(2))/4.0_rt))==0.0_rt)then
-          state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * upert(1)
-          state(i,j,k,UMZ) = state(i,j,k,UMZ) + state(i,j,k,URHO) * upert(3)
-          state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF*(state(i,j,k,UMX)**2.0_rt &
-            + state(i,j,k,UMY)**2.0_rt+state(i,j,k,UMZ)**2.0_rt)/state(i,j,k,URHO)
-          end if
+           enddo
+           do j = lo(1), hi(1)
+              if (mod(j, int(abs(xhi(2)-xlo(2)/delta(2))/4.0_rt)) == 0) then
+                 state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * upert(1)
+                 state(i,j,k,UMZ) = state(i,j,k,UMZ) + state(i,j,k,URHO) * upert(3)
+                 state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF*sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
+              end if
+           end do
+
         end do
-
-      end do
-    end do
+     end do
   endif
 
-  
+
 end subroutine ca_initdata
 
 
 subroutine ca_initrad(level,time,lo,hi,nrad, &
-                      rad_state,rad_state_l1,rad_state_l2, rad_state_l3, &
-                      rad_state_h1,rad_state_h2, rad_state_h3, &
-                      delta,xlo,xhi)
-  
+     rad_state,rad_state_l1,rad_state_l2, rad_state_l3, &
+     rad_state_h1,rad_state_h2, rad_state_h3, &
+     delta,xlo,xhi)
+
   use bl_constants_module
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
@@ -254,16 +253,14 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
   integer rad_state_h1,rad_state_h2,rad_state_h3
   real(rt) :: xlo(3), xhi(3), time, delta(3)
   real(rt) :: rad_state(rad_state_l1:rad_state_h1, &
-                        rad_state_l2:rad_state_h2,rad_state_l3:rad_state_h3, nrad)
+       rad_state_l2:rad_state_h2,rad_state_l3:rad_state_h3, nrad)
 
   integer i,j,k
   do k = lo(3), hi(3)
-    do j = lo(2), hi(2)
-      do i = lo(1), hi(1)
-          rad_state(i,j,k,:) = ZERO
-      end do
-    end do
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           rad_state(i,j,k,:) = ZERO
+        end do
+     end do
   end do
 end subroutine ca_initrad
-
-
