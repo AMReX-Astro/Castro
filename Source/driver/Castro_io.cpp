@@ -369,8 +369,8 @@ Castro::restart (Amr&     papa,
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
+       int nc = S_new.nComp();
+       int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);

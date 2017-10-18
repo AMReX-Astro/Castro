@@ -17,13 +17,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1),hi(1)
-    integer , intent(in   ) :: rhl1, rhh1
-    integer , intent(in   ) :: ecxl1, ecxh1
-    integer , intent(in   ) :: coord_type
-    real(rt), intent(inout) :: rhs(rhl1:rhh1)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1)
-    real(rt), intent(in   ) :: dx(1),problo(1)
+    integer          :: lo(1),hi(1)
+    integer          :: rhl1, rhh1
+    integer          :: ecxl1, ecxh1
+    integer          :: coord_type
+    real(rt)         :: rhs(rhl1:rhh1)
+    real(rt)         :: ecx(ecxl1:ecxh1)
+    real(rt)         :: dx(1),problo(1)
 
     real(rt)         :: lapphi
     real(rt)         :: rlo,rhi,rcen
@@ -80,16 +80,16 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1), hi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer          :: lo(1), hi(1)
+    real(rt)         :: dx(1), dr
+    real(rt)         :: problo(1)
 
-    integer , intent(in   ) :: n1d, drdxfac, level
-    real(rt), intent(inout) :: radial_mass(0:n1d-1)
-    real(rt), intent(inout) :: radial_vol (0:n1d-1)
+    integer          :: n1d, drdxfac, level
+    real(rt)         :: radial_mass(0:n1d-1)
+    real(rt)         :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1, r_h1
-    real(rt), intent(in   ) :: state(r_l1:r_h1,NVAR)
+    integer          :: r_l1, r_h1
+    real(rt)         :: state(r_l1:r_h1,NVAR)
 
     integer          :: i, index
     integer          :: ii
@@ -167,15 +167,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(1), hi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer          :: lo(1), hi(1)
+    real(rt)         :: dx(1), dr
+    real(rt)         :: problo(1)
 
-    integer , intent(in   ) :: n1d, level
-    real(rt), intent(in   ) :: radial_grav(0:n1d-1)
+    integer          :: n1d, level
+    real(rt)         :: radial_grav(0:n1d-1)
 
-    integer , intent(in   ) :: g_l1, g_h1
-    real(rt), intent(inout) :: grav(g_l1:g_h1)
+    integer          :: g_l1, g_h1
+    real(rt)         :: grav(g_l1:g_h1)
 
     integer          :: i, index
     real(rt)         :: r, mag_grav
@@ -258,17 +258,17 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: lo(1), hi(1)
-    integer , intent(in   ) :: domlo(1), domhi(1)
-    real(rt), intent(in   ) :: dx(1), dr
-    real(rt), intent(in   ) :: problo(1)
+    integer          :: lo(1), hi(1)
+    integer          :: domlo(1), domhi(1)
+    real(rt)         :: dx(1), dr
+    real(rt)         :: problo(1)
 
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
-    integer , intent(in   ) :: fill_interior
+    integer          :: numpts_1d
+    real(rt)         :: radial_phi(0:numpts_1d-1)
+    integer          :: fill_interior
 
-    integer , intent(in   ) :: p_l1, p_h1
-    real(rt), intent(inout) :: phi(p_l1:p_h1)
+    integer          :: p_l1, p_h1
+    real(rt)         :: phi(p_l1:p_h1)
 
     integer          :: i, index
     real(rt)         :: r

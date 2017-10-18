@@ -229,7 +229,7 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
    MultiFab Enthalpy(grids,dmap,1,1);
    {
        FillPatchIterator fpi(*this, *S, 1, time, State_Type, 0, NUM_STATE);
-       const MultiFab& state = fpi.get_mf();
+       MultiFab& state = fpi.get_mf();
 
        for (MFIter mfi(state); mfi.isValid(); ++mfi)
        {

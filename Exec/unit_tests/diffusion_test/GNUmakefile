@@ -19,7 +19,7 @@ CASTRO_HOME := ../../..
 # This sets the EOS directory in $(CASTRO_HOME)/EOS
 EOS_DIR     := gamma_law_general
 
-CONDUCTIVITY_DIR = constant
+Conductivity_dir = constant
 
 # This sets the network directory in $(CASTRO_HOME)/Networks
 NETWORK_DIR := general_null

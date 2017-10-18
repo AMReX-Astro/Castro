@@ -1092,7 +1092,7 @@ Gravity::test_level_grad_phi_prev(int level)
 
     const Real* dx     = parent->Geom(level).CellSize();
     const Real* problo = parent->Geom(level).ProbLo();
-    const int coord_type     = Geometry::Coord();
+    int coord_type     = Geometry::Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1161,7 +1161,7 @@ Gravity::test_level_grad_phi_curr(int level)
 
     const Real*     dx = parent->Geom(level).CellSize();
     const Real* problo = parent->Geom(level).ProbLo();
-    const int coord_type     = Geometry::Coord();
+    int coord_type     = Geometry::Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1387,7 +1387,7 @@ Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx = geom.CellSize();
-    const Real dr        = dx[0] / double(drdxfac);
+    Real dr        = dx[0] / double(drdxfac);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2043,7 +2043,7 @@ void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2059,7 +2059,7 @@ void
 Gravity::unweight_edges(int level, const Array<MultiFab*>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif

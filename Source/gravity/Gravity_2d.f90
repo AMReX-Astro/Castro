@@ -18,15 +18,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(2),hi(2)
-    integer , intent(in   ) :: coord_type
-    integer , intent(in   ) :: rhl1, rhl2, rhh1, rhh2
-    integer , intent(in   ) :: ecxl1, ecxl2, ecxh1, ecxh2
-    integer , intent(in   ) :: ecyl1, ecyl2, ecyh1, ecyh2
-    real(rt), intent(inout) :: rhs(rhl1:rhh1,rhl2:rhh2)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
-    real(rt), intent(in   ) :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
-    real(rt), intent(in   ) :: dx(2), problo(2)
+    integer          :: lo(2),hi(2)
+    integer          :: coord_type
+    integer          :: rhl1, rhl2, rhh1, rhh2
+    integer          :: ecxl1, ecxl2, ecxh1, ecxh2
+    integer          :: ecyl1, ecyl2, ecyh1, ecyh2
+    real(rt)         :: rhs(rhl1:rhh1,rhl2:rhh2)
+    real(rt)         :: ecx(ecxl1:ecxh1,ecxl2:ecxh2)
+    real(rt)         :: ecy(ecyl1:ecyh1,ecyl2:ecyh2)
+    real(rt)         :: dx(2), problo(2)
 
     ! Local variables
     real(rt)         :: lapphi
@@ -85,16 +85,16 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(2),hi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer          :: lo(2),hi(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
-    integer , intent(in   ) :: n1d,drdxfac,level
-    real(rt), intent(inout) :: radial_mass(0:n1d-1)
-    real(rt), intent(inout) :: radial_vol (0:n1d-1)
+    integer          :: n1d,drdxfac,level
+    real(rt)         :: radial_mass(0:n1d-1)
+    real(rt)         :: radial_vol (0:n1d-1)
 
-    integer , intent(in   ) :: r_l1,r_l2,r_h1,r_h2
-    real(rt), intent(in   ) :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
+    integer          :: r_l1,r_l2,r_h1,r_h2
+    real(rt)         :: state(r_l1:r_h1,r_l2:r_h2,NVAR)
 
     integer          :: i,j,index
     integer          :: ii,jj
@@ -174,15 +174,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer , intent(in   ) :: lo(2),hi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer          :: lo(2),hi(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
-    integer , intent(in   ) :: n1d,level
-    real(rt), intent(in   ) :: radial_grav(0:n1d-1)
+    integer          :: n1d,level
+    real(rt)         :: radial_grav(0:n1d-1)
 
-    integer , intent(in   ) :: g_l1,g_l2,g_h1,g_h2
-    real(rt), intent(inout) :: grav(g_l1:g_h1,g_l2:g_h2,2)
+    integer          :: g_l1,g_l2,g_h1,g_h2
+    real(rt)         :: grav(g_l1:g_h1,g_l2:g_h2,2)
 
     integer          :: i,j,index
     real(rt)         :: x,y,r,mag_grav
@@ -254,17 +254,17 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: lo(2),hi(2)
-    integer , intent(in   ) :: domlo(2),domhi(2)
-    real(rt), intent(in   ) :: dx(2),dr
-    real(rt), intent(in   ) :: problo(2)
+    integer          :: lo(2),hi(2)
+    integer          :: domlo(2),domhi(2)
+    real(rt)         :: dx(2),dr
+    real(rt)         :: problo(2)
 
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
-    integer , intent(in   ) :: fill_interior
+    integer          :: numpts_1d
+    real(rt)         :: radial_phi(0:numpts_1d-1)
+    integer          :: fill_interior
 
-    integer , intent(in   ) :: p_l1,p_l2,p_h1,p_h2
-    real(rt), intent(inout) :: phi(p_l1:p_h1,p_l2:p_h2)
+    integer          :: p_l1,p_l2,p_h1,p_h2
+    real(rt)         :: phi(p_l1:p_h1,p_l2:p_h2)
 
     integer          :: i,j,index
     real(rt)         :: x,y,r

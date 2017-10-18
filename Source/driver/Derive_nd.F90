@@ -22,15 +22,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none 
 
-    integer, intent(in)     :: lo(3), hi(3)
-    integer, intent(in)     :: s_lo(3), s_hi(3), nv
-    integer, intent(in)     :: d_lo(3), d_hi(3), nc
-    integer, intent(in)     :: domlo(3), domhi(3)
-    integer, intent(in)     :: bc(3,2,nc)
-    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
-    real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)     :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
 
@@ -72,15 +72,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in)     :: lo(3), hi(3)
-    integer, intent(in)     :: v_lo(3), v_hi(3), nv
-    integer, intent(in)     :: d_lo(3), d_hi(3), nc
-    integer, intent(in)     :: domlo(3), domhi(3)
-    integer, intent(in )    :: bc(3,2,nc)
-    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)     :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
 
@@ -110,15 +110,15 @@ contains
 
     implicit none
 
-    integer, intent(in)  :: lo(3), hi(3)
-    integer, intent(in)  :: v_lo(3), v_hi(3), nv
-    integer, intent(in)  :: d_lo(3), d_hi(3), nc
-    integer, intent(in)  :: domlo(3), domhi(3)
-    integer, intent(in)  :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout):: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)  :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: rhoInv
@@ -161,15 +161,15 @@ contains
 
     implicit none
 
-    integer, intent(in)     :: lo(3), hi(3)
-    integer, intent(in)     :: v_lo(3), v_hi(3), nv
-    integer, intent(in)     :: d_lo(3), d_hi(3), nc
-    integer, intent(in)     :: domlo(3), domhi(3)
-    integer, intent(in)     :: bc(3,2,nc)
-    real(rt), intent(in)    :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)     :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: rhoInv
@@ -208,15 +208,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in)  :: lo(3), hi(3)
-    integer, intent(in)  :: v_lo(3), v_hi(3), nv
-    integer, intent(in)  :: d_lo(3), d_hi(3), nc
-    integer, intent(in)  :: domlo(3), domhi(3)
-    integer, intent(in)  :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)  :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: dat1inv
@@ -246,15 +246,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none 
 
-    integer, intent(in)    :: lo(3), hi(3)
-    integer, intent(in)    :: g_lo(3), g_hi(3), ng
-    integer, intent(in)    :: d_lo(3), d_hi(3), nc
-    integer, intent(in)    :: domlo(3), domhi(3)
-    integer, intent(in)    :: bc(3,2,nc)
-    real(rt), intent(in)   :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout):: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
-    real(rt), intent(in)   ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in)    :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: g_lo(3), g_hi(3), ng
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
+    real(rt)         ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
 
@@ -285,15 +285,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3), nv
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: x, y, z, r
@@ -326,15 +326,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: m_lo(3), m_hi(3), nv
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
-    real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: m_lo(3), m_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
 
@@ -362,13 +362,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: L_lo(3), L_hi(3), ncomp_L ! == 1
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u ! == 4
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -406,13 +406,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: L_lo(3), L_hi(3), ncomp_L ! == 1
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u ! == 4
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -450,13 +450,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: L_lo(3), L_hi(3), ncomp_L ! == 1
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u ! == 4
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
+    integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
+    integer          :: lo(3), hi(3), domlo(3), domhi(3)
+    real(rt)         :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -496,14 +496,14 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: p_lo(3), p_hi(3), ncomp_p
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: p_lo(3), p_hi(3), ncomp_p
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -543,14 +543,14 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: e_lo(3), e_hi(3), ncomp_e
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: e_lo(3), e_hi(3), ncomp_e
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     real(rt)         :: rhoInv, ux, uy, uz
     integer          :: i, j, k
@@ -583,14 +583,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: e_lo(3), e_hi(3), ncomp_e
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: e_lo(3), e_hi(3), ncomp_e
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
     !
@@ -622,14 +622,14 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: c_lo(3), c_hi(3), ncomp_c
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: c_lo(3), c_hi(3), ncomp_c
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -672,14 +672,14 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: m_lo(3), m_hi(3), ncomp_mach
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
-    real(rt), intent(in) ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: m_lo(3), m_hi(3), ncomp_mach
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
+    real(rt)         ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -722,14 +722,14 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3), ncomp_s
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3), ncomp_s
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -774,14 +774,14 @@ contains
     implicit none
     
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: t_lo(3), t_hi(3), ncomp_t
-    integer, intent(in) :: u_lo(3), u_hi(3), ncomp_u
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(inout) :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
-    real(rt), intent(in) :: dx(3), xlo(3), time, dt
-    integer, intent(in) :: bc(3,2,ncomp_u), level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: t_lo(3), t_hi(3), ncomp_t
+    integer          :: u_lo(3), u_hi(3), ncomp_u
+    integer          :: domlo(3), domhi(3)
+    real(rt)         :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
+    real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
+    real(rt)         :: dx(3), xlo(3), time, dt
+    integer          :: bc(3,2,ncomp_u), level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: rhoInv, eint, enuc, t_s, t_e
@@ -840,14 +840,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3), nv
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
-    real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: lo(3), hi(3)
+    integer          :: s_lo(3), s_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
     integer          :: level, grid_no
 
     integer          :: i, j, k
@@ -873,14 +873,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: l_lo(3), l_hi(3), nd
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3), level, grid_no
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
-    real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: lo(3), hi(3)
+    integer          :: l_lo(3), l_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3), level, grid_no
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
     integer          :: i, j, k
 
@@ -911,14 +911,14 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3), nv
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3), level, grid_no
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
-    real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: lo(3), hi(3)
+    integer          :: v_lo(3), v_hi(3), nv
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3), level, grid_no
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
     integer          :: i, j, k
     real(rt)         :: uy, uz, vx, vz, wx, wy, v1, v2, v3
@@ -993,15 +993,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3), nd
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
     real(rt)         :: ulo, uhi, vlo, vhi, wlo, whi
@@ -1044,15 +1044,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: k_lo(3), k_hi(3), nk
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
-    real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: k_lo(3), k_hi(3), nk
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
     integer          :: i, j, k
 
@@ -1081,15 +1081,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: k_lo(3), k_hi(3), nk
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: dnull(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
-    real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: k_lo(3), k_hi(3), nk
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: dnull(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
+    real(rt)         ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
 
   end subroutine ca_dernull
 
@@ -1115,15 +1115,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3), nd
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
     real(rt)         :: coeff
     integer          :: i, j, k
 
@@ -1175,15 +1175,15 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3), nd
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
     real(rt)         :: coeff
     integer          :: i, j, k
 
@@ -1232,15 +1232,15 @@ contains
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3), nd
-    integer, intent(in) :: d_lo(3), d_hi(3), nc
-    integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: bc(3,2,nc)
-    real(rt), intent(in) :: delta(3), xlo(3), time, dt
-    real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-    integer, intent(in) :: level, grid_no
+    integer          :: lo(3), hi(3)
+    integer          :: u_lo(3), u_hi(3), nd
+    integer          :: d_lo(3), d_hi(3), nc
+    integer          :: domlo(3), domhi(3)
+    integer          :: bc(3,2,nc)
+    real(rt)         :: delta(3), xlo(3), time, dt
+    real(rt)         :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
+    real(rt)         :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer          :: level, grid_no
     real(rt), allocatable  :: coeff_x(:,:,:), coeff_y(:,:,:), coeff_z(:,:,:)
     real(rt) :: diff_term
     integer          :: i, j, k

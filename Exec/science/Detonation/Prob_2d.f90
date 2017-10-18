@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx
+                             xn, ihe4, ic12, io16
   use network, only: network_species_index, nspec
   use bl_error_module, only: bl_error
   use amrex_fort_module, only: rt => amrex_real
@@ -14,7 +14,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T, smallx
+  namelist /fortin/ T_l, T_r, dens, cfrac, frac, idir, w_T, center_T
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -32,7 +32,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   T_l = 1.e9_rt
   T_r = 5.e7_rt
   dens = 1.e8_rt
-  smallx = 1.e-12_rt
 
   idir = 1                ! direction across which to jump
   frac = 0.5              ! fraction of the domain for the interface
@@ -64,9 +63,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set the default mass fractions
   allocate(xn(nspec))
 
-  xn(:) = smallx
+  xn(:) = 0.e0_rt
   xn(ic12) = cfrac
-  xn(ihe4) = 1.e0_rt - cfrac - (nspec - 1)*smallx
+  xn(ihe4) = 1.e0_rt - cfrac
 
 end subroutine amrex_probinit
 

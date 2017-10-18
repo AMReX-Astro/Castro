@@ -440,7 +440,7 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
                                    QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &
@@ -609,6 +609,7 @@ contains
              qaux(i,j,k,QC   )  = eos_state % cs
 #endif
 
+             qaux(i,j,k,QCSML)  = max(small, small * qaux(i,j,k,QC))
           enddo
        enddo
     enddo

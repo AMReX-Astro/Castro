@@ -15,15 +15,15 @@
       use amrex_fort_module, only : rt => amrex_real
       implicit none
 
-      integer , intent(in   ) :: lo(2),hi(2)
-      real(rt), intent(in   ) :: dx(2),dr
-      real(rt), intent(in   ) :: problo(2)
+      integer          :: lo(2),hi(2)
+      real(rt)         :: dx(2),dr
+      real(rt)         :: problo(2)
 
-      integer , intent(in   ) :: n1d,drdxfac,level
-      real(rt), intent(inout) :: radial_pres(0:n1d-1)
+      integer          :: n1d,drdxfac,level
+      real(rt)         :: radial_pres(0:n1d-1)
 
-      integer , intent(in   ) :: r_l1,r_l2,r_h1,r_h2
-      real(rt), intent(in   ) :: var(r_l1:r_h1,r_l2:r_h2,NVAR)
+      integer          :: r_l1,r_l2,r_h1,r_h2
+      real(rt)         :: var(r_l1:r_h1,r_l2:r_h2,NVAR)
 
       integer          :: i,j,n,index
       integer          :: ii,jj

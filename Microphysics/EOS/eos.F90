@@ -73,10 +73,7 @@ contains
 
     !$acc routine seq
 
-    use eos_type_module, only: eos_t, composition
-#ifdef EXTRA_THERMO
-    use eos_type_module, only : composition_derivatives
-#endif
+    use eos_type_module, only: eos_t, composition, composition_derivatives
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
 #ifndef ACC
@@ -119,11 +116,9 @@ contains
        call actual_eos(input, state)
     endif
 
-#if EXTRA_THERMO
     ! Get dpdX, dedX, dhdX.
 
     call composition_derivatives(state)
-#endif
 
   end subroutine eos
 
