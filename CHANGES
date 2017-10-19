@@ -19,6 +19,11 @@
   -- Conductivity_dir has been renamed CONDUCTIVITY_DIR to be consistent
      with EOS_DIR and NETWORK_DIR
 
+  -- we no longer get the compositional derivatives as part of the EOS
+     call.  If you need this functionality, you need to set the 
+     preprocessor variable (in Fortran), EXTRA_THERMO
+
+
 # 17.10
 
   -- It is sometimes useful to be able to do some sort of initialization
