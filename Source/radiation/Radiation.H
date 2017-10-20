@@ -479,9 +479,9 @@ protected:
 
   // arrays of flux registers 
   // flux_cons[level] is a amrex::FluxRegister, which contains fluxes for all groups
-  amrex::Array <std::unique_ptr<amrex::FluxRegister> > flux_cons;
-  amrex::Array <std::unique_ptr<amrex::FluxRegister> > flux_cons_old;
-  amrex::Array <std::unique_ptr<amrex::FluxRegister> > flux_trial;
+  amrex::Vector <std::unique_ptr<amrex::FluxRegister> > flux_cons;
+  amrex::Vector <std::unique_ptr<amrex::FluxRegister> > flux_cons_old;
+  amrex::Vector <std::unique_ptr<amrex::FluxRegister> > flux_trial;
 
   // for deferred sync
   amrex::Vector<amrex::Real> delta_t_old;
