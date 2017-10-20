@@ -46,7 +46,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 #else
     // If we're doing SDC, time-center the source term (using the
     // current iteration's old sources and the last iteration's new
-    // sources).
+    // sources). Since the "new-time" sources are just the corrector step
+    // of the predictor-corrector formalism, we want to add the full
+    // value of the "new-time" sources to the old-time sources to get a
+    // time-centered value.
 
     MultiFab& SDC_source = get_new_data(SDC_Source_Type);
 
