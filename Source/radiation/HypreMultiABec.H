@@ -72,9 +72,9 @@ class AuxVar {
 
   void collapse();
 
-  int get_locations(amrex::Array<int>& levels, amrex::Array<amrex::IntVect>& cells);
+  int get_locations(amrex::Vector<int>& levels, amrex::Vector<amrex::IntVect>& cells);
 
-  int get_coeffs(amrex::Array<amrex::Real>& values);
+  int get_coeffs(amrex::Vector<amrex::Real>& values);
 
   void clear();
 
@@ -173,7 +173,7 @@ class BndryAuxVar : public BndryAuxVarBase {
  protected:
 
   amrex::BoxArray            grids;
-  amrex::Array<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
+  amrex::Vector<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
 };
 
 // CrseBndryAuxVar is like a BndryAuxVar organized by coarse grid
@@ -234,10 +234,10 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
   void initialize_slaves(Location loc);
 
   amrex::BoxArray                    cgrids, fgrids;
-  amrex::Array< amrex::Array<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
-  amrex::Array< amrex::Array<std::unique_ptr<amrex::Mask> > >       msk[2*BL_SPACEDIM];
-  amrex::Array< amrex::Array<int> >                          fine_index[2*BL_SPACEDIM];
-  amrex::Array< amrex::Array<std::unique_ptr<amrex::FArrayBox> > >  face_data[2*BL_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::Mask> > >       msk[2*BL_SPACEDIM];
+  amrex::Vector< amrex::Vector<int> >                          fine_index[2*BL_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::FArrayBox> > >  face_data[2*BL_SPACEDIM];
 };
 
 class HypreMultiABec {
@@ -276,7 +276,7 @@ class HypreMultiABec {
     return flux_factor;
   }
 
-  static void getFaceMetric(amrex::Array<amrex::Real>& r,
+  static void getFaceMetric(amrex::Vector<amrex::Real>& r,
                             const amrex::Box& reg,
                             const amrex::Orientation& ori,
                             const amrex::Geometry& geom) {
@@ -393,24 +393,24 @@ class HypreMultiABec {
 
   int crse_level, fine_level, solver_flag;
 
-  amrex::Array<amrex::Geometry> geom;
-  amrex::Array<amrex::BoxArray> grids;
-  amrex::Array<amrex::DistributionMapping> dmap;
-  amrex::Array<amrex::IntVect> fine_ratio;
-  amrex::Array<NGBndry*> bd;
+  amrex::Vector<amrex::Geometry> geom;
+  amrex::Vector<amrex::BoxArray> grids;
+  amrex::Vector<amrex::DistributionMapping> dmap;
+  amrex::Vector<amrex::IntVect> fine_ratio;
+  amrex::Vector<NGBndry*> bd;
   int bdcomp; // component number used for bd
 
-  amrex::Array< amrex::Array<amrex::BoxArray> > subgrids;
+  amrex::Vector< amrex::Vector<amrex::BoxArray> > subgrids;
 
-  amrex::Array<std::unique_ptr<amrex::MultiFab> > acoefs;
-  amrex::Array<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
+  amrex::Vector<std::unique_ptr<amrex::MultiFab> > acoefs;
+  amrex::Vector<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
   amrex::Real alpha, beta;
   amrex::Real reltol, abstol;
 
-  amrex::Array<std::unique_ptr<amrex::MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
+  amrex::Vector<std::unique_ptr<amrex::MultiFab> > SPa; // LO_SANCHEZ_POMRANING alpha
 
-  amrex::Array<std::unique_ptr<BndryAuxVar> >    cintrp, ederiv;
-  amrex::Array<std::unique_ptr<CrseBndryAuxVar> > c_cintrp, c_ederiv, c_entry;
+  amrex::Vector<std::unique_ptr<BndryAuxVar> >    cintrp, ederiv;
+  amrex::Vector<std::unique_ptr<CrseBndryAuxVar> > c_cintrp, c_ederiv, c_entry;
 
   int verbose, verbose_threshold, bho, use_subgrids;
 

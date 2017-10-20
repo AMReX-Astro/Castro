@@ -327,7 +327,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     {
 
 	bool local = true;
-	Array<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
+	Vector<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
 
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
@@ -567,7 +567,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     {
 
       bool local = true;
-      Array<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
+      Vector<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
 
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {

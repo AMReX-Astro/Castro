@@ -16,8 +16,8 @@ using namespace amrex;
 
 int         MGRadBndry::ngroups = 1;
 int         MGRadBndry::first = 1;
-Array<int>  MGRadBndry::bcflag(2*BL_SPACEDIM);
-Array< Array<Real> > MGRadBndry::bcval(2*BL_SPACEDIM);
+Vector<int>  MGRadBndry::bcflag(2*BL_SPACEDIM);
+Vector< Vector<Real> > MGRadBndry::bcval(2*BL_SPACEDIM);
 Real        MGRadBndry::time = 0.0;
 int         MGRadBndry::correction = 0;
 
@@ -75,11 +75,11 @@ void MGRadBndry::init(const int _ngroups)
 
   ParmParse pp("radiation");
 
-  Array<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
+  Vector<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
   pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
   pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
 
-  Array< Array<Real> > lo_bcval(BL_SPACEDIM), hi_bcval(BL_SPACEDIM);
+  Vector< Vector<Real> > lo_bcval(BL_SPACEDIM), hi_bcval(BL_SPACEDIM);
   lo_bcval[0].resize(ngroups, 0.0);
   hi_bcval[0].resize(ngroups, 0.0);
   pp.queryarr("lo_bcval0", lo_bcval[0], 0, ngroups);
@@ -131,8 +131,8 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    Array<Real> &bloc = bcloc[face];
-    Array<RadBoundCond> &bctag = bcond[face];
+    Vector<Real> &bloc = bcloc[face];
+    Vector<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     Real delta = dx[dir]*ratio[dir];
@@ -194,13 +194,13 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
   const Box& domain = geom.Domain();
 
   // variables for multigroup
-  Array<Real> value_nu;
+  Vector<Real> value_nu;
   value_nu.resize(ngroups);
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-//    Array<Real> &bloc = bcloc[face];
-//    Array<RadBoundCond> &bctag = bcond[face];
+//    Vector<Real> &bloc = bcloc[face];
+//    Vector<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));

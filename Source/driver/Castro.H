@@ -102,7 +102,7 @@ public:
     //
     //This is called only when we restart from an old checkpoint.
     //
-    virtual void set_state_in_checkpoint (amrex::Array<int>& state_in_checkpoint) override;
+    virtual void set_state_in_checkpoint (amrex::Vector<int>& state_in_checkpoint) override;
     //
     //Call amrex::AmrLevel::checkPoint and then add radiation info
     //
@@ -275,9 +275,9 @@ public:
 
     void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    amrex::Array<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
+    amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
-    void print_source_change(amrex::Array<amrex::Real> update);
+    void print_source_change(amrex::Vector<amrex::Real> update);
 
     void print_all_source_changes(amrex::Real dt, bool is_new);
 
@@ -326,19 +326,19 @@ public:
     //
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
-                                   amrex::Array<int>&           n_cycle,
-                                   const amrex::Array<amrex::IntVect>& ref_ratio,
-                                   amrex::Array<amrex::Real>&          dt_level,
+                                   amrex::Vector<int>&           n_cycle,
+                                   const amrex::Vector<amrex::IntVect>& ref_ratio,
+                                   amrex::Vector<amrex::Real>&          dt_level,
                                    amrex::Real                  stop_time) override;
     //
     // Compute new `dt'.
     //
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
-                               amrex::Array<int>&           n_cycle,
-                               const amrex::Array<amrex::IntVect>& ref_ratio,
-                               amrex::Array<amrex::Real>&          dt_min,
-                               amrex::Array<amrex::Real>&          dt_level,
+                               amrex::Vector<int>&           n_cycle,
+                               const amrex::Vector<amrex::IntVect>& ref_ratio,
+                               amrex::Vector<amrex::Real>&          dt_min,
+                               amrex::Vector<amrex::Real>&          dt_level,
                                amrex::Real                  stop_time,
                                int                   post_regrid_flag) override;
     //
@@ -389,7 +389,7 @@ public:
 
 #ifdef DO_PROBLEM_POST_SIMULATION
     // Do work at the end of the simulation -- before the last outputs
-    static void problem_post_simulation (amrex::Array<std::unique_ptr<AmrLevel> >& amr_level);
+    static void problem_post_simulation (amrex::Vector<std::unique_ptr<AmrLevel> >& amr_level);
 #endif
 
     //
@@ -573,7 +573,7 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    static amrex::Array<std::string> source_names;
+    static amrex::Vector<std::string> source_names;
 
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -590,7 +590,7 @@ protected:
     // Build a mask that ghost cells overlapping with interior cells in the same multifab
     // are set to 0, whereas others are set to 1.
     //
-    amrex::Array<std::unique_ptr<amrex::iMultiFab> > ib_mask;
+    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
 #ifdef SELF_GRAVITY
@@ -600,7 +600,7 @@ protected:
     // Difference between composite and level solve for phi.
     //
     amrex::MultiFab comp_minus_level_phi;
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
 #endif
 
     //
@@ -627,15 +627,15 @@ protected:
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
 #if (BL_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
 
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
@@ -660,24 +660,24 @@ protected:
     //
     // Non-hydro source terms.
     //
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > old_sources;
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > new_sources;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > old_sources;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > new_sources;
 
     //
     // State data to hold if we want to do a retry.
     //
-    amrex::Array<std::unique_ptr<amrex::StateData> > prev_state;
+    amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
 
     //
     // Storage for the method of lines stages
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > k_mol;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
 
     // MOL Butcher tableau
     static int MOL_STAGES;
   
-    static amrex::Array< amrex::Array<amrex::Real> > a_mol;
-    static amrex::Array<amrex::Real> b_mol;
-    static amrex::Array<amrex::Real> c_mol;
+    static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
+    static amrex::Vector<amrex::Real> b_mol;
+    static amrex::Vector<amrex::Real> c_mol;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -740,7 +740,7 @@ protected:
     amrex::MultiFab             volume;
     amrex::MultiFab             area[BL_SPACEDIM];
     amrex::MultiFab             dLogArea[1];
-    amrex::Array< amrex::Array<amrex::Real> > radius;
+    amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
     //
     // Keep track of which AMR iteration we're on.

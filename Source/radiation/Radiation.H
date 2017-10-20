@@ -34,7 +34,7 @@ public:
   static int do_multigroup;
   static int nGroups;
   static int nNeutrinoSpecies;
-  static amrex::Array<int> nNeutrinoGroups;
+  static amrex::Vector<int> nNeutrinoGroups;
   static int plot_neutrino_group_energies_per_MeV;
   static int plot_neutrino_group_energies_total;
 
@@ -51,7 +51,7 @@ public:
   static int icomp_lambda, icomp_kp, icomp_kr;
   static int icomp_lab_Er, icomp_lab_Fr, icomp_com_Fr; 
   static int nplotvar;   // extra plot variables
-  static amrex::Array<std::string> plotvar_names;
+  static amrex::Vector<std::string> plotvar_names;
 
   static int filter_lambda_T, filter_lambda_S;
   static int filter_prim_int, filter_prim_T, filter_prim_S;
@@ -89,7 +89,7 @@ public:
   static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
   static amrex::Real prop_temp_floor;
 
-  amrex::Array<std::unique_ptr<amrex::MultiFab> > plotvar;
+  amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 
   Radiation(amrex::Amr* Parent, class Castro* castro, int restart = 0);
   ~Radiation() { }
@@ -475,7 +475,7 @@ protected:
 
   int do_kappa_stm_emission;
 
-  amrex::Array<amrex::Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
+  amrex::Vector<amrex::Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
 
   // arrays of flux registers 
   // flux_cons[level] is a amrex::FluxRegister, which contains fluxes for all groups
@@ -484,12 +484,12 @@ protected:
   amrex::Array <std::unique_ptr<amrex::FluxRegister> > flux_trial;
 
   // for deferred sync
-  amrex::Array<amrex::Real> delta_t_old;
+  amrex::Vector<amrex::Real> delta_t_old;
 
   // divergence of flux
-  amrex::Array<std::unique_ptr<amrex::MultiFab> > dflux;
+  amrex::Vector<std::unique_ptr<amrex::MultiFab> > dflux;
 
-  amrex::Array<amrex::Real> xnu, nugroup, dnugroup;
+  amrex::Vector<amrex::Real> xnu, nugroup, dnugroup;
   std::string group_units;
   amrex::Real group_print_factor;
 
