@@ -223,7 +223,7 @@ Castro::sum_integrated_quantities ()
 
     int nfoo_sum = 24 + NumSpec;
 
-    amrex::Array<Real> foo_sum(nfoo_sum);
+    amrex::Vector<Real> foo_sum(nfoo_sum);
 
     foo_sum[0] = mass;
 

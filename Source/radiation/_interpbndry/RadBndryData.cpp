@@ -93,7 +93,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
 	    // now have to set as not_covered the periodic translates as well
 	    if( geom.isAnyPeriodic() ){
 	      Box dombox(geom.Domain());
-	      Array<IntVect> pshifts(27);
+	      Vector<IntVect> pshifts(27);
 	      geom.periodicShift( dombox, face_box, pshifts );
 	      for( int iiv=0; iiv<pshifts.size(); iiv++){
 		IntVect iv = pshifts[iiv];
@@ -113,7 +113,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
 	    // handle special cases if is periodic
 	    if( geom.isAnyPeriodic() && 
 		!geom.Domain().contains(face_box) ){
-	      Array<IntVect> pshifts(27);
+	      Vector<IntVect> pshifts(27);
 	      geom.periodicShift( geom.Domain(), face_box, pshifts);
 	      for( int iiv=0; iiv<pshifts.size(); iiv++ ){
 		IntVect iv = pshifts[iiv];
