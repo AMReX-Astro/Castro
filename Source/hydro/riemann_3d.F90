@@ -8,7 +8,7 @@ module riemann_module
                                  QFX, URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
                                  UFS, UFX, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
-                                 QC, QCSML, QGAMC, &
+                                 QC, QGAMC, &
 #ifdef RADIATION
                                  GDERADS, GDLAMS, QGAMCG, QLAMS, &
                                  qrad, qradhi, qptot, qreitot, fspace_type, &

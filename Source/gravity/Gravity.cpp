@@ -42,12 +42,12 @@ int  Gravity::stencil_type   = CC_CROSS_STENCIL;
 
 static Real Ggravity = 0.;
 
-Array< Array<Real> > Gravity::radial_grav_old(MAX_LEV);
-Array< Array<Real> > Gravity::radial_grav_new(MAX_LEV);
-Array< Array<Real> > Gravity::radial_mass(MAX_LEV);
-Array< Array<Real> > Gravity::radial_vol(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
-Array< Array<Real> > Gravity::radial_pres(MAX_LEV);
+Vector< Vector<Real> > Gravity::radial_pres(MAX_LEV);
 #endif
 
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
@@ -348,7 +348,7 @@ int Gravity::test_results_of_solves()
   return test_solves;
 }
 
-Array<std::unique_ptr<MultiFab> >&
+Vector<std::unique_ptr<MultiFab> >&
 Gravity::get_grad_phi_prev(int level)
 {
   return grad_phi_prev[level];
@@ -360,14 +360,14 @@ Gravity::get_grad_phi_prev_comp(int level, int comp)
   return grad_phi_prev[level][comp].get();
 }
 
-Array<std::unique_ptr<MultiFab> >&
+Vector<std::unique_ptr<MultiFab> >&
 Gravity::get_grad_phi_curr(int level)
 {
   return grad_phi_curr[level];
 }
 
 void
-Gravity::plus_grad_phi_curr(int level, Array<std::unique_ptr<MultiFab> >& addend)
+Gravity::plus_grad_phi_curr(int level, Vector<std::unique_ptr<MultiFab> >& addend)
 {
   for (int n = 0; n < BL_SPACEDIM; n++)
     grad_phi_curr[level][n]->plus(*addend[n],0,1,0);
@@ -387,7 +387,7 @@ Gravity::swapTimeLevels (int level)
 void
 Gravity::solve_for_phi (int               level,
 			MultiFab&         phi,
-                        const Array<MultiFab*>& grad_phi,
+                        const Vector<MultiFab*>& grad_phi,
 			int               is_new)
 {
     BL_PROFILE("Gravity::solve_for_phi()");
@@ -411,21 +411,21 @@ Gravity::solve_for_phi (int               level,
 
     if (level <= max_solve_level) {
 
-      Array<MultiFab*> phi_p(1, &phi);
+      Vector<MultiFab*> phi_p(1, &phi);
 
       const auto& rhs = get_rhs(level, 1, is_new);
 
-      Array< Array<MultiFab*> > grad_phi_p(1);
+      Vector< Vector<MultiFab*> > grad_phi_p(1);
       grad_phi_p[0].resize(BL_SPACEDIM);
       for (int i = 0; i < BL_SPACEDIM ; i++) {
 	  grad_phi_p[0][i] = grad_phi[i];
       }
 
-      Array<MultiFab*> res_null;
+      Vector<MultiFab*> res_null;
 
       level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
 						       phi_p,
-						       amrex::GetArrOfPtrs(rhs),
+						       amrex::GetVecOfPtrs(rhs),
 						       grad_phi_p,
 						       res_null,
 						       time);
@@ -457,9 +457,9 @@ Gravity::solve_for_phi (int               level,
 void
 Gravity::solve_for_delta_phi (int                        crse_level,
                               int                        fine_level,
-			      const Array<MultiFab*>&          rhs,
-                              const Array<MultiFab*>&          delta_phi,
-                              const Array<Array<MultiFab*> >&  grad_delta_phi)
+			      const Vector<MultiFab*>&          rhs,
+                              const Vector<MultiFab*>&          delta_phi,
+                              const Vector<Vector<MultiFab*> >&  grad_delta_phi)
 {
     BL_PROFILE("Gravity::solve_for_delta_phi()");
 
@@ -473,7 +473,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
       std::cout << "...                    up to fine_level = " << fine_level << std::endl;
     }
 
-    Array<Geometry> geom(nlevs);
+    Vector<Geometry> geom(nlevs);
 
     for (int ilev = 0; ilev < nlevs; ++ilev) {
 	int amr_lev = ilev + crse_level;
@@ -491,7 +491,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 	fmg.set_bc(mg_bc);
     }
 
-    Array<Array<std::unique_ptr<MultiFab> > > coeffs(nlevs);
+    Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
 #if (BL_SPACEDIM < 3)
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
     {
@@ -506,10 +506,10 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 		coeffs[ilev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetArrOfPtrs(coeffs[ilev]));
+	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetVecOfPtrs(coeffs[ilev]));
 	}
 
-	fmg.set_gravity_coeffs(amrex::GetArrOfArrOfPtrs(coeffs));
+	fmg.set_gravity_coeffs(amrex::GetVecOfVecOfPtrs(coeffs));
     }
     else
 #endif
@@ -540,7 +540,7 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 }
 
 void
-Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& drho, const Array<MultiFab*>& dphi)
+Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& drho, const Vector<MultiFab*>& dphi)
 {
     BL_PROFILE("Gravity::gravity_sync()");
 
@@ -559,14 +559,14 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
     // needs a ghost zone for holding the boundary condition
     // in the same way that phi does.
 
-    Array<std::unique_ptr<MultiFab> > delta_phi(nlevs);
+    Vector<std::unique_ptr<MultiFab> > delta_phi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 	delta_phi[lev - crse_level].reset(new MultiFab(grids[lev], dmap[lev], 1, 1));
 	delta_phi[lev - crse_level]->setVal(0.0);
     }
 
-    Array< Array<std::unique_ptr<MultiFab> > > ec_gdPhi(nlevs);
+    Vector< Vector<std::unique_ptr<MultiFab> > > ec_gdPhi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 	ec_gdPhi[lev - crse_level].resize(BL_SPACEDIM);
@@ -587,7 +587,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
     // We will temporarily leave the RHS divided by (4 * pi * G) because that
     // is the form expected by the boundary condition routine.
 
-    Array<std::unique_ptr<MultiFab> > rhs(nlevs);
+    Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 	rhs[lev - crse_level].reset( new MultiFab(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0));
@@ -605,13 +605,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
 
 #if (BL_SPACEDIM == 3)
       if ( direct_sum_bcs )
-          fill_direct_sum_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
+          fill_direct_sum_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       else {
-          fill_multipole_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       }
 #elif (BL_SPACEDIM == 2)
       if (lnum > 0) {
-          fill_multipole_BCs(crse_level,fine_level,amrex::GetArrOfPtrs(rhs),*delta_phi[crse_level]);
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       } else {
 	int fill_interior = 0;
 	make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
@@ -655,9 +655,9 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Array<MultiFab*>& d
     // Do multi-level solve for delta_phi.
 
     solve_for_delta_phi(crse_level, fine_level, 
-			amrex::GetArrOfPtrs(rhs),
-			amrex::GetArrOfPtrs(delta_phi),
-			amrex::GetArrOfArrOfPtrs(ec_gdPhi));
+			amrex::GetVecOfPtrs(rhs),
+			amrex::GetVecOfPtrs(delta_phi),
+			amrex::GetVecOfVecOfPtrs(ec_gdPhi));
 
     // In the all-periodic case we enforce that delta_phi averages to zero.
 
@@ -768,13 +768,13 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level,amrex::GetArrOfArrOfPtrs(grad_phi_curr),
+    actual_multilevel_solve(level,finest_level,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
 			    is_new,use_previous_phi_as_guess);
 }
 
 void
 Gravity::actual_multilevel_solve (int crse_level, int finest_level,
-                                  const Array<Array<MultiFab*> >& grad_phi,
+                                  const Vector<Vector<MultiFab*> >& grad_phi,
 				  int is_new,
                                   int use_previous_phi_as_guess)
 {
@@ -785,7 +785,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
     int nlevels = finest_level - crse_level + 1;
 
-    Array<MultiFab*> phi_p(nlevels);
+    Vector<MultiFab*> phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
 	int amr_lev = ilev + crse_level;
@@ -806,7 +806,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 	make_radial_phi(0, *rhs[0], *phi_p[0], 1);
     }
 
-    Array<Array<MultiFab*> > grad_phi_p(nlevels);
+    Vector<Vector<MultiFab*> > grad_phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
 	int amr_lev = ilev + crse_level;
@@ -824,9 +824,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
     if (fine_level >= crse_level) {
 
-      Array<MultiFab*> res_null;
+      Vector<MultiFab*> res_null;
       solve_phi_with_fmg(crse_level, fine_level,
-			 phi_p, amrex::GetArrOfPtrs(rhs), grad_phi_p, res_null,
+			 phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
 			 time);
 
       // Average phi from fine to coarse level
@@ -892,7 +892,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
       // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
       // not do anything because we do not fill on physical boundaries.
 
-      const Array<BCRec>& gp_bcs = LevelData[amr_lev]->get_desc_lst()[Gravity_Type].getBCs();
+      const Vector<BCRec>& gp_bcs = LevelData[amr_lev]->get_desc_lst()[Gravity_Type].getBCs();
 
       for (int n = 0; n < BL_SPACEDIM; ++n) {
 	  amrex::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
@@ -950,7 +950,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
-       amrex::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_prev[level]), geom);
+       amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
@@ -1028,7 +1028,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     } else if (gravity_type == "PoissonGrav") {
 
 	const Geometry& geom = parent->Geom(level);
-	amrex::average_face_to_cellcenter(grav, amrex::GetArrOfConstPtrs(grad_phi_curr[level]), geom);
+	amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
 	grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
@@ -1203,9 +1203,9 @@ Gravity::test_level_grad_phi_curr(int level)
 void
 Gravity::create_comp_minus_level_grad_phi(int level,
 					  MultiFab& comp_phi,
-					  const Array<MultiFab*>& comp_gphi,
+					  const Vector<MultiFab*>& comp_gphi,
 					  MultiFab& comp_minus_level_phi,
-					  Array<std::unique_ptr<MultiFab> >& comp_minus_level_grad_phi)
+					  Vector<std::unique_ptr<MultiFab> >& comp_minus_level_grad_phi)
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
@@ -1250,7 +1250,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     for (int i = 0; i < crse_gphi_fine_BA.size(); ++i)
         crse_gphi_fine_BA.set(i,amrex::coarsen(grids[level+1][i],fine_ratio));
 
-    Array<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
+    Vector<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
         BoxArray eba = crse_gphi_fine_BA;
@@ -1260,8 +1260,8 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
 
-    amrex::average_down_faces(amrex::GetArrOfConstPtrs(grad_phi[level+1]),
-			       amrex::GetArrOfPtrs(crse_gphi_fine),
+    amrex::average_down_faces(amrex::GetVecOfConstPtrs(grad_phi[level+1]),
+			       amrex::GetVecOfPtrs(crse_gphi_fine),
 			       fine_ratio);
 
     const Geometry& cgeom = parent->Geom(level);
@@ -1285,9 +1285,9 @@ Gravity::test_composite_phi (int crse_level)
     int finest_level = parent->finestLevel();
     int nlevels = finest_level - crse_level + 1;
 
-    Array<std::unique_ptr<MultiFab> > phi(nlevels);
-    Array<std::unique_ptr<MultiFab> > rhs(nlevels);
-    Array<std::unique_ptr<MultiFab> > res(nlevels);
+    Vector<std::unique_ptr<MultiFab> > phi(nlevels);
+    Vector<std::unique_ptr<MultiFab> > rhs(nlevels);
+    Vector<std::unique_ptr<MultiFab> > res(nlevels);
     for (int ilev = 0; ilev < nlevels; ++ilev)
     {
 	int amr_lev = crse_level + ilev;
@@ -1308,12 +1308,12 @@ Gravity::test_composite_phi (int crse_level)
 
     Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
 
-    Array< Array<MultiFab*> > grad_phi_null;
+    Vector< Vector<MultiFab*> > grad_phi_null;
     solve_phi_with_fmg(crse_level, finest_level,
-		       amrex::GetArrOfPtrs(phi),
-		       amrex::GetArrOfPtrs(rhs),
+		       amrex::GetVecOfPtrs(phi),
+		       amrex::GetVecOfPtrs(rhs),
 		       grad_phi_null,
-		       amrex::GetArrOfPtrs(res),
+		       amrex::GetVecOfPtrs(res),
 		       time);
 
     // Average residual from fine to coarse level before printing the norm
@@ -1381,7 +1381,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 }
 
 void
-Gravity::interpolate_monopole_grav(int level, Array<Real>& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFab& grav_vector)
 {
     int n1d = radial_grav.size();
 
@@ -1413,10 +1413,10 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     int n1d = drdxfac*numpts_at_level;
 
-    Array<Real> radial_mass(n1d,0.0);
-    Array<Real> radial_vol(n1d,0.0);
-    Array<Real> radial_phi(n1d,0.0);
-    Array<Real> radial_grav(n1d+1,0.0);
+    Vector<Real> radial_mass(n1d,0.0);
+    Vector<Real> radial_vol(n1d,0.0);
+    Vector<Real> radial_phi(n1d,0.0);
+    Vector<Real> radial_grav(n1d+1,0.0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1427,8 +1427,8 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    Array< Array<Real> > priv_radial_mass(nthreads);
-    Array< Array<Real> > priv_radial_vol (nthreads);
+    Vector< Vector<Real> > priv_radial_mass(nthreads);
+    Vector< Vector<Real> > priv_radial_vol (nthreads);
     for (int i=0; i<nthreads; i++) {
 	priv_radial_mass[i].resize(n1d,0.0);
 	priv_radial_vol [i].resize(n1d,0.0);
@@ -1529,7 +1529,7 @@ Gravity::init_multipole_grav()
 }
 
 void
-Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Array<MultiFab*>& Rhs, MultiFab& phi)
+Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
     // Multipole BCs only make sense to construct if we are starting from the coarse level.
 
@@ -1610,12 +1610,12 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Array<MultiFab
 
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
-	Array<std::unique_ptr<FArrayBox> > priv_qL0(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_qLC(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_qLS(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_qU0(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_qUC(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_qUS(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qL0(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qLC(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qLS(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qU0(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qUC(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_qUS(nthreads);
 	for (int i=0; i<nthreads; i++) {
 	    priv_qL0[i].reset(new FArrayBox(boxq0));
 	    priv_qLC[i].reset(new FArrayBox(boxqC));
@@ -1777,7 +1777,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Array<MultiFab
 
 #if (BL_SPACEDIM == 3)
 void
-Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFab*>& Rhs, MultiFab& phi)
+Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
     BL_ASSERT(crse_level==0);
 
@@ -1867,12 +1867,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFa
 
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
-	Array<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
-	Array<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
+	Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
 	for (int i=0; i<nthreads; i++) {
 	    priv_bcXYLo[i].reset(new FArrayBox(boxXY));
 	    priv_bcXYHi[i].reset(new FArrayBox(boxXY));
@@ -2010,7 +2010,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Array<MultiFa
 
 #if (BL_SPACEDIM < 3)
 void
-Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Array<MultiFab*>& coeffs)
+Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = Geometry::Coord();
@@ -2056,7 +2056,7 @@ Gravity::unweight_cc(int level, MultiFab& cc)
 }
 
 void
-Gravity::unweight_edges(int level, const Array<MultiFab*>& edges)
+Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = Geometry::Coord();
@@ -2222,7 +2222,7 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 #endif
 
 void
-Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
+Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
 {
     BL_PROFILE("Gravity::make_radial_gravity()");
 
@@ -2304,10 +2304,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
 #ifdef GR_GRAV
-	Array< Array<Real> > priv_radial_pres(nthreads);
+	Vector< Vector<Real> > priv_radial_pres(nthreads);
 #endif
-	Array< Array<Real> > priv_radial_mass(nthreads);
-	Array< Array<Real> > priv_radial_vol (nthreads);
+	Vector< Vector<Real> > priv_radial_mass(nthreads);
+	Vector< Vector<Real> > priv_radial_vol (nthreads);
 	for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
 	    priv_radial_pres[i].resize(n1d,0.0);
@@ -2382,7 +2382,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
         std::cout << "Gravity::make_radial_gravity: Sum of mass over all levels " << sum_over_levels << std::endl;
 
     int n1d = radial_mass[level].size();
-    Array<Real> radial_mass_summed(n1d,0);
+    Vector<Real> radial_mass_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
@@ -2424,8 +2424,8 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     //   the domain.
     // ***************************************************************** //
 
-    Array<Real> radial_vol_summed(n1d,0);
-    Array<Real> radial_den_summed(n1d,0);
+    Vector<Real> radial_vol_summed(n1d,0);
+    Vector<Real> radial_den_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
@@ -2455,7 +2455,7 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
     }
 
 #ifdef GR_GRAV
-    Array<Real> radial_pres_summed(n1d,0);
+    Vector<Real> radial_pres_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
@@ -2506,10 +2506,10 @@ Gravity::make_radial_gravity(int level, Real time, Array<Real>& radial_grav)
 
 Real
 Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
-			     const Array<MultiFab*>& phi,
-			     const Array<MultiFab*>& rhs,
-			     const Array<Array<MultiFab*> >& grad_phi,
-			     const Array<MultiFab*>& res,
+			     const Vector<MultiFab*>& phi,
+			     const Vector<MultiFab*>& rhs,
+			     const Vector<Vector<MultiFab*> >& grad_phi,
+			     const Vector<MultiFab*>& res,
 			     Real time)
 {
     BL_PROFILE("Gravity::solve_phi_with_fmg()");
@@ -2559,7 +2559,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
         rhs[ilev]->mult(Ggravity);
     }
 
-    Array<Geometry> geom(nlevs);
+    Vector<Geometry> geom(nlevs);
     for (int ilev = 0; ilev < nlevs; ++ilev) {
 	int amr_lev = ilev + crse_level;
 	geom[ilev] = parent->Geom(amr_lev);
@@ -2578,7 +2578,7 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 	fmg.set_bc(mg_bc, CPhi, *phi[0]);
     }
 
-    Array<Array<std::unique_ptr<MultiFab> > > coeffs(nlevs);
+    Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
 #if (BL_SPACEDIM < 3)
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
     {
@@ -2593,10 +2593,10 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
 		coeffs[ilev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetArrOfPtrs(coeffs[ilev]));
+	    applyMetricTerms(amr_lev, *rhs[ilev], amrex::GetVecOfPtrs(coeffs[ilev]));
 	}
 
-	fmg.set_gravity_coeffs(amrex::GetArrOfArrOfPtrs(coeffs));
+	fmg.set_gravity_coeffs(amrex::GetVecOfVecOfPtrs(coeffs));
     }
     else
 #endif
@@ -2658,10 +2658,10 @@ Gravity::solve_phi_with_fmg (int crse_level, int fine_level,
     return final_resnorm;
 }
 
-Array<std::unique_ptr<MultiFab> >
+Vector<std::unique_ptr<MultiFab> >
 Gravity::get_rhs (int crse_level, int nlevs, int is_new)
 {
-    Array<std::unique_ptr<MultiFab> > rhs(nlevs);
+    Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
 
     for (int ilev = 0; ilev < nlevs; ++ilev)
     {
@@ -2750,7 +2750,7 @@ Gravity::update_max_rhs()
 #if (BL_SPACEDIM < 3)
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
     {
-	Array<Array<std::unique_ptr<MultiFab> > > coeffs(nlevs);
+	Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
 
 	for (int lev = 0; lev < nlevs; ++lev) {
 
@@ -2767,7 +2767,7 @@ Gravity::update_max_rhs()
 		coeffs[lev][i]->setVal(1.0);
 	    }
 
-	    applyMetricTerms(lev, *rhs[lev], amrex::GetArrOfPtrs(coeffs[lev]));
+	    applyMetricTerms(lev, *rhs[lev], amrex::GetVecOfPtrs(coeffs[lev]));
 	}
     }
 #endif

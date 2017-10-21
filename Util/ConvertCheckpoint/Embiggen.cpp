@@ -62,7 +62,7 @@ int   max_grid_size(4096);
 int   coord(-1);
 const std::string CheckPointVersion = "CheckPointVersion_1.0";
 
-Array<int> nsets_save(1);
+Vector<int> nsets_save(1);
 
 VisMF::How how = VisMF::OneFilePerCPU;
 
@@ -79,7 +79,7 @@ struct FakeStateData {
     TimeInterval old_time;
     MultiFab *new_data;
     MultiFab *old_data;
-    Array< Array<BCRec> > bc;
+    Vector< Vector<BCRec> > bc;
 };
 
 
@@ -89,23 +89,23 @@ struct FakeAmrLevel {
     BoxArray grids;                   // Cell-centered locations of grids.
     IntVect crse_ratio;               // Refinement ratio to coarser level.
     IntVect fine_ratio;               // Refinement ratio to finer level.
-    Array<FakeStateData> state;       // Array of state data.
-    Array<FakeStateData> new_state;   // Array of new state data.
+    Vector<FakeStateData> state;       // Array of state data.
+    Vector<FakeStateData> new_state;   // Array of new state data.
 };
 
 
 struct FakeAmr {
   int                  finest_level;
   Real                 cumtime;
-  Array<Real>          dt_level;
-  Array<int>           level_steps;
-  Array<int>           level_count;
-  Array<int>           n_cycle;
-  Array<Real>          dt_min;
-  Array<IntVect>       ref_ratio;
-  Array<Geometry>      geom;
-  Array< Array<Real> > dx;
-  Array<FakeAmrLevel> fakeAmrLevels;
+  Vector<Real>          dt_level;
+  Vector<int>           level_steps;
+  Vector<int>           level_count;
+  Vector<int>           n_cycle;
+  Vector<Real>          dt_min;
+  Vector<IntVect>       ref_ratio;
+  Vector<Geometry>      geom;
+  Vector< Vector<Real> > dx;
+  Vector<FakeAmrLevel> fakeAmrLevels;
 };
 
 FakeAmr fakeAmr;
