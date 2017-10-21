@@ -66,6 +66,16 @@ make help
   This will tell you the value of all the compilers and their options.
 
 
+\item {\em How do I use a system's BLAS library instead of compiling and
+  linking the one that comes with the \starkiller\ microphysics?}
+
+  To use a system's \index{BLAS}BLAS library, set the Make variable
+  \makevar{USE\_SYSTEM\_BLAS} to {\tt TRUE}.  This will then look at
+  the Make variable \makevar{BLAS\_LIBRARY} for the library to link
+  (defaults to {\tt -lopenblas}).
+
+
+
 
 \end{enumerate}
 
