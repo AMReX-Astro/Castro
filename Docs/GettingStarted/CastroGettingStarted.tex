@@ -111,11 +111,11 @@ problem in 1-d, 2-d or 3-d.
 
 \item In {\tt Sedov/}, edit the {\tt GNUmakefile}, and set
   \begin{itemize}
-    \item {\tt DIM = 2} 
+    \item \makevar{DIM} {\tt = 2} 
 
       This is the dimensionality---here we pick 2-d.
 
-    \item {\tt COMP = gnu}
+    \item \makevar{COMP} {\tt = gnu}
 
       This is the set of compilers.  {\tt gnu} are a good default
       choice (this will use {\tt g++} and {\tt gfortran}.  You can
@@ -124,12 +124,12 @@ problem in 1-d, 2-d or 3-d.
       If you want to try other compilers than the GNU suite and they
       don't work, please let us know.
 
-    \item {\tt DEBUG = FALSE}
+    \item \makevar{DEBUG} {\tt = FALSE}
 
       This disabled debugging checks and results in a more
       optimized executable.
 
-    \item {\tt USE\_MPI = FALSE}
+    \item \makevar{USE\_MPI} {\tt = FALSE}
 
       This turns off parallelization via MPI.  Set it to {\tt TRUE} to
       build with MPI---this requires that you have the MPI library

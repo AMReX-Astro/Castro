@@ -259,11 +259,11 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 // and want to amortize the cost of the parallel reductions.
 // Note that the resultant output is volume-weighted.
 
-Array<Real>
+Vector<Real>
 Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 {
 
-  Array<Real> update(source.nComp(), 0.0);
+  Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component
   // at a time of the volume-weighted source.
@@ -292,7 +292,7 @@ Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 // interested in printing changes to energy, mass, etc.
 
 void
-Castro::print_source_change(Array<Real> update)
+Castro::print_source_change(Vector<Real> update)
 {
 
   BL_ASSERT(update.size() == NUM_STATE);
@@ -324,7 +324,7 @@ void
 Castro::print_all_source_changes(Real dt, bool is_new)
 {
 
-  Array< Array<Real> > summed_updates;
+  Vector< Vector<Real> > summed_updates;
 
   summed_updates.resize(num_src);
 
@@ -345,7 +345,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 #endif
       if (coalesce_update_diagnostics) {
 
-	  Array<Real> coalesced_update(NUM_STATE, 0.0);
+	  Vector<Real> coalesced_update(NUM_STATE, 0.0);
 
 	  for (int n = 0; n < num_src; ++n) {
 	      if (!source_flag(n)) continue;

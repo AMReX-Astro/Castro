@@ -54,7 +54,7 @@ Castro::strang_react_first_half(Real time, Real dt)
     // Use managed arrays so that we don't have to worry about
     // deleting things at the end.
 
-    Array<std::unique_ptr<MultiFab> > temp_data;
+    Vector<std::unique_ptr<MultiFab> > temp_data;
     std::unique_ptr<iMultiFab> temp_idata;
 
     if (use_custom_knapsack_weights) {
@@ -170,7 +170,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     iMultiFab* mask_temp;
     MultiFab* weights_temp;
 
-    Array<std::unique_ptr<MultiFab> > temp_data;
+    Vector<std::unique_ptr<MultiFab> > temp_data;
     std::unique_ptr<iMultiFab> temp_idata;
 
     if (use_custom_knapsack_weights) {

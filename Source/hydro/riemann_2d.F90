@@ -6,7 +6,7 @@ module riemann_module
   use meth_params_module, only : NQ, NQAUX, NVAR, QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, &
                                  QFX, URHO, UEDEN, UEINT, &
-                                 GDPRES, GDGAME, QGAMC, QC, QCSML, &
+                                 GDPRES, GDGAME, QGAMC, QC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
                                  GDERADS, GDLAMS, QGAMCG, QLAMS, &

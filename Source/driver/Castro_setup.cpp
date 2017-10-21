@@ -232,7 +232,7 @@ Castro::variableSetUp ()
   std::string gravity_type = "none";
   pp.query("gravity_type", gravity_type);
   const int gravity_type_length = gravity_type.length();
-  Array<int> gravity_type_name(gravity_type_length);
+  Vector<int> gravity_type_name(gravity_type_length);
 
   for (int i = 0; i < gravity_type_length; i++)
     gravity_type_name[i] = gravity_type[i];
@@ -264,7 +264,7 @@ Castro::variableSetUp ()
   const int coord_type = Geometry::Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
-  Array<Real> center(BL_SPACEDIM, 0.0);
+  Vector<Real> center(BL_SPACEDIM, 0.0);
   ParmParse ppc("castro");
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
@@ -276,7 +276,7 @@ Castro::variableSetUp ()
   // and store them in the Fortran module.
 
   const int probin_file_length = probin_file.length();
-  Array<int> probin_file_name(probin_file_length);
+  Vector<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
@@ -396,8 +396,8 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  Array<BCRec>       bcs(NUM_STATE);
-  Array<std::string> name(NUM_STATE);
+  Vector<BCRec>       bcs(NUM_STATE);
+  Vector<std::string> name(NUM_STATE);
 
   BCRec bc;
   cnt = 0;
@@ -425,7 +425,7 @@ Castro::variableSetUp ()
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
     int len = 20;
-    Array<int> int_spec_names(len);
+    Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];
@@ -455,7 +455,7 @@ Castro::variableSetUp ()
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
     int len = 20;
-    Array<int> int_aux_names(len);
+    Vector<int> int_aux_names(len);
     // This call return the actual length of each string in "len"
     ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
     char char_aux_names[len+1];
@@ -515,7 +515,7 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> state_type_source_names(NUM_STATE);
+  Vector<std::string> state_type_source_names(NUM_STATE);
 
   for (int i = 0; i < NUM_STATE; i++)
     state_type_source_names[i] = name[i] + "_source";
