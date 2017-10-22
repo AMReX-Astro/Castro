@@ -78,4 +78,5 @@ amr.plot_per         = 5.e-6      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin
+amr.probin_file = probin.boost
+
