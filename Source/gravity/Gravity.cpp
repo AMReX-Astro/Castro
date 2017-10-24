@@ -15,6 +15,11 @@
 
 #include <AMReX_FMultiGrid.H>
 
+#ifdef CASTRO_MLMG
+#include <AMReX_MLMG.H>
+#include <AMReX_MLPoisson.H>
+#endif
+
 #define MAX_LEV 15
 
 #include "gravity_defaults.H"
