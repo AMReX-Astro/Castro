@@ -180,9 +180,28 @@ private:
 			     const amrex::Vector<amrex::MultiFab*>& res,
 			     amrex::Real time);
 
+    void solve_for_delta_phi_with_fmg (int crse_level, int fine_level,
+                                       const amrex::Vector<amrex::MultiFab*>& rhs,
+                                       const amrex::Vector<amrex::MultiFab*>& delta_phi,
+                                       const amrex::Vector<amrex::Vector<amrex::MultiFab*> >&  grad_delta_phi);
+
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > get_rhs (int crse_level, int nlevs, int is_new);
 
     void sanity_check (int level);
+
+#ifdef CASTRO_MLMG
+    amrex::Real solve_phi_with_mlmg (int crse_level, int fine_level,
+                                     const amrex::Vector<amrex::MultiFab*>& phi,
+                                     const amrex::Vector<amrex::MultiFab*>& rhs,
+                                     const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
+                                     const amrex::Vector<amrex::MultiFab*>& res,
+                                     amrex::Real time);
+
+    void solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
+                                        const amrex::Vector<amrex::MultiFab*>& rhs,
+                                        const amrex::Vector<amrex::MultiFab*>& delta_phi,
+                                        const amrex::Vector<amrex::Vector<amrex::MultiFab*> >&  grad_delta_phi);
+#endif
 };
 
 class GradPhiPhysBCFunct

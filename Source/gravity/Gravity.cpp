@@ -428,12 +428,26 @@ Gravity::solve_for_phi (int               level,
 
       Vector<MultiFab*> res_null;
 
-      level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
-						       phi_p,
-						       amrex::GetVecOfPtrs(rhs),
-						       grad_phi_p,
-						       res_null,
-						       time);
+#ifdef CASTRO_MLMG
+      if (use_mlmg_solver)
+      {
+          level_solver_resnorm[level] = solve_phi_with_mlmg(level, level,
+                                                            phi_p,
+                                                            amrex::GetVecOfPtrs(rhs),
+                                                            grad_phi_p,
+                                                            res_null,
+                                                            time);
+      }
+      else
+#endif
+      {
+          level_solver_resnorm[level] = solve_phi_with_fmg(level, level,
+                                                           phi_p,
+                                                           amrex::GetVecOfPtrs(rhs),
+                                                           grad_phi_p,
+                                                           res_null,
+                                                           time);
+      }
 
     }
     else {
@@ -468,6 +482,25 @@ Gravity::solve_for_delta_phi (int                        crse_level,
 {
     BL_PROFILE("Gravity::solve_for_delta_phi()");
 
+#ifdef CASTRO_MLMG
+    if (use_mlmg_solver)
+    {
+        solve_for_delta_phi_with_mlmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
+    }
+    else
+#endif
+    {
+        solve_for_delta_phi_with_fmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
+    }
+}
+
+void
+Gravity::solve_for_delta_phi_with_fmg (int                        crse_level,
+                                       int                        fine_level,
+                                       const Vector<MultiFab*>&          rhs,
+                                       const Vector<MultiFab*>&          delta_phi,
+                                       const Vector<Vector<MultiFab*> >&  grad_delta_phi)
+{
     int nlevs = fine_level - crse_level + 1;
 
     BL_ASSERT(grad_delta_phi.size() == nlevs);
@@ -830,9 +863,20 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
     if (fine_level >= crse_level) {
 
       Vector<MultiFab*> res_null;
-      solve_phi_with_fmg(crse_level, fine_level,
-			 phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
-			 time);
+#ifdef CASTRO_MLMG
+      if (use_mlmg_solver)
+      {
+          solve_phi_with_mlmg(crse_level, fine_level,
+                              phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
+                              time);
+      }
+      else
+#endif
+      {
+          solve_phi_with_fmg(crse_level, fine_level,
+                             phi_p, amrex::GetVecOfPtrs(rhs), grad_phi_p, res_null,
+                             time);
+      }
 
       // Average phi from fine to coarse level
       for (int amr_lev = fine_level; amr_lev > crse_level; amr_lev--)
@@ -1314,12 +1358,26 @@ Gravity::test_composite_phi (int crse_level)
     Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
 
     Vector< Vector<MultiFab*> > grad_phi_null;
-    solve_phi_with_fmg(crse_level, finest_level,
-		       amrex::GetVecOfPtrs(phi),
-		       amrex::GetVecOfPtrs(rhs),
-		       grad_phi_null,
-		       amrex::GetVecOfPtrs(res),
-		       time);
+#ifdef CASTRO_MLMG
+    if (use_mlmg_solver)
+    {
+        solve_phi_with_mlmg(crse_level, finest_level,
+                            amrex::GetVecOfPtrs(phi),
+                            amrex::GetVecOfPtrs(rhs),
+                            grad_phi_null,
+                            amrex::GetVecOfPtrs(res),
+                            time);        
+    }
+    else
+#endif
+    {
+        solve_phi_with_fmg(crse_level, finest_level,
+                           amrex::GetVecOfPtrs(phi),
+                           amrex::GetVecOfPtrs(rhs),
+                           grad_phi_null,
+                           amrex::GetVecOfPtrs(res),
+                           time);
+    }
 
     // Average residual from fine to coarse level before printing the norm
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
@@ -2783,3 +2841,26 @@ Gravity::update_max_rhs()
 	max_rhs = std::max(max_rhs, rhs[lev]->max(0));
 
 }
+
+#ifdef CASTRO_MLMG
+Real
+Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
+                              const Vector<MultiFab*>& phi,
+                              const Vector<MultiFab*>& rhs,
+                              const Vector<Vector<MultiFab*> >& grad_phi,
+                              const Vector<MultiFab*>& res,
+                              Real time)
+{
+    return solve_phi_with_fmg(crse_level, fine_level, phi, rhs, grad_phi, res, time);
+}
+
+void
+Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
+                                        const Vector<MultiFab*>& rhs,
+                                        const Vector<MultiFab*>& delta_phi,
+                                        const Vector<Vector<MultiFab*> >&  grad_delta_phi)
+{
+    solve_for_delta_phi_with_fmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
+}
+
+#endif
