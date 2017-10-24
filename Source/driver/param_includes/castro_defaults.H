@@ -108,7 +108,6 @@ amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
 int         Castro::grav_source_type = 4;
-int         Castro::use_mlmg_solver = 0;
 int         Castro::do_rotation = -1;
 #ifdef ROTATION
 amrex::Real Castro::rotational_period = -1.e200;

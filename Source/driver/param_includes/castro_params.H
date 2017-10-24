@@ -108,7 +108,6 @@ static amrex::Real diffuse_cond_scale_fac;
 static int do_grav;
 static int moving_center;
 static int grav_source_type;
-static int use_mlmg_solver;
 static int do_rotation;
 #ifdef ROTATION
 static amrex::Real rotational_period;

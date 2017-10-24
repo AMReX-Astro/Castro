@@ -254,7 +254,6 @@
 \runparamNS{rotational\_period}{castro} &  the rotation period for the corotating frame & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{state\_in\_rotating\_frame}{castro} &  Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate). & 1 \\
-\runparamNS{use\_mlmg\_solver}{castro} &  Use C++ MLMG linear solver for self gravity & 0 \\
 
 
 \end{longtable}
@@ -691,6 +690,7 @@
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

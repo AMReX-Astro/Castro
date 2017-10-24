@@ -393,9 +393,6 @@ moving_center                int           0
 # energy state variables.
 grav_source_type             int           4                  y
 
-# Use C++ MLMG linear solver for self gravity
-use_mlmg_solver              int           0                  n
-
 # permits rotation calculation to be turned on and off
 do_rotation                  int          -1                  y
 
@@ -570,7 +567,8 @@ max_solve_level             int            MAX_LEV-1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
-
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
 
 @namespace: diffusion Diffusion static

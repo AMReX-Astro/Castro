@@ -14,3 +14,4 @@ pp.query("no_composite", no_composite);
 pp.query("do_composite_phi_correction", do_composite_phi_correction);
 pp.query("max_solve_level", max_solve_level);
 pp.query("get_g_from_phi", get_g_from_phi);
+pp.query("use_mlmg_solver", use_mlmg_solver);
