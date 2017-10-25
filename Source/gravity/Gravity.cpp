@@ -2851,7 +2851,125 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
                               const Vector<MultiFab*>& res,
                               Real time)
 {
-    return solve_phi_with_fmg(crse_level, fine_level, phi, rhs, grad_phi, res, time);
+    BL_PROFILE("Gravity::solve_phi_with_mlmg()");
+
+    int nlevs = fine_level-crse_level+1;
+
+    if (crse_level == 0 && !Geometry::isAllPeriodic())
+    {
+        if (verbose) {
+            amrex::Print() << " ... Making bc's for phi at level 0\n";
+        }
+
+#if (BL_SPACEDIM == 3)
+	if ( direct_sum_bcs ) {
+	    fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
+        } else {
+	    fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
+	}
+#elif (BL_SPACEDIM == 2)
+	if (lnum > 0) {
+            fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
+	} else {
+            int fill_interior = 0;
+            make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+	}
+#else
+	int fill_interior = 0;
+	make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+#endif
+    }
+
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        rhs[ilev]->mult(Ggravity);
+    }
+    
+    Vector<Geometry> gmv;
+    Vector<BoxArray> bav;
+    Vector<DistributionMapping> dmv;
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        gmv.push_back(parent->Geom(ilev+crse_level));
+        bav.push_back(rhs[ilev]->boxArray());
+        dmv.push_back(rhs[ilev]->DistributionMap());
+    }
+
+    MLPoisson mlpoisson(gmv, bav, dmv);
+
+    {
+        std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
+        std::array<MLLinOp::BCType,AMREX_SPACEDIM> hibc;
+        for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+            if (gmv[0].isPeriodic(idim)) {
+                lobc[idim] = MLLinOp::BCType::Periodic;
+                hibc[idim] = MLLinOp::BCType::Periodic;
+            } else {
+                if (phys_bc->lo(idim) == Symmetry) {
+                    lobc[idim] = MLLinOp::BCType::Neumann;
+                } else {
+                    lobc[idim] = MLLinOp::BCType::Dirichlet;
+                }
+                if (phys_bc->hi(idim) == Symmetry) {
+                    hibc[idim] = MLLinOp::BCType::Neumann;
+                } else {
+                    hibc[idim] = MLLinOp::BCType::Dirichlet;
+                }
+            }
+        }
+        mlpoisson.setDomainBC(lobc, hibc);
+    }
+
+    if (mlpoisson.needsCoarseDataForBC())
+    {
+        MultiFab CPhi;
+        GetCrsePhi(crse_level, CPhi, time);
+        mlpoisson.setBCWithCoarseData(CPhi, parent->refRatio(crse_level-1)[0]);
+    }
+
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        mlpoisson.setLevelBC(ilev, phi[ilev]);
+    }
+
+#if (AMREX_SPACEDIM != 3)
+    amrex::Abort("solve_phi_with_mlmg: 1d and 2d not supported yet");
+#endif
+
+    MLMG mlmg(mlpoisson);
+    mlmg.setVerbose(1);
+//    mlmg.setVerbose(verbose);
+
+    if (!grad_phi.empty())
+    {
+	Real rel_eps = rel_tol[fine_level];
+
+	// The absolute tolerance is determined by the error tolerance
+	// chosen by the user (tol) multiplied by the maximum value of
+	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
+	// subtract off the mass_offset corresponding to the average
+	// density on the domain. This will automatically be zero for
+	// non-periodic BCs. And this also accounts for the metric
+	// terms that are applied in non-Cartesian coordinates.
+
+	Real abs_eps = abs_tol[fine_level] * max_rhs;
+
+        if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
+
+        Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
+        mlmg.solve(phi, crhs, rel_eps, abs_eps);
+    }
+    else
+    {
+        amrex::Abort("solve_with_mlmg: need to think about this");
+    }
+
+    if (!res.empty())
+    {
+        amrex::Abort("res xxxxxx");        
+    }
+
+    amrex::Abort(" solve xxxxxx");
 }
 
 void
