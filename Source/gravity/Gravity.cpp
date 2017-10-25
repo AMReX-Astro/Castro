@@ -2884,6 +2884,8 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
     {
         rhs[ilev]->mult(Ggravity);
     }
+
+    Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
     
     Vector<Geometry> gmv;
     Vector<BoxArray> bav;
@@ -2937,8 +2939,10 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 #endif
 
     MLMG mlmg(mlpoisson);
-    mlmg.setVerbose(1);
-//    mlmg.setVerbose(verbose);
+    mlmg.setVerbose(verbose);
+
+    AMREX_ALWAYS_ASSERT( !grad_phi.empty() or !res.empty() );
+    AMREX_ALWAYS_ASSERT(  grad_phi.empty() or  res.empty() );
 
     if (!grad_phi.empty())
     {
@@ -2956,20 +2960,18 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
         if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
-        Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
         mlmg.solve(phi, crhs, rel_eps, abs_eps);
-    }
-    else
-    {
-        amrex::Abort("solve_with_mlmg: need to think about this");
-    }
 
-    if (!res.empty())
-    {
-        amrex::Abort("res xxxxxx");        
+        Vector<std::array<MultiFab*,AMREX_SPACEDIM> > grad_phi_tmp;
+        for (const auto& x: grad_phi) {
+            grad_phi_tmp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
+        }
+        mlmg.getFluxes(grad_phi_tmp);
     }
-
-    amrex::Abort(" solve xxxxxx");
+    else if (!res.empty())
+    {
+        mlmg.compResidual(res, phi, crhs);
+    }
 }
 
 void
