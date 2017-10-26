@@ -2899,6 +2899,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     MLPoisson mlpoisson(gmv, bav, dmv);
 
+    // BC
     {
         std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
         std::array<MLLinOp::BCType,AMREX_SPACEDIM> hibc;
@@ -2920,18 +2921,18 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
             }
         }
         mlpoisson.setDomainBC(lobc, hibc);
-    }
 
-    if (mlpoisson.needsCoarseDataForBC())
-    {
-        MultiFab CPhi;
-        GetCrsePhi(crse_level, CPhi, time);
-        mlpoisson.setBCWithCoarseData(CPhi, parent->refRatio(crse_level-1)[0]);
-    }
-
-    for (int ilev = 0; ilev < nlevs; ++ilev)
-    {
-        mlpoisson.setLevelBC(ilev, phi[ilev]);
+        MultiFab CPhi;  // This has to exist when setLevelBC is called.
+        if (mlpoisson.needsCoarseDataForBC())
+        {
+            GetCrsePhi(crse_level, CPhi, time);
+            mlpoisson.setBCWithCoarseData(&CPhi, parent->refRatio(crse_level-1)[0]);
+        }
+        
+        for (int ilev = 0; ilev < nlevs; ++ilev)
+        {
+            mlpoisson.setLevelBC(ilev, phi[ilev]);
+        }
     }
 
 #if (AMREX_SPACEDIM != 3)
@@ -3025,12 +3026,16 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
             }
         }
         mlpoisson.setDomainBC(lobc, hibc);
-    }
 
-    AMREX_ALWAYS_ASSERT(!mlpoisson.needsCoarseDataForBC());
-    for (int ilev = 0; ilev < nlevs; ++ilev)
-    {
-        mlpoisson.setLevelBC(ilev, delta_phi[ilev]);
+        if (mlpoisson.needsCoarseDataForBC())
+        {
+            mlpoisson.setBCWithCoarseData(nullptr, parent->refRatio(crse_level-1)[0]);
+        }
+
+        for (int ilev = 0; ilev < nlevs; ++ilev)
+        {
+            mlpoisson.setLevelBC(ilev, delta_phi[ilev]);
+        }
     }
 
 #if (AMREX_SPACEDIM != 3)
