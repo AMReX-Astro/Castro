@@ -2980,7 +2980,81 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
                                         const Vector<MultiFab*>& delta_phi,
                                         const Vector<Vector<MultiFab*> >&  grad_delta_phi)
 {
-    solve_for_delta_phi_with_fmg(crse_level, fine_level, rhs, delta_phi, grad_delta_phi);
+    int nlevs = fine_level - crse_level + 1;
+
+    BL_ASSERT(grad_delta_phi.size() == nlevs);
+    BL_ASSERT(delta_phi.size() == nlevs);
+
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
+      std::cout << "...                    up to fine_level = " << fine_level << std::endl;
+    }
+
+    Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
+
+        Vector<Geometry> gmv;
+    Vector<BoxArray> bav;
+    Vector<DistributionMapping> dmv;
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        gmv.push_back(parent->Geom(ilev+crse_level));
+        bav.push_back(rhs[ilev]->boxArray());
+        dmv.push_back(rhs[ilev]->DistributionMap());
+    }
+
+    MLPoisson mlpoisson(gmv, bav, dmv);
+
+    {
+        std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
+        std::array<MLLinOp::BCType,AMREX_SPACEDIM> hibc;
+        for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+            if (gmv[0].isPeriodic(idim)) {
+                lobc[idim] = MLLinOp::BCType::Periodic;
+                hibc[idim] = MLLinOp::BCType::Periodic;
+            } else {
+                if (phys_bc->lo(idim) == Symmetry) {
+                    lobc[idim] = MLLinOp::BCType::Neumann;
+                } else {
+                    lobc[idim] = MLLinOp::BCType::Dirichlet;
+                }
+                if (phys_bc->hi(idim) == Symmetry) {
+                    hibc[idim] = MLLinOp::BCType::Neumann;
+                } else {
+                    hibc[idim] = MLLinOp::BCType::Dirichlet;
+                }
+            }
+        }
+        mlpoisson.setDomainBC(lobc, hibc);
+    }
+
+    AMREX_ALWAYS_ASSERT(!mlpoisson.needsCoarseDataForBC());
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        mlpoisson.setLevelBC(ilev, delta_phi[ilev]);
+    }
+
+#if (AMREX_SPACEDIM != 3)
+    amrex::Abort("solve_for_delta_phi_with_mlmg: 1d and 2d not supported yet");
+#endif
+
+    MLMG mlmg(mlpoisson);
+    mlmg.setVerbose(verbose);
+
+    Real rel_eps = rel_tol[fine_level];
+    Real abs_eps = level_solver_resnorm[crse_level];
+    for (int lev = crse_level+1; lev <= fine_level; lev++) {
+	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
+    }
+
+    if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
+
+    mlmg.solve(delta_phi, crhs, rel_eps, abs_eps);
+        
+    Vector<std::array<MultiFab*,AMREX_SPACEDIM> > grad_delta_phi_tmp;
+    for (const auto& x: grad_delta_phi) {
+        grad_delta_phi_tmp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
+    }
+    mlmg.getFluxes(grad_delta_phi_tmp);
 }
 
 #endif
