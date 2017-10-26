@@ -2853,6 +2853,8 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 {
     BL_PROFILE("Gravity::solve_phi_with_mlmg()");
 
+    Real final_resnorm = -1.0;
+
     int nlevs = fine_level-crse_level+1;
 
     if (crse_level == 0 && !Geometry::isAllPeriodic())
@@ -2961,7 +2963,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
         if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
-        mlmg.solve(phi, crhs, rel_eps, abs_eps);
+        final_resnorm = mlmg.solve(phi, crhs, rel_eps, abs_eps);
 
         Vector<std::array<MultiFab*,AMREX_SPACEDIM> > grad_phi_tmp;
         for (const auto& x: grad_phi) {
@@ -2973,6 +2975,8 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
     {
         mlmg.compResidual(res, phi, crhs);
     }
+
+    return final_resnorm;
 }
 
 void
@@ -2993,7 +2997,7 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
 
     Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
 
-        Vector<Geometry> gmv;
+    Vector<Geometry> gmv;
     Vector<BoxArray> bav;
     Vector<DistributionMapping> dmv;
     for (int ilev = 0; ilev < nlevs; ++ilev)
@@ -3045,7 +3049,7 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);
 
-    Real rel_eps = rel_tol[fine_level];
+    Real rel_eps = 0.0;
     Real abs_eps = level_solver_resnorm[crse_level];
     for (int lev = crse_level+1; lev <= fine_level; lev++) {
 	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
