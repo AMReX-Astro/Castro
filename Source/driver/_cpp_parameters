@@ -570,6 +570,8 @@ get_g_from_phi              int            0                  y
 # Use C++ MLMG linear solver for self gravity
 use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           20                 n
 
 @namespace: diffusion Diffusion static
 
