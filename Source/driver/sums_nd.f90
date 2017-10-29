@@ -191,7 +191,7 @@ contains
           endif
           x = x + symlo1 + symhi1
           if (idir2 .eq. 0) then
-             do k = lo(5), hi(3)
+             do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
                    mass = mass + rho(i,j,k) * vol(i,j,k) * x * x
                 enddo
