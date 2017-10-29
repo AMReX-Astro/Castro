@@ -52,9 +52,6 @@ Real Castro::ts_te_curr_max = 0.0;
 
 Real Castro::total_ener_array[num_previous_ener_timesteps] = { 0.0 };
 
-int Castro::num_zones_ignited = 0;
-int Castro::ignition_level = -1;
-
 #ifdef DO_PROBLEM_POST_TIMESTEP
 void
 Castro::problem_post_timestep()
@@ -697,10 +694,6 @@ void Castro::problem_post_restart() {
   T_curr_max = T_global_max;
   rho_curr_max = rho_global_max;
   ts_te_curr_max = ts_te_global_max;
-
-  // Get the ignition status.
-
-  get_num_zones_ignited(&num_zones_ignited, &ignition_level);
 
   // If we're restarting from a checkpoint at t = 0 but don't yet
   // have diagnostics, we want to generate the headers and the t = 0
