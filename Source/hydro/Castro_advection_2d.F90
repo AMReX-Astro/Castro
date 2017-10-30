@@ -436,7 +436,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1), lo(2)-1, hi(2)+1, domlo, domhi)
+                1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
@@ -448,7 +449,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1)-1, hi(1)+1, lo(2), hi(2), domlo, domhi)
+                2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
@@ -475,7 +477,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+                1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
@@ -504,7 +507,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+                2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)

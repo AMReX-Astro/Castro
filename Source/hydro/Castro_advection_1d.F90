@@ -327,15 +327,16 @@ contains
     end if
 
     ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx(lo, hi, domlo, domhi, &
-                qm, qp, qp_lo, qp_hi, &
+    call cmpflx(qm, qp, qp_lo, qp_hi, &
                 flux, fd_lo, fd_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
                 rflux, rfd_lo,rfd_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                ilo, ihi)
+                shk, shk_lo, shk_hi, &
+                1, ilo, ihi+1, 0, 0, 0, 0, 0, &
+                [domlo(1), 0, 0], [domhi(1), 0, 0])
 
     deallocate (qm,qp)
 

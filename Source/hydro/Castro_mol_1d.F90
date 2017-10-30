@@ -226,14 +226,16 @@ subroutine ca_mol_single_stage(time, &
   endif
 
   ! Get the fluxes from the Riemann solver
-  call cmpflx(lo, hi, domlo, domhi, &
-              qxm, qxp, qp_lo, qp_hi, &
+  call cmpflx(qxm, qxp, qp_lo, qp_hi, &
               flux, flux_lo, flux_hi, &
               q1, flux_lo, flux_hi, &
 #ifdef RADIATION
               rflx, flux_lo, flux_hi, &
 #endif
-              qaux, qa_lo, qa_hi, lo(1), hi(1))
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              1, lo(1), hi(1)+1, 0, 0, 0, 0, 0, &
+              [domlo(1), 0, 0], [domhi(1), 0, 0])
 
   deallocate(qxm, qxp)
 
