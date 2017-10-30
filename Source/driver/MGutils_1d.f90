@@ -15,13 +15,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(1),hi(1),xlo(1),xhi(1)
-    integer rl1, rh1
-    integer ecxl1, ecxh1
-    integer coord_type
-    real(rt)         rhs(rl1:rh1)
-    real(rt)         ecx(ecxl1:ecxh1)
-    real(rt)         dx(1)
+    integer, intent(in) :: lo(1),hi(1),xlo(1),xhi(1)
+    integer, intent(in) :: rl1, rh1
+    integer, intent(in) :: ecxl1, ecxh1
+    integer, intent(in) :: coord_type
+    real(rt), intent(inout) :: rhs(rl1:rh1)
+    real(rt), intent(inout) :: ecx(ecxl1:ecxh1)
+    real(rt), intent(in) :: dx(1)
 
     real(rt)         r,rlo,rhi
     integer i
@@ -78,11 +78,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(1),hi(1)
-    integer cl1, ch1
-    integer coord_type
-    real(rt)         cc(cl1:ch1)
-    real(rt)         dx(1)
+    integer, intent(in) :: lo(1),hi(1)
+    integer, intent(in) ::cl1, ch1
+    integer, intent(in) ::coord_type
+    real(rt), intent(inout) ::cc(cl1:ch1)
+    real(rt), intent(in) :: dx(1)
 
     real(rt)         r
     integer i
@@ -119,11 +119,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(1),hi(1)
-    integer cl1, ch1
-    integer coord_type
-    real(rt)         cc(cl1:ch1)
-    real(rt)         dx(1)
+    integer, intent(in) :: lo(1),hi(1)
+    integer, intent(in) :: cl1, ch1
+    integer, intent(in) :: coord_type
+    real(rt), intent(inout) ::cc(cl1:ch1)
+    real(rt), intent(in) :: dx(1)
 
     real(rt)         r
     integer i
@@ -160,11 +160,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(1),hi(1)
-    integer ecxl1, ecxh1
-    integer coord_type, idir
-    real(rt)         ecx(ecxl1:ecxh1)
-    real(rt)         dx(1)
+    integer, intent(in) :: lo(1),hi(1)
+    integer, intent(in) :: ecxl1, ecxh1
+    integer, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ecx(ecxl1:ecxh1)
+    real(rt), intent(in) :: dx(1)
 
     real(rt)         r
     integer i

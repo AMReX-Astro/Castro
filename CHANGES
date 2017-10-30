@@ -1,5 +1,12 @@
 # changes since the last release:
 
+  -- A bug was fixed in non-Cartesian simulations with AMR
+     (1D spherical and 2D cylindrical). The bug was introduced
+     around version 17.02 and resulted in incorrect synchronization
+     of the pressure term in the momentum equations. The effect
+     would have manifested as non-conservation of momentum or
+     strange effects at coarse-fine interfaces.
+
   -- The sponge is now always time centered. The option to
      do otherwise was introduced in 17.02, and has now been
      removed. Additionally, the form of the energy source
@@ -11,6 +18,11 @@
 
   -- Conductivity_dir has been renamed CONDUCTIVITY_DIR to be consistent
      with EOS_DIR and NETWORK_DIR
+
+  -- we no longer get the compositional derivatives as part of the EOS
+     call.  If you need this functionality, you need to set the 
+     preprocessor variable (in Fortran), EXTRA_THERMO
+
 
 # 17.10
 

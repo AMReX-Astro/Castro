@@ -57,13 +57,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nd, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: varlo(3), varhi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: var(varlo(1):varhi(1),varlo(2):varhi(2),varlo(3):varhi(3))
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer,    intent(in) :: set, clear, nd, level
+    integer,    intent(in) :: taglo(3), taghi(3)
+    integer,    intent(in) :: varlo(3), varhi(3)
+    integer,    intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in) :: var(varlo(1):varhi(1),varlo(2):varhi(2),varlo(3):varhi(3))
+    real(rt),   intent(in) :: delta(3), xlo(3), problo(3), time
 
     integer          :: i, j, k
     real(rt)         ::  delu(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,3)
@@ -194,13 +194,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nd, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: denlo(3), denhi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, nd, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: denlo(3), denhi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -255,13 +255,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, np, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: templo(3), temphi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, np, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: templo(3), temphi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -316,13 +316,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, np, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: presslo(3), presshi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, np, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: presslo(3), presshi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -377,13 +377,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nv, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: vello(3), velhi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, nv, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: vello(3), velhi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -438,13 +438,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nr, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: radlo(3), radhi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, nr, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: radlo(3), radhi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -499,13 +499,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nr, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: entlo(3), enthi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nr)
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, nr, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: entlo(3), enthi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nr)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     real(rt)         :: ax, ay, az
     integer          :: i, j, k
@@ -563,13 +563,13 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: set, clear, nr, level
-    integer          :: taglo(3), taghi(3)
-    integer          :: tlo(3), thi(3)
-    integer          :: lo(3), hi(3), domlo(3), domhi(3)
-    integer          :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt)         :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
-    real(rt)         :: delta(3), xlo(3), problo(3), time
+    integer, intent(in) :: set, clear, nr, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: tlo(3), thi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
 
     integer          :: i, j, k
 

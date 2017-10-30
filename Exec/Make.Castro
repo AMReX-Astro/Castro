@@ -5,6 +5,9 @@ CASTRO_HOME ?= /path/to/Castro
 HYPRE_DIR ?= /path/to/Hypre
 HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
+# system blas
+BLAS_LIBRARY ?= -lopenblas
+
 TOP := $(CASTRO_HOME)
 
 # default microphysics locations
@@ -48,6 +51,10 @@ ifeq ($(USE_RAD), TRUE)
   ifeq ($(USE_NEUTRINO), TRUE)
     USERSuffix = .Neutrino
   endif
+endif
+
+ifeq ($(USE_SYSTEM_BLAS), TRUE)
+  LIBRARIES += $(BLAS_LIBRARY)
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs

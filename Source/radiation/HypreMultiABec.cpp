@@ -99,7 +99,7 @@ void AuxVar::clear()
   slave_flag = 0;
 }
 
-int AuxVar::get_locations(Array<int>& levels, Array<IntVect>& cells)
+int AuxVar::get_locations(Vector<int>& levels, Vector<IntVect>& cells)
 {
   if (slave()) {
     return 1; // failure
@@ -122,7 +122,7 @@ int AuxVar::get_locations(Array<int>& levels, Array<IntVect>& cells)
   return 0; // success
 }
 
-int AuxVar::get_coeffs(Array<Real>& values)
+int AuxVar::get_coeffs(Vector<Real>& values)
 {
   if (slave()) {
     return 1; // failure
@@ -523,7 +523,7 @@ void CrseBndryAuxVar::loadFaceData(const Orientation ori,
 
   MultiFabId mfid = mfcd.RegisterMultiFab(&src);
 
-  Array< Array<FillBoxId> > fbid(face_data[ori].size());
+  Vector< Vector<FillBoxId> > fbid(face_data[ori].size());
   for (int i = firstLocal(); isValid(i); i = nextLocal(i)) {
     int n = face_data[ori][i].size();
     fbid[i].resize(n);
@@ -1126,8 +1126,8 @@ void HypreMultiABec::buildMatrixStructure()
           if (!entry(ori,i)(v).empty() &&
               !entry(ori,i)(v).slave()) {
             entry(ori,i)(v).collapse();
-            Array<int> levels;
-            Array<IntVect> cells;
+            Vector<int> levels;
+            Vector<IntVect> cells;
             int retval = entry(ori,i)(v).get_locations(levels, cells);
             BL_ASSERT(retval == 0);
             for (int j = 0; j < levels.size(); j++) {
@@ -1247,8 +1247,8 @@ void HypreMultiABec::buildMatrixStructure()
             if (msk(vf) == RadBndryData::not_covered &&
                 !(*c_entry[level])(ori,i,j)(vc).slave()) {
 	      (*c_entry[level])(ori,i,j)(vc).collapse();
-              Array<int> levels;
-              Array<IntVect> cells;
+              Vector<int> levels;
+              Vector<IntVect> cells;
               int retval = (*c_entry[level])(ori,i,j)(vc)
                 .get_locations(levels, cells);
               BL_ASSERT(retval == 0);
@@ -1381,7 +1381,7 @@ void HypreMultiABec::loadMatrix()
     stencil_indices[i] = i;
   }
 
-  Array<Real> r;
+  Vector<Real> r;
   Real foo = 1.e200;
 
   Real *mat;
@@ -1549,11 +1549,11 @@ void HypreMultiABec::loadMatrix()
           if (!entry(ori,i)(v).empty() &&
               !entry(ori,i)(v).slave()) {
             entry(ori,i)(v).collapse();
-            Array<int> levels;
-            Array<IntVect> cells;
+            Vector<int> levels;
+            Vector<IntVect> cells;
             int retval = entry(ori,i)(v).get_locations(levels, cells);
             BL_ASSERT(retval == 0);
-            Array<Real> values;
+            Vector<Real> values;
             retval = entry(ori,i)(v).get_coeffs(values);
             BL_ASSERT(retval == 0);
             int ientry = 2 * BL_SPACEDIM + 1;
@@ -1665,12 +1665,12 @@ void HypreMultiABec::loadMatrix()
             if (msk(vf) == RadBndryData::not_covered &&
                 !(*c_entry[level])(ori,i,j)(vc).slave()) {
 	      (*c_entry[level])(ori,i,j)(vc).collapse();
-              Array<int> levels;
-              Array<IntVect> cells;
+              Vector<int> levels;
+              Vector<IntVect> cells;
               int retval = (*c_entry[level])(ori,i,j)(vc)
                 .get_locations(levels, cells);
               BL_ASSERT(retval == 0);
-              Array<Real> values;
+              Vector<Real> values;
               retval = (*c_entry[level])(ori,i,j)(vc).get_coeffs(values);
               BL_ASSERT(retval == 0);
               int ientry = 2 * BL_SPACEDIM + 1;
@@ -1741,7 +1741,7 @@ void HypreMultiABec::loadLevelVectors(int level,
 {
   int part = level - crse_level;
 
-  Array<Real> r;
+  Vector<Real> r;
 
   Real *vec;
   FArrayBox fnew;
@@ -1858,7 +1858,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
 {
   int part = level - crse_level;
 
-  Array<Real> r;
+  Vector<Real> r;
 
   FArrayBox fnew;
   for (MFIter mfi(rhs); mfi.isValid(); ++mfi) {
@@ -3090,7 +3090,7 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-	Array<Real> r;
+	Vector<Real> r;
 	Real foo=1.e200;
 
 	for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
@@ -3175,7 +3175,7 @@ void HypreMultiABec::initializeApplyLevel(int level,
     stencil_indices[i] = i;
   }
 
-  Array<Real> r;
+  Vector<Real> r;
   Real foo = 1.e200;
 
   Real *mat, *vec;
