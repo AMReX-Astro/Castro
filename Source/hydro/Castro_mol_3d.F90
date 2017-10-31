@@ -664,7 +664,6 @@ subroutine ca_mol_single_stage(time, &
 TODO:
 need to deal with p in the flxues
 need to deal with pradial
-need to merge the cmpflx stuff
 
 
   ! Scale the fluxes for the form we expect later in refluxing.
