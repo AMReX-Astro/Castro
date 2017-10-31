@@ -23,6 +23,9 @@
      call.  If you need this functionality, you need to set the 
      preprocessor variable (in Fortran), EXTRA_THERMO
 
+  -- you can now use a system's BLAS routines, instead of compiling
+     the versions from Microphysics by setting USE_SYSTEM_BLAS=TRUE.
+     This then looks at BLAS_LIBRARY for the link line.
 
 # 17.10
 
