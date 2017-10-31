@@ -573,6 +573,9 @@ use_mlmg_solver              int           0                  n
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+
 @namespace: diffusion Diffusion static
 
 # the level of verbosity for the diffusion solve (higher number means

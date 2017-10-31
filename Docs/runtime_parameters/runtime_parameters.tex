@@ -687,12 +687,13 @@
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
 \rowcolor{tableShade}
+\runparamNS{mlmg\_agglomeration}{gravity} &  Do agglomeration? & 1 \\
 \runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
-\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \rowcolor{tableShade}
+\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

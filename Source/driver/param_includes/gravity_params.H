@@ -16,3 +16,4 @@ static int max_solve_level;
 static int get_g_from_phi;
 static int use_mlmg_solver;
 static int mlmg_max_fmg_iter;
+static int mlmg_agglomeration;

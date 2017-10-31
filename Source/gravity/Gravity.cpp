@@ -2900,6 +2900,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
     }
 
     MLPoisson mlpoisson(gmv, bav, dmv);
+    mlpoisson.setAgglomeration(mlmg_agglomeration);
 
     // BC
     {
@@ -2943,7 +2944,11 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);
-    mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+    if (crse_level == 0) {
+	mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+    } else {
+	mlmg.setMaxFmgIter(0); // Vcycle
+    }
 
     AMREX_ALWAYS_ASSERT( !grad_phi.empty() or !res.empty() );
     AMREX_ALWAYS_ASSERT(  grad_phi.empty() or  res.empty() );
@@ -3009,6 +3014,7 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
     }
 
     MLPoisson mlpoisson(gmv, bav, dmv);
+    mlpoisson.setAgglomeration(mlmg_agglomeration);
 
     {
         std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
@@ -3049,7 +3055,11 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
 
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);
-    mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+    if (crse_level == 0) {
+	mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+    } else {
+	mlmg.setMaxFmgIter(0); // Vcycle
+    }
 
     Real rel_eps = 0.0;
     Real abs_eps = level_solver_resnorm[crse_level];
