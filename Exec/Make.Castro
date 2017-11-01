@@ -75,7 +75,13 @@ endif
 
 USE_MG = FALSE
 
-USE_MLMG = FALSE
+ifndef USE_MLMG
+  ifeq ($(DIM),3)
+    USE_MLMG = TRUE
+  else
+    USE_MLMG = FALSE
+  endif
+endif
 
 #------------------------------------------------------------------------------
 # Castro directories
