@@ -849,6 +849,12 @@ Castro::initData ()
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
 
+#ifdef MHD
+   MultiFab& Bx_new   = get_new_data(Mag_Type_x);
+   Bx_new.setVal(0.0);
+#endif
+
+
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);

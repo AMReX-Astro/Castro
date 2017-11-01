@@ -39,6 +39,11 @@ static int tang_vel_bc[] =
     INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
   };
 
+static int mag_field_bc[] = 
+{
+  INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
+};
+
 static
 void
 set_scalar_bc (BCRec& bc, const BCRec& phys_bc)
@@ -105,6 +110,21 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
   bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 #endif
 }
+
+
+static
+void
+set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
+{
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+    for (int i = 0; i < BL_SPACEDIM; i++)
+    {
+        bc.setLo(i, mag_field_bc[lo_bc[i]]);
+        bc.setHi(i, mag_field_bc[hi_bc[i]]);
+    }
+}
+
 
 void
 Castro::variableSetUp ()
@@ -334,6 +354,15 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
 
+#ifdef MHD
+  store_in_checkpoint = true;
+  IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
+  desc_lst.addDescriptor(Mag_Type_x, xface,
+                         StateDescriptor::Point, 1, 1, 
+			 interp, state_data_extrap,
+			 store_in_checkpoint);
+#endif
+
 #ifdef SELF_GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
@@ -490,6 +519,13 @@ Castro::variableSetUp ()
 			name,
 			bcs,
 			BndryFunc(ca_denfill,ca_hypfill));
+
+#ifdef MHD
+  set_mag_field_bc(bc, phys_bc);
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_denfill));
+#endif
+
+
 
 #ifdef SELF_GRAVITY
   set_scalar_bc(bc,phys_bc);
@@ -880,6 +916,11 @@ Castro::variableSetUp ()
     derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
   }
 #endif
+
+#ifdef MHD
+  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_derangmomx, the_same_box);
+  derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
+#endif 
 
 
   for (int i = 0; i < NumAux; i++)  {
