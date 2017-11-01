@@ -7,7 +7,7 @@
 using namespace amrex;
 
 #ifdef DO_PROBLEM_POST_SIMULATION
-void Castro::problem_post_simulation(Array<std::unique_ptr<AmrLevel> >& amr_level) {
+void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_level) {
 
   // compute the norm of the solution vs. the analytic solution
 

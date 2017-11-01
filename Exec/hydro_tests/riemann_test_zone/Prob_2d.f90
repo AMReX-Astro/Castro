@@ -113,8 +113,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   qaux(:,:,QC) = cav_s
 
-  qaux(:,:,QCSML) = smallc_s
-
   ! call the Riemann solver
   idir = 1
 

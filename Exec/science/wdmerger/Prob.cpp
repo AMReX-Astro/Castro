@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_prob_err_F.H"
 
 #include "Gravity.H"
 #include <Gravity_F.H>
@@ -497,7 +498,7 @@ Castro::gwstrain (Real time,
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    Array< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
+    Vector< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
     for (int i=0; i<nthreads; i++) {
 	priv_Qtt[i].reset(new FArrayBox(bx));
     }
@@ -968,7 +969,7 @@ Castro::update_relaxation(Real time, Real dt) {
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
+    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
 
     for (int lev = 0; lev <= finest_level; ++lev) {
 

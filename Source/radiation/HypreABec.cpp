@@ -281,7 +281,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
     stencil_indices[i] = i;
   }
 
-  Array<Real> r;
+  Vector<Real> r;
   Real foo=1.e200;
 
   Real *mat, *vec;
@@ -446,7 +446,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 #pragma omp parallel
 #endif
     {
-	Array<Real> r;
+	Vector<Real> r;
 	Real foo=1.e200;
 	
 	for (MFIter si(Soln); si.isValid(); ++si) {
@@ -508,7 +508,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
     }
 }
 
-void HypreABec::getFaceMetric(Array<Real>& r,
+void HypreABec::getFaceMetric(Vector<Real>& r,
                               const Box& reg,
                               const Orientation& ori,
                               const Geometry& geom)
@@ -557,7 +557,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     stencil_indices[i] = i;
   }
 
-  Array<Real> r;
+  Vector<Real> r;
   Real foo=1.e200;
 
   Real *mat;
@@ -842,7 +842,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
   //dest.setVal(0.0);
 
-  Array<Real> r;
+  Vector<Real> r;
 
   Real *vec;
   FArrayBox fnew;

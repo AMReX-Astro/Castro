@@ -332,17 +332,6 @@ gets a pointer to the multifab containing the hydrodynamics state data
 at the new time.
 
 
-
-\subsection{\code{\parray}}
-
-The {\tt PArray<T>} class is similar to the \cpp\ {\tt Array<T>} class,
-but it manages an array of pointers to objects of type {\tt T}, rather
-than the objects themself.  There are additional options that control
-whether the objects are deleted or the pointers simply destructed.
-
-In \castro\, this will commonly be used with \multifab s.
-
-
 \subsection{Various source \multifab s}
 
 There are a number of different \multifab s (and arrays of \multifab s)

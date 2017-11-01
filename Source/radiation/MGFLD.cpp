@@ -432,7 +432,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 
 	  const Box& reg = mfi.tilebox();
       
-	  Array<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
+	  Vector<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
 #ifdef MG_SU_OLSON
 	  PFcoef[0] = 0.5;
 	  PFcoef[1] = 0.5;
@@ -1195,7 +1195,7 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 #pragma omp parallel
 #endif
     {    
-	Array<Real> r, s;
+	Vector<Real> r, s;
 
 	for (MFIter ri(rhs,true); ri.isValid(); ++ri) 
 	{

@@ -17,11 +17,11 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Derive_F.H>
+#include <Castro_error_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
-#include <Castro_error_F.H>
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -52,6 +52,7 @@ bool         Castro::dump_old      = false;
 
 int          Castro::verbose       = 0;
 ErrorList    Castro::err_list;
+int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_STATE     = -1;
@@ -93,12 +94,12 @@ int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
-Array<std::string> Castro::source_names;
+Vector<std::string> Castro::source_names;
 
 int          Castro::MOL_STAGES;
-Array< Array<Real> > Castro::a_mol;
-Array<Real> Castro::b_mol;
-Array<Real> Castro::c_mol;
+Vector< Vector<Real> > Castro::a_mol;
+Vector<Real> Castro::b_mol;
+Vector<Real> Castro::c_mol;
 
 
 #include <castro_defaults.H>
@@ -209,7 +210,7 @@ Castro::read_params ()
     pp.query("dump_old",dump_old);
 
     // Get boundary conditions
-    Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
+    Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
     pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
     pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
     for (int i = 0; i < BL_SPACEDIM; i++)
@@ -390,7 +391,7 @@ Castro::read_params ()
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
-    Array<int> tilesize(BL_SPACEDIM);
+    Vector<int> tilesize(BL_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
     {
 	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
@@ -704,10 +705,10 @@ Castro::initMFs()
 	// over the full set of fine timesteps to equal P_radial.
 
 #if (BL_SPACEDIM == 1)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0;
 #elif (BL_SPACEDIM == 2)
-	pres_crse_scale = 1.0;
+	pres_crse_scale = -1.0;
 	pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
 
@@ -753,8 +754,8 @@ Castro::setGridInfo ()
 
     if (level == 0) {
 
-      int max_level = parent->maxLevel();
-      int nlevs = max_level + 1;
+      const int max_level = parent->maxLevel();
+      const int nlevs = max_level + 1;
 
       Real dx_level[3*nlevs];
       int domlo_level[3*nlevs];
@@ -961,13 +962,12 @@ Castro::initData ()
 
 #endif // MAESTRO_INIT
 
-    set_special_tagging_flag(cur_time);
 
 #ifdef SELF_GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       int nc = S_new.nComp();
-       int n1d = get_numpts();
+       const int nc = S_new.nComp();
+       const int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -1168,7 +1168,7 @@ Castro::estTimeStep (Real dt_old)
 	if (diffuse_temp)
 	{
 #ifdef _OPENMP
-#pragma omp parallel reduction(estdt_hydro)
+#pragma omp parallel reduction(min:estdt_hydro)
 #endif
           {
             Real dt = max_dt / cfl;
@@ -1295,10 +1295,10 @@ Castro::estTimeStep (Real dt_old)
 void
 Castro::computeNewDt (int                   finest_level,
                       int                   sub_cycle,
-                      Array<int>&           n_cycle,
-                      const Array<IntVect>& ref_ratio,
-                      Array<Real>&          dt_min,
-                      Array<Real>&          dt_level,
+                      Vector<int>&           n_cycle,
+                      const Vector<IntVect>& ref_ratio,
+                      Vector<Real>&          dt_min,
+                      Vector<Real>&          dt_level,
                       Real                  stop_time,
                       int                   post_regrid_flag)
 {
@@ -1474,9 +1474,9 @@ Castro::computeNewDt (int                   finest_level,
 void
 Castro::computeInitialDt (int                   finest_level,
                           int                   sub_cycle,
-                          Array<int>&           n_cycle,
-                          const Array<IntVect>& ref_ratio,
-                          Array<Real>&          dt_level,
+                          Vector<int>&           n_cycle,
+                          const Vector<IntVect>& ref_ratio,
+                          Vector<Real>&          dt_level,
                           Real                  stop_time)
 {
     BL_PROFILE("Castro::computeInitialDt()");
@@ -1738,7 +1738,6 @@ Castro::post_restart ()
          }
 #endif
 
-    set_special_tagging_flag(cur_time);
 
     // initialize the Godunov state array used in hydro -- we wait
     // until here so that ngroups is defined (if needed) in
@@ -1806,6 +1805,13 @@ Castro::check_for_post_regrid (Real time)
 	}
 
 	apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, err_idx);
+
+        // Apply all user-specified tagging routines in case the user desires to override this.
+
+        for (int i = num_err_list_default; i < err_list.size(); ++i)
+            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
+
+        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
 
 	// Globally collate the tags.
 
@@ -1902,15 +1908,15 @@ Castro::post_regrid (int lbase,
 
 	       Interpolater* gp_interp = &node_bilinear_interp;
 
-	       Array<MultiFab*> grad_phi_coarse = amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(level-1));
-	       Array<MultiFab*> grad_phi_fine = amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(level));
+	       Vector<MultiFab*> grad_phi_coarse = amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level-1));
+	       Vector<MultiFab*> grad_phi_fine = amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level));
 
 	       Real time = getLevel(lbase).get_state_data(Gravity_Type).prevTime();
 
 	       // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
 	       // not do anything because we do not fill on physical boundaries.
 
-	       const Array<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
+	       const Vector<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
 
 	       for (int n = 0; n < BL_SPACEDIM; ++n) {
 		   amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
@@ -2252,8 +2258,8 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef SELF_GRAVITY
     int nlevs = fine_level - crse_level + 1;
 
-    Array<std::unique_ptr<MultiFab> > drho(nlevs);
-    Array<std::unique_ptr<MultiFab> > dphi(nlevs);
+    Vector<std::unique_ptr<MultiFab> > drho(nlevs);
+    Vector<std::unique_ptr<MultiFab> > dphi(nlevs);
 
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
@@ -2308,7 +2314,7 @@ Castro::reflux(int crse_level, int fine_level)
 	// Also update the coarse fluxes MultiFabs using the reflux data. This should only make
 	// a difference if we re-evaluate the source terms later.
 
-	Array<std::unique_ptr<MultiFab> > temp_fluxes(3);
+	Vector<std::unique_ptr<MultiFab> > temp_fluxes(3);
 
 	if (update_sources_after_reflux) {
 
@@ -2447,7 +2453,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #ifdef SELF_GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-	gravity->gravity_sync(crse_level, fine_level, amrex::GetArrOfPtrs(drho), amrex::GetArrOfPtrs(dphi));
+	gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
 #endif
 
     // Now subtract the new-time updates to the state data,
@@ -2635,9 +2641,9 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 
 	const Box& bx = mfi.growntilebox();
 
-	FArrayBox& stateold = S_old[mfi];
+	const FArrayBox& stateold = S_old[mfi];
 	FArrayBox& statenew = S_new[mfi];
-	FArrayBox& vol      = volume[mfi];
+	const FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
 	
 	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
@@ -2656,7 +2662,7 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	MultiFab::Subtract(reset_source, S_new, 0, 0, S_old.nComp(), 0);
 
 	bool local = true;
-	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
+	Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -2735,12 +2741,34 @@ Castro::errorEst (TagBoxArray& tags,
     if (post_step_regrid)
 	t = get_state_data(State_Type).curTime();
 
-    // Apply each of the built-in tagging functions.
+    // Apply each of the specified tagging functions.
 
-    for (int j = 0; j < err_list.size(); j++)
+    for (int j = 0; j < num_err_list_default; j++)
 	apply_tagging_func(tags, clearval, tagval, t, j);
 
+    // Now apply the user-specified tagging functions.
+    // Include problem-specific hooks before and after.
+
+    problem_pre_tagging_hook(tags, clearval, tagval, t);
+
+    for (int j = num_err_list_default; j < err_list.size(); j++)
+        apply_tagging_func(tags, clearval, tagval, t, j);
+
     // Now we'll tag any user-specified zones using the full state array.
+
+    apply_problem_tags(tags, clearval, tagval, time);
+
+    problem_post_tagging_hook(tags, clearval, tagval, t);
+}
+
+
+
+void
+Castro::apply_problem_tags (TagBoxArray& tags,
+                            int          clearval,
+                            int          tagval,
+                            Real         time)
+{
 
     const int*  domain_lo = geom.Domain().loVect();
     const int*  domain_hi = geom.Domain().hiVect();
@@ -2753,7 +2781,7 @@ Castro::errorEst (TagBoxArray& tags,
 #pragma omp parallel
 #endif
     {
-        Array<int>  itags;
+        Vector<int>  itags;
 
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
@@ -2791,6 +2819,7 @@ Castro::errorEst (TagBoxArray& tags,
             tagfab.tags_and_untags(itags, tilebx);
 	}
     }
+
 }
 
 
@@ -2814,7 +2843,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
 #pragma omp parallel
 #endif
 	{
-	    Array<int>  itags;
+	    Vector<int>  itags;
 
 	    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
 	    {
@@ -2941,8 +2970,8 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  int probin_file_length = probin_file.length();
-  Array<int> probin_file_name(probin_file_length);
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
@@ -2977,7 +3006,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 
         ca_reset_internal_e(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			    BL_TO_FORTRAN_3D(S_new[mfi]),
-			    print_fortran_warnings, &idx);
+			    &print_fortran_warnings, &idx);
     }
 
     // Flush Fortran output
@@ -2996,7 +3025,7 @@ Castro::reset_internal_energy(MultiFab& S_new)
 	MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
 
 	bool local = true;
-	Array<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
+	Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -3057,24 +3086,6 @@ Castro::computeTemp(MultiFab& State)
     }
 }
 
-void
-Castro::set_special_tagging_flag(Real time)
-{
-   if (!do_special_tagging) return;
-
-   MultiFab& S_new = get_new_data(State_Type);
-   Real max_den = S_new.norm0(Density);
-
-   int flag_was_changed = 0;
-   ca_set_special_tagging_flag(max_den,&flag_was_changed);
-   if (ParallelDescriptor::IOProcessor()) {
-      if (flag_was_changed == 1) {
-        std::ofstream os("Bounce_time",std::ios::out);
-        os << "T_Bounce " << time << std::endl;
-        os.close();
-      }
-   }
-}
 
 #ifdef SELF_GRAVITY
 int
@@ -3114,15 +3125,15 @@ Castro::make_radial_data(int is_new)
 
    int numpts_1d = get_numpts();
 
-   Array<Real> radial_vol(numpts_1d,0);
+   Vector<Real> radial_vol(numpts_1d,0);
 
    const Real* dx = geom.CellSize();
    Real  dr = dx[0];
 
    if (is_new == 1) {
       MultiFab& S = get_new_data(State_Type);
-      int nc = S.nComp();
-      Array<Real> radial_state(numpts_1d*nc,0);
+      const int nc = S.nComp();
+      Vector<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
@@ -3149,7 +3160,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Array<Real> radial_state_short(np_max*nc,0);
+      Vector<Real> radial_state_short(np_max*nc,0);
 
       for (int i = 0; i < np_max; i++) {
          for (int j = 0; j < nc; j++) {
@@ -3157,14 +3168,14 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real new_time = state[State_Type].curTime();
+      const Real new_time = state[State_Type].curTime();
       set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
    }
    else
    {
       MultiFab& S = get_old_data(State_Type);
-      int nc = S.nComp();
-      Array<Real> radial_state(numpts_1d*nc,0);
+      const int nc = S.nComp();
+      Vector<Real> radial_state(numpts_1d*nc,0);
       for (MFIter mfi(S); mfi.isValid(); ++mfi)
       {
          Box bx(mfi.validbox());
@@ -3191,7 +3202,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Array<Real> radial_state_short(np_max*nc,0);
+      Vector<Real> radial_state_short(np_max*nc,0);
 
       for (int i = 0; i < np_max; i++) {
          for (int j = 0; j < nc; j++) {
@@ -3199,7 +3210,7 @@ Castro::make_radial_data(int is_new)
          }
       }
 
-      Real old_time = state[State_Type].prevTime();
+      const Real old_time = state[State_Type].prevTime();
       set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
    }
 
@@ -3217,7 +3228,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     bx.grow(1);
     BoxArray ba(bx);
     int owner = ParallelDescriptor::IOProcessorNumber();
-    DistributionMapping dm { Array<int>(1,owner) };
+    DistributionMapping dm { Vector<int>(1,owner) };
     MultiFab mf(ba,dm,1,0);
 
     // Define a cube 3-on-a-side around the point with the maximum density

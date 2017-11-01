@@ -58,7 +58,7 @@ class HypreABec {
     return flux_factor;
   }
 
-  static void getFaceMetric(amrex::Array<amrex::Real>& r,
+  static void getFaceMetric(amrex::Vector<amrex::Real>& r,
                             const amrex::Box& reg,
                             const amrex::Orientation& ori,
                             const amrex::Geometry& geom);
