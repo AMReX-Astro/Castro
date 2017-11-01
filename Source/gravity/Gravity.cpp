@@ -2901,6 +2901,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     MLPoisson mlpoisson(gmv, bav, dmv);
     mlpoisson.setAgglomeration(mlmg_agglomeration);
+    mlpoisson.setConsolidation(mlmg_consolidation);
 
     // BC
     {
