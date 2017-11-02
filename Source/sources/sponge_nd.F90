@@ -120,6 +120,8 @@ contains
     ! Apply radial sponge. By default sponge_lower_radius will be zero
     ! so this sponge is applied only if set by the user.
 
+    sponge_factor = ZERO
+
     if (sponge_lower_radius >= ZERO .and. sponge_upper_radius > sponge_lower_radius) then
 
        radius = sqrt(sum(r**2))
