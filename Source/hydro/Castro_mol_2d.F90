@@ -309,7 +309,8 @@ subroutine ca_mol_single_stage(time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+              1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
+              [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
 
   call cmpflx(qym, qyp, qs_lo, qs_hi, &
@@ -320,7 +321,8 @@ subroutine ca_mol_single_stage(time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+              2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
+              [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
   deallocate(qxm, qxp, qym, qyp)
 

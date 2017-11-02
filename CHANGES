@@ -1,4 +1,5 @@
-# changes since the last release:
+
+# 17.11
 
   -- A bug was fixed in non-Cartesian simulations with AMR
      (1D spherical and 2D cylindrical). The bug was introduced
@@ -22,6 +23,10 @@
   -- we no longer get the compositional derivatives as part of the EOS
      call.  If you need this functionality, you need to set the 
      preprocessor variable (in Fortran), EXTRA_THERMO
+
+  -- you can now use a system's BLAS routines, instead of compiling
+     the versions from Microphysics by setting USE_SYSTEM_BLAS=TRUE.
+     This then looks at BLAS_LIBRARY for the link line.
 
 
 # 17.10
@@ -50,15 +55,16 @@
 
   -- the README.md now describes the process to become a
      "core developer" of Castro, and what this means.
+>>>>>>> development
 
   -- Network_dir has been renamed NETWORK_DIR and EOS_dir has been
      renamed EOS_DIR.  All of the problem GNUmakefiles have been
      updated.  The old names will continue to work in the near future,
-     but users are encouraged to change any of their problems
-     to use the new all-caps names.
+     but users are encouraged to change any of their problems to use
+     the new all-caps names (PR #184)
 
-  -- the density flux limiting functionality now has a small 
-     tolerance (#185). It has also been documented (#193).
+  -- the density flux limiting functionality now has a small tolerance
+     (#185). It has also been documented (#193).
 
   -- the timestep retry is now conservative -- this was accomplished
      by saving the density fluxes to use in the conservative gravity
