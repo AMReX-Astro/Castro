@@ -918,7 +918,7 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef MHD
-  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_derangmomx, the_same_box);
+  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
   derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
 #endif 
 
