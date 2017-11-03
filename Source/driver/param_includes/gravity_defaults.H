@@ -16,5 +16,5 @@ int         Gravity::max_solve_level = MAX_LEV-1;
 int         Gravity::get_g_from_phi = 0;
 int         Gravity::use_mlmg_solver = 0;
 int         Gravity::mlmg_max_fmg_iter = 0;
-int         Gravity::mlmg_agglomeration = 1;
-int         Gravity::mlmg_consolidation = 1;
+int         Gravity::mlmg_agglomeration = 0;
+int         Gravity::mlmg_consolidation = 0;

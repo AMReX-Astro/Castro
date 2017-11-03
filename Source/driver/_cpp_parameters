@@ -574,8 +574,8 @@ use_mlmg_solver              int           0                  n
 mlmg_max_fmg_iter            int           0                  n
 
 # Do agglomeration?
-mlmg_agglomeration           int           1                  n
-mlmg_consolidation           int           1                  n
+mlmg_agglomeration           int           0                  n
+mlmg_consolidation           int           0                  n
 
 @namespace: diffusion Diffusion static
 
