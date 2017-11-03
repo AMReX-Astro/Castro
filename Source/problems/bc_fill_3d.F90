@@ -71,7 +71,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     integer :: phi_lo(3), phi_hi(3)
 
@@ -94,7 +94,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: grav_lo(3), grav_hi(3)
 
@@ -117,7 +117,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: grav_lo(3), grav_hi(3)
 
@@ -140,7 +140,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1,grav_l2:grav_h2,grav_l3:grav_h3)
 
     integer :: grav_lo(3), grav_hi(3)
 
@@ -165,7 +165,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
     integer :: phi_lo(3), phi_hi(3)
 
@@ -188,7 +188,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: rot_lo(3), rot_hi(3)
 
@@ -211,7 +211,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: rot_lo(3), rot_hi(3)
 
@@ -234,7 +234,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1,rot_l2:rot_h2,rot_l3:rot_h3)
 
     integer :: rot_lo(3), rot_hi(3)
 
@@ -259,7 +259,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
+    real(rt), intent(inout) :: react(react_l1:react_h1,react_l2:react_h2,react_l3:react_h3)
 
     integer :: react_lo(3), react_hi(3)
 
