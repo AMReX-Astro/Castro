@@ -852,6 +852,10 @@ Castro::initData ()
 #ifdef MHD
    MultiFab& Bx_new   = get_new_data(Mag_Type_x);
    Bx_new.setVal(0.0);
+
+   MultiFab& By_new   = get_new_data(Mag_Type_y);
+   By_new.setVal(0.0);
+
 #endif
 
 

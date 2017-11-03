@@ -361,6 +361,11 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1, 
 			 interp, state_data_extrap,
 			 store_in_checkpoint);
+  IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
+  desc_lst.addDescriptor(Mag_Type_y, yface,
+                         StateDescriptor::Point, 1, 1,
+			 interp, state_data_extrap,
+			 store_in_checkpoint);
 #endif
 
 #ifdef SELF_GRAVITY
@@ -522,7 +527,8 @@ Castro::variableSetUp ()
 
 #ifdef MHD
   set_mag_field_bc(bc, phys_bc);
-  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_denfill));
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
 #endif
 
 
@@ -920,6 +926,10 @@ Castro::variableSetUp ()
 #ifdef MHD
   derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
   derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
+  //y component
+  derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, the_same_box);
+  derive_lst.addComponent("B_x", desc_lst, Mag_Type_y, 0, 1);
+
 #endif 
 
 

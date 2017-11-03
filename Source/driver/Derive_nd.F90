@@ -1328,7 +1328,45 @@ contains
          end do
       end do
 
-      end subroutine ca_dermagcenx
+   end subroutine ca_dermagcenx
+
+   subroutine ca_dermagceny(mag_cen_y,mag_y_l1,mag_y_l2,mag_y_l3,mag_y_h1,mag_y_h2,mag_y_h3, nby, &
+                         dat,dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc, &
+                         lo,hi,domlo,domhi,delta,xlo,time,dt,bc,level,grid_no)&
+                            bind(C, name="ca_dermagceny")
+
+      !
+      ! This routine will derive cell centered magnetic field in y direction
+      ! mag_cen_y = 1/2 (mag_y(i,j,k) + mag_y(i,j+1,k))
+      !
+      use amrex_fort_module, only : rt => amrex_real
+      implicit none
+
+      integer          lo(3), hi(3)
+      integer          mag_y_l1,mag_y_l2,mag_y_l3,mag_y_h1,mag_y_h2,mag_y_h3, nby
+      integer          dat_l1,dat_l2,dat_l3,dat_h1,dat_h2,dat_h3,nc
+      integer          domlo(3), domhi(3)
+      integer          bc(3,2,nc)
+      real(rt) delta(3), xlo(3), time, dt
+      real(rt) mag_cen_y(mag_y_l1:mag_y_h1,mag_y_l2:mag_y_h2,mag_y_l3:mag_y_h3,nby)
+      real(rt)    dat(dat_l1:dat_h1,dat_l2:dat_h2,dat_l3:dat_h3,nc)
+      integer    level, grid_no
+
+      integer i,j,k
+      ! 
+      ! Here dat contains (mag_y)
+      ! 
+      do k = lo(3), hi(3)
+         do j = lo(2), hi(2)
+            do i = lo(1), hi(1)
+                mag_cen_y(i,j,k,1) = 0.5*(dat(i,j,k,1) + dat(i,j+1,k,1))
+            end do
+         end do
+      end do
+
+
+   end subroutine ca_dermagceny
+
 #endif
 
 

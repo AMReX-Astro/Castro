@@ -67,6 +67,7 @@ enum sources { ext_src = 0,
 #endif
 #ifdef MHD
                Mag_Type_x,
+	       Mag_Type_y,
 #endif
 	       num_src };
 

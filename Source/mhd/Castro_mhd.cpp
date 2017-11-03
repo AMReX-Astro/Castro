@@ -12,7 +12,9 @@ Castro::just_the_mhd(Real time, Real dt)
       const int finest_level = parent->finestLevel();
       MultiFab& S_old        = get_old_data(State_Type);
       MultiFab& Bx_old       = get_old_data(Mag_Type_x);
-      
+      MultiFab& By_old       = get_old_data(Mag_Type_y);
+
+      MultiFab& Bx_new       = get_new_data(Mag_Type_x);
       ca_advance_mhd();
 
 }
