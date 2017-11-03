@@ -284,7 +284,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
+    real(rt), intent(inout) :: rad(rad_l1:rad_h1,rad_l2:rad_h2,rad_l3:rad_h3)
 
     integer :: rad_lo(3), rad_hi(3)
 
