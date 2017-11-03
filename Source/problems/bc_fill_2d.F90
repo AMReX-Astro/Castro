@@ -288,7 +288,7 @@ contains
     integer :: bc_temp(2,2)
 
     ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:,1)
+    bc_temp(:,:) = bc(:,:)
 
     if ( bc(2,1) == EXT_DIR .and. rot_l2 < domlo(2)) then
        bc_temp(2,1) = FOEXTRAP
