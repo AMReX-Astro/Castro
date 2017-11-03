@@ -2171,6 +2171,31 @@ Gravity::make_mg_bc ()
     // Set Neumann bc at r=0.
     if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
         mg_bc[0] = MGT_BC_NEU;
+
+#ifdef CASTRO_MLMG
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        if (geom.isPeriodic(idim)) {
+            mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
+            mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
+        } else {
+            if (phys_bc->lo(idim) == Symmetry) {
+                mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
+            } else {
+                mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
+            }
+            if (phys_bc->hi(idim) == Symmetry) {
+                mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
+            } else {
+                mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
+            }
+        }
+    }
+
+    // Set Neumann bc at r=0.
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+        mlmg_lobc[0] = MLLinOp::BCType::Neumann;
+    }
+#endif
 }
 
 void
@@ -2905,26 +2930,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     // BC
     {
-        std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
-        std::array<MLLinOp::BCType,AMREX_SPACEDIM> hibc;
-        for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
-            if (gmv[0].isPeriodic(idim)) {
-                lobc[idim] = MLLinOp::BCType::Periodic;
-                hibc[idim] = MLLinOp::BCType::Periodic;
-            } else {
-                if (phys_bc->lo(idim) == Symmetry) {
-                    lobc[idim] = MLLinOp::BCType::Neumann;
-                } else {
-                    lobc[idim] = MLLinOp::BCType::Dirichlet;
-                }
-                if (phys_bc->hi(idim) == Symmetry) {
-                    hibc[idim] = MLLinOp::BCType::Neumann;
-                } else {
-                    hibc[idim] = MLLinOp::BCType::Dirichlet;
-                }
-            }
-        }
-        mlpoisson.setDomainBC(lobc, hibc);
+        mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
 
         MultiFab CPhi;  // This has to exist when setLevelBC is called.
         if (mlpoisson.needsCoarseDataForBC())
@@ -3018,26 +3024,7 @@ Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
     mlpoisson.setAgglomeration(mlmg_agglomeration);
 
     {
-        std::array<MLLinOp::BCType,AMREX_SPACEDIM> lobc;
-        std::array<MLLinOp::BCType,AMREX_SPACEDIM> hibc;
-        for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
-            if (gmv[0].isPeriodic(idim)) {
-                lobc[idim] = MLLinOp::BCType::Periodic;
-                hibc[idim] = MLLinOp::BCType::Periodic;
-            } else {
-                if (phys_bc->lo(idim) == Symmetry) {
-                    lobc[idim] = MLLinOp::BCType::Neumann;
-                } else {
-                    lobc[idim] = MLLinOp::BCType::Dirichlet;
-                }
-                if (phys_bc->hi(idim) == Symmetry) {
-                    hibc[idim] = MLLinOp::BCType::Neumann;
-                } else {
-                    hibc[idim] = MLLinOp::BCType::Dirichlet;
-                }
-            }
-        }
-        mlpoisson.setDomainBC(lobc, hibc);
+        mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
 
         if (mlpoisson.needsCoarseDataForBC())
         {

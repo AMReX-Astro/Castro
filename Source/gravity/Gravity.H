@@ -3,6 +3,10 @@
 
 #include <AMReX_AmrLevel.H>
 
+#ifdef CASTRO_MLMG
+#include <AMReX_MLLinOp.H>
+#endif
+
 class Gravity {
 
 public:
@@ -143,6 +147,11 @@ protected:
   int mg_bc[2*BL_SPACEDIM];
 
   amrex::BCRec*       phys_bc;
+
+#ifdef CASTRO_MLMG
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
+#endif
 
   int   numpts_at_level;
 
