@@ -23,7 +23,7 @@ contains
     integer,  intent(in   ) :: bc(3,2,NVAR)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3,NVAR)
 
     integer :: adv_lo(3), adv_hi(3)
 
@@ -46,7 +46,7 @@ contains
     integer,  intent(in   ) :: bc(3,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(in   ) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,adv_l3:adv_h3)
 
     integer :: adv_lo(3), adv_hi(3)
 
