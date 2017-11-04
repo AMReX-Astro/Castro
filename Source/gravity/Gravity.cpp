@@ -2878,8 +2878,6 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 {
     BL_PROFILE("Gravity::solve_phi_with_mlmg()");
 
-    Real final_resnorm = -1.0;
-
     int nlevs = fine_level-crse_level+1;
 
     if (crse_level == 0 && !Geometry::isAllPeriodic())
@@ -2912,7 +2910,86 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         rhs[ilev]->mult(Ggravity);
     }
 
+    MultiFab CPhi;
+    const MultiFab* crse_bcdata = nullptr;
+    if (crse_level > 0)
+    {
+        GetCrsePhi(crse_level, CPhi, time);
+        crse_bcdata = &CPhi;
+    }
+        
+#if (AMREX_SPACEDIM != 3)
+    amrex::Abort("solve_phi_with_mlmg: 1d and 2d not supported yet");
+#endif
+
+    Real rel_eps = rel_tol[fine_level];
+
+    // The absolute tolerance is determined by the error tolerance
+    // chosen by the user (tol) multiplied by the maximum value of
+    // the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
+    // subtract off the mass_offset corresponding to the average
+    // density on the domain. This will automatically be zero for
+    // non-periodic BCs. And this also accounts for the metric
+    // terms that are applied in non-Cartesian coordinates.
+    
+    Real abs_eps = abs_tol[fine_level] * max_rhs;
+
     Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
+    Vector<std::array<MultiFab*,AMREX_SPACEDIM> > gp;
+    for (const auto& x : grad_phi) {
+        gp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
+    }
+
+    return actual_solve_with_mlmg(crse_level, fine_level, phi, crhs, gp, res,
+                                  crse_bcdata, rel_eps, abs_eps);
+}
+
+void
+Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
+                                        const Vector<MultiFab*>& rhs,
+                                        const Vector<MultiFab*>& delta_phi,
+                                        const Vector<Vector<MultiFab*> >&  grad_delta_phi)
+{
+    BL_PROFILE("Gravity::solve_for_delta_phi_with_mlmg");
+
+    int nlevs = fine_level - crse_level + 1;
+
+    BL_ASSERT(grad_delta_phi.size() == nlevs);
+    BL_ASSERT(delta_phi.size() == nlevs);
+
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
+      std::cout << "...                    up to fine_level = " << fine_level << std::endl;
+    }
+
+    Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
+    Vector<std::array<MultiFab*,AMREX_SPACEDIM> > gp;
+    for (const auto& x : grad_delta_phi) {
+        gp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
+    }
+
+    Real rel_eps = 0.0;
+    Real abs_eps = *(std::max_element(level_solver_resnorm.begin() + crse_level,
+                                      level_solver_resnorm.begin() + fine_level+1));
+
+    actual_solve_with_mlmg(crse_level, fine_level, delta_phi, crhs, gp, {},
+                           nullptr, rel_eps, abs_eps);
+}
+
+Real
+Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
+                                 const amrex::Vector<amrex::MultiFab*>& phi,
+                                 const amrex::Vector<const amrex::MultiFab*>& rhs,
+                                 const amrex::Vector<std::array<amrex::MultiFab*,AMREX_SPACEDIM> >& grad_phi,
+                                 const amrex::Vector<amrex::MultiFab*>& res,
+                                 const amrex::MultiFab* const crse_bcdata,
+                                 amrex::Real rel_eps, amrex::Real abs_eps)
+{
+    BL_PROFILE("Gravity::acutal_solve_with_mlmg()");
+
+    Real final_resnorm = -1.0;
+
+    int nlevs = fine_level-crse_level+1;
     
     Vector<Geometry> gmv;
     Vector<BoxArray> bav;
@@ -2929,20 +3006,15 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
     mlpoisson.setConsolidation(mlmg_consolidation);
 
     // BC
+    mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
+    if (mlpoisson.needsCoarseDataForBC())
     {
-        mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
-
-        MultiFab CPhi;  // This has to exist when setLevelBC is called.
-        if (mlpoisson.needsCoarseDataForBC())
-        {
-            GetCrsePhi(crse_level, CPhi, time);
-            mlpoisson.setBCWithCoarseData(&CPhi, parent->refRatio(crse_level-1)[0]);
-        }
+        mlpoisson.setBCWithCoarseData(crse_bcdata, parent->refRatio(crse_level-1)[0]);
+    }
         
-        for (int ilev = 0; ilev < nlevs; ++ilev)
-        {
-            mlpoisson.setLevelBC(ilev, phi[ilev]);
-        }
+    for (int ilev = 0; ilev < nlevs; ++ilev)
+    {
+        mlpoisson.setLevelBC(ilev, phi[ilev]);
     }
 
 #if (AMREX_SPACEDIM != 3)
@@ -2962,108 +3034,18 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     if (!grad_phi.empty())
     {
-	Real rel_eps = rel_tol[fine_level];
-
-	// The absolute tolerance is determined by the error tolerance
-	// chosen by the user (tol) multiplied by the maximum value of
-	// the RHS (4 * pi * G * rho). If we're doing periodic BCs, we
-	// subtract off the mass_offset corresponding to the average
-	// density on the domain. This will automatically be zero for
-	// non-periodic BCs. And this also accounts for the metric
-	// terms that are applied in non-Cartesian coordinates.
-
-	Real abs_eps = abs_tol[fine_level] * max_rhs;
-
         if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
-        final_resnorm = mlmg.solve(phi, crhs, rel_eps, abs_eps);
+        final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);
 
-        Vector<std::array<MultiFab*,AMREX_SPACEDIM> > grad_phi_tmp;
-        for (const auto& x: grad_phi) {
-            grad_phi_tmp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
-        }
-        mlmg.getFluxes(grad_phi_tmp);
+        mlmg.getFluxes(grad_phi);
     }
     else if (!res.empty())
     {
-        mlmg.compResidual(res, phi, crhs);
+        mlmg.compResidual(res, phi, rhs);
     }
 
     return final_resnorm;
-}
-
-void
-Gravity::solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
-                                        const Vector<MultiFab*>& rhs,
-                                        const Vector<MultiFab*>& delta_phi,
-                                        const Vector<Vector<MultiFab*> >&  grad_delta_phi)
-{
-    int nlevs = fine_level - crse_level + 1;
-
-    BL_ASSERT(grad_delta_phi.size() == nlevs);
-    BL_ASSERT(delta_phi.size() == nlevs);
-
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-      std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
-      std::cout << "...                    up to fine_level = " << fine_level << std::endl;
-    }
-
-    Vector<const MultiFab*> crhs{rhs.begin(), rhs.end()};
-
-    Vector<Geometry> gmv;
-    Vector<BoxArray> bav;
-    Vector<DistributionMapping> dmv;
-    for (int ilev = 0; ilev < nlevs; ++ilev)
-    {
-        gmv.push_back(parent->Geom(ilev+crse_level));
-        bav.push_back(rhs[ilev]->boxArray());
-        dmv.push_back(rhs[ilev]->DistributionMap());
-    }
-
-    MLPoisson mlpoisson(gmv, bav, dmv);
-    mlpoisson.setAgglomeration(mlmg_agglomeration);
-
-    {
-        mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
-
-        if (mlpoisson.needsCoarseDataForBC())
-        {
-            mlpoisson.setBCWithCoarseData(nullptr, parent->refRatio(crse_level-1)[0]);
-        }
-
-        for (int ilev = 0; ilev < nlevs; ++ilev)
-        {
-            mlpoisson.setLevelBC(ilev, delta_phi[ilev]);
-        }
-    }
-
-#if (AMREX_SPACEDIM != 3)
-    amrex::Abort("solve_for_delta_phi_with_mlmg: 1d and 2d not supported yet");
-#endif
-
-    MLMG mlmg(mlpoisson);
-    mlmg.setVerbose(verbose);
-    if (crse_level == 0) {
-	mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
-    } else {
-	mlmg.setMaxFmgIter(0); // Vcycle
-    }
-
-    Real rel_eps = 0.0;
-    Real abs_eps = level_solver_resnorm[crse_level];
-    for (int lev = crse_level+1; lev <= fine_level; lev++) {
-	abs_eps = std::max(abs_eps,level_solver_resnorm[lev]);
-    }
-
-    if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
-
-    mlmg.solve(delta_phi, crhs, rel_eps, abs_eps);
-        
-    Vector<std::array<MultiFab*,AMREX_SPACEDIM> > grad_delta_phi_tmp;
-    for (const auto& x: grad_delta_phi) {
-        grad_delta_phi_tmp.push_back({AMREX_D_DECL(x[0],x[1],x[2])});
-    }
-    mlmg.getFluxes(grad_delta_phi_tmp);
 }
 
 #endif

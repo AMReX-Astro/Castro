@@ -199,6 +199,15 @@ private:
     void sanity_check (int level);
 
 #ifdef CASTRO_MLMG
+
+    amrex::Real actual_solve_with_mlmg (int crse_level, int fine_level,
+                                        const amrex::Vector<amrex::MultiFab*>& phi,
+                                        const amrex::Vector<const amrex::MultiFab*>& rhs,
+                                        const amrex::Vector<std::array<amrex::MultiFab*,AMREX_SPACEDIM> >& grad_phi,
+                                        const amrex::Vector<amrex::MultiFab*>& res,
+                                        const amrex::MultiFab* const crse_bcdata,
+                                        amrex::Real rel_eps, amrex::Real abs_eps);
+
     amrex::Real solve_phi_with_mlmg (int crse_level, int fine_level,
                                      const amrex::Vector<amrex::MultiFab*>& phi,
                                      const amrex::Vector<amrex::MultiFab*>& rhs,
