@@ -19,3 +19,10 @@
 
 /
 
+
+&extern
+
+  atol_spec = 1.d-10
+  rtol_spec = 1.d-10
+
+/
