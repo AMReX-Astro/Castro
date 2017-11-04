@@ -22,7 +22,7 @@
 
 &extern
 
-  atol_spec = 1.d-10
-  rtol_spec = 1.d-10
+  atol_spec = 1.d-9
+  rtol_spec = 1.d-9
 
 /
