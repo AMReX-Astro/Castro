@@ -1,3 +1,28 @@
+# changes since last release
+
+  -- We can now use the new multigrid solver from AMReX (implemented
+     in C++) instead of the older Fortran solver.  This is enabled
+     with gravity.use_mlmg_solver=1.  Note, this only works in 3-d
+     currently.  This has several options:
+
+     gravity.mlmg_max_fmg_iter = 0 : This integer parameter determines
+     how many FMG cycles will be performed before switching to
+     V-cycle.
+
+     gravity.mlmg_agglomeration = 0 : This boolean flag determines if
+     AMR level 0 grids will be agglomerated as the grids are coarsen
+     in the multi-grid hierarchy.
+
+     gravity.mlmg_consolidation = 0 : This boolean flag determines if
+     grids on an AMR fine level that is in a single-level solve or the
+     lowest AMR level of a multi-level composite solve will be
+     consolidated as the grids are coarsen in the multi-grid
+     hierarchy. Here, consolidation means the grids will be moved to
+     fewer MPI processes.
+
+     Numerical experiments have show this scales better than the old
+     solver.
+
 
 # 17.11
 
