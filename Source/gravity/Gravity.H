@@ -3,6 +3,10 @@
 
 #include <AMReX_AmrLevel.H>
 
+#ifdef CASTRO_MLMG
+#include <AMReX_MLLinOp.H>
+#endif
+
 class Gravity {
 
 public:
@@ -144,6 +148,11 @@ protected:
 
   amrex::BCRec*       phys_bc;
 
+#ifdef CASTRO_MLMG
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
+#endif
+
   int   numpts_at_level;
 
   static int   test_solves;
@@ -180,9 +189,37 @@ private:
 			     const amrex::Vector<amrex::MultiFab*>& res,
 			     amrex::Real time);
 
+    void solve_for_delta_phi_with_fmg (int crse_level, int fine_level,
+                                       const amrex::Vector<amrex::MultiFab*>& rhs,
+                                       const amrex::Vector<amrex::MultiFab*>& delta_phi,
+                                       const amrex::Vector<amrex::Vector<amrex::MultiFab*> >&  grad_delta_phi);
+
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > get_rhs (int crse_level, int nlevs, int is_new);
 
     void sanity_check (int level);
+
+#ifdef CASTRO_MLMG
+
+    amrex::Real actual_solve_with_mlmg (int crse_level, int fine_level,
+                                        const amrex::Vector<amrex::MultiFab*>& phi,
+                                        const amrex::Vector<const amrex::MultiFab*>& rhs,
+                                        const amrex::Vector<std::array<amrex::MultiFab*,AMREX_SPACEDIM> >& grad_phi,
+                                        const amrex::Vector<amrex::MultiFab*>& res,
+                                        const amrex::MultiFab* const crse_bcdata,
+                                        amrex::Real rel_eps, amrex::Real abs_eps);
+
+    amrex::Real solve_phi_with_mlmg (int crse_level, int fine_level,
+                                     const amrex::Vector<amrex::MultiFab*>& phi,
+                                     const amrex::Vector<amrex::MultiFab*>& rhs,
+                                     const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
+                                     const amrex::Vector<amrex::MultiFab*>& res,
+                                     amrex::Real time);
+
+    void solve_for_delta_phi_with_mlmg (int crse_level, int fine_level,
+                                        const amrex::Vector<amrex::MultiFab*>& rhs,
+                                        const amrex::Vector<amrex::MultiFab*>& delta_phi,
+                                        const amrex::Vector<amrex::Vector<amrex::MultiFab*> >&  grad_delta_phi);
+#endif
 };
 
 class GradPhiPhysBCFunct

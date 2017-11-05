@@ -75,6 +75,14 @@ endif
 
 USE_MG = FALSE
 
+ifndef USE_MLMG
+  ifeq ($(DIM),3)
+    USE_MLMG = TRUE
+  else
+    USE_MLMG = FALSE
+  endif
+endif
+
 #------------------------------------------------------------------------------
 # Castro directories
 #------------------------------------------------------------------------------
@@ -195,6 +203,15 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
   Pdirs += LinearSolvers/C_CellMG
+else
+ifeq ($(USE_MLMG), TRUE)
+  Pdirs += LinearSolvers/C_CellMG
+endif
+endif
+
+ifeq ($(USE_MLMG), TRUE)
+   DEFINES += -DCASTRO_MLMG
+   Pdirs += LinearSolvers/MLMG
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)

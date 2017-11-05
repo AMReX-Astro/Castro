@@ -567,8 +567,15 @@ max_solve_level             int            MAX_LEV-1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           0                  n
+mlmg_consolidation           int           0                  n
 
 @namespace: diffusion Diffusion static
 
