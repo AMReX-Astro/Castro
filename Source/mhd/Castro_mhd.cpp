@@ -13,8 +13,11 @@ Castro::just_the_mhd(Real time, Real dt)
       MultiFab& S_old        = get_old_data(State_Type);
       MultiFab& Bx_old       = get_old_data(Mag_Type_x);
       MultiFab& By_old       = get_old_data(Mag_Type_y);
-
+      MultiFab& Bz_old       = get_old_data(Mag_Type_z);
+      MultiFab& S_new        = get_old_data(State_Type);
       MultiFab& Bx_new       = get_new_data(Mag_Type_x);
+      MultiFab& By_new       = get_new_data(Mag_Type_y);
+      MultiFab& Bz_new       = get_new_data(Mag_Type_z);
       ca_advance_mhd();
 
 }

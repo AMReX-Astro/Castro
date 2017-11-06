@@ -366,6 +366,11 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
 			 interp, state_data_extrap,
 			 store_in_checkpoint);
+  IndexType zface(IntVect{AMREX_D_DECL(0,0,1)});
+  desc_lst.addDescriptor(Mag_Type_z, zface,
+                         StateDescriptor::Point, 1, 1,
+			 interp, state_data_extrap,
+			 store_in_checkpoint);
 #endif
 
 #ifdef SELF_GRAVITY
@@ -529,6 +534,7 @@ Castro::variableSetUp ()
   set_mag_field_bc(bc, phys_bc);
   desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
   desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
 #endif
 
 
@@ -924,12 +930,18 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef MHD
+//Electric Field at the face
+//
+//Magentic Field Cell Centered
+//x component
   derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
   derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
-  //y component
+//y component
   derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, the_same_box);
-  derive_lst.addComponent("B_x", desc_lst, Mag_Type_y, 0, 1);
-
+  derive_lst.addComponent("B_y", desc_lst, Mag_Type_y, 0, 1);
+//z component
+  derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
+  derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
 #endif 
 
 

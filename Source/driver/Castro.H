@@ -39,6 +39,11 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
+#ifdef MHD
+               Mag_Type_x,
+	       Mag_Type_y,
+	       Mag_Type_z,
+#endif
 #ifdef SDC
 		 SDC_Source_Type,
 #ifdef REACTIONS
@@ -64,10 +69,6 @@ enum sources { ext_src = 0,
 #endif
 #ifdef ROTATION
                rot_src,
-#endif
-#ifdef MHD
-               Mag_Type_x,
-	       Mag_Type_y,
 #endif
 	       num_src };
 
