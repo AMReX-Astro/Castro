@@ -80,7 +80,6 @@
 
   -- the README.md now describes the process to become a
      "core developer" of Castro, and what this means.
->>>>>>> development
 
   -- Network_dir has been renamed NETWORK_DIR and EOS_dir has been
      renamed EOS_DIR.  All of the problem GNUmakefiles have been
