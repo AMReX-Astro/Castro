@@ -76,7 +76,7 @@ endif
 USE_MG = FALSE
 
 ifndef USE_MLMG
-  ifeq ($(DIM),3)
+  ifneq ($(DIM),1)
     USE_MLMG = TRUE
   else
     USE_MLMG = FALSE

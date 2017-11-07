@@ -2918,10 +2918,6 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         crse_bcdata = &CPhi;
     }
         
-#if (AMREX_SPACEDIM != 3)
-    amrex::Abort("solve_phi_with_mlmg: 1d and 2d not supported yet");
-#endif
-
     Real rel_eps = rel_tol[fine_level];
 
     // The absolute tolerance is determined by the error tolerance
@@ -3017,8 +3013,8 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
         mlpoisson.setLevelBC(ilev, phi[ilev]);
     }
 
-#if (AMREX_SPACEDIM != 3)
-    amrex::Abort("solve_phi_with_mlmg: 1d and 2d not supported yet");
+#if (AMREX_SPACEDIM == 1)
+    static_assert(false, "solve_phi_with_mlmg: 1d not supported yet");
 #endif
 
     MLMG mlmg(mlpoisson);
