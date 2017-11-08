@@ -3034,7 +3034,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
 
         final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);
 
-        mlmg.getFluxes(grad_phi);
+        mlmg.getGradSolution(grad_phi);
     }
     else if (!res.empty())
     {
