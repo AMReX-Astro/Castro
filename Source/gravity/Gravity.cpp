@@ -2997,10 +2997,11 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
         dmv.push_back(rhs[ilev]->DistributionMap());
     }
 
-    const int old_agg = MLPoisson::setAgglomeration(mlmg_agglomeration);
-    const int old_con = MLPoisson::setConsolidation(mlmg_consolidation);
+    LPInfo info;
+    info.setAgglomeration(mlmg_agglomeration);
+    info.setConsolidation(mlmg_consolidation);
 
-    MLPoisson mlpoisson(gmv, bav, dmv);
+    MLPoisson mlpoisson(gmv, bav, dmv, info);
 
     // BC
     mlpoisson.setDomainBC(mlmg_lobc, mlmg_hibc);
@@ -3041,9 +3042,6 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         mlmg.compResidual(res, phi, rhs);
     }
-
-    MLPoisson::setAgglomeration(old_agg);
-    MLPoisson::setConsolidation(old_con);
 
     return final_resnorm;
 }
