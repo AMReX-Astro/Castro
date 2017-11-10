@@ -337,6 +337,10 @@ dtnuc_mode                   int           1                  y
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
 
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
+
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 

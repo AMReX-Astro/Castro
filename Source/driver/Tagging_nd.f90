@@ -558,7 +558,7 @@ contains
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
 
-    use meth_params_module, only: dxnuc
+    use meth_params_module, only: dxnuc, dxnuc_max
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -581,7 +581,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (t(i,j,k,1) > dxnuc) then
+             if (t(i,j,k,1) > dxnuc .and. t(i,j,k,1) < dxnuc_max) then
 
                 tag(i,j,k) = set
 
