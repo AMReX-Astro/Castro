@@ -2,12 +2,12 @@
 
   -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
      is set to 1, timesteps will be shortened to exactly hit the time interval
-     specified by amr.plot_per. An issue with this was fixed where an incorrect
-     timestep would be taken after a restart if the previous step had been
-     shortened.
+     specified by amr.plot_per. An issue with this (#242) was fixed (#243)
+     where an incorrect timestep would be taken after a restart if the
+     previous step had been shortened.
 
   -- We can now use the new multigrid solver from AMReX (implemented
-     in C++) instead of the older Fortran solver.  This is enabled
+     in C++) instead of the older Fortran solver (#241).  This is enabled
      with gravity.use_mlmg_solver=1.  Note, this only works in 3-d
      currently.  This has several options:
 
