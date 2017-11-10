@@ -82,7 +82,31 @@ Castro::restart (Amr&     papa,
    	}
   	ParallelDescriptor::Bcast(&input_version, 1, ParallelDescriptor::IOProcessorNumber());
     }
- 
+
+    // Check if there's a file in the header indicating that the
+    // previous timestep was limited to hit a plot interval. If so,
+    // read in the value, so that the timestep after this restart is
+    // limited appropriately.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+        std::ifstream dtHeaderFile;
+        std::string FullPathdtHeaderFile = papa.theRestartFile();
+        FullPathdtHeaderFile += "/dtHeader";
+        dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::in);
+
+        if (dtHeaderFile.good()) {
+
+            lastDtPlotLimited = 1;
+            dtHeaderFile >> lastDtBeforePlotLimiting;
+
+        }
+
+    }
+
+    ParallelDescriptor::Bcast(&lastDtPlotLimited, 1, ParallelDescriptor::IOProcessorNumber());
+    ParallelDescriptor::Bcast(&lastDtBeforePlotLimiting, 1, ParallelDescriptor::IOProcessorNumber());
+
     BL_ASSERT(input_version >= 0);
  
     // also need to mod checkPoint function to store the new version in a text file
@@ -502,6 +526,23 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
 	}
+
+        // If we have limited this last timestep to hit a plot interval,
+        // store the timestep we took before limiting. After the restart,
+        // this dt will be read in and used to limit the next timestep
+        // appropriately, rather than the shortened timestep.
+
+        if (lastDtPlotLimited == 1) {
+
+            std::ofstream dtHeaderFile;
+            std::string FullPathdtHeaderFile = dir;
+            FullPathdtHeaderFile += "/dtHeader";
+            dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::out);
+
+            dtHeaderFile << lastDtBeforePlotLimiting << std::endl;
+            dtHeaderFile.close();
+
+        }
 
 	{
 	    // store elapsed CPU time
