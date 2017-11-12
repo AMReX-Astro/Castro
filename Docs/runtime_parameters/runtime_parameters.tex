@@ -459,11 +459,12 @@
 \runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
 \rowcolor{tableShade}
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
+\runparamNS{dxnuc\_max}{castro} &  Disable limiting based on dxnuc above this threshold. This allows zones that have already ignited or are about to ignite to be de-refined. & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
-\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \rowcolor{tableShade}
+\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
 
 
@@ -687,8 +688,14 @@
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
 \rowcolor{tableShade}
+\runparamNS{mlmg\_agglomeration}{gravity} &  Do agglomeration? & 1 \\
+\runparamNS{mlmg\_consolidation}{gravity} &  & 1 \\
+\rowcolor{tableShade}
+\runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
