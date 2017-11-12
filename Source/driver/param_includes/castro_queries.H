@@ -80,6 +80,7 @@ pp.query("dtnuc_X", dtnuc_X);
 pp.query("dtnuc_X_threshold", dtnuc_X_threshold);
 pp.query("dtnuc_mode", dtnuc_mode);
 pp.query("dxnuc", dxnuc);
+pp.query("dxnuc_max", dxnuc_max);
 pp.query("do_react", do_react);
 pp.query("react_T_min", react_T_min);
 pp.query("react_T_max", react_T_max);

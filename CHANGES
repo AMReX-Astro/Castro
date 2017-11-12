@@ -1,4 +1,40 @@
-# changes since the last release:
+# changes since last release
+
+  -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
+     is set to 1, timesteps will be shortened to exactly hit the time interval
+     specified by amr.plot_per. An issue with this (#242) was fixed (#243)
+     where an incorrect timestep would be taken after a restart if the
+     previous step had been shortened.
+
+  -- We can now use the new multigrid solver from AMReX (implemented
+     in C++) instead of the older Fortran solver (#241).  This is enabled
+     with gravity.use_mlmg_solver=1.  Note, this only works in 3-d
+     currently.  This has several options:
+
+     gravity.mlmg_max_fmg_iter = 0 : This integer parameter determines
+     how many FMG cycles will be performed before switching to
+     V-cycle.
+
+     gravity.mlmg_agglomeration = 0 : This boolean flag determines if
+     AMR level 0 grids will be agglomerated as the grids are coarsen
+     in the multi-grid hierarchy.
+
+     gravity.mlmg_consolidation = 0 : This boolean flag determines if
+     grids on an AMR fine level that is in a single-level solve or the
+     lowest AMR level of a multi-level composite solve will be
+     consolidated as the grids are coarsen in the multi-grid
+     hierarchy. Here, consolidation means the grids will be moved to
+     fewer MPI processes.
+
+     Numerical experiments have show this scales better than the old
+     solver.
+
+# 17.11.1
+
+  -- Minor bug fixes from the 17.11 release. There is a corresponding
+     17.11.1 release of AMReX.
+
+# 17.11
 
   -- A bug was fixed in non-Cartesian simulations with AMR
      (1D spherical and 2D cylindrical). The bug was introduced
@@ -22,6 +58,10 @@
   -- we no longer get the compositional derivatives as part of the EOS
      call.  If you need this functionality, you need to set the 
      preprocessor variable (in Fortran), EXTRA_THERMO
+
+  -- you can now use a system's BLAS routines, instead of compiling
+     the versions from Microphysics by setting USE_SYSTEM_BLAS=TRUE.
+     This then looks at BLAS_LIBRARY for the link line.
 
 
 # 17.10
@@ -54,11 +94,11 @@
   -- Network_dir has been renamed NETWORK_DIR and EOS_dir has been
      renamed EOS_DIR.  All of the problem GNUmakefiles have been
      updated.  The old names will continue to work in the near future,
-     but users are encouraged to change any of their problems
-     to use the new all-caps names.
+     but users are encouraged to change any of their problems to use
+     the new all-caps names (PR #184)
 
-  -- the density flux limiting functionality now has a small 
-     tolerance (#185). It has also been documented (#193).
+  -- the density flux limiting functionality now has a small tolerance
+     (#185). It has also been documented (#193).
 
   -- the timestep retry is now conservative -- this was accomplished
      by saving the density fluxes to use in the conservative gravity

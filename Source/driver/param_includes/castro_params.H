@@ -80,6 +80,7 @@ static amrex::Real dtnuc_X;
 static amrex::Real dtnuc_X_threshold;
 static int dtnuc_mode;
 static amrex::Real dxnuc;
+static amrex::Real dxnuc_max;
 static int do_react;
 static amrex::Real react_T_min;
 static amrex::Real react_T_max;

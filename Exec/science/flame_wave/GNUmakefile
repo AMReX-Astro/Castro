@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = Intel
+COMP	   = gnu
 
 USE_MPI    = TRUE
 

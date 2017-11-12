@@ -333,6 +333,10 @@ dtnuc_mode                   int           1                  y
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
 
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
+
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
 
@@ -563,8 +567,15 @@ max_solve_level             int            MAX_LEV-1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+mlmg_consolidation           int           1                  n
 
 @namespace: diffusion Diffusion static
 
