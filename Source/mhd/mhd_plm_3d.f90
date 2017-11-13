@@ -56,7 +56,7 @@ contains
     iby = 7
     ibz = 8
 
-    dt_over_a = 1.
+    dt_over_a = dt
 !    Ip = 0.d0
 !    Im = 0.d0
 
