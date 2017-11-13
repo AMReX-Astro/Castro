@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we update the state in between evaluations of the new-time source terms
-update_state_between_sources int           1
-
 # retain source terms until end of timestep
 keep_sources_until_end       int           0
 

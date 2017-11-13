@@ -352,21 +352,19 @@
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
 \rowcolor{tableShade}
-\runparamNS{update\_state\_between\_sources}{castro} &  should we update the state in between evaluations of the new-time source terms & 1 \\
 \runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
+\rowcolor{tableShade}
 \runparamNS{xl\_ext\_bc\_type}{castro} &  if we are doing an external -x boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{xr\_ext\_bc\_type}{castro} &  if we are doing an external +x boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{yl\_ext\_bc\_type}{castro} &  if we are doing an external -y boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
-\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \rowcolor{tableShade}
+\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \runparamNS{zr\_ext\_bc\_type}{castro} &  if we are doing an external +z boundary condition, who do we interpret it? & "" \\
 
 

@@ -120,28 +120,16 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     new_sources.setVal(0.0);
 
-    if (update_state_between_sources) {
+    // Construct the new-time source terms.
 
-	for (int n = 0; n < num_src; ++n)
-	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
+    for (int n = 0; n < num_src; ++n)
+        construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
 
-        apply_source_to_state(S_new, new_sources, dt);
-        clean_state(S_new);
+    // Apply the new-time sources to the state.
 
-    } else {
+    apply_source_to_state(S_new, new_sources, dt);
 
-	// Construct the new-time source terms.
-
-	for (int n = 0; n < num_src; ++n)
-	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
-
-	// Apply the new-time sources to the state.
-
-        apply_source_to_state(S_new, new_sources, dt);
-
-	clean_state(S_new);
-
-    }
+    clean_state(S_new);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
