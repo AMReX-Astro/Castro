@@ -231,8 +231,6 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
     const MultiFab& grav_old = get_old_data(Gravity_Type);
 #endif
 
-    old_sources[grav_src]->setVal(0.0);
-
     if (!do_grav) return;
 
     // Gravitational source term for the time-level n data.
@@ -255,7 +253,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(phi_old[mfi]),
 		BL_TO_FORTRAN_3D(grav_old[mfi]),
 #endif
-		BL_TO_FORTRAN_3D((*old_sources[grav_src])[mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[unified_src])[mfi]),
 		ZFILL(dx),dt,&time);
 
     }
@@ -274,8 +272,6 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
 #endif
-
-    new_sources[grav_src]->setVal(0.0);
 
     if (!do_grav) return;
 
@@ -305,7 +301,7 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D((*mass_fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*mass_fluxes[1])[mfi]),
 			BL_TO_FORTRAN_3D((*mass_fluxes[2])[mfi]),
-			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[unified_src])[mfi]),
 			ZFILL(dx),dt,&time);
 
 	}
