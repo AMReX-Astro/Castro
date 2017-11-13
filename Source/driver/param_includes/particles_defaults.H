@@ -4,7 +4,7 @@
 // mk_params.sh
 
 std::string Particles::particle_init_file = "";
-int         Particles::v = 0;
+int         Particles::verbose = 0;
 std::string Particles::particle_restart_file = "";
 int         Particles::restart_from_nonparticle_chkfile = 0;
 std::string Particles::particle_output_file = "";
