@@ -163,39 +163,39 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: domlo(3), domhi(3)
+    integer , intent(in   )  :: lo(3), hi(3)
+    integer , intent(in   ) :: domlo(3), domhi(3)
 
-    integer          :: po_lo(3),po_hi(3)
-    integer          :: pn_lo(3),pn_hi(3)
-    integer          :: ro_lo(3),ro_hi(3)
-    integer          :: rn_lo(3),rn_hi(3)
-    integer          :: uo_lo(3),uo_hi(3)
-    integer          :: un_lo(3),un_hi(3)
-    integer          :: sr_lo(3),sr_hi(3)
-    integer          :: f1_lo(3),f1_hi(3)
-    integer          :: f2_lo(3),f2_hi(3)
-    integer          :: f3_lo(3),f3_hi(3)
-    integer          :: vol_lo(3),vol_hi(3)
+    integer , intent(in   ) :: po_lo(3),po_hi(3)
+    integer , intent(in   ) :: pn_lo(3),pn_hi(3)
+    integer , intent(in   ) :: ro_lo(3),ro_hi(3)
+    integer , intent(in   ) :: rn_lo(3),rn_hi(3)
+    integer , intent(in   ) :: uo_lo(3),uo_hi(3)
+    integer , intent(in   ) :: un_lo(3),un_hi(3)
+    integer , intent(in   ) :: sr_lo(3),sr_hi(3)
+    integer , intent(in   ) :: f1_lo(3),f1_hi(3)
+    integer , intent(in   ) :: f2_lo(3),f2_hi(3)
+    integer , intent(in   ) :: f3_lo(3),f3_hi(3)
+    integer , intent(in   ) :: vol_lo(3),vol_hi(3)
 
     ! Old and new time rotational potential
 
-    real(rt)         :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
-    real(rt)         :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
+    real(rt), intent(in   ) :: pold(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt), intent(in   ) :: pnew(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
 
     ! Old and new time rotational acceleration
 
-    real(rt)         :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),3)
-    real(rt)         :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),3)
+    real(rt), intent(in   ) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),3)
+    real(rt), intent(in   ) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),3)
 
     ! Old and new time state data
 
-    real(rt)         :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    real(rt)         :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    real(rt), intent(in   ) :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt), intent(in   ) :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
 
     ! The source term to send back
 
-    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
     ! Hydrodynamics fluxes
 
