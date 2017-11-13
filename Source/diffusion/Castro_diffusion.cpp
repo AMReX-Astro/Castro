@@ -144,8 +144,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& TempDiffTerm, int is_old)
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
    // Fill coefficients at this level.
-   Array<std::unique_ptr<MultiFab> >coeffs(BL_SPACEDIM);
-   Array<std::unique_ptr<MultiFab> >coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+   Vector<std::unique_ptr<MultiFab> >coeffs(BL_SPACEDIM);
+   Vector<std::unique_ptr<MultiFab> >coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
@@ -223,8 +223,8 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
       std::cout << "Calculating diffusion term at time " << time << std::endl;
 
    // Fill coefficients at this level.
-   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
-   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+   Vector<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Vector<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
@@ -238,7 +238,7 @@ Castro::getEnthDiffusionTerm (Real time, MultiFab& DiffTerm, int is_old)
    MultiFab Enthalpy(grids,dmap,1,1);
    {
        FillPatchIterator fpi(*this, *S, 1, time, State_Type, 0, NUM_STATE);
-       MultiFab& state = fpi.get_mf();
+       const MultiFab& state = fpi.get_mf();
 
        for (MFIter mfi(state); mfi.isValid(); ++mfi)
        {
@@ -312,8 +312,8 @@ Castro::getSpecDiffusionTerm (Real time, MultiFab& SpecDiffTerm, int is_old)
     std::cout << "Calculating species diffusion term at time " << time << std::endl;
 
   // Fill coefficients at this level.
-  Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
-  Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+  Vector<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+  Vector<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
@@ -413,8 +413,8 @@ Castro::getFirstViscousTerm (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
-   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+   Vector<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Vector<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
@@ -480,8 +480,8 @@ Castro::getSecndViscousTerm (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
-   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+   Vector<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Vector<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
@@ -547,8 +547,8 @@ Castro::getViscousTermForEnergy (Real time, MultiFab& ViscousTerm)
    MultiFab& S_old = get_old_data(State_Type);
 
    // Fill coefficients at this level.
-   Array<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
-   Array<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
+   Vector<std::unique_ptr<MultiFab> > coeffs(BL_SPACEDIM);
+   Vector<std::unique_ptr<MultiFab> > coeffs_temporary(3); // This is what we pass to the dimension-agnostic Fortran
    for (int dir = 0; dir < 3; dir++) {
        if (dir < BL_SPACEDIM) {
 	   coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));

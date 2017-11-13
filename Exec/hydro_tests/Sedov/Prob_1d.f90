@@ -1,24 +1,25 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
+  use bl_constants_module, only: ZERO, HALF, ONE
   use probdata_module
   use prob_params_module, only : center
-  use amrex_fort_module, only : rt => amrex_real
-  use eos_type_module, only: eos_t, eos_input_rp
+  use bl_error_module
+  use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
-  use bl_constants_module, only: ZERO, ONE
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt)         :: problo(1), probhi(1)
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(1), probhi(1)
 
-  integer :: untin,i
-
-  namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
-           r_init, nsub
+  integer :: untin, i
 
   type(eos_t) :: eos_state
+
+  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
+           r_init, nsub, temp_ambient
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -39,17 +40,31 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
   r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
+  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
+
+  ! set explosion center
+  center(1) = 0.e0_rt
 
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
-
-  center(1) = 0.e0_rt
 
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
+
+  ! override the pressure iwth the temperature
+  if (temp_ambient > ZERO) then
+
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = temp_ambient
+
+     call eos(eos_input_rt, eos_state)
+
+     p_ambient = eos_state % p
+
+  endif
 
   ! Calculate ambient state data
 
@@ -97,30 +112,31 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only : nspec
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
+  use prob_params_module, only : coord_type
 
   implicit none
 
   integer :: level, nscal
   integer :: lo(1), hi(1)
   integer :: state_l1,state_h1
-  real(rt)         :: xlo(1), xhi(1), time, delta(1)
-  real(rt)         :: state(state_l1:state_h1,NVAR)
+  real(rt) :: xlo(1), xhi(1), time, delta(1)
+  real(rt) :: state(state_l1:state_h1,NVAR)
 
-  real(rt)         :: xmin
-  real(rt)         :: xx, xl, xr
-  real(rt)         :: dx_sub,dist
-  real(rt)         :: eint, p_zone
-  real(rt)         :: vctr, p_exp
+  real(rt) :: xmin
+  real(rt) :: xx, xl, xr
+  real(rt) :: dx_sub, dist
+  real(rt) :: eint, p_zone
+  real(rt) :: vctr, p_exp
 
-  integer :: i,ii
-  real(rt)         :: vol_pert, vol_ambient
+  integer :: i, ii
+  real(rt) :: vol_pert, vol_ambient
   real(rt) :: e_zone
   type(eos_t) :: eos_state
 
   dx_sub = delta(1)/dble(nsub)
 
   ! Cylindrical coordinates
-  if (probtype .eq. 11) then
+  if (coord_type == 1) then
 
      ! set explosion pressure -- we will convert the point-explosion energy into
      ! a corresponding pressure distributed throughout the perturbed volume
@@ -172,7 +188,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      end do
 
      ! Spherical coordinates
-  else if (probtype .eq. 12) then
+  else if (coord_type == 2) then
 
      ! set explosion pressure -- we will convert the point-explosion energy into
      ! a corresponding pressure distributed throughout the perturbed volume
@@ -229,7 +245,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      end do
   else
 
-     call bl_error('dont know this probtype in initdata')
+     call bl_error('dont know this coord_type in initdata')
 
   end if
 

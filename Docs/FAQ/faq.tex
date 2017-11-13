@@ -66,6 +66,16 @@ make help
   This will tell you the value of all the compilers and their options.
 
 
+\item {\em How do I use a system's BLAS library instead of compiling and
+  linking the one that comes with the \starkiller\ microphysics?}
+
+  To use a system's \index{BLAS}BLAS library, set the Make variable
+  \makevar{USE\_SYSTEM\_BLAS} to {\tt TRUE}.  This will then look at
+  the Make variable \makevar{BLAS\_LIBRARY} for the library to link
+  (defaults to {\tt -lopenblas}).
+
+
+
 
 \end{enumerate}
 
@@ -185,7 +195,29 @@ the existence of these files is checked; by default it is 10, so the
 check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you'd like it to check every timestep.
 
+\end{enumerate}
 
+\section{Visualization}
+
+\label{ch:faq:vis}
+
+\begin{enumerate}
+
+\item {\em When I try to use \amrvis\ with the Nvidia driver, all I see is
+  black---no data.  How do I fix this?}
+
+  You need to edit your {\tt xorg.conf} file (usually found in {\tt /etc/X11/}
+to enable the {\tt Dac8Bit} option.  The section will look like:
+\begin{verbatim}
+Section "Device"
+    Identifier     "Device0"
+    Driver         "nvidia"
+    VendorName     "NVIDIA Corporation"
+    Option         "Dac8bit" "True"
+EndSection
+\end{verbatim}
+If you don't already have an {\tt xorg.conf} then you can create one
+by running {\tt nvidia-xconfig} first.
 
 
 \end{enumerate}

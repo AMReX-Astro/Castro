@@ -176,9 +176,6 @@ castro.density_reset_method = 2
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
-# Time center the sponge source
-castro.time_center_sponge = 1
-
 ############################################################################################
 # Thermodynamics
 ############################################################################################

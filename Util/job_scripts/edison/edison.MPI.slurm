@@ -1,15 +1,18 @@
 #!/bin/bash
-#SBATCH -J xrb-simplenet-3d
+#SBATCH -J flame_wave
 #SBATCH -A m1938
-#SBATCH -N 11
+#SBATCH -N 6
 #SBATCH -p regular
-#SBATCH -t 02:00:00
+#SBATCH -t 04:00:00
 
 # -N = number of nodes = # of MPI * number of threads / 24 (cores / node)
 
 export OMP_NUM_THREADS=1
 
-cd $SLURM_SUBMIT_DIR
+slack_job_start.py "starting flame_wave problem @ NERSC" xrb
+
+
+#cd $SLURM_SUBMIT_DIR
 
 
 function find_chk_file {
@@ -63,7 +66,7 @@ fi
 
 # -n is the number of MPI tasks
 # -c sets the number of OMP threads per MPI -- this should be the same as OMP_NUM_THREADS
-srun -n 264 -c ${OMP_NUM_THREADS} ./Castro2d.intel.MPI.ex inputs_2d ${restartString}
+srun -n 144 -c ${OMP_NUM_THREADS} ./Castro2d.intel.sandybridge.MPI.ex inputs_2d ${restartString}
 
 
 

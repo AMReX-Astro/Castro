@@ -23,7 +23,7 @@ void Radiation::get_groups(int verbose)
   group_print_factor   = 1.0;
   group_units          = " (units are Hz)";
 
-  Array<Real> dlognugroup;
+  Vector<Real> dlognugroup;
 
   if (RadTests::do_rad_sphere) {
 
@@ -51,7 +51,7 @@ void Radiation::get_groups(int verbose)
     dnugroup.resize(nGroups, 0.0);
     dlognugroup.resize(nGroups, 0.0);
 
-    Array<Real> lowest, highest;
+    Vector<Real> lowest, highest;
     ParmParse pp("radiation");
     pp.getarr( "lowestGroupMeV",  lowest, 0, nNeutrinoSpecies);
     pp.getarr("highestGroupMeV", highest, 0, nNeutrinoSpecies);

@@ -46,7 +46,10 @@ Castro::construct_hydro_source(Real time, Real dt)
 #else
     // If we're doing SDC, time-center the source term (using the
     // current iteration's old sources and the last iteration's new
-    // sources).
+    // sources). Since the "new-time" sources are just the corrector step
+    // of the predictor-corrector formalism, we want to add the full
+    // value of the "new-time" sources to the old-time sources to get a
+    // time-centered value.
 
     MultiFab& SDC_source = get_new_data(SDC_Source_Type);
 
@@ -260,6 +263,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 	    (*rad_fluxes[i])[mfi].copy(rad_flux[i],mfi.nodaltilebox(i),0,mfi.nodaltilebox(i),0,Radiation::nGroups);
 #endif	    
 #endif
+            (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
 	  }
 
 #if (BL_SPACEDIM <= 2)
@@ -323,7 +327,7 @@ Castro::construct_hydro_source(Real time, Real dt)
     {
 
 	bool local = true;
-	Array<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
+	Vector<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
 
 #ifdef BL_LAZY
 	Lazy::QueueReduction( [=] () mutable {
@@ -563,7 +567,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     {
 
       bool local = true;
-      Array<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
+      Vector<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
 
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {

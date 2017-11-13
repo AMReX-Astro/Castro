@@ -15,7 +15,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ model_name, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
-                    H_min, cutoff_density
+                    X_min, cutoff_density
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -30,7 +30,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   end do
 
   ! Namelist defaults
-  H_min = 1.e-4_rt
+  X_min = 1.e-4_rt
   cutoff_density = 500.e0_rt
 
 
@@ -102,7 +102,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   type (eos_t) :: eos_state
 
-  state(i,j,UFS:UFS-1+nspec) = ZERO
 
   do j = lo(2), hi(2)
      y = problo(2) + (dble(j)+HALF)*delta(2)
@@ -113,6 +112,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                        model_state(:,idens_model))
         state(i,j,UTEMP) = interpolate(y,npts_model,model_r, &
                                        model_state(:,itemp_model))
+
+        state(i,j,UFS:UFS-1+nspec) = ZERO
+
         do n = 1, nspec
            state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
                                             model_state(:,ispec_model-1+n))
@@ -169,7 +171,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
         eos_state%T = state(i,j,UTEMP)
         eos_state%p = temppres(i,j)
-        eos_state%xn(:) = state(i,j,UFS:)
+        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
 
         call eos(eos_input_tp, eos_state)
 

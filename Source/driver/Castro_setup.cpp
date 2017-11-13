@@ -191,7 +191,7 @@ Castro::variableSetUp ()
       cnt += NumAdv;
     }
 
-  int dm = BL_SPACEDIM;
+  const int dm = BL_SPACEDIM;
 
   // Get the number of species from the network model.
   ca_get_num_spec(&NumSpec);
@@ -231,8 +231,8 @@ Castro::variableSetUp ()
   // manually, since the Fortran parmparse doesn't support strings
   std::string gravity_type = "none";
   pp.query("gravity_type", gravity_type);
-  int gravity_type_length = gravity_type.length();
-  Array<int> gravity_type_name(gravity_type_length);
+  const int gravity_type_length = gravity_type.length();
+  Vector<int> gravity_type_name(gravity_type_length);
 
   for (int i = 0; i < gravity_type_length; i++)
     gravity_type_name[i] = gravity_type[i];
@@ -261,10 +261,10 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
-  int coord_type = Geometry::Coord();
+  const int coord_type = Geometry::Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
-  Array<Real> center(BL_SPACEDIM, 0.0);
+  Vector<Real> center(BL_SPACEDIM, 0.0);
   ParmParse ppc("castro");
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
@@ -275,8 +275,8 @@ Castro::variableSetUp ()
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
 
-  int probin_file_length = probin_file.length();
-  Array<int> probin_file_name(probin_file_length);
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
@@ -396,8 +396,8 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  Array<BCRec>       bcs(NUM_STATE);
-  Array<std::string> name(NUM_STATE);
+  Vector<BCRec>       bcs(NUM_STATE);
+  Vector<std::string> name(NUM_STATE);
 
   BCRec bc;
   cnt = 0;
@@ -425,7 +425,7 @@ Castro::variableSetUp ()
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
     int len = 20;
-    Array<int> int_spec_names(len);
+    Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];
@@ -455,7 +455,7 @@ Castro::variableSetUp ()
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
     int len = 20;
-    Array<int> int_aux_names(len);
+    Vector<int> int_aux_names(len);
     // This call return the actual length of each string in "len"
     ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
     char char_aux_names[len+1];
@@ -515,12 +515,13 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> state_type_source_names(NUM_STATE);
+  Vector<std::string> state_type_source_names(NUM_STATE);
 
   for (int i = 0; i < NUM_STATE; i++)
     state_type_source_names[i] = name[i] + "_source";
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -537,13 +538,14 @@ Castro::variableSetUp ()
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
       state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,BndryFunc(ca_denfill,ca_hypfill));
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,
+                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
       sprintf(buf, "sdc_react_source_%d", i);
       set_scalar_bc(bc,phys_bc);
-      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_denfill));
+      desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
   }
 #endif
 #endif

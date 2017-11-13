@@ -86,21 +86,21 @@ subroutine ca_accel_rhs_neut( lo, hi, &
   real(rt)        , intent(in) :: dt
 
   integer :: i, g
-  real(rt)         :: rt, ry, H, Theta, foo
+  real(rt)         :: rtt, ry, H, Theta, foo
 
   do i = lo(1), hi(1)
-     rt = 0.e0_rt
+     rtt = 0.e0_rt
      ry = 0.e0_rt
      do g=0,ngroups-1
         foo = kap(i,g)*(Ern(i,g)-Erl(i,g))
-        rt = rt + foo
+        rtt = rtt + foo
         ry = ry + foo * erg2rhoYe(g)
      end do
 
      H = etaT(i) - etaY(i)
      Theta = theY(i) - theT(i)
 
-     rhs(i) = clight*(H*rt + Theta*ry)
+     rhs(i) = clight*(H*rtt + Theta*ry)
   end do
 
 end subroutine ca_accel_rhs_neut
@@ -148,18 +148,18 @@ subroutine ca_accel_spec_neut( lo, hi, &
   real(rt)        ,intent(in) :: dt, tau
 
   integer :: i , g
-  real(rt)         :: cdt1, rt, ry, p, q, r, s, foo, sumeps
+  real(rt)         :: cdt1, rtt, ry, p, q, r, s, foo, sumeps
   real(rt)        ,dimension(0:ngroups-1)::Hg, Tg, epsilon, kapt, kk
 
   cdt1 = 1.e0_rt/(clight*dt)
 
   do i = lo(1), hi(1)
 
-     rt = 0.e0_rt
+     rtt = 0.e0_rt
      ry = 0.e0_rt
      do g=0,ngroups-1
         foo = kap(i,g)*(Ern(i,g)-Erl(i,g))
-        rt = rt + foo
+        rtt = rtt + foo
         ry = ry + foo * erg2rhoYe(g)
      end do
 
@@ -174,7 +174,7 @@ subroutine ca_accel_spec_neut( lo, hi, &
      r = sum(Hg*erg2rhoYe*kk)
      s = sum(Tg*kk)
 
-     epsilon = ((r*Tg + q*Hg) * rt + (s*Hg + p*Tg) * ry) / kapt
+     epsilon = ((r*Tg + q*Hg) * rtt + (s*Hg + p*Tg) * ry) / kapt
      
      sumeps = sum(epsilon)
      if (sumeps .eq. 0.e0_rt) then
@@ -402,7 +402,8 @@ subroutine ca_compute_dedx( lo, hi,  &
      dedY,dedY_l1,dedY_h1, &
      validStar)
 
-  use eos_module, only : eos, eos_t, eos_input_rt, Tmin=>table_Tmin, Ymin=>table_Yemin
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos, Tmin=>table_Tmin, Ymin=>table_Yemin
   use network, only : nspec, naux
   use meth_params_module, only : NVAR, URHO, UFS
 
@@ -725,13 +726,13 @@ subroutine ca_local_accel_neut( lo, hi,  &
   real(rt)        ,intent(in) :: dt, tau
 
   integer :: i 
-  real(rt)         :: cdt1, rt, ry, p, q, r, s 
+  real(rt)         :: cdt1, rtt, ry, p, q, r, s 
   real(rt)        ,dimension(0:ngroups-1)::Hg, Tg, epsilon, kapt, kk
 
   cdt1 = 1.e0_rt/(clight*dt)
 
   do i = lo(1), hi(1)
-     rt = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
+     rtt = sum(kap(i,:)*(Ern(i,:)-Erl(i,:)))
      ry = sum(erg2rhoYe(:)*kap(i,:)*(Ern(i,:)-Erl(i,:)))
 
      Hg = mugT(i,:)*etaT(i) - mugY(i,:)*etaY(i)
@@ -745,7 +746,7 @@ subroutine ca_local_accel_neut( lo, hi,  &
      r = sum(Hg*erg2rhoYe*kk)
      s = sum(Tg*kk)
 
-     epsilon = ((r*Tg + q*Hg) * rt + (s*Hg + p*Tg) * ry)  &
+     epsilon = ((r*Tg + q*Hg) * rtt + (s*Hg + p*Tg) * ry)  &
           / (kapt*(p*q-r*s) + 1.e-50_rt)
 
      Ern(i,:) = Ern(i,:) + epsilon

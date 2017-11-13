@@ -47,7 +47,7 @@ contains
                      q1, q1_lo, q1_hi, &
                      q2, q2_lo, q2_hi, &
                      q3, q3_lo, q3_hi, &
-                     pdivu, domlo, domhi)
+                     domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
@@ -100,7 +100,7 @@ contains
 #endif
 
     real(rt)        , intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt)        , intent(inout) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt)        , intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt)        , intent(in) :: flatn(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3))
     real(rt)        , intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 
@@ -111,8 +111,6 @@ contains
     real(rt)        , intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-    real(rt)        , intent(inout) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
-
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -309,9 +307,6 @@ contains
     cdtdy = dtdy*THIRD
     cdtdz = dtdz*THIRD
 
-    ! Initialize pdivu to zero
-    pdivu(:,:,:) = ZERO
-
 #ifdef SHOCK_VAR
     uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
 
@@ -360,7 +355,7 @@ contains
     kc = 1
     km = 2
 
-    
+
     call bl_allocate(sxm, It_lo, It_hi)
     call bl_allocate(sxp, It_lo, It_hi)
     call bl_allocate(sym, It_lo, It_hi)
@@ -693,17 +688,6 @@ contains
              end do
           end do
 
-          if (k3d .ge. lo(3)+1 .and. k3d .le. hi(3)+1) then
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(qgdnvzf(i,j,kc,GDPRES) + qgdnvzf(i,j,km,GDPRES)) * &
-                             (qgdnvzf(i,j,kc,GDW) - qgdnvzf(i,j,km,GDW))*dzinv
-                end do
-             end do
-          end if
-
-
           if (k3d.gt.lo(3)) then
 
              ! Compute U'^z_x and U'^z_y at km (k3d-1) -- note flux3 has physical index
@@ -806,16 +790,6 @@ contains
              do j=lo(2)-1,hi(2)+2
                 do i=lo(1)-1,hi(1)+1
                    q2(i,j,k3d-1,:) = qgdnvyf(i,j,km,:)
-                end do
-             end do
-
-             do j = lo(2),hi(2)
-                do i = lo(1),hi(1)
-                   pdivu(i,j,k3d-1) = pdivu(i,j,k3d-1) +  &
-                        HALF*(qgdnvxf(i+1,j,km,GDPRES) + qgdnvxf(i,j,km,GDPRES)) *  &
-                             (qgdnvxf(i+1,j,km,GDU) - qgdnvxf(i,j,km,GDU))*dxinv + &
-                        HALF*(qgdnvyf(i,j+1,km,GDPRES) + qgdnvyf(i,j,km,GDPRES)) *  &
-                             (qgdnvyf(i,j+1,km,GDV) - qgdnvyf(i,j,km,GDV))*dyinv
                 end do
              end do
 
@@ -951,26 +925,27 @@ contains
                     area2, area2_lo, area2_hi, &
                     area3, area3_lo, area3_hi, &
                     vol,vol_lo,vol_hi, &
-                    div, pdivu, lo, hi, dx, dt, &
+                    div, lo, hi, dx, dt, &
                     mass_lost, xmom_lost, ymom_lost, zmom_lost, &
                     eden_lost, xang_lost, yang_lost, zang_lost, &
                     verbose)
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, NGDNV, NQ, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
                                    GDPRES, GDU, GDV, GDW, GDLAMS, GDERADS, &
-#endif                                   
+#endif
                                    track_grid_losses, limit_fluxes_on_small_dens
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes
+    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, normalize_species_fluxes, calc_pdivu
     use castro_util_module, only : position, linear_to_angular_momentum
     use prob_params_module, only : domlo_level, domhi_level, center
     use amrinfo_module, only : amr_level
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
-    use fluxlimiter_module, only : Edd_factor    
+    use fluxlimiter_module, only : Edd_factor
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
@@ -1023,7 +998,6 @@ contains
     real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
     real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)        , intent(in) :: div(lo(1):hi(1)+1,lo(2):hi(2)+1,lo(3):hi(3)+1)
-    real(rt)        , intent(in) :: pdivu(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3))
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -1055,6 +1029,7 @@ contains
     real(rt)         :: umx_new1, umy_new1, umz_new1
     real(rt)         :: umx_new2, umy_new2, umz_new2
 #endif
+    real(rt)        , pointer:: pdivu(:,:,:)
 
 #ifdef RADIATION
     if (ngroups .gt. 1) then
@@ -1065,6 +1040,18 @@ contains
        end if
     end if
 #endif
+
+    call bl_allocate(pdivu, lo, hi)
+
+    call calc_pdivu(lo, hi, &
+                    qx, qx_lo, qx_hi, &
+                    area1, area1_lo, area1_hi, &
+                    qy, qy_lo, qy_hi, &
+                    area2, area2_lo, area2_hi, &
+                    qz, qz_lo, qz_hi, &
+                    area3, area3_lo, area3_hi, &
+                    vol, vol_lo, vol_hi, &
+                    dx, pdivu, lo, hi)
 
     do n = 1, NVAR
 
@@ -1217,7 +1204,7 @@ contains
 
 
 #ifdef RADIATION
-    ! radiation energy update.  For the moment, we actually update things 
+    ! radiation energy update.  For the moment, we actually update things
     ! fully here, instead of creating a source term for the update
     do g=0,ngroups-1
        do k = lo(3),hi(3)
@@ -1591,6 +1578,8 @@ contains
        endif
 
     endif
+
+    call bl_deallocate(pdivu)
 
   end subroutine consup
 

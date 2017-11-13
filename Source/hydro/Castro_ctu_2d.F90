@@ -85,7 +85,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),0:ngroups-1)
 #endif
   real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
-  real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
+  real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
   real(rt)        , intent(in) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),QVAR)
   real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),NVAR)
   real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),NVAR)
@@ -108,7 +108,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   ! Automatic arrays for workspace
   real(rt)        , allocatable :: flatn(:,:)
   real(rt)        , allocatable :: div(:,:)
-  real(rt)        , allocatable :: pdivu(:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , allocatable :: q1(:,:,:)
@@ -140,7 +139,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   allocate( flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2)))
 
   allocate(   div(lo(1)  :hi(1)+1,lo(2)  :hi(2)+1))
-  allocate( pdivu(lo(1)  :hi(1)  ,lo(2)  :hi(2)))
 
   allocate(q1(q1_lo(1):q1_hi(1), q1_lo(2):q1_hi(2), NGDNV))
   allocate(q2(q2_lo(1):q2_hi(1), q2_lo(2):q2_hi(2), NGDNV))
@@ -186,7 +184,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                q2, q2_lo, q2_hi, &
                area1, area1_lo, area1_hi, &
                area2, area2_lo, area2_hi, &
-               pdivu, vol, vol_lo, vol_hi, &
+               vol, vol_lo, vol_hi, &
                dloga, dloga_lo, dloga_hi, &
                domlo, domhi)
 
@@ -215,7 +213,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
               area1, area1_lo, area1_hi, &
               area2, area2_lo, area2_hi, &
               vol, vol_lo, vol_hi, &
-              div, pdivu, lo, hi, dx, dy, dt, &
+              div, lo, hi, dx, dy, dt, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &
               verbose)
@@ -224,6 +222,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
      pradial(lo(1):hi(1)+1,lo(2):hi(2)) = q1(lo(1):hi(1)+1,lo(2):hi(2),GDPRES) * dt
   end if
 
-  deallocate(flatn,div,q1,q2,pdivu)
+  deallocate(flatn,div,q1,q2)
 
 end subroutine ca_ctu_update

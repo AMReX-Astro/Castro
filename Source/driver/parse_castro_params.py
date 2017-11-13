@@ -373,7 +373,9 @@ def write_meth_module(plist, meth_template):
             params_free = [q for q in params if q.in_fortran == 1 and q.f90_dtype == "string"]
 
             for p in params_free:
-                mo.write("    deallocate({})\n".format(p.f90_name))
+                mo.write("    if (allocated({})) then\n".format(p.f90_name))
+                mo.write("        deallocate({})\n".format(p.f90_name))
+                mo.write("    end if\n")
                 
             mo.write("\n\n")
 

@@ -35,7 +35,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 	// Create a copy of the current (composite) data on this level.
 
 	MultiFab comp_phi;
-	Array<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
+	Vector<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
 
         if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel()) {
 
@@ -62,7 +62,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 	gravity->solve_for_phi(level,
 			       phi_old,
-			       amrex::GetArrOfPtrs(gravity->get_grad_phi_prev(level)),
+			       amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level)),
 			       is_new);
 
         if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel()) {
@@ -71,7 +71,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 	    gravity->create_comp_minus_level_grad_phi(level,
 						      comp_phi,
-						      amrex::GetArrOfPtrs(comp_gphi),
+						      amrex::GetVecOfPtrs(comp_gphi),
 						      comp_minus_level_phi,
 						      comp_minus_level_grad_phi);
 
@@ -150,7 +150,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 	gravity->solve_for_phi(level,
 			       phi_new,
-			       amrex::GetArrOfPtrs(gravity->get_grad_phi_curr(level)),
+			       amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
 			       is_new);
 
 	if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
@@ -227,8 +227,8 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 {
 
 #ifdef SELF_GRAVITY
-    MultiFab& phi_old = get_old_data(PhiGrav_Type);
-    MultiFab& grav_old = get_old_data(Gravity_Type);
+    const MultiFab& phi_old = get_old_data(PhiGrav_Type);
+    const MultiFab& grav_old = get_old_data(Gravity_Type);
 #endif
 
     old_sources[grav_src]->setVal(0.0);
@@ -302,9 +302,9 @@ void Castro::construct_new_gravity_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(grav_new[mfi]),
 #endif
 			BL_TO_FORTRAN_3D(volume[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[2])[mfi]),
 			BL_TO_FORTRAN_3D((*new_sources[grav_src])[mfi]),
 			ZFILL(dx),dt,&time);
 

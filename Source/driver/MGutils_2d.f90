@@ -18,12 +18,12 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(2),hi(2),xlo(2),ylo(2),xhi(2),yhi(2)
-    integer rl1, rl2, rh1, rh2
-    integer ecxl1, ecxl2, ecxh1, ecxh2
-    integer ecyl1, ecyl2, ecyh1, ecyh2
-    integer coord_type
-    real(rt)         rhs(rl1:rh1,rl2:rh2)
+    integer, intent(in) :: lo(2),hi(2),xlo(2),ylo(2),xhi(2),yhi(2)
+    integer, intent(in) ::  rl1, rl2, rh1, rh2
+    integer, intent(in) :: ecxl1, ecxl2, ecxh1, ecxh2
+    integer, intent(in) :: ecyl1, ecyl2, ecyh1, ecyh2
+    integer, intent(in) :: coord_type
+    real(rt), intent(inout) :: rhs(rl1:rh1,rl2:rh2)
     real(rt)         ecx(ecxl1:ecxh1,ecxl2:ecxh2)
     real(rt)         ecy(ecyl1:ecyh1,ecyl2:ecyh2)
     real(rt)         dx(2)
@@ -74,11 +74,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(2),hi(2)
-    integer cl1, cl2, ch1, ch2
-    integer coord_type
-    real(rt)         cc(cl1:ch1,cl2:ch2)
-    real(rt)         dx(2)
+    integer, intent(in) :: lo(2),hi(2)
+    integer, intent(in) :: cl1, cl2, ch1, ch2
+    integer, intent(in) :: coord_type
+    real(rt), intent(inout) :: cc(cl1:ch1,cl2:ch2)
+    real(rt), intent(in) :: dx(2)
 
     real(rt)         r
     integer i,j
@@ -110,11 +110,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(2),hi(2)
-    integer cl1, cl2, ch1, ch2
-    integer coord_type
-    real(rt)         cc(cl1:ch1,cl2:ch2)
-    real(rt)         dx(2)
+    integer, intent(in) ::  lo(2),hi(2)
+    integer, intent(in) :: cl1, cl2, ch1, ch2
+    integer, intent(in) :: coord_type
+    real(rt), intent(inout) :: cc(cl1:ch1,cl2:ch2)
+    real(rt), intent(in) :: dx(2)
 
     real(rt)         r
     integer i,j
@@ -146,11 +146,11 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     
-    integer lo(2),hi(2)
-    integer ecl1, ecl2, ech1, ech2
-    integer coord_type, idir
-    real(rt)         ec(ecl1:ech1,ecl2:ech2)
-    real(rt)         dx(2)
+    integer, intent(in) ::  lo(2),hi(2)
+    integer, intent(in) :: ecl1, ecl2, ech1, ech2
+    integer, intent(in) :: coord_type, idir
+    real(rt), intent(inout) :: ec(ecl1:ech1,ecl2:ech2)
+    real(rt), intent(in) :: dx(2)
 
     real(rt)         :: r
     integer          :: i,j

@@ -7,17 +7,16 @@ using namespace amrex;
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
-    int ng = Sborder.nGrow();
 
     old_sources[sponge_src]->setVal(0.0);
 
-    if (!time_center_sponge || !do_sponge) return;
-
-    Real mult_factor = 1.0;
+    if (!do_sponge) return;
 
     update_sponge_params(&time);
 
     const Real *dx = geom.CellSize();
+
+    const Real mult_factor = 1.0;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -42,64 +41,51 @@ Castro::construct_new_sponge_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = 0;
-
     new_sources[sponge_src]->setVal(0.0);
 
     if (!do_sponge) return;
 
     const Real *dx = geom.CellSize();
 
-    // For the time centered version, do the old-time update first.
-    // This way we can rely on the sponge parameter values which have
-    // already been computed earlier in the step for the old-time source.
+    const Real mult_factor_old = -0.5;
+    const Real mult_factor_new =  0.5;
 
-    Real mult_factor;
-
-    if (time_center_sponge) {
-
-        Real old_time = time - dt;
-        mult_factor = -0.5;
+    // First, subtract half of the old-time source.
+    // Note that the sponge parameters are still current
+    // at this point from their evaluation at the old time.
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
-        {
-            const Box& bx = mfi.tilebox();
+    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
 
-            ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                      BL_TO_FORTRAN_3D(S_old[mfi]),
-                      BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
-                      BL_TO_FORTRAN_3D(volume[mfi]),
-                      ZFILL(dx), dt, old_time, mult_factor);
-
-        }
+        ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                  BL_TO_FORTRAN_3D(S_old[mfi]),
+                  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
+                  BL_TO_FORTRAN_3D(volume[mfi]),
+                  ZFILL(dx), dt, time, mult_factor_old);
 
     }
 
-    // Now update the sponge parameters in anticipation of the new-time source.
+    // Now update to the new-time sponge parameter values
+    // and then evaluate the new-time part of the corrector.
 
     update_sponge_params(&time);
-
-    if (time_center_sponge) {
-        mult_factor = 0.5;
-    } else {
-        mult_factor = 1.0;
-    }
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.tilebox();
+	const Box& bx = mfi.tilebox();
 
-        ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_new[mfi]),
-                  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
-                  BL_TO_FORTRAN_3D(volume[mfi]),
-                  ZFILL(dx), dt, time, mult_factor);
+		  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
+		  BL_TO_FORTRAN_3D(volume[mfi]),
+		  ZFILL(dx), dt, time, mult_factor_new);
 
     }
 

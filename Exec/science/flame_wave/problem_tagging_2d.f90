@@ -14,7 +14,7 @@ contains
                               dx,problo,time,level) bind(C, name="set_problem_tags")
 
     use meth_params_module, only: URHO, NVAR, UFS
-    use probdata_module, only: H_min, cutoff_density
+    use probdata_module, only: X_min, cutoff_density
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -29,12 +29,14 @@ contains
 
     integer :: i, j
 
-    ! Tag on regions of with H > H_min and rho < cutoff_density.
-    ! Note that H is the first species variable and so is in index UFS of the state array.
+    ! Tag on regions of with X > X_min (note: this is the first
+    ! species variable) and rho < cutoff_density.  Note that X is the
+    ! first species variable and so is in index UFS of the state
+    ! array.
 
     do j = lo(2), hi(2)
        do i = lo(1), hi(1)
-          if ( state(i,j,URHO) > cutoff_density .and. state(i,j,UFS) > H_min) then
+          if ( state(i,j,URHO) > cutoff_density .and. state(i,j,UFS) > X_min) then
              tag(i,j) = set
           endif
        enddo

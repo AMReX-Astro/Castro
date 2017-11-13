@@ -22,7 +22,7 @@ subroutine ca_mol_single_stage(time, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  NGDNV, GDU, GDPRES, first_order_hydro, difmag, &
                                  hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, shock, normalize_species_fluxes
+  use advection_util_module, only : compute_cfl, shock, normalize_species_fluxes, divu, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
@@ -54,7 +54,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(in) ::      uin(  uin_lo(1):  uin_hi(1),NVAR)
   real(rt)        , intent(inout) ::  uout( uout_lo(1): uout_hi(1),NVAR)
   real(rt)        , intent(inout) ::     q(    q_lo(1):    q_hi(1),NQ)
-  real(rt)        , intent(in) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
+  real(rt)        , intent(inout) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
   real(rt)        , intent(in) ::     srcU(  srU_lo(1):  srU_hi(1),NVAR)
   real(rt)        , intent(inout) :: update(updt_lo(1): updt_hi(1),NVAR)
   real(rt)        , intent(inout) :: update_flux(uf_lo(1): uf_hi(1),NVAR)
@@ -96,7 +96,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt) :: div1
 
   type(eos_t) :: eos_state
-  
+
   ngf = 1
 
   lo_3D   = [lo(1), 0, 0]
@@ -215,7 +215,7 @@ subroutine ca_mol_single_stage(time, &
         eos_state%T      = qxm(i,QTEMP)
         eos_state%xn(:)  = qxm(i,QFS:QFS-1+nspec)
         eos_state%aux(:) = qxm(i,QFX:QFX-1+naux)
-        
+
         call eos(eos_input_rt, eos_state)
 
         qxm(i,QPRES) = eos_state%p
@@ -226,30 +226,29 @@ subroutine ca_mol_single_stage(time, &
   endif
 
   ! Get the fluxes from the Riemann solver
-  call cmpflx(lo, hi, domlo, domhi, &
-              qxm, qxp, qp_lo, qp_hi, &
+  call cmpflx(qxm, qxp, qp_lo, qp_hi, &
               flux, flux_lo, flux_hi, &
               q1, flux_lo, flux_hi, &
 #ifdef RADIATION
               rflx, flux_lo, flux_hi, &
 #endif
-              qaux, qa_lo, qa_hi, lo(1), hi(1))
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              1, lo(1), hi(1)+1, 0, 0, 0, 0, 0, &
+              [domlo(1), 0, 0], [domhi(1), 0, 0])
 
   deallocate(qxm, qxp)
 
-  ! construct p div(U)
-  do i = lo(1), hi(1)
-     pdivu(i) = HALF * &
-          (q1(i+1,GDPRES) + q1(i,GDPRES))* &
-          (q1(i+1,GDU)*area(i+1) - q1(i,GDU)*area(i)) / vol(i)
-  end do
+  call calc_pdivu(lo_3D, hi_3D, &
+                  q1, flux_lo, flux_hi, &
+                  area, area_lo, area_hi, &
+                  vol, vol_lo, vol_hi, &
+                  dx_3D, pdivu, lo_3D, hi_3D)
 
-  ! Compute the artifical viscosity
   allocate(div(lo(1):hi(1)+1))
 
-  do i = lo(1), hi(1)+1
-     div(i) = (q(i,QU) - q(i-1,QU)) / dx
-  enddo
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3D, div, [lo(1), 0, 0], [hi(1)+1, 0, 0])
 
   do n = 1, NVAR
      if ( n == UTEMP ) then
@@ -265,7 +264,7 @@ subroutine ca_mol_single_stage(time, &
      else
         ! add the artifical viscosity
         do i = lo(1),hi(1)+1
-           div1 = difmag*min(ZERO,div(i))
+           div1 = difmag*min(ZERO, div(i))
            flux(i,n) = flux(i,n) + dx*div1*(uin(i,n) - uin(i-1,n))
         enddo
      endif

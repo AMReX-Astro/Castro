@@ -183,9 +183,9 @@ contains
     use mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
-    use prob_params_module, only: dg, center
+    use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
-    use castro_util_module, only: position
+    use castro_util_module, only: position, is_domain_corner
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: set_hybrid_momentum_source
@@ -235,11 +235,11 @@ contains
 
     real(rt), intent(in)    :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    ! Hydrodynamics fluxes
+    ! Hydrodynamical mass fluxes
 
-    real(rt), intent(in)    :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt), intent(in)    :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt), intent(in)    :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt), intent(in)    :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt), intent(in)    :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt), intent(in)    :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3))
 
     ! The source term to send back
 
@@ -322,28 +322,33 @@ contains
        ! We don't need to reset this at the end because phi is a temporary array.
        ! Note that this is needed for Poisson gravity only; the other gravity methods
        ! generally define phi on cell centers even outside the domain.
+       ! Note also that we do not want to apply it on symmetry boundaries,
+       ! because in that case the value in the ghost zone is the cell-centered value.
+       ! We also want to skip the corners, because the potential is undefined there.
 
        if (gravity_type == "PoissonGrav") then
 
           do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
              do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
                 do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                   if (i .lt. domlo(1)) then
+                   if (is_domain_corner([i, j, k])) cycle
+
+                   if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
                       phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
                    endif
-                   if (i .gt. domhi(1)) then
+                   if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
                       phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
                    endif
-                   if (j .lt. domlo(2)) then
+                   if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
                    endif
-                   if (j .gt. domhi(2)) then
+                   if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
                    endif
-                   if (k .lt. domlo(3)) then
+                   if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
                    endif
-                   if (k .gt. domhi(3)) then
+                   if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
                    endif
                 enddo
@@ -482,12 +487,12 @@ contains
 #ifdef SELF_GRAVITY
                 if (gravity_type == "PoissonGrav" .or. (gravity_type == "MonopoleGrav" .and. get_g_from_phi == 1) ) then
 
-                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k,URHO) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
-                                                      flux1(i+1*dg(1),j,k,URHO) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
-                                                      flux2(i,j        ,k,URHO) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
-                                                      flux2(i,j+1*dg(2),k,URHO) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
-                                                      flux3(i,j,k        ,URHO) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
-                                                      flux3(i,j,k+1*dg(3),URHO) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
+                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phi(i-1,j,k) + phi(i,j,k)) - &
+                                                      flux1(i+1*dg(1),j,k) * HALF * (phi(i+1,j,k) + phi(i,j,k)) + &
+                                                      flux2(i,j        ,k) * HALF * (phi(i,j-1,k) + phi(i,j,k)) - &
+                                                      flux2(i,j+1*dg(2),k) * HALF * (phi(i,j+1,k) + phi(i,j,k)) + &
+                                                      flux3(i,j,k        ) * HALF * (phi(i,j,k-1) + phi(i,j,k)) - &
+                                                      flux3(i,j,k+1*dg(3)) * HALF * (phi(i,j,k+1) + phi(i,j,k))) / vol(i,j,k) - &
                                                       (rhon - rhoo) * phi(i,j,k))
 
                 else
@@ -497,26 +502,26 @@ contains
                    ! gravitational acceleration. It relies on the concept that, to second order,
                    ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
 
-                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k,URHO) * gravx(i  ,j,k) * dx(1) + &
-                                                  flux1(i+1*dg(1),j,k,URHO) * gravx(i+1,j,k) * dx(1) + &
-                                                  flux2(i,j        ,k,URHO) * gravy(i,j  ,k) * dx(2) + &
-                                                  flux2(i,j+1*dg(2),k,URHO) * gravy(i,j+1,k) * dx(2) + &
-                                                  flux3(i,j,k        ,URHO) * gravz(i,j,k  ) * dx(3) + &
-                                                  flux3(i,j,k+1*dg(3),URHO) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gravx(i  ,j,k) * dx(1) + &
+                                                  flux1(i+1*dg(1),j,k) * gravx(i+1,j,k) * dx(1) + &
+                                                  flux2(i,j        ,k) * gravy(i,j  ,k) * dx(2) + &
+                                                  flux2(i,j+1*dg(2),k) * gravy(i,j+1,k) * dx(2) + &
+                                                  flux3(i,j,k        ) * gravz(i,j,k  ) * dx(3) + &
+                                                  flux3(i,j,k+1*dg(3)) * gravz(i,j,k+1) * dx(3) ) / vol(i,j,k)
 
                 endif
 #else
                 ! For constant gravity, the only contribution is from the dimension that the gravity points in.
 
                 if (dim .eq. 1) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k,URHO) * const_grav * dx(1) + &
-                                                       flux1(i+1*dg(1),j,k,URHO) * const_grav * dx(1) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
                 else if (dim .eq. 2) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k,URHO) * const_grav * dx(2) + &
-                                                       flux2(i,j+1*dg(2),k,URHO) * const_grav * dx(2) ) / vol(i,j,k) 
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
                 else if (dim .eq. 3) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ,URHO) * const_grav * dx(3) + &
-                                                       flux3(i,j,k+1*dg(3),URHO) * const_grav * dx(3) ) / vol(i,j,k)
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
                 end if
 #endif
 

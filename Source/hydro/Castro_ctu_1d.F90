@@ -33,7 +33,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                                  NQAUX, NVAR, NHYP, use_flattening, &
                                  NGDNV, GDU, GDPRES, first_order_hydro
   use bl_constants_module, only : ZERO, HALF, ONE
-  use advection_util_module, only : compute_cfl
+  use advection_util_module, only : compute_cfl, divu
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
 #ifdef RADIATION
@@ -91,7 +91,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   ! Automatic arrays for workspace
   real(rt)        , allocatable:: flatn(:)
   real(rt)        , allocatable:: div(:)
-  real(rt)        , allocatable:: pdivu(:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , allocatable :: q1(:,:)
@@ -116,7 +115,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   allocate( flatn(q_lo(1):q_hi(1)))
 
   allocate(   div(lo(1):hi(1)+1))
-  allocate( pdivu(lo(1):hi(1)  ))
   allocate(    q1(q1_lo(1):q1_hi(1), NGDNV))
 
   dx = delta(1)
@@ -157,17 +155,9 @@ subroutine ca_ctu_update(is_finest_level, time, &
                dloga, dloga_lo, dloga_hi)
 
 
-  ! Define p*divu
-  do i = lo(1), hi(1)
-     pdivu(i) = HALF * &
-          (q1(i+1,GDPRES) + q1(i,GDPRES))* &
-          (q1(i+1,GDU)*area(i+1) - q1(i,GDU)*area(i)) / vol(i)
-  end do
-
   ! Define divu on surroundingNodes(lo,hi)
-  do i = lo(1), hi(1)+1
-     div(i) = (q(i,QU) - q(i-1,QU)) / dx
-  enddo
+  call divu(lo_3D, hi_3D, q, q_lo, q_hi, &
+            dx_3D, div, [lo(1), 0, 0], [hi(1)+1, 0, 0])
 
 
   ! Conservative update
@@ -185,7 +175,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
               area, area_lo, area_hi, &
               vol, vol_lo, vol_hi, &
-              div, pdivu, lo, hi, dx, dt, &
+              div, lo, hi, dx, dt, &
               mass_lost, xmom_lost, ymom_lost, zmom_lost, &
               eden_lost, xang_lost, yang_lost, zang_lost, &
               verbose)
@@ -194,6 +184,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
      pradial(lo(1):hi(1)+1) = q1(lo(1):hi(1)+1,GDPRES) * dt
   end if
 
-  deallocate(flatn,div,pdivu,q1)
+  deallocate(flatn,div,q1)
 
 end subroutine ca_ctu_update

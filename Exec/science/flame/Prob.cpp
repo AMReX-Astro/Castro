@@ -46,7 +46,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
     int len = 20;
-    Array<int> int_spec_names(len);
+    Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];

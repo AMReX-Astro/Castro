@@ -1,23 +1,25 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use bl_constants_module
   use probdata_module
   use prob_params_module, only : center
   use bl_error_module
-  use amrex_fort_module, only : rt => amrex_real
-  use eos_type_module, only: eos_t, eos_input_rp
+  use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
+  use amrex_fort_module, only : rt => amrex_real
 
   implicit none
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt)         :: problo(3), probhi(3)
 
-  integer :: untin,i
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
+
+  integer :: untin, i
 
   type(eos_t) :: eos_state
 
-  namelist /fortin/ probtype, p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub
+  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
+       r_init, nsub, temp_ambient
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -38,17 +40,33 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
   r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
   nsub = 4
+  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
+
+  ! set local variable defaults
+  center(1) = HALF*(problo(1) + probhi(1))
+  center(2) = HALF*(problo(2) + probhi(2))
+  center(3) = HALF*(problo(3) + probhi(3))
 
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
-  ! set local variable defaults
-  center(1) = (problo(1)+probhi(1))/2.e0_rt
-  center(2) = (problo(2)+probhi(2))/2.e0_rt
-  center(3) = (problo(3)+probhi(3))/2.e0_rt
+  xn_zone(:) = ZERO
+  xn_zone(1) = ONE
+
+  ! override the pressure iwth the temperature
+  if (temp_ambient > ZERO) then
+
+     eos_state % rho = dens_ambient
+     eos_state % xn(:) = xn_zone(:)
+     eos_state % T = temp_ambient
+
+     call eos(eos_input_rt, eos_state)
+
+     p_ambient = eos_state % p
+
+  endif
 
   ! Calculate ambient state data
 
@@ -103,51 +121,51 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer :: level, nscal
   integer :: lo(3), hi(3)
   integer :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  real(rt)         :: xlo(3), xhi(3), time, delta(3)
-  real(rt)         :: state(state_l1:state_h1, &
-                            state_l2:state_h2, &
-                            state_l3:state_h3,NVAR)
+  real(rt) :: xlo(3), xhi(3), time, delta(3)
+  real(rt) :: state(state_l1:state_h1, &
+                    state_l2:state_h2, &
+                    state_l3:state_h3,NVAR)
 
-  real(rt)         :: xmin,ymin,zmin
-  real(rt)         :: xx, yy, zz
-  real(rt)         :: dist
-  real(rt)         :: eint, p_zone
-  real(rt)         :: vctr, p_exp
+  real(rt) :: xmin,ymin,zmin
+  real(rt) :: xx, yy, zz
+  real(rt) :: dist
+  real(rt) :: eint, p_zone
+  real(rt) :: vctr, p_exp
 
   integer :: i,j,k, ii, jj, kk
   integer :: npert, nambient
   real(rt) :: e_zone
   type(eos_t) :: eos_state
 
-  if (probtype .eq. 32) then
+  ! set explosion pressure -- we will convert the point-explosion energy into
+  ! a corresponding pressure distributed throughout the perturbed volume
+  vctr  = FOUR3RD*M_PI*r_init**3
 
-     ! set explosion pressure -- we will convert the point-explosion
-     ! energy into a corresponding pressure distributed throughout the
-     ! perturbed volume
-     vctr  = M_PI*r_init**2
+  e_zone = exp_energy/vctr/dens_ambient
 
-     e_zone = exp_energy/vctr/dens_ambient
+  eos_state % e = e_zone
+  eos_state % rho = dens_ambient
+  eos_state % xn(:) = xn_zone(:)
+  eos_state % T = 100.0  ! initial guess
 
-     eos_state % e = e_zone
-     eos_state % rho = dens_ambient
-     eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
+  call eos(eos_input_re, eos_state)
 
-     call eos(eos_input_re, eos_state)
+  p_exp = eos_state % p
 
-     p_exp = eos_state % p
+  do k = lo(3), hi(3)
+     zmin = xlo(3) + delta(3)*dble(k-lo(3))
 
-     do k = lo(3), hi(3)
-        zmin = xlo(3) + delta(3)*dble(k-lo(3))
+     do j = lo(2), hi(2)
+        ymin = xlo(2) + delta(2)*dble(j-lo(2))
 
-        do j = lo(2), hi(2)
-           ymin = xlo(2) + delta(2)*dble(j-lo(2))
+        do i = lo(1), hi(1)
+           xmin = xlo(1) + delta(1)*dble(i-lo(1))
 
-           do i = lo(1), hi(1)
-              xmin = xlo(1) + delta(1)*dble(i-lo(1))
+           npert = 0
+           nambient = 0
 
-              npert = 0
-              nambient = 0
+           do kk = 0, nsub-1
+              zz = zmin + (delta(3)/dble(nsub))*(kk + 0.5e0_rt)
 
               do jj = 0, nsub-1
                  yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5e0_rt)
@@ -155,7 +173,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  do ii = 0, nsub-1
                     xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
 
-                    dist = (center(1)-xx)**2 + (center(2)-yy)**2
+                    dist = (center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2
 
                     if(dist <= r_init**2) then
                        npert = npert + 1
@@ -165,120 +183,35 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
                  enddo
               enddo
+           enddo
 
-              p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient) / &
-                       (dble(npert) + dble(nambient))
+           p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient)/  &
+                dble(nsub*nsub*nsub)
 
+           eos_state % p = p_zone
+           eos_state % rho = dens_ambient
+           eos_state % xn(:) = xn_zone(:)
 
-              eos_state % p = p_zone
-              eos_state % rho = dens_ambient
-              eos_state % xn(:) = xn_zone(:)
+           call eos(eos_input_rp, eos_state)
 
-              call eos(eos_input_rp, eos_state)
+           eint = dens_ambient * eos_state % e
 
-              eint = dens_ambient * eos_state % e
+           state(i,j,k,URHO) = dens_ambient
+           state(i,j,k,UMX) = 0.e0_rt
+           state(i,j,k,UMY) = 0.e0_rt
+           state(i,j,k,UMZ) = 0.e0_rt
 
-              state(i,j,k,URHO) = dens_ambient
-              state(i,j,k,UMX) = 0.e0_rt
-              state(i,j,k,UMY) = 0.e0_rt
-              state(i,j,k,UMZ) = 0.e0_rt
-
-              state(i,j,k,UEDEN) = eint +  &
-                   0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
+           state(i,j,k,UEDEN) = eint + &
+                0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMY)**2/state(i,j,k,URHO) + &
                           state(i,j,k,UMZ)**2/state(i,j,k,URHO))
 
-              state(i,j,k,UEINT) = eint
+           state(i,j,k,UEINT) = eint
 
-              state(i,j,k,UFS) = state(i,j,k,URHO)
+           state(i,j,k,UFS) = state(i,j,k,URHO)
 
-           enddo
         enddo
      enddo
-
-  else if (probtype .eq. 33) then
-
-     ! set explosion pressure -- we will convert the point-explosion energy into
-     ! a corresponding pressure distributed throughout the perturbed volume
-     vctr  = FOUR3RD*M_PI*r_init**3
-
-     e_zone = exp_energy/vctr/dens_ambient
-
-     eos_state % e = e_zone
-     eos_state % rho = dens_ambient
-     eos_state % xn(:) = xn_zone(:)
-     eos_state % T = 100.0  ! initial guess
-
-     call eos(eos_input_re, eos_state)
-
-     p_exp = eos_state % p
-
-     do k = lo(3), hi(3)
-        zmin = xlo(3) + delta(3)*dble(k-lo(3))
-
-        do j = lo(2), hi(2)
-           ymin = xlo(2) + delta(2)*dble(j-lo(2))
-
-           do i = lo(1), hi(1)
-              xmin = xlo(1) + delta(1)*dble(i-lo(1))
-
-              npert = 0
-              nambient = 0
-
-              do kk = 0, nsub-1
-                 zz = zmin + (delta(3)/dble(nsub))*(kk + 0.5e0_rt)
-
-                 do jj = 0, nsub-1
-                    yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5e0_rt)
-
-                    do ii = 0, nsub-1
-                       xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
-
-                       dist = (center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2
-
-                       if(dist <= r_init**2) then
-                          npert = npert + 1
-                       else
-                          nambient = nambient + 1
-                       endif
-
-                    enddo
-                 enddo
-              enddo
-
-              p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient)/  &
-                   dble(nsub*nsub*nsub)
-
-              eos_state % p = p_zone
-              eos_state % rho = dens_ambient
-              eos_state % xn(:) = xn_zone(:)
-
-              call eos(eos_input_rp, eos_state)
-
-              eint = dens_ambient * eos_state % e
-
-              state(i,j,k,URHO) = dens_ambient
-              state(i,j,k,UMX) = 0.e0_rt
-              state(i,j,k,UMY) = 0.e0_rt
-              state(i,j,k,UMZ) = 0.e0_rt
-
-              state(i,j,k,UEDEN) = eint + &
-                   0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
-                          state(i,j,k,UMY)**2/state(i,j,k,URHO) + &
-                          state(i,j,k,UMZ)**2/state(i,j,k,URHO))
-
-              state(i,j,k,UEINT) = eint
-
-              state(i,j,k,UFS) = state(i,j,k,URHO)
-
-           enddo
-        enddo
-     enddo
-
-  else
-
-     call bl_error('Dont know this probtype in initdata')
-
-  end if
+  enddo
 
 end subroutine ca_initdata

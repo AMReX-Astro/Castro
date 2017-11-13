@@ -25,7 +25,7 @@ subroutine ca_mol_single_stage(time, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, ppm_temp_fix
-  use advection_util_module, only : compute_cfl, shock, divu, normalize_species_fluxes
+  use advection_util_module, only : compute_cfl, shock, divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE
   use flatten_module, only : uflatten
   use prob_params_module, only : coord_type
@@ -309,7 +309,8 @@ subroutine ca_mol_single_stage(time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+              1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
+              [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
 
   call cmpflx(qym, qyp, qs_lo, qs_hi, &
@@ -320,23 +321,19 @@ subroutine ca_mol_single_stage(time, &
 #endif
               qaux, qa_lo, qa_hi, &
               shk, shk_lo, shk_hi, &
-              2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+              2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
+              [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
   deallocate(qxm, qxp, qym, qyp)
 
 
-  ! construct p div{U}
-  do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
-        pdivu(i,j) = HALF*( &
-             (q1(i+1,j,GDPRES) + q1(i,j,GDPRES)) * &
-             (q1(i+1,j,GDU)*area1(i+1,j) - q1(i,j,GDU)*area1(i,j)) + &
-             (q2(i,j+1,GDPRES) + q2(i,j,GDPRES)) * &
-             (q2(i,j+1,GDV)*area2(i,j+1) - q2(i,j,GDV)*area2(i,j)) ) / vol(i,j)
-     enddo
-  enddo
-
-  ! Compute the artifical viscosity
+  call calc_pdivu(lo_3D, hi_3d, &
+                  q1, flux1_lo, flux1_hi, &
+                  area1, area1_lo, area1_hi, &
+                  q2, flux2_lo, flux2_hi, &
+                  area2, area2_lo, area2_hi, &
+                  vol, vol_lo, vol_hi, &
+                  dx_3D, pdivu, lo_3D, hi_3D)
 
   ! Compute divergence of velocity field (on surrounding nodes(lo,hi))
   ! this is used for the artifical viscosity

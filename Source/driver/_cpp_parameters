@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we time center the sponge?
-time_center_sponge           int           1
-
 # should we update the state in between evaluations of the new-time source terms
 update_state_between_sources int           1
 
@@ -266,24 +263,42 @@ init_shrink                  Real          1.0
 # the next.
 change_max                   Real          1.1
 
+# enforce that the AMR plot interval must be hit exactly
+plot_per_is_exact            int           0
+
+# enforce that the AMR small plot interval must be hit exactly
+small_plot_per_is_exact      int           0
+
 # Retry a timestep if it violated the timestep-limiting criteria over
 # the course of an advance. The criteria will suggest a new timestep
 # that satisfies the criteria, and we will do subcycled timesteps
 # on the same level until we reach the original target time.
 use_retry                    int           0
 
-# Check for a possible post-timestep regrid if certain stability
-# criteria were violated.
-use_post_step_regrid         int           0
-
-# Do not permit more retry timesteps than this parameter.
-# Set to a negative value to disable this criterion.
-retry_max_subcycles          int           1000
+# Tolerance to use when evaluating whether to do a retry.
+# The timestep suggested by the retry will be multiplied by
+# (1 + this factor) before comparing the actual timestep to it.
+# If set to some number slightly larger than zero, then this
+# prevents retries that are caused by small numerical differences.
+retry_tolerance              Real          0.02
 
 # If we're doing retries, set the target threshold for changes in density
 # if a retry is triggered by a negative density. If this is set to a negative
 # number then it will disable retries using this criterion.
 retry_neg_dens_factor        Real          1.e-1
+
+# Check for a possible post-timestep regrid if certain stability
+# criteria were violated.
+use_post_step_regrid         int           0
+
+# Do not permit more subcycled timesteps than this parameter.
+# Set to a negative value to disable this criterion.
+max_subcycles                int           10
+
+# If we do request more than the maximum number of subcycles,
+# should we fail, or should we clamp to that maximum number
+# and perform that many?
+clamp_subcycles              int           1
 
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
@@ -302,6 +317,11 @@ dtnuc_e                      Real          1.e200             y
 # {\tt dtnuc}  $\cdot\,(X / \dot{X})$.
 dtnuc_X                      Real          1.e200             y
 
+# If we are using the timestep limiter based on changes in $X$, set a threshold
+# on the species abundance below which the limiter is not applied. This helps
+# prevent the timestep from becoming very small due to changes in trace species.
+dtnuc_X_threshold            Real          1.e-3              y
+
 # If we are doing burning timestep limiting, choose the method for
 # estimating $\dot{e}$ and $\dot{X}$.
 # 1 == call the burner's RHS for an instantaneous calculation
@@ -316,6 +336,10 @@ dtnuc_mode                   int           1                  y
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
+
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -451,7 +475,7 @@ spherical_star               int           0
 
 
 #-----------------------------------------------------------------------------
-# category: diagnostics
+# category: diagnostics, I/O
 #-----------------------------------------------------------------------------
 
 # display warnings in Fortran90 routines
@@ -485,6 +509,19 @@ job_name                     string        ""
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1
+
+# Do we want to reset the time in the checkpoint?
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# and you set it to value greater than this default value.
+reset_checkpoint_time        Real          -1.e200
+
+# Do we want to reset the number of steps in the checkpoint?
+# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
+# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# and you set it to value greater than this default value.
+reset_checkpoint_step        int           -1
+
 
 
 
@@ -534,8 +571,15 @@ max_solve_level             int            MAX_LEV-1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+mlmg_consolidation           int           1                  n
 
 @namespace: diffusion Diffusion static
 

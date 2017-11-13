@@ -1,7 +1,7 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
+DEBUG      = FALSE
 
 DIM        = 2
 
@@ -20,10 +20,10 @@ CASTRO_HOME = ../../..
 ifdef MICROPHYSICS_HOME
 
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_dir     := gamma_law_general
+  EOS_DIR     := gamma_law_general
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  Network_dir := powerlaw
+  NETWORK_DIR := powerlaw
 
 else
 
@@ -31,7 +31,7 @@ else
 
 endif
 
-Conductivity_dir := constant
+CONDUCTIVITY_DIR := constant
 
 Bpack   := ./Make.package
 Blocs   := .
