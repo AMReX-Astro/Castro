@@ -10,6 +10,8 @@ using namespace amrex;
 #ifdef PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
+int Castro::do_tracer_particles                  ;
+int Castro::particle_verbose                     ;
 
 namespace {
     std::string       particle_init_file;
@@ -201,12 +203,12 @@ Castro::TimestampParticles (int ngrow)
 
 	// have to do it here, not in read_particle_params, because Density, ..., are set after
 	// read_particle_params is called.
-
+  int timestamp_density;
 	if (timestamp_density) {
 	    timestamp_indices.push_back(Density);
 	    std::cout << "Density = " << Density << std::endl;
 	}
-
+  int timestamp_temperature;
 	if (timestamp_temperature) {
 	    timestamp_indices.push_back(Temp);
 	    std::cout << "Temp = " << Temp << std::endl;
