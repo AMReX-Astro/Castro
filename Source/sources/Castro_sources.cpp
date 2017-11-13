@@ -86,11 +86,11 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Construct the old-time sources.
 
-    old_sources[unified_src]->setVal(0.0);
+    for (int n = 0; n < num_src; ++n)
+        old_sources[n]->setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
-	construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
-
+        construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
 
     // Apply the old-time sources directly to the new-time state,
     // S_new -- note that this addition is for full dt, since we
@@ -124,7 +124,8 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // state that comes out of the hydro update, or we can evaluate the sources
     // one by one and apply them as we go.
 
-    new_sources[unified_src]->setVal(0.0);
+    for (int n = 0; n < num_src; ++n)
+        new_sources[n]->setVal(0.0);
 
     if (update_state_between_sources) {
 

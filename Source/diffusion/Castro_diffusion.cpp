@@ -18,11 +18,11 @@ Castro::construct_old_diff_source(Real time, Real dt)
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
 
-    add_temp_diffusion_to_source(*old_sources[diff_src], TempDiffTerm, time, 1);
+    add_temp_diffusion_to_source(*old_sources[unified_src], TempDiffTerm, time, 1);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(*old_sources[diff_src], SpecDiffTerm, time, 1);
-    add_viscous_term_to_source(*old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
+    add_spec_diffusion_to_source(*old_sources[unified_src], SpecDiffTerm, time, 1);
+    add_viscous_term_to_source(*old_sources[unified_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
 }
 
@@ -38,11 +38,11 @@ Castro::construct_new_diff_source(Real time, Real dt)
 
     Real mult_factor = 0.5;
 
-    add_temp_diffusion_to_source(*new_sources[diff_src], TempDiffTerm, time, 0, mult_factor);
+    add_temp_diffusion_to_source(*new_sources[unified_src], TempDiffTerm, time, 0, mult_factor);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(*new_sources[diff_src], SpecDiffTerm, time, 0, mult_factor);
-    add_viscous_term_to_source(*new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time, mult_factor);
+    add_spec_diffusion_to_source(*new_sources[unified_src], SpecDiffTerm, time, 0, mult_factor);
+    add_viscous_term_to_source(*new_sources[unified_src], ViscousTermforMomentum, ViscousTermforEnergy, time, mult_factor);
 #endif
 
     // Time center the source term.
@@ -50,11 +50,11 @@ Castro::construct_new_diff_source(Real time, Real dt)
     mult_factor = -0.5;
     Real old_time = time - dt;
 
-    add_temp_diffusion_to_source(*new_sources[diff_src], TempDiffTerm, old_time, 1, mult_factor);
+    add_temp_diffusion_to_source(*new_sources[unified_src], TempDiffTerm, old_time, 1, mult_factor);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(*new_sources[diff_src], SpecDiffTerm, old_time, 1, mult_factor);
-    add_viscous_term_to_source(*new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, old_time, mult_factor);
+    add_spec_diffusion_to_source(*new_sources[unified_src], SpecDiffTerm, old_time, 1, mult_factor);
+    add_viscous_term_to_source(*new_sources[unified_src], ViscousTermforMomentum, ViscousTermforEnergy, old_time, mult_factor);
 #endif
 
 
