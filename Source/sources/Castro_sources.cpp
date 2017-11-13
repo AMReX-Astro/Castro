@@ -71,6 +71,9 @@ Castro::source_flag(int src)
 	    return false;
 #endif
 
+    case unified_src:
+        return true;
+
     default:
 	return false;
 

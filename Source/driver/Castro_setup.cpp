@@ -942,6 +942,8 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
+  source_names[unified_src] = "unified";
+
 
   // method of lines Butcher tableau
 #define SECONDORDER_TVD

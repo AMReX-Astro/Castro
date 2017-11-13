@@ -65,6 +65,7 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
                rot_src,
 #endif
+               unified_src,
 	       num_src };
 
 //
