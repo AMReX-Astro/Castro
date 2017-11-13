@@ -341,6 +341,7 @@ end subroutine ca_advance_mhd
       use network, only : nspec, naux
 !      use eos_params_module
       use eos_module
+      use eos_type_module, only : eos_t, eos_input_re 
 !      use flatten_module
       use bl_constants_module
       use meth_params_module, only : NTHERM, URHO, UMX, UMY, UMZ, &
@@ -389,6 +390,8 @@ end subroutine ca_advance_mhd
       real(rt) :: courx, coury, courz, courmx, courmy, courmz, cad
       real(rt) :: a_half, a_dot, rhoInv
       real(rt) :: dtdxaold, dtdyaold, dtdzaold, small_pres_over_dens
+      
+      type(eos_t) :: eos_state
 
       do i=1,3
          loq(i) = lo(i)-ngp
@@ -525,8 +528,13 @@ end subroutine ca_advance_mhd
                q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
                ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
-               ! TODO: we need to get pressure from the EOS, using e, rho, and X
-               q(i,j,k,QPRES) = gamma_minus_1 * q(i,j,k,QREINT) &
+               eos_state % e = q(i,j,k,QREINT)
+               eos_state % rho = q(i, j, k,QRHO)
+               eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
+
+               call eos(eos_input_re, eos_state)
+
+               q(i,j,k,QPRES) = eos_state % p &
 				+ 0.5d0*(q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)
             end do
          end do
