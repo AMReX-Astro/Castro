@@ -332,39 +332,15 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 #ifdef BL_LAZY
   Lazy::QueueReduction( [=] () mutable {
 #endif
-      if (coalesce_update_diagnostics) {
 
-	  Vector<Real> coalesced_update(NUM_STATE, 0.0);
+      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
 
-	  for (int n = 0; n < num_src; ++n) {
-	      if (!source_flag(n)) continue;
+      std::string time = is_new ? "new" : "old";
 
-	      for (int s = 0; s < NUM_STATE; ++s) {
-		  coalesced_update[s] += summed_updates[s];
-	      }
-	  }
+      if (ParallelDescriptor::IOProcessor())
+          std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
 
-	  ParallelDescriptor::ReduceRealSum(coalesced_update.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
-
-	  std::string time = is_new ? "new" : "old";
-
-	  if (ParallelDescriptor::IOProcessor())
-	      std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
-
-	  print_source_change(coalesced_update);
-
-      } else {
-
-          ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
-
-          std::string time = is_new ? "new" : "old";
-
-          if (ParallelDescriptor::IOProcessor())
-              std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
-
-          print_source_change(summed_updates);
-
-      }
+      print_source_change(summed_updates);
 
 #ifdef BL_LAZY
     });
