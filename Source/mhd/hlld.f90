@@ -93,6 +93,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call PToC(qL,uL)
       call PToC(qR,uR)
       ! Note this is actually (rho e)
+      ! TODO: we need to get rho e from the EOS, not using gamma
       eL   = (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/(gamma_minus_1) &
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
    	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
@@ -106,7 +107,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(QMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
       FL(QMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
-      ! Note this is actually (rho e)
+      ! TODO: we need to get rho e from the EOS, not using gamma
       eR   = (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/(gamma_minus_1) &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
       	                + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
@@ -120,6 +121,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(QMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
       FR(QMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
+      ! TODO: asL and asR are just sound-speed square -- we need to use Gamma_1 here, from the EOS
 	asL  = gamma_const * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
 	asR  = gamma_const * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
 
@@ -334,6 +336,7 @@ subroutine PToC(q, u)
    u(UMX)        = q(QRHO)*q(QU)
    u(UMY)        = q(QRHO)*q(QV)
    u(UMZ)        = q(QRHO)*q(QW)
+   ! TODO: we need to get rhoe from the EOS, using p, rho
   u(UEINT)       = (q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))/(gamma_minus_1)
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))

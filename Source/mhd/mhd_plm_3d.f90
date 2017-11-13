@@ -571,6 +571,7 @@ contains
 	real(rt)				:: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1 from EOS
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca  = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -632,6 +633,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1 from EOS
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -688,6 +690,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -744,6 +747,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -798,6 +802,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -853,6 +858,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
@@ -908,6 +914,7 @@ contains
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
 	!Speeeeeeeedssssss
+        ! TODO: gamma_const -> gamma_1
 	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)

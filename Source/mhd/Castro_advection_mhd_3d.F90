@@ -518,12 +518,14 @@ end subroutine ca_advance_mhd
 					   !q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
 
                ! Set csmal based on small_pres and small_dens
+               ! TODO: this is a small sound speed -- we should do this how we do in hydro
                csml(i,j,k) = sqrt(gamma_const * small_pres_over_dens)
 
                ! Convert "e" back to "rho e"
                q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
                ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
+               ! TODO: we need to get pressure from the EOS, using e, rho, and X
                q(i,j,k,QPRES) = gamma_minus_1 * q(i,j,k,QREINT) &
 				+ 0.5d0*(q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)
             end do

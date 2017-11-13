@@ -441,19 +441,22 @@ implicit none
 	integer					:: i ,j ,k
 
  do k = q_l3,q_h3
- 	 do j = q_l2,q_h2
- 		 do i = q_l1, q_h1
-			u(i,j,k,URHO)  = q(i,j,k,QRHO)
- 			u(i,j,k,UMX)    = q(i,j,k,QRHO)*q(i,j,k,QU)
- 			u(i,j,k,UMY)    = q(i,j,k,QRHO)*q(i,j,k,QV)
- 			u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
-			u(i,j,k,UEDEN) = (q(i,j,k,QPRES)-0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ))))/(gamma_minus_1) &
-							  + 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
-							  + 0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))
-			u(i,j,k,UEINT) = (q(i,j,k,QPRES) - 0.5d0*dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))/(gamma_minus_1)
-			u(i,j,k,QMAGX:QMAGZ) = q(i,j,k,QMAGX:QMAGZ)
-		 enddo
-	 enddo
+    do j = q_l2,q_h2
+       do i = q_l1, q_h1
+          u(i,j,k,URHO)  = q(i,j,k,QRHO)
+          u(i,j,k,UMX)    = q(i,j,k,QRHO)*q(i,j,k,QU)
+          u(i,j,k,UMY)    = q(i,j,k,QRHO)*q(i,j,k,QV)
+          u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
+
+          ! TODO: get (rho e) from the EOS using p, rho, X
+          u(i,j,k,UEDEN) = (q(i,j,k,QPRES)-0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ))))/(gamma_minus_1) &
+               + 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
+               + 0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))
+          ! TODO: use the (rho e) as above
+          u(i,j,k,UEINT) = (q(i,j,k,QPRES) - 0.5d0*dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))/(gamma_minus_1)
+          u(i,j,k,QMAGX:QMAGZ) = q(i,j,k,QMAGX:QMAGZ)
+       enddo
+    enddo
  enddo
 end subroutine PrimToCons
 
@@ -464,27 +467,28 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
  use amrex_fort_module, only : rt => amrex_real
  use meth_params_module
 
-implicit none
+ implicit none
 
-	integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
-	real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-	real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-	integer					:: i ,j ,k
+ integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
+ real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+ real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+ integer					:: i ,j ,k
 
-	q = u
+ q = u
  do k = q_l3,q_h3
- 	 do j = q_l2,q_h2
- 		 do i = q_l1, q_h1
- 			q(i,j,k,QRHO)  = u(i,j,k,URHO)
- 			q(i,j,k,QU)    = u(i,j,k,UMX)/q(i,j,k,QRHO)
- 			q(i,j,k,QV)    = u(i,j,k,UMY)/q(i,j,k,QRHO)
- 			q(i,j,k,QW)    = u(i,j,k,UMZ)/q(i,j,k,QRHO)
-			q(i,j,k,QREINT) = u(i,j,k,UEDEN) - 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
-			                  - 0.5d0*dot_product(u(i,j,k,QMAGX:QMAGZ), u(i,j,k,QMAGX:QMAGZ))			 
-			q(i,j,k,QPRES) = q(i,j,k,QREINT)*gamma_minus_1 + 0.5*dot_product(u(i,j,k,QMAGX:QMAGZ),u(i,j,k,QMAGX:QMAGZ))
-			q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,QMAGX:QMAGZ)
-		 enddo
-	 enddo
+    do j = q_l2,q_h2
+       do i = q_l1, q_h1
+          q(i,j,k,QRHO)  = u(i,j,k,URHO)
+          q(i,j,k,QU)    = u(i,j,k,UMX)/q(i,j,k,QRHO)
+          q(i,j,k,QV)    = u(i,j,k,UMY)/q(i,j,k,QRHO)
+          q(i,j,k,QW)    = u(i,j,k,UMZ)/q(i,j,k,QRHO)
+          q(i,j,k,QREINT) = u(i,j,k,UEDEN) - 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
+               - 0.5d0*dot_product(u(i,j,k,QMAGX:QMAGZ), u(i,j,k,QMAGX:QMAGZ))			 
+          ! TODO: need to compute p from the EOS using (rho e), rho, X
+          q(i,j,k,QPRES) = q(i,j,k,QREINT)*gamma_minus_1 + 0.5*dot_product(u(i,j,k,QMAGX:QMAGZ),u(i,j,k,QMAGX:QMAGZ))
+          q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,QMAGX:QMAGZ)
+       enddo
+    enddo
  enddo
 end subroutine ConsToPrim
 
@@ -1038,6 +1042,7 @@ implicit none
 	qflx(QU)    = q(QU)*flx(QRHO) + q(QRHO)*flx(QU)
 	qflx(QV)    = q(QV)*flx(QRHO) + q(QRHO)*flx(QV)
 	qflx(QW)    = q(QW)*flx(QRHO) + q(QRHO)*flx(QW)
+        ! TODO: we need to figure out how to do this -- should be in Castro somewhere
 	qflx(QPRES) = flx(QRHO)*0.5d0*(q(QU)**2 + q(QV)**2 + q(QW)**2) + q(QRHO)*q(QU)*flx(QU) + q(QRHO)*q(QV)*flx(QV) &
 				  + q(QRHO)*q(QW)*flx(QW) + 1.d0/gamma_minus_1*flx(QPRES) + q(QMAGX)*flx(QMAGX) + q(QMAGY)*flx(QMAGY) &
 				  + q(QMAGZ)*flx(QMAGZ)
