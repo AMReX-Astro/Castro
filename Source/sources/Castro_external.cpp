@@ -8,8 +8,6 @@ Castro::construct_old_ext_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[ext_src]->setVal(0.0);
-
     if (!add_ext_src) return;
 
     MultiFab src(grids, dmap, NUM_STATE, ng);
@@ -20,9 +18,7 @@ Castro::construct_old_ext_source(Real time, Real dt)
 
     Real mult_factor = 1.0;
 
-    MultiFab::Saxpy(*old_sources[ext_src], mult_factor, src, 0, 0, NUM_STATE, ng);
-
-    old_sources[ext_src]->FillBoundary(geom.periodicity());
+    MultiFab::Saxpy(*old_sources[unified_src], mult_factor, src, 0, 0, NUM_STATE, ng);
 }
 
 
@@ -34,8 +30,6 @@ Castro::construct_new_ext_source(Real time, Real dt)
     MultiFab& S_new = get_new_data(State_Type);
 
     int ng = 0;
-
-    new_sources[ext_src]->setVal(0.0);
 
     if (!add_ext_src) return;
 
@@ -50,7 +44,7 @@ Castro::construct_new_ext_source(Real time, Real dt)
 
     fill_ext_source(old_time, dt, S_old, S_old, src, ng);
 
-    MultiFab::Saxpy(*new_sources[ext_src], mult_factor, src, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(*new_sources[unified_src], mult_factor, src, 0, 0, NUM_STATE, ng);
 
     // Time center with the new data.
 
@@ -60,7 +54,7 @@ Castro::construct_new_ext_source(Real time, Real dt)
 
     fill_ext_source(time, dt, S_old, S_new, src, ng);
 
-    MultiFab::Saxpy(*new_sources[ext_src], mult_factor, src, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(*new_sources[unified_src], mult_factor, src, 0, 0, NUM_STATE, ng);
 
 }
 
