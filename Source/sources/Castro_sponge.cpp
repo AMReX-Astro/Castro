@@ -8,8 +8,6 @@ void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
 
-    old_sources[sponge_src]->setVal(0.0);
-
     if (!do_sponge) return;
 
     update_sponge_params(&time);
@@ -27,7 +25,7 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		  BL_TO_FORTRAN_3D(Sborder[mfi]),
-		  BL_TO_FORTRAN_3D((*old_sources[sponge_src])[mfi]),
+		  BL_TO_FORTRAN_3D((*old_sources[unified_src])[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor);
 
@@ -40,8 +38,6 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
-
-    new_sources[sponge_src]->setVal(0.0);
 
     if (!do_sponge) return;
 
@@ -63,7 +59,7 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 
         ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_old[mfi]),
-                  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
+                  BL_TO_FORTRAN_3D((*new_sources[unified_src])[mfi]),
                   BL_TO_FORTRAN_3D(volume[mfi]),
                   ZFILL(dx), dt, time, mult_factor_old);
 
@@ -83,7 +79,7 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_new[mfi]),
-		  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
+		  BL_TO_FORTRAN_3D((*new_sources[unified_src])[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor_new);
 
