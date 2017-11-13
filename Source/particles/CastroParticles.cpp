@@ -10,7 +10,6 @@ using namespace amrex;
 #ifdef PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
-int Castro::do_tracer_particles              =  0;
 
 namespace {
     std::string       particle_init_file;
