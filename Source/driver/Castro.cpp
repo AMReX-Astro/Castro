@@ -401,8 +401,6 @@ Castro::read_params ()
 
 Castro::Castro ()
     :
-    old_sources(1),
-    new_sources(1),
     prev_state(num_state_type)
 {
 }
@@ -415,8 +413,6 @@ Castro::Castro (Amr&            papa,
                 Real            time)
     :
     AmrLevel(papa,lev,level_geom,bl,dm,time),
-    old_sources(1),
-    new_sources(1),
     prev_state(num_state_type)
 {
     buildMetrics();
@@ -718,8 +714,8 @@ Castro::initMFs()
 
 	// These arrays hold all source terms that update the state.
 
-        old_sources[0].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
-        new_sources[0].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
+        old_sources.reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+        new_sources.reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
 
 	// This array holds the hydrodynamics update.
 
@@ -2489,7 +2485,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
 
-            getLevel(lev).apply_source_to_state(S_new, *getLevel(lev).new_sources[0], -dt);
+            getLevel(lev).apply_source_to_state(S_new, *getLevel(lev).new_sources, -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
