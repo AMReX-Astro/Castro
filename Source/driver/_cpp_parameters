@@ -534,7 +534,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0
 
 # whether the local densities at given positions of particles are stored in output files
-timestamp_density            int           0
+timestamp_density            int           1
 
 # whether the local temperatures at given positions of particles are stored in output files
 timestamp_temperature        int           0
@@ -548,7 +548,7 @@ particle_init_file           string        ""
 
 
 # the level of verbosity for the tracer particle (0 or 1)
-v           		       int           0
+(v, verbose)                int            0
 
 # the name of a file with new particles at restart 
 particle_restart_file        string        ""
