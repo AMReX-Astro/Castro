@@ -582,13 +582,9 @@ end subroutine ca_advance_mhd
       courmy = courno
       courmz = courno
 
-      !dtdxaold = dt / dx / a_old
-      !dtdyaold = dt / dy / a_old
-      !dtdzaold = dt / dz / a_old
-
-      dtdxaold = 1
-      dtdyaold = 1
-      dtdzaold = 1
+      dtdxaold = dt / dx
+      dtdyaold = dt / dy
+      dtdzaold = dt / dz
 
       do k = lo(3),hi(3)
          do j = lo(2),hi(2)
