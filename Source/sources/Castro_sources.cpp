@@ -83,7 +83,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Construct the old-time sources.
 
-    old_sources->setVal(0.0);
+    old_sources.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
@@ -95,7 +95,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     MultiFab& S_new = get_new_data(State_Type);
     
-    apply_source_to_state(S_new, *old_sources, dt);
+    apply_source_to_state(S_new, old_sources, dt);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -118,14 +118,14 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // state that comes out of the hydro update, or we can evaluate the sources
     // one by one and apply them as we go.
 
-    new_sources->setVal(0.0);
+    new_sources.setVal(0.0);
 
     if (update_state_between_sources) {
 
 	for (int n = 0; n < num_src; ++n)
 	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
 
-        apply_source_to_state(S_new, *new_sources, dt);
+        apply_source_to_state(S_new, new_sources, dt);
         clean_state(S_new);
 
     } else {
@@ -137,7 +137,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	// Apply the new-time sources to the state.
 
-        apply_source_to_state(S_new, *new_sources, dt);
+        apply_source_to_state(S_new, new_sources, dt);
 
 	clean_state(S_new);
 
@@ -325,7 +325,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
   bool local = true;
 
-  MultiFab& source = is_new ? *new_sources : *old_sources;
+  MultiFab& source = is_new ? new_sources : old_sources;
 
   summed_updates = evaluate_source_change(source, dt, local);
 
@@ -389,11 +389,11 @@ Castro::sum_of_sources(MultiFab& source)
 
   source.setVal(0.0);
 
-  MultiFab::Add(source, *old_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, old_sources, 0, 0, NUM_STATE, ng);
 
   MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
-  MultiFab::Add(source, *new_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, new_sources, 0, 0, NUM_STATE, ng);
 
 }
 

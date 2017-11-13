@@ -714,8 +714,8 @@ Castro::initMFs()
 
 	// These arrays hold all source terms that update the state.
 
-        old_sources.reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
-        new_sources.reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
+        old_sources.define(grids, dmap, NUM_STATE, NUM_GROW);
+        new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
 
 	// This array holds the hydrodynamics update.
 
@@ -2485,7 +2485,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
 
-            getLevel(lev).apply_source_to_state(S_new, *getLevel(lev).new_sources, -dt);
+            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources, -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.

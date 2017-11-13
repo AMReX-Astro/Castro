@@ -10,7 +10,7 @@ Castro::construct_old_hybrid_source(Real time, Real dt)
 
     Real mult_factor = 1.0;
 
-    fill_hybrid_hydro_source(*old_sources, Sborder, ng, mult_factor);
+    fill_hybrid_hydro_source(old_sources, Sborder, ng, mult_factor);
 }
 
 
@@ -27,13 +27,13 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
 
     Real mult_factor = -0.5;
 
-    fill_hybrid_hydro_source(*new_sources, S_old, ng, mult_factor);
+    fill_hybrid_hydro_source(new_sources, S_old, ng, mult_factor);
 
     // Time center with the new data.
 
     mult_factor = 0.5;
 
-    fill_hybrid_hydro_source(*new_sources, S_new, ng, mult_factor);
+    fill_hybrid_hydro_source(new_sources, S_new, ng, mult_factor);
 
 }
 

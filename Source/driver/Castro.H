@@ -660,8 +660,8 @@ protected:
     //
     // Non-hydro source terms.
     //
-    std::unique_ptr<amrex::MultiFab> old_sources;
-    std::unique_ptr<amrex::MultiFab> new_sources;
+    amrex::MultiFab old_sources;
+    amrex::MultiFab new_sources;
 
     //
     // State data to hold if we want to do a retry.
