@@ -424,6 +424,49 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  particles
+ parameters]{castro :  particles
+ parameters} \label{table: castro :  particles
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{do\_tracer\_particles}{castro} &  permits tracer particle calculation to be turned on and off & 0 \\
+\runparamNS{timestamp\_density}{castro} &  whether the local densities at given positions of particles are stored in output files & 1 \\
+\rowcolor{tableShade}
+\runparamNS{timestamp\_temperature}{castro} &  whether the local temperatures at given positions of particles are stored in output files & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
 \caption[castro :  reactions
  parameters]{castro :  reactions
  parameters} \label{table: castro :  reactions
@@ -698,6 +741,67 @@
 \runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt particles } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[particles parameters]{particles parameters} \label{table: particles parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{particle\_init\_file}{particles} &  the name of an input file containing the total particle number and the initial position of each particle. & "" \\
+\runparamNS{particle\_output\_file}{particles} &  the name of timestamp files. & "" \\
+\rowcolor{tableShade}
+\runparamNS{particle\_restart\_file}{particles} &  the name of a file with new particles at restart & "" \\
+\runparamNS{restart\_from\_nonparticle\_chkfile}{particles} &  to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE & 0 \\
+\rowcolor{tableShade}
+\runparamNS{timestamp\_dir}{particles} &  the name of a directory in which timestamp files are stored. & "" \\
+\runparamNS{v}{particles} &  the level of verbosity for the tracer particle (0 or 1) & 0 \\
 
 
 \end{longtable}
