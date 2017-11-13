@@ -801,7 +801,31 @@ extern "C"
      const amrex::Real* dx, const int* coord_type);
 
 #ifdef MHD
-  void ca_advance_mhd();
+  void ca_advance_mhd
+    (const amrex::Real* time,
+     const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(state), BL_FORT_FAB_ARG(stateout),
+     const BL_FORT_FAB_ARG(Bx),
+     const BL_FORT_FAB_ARG(By),
+     const BL_FORT_FAB_ARG(Bz),
+     const BL_FORT_FAB_ARG(Bxout),
+     const BL_FORT_FAB_ARG(Byout),
+     const BL_FORT_FAB_ARG(Bzout),
+     const BL_FORT_FAB_ARG(ugdnvx),
+     const BL_FORT_FAB_ARG(ugdnvy),
+     const BL_FORT_FAB_ARG(ugdnvz),
+     const BL_FORT_FAB_ARG(src),
+     const BL_FORT_FAB_ARG(grav),
+     const amrex::Real dx[], const amrex::Real* dt,
+     D_DECL(const BL_FORT_FAB_ARG(xflux),
+            const BL_FORT_FAB_ARG(yflux),
+            const BL_FORT_FAB_ARG(zflux)),
+     D_DECL(const BL_FORT_FAB_ARG(Ex),
+            const BL_FORT_FAB_ARG(Ey),
+            const BL_FORT_FAB_ARG(Ez)),
+     const amrex::Real* cflLoc,
+     const amrex::Real* e_added, const amrex::Real* ke_added,
+     const int* print_fortran_warnings);
 #endif
 
 

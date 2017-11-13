@@ -19,6 +19,15 @@ pp.query("do_ctu", do_ctu);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
+#ifdef MHD
+pp.query("ppm_reference", ppm_reference);
+#endif
+#ifdef MHD
+pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
+#endif
+#ifdef MHD
+pp.query("version_2", version_2);
+#endif
 pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);

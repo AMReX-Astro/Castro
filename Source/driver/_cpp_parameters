@@ -73,6 +73,10 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
+#Lupe adding for MHD thing
+ppm_reference                int           1                  y             MHD
+ppm_flatten_before_integrals int           1                  y             MHD
+version_2                    int           1                  y             MHD
 # to we reconstruct and trace under the parabolas of the source
 # terms to the velocity (gravity and rotation)
 ppm_trace_sources            int           1                  y

@@ -1542,8 +1542,8 @@ contains
       !
       ! Here dat contains (mag_x,mag_y,mag_z)
       !
-                 write(*,*) 'Computing Divergence!'
-        divb = 0.0
+      ! write(*,*) 'Computing Divergence!'
+      divb = 0.0
       do k = lo(3) + 1, hi(3)
          do j = lo(2) + 1, hi(2)
             do i = lo(1) + 1, hi(1)

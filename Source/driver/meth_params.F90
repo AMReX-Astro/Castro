@@ -22,6 +22,7 @@ module meth_params_module
 #ifdef MHD
   integer, parameter     :: MAXADV  = 5
   integer, parameter     :: NMAG    = 3
+  real(rt), save, public :: gamma_const, gamma_minus_1
 #endif
 
   ! NTHERM: number of thermodynamic variables
@@ -114,6 +115,9 @@ module meth_params_module
   integer         , save :: do_ctu
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
+  integer         , save :: ppm_reference
+  integer         , save :: ppm_flatten_before_integrals
+  integer         , save :: version_2
   integer         , save :: ppm_trace_sources
   integer         , save :: ppm_temp_fix
   integer         , save :: ppm_predict_gammae
@@ -189,6 +193,7 @@ module meth_params_module
   !$acc create(difmag, small_dens, small_temp) &
   !$acc create(small_pres, small_ener, do_hydro) &
   !$acc create(do_ctu, hybrid_hydro, ppm_type) &
+  !$acc create(ppm_reference, ppm_flatten_before_integrals, version_2) &
   !$acc create(ppm_trace_sources, ppm_temp_fix, ppm_predict_gammae) &
   !$acc create(ppm_reference_eigenvectors, plm_iorder, hybrid_riemann) &
   !$acc create(riemann_solver, cg_maxiter, cg_tol) &
@@ -246,6 +251,9 @@ contains
     do_ctu = 1;
     hybrid_hydro = 0;
     ppm_type = 1;
+    ppm_reference = 1;
+    ppm_flatten_before_integrals = 1;
+    version_2 = 1;
     ppm_trace_sources = 1;
     ppm_temp_fix = 0;
     ppm_predict_gammae = 0;
@@ -331,6 +339,15 @@ contains
     call pp%query("do_ctu", do_ctu)
     call pp%query("hybrid_hydro", hybrid_hydro)
     call pp%query("ppm_type", ppm_type)
+#ifdef MHD
+    call pp%query("ppm_reference", ppm_reference)
+#endif
+#ifdef MHD
+    call pp%query("ppm_flatten_before_integrals", ppm_flatten_before_integrals)
+#endif
+#ifdef MHD
+    call pp%query("version_2", version_2)
+#endif
     call pp%query("ppm_trace_sources", ppm_trace_sources)
     call pp%query("ppm_temp_fix", ppm_temp_fix)
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
@@ -433,6 +450,7 @@ contains
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
     !$acc device(do_ctu, hybrid_hydro, ppm_type) &
+    !$acc device(ppm_reference, ppm_flatten_before_integrals, version_2) &
     !$acc device(ppm_trace_sources, ppm_temp_fix, ppm_predict_gammae) &
     !$acc device(ppm_reference_eigenvectors, plm_iorder, hybrid_riemann) &
     !$acc device(riemann_solver, cg_maxiter, cg_tol) &
