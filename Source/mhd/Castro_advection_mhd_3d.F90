@@ -506,16 +506,16 @@ end subroutine ca_advance_mhd
 
                ! Define the magneto-accoustic speed from the EOS
 			   cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
-               !L call nyx_eos_soundspeed(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   !q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+               call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
 
 			   cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
-               !L call nyx_eos_soundspeed(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   !q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+               call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
 
 			   cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
-               !L call nyx_eos_soundspeed(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   !q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+               call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
 
                ! Set csmal based on small_pres and small_dens
                csml(i,j,k) = sqrt(gamma_const * small_pres_over_dens)

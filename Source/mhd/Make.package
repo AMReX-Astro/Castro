@@ -13,3 +13,4 @@ ca_f90EXE_sources += mhd_enforce_minimum_density_3d.f90
 ca_f90EXE_sources += mhd_normalize_species_3d.f90
 ca_f90EXE_sources += mhd_plm_3d.f90
 ca_f90EXE_sources += mhd_trace_ppm_3d.f90
+ca_f90EXE_sources += mhd_sound_speed.f90
