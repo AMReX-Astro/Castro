@@ -266,6 +266,7 @@ contains
                 qxp(i,j,kc,QU)    = u
              end if
 
+             ! TODO: we need to compute this from the EOS
              qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES) / gamma_minus_1
 
           end if
@@ -403,6 +404,7 @@ contains
                 qxm(i+1,j,kc,QU)    = u
              end if
 
+             ! TODO: we need to compute this from the EOS
              qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QPRES) / gamma_minus_1
           end if
 
@@ -631,6 +633,7 @@ contains
                 qyp(i,j,kc,QV)    = v
              end if
 
+             ! TODO: we need to compute this from the EOS
              qyp(i,j,kc,QREINT) = qyp(i,j,kc,QPRES) / gamma_minus_1
           end if
 
@@ -766,6 +769,7 @@ contains
                 qym(i,j+1,kc,QV)    = v
              end if
 
+             ! TODO: we need to compute this from the EOS
              qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES) / gamma_minus_1
           end if
 
@@ -1052,6 +1056,7 @@ contains
              qzp(i,j,kc,QW)    = w
           end if
 
+          ! TODO: we need to compute this from the EOS
           qzp(i,j,kc,QREINT) = qzp(i,j,kc,QPRES) / gamma_minus_1
 
           ! **************************************************************************
@@ -1200,6 +1205,7 @@ contains
              qzm(i,j,kc,QW)    = w
           end if
 
+          ! TODO: we need to compute this from the EOS
           qzm(i,j,kc,QREINT) = qzm(i,j,kc,QPRES) / gamma_minus_1
 
        end do

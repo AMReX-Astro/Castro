@@ -90,6 +90,7 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call PToC(qL,uL)
       call PToC(qR,uR)
       ! Note this is actually (rho e)
+      ! TODO: need to get rho e from the EOS, using p, rho, X
       eL   = (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/(gamma_minus_1) &
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
    	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
@@ -104,6 +105,7 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(QMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
       ! Note this is actually (rho e)
+      ! TODO: need to get rho e from the EOS using p, rho, x
       eR   = (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/(gamma_minus_1) &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
       	                + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
@@ -172,6 +174,7 @@ subroutine PToC(q, u)
    u(UMX)        = q(QRHO)*q(QU)
    u(UMY)        = q(QRHO)*q(QV)
    u(UMZ)        = q(QRHO)*q(QW)
+   ! TODO: need to get this (rho e) from the EOS using p, rho, X
   u(UEINT)       = (q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))/(gamma_minus_1)
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
