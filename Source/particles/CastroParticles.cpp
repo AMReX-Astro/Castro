@@ -27,42 +27,6 @@ namespace {
 void 
 Castro::read_particle_params ()
 {
-    ParmParse pp("castro");
-    
-    pp.query("do_tracer_particles",do_tracer_particles);
-
-    //
-    // Control the verbosity of the Particle class
-    //
-    ParmParse ppp("particles");
-
-    ppp.query("v",particle_verbose);
-    //
-    // Used in initData() on startup to read in a file of particles.
-    //
-    ppp.query("particle_init_file", particle_init_file);
-    //
-    // Used in post_restart() to read in a file of particles.
-    //
-    ppp.query("particle_restart_file", particle_init_file);
-    //
-    // This must be true the first time you try to restart from a checkpoint
-    // that was written with USE_PARTICLES=FALSE; i.e. one that doesn't have
-    // the particle checkpoint stuff (even if there are no active particles).
-    // Otherwise the code will fail when trying to read the checkpointed particles.
-    //
-    ppp.query("restart_from_nonparticle_chkfile", restart_from_nonparticle_chkfile);
-    //
-    // Used in post_restart() to write out the file of particles.
-    //
-    ppp.query("particle_output_file", particle_output_file);
-    //
-    // The directory in which to store timestamp files.
-    //
-    ppp.query("timestamp_dir", timestamp_dir);
-    //
-    // Only the I/O processor makes the directory if it doesn't already exist.
-    //
     if (ParallelDescriptor::IOProcessor())
         if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
             amrex::CreateDirectoryFailed(timestamp_dir);
@@ -236,20 +200,17 @@ Castro::TimestampParticles (int ngrow)
     {
 	first = false;
 
-	ParmParse ppp("particles");
 
 	// have to do it here, not in read_particle_params, because Density, ..., are set after
 	// read_particle_params is called.
 
 	int timestamp_density = 1;
-	ppp.query("timestamp_density", timestamp_density);
 	if (timestamp_density) {
 	    timestamp_indices.push_back(Density);
 	    std::cout << "Density = " << Density << std::endl;
 	}
 
 	int timestamp_temperature = 0;
-	ppp.query("timestamp_temperature", timestamp_temperature);
 	if (timestamp_temperature) {
 	    timestamp_indices.push_back(Temp);
 	    std::cout << "Temp = " << Temp << std::endl;
