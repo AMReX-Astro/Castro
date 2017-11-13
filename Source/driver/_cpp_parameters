@@ -4,6 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
+
 @namespace: castro Castro static
 
 #-----------------------------------------------------------------------------
@@ -518,6 +519,34 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
+
+
+
+#-----------------------------------------------------------------------------
+# category: particles
+#-----------------------------------------------------------------------------
+
+# permits tracer particle calculation to be turned on and off
+do_tracer_particles          int           0
+
+
+# the name of an input file containing the total particle number and the initial position of each particle.
+particle_init_file           string        ""
+
+# the name of a file with new particles at restart 
+particle_restart_file        string        ""
+
+# the name of a directory for output 
+timestamp_dir                string        ""
+
+# whether the local densities at given positions of particles are stored in output files
+timestamp_density            int           0
+
+# the level of verbosity for the tracer particle (0 or 1)
+v           		       int           0
+
+# whether or not in a binary file in output files
+write_in_plotfile            int           1
 
 
 
