@@ -71,9 +71,6 @@ Castro::source_flag(int src)
 	    return false;
 #endif
 
-    case unified_src:
-        return true;
-
     default:
 	return false;
 
@@ -86,8 +83,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Construct the old-time sources.
 
-    for (int n = 0; n < num_src; ++n)
-        old_sources[n]->setVal(0.0);
+    old_sources[0]->setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
@@ -99,9 +95,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     MultiFab& S_new = get_new_data(State_Type);
     
-    for (int n = 0; n < num_src; ++n)
-      if (source_flag(n))
-	apply_source_to_state(S_new, *old_sources[n], dt);
+    apply_source_to_state(S_new, *old_sources[0], dt);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -124,18 +118,15 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // state that comes out of the hydro update, or we can evaluate the sources
     // one by one and apply them as we go.
 
-    for (int n = 0; n < num_src; ++n)
-        new_sources[n]->setVal(0.0);
+    new_sources[0]->setVal(0.0);
 
     if (update_state_between_sources) {
 
-	for (int n = 0; n < num_src; ++n) {
+	for (int n = 0; n < num_src; ++n)
 	    construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
-	    if (source_flag(n)) {
-		apply_source_to_state(S_new, *new_sources[n], dt);
-		clean_state(S_new);
-	    }
-	}
+
+        apply_source_to_state(S_new, *new_sources[0], dt);
+        clean_state(S_new);
 
     } else {
 
@@ -146,9 +137,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	// Apply the new-time sources to the state.
 
-	for (int n = 0; n < num_src; ++n)
-	    if (source_flag(n))
-		apply_source_to_state(S_new, *new_sources[n], dt);
+        apply_source_to_state(S_new, *new_sources[0], dt);
 
 	clean_state(S_new);
 
@@ -332,21 +321,13 @@ void
 Castro::print_all_source_changes(Real dt, bool is_new)
 {
 
-  Vector< Vector<Real> > summed_updates;
-
-  summed_updates.resize(num_src);
+  Vector<Real> summed_updates;
 
   bool local = true;
 
-  for (int n = 0; n < num_src; ++n) {
+  MultiFab& source = is_new ? *new_sources[0] : *old_sources[0];
 
-    if (!source_flag(n)) continue;
-
-    MultiFab& source = is_new ? *new_sources[n] : *old_sources[n];
-
-    summed_updates[n] = evaluate_source_change(source, dt, local);
-
-  }
+  summed_updates = evaluate_source_change(source, dt, local);
 
 #ifdef BL_LAZY
   Lazy::QueueReduction( [=] () mutable {
@@ -359,7 +340,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 	      if (!source_flag(n)) continue;
 
 	      for (int s = 0; s < NUM_STATE; ++s) {
-		  coalesced_update[s] += summed_updates[n][s];
+		  coalesced_update[s] += summed_updates[s];
 	      }
 	  }
 
@@ -374,20 +355,14 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
       } else {
 
-	  for (int n = 0; n < num_src; ++n) {
+          ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
 
-	      if (!source_flag(n)) continue;
+          std::string time = is_new ? "new" : "old";
 
-	      ParallelDescriptor::ReduceRealSum(summed_updates[n].dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+          if (ParallelDescriptor::IOProcessor())
+              std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
 
-	      std::string time = is_new ? "new" : "old";
-
-	      if (ParallelDescriptor::IOProcessor())
-		  std::cout << std::endl << "  Contributions to the state from the " << time << "-time " << source_names[n] << " source:" << std::endl;
-
-	      print_source_change(summed_updates[n]);
-
-	  }
+          print_source_change(summed_updates);
 
       }
 
@@ -414,13 +389,11 @@ Castro::sum_of_sources(MultiFab& source)
 
   source.setVal(0.0);
 
-  for (int n = 0; n < num_src; ++n)
-      MultiFab::Add(source, *old_sources[n], 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, *old_sources[0], 0, 0, NUM_STATE, ng);
 
   MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
-  for (int n = 0; n < num_src; ++n)
-      MultiFab::Add(source, *new_sources[n], 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, *new_sources[0], 0, 0, NUM_STATE, ng);
 
 }
 

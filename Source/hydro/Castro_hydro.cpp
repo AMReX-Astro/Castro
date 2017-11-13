@@ -23,8 +23,7 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     sources_for_hydro.setVal(0.0);
 
-    for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(sources_for_hydro, *old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
+    MultiFab::Add(sources_for_hydro, *old_sources[0], 0, 0, NUM_STATE, NUM_GROW);
 
     sources_for_hydro.FillBoundary(geom.periodicity());
 
@@ -382,8 +381,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   sources_for_hydro.setVal(0.0);
 
-  for (int n = 0; n < num_src; ++n)
-    MultiFab::Add(sources_for_hydro, *old_sources[n], 0, 0, NUM_STATE, 0);
+  MultiFab::Add(sources_for_hydro, *old_sources[0], 0, 0, NUM_STATE, 0);
 
   int finest_level = parent->finestLevel();
 

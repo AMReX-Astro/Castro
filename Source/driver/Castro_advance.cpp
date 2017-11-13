@@ -425,9 +425,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 
 	dSdt_new.setVal(0.0, NUM_GROW);
 
-	for (int n = 0; n < num_src; ++n) {
-	    MultiFab::Add(dSdt_new, *new_sources[n], Xmom, Xmom, 3, 0);
-	}
+        MultiFab::Add(dSdt_new, *new_sources[0], Xmom, Xmom, 3, 0);
 
 	dSdt_new.mult(2.0 / dt);
 
@@ -440,8 +438,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 
     MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
     SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
-    for (int n = 0; n < num_src; ++n)
-	MultiFab::Add(SDC_source_new, *new_sources[n], 0, 0, NUM_STATE, new_sources[n]->nGrow());
+    MultiFab::Add(SDC_source_new, *new_sources[0], 0, 0, NUM_STATE, new_sources[0]->nGrow());
 #endif
 
 #ifdef RADIATION
@@ -603,10 +600,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // cases, we initialize these sources in Castro::initMFs and
       // keep them for the life of the simulation.
 
-      for (int n = 0; n < num_src; ++n) {
-	old_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
-	new_sources[n].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
-      }
+      old_sources[0].reset(new MultiFab(grids, dmap, NUM_STATE, NUM_GROW));
+      new_sources[0].reset(new MultiFab(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow()));
 
       // This array holds the hydrodynamics update.
 

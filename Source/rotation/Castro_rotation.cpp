@@ -40,7 +40,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D((*old_sources[unified_src])[mfi]),
+		BL_TO_FORTRAN_3D((*old_sources[0])[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
 
@@ -98,7 +98,7 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(rot_new[mfi]),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D((*new_sources[unified_src])[mfi]),
+			BL_TO_FORTRAN_3D((*new_sources[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
