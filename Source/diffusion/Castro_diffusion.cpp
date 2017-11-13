@@ -13,8 +13,6 @@ Castro::construct_old_diff_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[diff_src]->setVal(0.0);    
-
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
@@ -26,16 +24,12 @@ Castro::construct_old_diff_source(Real time, Real dt)
     add_spec_diffusion_to_source(*old_sources[diff_src], SpecDiffTerm, time, 1);
     add_viscous_term_to_source(*old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
-
-    old_sources[diff_src]->FillBoundary(geom.periodicity());
 }
 
 void
 Castro::construct_new_diff_source(Real time, Real dt)
 {
     int ng = 0;
-
-    new_sources[diff_src]->setVal(0.0);
 
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
