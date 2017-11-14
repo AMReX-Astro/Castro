@@ -9,7 +9,11 @@
      every source term will be calculated using the same new-time state (the one
      coming out of the hydro) and the source terms are all applied to the state
      in one shot at the end. Note that both this and the old approach are
-     second-order accurate in time.
+     second-order accurate in time. For problems that combine multiple
+     source terms, this will cause changes that are larger than roundoff.
+     In particular, if rotation is used, changes will be relatively large,
+     because the Coriolis force depends on the velocity, so the source term is
+     a bit different now that it is seeing a different velocity.
 
   -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
      is set to 1, timesteps will be shortened to exactly hit the time interval
