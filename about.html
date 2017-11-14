@@ -116,7 +116,7 @@
 	      in the main Castro git repo.  Additional equations of
 	      state (including a general stellar EOS) and many nuclear
 	      reaction networks are distributed in
-	      the <a href="https://github.com/BoxLib-Codes/Microphysics">Microphysics</a>
+	      the <a href="https://github.com/StarKiller-astro/Microphysics">Microphysics</a>
 	      git repo.  Maintaining them in a separate repo allows all of the
 	      AMReX astrophysics codes share the same microphysics.
 
@@ -153,6 +153,9 @@
 	      different levels are then synchronized.  A separate
 	      synchronization is done for gravity.</p>
 
+            <p><img class="intext" src="science-images/slice_grid.png"><br>
+              <p class="caption">AMReX grid showing 2 levels.</p>
+
 	    <a name="performance"></a>
 	    
 	    <header class="major">
@@ -167,6 +170,13 @@
 	      effective fine-grained parallelization.  Castro uses a
 	      new tiled approach to OpenMP that can effectively take
 	      advantage of manycore processors like the Intel Phi's.</p>
+
+            <p><img class="intext" src="science-images/sedov_scaling.png"><br>
+              <p class="caption">Castro strong scaling for a pure hydro + real EOS Sedov problem on the OLCF titan machine.</p>
+
+            <p><img class="intext" src="science-images/wdmerger_scaling.png"><br>
+              <p class="caption">Castro strong scaling for the WD merger problem with full Poisson gravity on the OLCF titan machine.</p>
+
 	  </div>
 	</div>
       </div>

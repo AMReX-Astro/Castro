@@ -1264,3 +1264,17 @@ body.landing #header nav a {
     padding-right: 1em;
     border-right: 1px solid black;
 }
+
+
+img.intext {
+    width: 85%;
+    margin: 0 auto;
+    display: block;
+}
+
+p.caption {
+    text-align: center;
+    font-size: 90%;
+    margin-top: 0;
+    padding: 0;
+}
