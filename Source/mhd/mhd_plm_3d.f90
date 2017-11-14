@@ -560,7 +560,9 @@ contains
 	subroutine evals(lam, Q, dir)
 
 	use amrex_fort_module, only : rt => amrex_real
-
+        use eos_module, only: eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use actual_network, only: nspec
 	implicit none
 	
 	real(rt), intent(in)	:: Q(QVAR)
@@ -569,10 +571,17 @@ contains
 
 	!The characteristic speeds of the system 
 	real(rt)				:: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
+        type(eos_t) :: eos_state
 
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1 from EOS
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca  = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	cax = (Q(QMAGX)**2)/Q(QRHO)
@@ -621,6 +630,9 @@ contains
 !x direction
 	subroutine lvecx(leig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
+        use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
 	
 	implicit none
 	
@@ -631,10 +643,17 @@ contains
 	!The characteristic speeds of the system 
 	real(rt)				:: cfx, cax, csx, ca, as, S, N
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
+        type (eos_t) :: eos_state
 
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1 from EOS
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	cax = (Q(QMAGX)**2)/Q(QRHO)
@@ -678,7 +697,10 @@ contains
 !y direction
 	subroutine lvecy(leig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
-	
+	use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
+
 	implicit none
 	
 	!returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
@@ -688,10 +710,18 @@ contains
 	!The characteristic speeds of the system 
 	real(rt)				:: cfy, cay, csy, ca, as, S, N
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
+        
+        type (eos_t) :: eos_state
 
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	cay = (Q(QMAGY)**2)/Q(QRHO)
@@ -735,7 +765,10 @@ contains
 !z direction
 	subroutine lvecz(leig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
-	
+	use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
+
 	implicit none
 	
 	!returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
@@ -745,10 +778,19 @@ contains
 	!The characteristic speeds of the system 
 	real(rt)				:: cfz, caz, csz, ca, as, S, N
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
+        
+        type (eos_t) :: eos_state
 
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	caz = (Q(QMAGZ)**2)/Q(QRHO)
@@ -790,7 +832,10 @@ contains
 !x direction
 	subroutine rvecx(reig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
-	
+	use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
+
 	implicit none
 	
 	!returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ax
@@ -800,10 +845,18 @@ contains
 	!The characteristic speeds of the system 
 	real(rt)				:: cfx, cax, csx, ca, as, S
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
-
+ 
+        type(eos_t) :: eos_state
+        
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)    
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	cax = (Q(QMAGX)**2)/Q(QRHO)
@@ -846,7 +899,10 @@ contains
 !y direction
 	subroutine rvecy(reig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
-	
+	use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
+
 	implicit none
 	
 	!returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ay
@@ -856,10 +912,18 @@ contains
 	!The characteristic speeds of the system 
 	real(rt)				:: cfy, cay, csy, ca, as, S
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
+        
+        type (eos_t) :: eos_state
 
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	cay = (Q(QMAGY)**2)/Q(QRHO)
@@ -902,6 +966,9 @@ contains
 !z direction
 	subroutine rvecz(reig, Q) 
 	use amrex_fort_module, only : rt => amrex_real
+        use eos_module, only : eos
+        use eos_type_module, only: eos_t, eos_input_rp
+        use network, only : nspec
 	
 	implicit none
 	
@@ -913,9 +980,17 @@ contains
 	real(rt)				:: cfz, caz, csz, ca, as, S
 	real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
+        type(eos_t) :: eos_state
+
 	!Speeeeeeeedssssss
         ! TODO: gamma_const -> gamma_1
-	as = gamma_const * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
+        eos_state % rho = Q(QRHO)
+        eos_state % p   = Q(QPRES)
+        eos_state % xn  = Q(QFS:QFS+nspec-1)
+
+        call eos(eos_input_rp, eos_state)   
+
+	as = eos_state % gam1 * (Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ)))/Q(QRHO)
 	!Alfven
 	ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
 	caz = (Q(QMAGZ)**2)/Q(QRHO)

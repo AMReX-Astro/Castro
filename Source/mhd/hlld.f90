@@ -14,6 +14,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
    use amrex_fort_module, only : rt => amrex_real
    use meth_params_module
+   use eos_module, only : eos
+   use eos_type_module, only: eos_t, eos_input_rp
+   use network, only : nspec
 
    integer, intent(in)   :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
    integer, intent(in)   :: work_lo(3), work_hi(3)
@@ -39,6 +42,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    integer           :: UMN  , UMP1  , UMP2
    integer           :: i,j,k
    character(len=10) :: choice
+
+   type (eos_t) :: eos_state
    
    if (dir .eq. 1) then
       QMAGN  = QMAGX
@@ -94,7 +99,13 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call PToC(qR,uR)
       ! Note this is actually (rho e)
       ! TODO: we need to get rho e from the EOS, not using gamma
-      eL   = (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/(gamma_minus_1) &
+      eos_state % rho = qL(QRHO)
+      eos_state % p   = qL(QPRES)
+      eos_state % xn  = qL(QFS:QFS+nspec-1)
+
+      call eos(eos_input_rp, eos_state)
+
+      eL   = eos_state % rho * eos_state % e & 
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
    	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
 
@@ -108,7 +119,13 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(QMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
       ! TODO: we need to get rho e from the EOS, not using gamma
-      eR   = (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/(gamma_minus_1) &
+      eos_state % rho = qR(QRHO)
+      eos_state % p   = qR(QPRES)
+      eos_state % xn  = qR(QFS:QFS+nspec-1)
+
+      call eos(eos_input_rp, eos_state)
+
+      eR   = eos_state % rho * eos_state % e &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
       	                + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
 
@@ -122,8 +139,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(QMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
       ! TODO: asL and asR are just sound-speed square -- we need to use Gamma_1 here, from the EOS
-	asL  = gamma_const * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
-	asR  = gamma_const * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
+	asL  = eos_state % gam1 * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
+	asR  = eos_state % gam1 * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
 
 	caL  = (qL(QMAGN)**2 + qL(QMAGP1)**2 + qL(QMAGP2)**2)/qL(QRHO) !Magnetic Speeds
 	caR  = (qR(QMAGN)**2 + qR(QMAGP1)**2 + qR(QMAGP2)**2)/qR(QRHO)
@@ -325,11 +342,17 @@ subroutine PToC(q, u)
 
    use amrex_fort_module, only : rt => amrex_real
    use meth_params_module
+   use eos_module, only : eos
+   use eos_type_module, only: eos_t, eos_input_rp
+   use network, only : nspec
 
    implicit none
 
    real(rt), intent(in)	 ::q(QVAR)
    real(rt), intent(out) ::u(QVAR)
+
+   type (eos_t) :: eos_state
+
    u = 0.d0
 
    u(URHO)       = q(QRHO)
@@ -337,7 +360,14 @@ subroutine PToC(q, u)
    u(UMY)        = q(QRHO)*q(QV)
    u(UMZ)        = q(QRHO)*q(QW)
    ! TODO: we need to get rhoe from the EOS, using p, rho
-  u(UEINT)       = (q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))/(gamma_minus_1)
+   eos_state % rho = q(QRHO)
+   eos_state % p   = q(QPRES)
+   eos_state % xn  = q(QFS:QFS+nspec-1)
+
+   call eos(eos_input_rp, eos_state)
+
+
+  u(UEINT)       = eos_state % rho * eos_state % e
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
   u(QMAGX:QMAGZ) = q(QMAGX:QMAGZ)
