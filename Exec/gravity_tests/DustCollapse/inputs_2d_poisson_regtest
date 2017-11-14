@@ -28,6 +28,7 @@ castro.do_grav       = 1
 gravity.gravity_type = PoissonGrav
 gravity.drdxfac      = 4
 gravity.drdxfac      = 1
+gravity.use_mlmg_solver = 1
 
 gravity.rel_tol = 1.e-9
 

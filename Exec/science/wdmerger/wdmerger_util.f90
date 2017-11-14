@@ -994,6 +994,21 @@ contains
 
 
 
+  ! C++ interface for inertial_velocity.
+
+  subroutine get_inertial_velocity(loc, vel, time, inertial_vel) bind(C,name='get_inertial_velocity')
+
+    implicit none
+
+    double precision, intent(in   ) :: loc(3), vel(3), time
+    double precision, intent(inout) :: inertial_vel(3)
+
+    inertial_vel = inertial_velocity(loc, vel, time)
+
+  end subroutine get_inertial_velocity
+
+
+
   ! Check whether we should stop the initial relaxation.
   ! The criterion is that we're outside the critical Roche surface
   ! and the density is greater than a specified threshold.
