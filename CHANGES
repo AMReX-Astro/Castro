@@ -8,7 +8,8 @@
      with each successive source term as it was applied at the new time. Now
      every source term will be calculated using the same new-time state (the one
      coming out of the hydro) and the source terms are all applied to the state
-     in one shot at the end.
+     in one shot at the end. Note that both this and the old approach are
+     second-order accurate in time.
 
   -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
      is set to 1, timesteps will be shortened to exactly hit the time interval
