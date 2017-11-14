@@ -94,8 +94,19 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // state-dependent sources.
 
     MultiFab& S_new = get_new_data(State_Type);
-    
-    apply_source_to_state(S_new, old_sources, dt);
+
+    // Only do this if at least one source term has a non-zero contribution.
+
+    bool apply_source = false;
+    for (int n = 0; n < num_src; ++n) {
+        if (source_flag(n)) {
+            apply_source = true;
+            break;
+        }
+    }
+
+    if (apply_source)    
+        apply_source_to_state(S_new, old_sources, dt);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -126,10 +137,23 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
         construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
 
     // Apply the new-time sources to the state.
+    // Only do this if at least one source term has a non-zero contribution.
 
-    apply_source_to_state(S_new, new_sources, dt);
+    bool apply_source = false;
+    for (int n = 0; n < num_src; ++n) {
+        if (source_flag(n)) {
+            apply_source = true;
+            break;
+        }
+    }
 
-    clean_state(S_new);
+    if (apply_source) {
+
+        apply_source_to_state(S_new, new_sources, dt);
+
+        clean_state(S_new);
+
+    }
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
