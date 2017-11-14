@@ -75,7 +75,7 @@ Type Ia supernovae&mdash;mergers and collisions: http://adsabs.harvard.edu/abs/2
 
 
 # Magnetar-Powered Supernovae in Two Dimensions. I. Superluminous Supernovae
-core-collapse supernovae: http://adsabs.harvard.edu/abs/2016ApJ...832...73C
+magnetar supernovae: http://adsabs.harvard.edu/abs/2016ApJ...832...73C
 
 # Low Energy Population III Supernovae and the Origin of the Extremely Metal-Poor Stars
 pop III supernovae: http://adsabs.harvard.edu/abs/2017MNRAS.467.4731C
@@ -112,3 +112,9 @@ pop III supernovae: http://adsabs.harvard.edu/abs/2010ApJ...709...11J
 pop III supernovae: http://adsabs.harvard.edu/abs/2010AIPC.1294..255C
 
 low-energy supernovae: http://adsabs.harvard.edu/abs/2017arXiv170602440L
+
+pop III supernovae: http://adsabs.harvard.edu/abs/2017ApJ...844..111C
+
+magnetar supernovae: http://adsabs.harvard.edu/abs/2017JPhCS.837a2006C
+
+magnetar supernovae: http://adsabs.harvard.edu/abs/2017ApJ...839...85C
