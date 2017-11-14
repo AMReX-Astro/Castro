@@ -11,9 +11,10 @@
      in one shot at the end. Note that both this and the old approach are
      second-order accurate in time. For problems that combine multiple
      source terms, this will cause changes that are larger than roundoff.
-     In particular, if rotation is used, changes will be relatively large,
-     because the Coriolis force depends on the velocity, so the source term is
-     a bit different now that it is seeing a different velocity.
+     In particular, if rotation is used in conjunction with other source terms,
+     changes will be relatively large, because the Coriolis force depends on the
+     velocity, so the source term is a bit different now that it is seeing a
+     different velocity. (#165, #249)
 
   -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
      is set to 1, timesteps will be shortened to exactly hit the time interval
