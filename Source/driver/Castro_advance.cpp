@@ -951,10 +951,6 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     }
 
-    // We want to return this subcycled timestep as a suggestion.
-
-    dt_new = std::min(dt_new, dt_subcycle);
-
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
 
@@ -970,5 +966,11 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         state[k].setTimeLevel(time + dt, dt, 0.0);
 
     }
+
+    // We want to return the subcycled timestep as a suggestion.
+
+    dt_new = std::min(dt_new, dt_subcycle);
+
+    return dt_new;
 
 }
