@@ -155,9 +155,6 @@ castro.cg_blend = 2
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
-# Whether to take other source terms into account for new-time sources
-castro.update_state_between_sources = 0
-
 # Whether to use the hybrid advection technique that conserves angular momentum
 castro.hybrid_hydro = 0
 

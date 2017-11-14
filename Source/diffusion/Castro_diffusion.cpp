@@ -13,21 +13,17 @@ Castro::construct_old_diff_source(Real time, Real dt)
 {
     int ng = Sborder.nGrow();
 
-    old_sources[diff_src]->setVal(0.0);    
-
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
 
-    add_temp_diffusion_to_source(*old_sources[diff_src], TempDiffTerm, time, 1);
+    add_temp_diffusion_to_source(old_sources, TempDiffTerm, time, 1);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(*old_sources[diff_src], SpecDiffTerm, time, 1);
-    add_viscous_term_to_source(*old_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
+    add_spec_diffusion_to_source(old_sources, SpecDiffTerm, time, 1);
+    add_viscous_term_to_source(old_sources, ViscousTermforMomentum, ViscousTermforEnergy, time);
 #endif
-
-    old_sources[diff_src]->FillBoundary(geom.periodicity());
 }
 
 void
@@ -35,32 +31,39 @@ Castro::construct_new_diff_source(Real time, Real dt)
 {
     int ng = 0;
 
-    new_sources[diff_src]->setVal(0.0);
-
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
 
-    add_temp_diffusion_to_source(*new_sources[diff_src], TempDiffTerm, time, 0);
+    Real mult_factor = 0.5;
+
+    add_temp_diffusion_to_source(new_sources, TempDiffTerm, time, 0, mult_factor);
 
 #if (BL_SPACEDIM == 1)
-    add_spec_diffusion_to_source(*new_sources[diff_src], SpecDiffTerm, time, 0);
-    add_viscous_term_to_source(*new_sources[diff_src], ViscousTermforMomentum, ViscousTermforEnergy, time);
+    add_spec_diffusion_to_source(new_sources, SpecDiffTerm, time, 0, mult_factor);
+    add_viscous_term_to_source(new_sources, ViscousTermforMomentum, ViscousTermforEnergy, time, mult_factor);
 #endif
 
     // Time center the source term.
 
-    new_sources[diff_src]->mult(0.5);
+    mult_factor = -0.5;
+    Real old_time = time - dt;
 
-    MultiFab::Saxpy(*new_sources[diff_src], -0.5, *old_sources[diff_src], 0, 0, NUM_STATE, ng);
+    add_temp_diffusion_to_source(new_sources, TempDiffTerm, old_time, 1, mult_factor);
+
+#if (BL_SPACEDIM == 1)
+    add_spec_diffusion_to_source(new_sources, SpecDiffTerm, old_time, 1, mult_factor);
+    add_viscous_term_to_source(new_sources, ViscousTermforMomentum, ViscousTermforEnergy, old_time, mult_factor);
+#endif
+
 
 }
 
 // **********************************************************************************************
 
 void
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old)
+Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Real t, int is_old, Real mult_factor)
 {
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
@@ -72,8 +75,8 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
 
     if (diffuse_temp == 1 or diffuse_enth == 1) {
        int ng = std::min(ext_src.nGrow(),DiffTerm.nGrow());
-       MultiFab::Add(ext_src,DiffTerm,0,Eden,1,ng);
-       MultiFab::Add(ext_src,DiffTerm,0,Eint,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eden,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eint,1,ng);
     }
 }
 
@@ -81,14 +84,14 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
 
 #if (BL_SPACEDIM == 1)
 void
-Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm, Real t, int is_old)
+Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm, Real t, int is_old, Real mult_factor)
 {
     // Define an explicit species update.
     SpecDiffTerm.setVal(0.);
     if (diffuse_spec == 1) {
        getSpecDiffusionTerm(t, SpecDiffTerm, is_old);
        int ng = std::min(ext_src.nGrow(),SpecDiffTerm.nGrow());
-       MultiFab::Add(ext_src,SpecDiffTerm,0,FirstSpec,NumSpec,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,SpecDiffTerm,0,FirstSpec,NumSpec,ng);
     }
 }
 #endif
@@ -98,7 +101,7 @@ Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm,
 #if (BL_SPACEDIM == 1)
 void
 Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTermforMomentum, 
-                                   MultiFab& ViscousTermforEnergy, Real t)
+                                   MultiFab& ViscousTermforEnergy, Real t, Real mult_factor)
 {
     // Define an explicit viscous term
     ViscousTermforMomentum.setVal(0.);
@@ -106,10 +109,10 @@ Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTermforMo
     if (diffuse_vel == 1) {
        getViscousTerm(t,ViscousTermforMomentum,ViscousTermforEnergy);
        int ng = std::min(ext_src.nGrow(),ViscousTermforMomentum.nGrow());
-       MultiFab::Add(ext_src,ViscousTermforMomentum,0,Xmom,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforMomentum,0,Xmom,1,ng);
 
        ng = std::min(ext_src.nGrow(),ViscousTermforEnergy.nGrow());
-       MultiFab::Add(ext_src,ViscousTermforEnergy  ,0,Eden,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforEnergy  ,0,Eden,1,ng);
     }
 }
 #endif
