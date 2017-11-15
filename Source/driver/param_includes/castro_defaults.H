@@ -167,3 +167,6 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif
