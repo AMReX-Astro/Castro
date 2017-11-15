@@ -8,6 +8,8 @@ Castro::construct_old_ext_source(Real time, Real dt)
 {
     if (!add_ext_src) return;
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+
     MultiFab src(grids, dmap, NUM_STATE, 0);
 
     src.setVal(0.0);
@@ -26,6 +28,8 @@ Castro::construct_new_ext_source(Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     if (!add_ext_src) return;
 

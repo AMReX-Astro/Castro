@@ -347,11 +347,11 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-  // Source terms. Currently this holds dS/dt for each of the NVAR state variables.
+  // Source terms.
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
+			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 &cell_cons_interp, state_data_extrap,store_in_checkpoint);
 
 #ifdef ROTATION

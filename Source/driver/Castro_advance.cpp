@@ -410,27 +410,7 @@ void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
-#ifndef SDC
-    // Update the dSdt MultiFab. Since we want (S^{n+1} - S^{n}) / dt,
-    // we only need to take twice the new-time source term, since in
-    // the predictor-corrector approach, the new-time source term is
-    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
-    // non-momentum sources, but those don't appear in the hydro
-    // anyway, and for safety we'll only do this on the momentum
-    // terms.
-
-    if (source_term_predictor == 1) {
-
-        MultiFab& dSdt_new = get_new_data(Source_Type);
-
-	dSdt_new.setVal(0.0, NUM_GROW);
-
-        MultiFab::Add(dSdt_new, new_sources, Xmom, Xmom, 3, 0);
-
-	dSdt_new.mult(2.0 / dt);
-
-    }
-#else
+#ifdef SDC
     // The new sources are broken into types (ext, diff, hybrid, grav,
     // ...) via an enum.  For SDC, store the sum of the new_sources
     // over these different physics types in the state data -- that's
@@ -535,6 +515,54 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
+    // This array holds the sum of all source terms that affect the
+    // hydrodynamics.  If we are doing the source term predictor,
+    // we'll also use this after the hydro update to store the sum of
+    // the new-time sources, so that we can compute the time
+    // derivative of the source terms.
+
+    sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+
+#ifndef SDC
+
+    // Optionally predict the source terms to t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+    // terms later; now we add the second term.
+    // This must happen before the swap.
+
+    if (source_term_predictor == 1) {
+
+        const Real old_time = get_state_data(Source_Type).prevTime();
+        const Real new_time = get_state_data(Source_Type).curTime();
+
+        const Real dt_old = new_time - old_time;
+
+        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
+
+        sources_for_hydro.negate(NUM_GROW);
+
+        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
+
+        sources_for_hydro.mult((0.5 * dt) / dt_old, NUM_GROW);
+
+    }
+
+#else
+
+    // If we're doing SDC, time-center the source term (using the
+    // current iteration's old sources and the last iteration's new
+    // sources). Since the "new-time" sources are just the corrector step
+    // of the predictor-corrector formalism, we want to add the full
+    // value of the "new-time" sources to the old-time sources to get a
+    // time-centered value.
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, SDC_Source_Type, 0, NUM_STATE);
+
+#endif
+
+
     // Swap the new data from the last timestep into the old state data.
 
     for (int k = 0; k < num_state_type; k++) {
@@ -546,13 +574,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
-	if (k == Source_Type)
-	    state[k].swapTimeLevels(0.0);
 #ifdef SDC
-	else if (k == SDC_Source_Type)
+	if (k == SDC_Source_Type)
 	    state[k].swapTimeLevels(0.0);
 #ifdef REACTIONS
-	else if (k == SDC_React_Type)
+	if (k == SDC_React_Type)
 	    state[k].swapTimeLevels(0.0);
 #endif
 #endif
@@ -593,28 +619,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     if (!(do_reflux && update_sources_after_reflux)) {
 
-      // These arrays hold all source terms that update the state.
-      // Normally these are allocated at initialization because
-      // of the source term update after a reflux, but if the user
-      // chooses not to do that, we can save memory by only allocating
-      // the data temporarily for the duration of the advance.
-
-      old_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
-      new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
-
       // This array holds the hydrodynamics update.
 
       hydro_source.define(grids,dmap,NUM_STATE,0);
 
     }
 
-    // This array holds the sum of all source terms that affect the
-    // hydrodynamics.  If we are doing the source term predictor,
-    // we'll also use this after the hydro update to store the sum of
-    // the new-time sources, so that we can compute the time
-    // derivative of the source terms.
-
-    sources_for_hydro.define(grids,dmap,NUM_STATE,NUM_GROW);
 
 
     if (!do_ctu) {
@@ -686,8 +696,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (!(do_reflux && update_sources_after_reflux)) {
 
-	old_sources.clear();
-	new_sources.clear();
 	hydro_source.clear();
 
     }
@@ -904,13 +912,11 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
             for (int k = 0; k < num_state_type; k++) {
 
-                if (k == Source_Type)
-                    state[k].swapTimeLevels(0.0);
 #ifdef SDC
-                else if (k == SDC_Source_Type)
+                if (k == SDC_Source_Type)
                     state[k].swapTimeLevels(0.0);
 #ifdef REACTIONS
-                else if (k == SDC_React_Type)
+                if (k == SDC_React_Type)
                     state[k].swapTimeLevels(0.0);
 #endif
 #endif

@@ -16,6 +16,8 @@ Castro::construct_old_diff_source(Real time, Real dt)
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+
     add_temp_diffusion_to_source(old_sources, TempDiffTerm, time, 1);
 
 #if (BL_SPACEDIM == 1)
@@ -31,6 +33,8 @@ Castro::construct_new_diff_source(Real time, Real dt)
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
     MultiFab ViscousTermforEnergy(grids, dmap, 1, 1);
+
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     Real mult_factor = 0.5;
 

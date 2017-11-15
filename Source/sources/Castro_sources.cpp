@@ -83,6 +83,8 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Construct the old-time sources.
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+
     old_sources.setVal(0.0);
 
     for (int n = 0; n < num_src; ++n)
@@ -123,6 +125,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     // For the new-time source terms, we have an option for how to proceed.
     // We can either construct all of the old-time sources using the same
@@ -337,7 +340,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
   bool local = true;
 
-  MultiFab& source = is_new ? new_sources : old_sources;
+  MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
 
   summed_updates = evaluate_source_change(source, dt, local);
 
@@ -376,6 +379,9 @@ Castro::sum_of_sources(MultiFab& source)
   int ng = source.nGrow();
 
   source.setVal(0.0);
+
+  MultiFab& old_sources = get_old_data(Source_Type);
+  MultiFab& new_sources = get_new_data(Source_Type);
 
   MultiFab::Add(source, old_sources, 0, 0, NUM_STATE, ng);
 

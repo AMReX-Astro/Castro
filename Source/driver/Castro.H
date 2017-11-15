@@ -654,12 +654,6 @@ protected:
 #endif
 
     //
-    // Non-hydro source terms.
-    //
-    amrex::MultiFab old_sources;
-    amrex::MultiFab new_sources;
-
-    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
