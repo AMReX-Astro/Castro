@@ -294,7 +294,7 @@ public:
 
     void construct_new_ext_source(amrex::Real time, amrex::Real dt);
 
-    void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src, int ng);
+    void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -529,7 +529,7 @@ public:
 
     void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
 
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const int ng, const amrex::Real mult_factor);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
 
     void hybrid_sync(amrex::MultiFab& state);
 #endif

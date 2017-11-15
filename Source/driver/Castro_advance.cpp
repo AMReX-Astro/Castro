@@ -599,7 +599,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // chooses not to do that, we can save memory by only allocating
       // the data temporarily for the duration of the advance.
 
-      old_sources.define(grids, dmap, NUM_STATE, NUM_GROW);
+      old_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
       new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
 
       // This array holds the hydrodynamics update.

@@ -33,7 +33,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 #endif
     for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
-	const Box& bx = mfi.growntilebox();
+	const Box& bx = mfi.tilebox();
 
 	ca_rsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),

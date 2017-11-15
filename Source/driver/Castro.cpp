@@ -714,7 +714,7 @@ Castro::initMFs()
 
 	// These arrays hold all source terms that update the state.
 
-        old_sources.define(grids, dmap, NUM_STATE, NUM_GROW);
+        old_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
         new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
 
 	// This array holds the hydrodynamics update.

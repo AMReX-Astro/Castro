@@ -11,8 +11,6 @@ using namespace amrex;
 void
 Castro::construct_old_diff_source(Real time, Real dt)
 {
-    int ng = Sborder.nGrow();
-
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
@@ -29,8 +27,6 @@ Castro::construct_old_diff_source(Real time, Real dt)
 void
 Castro::construct_new_diff_source(Real time, Real dt)
 {
-    int ng = 0;
-
     MultiFab TempDiffTerm(grids, dmap, 1, 1);
     MultiFab SpecDiffTerm(grids, dmap, NumSpec, 1);
     MultiFab ViscousTermforMomentum(grids, dmap, BL_SPACEDIM, 1);
@@ -74,9 +70,8 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& DiffTerm, Rea
     }
 
     if (diffuse_temp == 1 or diffuse_enth == 1) {
-       int ng = std::min(ext_src.nGrow(),DiffTerm.nGrow());
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eden,1,ng);
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eint,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eden,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eint,1,0);
     }
 }
 
@@ -90,8 +85,7 @@ Castro::add_spec_diffusion_to_source (MultiFab& ext_src, MultiFab& SpecDiffTerm,
     SpecDiffTerm.setVal(0.);
     if (diffuse_spec == 1) {
        getSpecDiffusionTerm(t, SpecDiffTerm, is_old);
-       int ng = std::min(ext_src.nGrow(),SpecDiffTerm.nGrow());
-       MultiFab::Saxpy(ext_src,mult_factor,SpecDiffTerm,0,FirstSpec,NumSpec,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,SpecDiffTerm,0,FirstSpec,NumSpec,0);
     }
 }
 #endif
@@ -108,11 +102,8 @@ Castro::add_viscous_term_to_source(MultiFab& ext_src, MultiFab& ViscousTermforMo
     ViscousTermforEnergy.setVal(0.);
     if (diffuse_vel == 1) {
        getViscousTerm(t,ViscousTermforMomentum,ViscousTermforEnergy);
-       int ng = std::min(ext_src.nGrow(),ViscousTermforMomentum.nGrow());
-       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforMomentum,0,Xmom,1,ng);
-
-       ng = std::min(ext_src.nGrow(),ViscousTermforEnergy.nGrow());
-       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforEnergy  ,0,Eden,1,ng);
+       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforMomentum,0,Xmom,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,ViscousTermforEnergy  ,0,Eden,1,0);
     }
 }
 #endif

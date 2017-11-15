@@ -244,7 +244,7 @@ void Castro::construct_old_gravity_source(Real time, Real dt)
 #endif
     for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
-	const Box& bx = mfi.growntilebox();
+	const Box& bx = mfi.tilebox();
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
