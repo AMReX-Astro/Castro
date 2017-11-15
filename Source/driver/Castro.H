@@ -186,10 +186,6 @@ public:
     // Advance the particles by dt
     //
     void advance_particles (int iteration, amrex::Real time, amrex::Real dt);
-    //
-    // Default verbosity of Particle class
-    //
-    static int particle_verbose;
 
 #endif
 
@@ -752,6 +748,10 @@ protected:
     //
 #include <castro_params.H>
 
+#ifdef PARTICLES
+#include "particles_params.H"
+#endif
+
     static bool      signalStopJob;
     static bool      dump_old;
     static int       radius_grow;
@@ -779,10 +779,6 @@ protected:
     static amrex::Real      startCPUTime;
 
     static amrex::Real getCPUTime();
-
-#ifdef PARTICLES
-    static int       do_tracer_particles;
-#endif
 
     bool             FillPatchedOldState_ok;
 

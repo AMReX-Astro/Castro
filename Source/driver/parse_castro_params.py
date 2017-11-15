@@ -332,7 +332,7 @@ def write_meth_module(plist, meth_template):
         elif line.find("@@set_castro_params@@") >= 0:
 
             namespaces = list(set([q.namespace for q in params]))
-            print("namespaces: ", namespaces)
+            print("Fortran namespaces: ", namespaces)
             for nm in namespaces:
                 params_nm = [q for q in params if q.namespace == nm]
 

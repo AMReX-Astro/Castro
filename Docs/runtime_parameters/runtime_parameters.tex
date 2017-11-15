@@ -450,9 +450,6 @@
 
 \rowcolor{tableShade}
 \runparamNS{do\_tracer\_particles}{castro} &  permits tracer particle calculation to be turned on and off & 0 \\
-\runparamNS{timestamp\_density}{castro} &  whether the local densities at given positions of particles are stored in output files & 1 \\
-\rowcolor{tableShade}
-\runparamNS{timestamp\_temperature}{castro} &  whether the local temperatures at given positions of particles are stored in output files & 0 \\
 
 
 \end{longtable}
@@ -800,7 +797,10 @@
 \runparamNS{particle\_restart\_file}{particles} &  the name of a file with new particles at restart & "" \\
 \runparamNS{restart\_from\_nonparticle\_chkfile}{particles} &  to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE & 0 \\
 \rowcolor{tableShade}
+\runparamNS{timestamp\_density}{particles} &  whether the local densities at given positions of particles are stored in output files & 1 \\
 \runparamNS{timestamp\_dir}{particles} &  the name of a directory in which timestamp files are stored. & "" \\
+\rowcolor{tableShade}
+\runparamNS{timestamp\_temperature}{particles} &  whether the local temperatures at given positions of particles are stored in output files & 0 \\
 \runparamNS{v}{particles} &  the level of verbosity for the tracer particle (0 or 1) & 0 \\
 
 

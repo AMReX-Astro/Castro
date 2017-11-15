@@ -3,9 +3,11 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-std::string Particles::particle_init_file = "";
-int         Particles::verbose = 0;
-std::string Particles::particle_restart_file = "";
-int         Particles::restart_from_nonparticle_chkfile = 0;
-std::string Particles::particle_output_file = "";
-std::string Particles::timestamp_dir = "";
+int         Castro::particle_verbose = 0;
+std::string Castro::particle_init_file = "";
+std::string Castro::particle_restart_file = "";
+int         Castro::restart_from_nonparticle_chkfile = 0;
+std::string Castro::particle_output_file = "";
+std::string Castro::timestamp_dir = "";
+int         Castro::timestamp_density = 1;
+int         Castro::timestamp_temperature = 0;
