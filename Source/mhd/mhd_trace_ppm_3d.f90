@@ -18,11 +18,15 @@ contains
                            ilo1,ilo2,ihi1,ihi2,dt,kc,k3d)
 
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, QFS, &
                                    QREINT, QPRES, version_2, &
                                    npassive, qpass_map, ppm_type, ppm_reference, &
                                    ppm_flatten_before_integrals, &
                                    small_dens, small_pres, gamma_minus_1
+    use eos_type_module, only: eos_t, eos_input_rp
+    use eos_module, only: eos
+    use network, only: nspec
+
     use bl_constants_module
 
     implicit none
@@ -71,6 +75,8 @@ contains
     integer, parameter :: igx = 1
     integer, parameter :: igy = 2
     integer, parameter :: igz = 3
+
+    type (eos_t) :: eos_state
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -267,7 +273,13 @@ contains
              end if
 
              ! TODO: we need to compute this from the EOS
-             qxp(i,j,kc,QREINT) = qxp(i,j,kc,QPRES) / gamma_minus_1
+             eos_state % rho = qxp( i, j, kc, QRHO)
+             eos_state % p   = qxp( i, j, kc, QPRES)
+             eos_state % xn  = qxp( i, j, kc, QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)   
+
+             qxp(i,j,kc,QREINT) = eos_state % rho * eos_state % e
 
           end if
 
@@ -405,7 +417,13 @@ contains
              end if
 
              ! TODO: we need to compute this from the EOS
-             qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QPRES) / gamma_minus_1
+             eos_state % rho = qxm( i+1, j, kc, QRHO)
+             eos_state % p   = qxm( i+1, j, kc, QPRES)
+             eos_state % xn  = qxm( i+1, j, kc, QFS:QFS+nspec-1)
+             
+             call eos(eos_input_rp, eos_state)
+
+             qxm(i+1,j,kc,QREINT) = eos_state % rho * eos_state % e
           end if
 
        end do
@@ -634,7 +652,15 @@ contains
              end if
 
              ! TODO: we need to compute this from the EOS
-             qyp(i,j,kc,QREINT) = qyp(i,j,kc,QPRES) / gamma_minus_1
+             eos_state % rho = qyp( i, j, kc, QRHO)
+             eos_state % p   = qyp( i, j, kc, QPRES)
+             eos_state % xn  = qyp( i, j, kc, QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)   
+
+
+             qyp(i,j,kc,QREINT) = eos_state % rho * eos_state % e
+
           end if
 
           ! ******************************************************************************
@@ -770,7 +796,14 @@ contains
              end if
 
              ! TODO: we need to compute this from the EOS
-             qym(i,j+1,kc,QREINT) = qym(i,j+1,kc,QPRES) / gamma_minus_1
+             eos_state % rho = qym( i, j+1, kc, QRHO)
+             eos_state % p   = qym( i, j+1, kc, QPRES)
+             eos_state % xn  = qym( i, j+1, kc, QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)   
+
+
+             qym(i,j+1,kc,QREINT) = eos_state % rho * eos_state % e
           end if
 
        end do
@@ -845,12 +878,16 @@ contains
                           ilo1,ilo2,ihi1,ihi2,dt,km,kc,k3d)
 
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : QVAR, QRHO, QU, QV, QW, QFS, &
                                    QREINT, QPRES, version_2, &
                                    npassive, qpass_map, ppm_type, &
                                    npassive, qpass_map, ppm_type, ppm_reference, &
                                    ppm_flatten_before_integrals, &
-                                   small_dens, small_pres, gamma_minus_1
+                                   small_dens, small_pres
+    use eos_module, only : eos
+    use eos_type_module, only: eos_t, eos_input_rp
+    use network, only: nspec
+
     use bl_constants_module
 
     implicit none
@@ -896,6 +933,8 @@ contains
     integer, parameter :: igx = 1
     integer, parameter :: igy = 2
     integer, parameter :: igz = 3
+
+    type (eos_t) :: eos_state
 
     if (ppm_type .eq. 0) then
        print *,'Oops -- shouldnt be in tracez_ppm with ppm_type = 0'
@@ -1057,7 +1096,14 @@ contains
           end if
 
           ! TODO: we need to compute this from the EOS
-          qzp(i,j,kc,QREINT) = qzp(i,j,kc,QPRES) / gamma_minus_1
+          eos_state % rho = qzp( i, j, kc, QRHO)
+          eos_state % p   = qzp( i, j, kc, QPRES)
+          eos_state % xn  = qzp( i, j, kc, QFS:QFS+nspec-1)
+
+          call eos(eos_input_rp, eos_state)   
+
+
+          qzp(i,j,kc,QREINT) = eos_state % rho * eos_state % e
 
           ! **************************************************************************
           ! This is all for qzm
@@ -1206,7 +1252,14 @@ contains
           end if
 
           ! TODO: we need to compute this from the EOS
-          qzm(i,j,kc,QREINT) = qzm(i,j,kc,QPRES) / gamma_minus_1
+          eos_state % rho = qzm( i, j, kc, QRHO)
+          eos_state % p   = qzm( i, j, kc, QPRES)
+          eos_state % xn  = qzm( i, j, kc, QFS:QFS+nspec-1)
+
+          call eos(eos_input_rp, eos_state)   
+
+
+          qzm(i,j,kc,QREINT) = eos_state % rho * eos_state % e
 
        end do
     end do

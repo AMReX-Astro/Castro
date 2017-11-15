@@ -432,6 +432,9 @@ subroutine PrimToCons(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
 
  use amrex_fort_module, only : rt => amrex_real
  use meth_params_module
+ use eos_type_module, only : eos_t, eos_input_rp
+ use eos_module, only: eos
+ use network, only: nspec
 
 implicit none
 
@@ -440,6 +443,8 @@ implicit none
 	real(rt), intent(out)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 	integer					:: i ,j ,k
 
+  type(eos_t) :: eos_state        
+
  do k = q_l3,q_h3
     do j = q_l2,q_h2
        do i = q_l1, q_h1
@@ -447,13 +452,19 @@ implicit none
           u(i,j,k,UMX)    = q(i,j,k,QRHO)*q(i,j,k,QU)
           u(i,j,k,UMY)    = q(i,j,k,QRHO)*q(i,j,k,QV)
           u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
-
+  
           ! TODO: get (rho e) from the EOS using p, rho, X
-          u(i,j,k,UEDEN) = (q(i,j,k,QPRES)-0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ))))/(gamma_minus_1) &
+          eos_state % rho = q(i, j, k, QRHO)
+          eos_state % p   = q(i, j, k, QPRES)
+          eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
+
+          call eos(eos_input_rp, eos_state)
+
+          u(i,j,k,UEDEN) = eos_state % rho * eos_state % e &
                + 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
                + 0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))
           ! TODO: use the (rho e) as above
-          u(i,j,k,UEINT) = (q(i,j,k,QPRES) - 0.5d0*dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))/(gamma_minus_1)
+          u(i,j,k,UEINT) = eos_state % rho * eos_state % e
           u(i,j,k,QMAGX:QMAGZ) = q(i,j,k,QMAGX:QMAGZ)
        enddo
     enddo
@@ -466,6 +477,9 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
 
  use amrex_fort_module, only : rt => amrex_real
  use meth_params_module
+ use eos_module, only : eos
+ use eos_type_module, only : eos_t, eos_input_re
+ use actual_network, only : nspec
 
  implicit none
 
@@ -473,6 +487,8 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
  real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
  real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
  integer					:: i ,j ,k
+
+ type (eos_t) :: eos_state
 
  q = u
  do k = q_l3,q_h3
@@ -485,7 +501,14 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
           q(i,j,k,QREINT) = u(i,j,k,UEDEN) - 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
                - 0.5d0*dot_product(u(i,j,k,QMAGX:QMAGZ), u(i,j,k,QMAGX:QMAGZ))			 
           ! TODO: need to compute p from the EOS using (rho e), rho, X
-          q(i,j,k,QPRES) = q(i,j,k,QREINT)*gamma_minus_1 + 0.5*dot_product(u(i,j,k,QMAGX:QMAGZ),u(i,j,k,QMAGX:QMAGZ))
+          eos_state % rho = q(i, j, k, QRHO)
+          eos_state % e   = q(i, j, k, QREINT)
+          eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
+
+          call eos(eos_input_re, eos_state)
+
+
+          q(i,j,k,QPRES) = eos_state % p + 0.5*dot_product(u(i,j,k,QMAGX:QMAGZ),u(i,j,k,QMAGX:QMAGZ))
           q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,QMAGX:QMAGZ)
        enddo
     enddo
@@ -1032,11 +1055,17 @@ end subroutine prim_half
 subroutine qflux(qflx,flx,q)
  use amrex_fort_module, only : rt => amrex_real
  use meth_params_module, only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, gamma_minus_1
+ use eos_module, only : eos
+ use eos_type_module, only: eos_t, eos_input_rp
+ use network, only : nspec
 
 implicit none
 
  real(rt), intent(in)		::flx(QVAR), q(QVAR)
  real(rt), intent(out)		::qflx(QVAR)
+  
+ type (eos_t) :: eos_state
+
 	qflx = 0.d0
 	qflx(QRHO)  = flx(QRHO)
 	qflx(QU)    = q(QU)*flx(QRHO) + q(QRHO)*flx(QU)
