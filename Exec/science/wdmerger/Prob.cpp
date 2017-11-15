@@ -630,11 +630,6 @@ void Castro::problem_post_init() {
   if (problem == 3 && !relaxation_is_done && parent->subCycle())
     amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
-  // If we're doing an initial relaxation step, ensure that we retain source terms.
-
-  if (problem == 3 && !relaxation_is_done && !keep_sources_until_end)
-    amrex::Abort("Error: cannot perform relaxation step if we are not retaining source terms.");
-
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);

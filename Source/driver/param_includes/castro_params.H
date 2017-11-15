@@ -47,7 +47,6 @@ static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
-static int keep_sources_until_end;
 static int source_term_predictor;
 static int first_order_hydro;
 static std::string xl_ext_bc_type;
