@@ -1,5 +1,7 @@
 # changes since last release
 
+  -- The parameter castro.keep_sources_until_end has been removed.
+
   -- Source terms (gravity, rotation, etc.) have now been all coalesced into
      a single MultiFab. This reduces the memory footprint of the code. This
      negates the need for the code parameters update_state_between_sources and

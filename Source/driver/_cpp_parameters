@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# retain source terms until end of timestep
-keep_sources_until_end       int           0
-
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
