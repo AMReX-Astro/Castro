@@ -1,3 +1,54 @@
+# changes since last release
+
+  -- Source terms (gravity, rotation, etc.) have now been all coalesced into
+     a single MultiFab. This reduces the memory footprint of the code. This
+     negates the need for the code parameters update_state_between_sources and
+     coalesce_update_diagnostics, so they have been removed. This will cause
+     a change in results: the previous code behavior was to update the state
+     with each successive source term as it was applied at the new time. Now
+     every source term will be calculated using the same new-time state (the one
+     coming out of the hydro) and the source terms are all applied to the state
+     in one shot at the end. Note that both this and the old approach are
+     second-order accurate in time. For problems that combine multiple
+     source terms, this will cause changes that are larger than roundoff.
+     In particular, if rotation is used in conjunction with other source terms,
+     changes will be relatively large, because the Coriolis force depends on the
+     velocity, so the source term is a bit different now that it is seeing a
+     different velocity. (#165, #249)
+
+  -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
+     is set to 1, timesteps will be shortened to exactly hit the time interval
+     specified by amr.plot_per. An issue with this (#242) was fixed (#243)
+     where an incorrect timestep would be taken after a restart if the
+     previous step had been shortened.
+
+  -- We can now use the new multigrid solver from AMReX (implemented
+     in C++) instead of the older Fortran solver (#241).  This is enabled
+     with gravity.use_mlmg_solver=1.  Note, this only works in 3-d
+     currently.  This has several options:
+
+     gravity.mlmg_max_fmg_iter = 0 : This integer parameter determines
+     how many FMG cycles will be performed before switching to
+     V-cycle.
+
+     gravity.mlmg_agglomeration = 0 : This boolean flag determines if
+     AMR level 0 grids will be agglomerated as the grids are coarsen
+     in the multi-grid hierarchy.
+
+     gravity.mlmg_consolidation = 0 : This boolean flag determines if
+     grids on an AMR fine level that is in a single-level solve or the
+     lowest AMR level of a multi-level composite solve will be
+     consolidated as the grids are coarsen in the multi-grid
+     hierarchy. Here, consolidation means the grids will be moved to
+     fewer MPI processes.
+
+     Numerical experiments have show this scales better than the old
+     solver.
+
+# 17.11.1
+
+  -- Minor bug fixes from the 17.11 release. There is a corresponding
+     17.11.1 release of AMReX.
 
 # 17.11
 
@@ -55,7 +106,6 @@
 
   -- the README.md now describes the process to become a
      "core developer" of Castro, and what this means.
->>>>>>> development
 
   -- Network_dir has been renamed NETWORK_DIR and EOS_dir has been
      renamed EOS_DIR.  All of the problem GNUmakefiles have been

@@ -191,9 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we update the state in between evaluations of the new-time source terms
-update_state_between_sources int           1
-
 # retain source terms until end of timestep
 keep_sources_until_end       int           0
 
@@ -336,6 +333,10 @@ dtnuc_mode                   int           1                  y
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
+
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -480,10 +481,6 @@ print_fortran_warnings       int           (0, 1)
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
 
-# if we're printing diagnostic information about the updates, should we
-# break down the information into the constitent source terms?
-coalesce_update_diagnostics  int           (0, 1)
-
 # calculate losses of material through physical grid boundaries
 track_grid_losses            int            0                    y
 
@@ -567,8 +564,15 @@ max_solve_level             int            MAX_LEV-1
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+mlmg_consolidation           int           1                  n
 
 @namespace: diffusion Diffusion static
 

@@ -161,9 +161,6 @@ castro.cg_blend = 2
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
-# Whether to take other source terms into account for new-time sources
-castro.update_state_between_sources = 0
-
 # Reset (rho*e) if it goes negative in the transverse terms
 castro.transverse_reset_rhoe = 1
 
@@ -175,9 +172,6 @@ castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
-
-# Time center the sponge source
-castro.time_center_sponge = 1
 
 ############################################################################################
 # Thermodynamics
