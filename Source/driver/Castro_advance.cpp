@@ -563,7 +563,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // value of the "new-time" sources to the old-time sources to get a
     // time-centered value.
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, SDC_Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, SDC_Source_Type, 0, NUM_STATE);
 
 #endif
 
