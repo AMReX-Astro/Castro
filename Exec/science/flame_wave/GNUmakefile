@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = Intel
+COMP	   = gnu
 
 USE_MPI    = TRUE
 
@@ -32,7 +32,7 @@ else
 
 endif
 
-Conductivity_dir := stellar
+CONDUCTIVITY_DIR := stellar
 
 Bpack   := ./Make.package
 Blocs   := .

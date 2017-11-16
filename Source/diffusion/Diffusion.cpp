@@ -64,14 +64,14 @@ Diffusion::install_level (int                   level,
 void
 Diffusion::applyop (int level, MultiFab& Temperature, 
                     MultiFab& CrseTemp, MultiFab& DiffTerm, 
-                    Array<std::unique_ptr<MultiFab> >& temp_cond_coef)
+                    Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';
     }
 
-    Array<std::unique_ptr<MultiFab> > coeffs_curv;
+    Vector<std::unique_ptr<MultiFab> > coeffs_curv;
 #if (BL_SPACEDIM < 3)
     // NOTE: we just pass DiffTerm here to use in the MFIter loop...
     if (Geometry::IsRZ() || Geometry::IsSPHERICAL())
@@ -102,7 +102,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 	fmg.set_bc(mg_bc, CrseTemp, Temperature);
     }
 
-    fmg.set_diffusion_coeffs(amrex::GetArrOfPtrs(coeffs));
+    fmg.set_diffusion_coeffs(amrex::GetVecOfPtrs(coeffs));
 
     fmg.applyop(Temperature, DiffTerm);
 
@@ -117,7 +117,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 void
 Diffusion::applyViscOp (int level, MultiFab& Vel, 
                         MultiFab& CrseVel, MultiFab& ViscTerm, 
-                        Array<std::unique_ptr<MultiFab> >& visc_coeff)
+                        Vector<std::unique_ptr<MultiFab> >& visc_coeff)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
@@ -137,7 +137,7 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 
     // Here we DO NOT multiply the coefficients by (1/r^2) for spherical coefficients
     // because we are computing (1/r^2) d/dr (const * d/dr(r^2 u))
-    fmg.set_diffusion_coeffs(amrex::GetArrOfPtrs(visc_coeff));
+    fmg.set_diffusion_coeffs(amrex::GetVecOfPtrs(visc_coeff));
 
 #if (BL_SPACEDIM < 3)
     // Here we weight the Vel going into the FMG applyop
@@ -157,10 +157,10 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 
 #if (BL_SPACEDIM < 3)
 void
-Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Array<std::unique_ptr<MultiFab> >& coeffs)
+Diffusion::applyMetricTerms(int level, MultiFab& Rhs, Vector<std::unique_ptr<MultiFab> >& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -192,7 +192,7 @@ void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -208,7 +208,7 @@ void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    const int coord_type = Geometry::Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif

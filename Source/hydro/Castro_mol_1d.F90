@@ -54,7 +54,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt)        , intent(in) ::      uin(  uin_lo(1):  uin_hi(1),NVAR)
   real(rt)        , intent(inout) ::  uout( uout_lo(1): uout_hi(1),NVAR)
   real(rt)        , intent(inout) ::     q(    q_lo(1):    q_hi(1),NQ)
-  real(rt)        , intent(in) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
+  real(rt)        , intent(inout) ::     qaux(   qa_lo(1):   qa_hi(1),NQAUX)
   real(rt)        , intent(in) ::     srcU(  srU_lo(1):  srU_hi(1),NVAR)
   real(rt)        , intent(inout) :: update(updt_lo(1): updt_hi(1),NVAR)
   real(rt)        , intent(inout) :: update_flux(uf_lo(1): uf_hi(1),NVAR)
@@ -226,14 +226,16 @@ subroutine ca_mol_single_stage(time, &
   endif
 
   ! Get the fluxes from the Riemann solver
-  call cmpflx(lo, hi, domlo, domhi, &
-              qxm, qxp, qp_lo, qp_hi, &
+  call cmpflx(qxm, qxp, qp_lo, qp_hi, &
               flux, flux_lo, flux_hi, &
               q1, flux_lo, flux_hi, &
 #ifdef RADIATION
               rflx, flux_lo, flux_hi, &
 #endif
-              qaux, qa_lo, qa_hi, lo(1), hi(1))
+              qaux, qa_lo, qa_hi, &
+              shk, shk_lo, shk_hi, &
+              1, lo(1), hi(1)+1, 0, 0, 0, 0, 0, &
+              [domlo(1), 0, 0], [domhi(1), 0, 0])
 
   deallocate(qxm, qxp)
 

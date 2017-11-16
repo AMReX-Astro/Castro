@@ -63,9 +63,9 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
-\caption[castro :  diagnostics
- parameters]{castro :  diagnostics
- parameters} \label{table: castro :  diagnostics
+\caption[castro :  diagnostics, I/O
+ parameters]{castro :  diagnostics, I/O
+ parameters} \label{table: castro :  diagnostics, I/O
  parameters runtime} \\
 %
 \hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
@@ -88,19 +88,21 @@
 
 
 \rowcolor{tableShade}
-\runparamNS{coalesce\_update\_diagnostics}{castro} &  if we're printing diagnostic information about the updates, should we break down the information into the constitent source terms? & (0, 1) \\
 \runparamNS{hard\_cfl\_limit}{castro} &  abort if we exceed CFL = 1 over the cource of a timestep & 1 \\
-\rowcolor{tableShade}
 \runparamNS{job\_name}{castro} &  a string describing the simulation that will be copied into the plotfile's {\tt job\_info} file & "" \\
+\rowcolor{tableShade}
 \runparamNS{output\_at\_completion}{castro} &  write a final plotfile and checkpoint upon completion & 1 \\
-\rowcolor{tableShade}
 \runparamNS{print\_fortran\_warnings}{castro} &  display warnings in Fortran90 routines & (0, 1) \\
+\rowcolor{tableShade}
 \runparamNS{print\_update\_diagnostics}{castro} &  display information about updates to the state (how much mass, momentum, energy added) & (0, 1) \\
+\runparamNS{reset\_checkpoint\_step}{castro} &  Do we want to reset the number of steps in the checkpoint? This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1, (which require that max\_step and stop\_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1 \\
 \rowcolor{tableShade}
+\runparamNS{reset\_checkpoint\_time}{castro} &  Do we want to reset the time in the checkpoint? This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1, (which require that max\_step and stop\_time be less than the value in the checkpoint) and you set it to value greater than this default value. & -1.e200 \\
 \runparamNS{show\_center\_of\_mass}{castro} &  display center of mass diagnostics & 0 \\
-\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \rowcolor{tableShade}
+\runparamNS{sum\_interval}{castro} &  how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics) & -1 \\
 \runparamNS{sum\_per}{castro} &  how often (simulation time) to compute integral sums (for runtime diagnostics) & -1.0e0 \\
+\rowcolor{tableShade}
 \runparamNS{track\_grid\_losses}{castro} &  calculate losses of material through physical grid boundaries & 0 \\
 
 
@@ -323,49 +325,48 @@
 \runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
 \runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
 \rowcolor{tableShade}
-\runparamNS{keep\_sources\_until\_end}{castro} &  retain source terms until end of timestep & 0 \\
 \runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
+\rowcolor{tableShade}
+\runparamNS{ppm\_flatten\_before\_integrals}{castro} &  & 1 \\
 \runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\
 \rowcolor{tableShade}
+\runparamNS{ppm\_reference}{castro} & Lupe adding for MHD thing & 1 \\
 \runparamNS{ppm\_reference\_eigenvectors}{castro} &  do we use the reference state in evaluating the eigenvectors? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_temp\_fix}{castro} &  various methods of giving temperature a larger role in the reconstruction---see Zingale \& Katz 2015 & 0 \\
-\rowcolor{tableShade}
 \runparamNS{ppm\_trace\_sources}{castro} &  to we reconstruct and trace under the parabolas of the source terms to the velocity (gravity and rotation) & 1 \\
+\rowcolor{tableShade}
 \runparamNS{ppm\_type}{castro} &  reconstruction type: 0: piecewise linear; 1: classic Colella \& Woodward ppm; 2: extrema-preserving ppm & 1 \\
-\rowcolor{tableShade}
 \runparamNS{riemann\_solver}{castro} &  which Riemann solver do we use: 0: Colella, Glaz, \& Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-shock solver) 2: HLLC & 0 \\
+\rowcolor{tableShade}
 \runparamNS{small\_dens}{castro} &  the small density cutoff.  Densities below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_ener}{castro} &  the small specific internal energy cutoff.  Internal energies below this value will be reset & -1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{small\_pres}{castro} &  the small pressure cutoff.  Pressures below this value will be reset & -1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{small\_temp}{castro} &  the small temperature cutoff.  Temperatures below this value will be reset & -1.e200 \\
-\runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
 \rowcolor{tableShade}
+\runparamNS{source\_term\_predictor}{castro} &  extrapolate the source terms (gravity and rotation) to $n+1/2$ timelevel for use in the interface state prediction & 0 \\
 \runparamNS{sponge\_implicit}{castro} &  if we are using the sponge, whether to use the implicit solve for it & 1 \\
-\runparamNS{time\_center\_sponge}{castro} &  should we time center the sponge? & 1 \\
 \rowcolor{tableShade}
 \runparamNS{transverse\_reset\_density}{castro} &  if the transverse interface state correction, if the new density is negative, then replace all of the interface quantities with their values without the transverse correction. & 1 \\
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
 \rowcolor{tableShade}
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
-\runparamNS{update\_state\_between\_sources}{castro} &  should we update the state in between evaluations of the new-time source terms & 1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
+\rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
+\rowcolor{tableShade}
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
-\rowcolor{tableShade}
 \runparamNS{xl\_ext\_bc\_type}{castro} &  if we are doing an external -x boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{xr\_ext\_bc\_type}{castro} &  if we are doing an external +x boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{yl\_ext\_bc\_type}{castro} &  if we are doing an external -y boundary condition, who do we interpret it? & "" \\
-\runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
 \rowcolor{tableShade}
+\runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
 \runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{zr\_ext\_bc\_type}{castro} &  if we are doing an external +z boundary condition, who do we interpret it? & "" \\
 
 
@@ -422,6 +423,46 @@
 %
 \begin{center}
 \begin{longtable}{|l|p{5.25in}|l|}
+\caption[castro :  particles
+ parameters]{castro :  particles
+ parameters} \label{table: castro :  particles
+ parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{do\_tracer\_particles}{castro} &  permits tracer particle calculation to be turned on and off & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
 \caption[castro :  reactions
  parameters]{castro :  reactions
  parameters} \label{table: castro :  reactions
@@ -457,11 +498,12 @@
 \runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
 \rowcolor{tableShade}
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
+\runparamNS{dxnuc\_max}{castro} &  Disable limiting based on dxnuc above this threshold. This allows zones that have already ignited or are about to ignite to be de-refined. & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
-\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \rowcolor{tableShade}
+\runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
 \runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
 
 
@@ -546,21 +588,25 @@
 \runparamNS{cfl}{castro} &  the effective Courant number to use---we will not allow the hydrodynamic waves to cross more than this fraction of a zone over a single timestep & 0.8 \\
 \runparamNS{change\_max}{castro} &  the maximum factor by which the timestep can increase from one step to the next. & 1.1 \\
 \rowcolor{tableShade}
+\runparamNS{clamp\_subcycles}{castro} &  If we do request more than the maximum number of subcycles, should we fail, or should we clamp to that maximum number and perform that many? & 1 \\
 \runparamNS{dt\_cutoff}{castro} &  the smallest valid timestep---if we go below this, we abort & 0.0 \\
+\rowcolor{tableShade}
 \runparamNS{fixed\_dt}{castro} &  a fixed timestep to use for all steps (negative turns it off) & -1.0 \\
-\rowcolor{tableShade}
 \runparamNS{init\_shrink}{castro} &  a factor by which to reduce the first timestep from that requested by the timestep estimators & 1.0 \\
-\runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \rowcolor{tableShade}
+\runparamNS{initial\_dt}{castro} &  the initial timestep (negative uses the step returned from the timestep constraints) & -1.0 \\
 \runparamNS{max\_dt}{castro} &  the largest valid timestep---limit all timesteps to be no larger than this & 1.e200 \\
-\runparamNS{retry\_max\_subcycles}{castro} &  Do not permit more retry timesteps than this parameter. Set to a negative value to disable this criterion. & 1000 \\
+\rowcolor{tableShade}
+\runparamNS{max\_subcycles}{castro} &  Do not permit more subcycled timesteps than this parameter. Set to a negative value to disable this criterion. & 10 \\
+\runparamNS{plot\_per\_is\_exact}{castro} &  enforce that the AMR plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
 \runparamNS{retry\_neg\_dens\_factor}{castro} &  If we're doing retries, set the target threshold for changes in density if a retry is triggered by a negative density. If this is set to a negative number then it will disable retries using this criterion. & 1.e-1 \\
-\runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.0 \\
+\runparamNS{retry\_tolerance}{castro} &  Tolerance to use when evaluating whether to do a retry. The timestep suggested by the retry will be multiplied by (1 + this factor) before comparing the actual timestep to it. If set to some number slightly larger than zero, then this prevents retries that are caused by small numerical differences. & 0.02 \\
 \rowcolor{tableShade}
 \runparamNS{sdc\_iters}{castro} &  Number of iterations for the SDC advance. & 2 \\
-\runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
+\runparamNS{small\_plot\_per\_is\_exact}{castro} &  enforce that the AMR small plot interval must be hit exactly & 0 \\
 \rowcolor{tableShade}
+\runparamNS{use\_post\_step\_regrid}{castro} &  Check for a possible post-timestep regrid if certain stability criteria were violated. & 0 \\
 \runparamNS{use\_retry}{castro} &  Retry a timestep if it violated the timestep-limiting criteria over the course of an advance. The criteria will suggest a new timestep that satisfies the criteria, and we will do subcycled timesteps on the same level until we reach the original target time. & 0 \\
 
 
@@ -681,10 +727,80 @@
 \runparamNS{max\_multipole\_order}{gravity} &  the maximum mulitpole order to use for multipole BCs when doing Poisson gravity & 0 \\
 \runparamNS{max\_solve\_level}{gravity} &   For all gravity types, we can choose a maximum level for explicitly  calculating the gravity and associated potential. Above that level,  we interpolate from coarser levels. & MAX\_LEV-1 \\
 \rowcolor{tableShade}
+\runparamNS{mlmg\_agglomeration}{gravity} &  Do agglomeration? & 1 \\
+\runparamNS{mlmg\_consolidation}{gravity} &  & 1 \\
+\rowcolor{tableShade}
+\runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
+\runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
 \rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
+
+
+\end{longtable}
+\end{center}
+
+} % ends \small
+
+
+\end{landscape}
+
+%
+
+
+\section{ {\tt particles } Namespace}
+
+\label{ch:parameters}
+
+
+%%%%%%%%%%%%%%%%
+% symbol table
+%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+
+
+{\small
+
+\renewcommand{\arraystretch}{1.5}
+%
+\begin{center}
+\begin{longtable}{|l|p{5.25in}|l|}
+\caption[particles parameters]{particles parameters} \label{table: particles parameters runtime} \\
+%
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\tablename\ \thetable{}---continued}} \\
+\hline \multicolumn{1}{|c|}{\textbf{parameter}} & 
+       \multicolumn{1}{ c|}{\textbf{description}} & 
+       \multicolumn{1}{ c|}{\textbf{default value}} \\ \hline 
+\endhead
+
+\multicolumn{3}{|r|}{{\em continued on next page}} \\ \hline
+\endfoot
+
+\hline 
+\endlastfoot
+
+
+\rowcolor{tableShade}
+\runparamNS{particle\_init\_file}{particles} &  the name of an input file containing the total particle number and the initial position of each particle. & "" \\
+\runparamNS{particle\_output\_file}{particles} &  the name of timestamp files. & "" \\
+\rowcolor{tableShade}
+\runparamNS{particle\_restart\_file}{particles} &  the name of a file with new particles at restart & "" \\
+\runparamNS{restart\_from\_nonparticle\_chkfile}{particles} &  to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE & 0 \\
+\rowcolor{tableShade}
+\runparamNS{timestamp\_density}{particles} &  whether the local densities at given positions of particles are stored in output files & 1 \\
+\runparamNS{timestamp\_dir}{particles} &  the name of a directory in which timestamp files are stored. & "" \\
+\rowcolor{tableShade}
+\runparamNS{timestamp\_temperature}{particles} &  whether the local temperatures at given positions of particles are stored in output files & 0 \\
+\runparamNS{v}{particles} &  the level of verbosity for the tracer particle (0 or 1) & 0 \\
 
 
 \end{longtable}

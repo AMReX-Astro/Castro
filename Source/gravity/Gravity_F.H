@@ -22,7 +22,7 @@ extern "C"
     (const int lo[], const int hi[], 
      const amrex::Real* dx, const amrex::Real* dr,
      const BL_FORT_FAB_ARG(S), 
-     const amrex::Real* avgmass, const amrex::Real* avgvol, 
+     amrex::Real* avgmass, amrex::Real* avgvol, 
      const amrex::Real* problo, const int* numpts_1d, 
      const int* drdxfac, const int* level); 
 
@@ -30,42 +30,42 @@ extern "C"
     (const int lo[], const int hi[], 
      const amrex::Real* dx, const amrex::Real* dr,
      const BL_FORT_FAB_ARG(S), 
-     const amrex::Real* avgpres, 
+     amrex::Real* avgpres, 
      const amrex::Real* problo, const int* numpts_1d, 
      const int* drdxfac, const int* level); 
 
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,
-     const amrex::Real* radial_grav,
+     amrex::Real* radial_grav,
      const amrex::Real* max_radius,
      const amrex::Real* dr, const int* numpts_1d);
 
   void ca_prescribe_phi
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(p),
+     BL_FORT_FAB_ARG_3D(p),
      const amrex::Real* dx);
 
   void ca_prescribe_grav
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(g),
+     BL_FORT_FAB_ARG_3D(g),
      const amrex::Real* dx);
 
 #ifdef GR_GRAV
   void ca_integrate_gr_grav
     (const amrex::Real* avgden, const amrex::Real* avgmass, 
-     const amrex::Real* avgpres, const amrex::Real* radial_grav, 
+     const amrex::Real* avgpres, amrex::Real* radial_grav, 
      const amrex::Real* dr, const int* numpts_1d);
 #endif
 
   void ca_integrate_phi
-    (const amrex::Real* avgden, const amrex::Real* radial_grav,
-     const amrex::Real* radial_phi, 
+    (const amrex::Real* avgden, amrex::Real* radial_grav,
+     amrex::Real* radial_phi, 
      const amrex::Real* dr, const int* numpts_1d);
 
   void ca_put_radial_grav
     (const int lo[], const int hi[], 
      const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(grav_vector),
+     BL_FORT_FAB_ARG(grav_vector),
      const amrex::Real* radial_grav, 
      const amrex::Real* problo, 
      const int* n1d, const int* level); 
@@ -74,7 +74,7 @@ extern "C"
     (const int lo[], const int hi[], 
      const int domlo[], const int domhi[], 
      const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(phi),
+     BL_FORT_FAB_ARG(phi),
      const amrex::Real* radial_phi,
      const amrex::Real* problo, 
      const int* numpts_1d, const int* fill_interior);
@@ -86,10 +86,10 @@ extern "C"
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const amrex::Real* dx,
-     const BL_FORT_FAB_ARG_3D(phi),
+     BL_FORT_FAB_ARG_3D(phi),
      const int* lnum,
-     amrex::Real* qL0, amrex::Real* qLC, amrex::Real* qLS,
-     amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
+     const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
+     const amrex::Real* qU0, const amrex::Real* qUC, const amrex::Real* qUS,
      const int* npts, const int* boundary_only); 
 
   void ca_compute_multipole_moments

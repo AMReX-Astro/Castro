@@ -5,6 +5,9 @@ CASTRO_HOME ?= /path/to/Castro
 HYPRE_DIR ?= /path/to/Hypre
 HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
+# system blas
+BLAS_LIBRARY ?= -lopenblas
+
 TOP := $(CASTRO_HOME)
 
 # default microphysics locations
@@ -26,6 +29,12 @@ ifdef EOS_dir
   endif
 endif
 
+ifdef Conductivity_dir
+  ifndef CONDUCTIVITY_DIR
+    CONDUCTIVITY_DIR := $(Conductivity_dir)
+  endif
+endif
+
 EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS,
@@ -42,6 +51,10 @@ ifeq ($(USE_RAD), TRUE)
   ifeq ($(USE_NEUTRINO), TRUE)
     USERSuffix = .Neutrino
   endif
+endif
+
+ifeq ($(USE_SYSTEM_BLAS), TRUE)
+  LIBRARIES += $(BLAS_LIBRARY)
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -61,6 +74,14 @@ ifeq ($(USE_ACC), TRUE)
 endif
 
 USE_MG = FALSE
+
+ifndef USE_MLMG
+  ifneq ($(DIM),1)
+    USE_MLMG = TRUE
+  else
+    USE_MLMG = FALSE
+  endif
+endif
 
 #------------------------------------------------------------------------------
 # Castro directories
@@ -191,6 +212,15 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
   Pdirs += LinearSolvers/C_CellMG
+else
+ifeq ($(USE_MLMG), TRUE)
+  Pdirs += LinearSolvers/C_CellMG
+endif
+endif
+
+ifeq ($(USE_MLMG), TRUE)
+   DEFINES += -DCASTRO_MLMG
+   Pdirs += LinearSolvers/MLMG
 endif
 
 Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
@@ -209,7 +239,7 @@ ifdef MICROPHYSICS_HOME
    EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
    NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
-   COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(Conductivity_dir))
+   COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
 endif
 endif
 
@@ -225,8 +255,8 @@ ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR)) )" ""
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
-ifneq "$(wildcard $(COND_HOME)/$(strip $(Conductivity_dir)) )" ""
-   COND_PATH := $(COND_HOME)/$(strip $(Conductivity_dir))
+ifneq "$(wildcard $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR)) )" ""
+   COND_PATH := $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR))
 endif
    VISC_PATH := $(VISC_HOME)/constant
 endif
