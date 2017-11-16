@@ -1059,7 +1059,10 @@ subroutine qflux(qflx,flx,q)
  use eos_type_module, only: eos_t, eos_input_rp
  use network, only : nspec
 
-implicit none
+ implicit none
+
+ ! this seems to implement dU/dW . qflux, where dU/dW is the Jacobian of
+ ! the conserved quantities (U) with respect to the primitive (W)
 
  real(rt), intent(in)		::flx(QVAR), q(QVAR)
  real(rt), intent(out)		::qflx(QVAR)
