@@ -531,6 +531,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
     // terms later; now we add the second term.
     // This must happen before the swap.
+    // Note that if the old data doesn't exist yet (e.g. it is
+    // the first step of the simulation) FillPatch will just
+    // return the new data, so this is a valid operation and
+    // the result will be zero, so there is no source term
+    // prediction in the first step.
 
     if (source_term_predictor == 1) {
 
