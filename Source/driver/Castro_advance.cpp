@@ -417,8 +417,8 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     // what hydro really cares about.
 
     MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
-    SDC_source_new.setVal(0.0, SDC_source_new.nGrow());
-    MultiFab::Add(SDC_source_new, new_sources, 0, 0, NUM_STATE, new_sources.nGrow());
+    MultiFab& sources_new = get_new_data(Source_Type);
+    MultiFab::Copy(SDC_source_new, sources_new, 0, 0, NUM_STATE, sources_new.nGrow());
 #endif
 
 #ifdef RADIATION

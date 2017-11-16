@@ -464,6 +464,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
+    Real time = get_state_data(SDC_React_Type).curTime();
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, SDC_React_Type, 0, NUM_STATE);
 
 }
