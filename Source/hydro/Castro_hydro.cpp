@@ -25,15 +25,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
-#ifdef SDC
-#ifdef REACTIONS
-    // Make sure that we have valid data on the ghost zones of the reactions source.
-
-    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
-    SDC_react_source.FillBoundary(geom.periodicity());
-#endif
-#endif
-
     int finest_level = parent->finestLevel();
 
     const Real *dx = geom.CellSize();
