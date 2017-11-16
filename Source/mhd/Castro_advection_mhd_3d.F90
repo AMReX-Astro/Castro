@@ -346,11 +346,11 @@ end subroutine ca_advance_mhd
       use bl_constants_module
       use meth_params_module, only : NTHERM, URHO, UMX, UMY, UMZ, &
                                      UEDEN, UEINT, UFA, UFS, &
-                                     QVAR, QRHO, QU, QV, QW, &
+                                     QVAR, QRHO, QU, QV, QW, QC, &
                                      QREINT, QPRES, QFA, QFS, &
-									 QMAGX,  QMAGY, QMAGZ, &
+                                     QMAGX,  QMAGY, QMAGZ, &
                                      nadv, small_dens, small_pres, &
-                                     gamma_const, gamma_minus_1, use_flattening
+                                     use_flattening
 
       implicit none
 
@@ -510,19 +510,19 @@ end subroutine ca_advance_mhd
                ! Define the magneto-accoustic speed from the EOS
 			   cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
                call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
+                                           q(i,j,k,QFS:QFS+nspec-1))
 
 			   cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
                call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
+                                           q(i,j,k,QFS:QFS+nspec-1))
 
 			   cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
                call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
-					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+					   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
+                                           q(i,j,k,QFS:QFS+nspec-1))
 
-               ! Set csmal based on small_pres and small_dens
-               ! TODO: this is a small sound speed -- we should do this how we do in hydro
-               csml(i,j,k) = sqrt(gamma_const * small_pres_over_dens)
 
                ! Convert "e" back to "rho e"
                q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
@@ -533,6 +533,10 @@ end subroutine ca_advance_mhd
                eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
 
                call eos(eos_input_re, eos_state)
+
+               ! Set csmal based on small_pres and small_dens 
+               ! TODO: this is a small sound speed -- we should do this how we do in hydro
+               csml(i,j,k) = max(small, small * eos_state % cs) !? 
 
                q(i,j,k,QPRES) = eos_state % p &
 				+ 0.5d0*(q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)
