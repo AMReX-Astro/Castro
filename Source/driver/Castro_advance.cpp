@@ -522,6 +522,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // derivative of the source terms.
 
     sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+    sources_for_hydro.setVal(0.0);
 
 #ifndef SDC
 
@@ -544,7 +545,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
         const Real dt_old = new_time - old_time;
 
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
+        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
 
         sources_for_hydro.negate(NUM_GROW);
 
