@@ -46,7 +46,6 @@ int         Castro::allow_negative_energy = 0;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-int         Castro::keep_sources_until_end = 0;
 int         Castro::source_term_predictor = 0;
 int         Castro::first_order_hydro = 0;
 std::string Castro::xl_ext_bc_type = "";
@@ -166,3 +165,6 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif

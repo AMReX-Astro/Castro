@@ -46,7 +46,6 @@ static int allow_negative_energy;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
-static int keep_sources_until_end;
 static int source_term_predictor;
 static int first_order_hydro;
 static std::string xl_ext_bc_type;
@@ -158,3 +157,6 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef PARTICLES
+static int do_tracer_particles;
+#endif

@@ -591,14 +591,13 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
+    if (!(do_reflux && update_sources_after_reflux)) {
 
-      // These arrays hold all source terms that update the state.  We
-      // create and destroy them in the advance to save memory outside
-      // of the advance, unless we keep_sources_until_end (for
-      // diagnostics) or update the sources after reflux.  In those
-      // cases, we initialize these sources in Castro::initMFs and
-      // keep them for the life of the simulation.
+      // These arrays hold all source terms that update the state.
+      // Normally these are allocated at initialization because
+      // of the source term update after a reflux, but if the user
+      // chooses not to do that, we can save memory by only allocating
+      // the data temporarily for the duration of the advance.
 
       old_sources.define(grids, dmap, NUM_STATE, NUM_GROW);
       new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
@@ -685,7 +684,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     Real cur_time = state[State_Type].curTime();
 
-    if (!(keep_sources_until_end || (do_reflux && update_sources_after_reflux))) {
+    if (!(do_reflux && update_sources_after_reflux)) {
 
 	old_sources.clear();
 	new_sources.clear();

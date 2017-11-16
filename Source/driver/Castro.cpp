@@ -698,7 +698,7 @@ Castro::initMFs()
 
     }
 
-    if (keep_sources_until_end || (do_reflux && update_sources_after_reflux)) {
+    if (do_reflux && update_sources_after_reflux) {
 
 	// These arrays hold all source terms that update the state.
 
