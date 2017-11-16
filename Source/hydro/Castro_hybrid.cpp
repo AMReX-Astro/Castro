@@ -8,6 +8,8 @@ Castro::construct_old_hybrid_source(Real time, Real dt)
 {
     Real mult_factor = 1.0;
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+
     fill_hybrid_hydro_source(old_sources, Sborder, mult_factor);
 }
 
@@ -18,6 +20,8 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     // Start by subtracting off the old-time data.
 
