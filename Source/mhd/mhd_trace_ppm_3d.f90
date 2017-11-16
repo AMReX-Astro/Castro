@@ -19,10 +19,10 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, QFS, &
-                                   QREINT, QPRES, version_2, &
+                                   QREINT, QPRES, ppm_trace_sources, &
                                    npassive, qpass_map, ppm_type, ppm_reference, &
                                    ppm_flatten_before_integrals, &
-                                   small_dens, small_pres, gamma_minus_1
+                                   small_dens, small_pres
     use eos_type_module, only: eos_t, eos_input_rp
     use eos_module, only: eos
     use network, only: nspec
@@ -174,10 +174,10 @@ contains
              dup   =    u_ref - Im(i,j,kc,1,3,QU)
              dpp   =    p_ref - Im(i,j,kc,1,3,QPRES)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  dum = dum - halfdt*srcQ(i,j,k3d,QU)
                  dup = dup - halfdt*srcQ(i,j,k3d,QU)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  dum = dum - halfdt*Im_g(i,j,kc,1,1,igx)
                  dup = dup - halfdt*Im_g(i,j,kc,1,3,igx)
              end if
@@ -231,10 +231,10 @@ contains
              dv = Im(i,j,kc,1,2,QV)
              dw = Im(i,j,kc,1,2,QW)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                 dv  = dv  - halfdt*srcQ(i,j,k3d,QV)
                 dw  = dw  - halfdt*srcQ(i,j,k3d,QW)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                 dv  = dv  - halfdt*Im_g(i,j,kc,1,2,igy)
                 dw  = dw  - halfdt*Im_g(i,j,kc,1,2,igz)
              end if
@@ -324,10 +324,10 @@ contains
              dup   =    u_ref - Ip(i,j,kc,1,3,QU)
              dpp   =    p_ref - Ip(i,j,kc,1,3,QPRES)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  dum = dum - halfdt*srcQ(i,j,k3d,QU)
                  dup = dup - halfdt*srcQ(i,j,k3d,QU)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  dum = dum - halfdt*Ip_g(i,j,kc,1,1,igx)
                  dup = dup - halfdt*Ip_g(i,j,kc,1,3,igx)
              end if
@@ -379,10 +379,10 @@ contains
              dv    = Ip(i,j,kc,1,2,QV)
              dw    = Ip(i,j,kc,1,2,QW)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  dv  = dv  - halfdt*srcQ(i,j,k3d,QV)
                  dw  = dw  - halfdt*srcQ(i,j,k3d,QW)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  dv  = dv  - halfdt*Ip_g(i,j,kc,1,2,igy)
                  dw  = dw  - halfdt*Ip_g(i,j,kc,1,2,igz)
              end if
@@ -559,10 +559,10 @@ contains
              dvp   =    v_ref - Im(i,j,kc,2,3,QV)
              dpp   =    p_ref - Im(i,j,kc,2,3,QPRES)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  dvm = dvm - halfdt*srcQ(i,j,k3d,QV)
                  dvp = dvp - halfdt*srcQ(i,j,k3d,QV)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  dvm = dvm - halfdt*Im_g(i,j,kc,2,1,igy)
                  dvp = dvp - halfdt*Im_g(i,j,kc,2,3,igy)
              end if
@@ -614,10 +614,10 @@ contains
              du    = Im(i,j,kc,2,2,QU)
              dw    = Im(i,j,kc,2,2,QW)
    
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  du  = du  - halfdt*srcQ(i,j,k3d,QU)
                  dw  = dw  - halfdt*srcQ(i,j,k3d,QW)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  du  = du  - halfdt*Im_g(i,j,kc,2,2,igx)
                  dw  = dw  - halfdt*Im_g(i,j,kc,2,2,igz)
              end if
@@ -704,10 +704,10 @@ contains
              dvp   =    v_ref - Ip(i,j,kc,2,3,QV)
              dpp   =    p_ref - Ip(i,j,kc,2,3,QPRES)
 
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  dvm = dvm - halfdt*srcQ(i,j,k3d,QV)
                  dvp = dvp - halfdt*srcQ(i,j,k3d,QV)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  dvm = dvm - halfdt*Ip_g(i,j,kc,2,1,igy)
                  dvp = dvp - halfdt*Ip_g(i,j,kc,2,3,igy)
              end if
@@ -758,10 +758,10 @@ contains
              du    = Ip(i,j,kc,2,2,QU)
              dw    = Ip(i,j,kc,2,2,QW)
 
-             if (version_2 .eq. 1) then
+             if (ppm_trace_sources == 0) then
                  du  = du  - halfdt*srcQ(i,j,k3d,QU)
                  dw  = dw  - halfdt*srcQ(i,j,k3d,QW)
-             else if (version_2 .eq. 2) then
+             else if (ppm_trace_sources == 1) then
                  du  = du  - halfdt*Ip_g(i,j,kc,2,2,igx)
                  dw  = dw  - halfdt*Ip_g(i,j,kc,2,2,igz)
              end if
@@ -879,7 +879,7 @@ contains
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : QVAR, QRHO, QU, QV, QW, QFS, &
-                                   QREINT, QPRES, version_2, &
+                                   QREINT, QPRES, ppm_trace_sources, &
                                    npassive, qpass_map, ppm_type, &
                                    npassive, qpass_map, ppm_type, ppm_reference, &
                                    ppm_flatten_before_integrals, &
@@ -1007,10 +1007,10 @@ contains
           dwp   =    w_ref - Im(i,j,kc,3,3,QW)
           dpp   =    p_ref - Im(i,j,kc,3,3,QPRES)
 
-          if (version_2 .eq. 1) then
+          if (ppm_trace_sources == 0) then
               dwm = dwm - halfdt*srcQ(i,j,k3d,QW)
               dwp = dwp - halfdt*srcQ(i,j,k3d,QW)
-          else if (version_2 .eq. 2) then
+          else if (ppm_trace_sources == 1) then
               dwm = dwm - halfdt*Im_g(i,j,kc,3,1,igz)
               dwp = dwp - halfdt*Im_g(i,j,kc,3,3,igz)
           end if
@@ -1058,10 +1058,10 @@ contains
           du    = Im(i,j,kc,3,2,QU)
           dv    = Im(i,j,kc,3,2,QV)
 
-          if (version_2 .eq. 1) then
+          if (ppm_trace_sources == 0) then
               du  = du  - halfdt*srcQ(i,j,k3d,QU)
               dv  = dv  - halfdt*srcQ(i,j,k3d,QV)
-          else if (version_2 .eq. 2) then
+          else if (ppm_trace_sources == 1) then
               du  = du  - halfdt*Im_g(i,j,kc,3,2,igx)
               dv  = dv  - halfdt*Im_g(i,j,kc,3,2,igy)
           end if
@@ -1161,10 +1161,10 @@ contains
           dwp   = (   w_ref - Ip(i,j,km,3,3,QW))
           dpp   = (   p_ref - Ip(i,j,km,3,3,QPRES))
 
-          if (version_2 .eq. 1) then
+          if (ppm_trace_sources == 0) then
               dwm = dwm - halfdt*srcQ(i,j,k3d-1,QW)
               dwp = dwp - halfdt*srcQ(i,j,k3d-1,QW)
-          else if (version_2 .eq. 2) then
+          else if (ppm_trace_sources == 1) then
               dwm = dwm - halfdt*Ip_g(i,j,km,3,1,igz)
               dwp = dwp - halfdt*Ip_g(i,j,km,3,3,igz)
           end if
@@ -1213,10 +1213,10 @@ contains
           du = Ip(i,j,km,3,2,QU)
           dv = Ip(i,j,km,3,2,QV)
 
-          if (version_2 .eq. 1) then
+          if (ppm_trace_sources == 0) then
               du  = du  - halfdt*srcQ(i,j,k3d-1,QU)
               dv  = dv  - halfdt*srcQ(i,j,k3d-1,QV)
-          else if (version_2 .eq. 2) then
+          else if (ppm_trace_sources == 1) then
               du  = du  - halfdt*Ip_g(i,j,km,3,2,igx)
               dv  = dv  - halfdt*Ip_g(i,j,km,3,2,igy)
           end if

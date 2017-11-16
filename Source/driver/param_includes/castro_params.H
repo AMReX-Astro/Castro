@@ -25,9 +25,6 @@ static int ppm_reference;
 #ifdef MHD
 static int ppm_flatten_before_integrals;
 #endif
-#ifdef MHD
-static int version_2;
-#endif
 static int ppm_trace_sources;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;

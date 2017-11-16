@@ -25,9 +25,6 @@ int         Castro::ppm_reference = 1;
 #ifdef MHD
 int         Castro::ppm_flatten_before_integrals = 1;
 #endif
-#ifdef MHD
-int         Castro::version_2 = 1;
-#endif
 int         Castro::ppm_trace_sources = 1;
 int         Castro::ppm_temp_fix = 0;
 int         Castro::ppm_predict_gammae = 0;

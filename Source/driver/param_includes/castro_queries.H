@@ -25,9 +25,6 @@ pp.query("ppm_reference", ppm_reference);
 #ifdef MHD
 pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
 #endif
-#ifdef MHD
-pp.query("version_2", version_2);
-#endif
 pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
