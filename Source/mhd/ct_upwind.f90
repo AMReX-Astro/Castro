@@ -502,7 +502,7 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
                - 0.5d0*dot_product(u(i,j,k,QMAGX:QMAGZ), u(i,j,k,QMAGX:QMAGZ))			 
           ! TODO: need to compute p from the EOS using (rho e), rho, X
           eos_state % rho = q(i, j, k, QRHO)
-          eos_state % e   = q(i, j, k, QREINT)
+          eos_state % e   = q(i, j, k, QREINT) / eos_state % rho
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
 
           call eos(eos_input_re, eos_state)
@@ -1054,7 +1054,7 @@ end subroutine prim_half
 
 subroutine qflux(qflx,flx,q)
  use amrex_fort_module, only : rt => amrex_real
- use meth_params_module, only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, gamma_minus_1
+ use meth_params_module, only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR
  use eos_module, only : eos
  use eos_type_module, only: eos_t, eos_input_rp
  use network, only : nspec
@@ -1074,10 +1074,19 @@ subroutine qflux(qflx,flx,q)
 	qflx(QU)    = q(QU)*flx(QRHO) + q(QRHO)*flx(QU)
 	qflx(QV)    = q(QV)*flx(QRHO) + q(QRHO)*flx(QV)
 	qflx(QW)    = q(QW)*flx(QRHO) + q(QRHO)*flx(QW)
+        
+        eos_state % rho = q(QRHO)
+        eos_state % p   = q(QPRES) 
+
+        call eos(eos_input_rp, eos_state)
+
         ! TODO: we need to figure out how to do this -- should be in Castro somewhere
-	qflx(QPRES) = flx(QRHO)*0.5d0*(q(QU)**2 + q(QV)**2 + q(QW)**2) + q(QRHO)*q(QU)*flx(QU) + q(QRHO)*q(QV)*flx(QV) &
-				  + q(QRHO)*q(QW)*flx(QW) + 1.d0/gamma_minus_1*flx(QPRES) + q(QMAGX)*flx(QMAGX) + q(QMAGY)*flx(QMAGY) &
-				  + q(QMAGZ)*flx(QMAGZ)
+	qflx(QPRES) = flx(QRHO)*( eos_state % e + q(QRHO) * (eos_state % dedr - &
+                                  eos_state % dedT * eos_state % dPdr * 1.0d0/ eos_state % dPdT ) + & 
+                                  0.5d0*(q(QU)**2 + q(QV)**2 + q(QW)**2) ) + & 
+                      q(QRHO)*q(QU)*flx(QU) + q(QRHO)*q(QV)*flx(QV) + q(QRHO)*q(QW)*flx(QW) + & 
+                      ( q(QRHO) * eos_state % dedT * 1.0d0/ eos_state % dPdT )*flx(QPRES) + &
+                      q(QMAGX)*flx(QMAGX) + q(QMAGY)*flx(QMAGY) + q(QMAGZ)*flx(QMAGZ)
 	qflx(QMAGX) = flx(QMAGX)
 	qflx(QMAGY) = flx(QMAGY)
 	qflx(QMAGZ) = flx(QMAGZ)

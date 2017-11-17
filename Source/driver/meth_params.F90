@@ -22,7 +22,6 @@ module meth_params_module
 #ifdef MHD
   integer, parameter     :: MAXADV  = 5
   integer, parameter     :: NMAG    = 3
-  real(rt), save, public :: gamma_const, gamma_minus_1
 #endif
 
   ! NTHERM: number of thermodynamic variables

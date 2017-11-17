@@ -528,8 +528,8 @@ end subroutine ca_advance_mhd
                q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
                ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
-               eos_state % e = q(i,j,k,QREINT)
                eos_state % rho = q(i, j, k,QRHO)
+               eos_state % e = q(i,j,k,QREINT) / eos_state % rho
                eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
 
                call eos(eos_input_re, eos_state)
