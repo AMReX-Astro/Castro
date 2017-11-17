@@ -34,7 +34,7 @@ subroutine ca_mol_single_stage(time, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, &
+                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
@@ -452,8 +452,8 @@ subroutine ca_mol_single_stage(time, &
                  q2(i,j,k3d,:) = qint(i,j,kc,:)
               enddo
            enddo
-        endif  ! hi(3) check
 #endif
+        endif  ! hi(3) check
 
 #if BL_SPACEDIM == 3
         ! Compute F^z at kc (k3d)
@@ -646,11 +646,17 @@ subroutine ca_mol_single_stage(time, &
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
               endif
 
-#if BL_SPACEDIM < 2
+#if BL_SPACEDIM == 1
+              if (n == UMX) then
+                 update(i,j,k,UMX) = update(i,j,k,UMX) - ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
+              endif
+#endif
+
+#if BL_SPACEDIM == 2
               if (n == UMX) then
                  ! add the pressure source term for axisummetry
                  if (coord_type > 0) then
-                    update(i,j,n) = update(i,j,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx
+                    update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
                  endif
               endif
 #endif
@@ -685,6 +691,13 @@ subroutine ca_mol_single_stage(time, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1) + 1
               flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+
+#if BL_SPACEDIM == 1
+              if (coord_type .eq. 0 .and. n == UMX) then
+                 flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
+              endif
+#endif
+
            enddo
         enddo
      enddo
@@ -724,8 +737,13 @@ subroutine ca_mol_single_stage(time, &
   call bl_deallocate( pdivu)
 
   call bl_deallocate(    q1)
+
+#if BL_SPACEDIM >= 2
   call bl_deallocate(    q2)
+#endif
+#if BL_SPACEDIM == 3
   call bl_deallocate(    q3)
+#endif
 
 #ifdef RADIATION
   call bl_deallocate(rflx)
