@@ -157,8 +157,8 @@ subroutine ca_mol_single_stage(time, &
   st_lo = [lo(1) - 2, lo(2) - 2*dg(2), dg(3)]
   st_hi = [hi(1) + 2, hi(2) + 2*dg(2), 2*dg(3)]
 
-  shk_lo(:) = [lo(1) - 1, lo(2) - dg(2), lo(3) - dg(3)]
-  shk_hi(:) = [hi(1) + 1, hi(2) + dg(2), hi(3) + dg(3)]
+  shk_lo(:) = lo(:) - dg(:)
+  shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
