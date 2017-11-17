@@ -509,7 +509,7 @@ subroutine ca_mol_single_stage(time, &
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
   call divu(lo, hi, q, q_lo, q_hi, &
-            dx, div, lo, [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)])
+            dx, div, lo, hi+dg)
 
   call calc_pdivu(lo, hi, &
                   q1, flux1_lo, flux1_hi, &
@@ -731,7 +731,6 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
 #if BL_SPACEDIM < 3
-  ! TODO: store pradial for axisymmetry
   if (coord_type > 0) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
