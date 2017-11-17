@@ -257,13 +257,13 @@ contains
        if (ppm_temp_fix /= 1) then
           call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, q_lo, q_hi, &  ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
           call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, q_lo, q_hi, &   ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                Ip_gc(:,:,1), Im_gc(:,:,1), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        endif
