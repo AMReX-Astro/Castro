@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step  = 50    # maximum timestep
+max_step  = 25    # maximum timestep
 stop_time = 0.04
 #max_step = 11
 

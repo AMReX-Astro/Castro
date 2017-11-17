@@ -34,7 +34,7 @@ subroutine ca_mol_single_stage(time, &
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, &
+                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
@@ -55,6 +55,8 @@ subroutine ca_mol_single_stage(time, &
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
+  use prob_params_module, only : dg, coord_type
+
     
   implicit none
 
@@ -89,7 +91,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
-  real(rt) intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
+  real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
@@ -99,11 +101,11 @@ subroutine ca_mol_single_stage(time, &
 #endif
 #if BL_SPACEDIM == 3
   real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
-  real(rt) intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+  real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
 #if BL_SPACEDIM <= 2
-  real(rt) intent(in) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
-  real(rt) intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
+  real(rt), intent(inout) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
+  real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
 #endif
   real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt), intent(in) :: dx(3), dt, time
@@ -149,27 +151,35 @@ subroutine ca_mol_single_stage(time, &
   
   ngf = 1
 
-  It_lo = [lo(1) - 1, lo(2) - 1, 1]
-  It_hi = [hi(1) + 1, hi(2) + 1, 2]
+  It_lo = [lo(1) - 1, lo(2) - dg(2), dg(3)]
+  It_hi = [hi(1) + 1, hi(2) + dg(2), 2*dg(3)]
 
-  st_lo = [lo(1) - 2, lo(2) - 2, 1]
-  st_hi = [hi(1) + 2, hi(2) + 2, 2]
+  st_lo = [lo(1) - 2, lo(2) - 2*dg(2), dg(3)]
+  st_hi = [hi(1) + 2, hi(2) + 2*dg(2), 2*dg(3)]
 
-  shk_lo(:) = lo(:) - 1
-  shk_hi(:) = hi(:) + 1
+  shk_lo(:) = [lo(1) - 1, lo(2) - dg(2), lo(3) - dg(3)]
+  shk_hi(:) = [hi(1) + 1, hi(2) + dg(2), hi(3) + dg(3)]
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
+  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
+#if BL_SPACEDIM >= 2
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
+#endif
+#if BL_SPACEDIM == 3
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
+#endif
 
 #ifdef RADIATION
   ! when we do radiation, these would be passed out
   call bl_allocate(rflx, flux1_lo, flux1_hi, ngroups)
+#if BL_SPACEDIM >= 2
   call bl_allocate(rfly, flux2_lo, flux2_hi, ngroups)
+#endif
+#if BL_SPACEDIM == 3
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
+#endif
 #endif
 
   call bl_allocate(sxm, st_lo, st_hi)
@@ -199,7 +209,7 @@ subroutine ca_mol_single_stage(time, &
   endif
   
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
+    uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
     call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
 
@@ -331,7 +341,7 @@ subroutine ca_mol_single_stage(time, &
 
      ! use T to define p
      if (ppm_temp_fix == 1) then
-        do j = lo(2)-1, hi(2)+1
+        do j = lo(2)-dg(2), hi(2)+dg(2)
            do i = lo(1)-1, hi(1)+1
 
               eos_state%rho    = qxp(i,j,kc,QRHO)
@@ -446,8 +456,8 @@ subroutine ca_mol_single_stage(time, &
                  q2(i,j,k3d,:) = qint(i,j,kc,:)
               enddo
            enddo
-        endif  ! hi(3) check
 #endif
+        endif  ! hi(3) check
 
 #if BL_SPACEDIM == 3
         ! Compute F^z at kc (k3d)
@@ -640,6 +650,21 @@ subroutine ca_mol_single_stage(time, &
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
               endif
 
+#if BL_SPACEDIM == 1
+              if (n == UMX) then
+                 update(i,j,k,UMX) = update(i,j,k,UMX) - ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
+              endif
+#endif
+
+#if BL_SPACEDIM == 2
+              if (n == UMX) then
+                 ! add the pressure source term for axisummetry
+                 if (coord_type > 0) then
+                    update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
+                 endif
+              endif
+#endif
+
               ! for storage
               update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
                    stage_weight * update(i,j,k,n)
@@ -661,9 +686,6 @@ subroutine ca_mol_single_stage(time, &
 #endif
 #endif
 
-TODO:
-need to deal with p in the flxues
-need to deal with pradial
 
 
   ! Scale the fluxes for the form we expect later in refluxing.
@@ -673,6 +695,13 @@ need to deal with pradial
         do j = lo(2), hi(2)
            do i = lo(1), hi(1) + 1
               flux1(i,j,k,n) = dt * flux1(i,j,k,n) * area1(i,j,k)
+
+#if BL_SPACEDIM == 1
+              if (coord_type .eq. 0 .and. n == UMX) then
+                 flux1(i,j,k,n) = flux1(i,j,k,n) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
+              endif
+#endif
+
            enddo
         enddo
      enddo
@@ -702,17 +731,32 @@ need to deal with pradial
   enddo
 #endif
 
+#if BL_SPACEDIM < 3
+  ! TODO: store pradial for axisymmetry
+  if (coord_type > 0) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+  end if
+#endif
+
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
 
-  call bl_deallocate(    q1)
-  call bl_deallocate(    q2)
-  call bl_deallocate(    q3)
+  call bl_deallocate(q1)
+#if BL_SPACEDIM >= 2
+  call bl_deallocate(q2)
+#endif
+#if BL_SPACEDIM == 3
+  call bl_deallocate(q3)
+#endif
 
 #ifdef RADIATION
   call bl_deallocate(rflx)
+#if BL_SPACEDIM >= 2
   call bl_deallocate(rfly)
+#endif
+#if BL_SPACEDIM == 3
   call bl_deallocate(rflz)
+#endif
 #endif
 
 end subroutine ca_mol_single_stage

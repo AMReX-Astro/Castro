@@ -47,8 +47,6 @@ pp.query("allow_negative_energy", allow_negative_energy);
 pp.query("allow_small_energy", allow_small_energy);
 pp.query("do_sponge", do_sponge);
 pp.query("sponge_implicit", sponge_implicit);
-pp.query("update_state_between_sources", update_state_between_sources);
-pp.query("keep_sources_until_end", keep_sources_until_end);
 pp.query("source_term_predictor", source_term_predictor);
 pp.query("first_order_hydro", first_order_hydro);
 pp.query("xl_ext_bc_type", xl_ext_bc_type);
@@ -151,7 +149,6 @@ pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
 pp.query("print_fortran_warnings", print_fortran_warnings);
 pp.query("print_update_diagnostics", print_update_diagnostics);
-pp.query("coalesce_update_diagnostics", coalesce_update_diagnostics);
 pp.query("track_grid_losses", track_grid_losses);
 pp.query("sum_interval", sum_interval);
 pp.query("sum_per", sum_per);
@@ -161,3 +158,6 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
+#ifdef PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
+#endif
