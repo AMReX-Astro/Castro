@@ -55,7 +55,7 @@ subroutine ca_mol_single_stage(time, &
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
-  use prob_params_module, only : dg
+  use prob_params_module, only : dg, coord_type
 
     
   implicit none
@@ -104,8 +104,8 @@ subroutine ca_mol_single_stage(time, &
   real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
 #if BL_SPACEDIM <= 2
-  real(rt) intent(in) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
-  real(rt) intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
+  real(rt), intent(inout) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
+  real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
 #endif
   real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt), intent(in) :: dx(3), dt, time
@@ -164,8 +164,12 @@ subroutine ca_mol_single_stage(time, &
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
+#if BL_SPACEDIM >= 2
   call bl_allocate(q2, flux2_lo, flux2_hi, NGDNV)
+#endif
+#if BL_SPACEDIM == 3
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
+#endif
 
 #ifdef RADIATION
   ! when we do radiation, these would be passed out
@@ -642,8 +646,14 @@ subroutine ca_mol_single_stage(time, &
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
               endif
 
-              ! TODO: add grad p for axisymmetry
-
+#if BL_SPACEDIM < 2
+              if (n == UMX) then
+                 ! add the pressure source term for axisummetry
+                 if (coord_type > 0) then
+                    update(i,j,n) = update(i,j,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx
+                 endif
+              endif
+#endif
 
               ! for storage
               update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
@@ -666,9 +676,6 @@ subroutine ca_mol_single_stage(time, &
 #endif
 #endif
 
-!TODO:
-!need to deal with p in the flxues
-!need to deal with pradial
 
 
   ! Scale the fluxes for the form we expect later in refluxing.
@@ -708,6 +715,9 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
   ! TODO: store pradial for axisymmetry
+  if (coord_type > 0) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+  end if
 
 
   call bl_deallocate(   div)
