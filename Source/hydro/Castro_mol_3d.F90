@@ -151,16 +151,16 @@ subroutine ca_mol_single_stage(time, &
   
   ngf = 1
 
-  It_lo = [lo(1) - 1, lo(2) - 1, 1]
-  It_hi = [hi(1) + 1, hi(2) + 1, 2]
+  It_lo = [lo(1) - 1, lo(2) - dg(2), dg(3)]
+  It_hi = [hi(1) + 1, hi(2) + dg(2), 2*dg(3)]
 
-  st_lo = [lo(1) - 2, lo(2) - 2, 1]
-  st_hi = [hi(1) + 2, hi(2) + 2, 2]
+  st_lo = [lo(1) - 2, lo(2) - 2*dg(2), dg(3)]
+  st_hi = [hi(1) + 2, hi(2) + 2*dg(2), 2*dg(3)]
 
-  shk_lo(:) = lo(:) - 1
-  shk_hi(:) = hi(:) + 1
+  shk_lo(:) = [lo(1) - 1, lo(2) - dg(2), lo(3) - dg(3)]
+  shk_hi(:) = [hi(1) + 1, hi(2) + dg(2), hi(3) + dg(3)]
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+1, lo(3), hi(3)+1)
+  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
@@ -333,7 +333,7 @@ subroutine ca_mol_single_stage(time, &
 
      ! use T to define p
      if (ppm_temp_fix == 1) then
-        do j = lo(2)-1, hi(2)+1
+        do j = lo(2)-dg(2), hi(2)+dg(2)
            do i = lo(1)-1, hi(1)+1
 
               eos_state%rho    = qxp(i,j,kc,QRHO)
@@ -642,6 +642,9 @@ subroutine ca_mol_single_stage(time, &
                  update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
               endif
 
+              ! TODO: add grad p for axisymmetry
+
+
               ! for storage
               update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
                    stage_weight * update(i,j,k,n)
@@ -703,6 +706,9 @@ subroutine ca_mol_single_stage(time, &
      enddo
   enddo
 #endif
+
+  ! TODO: store pradial for axisymmetry
+
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
