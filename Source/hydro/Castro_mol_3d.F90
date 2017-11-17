@@ -727,11 +727,12 @@ subroutine ca_mol_single_stage(time, &
   enddo
 #endif
 
+#if BL_SPACEDIM < 3
   ! TODO: store pradial for axisymmetry
   if (coord_type > 0) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
-
+#endif
 
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
