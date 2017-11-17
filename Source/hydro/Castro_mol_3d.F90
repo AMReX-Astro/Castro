@@ -161,7 +161,7 @@ subroutine ca_mol_single_stage(time, &
   shk_hi(:) = [hi(1) + 1, hi(2) + dg(2), hi(3) + dg(3)]
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)  , lo(3), hi(3)  )
+  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if BL_SPACEDIM >= 2
@@ -205,7 +205,7 @@ subroutine ca_mol_single_stage(time, &
   endif
   
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),USHK) = ZERO
+    uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
     call shock(q, q_lo, q_hi, shk, shk_lo, shk_hi, lo, hi, dx)
 
@@ -736,13 +736,12 @@ subroutine ca_mol_single_stage(time, &
   call bl_deallocate(   div)
   call bl_deallocate( pdivu)
 
-  call bl_deallocate(    q1)
-
+  call bl_deallocate(q1)
 #if BL_SPACEDIM >= 2
-  call bl_deallocate(    q2)
+  call bl_deallocate(q2)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_deallocate(    q3)
+  call bl_deallocate(q3)
 #endif
 
 #ifdef RADIATION

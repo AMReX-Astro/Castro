@@ -517,13 +517,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	   D_DECL(BL_TO_FORTRAN_3D(flux[0]),
 		  BL_TO_FORTRAN_3D(flux[1]),
 		  BL_TO_FORTRAN_3D(flux[2])),
-#if (BL_SPACEDIM < 3)
-	   BL_TO_FORTRAN_3D(pradial),
-#endif
 	   D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
 		  BL_TO_FORTRAN_3D(area[1][mfi]),
 		  BL_TO_FORTRAN_3D(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
+	   BL_TO_FORTRAN_3D(pradial),
 	   BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
 	   BL_TO_FORTRAN_3D(volume[mfi]),
