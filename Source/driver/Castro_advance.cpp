@@ -522,7 +522,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // derivative of the source terms.
 
     sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
-    sources_for_hydro.setVal(0.0);
+    sources_for_hydro.setVal(0.0, NUM_GROW);
 
 #ifndef SDC
 
