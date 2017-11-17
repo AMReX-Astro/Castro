@@ -55,6 +55,8 @@ subroutine ca_mol_single_stage(time, &
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
+  use prob_params_module, only : dg
+
     
   implicit none
 
@@ -89,7 +91,7 @@ subroutine ca_mol_single_stage(time, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
-  real(rt) intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
+  real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
@@ -99,7 +101,7 @@ subroutine ca_mol_single_stage(time, &
 #endif
 #if BL_SPACEDIM == 3
   real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
-  real(rt) intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+  real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
 #if BL_SPACEDIM <= 2
   real(rt) intent(in) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
@@ -661,9 +663,9 @@ subroutine ca_mol_single_stage(time, &
 #endif
 #endif
 
-TODO:
-need to deal with p in the flxues
-need to deal with pradial
+!TODO:
+!need to deal with p in the flxues
+!need to deal with pradial
 
 
   ! Scale the fluxes for the form we expect later in refluxing.
