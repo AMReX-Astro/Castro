@@ -9,3 +9,7 @@ CEXE_headers += gravity_defaults.H
 CEXE_headers += diffusion_params.H
 CEXE_headers += diffusion_queries.H
 CEXE_headers += diffusion_defaults.H
+
+CEXE_headers += particles_params.H
+CEXE_headers += particles_queries.H
+CEXE_headers += particles_defaults.H

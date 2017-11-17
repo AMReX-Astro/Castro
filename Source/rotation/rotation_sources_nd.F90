@@ -374,6 +374,9 @@ contains
              snew(UMX:UMZ) = snew(UMX:UMZ) + dt * src(UMX:UMZ)
 
 #ifdef HYBRID_MOMENTUM
+             ! The source terms vanish if the state variables are measured in the
+             ! inertial frame; see wdmerger paper III.
+
              if (state_in_rotating_frame == 1) then
                 call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
 

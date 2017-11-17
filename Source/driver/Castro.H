@@ -186,10 +186,6 @@ public:
     // Advance the particles by dt
     //
     void advance_particles (int iteration, amrex::Real time, amrex::Real dt);
-    //
-    // Default verbosity of Particle class
-    //
-    static int particle_verbose;
 
 #endif
 
@@ -493,13 +489,13 @@ public:
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
     void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t);
+                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, Real mult_factor = 1.0);
 #endif
 #endif
 
@@ -533,7 +529,7 @@ public:
 
     void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
 
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const int ng, const amrex::Real mult_factor);
 
     void hybrid_sync(amrex::MultiFab& state);
 #endif
@@ -660,8 +656,8 @@ protected:
     //
     // Non-hydro source terms.
     //
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > old_sources;
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > new_sources;
+    amrex::MultiFab old_sources;
+    amrex::MultiFab new_sources;
 
     //
     // State data to hold if we want to do a retry.
@@ -752,6 +748,10 @@ protected:
     //
 #include <castro_params.H>
 
+#ifdef PARTICLES
+#include "particles_params.H"
+#endif
+
     static bool      signalStopJob;
     static bool      dump_old;
     static int       radius_grow;
@@ -779,10 +779,6 @@ protected:
     static amrex::Real      startCPUTime;
 
     static amrex::Real getCPUTime();
-
-#ifdef PARTICLES
-    static int       do_tracer_particles;
-#endif
 
     bool             FillPatchedOldState_ok;
 

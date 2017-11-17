@@ -42,7 +42,7 @@ contains
 
   ! Fill a sources array with the source terms in the hybrid momentum equations.
 
-  subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi) bind(C,name='ca_hybrid_hydro_source')
+  subroutine ca_hybrid_hydro_source(lo, hi, state, s_lo, s_hi, ext_src, e_lo, e_hi, mult_factor) bind(C,name='ca_hybrid_hydro_source')
 
     use bl_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
@@ -58,6 +58,7 @@ contains
     integer,  intent(in   ) :: e_lo(3), e_hi(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
+    real(rt), intent(in   ), value :: mult_factor
 
     integer  :: i, j, k
     real(rt) :: loc(3), R, rhoInv
@@ -72,7 +73,7 @@ contains
 
              rhoInv = ONE / state(i,j,k,URHO)
 
-             ext_src(i,j,k,UMR) = ext_src(i,j,k,UMR) + (rhoInv / R**3) * state(i,j,k,UML)**2
+             ext_src(i,j,k,UMR) = ext_src(i,j,k,UMR) + mult_factor * (rhoInv / R**3) * state(i,j,k,UML)**2
 
           enddo
        enddo

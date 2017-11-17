@@ -5,13 +5,14 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+
+#include "particles_defaults.H"
+
 using namespace amrex;
 
 #ifdef PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
-int Castro::do_tracer_particles              =  0;
-int Castro::particle_verbose                 =  1;
 
 namespace {
     std::string       particle_init_file;
@@ -24,45 +25,14 @@ namespace {
     const std::string chk_tracer_particle_file("Tracer");
 }
 
-void 
+void
 Castro::read_particle_params ()
 {
-    ParmParse pp("castro");
-    
-    pp.query("do_tracer_particles",do_tracer_particles);
 
-    //
-    // Control the verbosity of the Particle class
-    //
-    ParmParse ppp("particles");
+  ParmParse pp("particles");
 
-    ppp.query("v",particle_verbose);
-    //
-    // Used in initData() on startup to read in a file of particles.
-    //
-    ppp.query("particle_init_file", particle_init_file);
-    //
-    // Used in post_restart() to read in a file of particles.
-    //
-    ppp.query("particle_restart_file", particle_init_file);
-    //
-    // This must be true the first time you try to restart from a checkpoint
-    // that was written with USE_PARTICLES=FALSE; i.e. one that doesn't have
-    // the particle checkpoint stuff (even if there are no active particles).
-    // Otherwise the code will fail when trying to read the checkpointed particles.
-    //
-    ppp.query("restart_from_nonparticle_chkfile", restart_from_nonparticle_chkfile);
-    //
-    // Used in post_restart() to write out the file of particles.
-    //
-    ppp.query("particle_output_file", particle_output_file);
-    //
-    // The directory in which to store timestamp files.
-    //
-    ppp.query("timestamp_dir", timestamp_dir);
-    //
-    // Only the I/O processor makes the directory if it doesn't already exist.
-    //
+#include "particles_queries.H"
+
     if (ParallelDescriptor::IOProcessor())
         if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
             amrex::CreateDirectoryFailed(timestamp_dir);
@@ -83,11 +53,11 @@ Castro::init_particles ()
     if (do_tracer_particles)
     {
 	BL_ASSERT(TracerPC == 0);
-	
+
 	TracerPC = new AmrTracerParticleContainer(parent);
-	
+
 	TracerPC->SetVerbose(particle_verbose);
-	
+
 	if (! particle_init_file.empty())
 	{
 	    TracerPC->InitFromAsciiFile(particle_init_file,0);
@@ -142,7 +112,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
 	    {
 		TracerPC->InitFromAsciiFile(particle_restart_file,0);
 	    }
-	    
+
 	    if (!particle_output_file.empty())
 	    {
 		TracerPC->WriteAsciiFile(particle_output_file);
@@ -236,25 +206,17 @@ Castro::TimestampParticles (int ngrow)
     {
 	first = false;
 
-	ParmParse ppp("particles");
-
 	// have to do it here, not in read_particle_params, because Density, ..., are set after
 	// read_particle_params is called.
-
-	int timestamp_density = 1;
-	ppp.query("timestamp_density", timestamp_density);
 	if (timestamp_density) {
 	    timestamp_indices.push_back(Density);
 	    std::cout << "Density = " << Density << std::endl;
 	}
-
-	int timestamp_temperature = 0;
-	ppp.query("timestamp_temperature", timestamp_temperature);
 	if (timestamp_temperature) {
 	    timestamp_indices.push_back(Temp);
 	    std::cout << "Temp = " << Temp << std::endl;
 	}
-	
+
 	if (!timestamp_indices.empty()) {
 	    imax = *(std::max_element(timestamp_indices.begin(), timestamp_indices.end()));
 	}
@@ -263,23 +225,23 @@ Castro::TimestampParticles (int ngrow)
     if ( TracerPC && !timestamp_dir.empty())
     {
 	std::string basename = timestamp_dir;
-		
+
 	if (basename[basename.length()-1] != '/') basename += '/';
-	
+
 	basename += "Timestamp";
-	
+
 	int finest_level = parent->finestLevel();
 	Real time        = state[State_Type].curTime();
 
 	for (int lev = level; lev <= finest_level; lev++)
 	{
 	    if (TracerPC->NumberOfParticlesAtLevel(lev) <= 0) continue;
-	    
+
 	    MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
 
 	    if (imax >= 0) {  // FillPatchIterator will fail otherwise
 		int ng = (lev == level) ? ngrow : 1;
-		FillPatchIterator fpi(parent->getLevel(lev), S_new, 
+		FillPatchIterator fpi(parent->getLevel(lev), S_new,
 				      ng, time, State_Type, 0, imax+1);
 		const MultiFab& S = fpi.get_mf();
 		TracerPC->Timestamp(basename, S    , lev, time, timestamp_indices);
@@ -287,7 +249,7 @@ Castro::TimestampParticles (int ngrow)
 		TracerPC->Timestamp(basename, S_new, lev, time, timestamp_indices);
 	    }
 	}
-    }	
+    }
 }
 
 #endif
