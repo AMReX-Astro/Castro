@@ -174,8 +174,12 @@ subroutine ca_mol_single_stage(time, &
 #ifdef RADIATION
   ! when we do radiation, these would be passed out
   call bl_allocate(rflx, flux1_lo, flux1_hi, ngroups)
+#if BL_SPACEDIM >= 2
   call bl_allocate(rfly, flux2_lo, flux2_hi, ngroups)
+#endif
+#if BL_SPACEDIM == 3
   call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
+#endif
 #endif
 
   call bl_allocate(sxm, st_lo, st_hi)
@@ -747,8 +751,12 @@ subroutine ca_mol_single_stage(time, &
 
 #ifdef RADIATION
   call bl_deallocate(rflx)
+#if BL_SPACEDIM >= 2
   call bl_deallocate(rfly)
+#endif
+#if BL_SPACEDIM == 3
   call bl_deallocate(rflz)
+#endif
 #endif
 
 end subroutine ca_mol_single_stage
