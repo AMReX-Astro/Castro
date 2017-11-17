@@ -249,8 +249,7 @@ subroutine ca_mol_single_stage(time, &
   if (first_order_hydro == 1) then
      flatn = ZERO
   elseif (use_flattening == 1) then
-     call uflatten([lo(1)-ngf, lo(2)-ngf*dg(2), lo(3)-ngf*dg(3)], &
-                   [hi(1)+ngf, hi(2)+ngf*dg(2), hi(3)+ngf*dg(3)], &
+     call uflatten(lo - ngf*dg, hi + ngf*dg, &
                    q, flatn, q_lo, q_hi, QPRES)
   else
      flatn = ONE
