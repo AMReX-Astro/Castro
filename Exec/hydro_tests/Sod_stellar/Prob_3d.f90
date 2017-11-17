@@ -24,8 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !     
-  integer maxlen
-  parameter (maxlen=256)
+  integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
@@ -54,8 +53,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
 
   !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
@@ -73,7 +71,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%T = T_l
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
  
      rhoe_l = rho_l*eos_state%e
      p_l = eos_state%p
@@ -82,7 +80,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%T = T_r
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rt, eos_state, .false.)
+     call eos(eos_input_rt, eos_state)
  
      rhoe_r = rho_r*eos_state%e
      p_r = eos_state%p
@@ -94,7 +92,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%T = 100000.e0_rt  ! initial guess
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
  
      rhoe_l = rho_l*eos_state%e
      T_l = eos_state%T
@@ -104,7 +102,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%T = 100000.e0_rt  ! initial guess
      eos_state%xn(:) = xn(:)
 
-     call eos(eos_input_rp, eos_state, .false.)
+     call eos(eos_input_rp, eos_state)
  
      rhoe_r = rho_r*eos_state%e
      T_r = eos_state%T

@@ -99,7 +99,7 @@ contains
 
     real(rt)        , intent(in) :: dx, dy, dt
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),NQ)
-    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
+    real(rt)        , intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),NQAUX)
     real(rt)        , intent(in) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2))
     real(rt)        , intent(in) :: srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),QVAR)
     real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2))
@@ -436,7 +436,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1), lo(2)-1, hi(2)+1, domlo, domhi)
+                1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Solve the Riemann problem in the y-direction using these first
     ! guesses for the y-interface states.  This produces the flux fy
@@ -448,7 +449,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1)-1, hi(1)+1, lo(2), hi(2), domlo, domhi)
+                2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Correct the x-interface states (qxm, qxp) by adding the
     ! transverse flux difference in the y-direction to the x-interface
@@ -475,7 +477,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                1, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+                1, lo(1), hi(1)+1, lo(2), hi(2), 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     ! Correct the y-interface states (qym, qyp) by adding the
     ! transverse flux difference in the x-direction to the y-interface
@@ -504,7 +507,8 @@ contains
 #endif
                 qaux, qa_lo, qa_hi, &
                 shk, shk_lo, shk_hi, &
-                2, lo(1), hi(1), lo(2), hi(2), domlo, domhi)
+                2, lo(1), hi(1), lo(2), hi(2)+1, 0, 0, 0, &
+                [domlo(1), domlo(2), 0], [domhi(1), domhi(2), 0])
 
     deallocate(qm,qp,qxm,qxp,qym,qyp)
     deallocate(fx,fy)

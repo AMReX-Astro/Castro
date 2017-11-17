@@ -504,11 +504,11 @@ void HypreExtMultiABec::loadMatrix()
           if (!entry(ori,i)(v).empty() &&
               !entry(ori,i)(v).slave()) {
             entry(ori,i)(v).collapse();
-            Array<int> levels;
-            Array<IntVect> cells;
+            Vector<int> levels;
+            Vector<IntVect> cells;
             int retval = entry(ori,i)(v).get_locations(levels, cells);
             BL_ASSERT(retval == 0);
-            Array<Real> values;
+            Vector<Real> values;
             retval = entry(ori,i)(v).get_coeffs(values);
             BL_ASSERT(retval == 0);
             int ientry = 2 * BL_SPACEDIM + 1;
@@ -702,12 +702,12 @@ void HypreExtMultiABec::loadMatrix()
             if (msk(vf) == RadBndryData::not_covered &&
                 !(*c_entry[level])(ori,i,j)(vc).slave()) {
               (*c_entry[level])(ori,i,j)(vc).collapse();
-              Array<int> levels;
-              Array<IntVect> cells;
+              Vector<int> levels;
+              Vector<IntVect> cells;
               int retval = (*c_entry[level])(ori,i,j)(vc)
                 .get_locations(levels, cells);
               BL_ASSERT(retval == 0);
-              Array<Real> values;
+              Vector<Real> values;
               retval = (*c_entry[level])(ori,i,j)(vc).get_coeffs(values);
               BL_ASSERT(retval == 0);
               int ientry = 2 * BL_SPACEDIM + 1;

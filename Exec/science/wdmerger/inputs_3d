@@ -73,13 +73,6 @@ amr.compute_new_dt_on_regrid = 1
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
 
-# Don't do retries based on small violations of the criteria
-castro.retry_tolerance = 0.02
-
-# Clamp number of retries
-castro.retry_max_subcycles = 100
-castro.retry_clamp_subcycles = 1
-
 # Disable retries based on negative density resets
 castro.retry_neg_dens_factor = -1.0
 
@@ -168,9 +161,6 @@ castro.cg_blend = 2
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
-# Whether to take other source terms into account for new-time sources
-castro.update_state_between_sources = 0
-
 # Whether to use the hybrid advection technique that conserves angular momentum
 castro.hybrid_hydro = 0
 
@@ -185,9 +175,6 @@ castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
-
-# Time center the sponge source
-castro.time_center_sponge = 1
 
 ############################################################################################
 # Thermodynamics

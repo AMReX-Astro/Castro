@@ -150,7 +150,7 @@ contains
 
              ! Add to the outgoing source array.
 
-             source(i,j,k,:) = src
+             source(i,j,k,:) = source(i,j,k,:) + src
 
           enddo
        enddo
@@ -183,9 +183,9 @@ contains
     use mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   grav_source_type, gravity_type, get_g_from_phi
-    use prob_params_module, only: dg, center
+    use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use fundamental_constants_module, only: Gconst
-    use castro_util_module, only: position
+    use castro_util_module, only: position, is_domain_corner
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: set_hybrid_momentum_source
@@ -322,28 +322,33 @@ contains
        ! We don't need to reset this at the end because phi is a temporary array.
        ! Note that this is needed for Poisson gravity only; the other gravity methods
        ! generally define phi on cell centers even outside the domain.
+       ! Note also that we do not want to apply it on symmetry boundaries,
+       ! because in that case the value in the ghost zone is the cell-centered value.
+       ! We also want to skip the corners, because the potential is undefined there.
 
        if (gravity_type == "PoissonGrav") then
 
           do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
              do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
                 do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-                   if (i .lt. domlo(1)) then
+                   if (is_domain_corner([i, j, k])) cycle
+
+                   if (i .lt. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
                       phi(i,j,k) = phi(i+1,j,k) - phi(i,j,k)
                    endif
-                   if (i .gt. domhi(1)) then
+                   if (i .gt. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
                       phi(i,j,k) = phi(i-1,j,k) - phi(i,j,k)
                    endif
-                   if (j .lt. domlo(2)) then
+                   if (j .lt. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j+1,k) - phi(i,j,k)
                    endif
-                   if (j .gt. domhi(2)) then
+                   if (j .gt. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j-1,k) - phi(i,j,k)
                    endif
-                   if (k .lt. domlo(3)) then
+                   if (k .lt. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j,k+1) - phi(i,j,k)
                    endif
-                   if (k .gt. domhi(3)) then
+                   if (k .gt. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
                       phi(i,j,k) = phi(i,j,k-1) - phi(i,j,k)
                    endif
                 enddo
@@ -530,7 +535,7 @@ contains
 
              ! Add to the outgoing source array.
 
-             source(i,j,k,:) = src
+             source(i,j,k,:) = source(i,j,k,:) + src
 
           enddo
        enddo

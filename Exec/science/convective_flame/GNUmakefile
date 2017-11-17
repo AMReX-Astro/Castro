@@ -1,7 +1,7 @@
 PRECISION  = DOUBLE
 PROFILE    = FALSE
 
-DEBUG      = TRUE
+DEBUG      = FALSE
 
 DIM        = 2
 
@@ -31,7 +31,7 @@ else
 
 endif
 
-Conductivity_dir := constant
+CONDUCTIVITY_DIR := constant
 
 Bpack   := ./Make.package
 Blocs   := .

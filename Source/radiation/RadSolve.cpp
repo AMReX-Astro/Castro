@@ -20,7 +20,7 @@
 
 using namespace amrex;
 
-Array<Real> RadSolve::absres(0);
+Vector<Real> RadSolve::absres(0);
 
 RadSolve::RadSolve(Amr* Parent) : parent(Parent),
   hd(NULL), hm(NULL)
@@ -185,7 +185,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 #pragma omp parallel
 #endif
   {
-      Array<Real> r, s;
+      Vector<Real> r, s;
 
       for (MFIter mfi(cc,true); mfi.isValid(); ++mfi) 
       {
@@ -249,7 +249,7 @@ void RadSolve::levelACoeffs(int level,
 #pragma omp parallel
 #endif
   {
-      Array<Real> r, s;
+      Vector<Real> r, s;
 
       for (MFIter mfi(fkp,true); mfi.isValid(); ++mfi) {
 	  const Box &reg  = mfi.tilebox();
@@ -342,7 +342,7 @@ void RadSolve::levelBCoeffs(int level,
 #pragma omp parallel
 #endif
     {
-	Array<Real> r, s;
+	Vector<Real> r, s;
 
 	for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
 	    const Box &ndbox  = mfi.tilebox();
@@ -382,7 +382,7 @@ void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
 #pragma omp parallel
 #endif
 	{
-	    Array<Real> r, s;
+	    Vector<Real> r, s;
 	    
 	    for (MFIter mfi(dcoefs,true); mfi.isValid(); ++mfi) {
 		const Box& ndbx = mfi.tilebox();
@@ -434,7 +434,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
 #pragma omp parallel
 #endif
   {
-      Array<Real> r, s;
+      Vector<Real> r, s;
       
       for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
 	  const Box &reg  = ri.tilebox();
@@ -513,7 +513,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDI
 #pragma omp parallel
 #endif
     {
-	Array<Real> r, s;
+	Vector<Real> r, s;
     
 	for (int idim = 0; idim < BL_SPACEDIM; idim++) {
 	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
@@ -683,7 +683,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 #pragma omp parallel
 #endif
   {
-      Array<Real> rc, re, s;
+      Vector<Real> rc, re, s;
       
       if (Geometry::IsSPHERICAL()) {
 	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
@@ -753,7 +753,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 #pragma omp parallel
 #endif
   {
-      Array<Real> r, s;
+      Vector<Real> r, s;
 
       for (MFIter mfi(lambda,true); mfi.isValid(); ++mfi) {
 	  const Box &kbox = kappa_r[mfi].box();
@@ -790,7 +790,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 #pragma omp parallel
 #endif
   {
-      Array<Real> r, s;
+      Vector<Real> r, s;
 
       for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
 	  const Box &reg = mfi.tilebox();
@@ -832,7 +832,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 #pragma omp parallel
 #endif
   {  
-      Array<Real> r, s;
+      Vector<Real> r, s;
 
       for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
 
@@ -918,7 +918,7 @@ void RadSolve::restoreHypreMulti()
   }
 }
 
-void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<Real>& r, Array<Real>& s)
+void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Vector<Real>& r, Vector<Real>& s)
 {
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (Geometry::IsCartesian()) {
@@ -939,7 +939,7 @@ void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Array<R
 }
 	
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
-			     Array<Real>& r, Array<Real>& s)
+			     Vector<Real>& r, Vector<Real>& s)
 {
     const Box& reg = amrex::enclosedCells(edgebox);
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;

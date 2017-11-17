@@ -97,6 +97,8 @@ extern "C"
                           amrex::Real* fpx, amrex::Real* fpy, amrex::Real* fpz,
                           amrex::Real* fsx, amrex::Real* fsy, amrex::Real* fsz);
 
+  void get_inertial_velocity(const Real* loc, const Real* vel, const Real* time, const Real* inertial_vel);
+
   void get_axes(int& axis_1, int& axis_2, int& axis_3);
 
   void get_problem_number(int* problem);
@@ -104,6 +106,8 @@ extern "C"
   void get_frame_choice(int* accurate_IC_frame);
 
   void set_extrema(const amrex::Real* T_max, const amrex::Real* rho_max, const amrex::Real* ts_te_max);
+
+  void get_extrema(amrex::Real* T_max, amrex::Real* rho_max, amrex::Real* ts_te_max);
 
   void get_job_status(int* job_status);
 

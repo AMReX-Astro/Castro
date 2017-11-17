@@ -107,7 +107,7 @@ public:
     //
     //This is called only when we restart from an old checkpoint.
     //
-    virtual void set_state_in_checkpoint (amrex::Array<int>& state_in_checkpoint) override;
+    virtual void set_state_in_checkpoint (amrex::Vector<int>& state_in_checkpoint) override;
     //
     //Call amrex::AmrLevel::checkPoint and then add radiation info
     //
@@ -132,6 +132,11 @@ public:
     virtual void writeSmallPlotFile (const std::string& dir,
 				     ostream&       os,
 				     amrex::VisMF::How     how) override;
+    void plotFileOutput(const std::string& dir,
+                        ostream& os,
+                        amrex::VisMF::How how,
+                        const int is_small);
+
     void writeJobInfo (const std::string& dir);
 
     //
@@ -186,10 +191,6 @@ public:
     // Advance the particles by dt
     //
     void advance_particles (int iteration, amrex::Real time, amrex::Real dt);
-    //
-    // Default verbosity of Particle class
-    //
-    static int particle_verbose;
 
 #endif
 
@@ -243,6 +244,8 @@ public:
 
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
+    amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+
     void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
@@ -275,9 +278,9 @@ public:
 
     void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    amrex::Array<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
+    amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
-    void print_source_change(amrex::Array<amrex::Real> update);
+    void print_source_change(amrex::Vector<amrex::Real> update);
 
     void print_all_source_changes(amrex::Real dt, bool is_new);
 
@@ -326,19 +329,19 @@ public:
     //
     virtual void computeInitialDt (int                   finest_level,
                                    int                   sub_cycle,
-                                   amrex::Array<int>&           n_cycle,
-                                   const amrex::Array<amrex::IntVect>& ref_ratio,
-                                   amrex::Array<amrex::Real>&          dt_level,
+                                   amrex::Vector<int>&           n_cycle,
+                                   const amrex::Vector<amrex::IntVect>& ref_ratio,
+                                   amrex::Vector<amrex::Real>&          dt_level,
                                    amrex::Real                  stop_time) override;
     //
     // Compute new `dt'.
     //
     virtual void computeNewDt (int                   finest_level,
                                int                   sub_cycle,
-                               amrex::Array<int>&           n_cycle,
-                               const amrex::Array<amrex::IntVect>& ref_ratio,
-                               amrex::Array<amrex::Real>&          dt_min,
-                               amrex::Array<amrex::Real>&          dt_level,
+                               amrex::Vector<int>&           n_cycle,
+                               const amrex::Vector<amrex::IntVect>& ref_ratio,
+                               amrex::Vector<amrex::Real>&          dt_min,
+                               amrex::Vector<amrex::Real>&          dt_level,
                                amrex::Real                  stop_time,
                                int                   post_regrid_flag) override;
     //
@@ -389,7 +392,7 @@ public:
 
 #ifdef DO_PROBLEM_POST_SIMULATION
     // Do work at the end of the simulation -- before the last outputs
-    static void problem_post_simulation (amrex::Array<std::unique_ptr<AmrLevel> >& amr_level);
+    static void problem_post_simulation (amrex::Vector<std::unique_ptr<AmrLevel> >& amr_level);
 #endif
 
     //
@@ -403,9 +406,20 @@ public:
 			   int          ngrow = 0) override;
 
     //
+    // Apply the set_problem_tags routine.
+    //
+    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+
+    //
     // Apply a given tagging function.
     //
     void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+
+    //
+    // Hooks for problem-specific operations before and after applying custom tagging.
+    //
+    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
+    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
     // Returns a MultiFab containing the derived data for this level.
     // If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
@@ -482,13 +496,13 @@ public:
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
     void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t);
+                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, Real mult_factor = 1.0);
 #endif
 #endif
 
@@ -517,14 +531,12 @@ public:
 
     amrex::Real get_point_mass ();
 
-    void set_special_tagging_flag (amrex::Real time);
-
 #ifdef HYBRID_MOMENTUM
     void construct_old_hybrid_source(amrex::Real time, amrex::Real dt);
 
     void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
 
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const int ng, const amrex::Real mult_factor);
 
     void hybrid_sync(amrex::MultiFab& state);
 #endif
@@ -564,7 +576,7 @@ public:
     static int       FirstSpec, NumSpec;
     static int       FirstAux,  NumAux;
 
-    static amrex::Array<std::string> source_names;
+    static amrex::Vector<std::string> source_names;
 
     //
     // This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -581,7 +593,7 @@ protected:
     // Build a mask that ghost cells overlapping with interior cells in the same multifab
     // are set to 0, whereas others are set to 1.
     //
-    amrex::Array<std::unique_ptr<amrex::iMultiFab> > ib_mask;
+    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
 #ifdef SELF_GRAVITY
@@ -591,7 +603,7 @@ protected:
     // Difference between composite and level solve for phi.
     //
     amrex::MultiFab comp_minus_level_phi;
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
 #endif
 
     //
@@ -618,15 +630,15 @@ protected:
     //
     // Hydrodynamic (and radiation) fluxes.
     //
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
 #if (BL_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
 
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
 #if (BL_SPACEDIM <= 2)
@@ -651,24 +663,24 @@ protected:
     //
     // Non-hydro source terms.
     //
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > old_sources;
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > new_sources;
+    amrex::MultiFab old_sources;
+    amrex::MultiFab new_sources;
 
     //
     // State data to hold if we want to do a retry.
     //
-    amrex::Array<std::unique_ptr<amrex::StateData> > prev_state;
+    amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
 
     //
     // Storage for the method of lines stages
-    amrex::Array<std::unique_ptr<amrex::MultiFab> > k_mol;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
 
     // MOL Butcher tableau
     static int MOL_STAGES;
   
-    static amrex::Array< amrex::Array<amrex::Real> > a_mol;
-    static amrex::Array<amrex::Real> b_mol;
-    static amrex::Array<amrex::Real> c_mol;
+    static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
+    static amrex::Vector<amrex::Real> b_mol;
+    static amrex::Vector<amrex::Real> c_mol;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -731,7 +743,7 @@ protected:
     amrex::MultiFab             volume;
     amrex::MultiFab             area[BL_SPACEDIM];
     amrex::MultiFab             dLogArea[1];
-    amrex::Array< amrex::Array<amrex::Real> > radius;
+    amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
     //
     // Keep track of which AMR iteration we're on.
@@ -743,13 +755,21 @@ protected:
     //
 #include <castro_params.H>
 
+#ifdef PARTICLES
+#include "particles_params.H"
+#endif
+
     static bool      signalStopJob;
     static bool      dump_old;
     static int       radius_grow;
     static int       verbose;
     static amrex::ErrorList err_list;
+    static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+
+    static int         lastDtPlotLimited;
+    static amrex::Real lastDtBeforePlotLimiting;
 
     // for keeping track of mass changes from negative density resets
     static amrex::Real      frac_change;
@@ -766,10 +786,6 @@ protected:
     static amrex::Real      startCPUTime;
 
     static amrex::Real getCPUTime();
-
-#ifdef PARTICLES
-    static int       do_tracer_particles;
-#endif
 
     bool             FillPatchedOldState_ok;
 
@@ -804,9 +820,11 @@ protected:
 
     // counters for various retries in Castro
 
-    // retry capability
+    // subcycle capability
     int sub_iteration;
     int sub_ncycle;
+    bool do_subcycle;
+    amrex::Real dt_subcycle;
   
     // sdc
     int sdc_iteration;

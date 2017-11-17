@@ -53,9 +53,6 @@ int         Castro::allow_negative_energy = 0;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
-int         Castro::time_center_sponge = 1;
-int         Castro::update_state_between_sources = 1;
-int         Castro::keep_sources_until_end = 0;
 int         Castro::source_term_predictor = 0;
 int         Castro::first_order_hydro = 0;
 std::string Castro::xl_ext_bc_type = "";
@@ -74,18 +71,21 @@ amrex::Real Castro::max_dt = 1.e200;
 amrex::Real Castro::cfl = 0.8;
 amrex::Real Castro::init_shrink = 1.0;
 amrex::Real Castro::change_max = 1.1;
+int         Castro::plot_per_is_exact = 0;
+int         Castro::small_plot_per_is_exact = 0;
 int         Castro::use_retry = 0;
-amrex::Real Castro::retry_tolerance = 0.0;
-int         Castro::retry_max_subcycles = 1000;
-int         Castro::retry_clamp_subcycles = 0;
+amrex::Real Castro::retry_tolerance = 0.02;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 int         Castro::use_post_step_regrid = 0;
+int         Castro::max_subcycles = 10;
+int         Castro::clamp_subcycles = 1;
 int         Castro::sdc_iters = 2;
 amrex::Real Castro::dtnuc_e = 1.e200;
 amrex::Real Castro::dtnuc_X = 1.e200;
 amrex::Real Castro::dtnuc_X_threshold = 1.e-3;
 int         Castro::dtnuc_mode = 1;
 amrex::Real Castro::dxnuc = 1.e200;
+amrex::Real Castro::dxnuc_max = 1.e200;
 int         Castro::do_react = -1;
 amrex::Real Castro::react_T_min = 0.0;
 amrex::Real Castro::react_T_max = 1.e200;
@@ -163,11 +163,6 @@ int         Castro::print_update_diagnostics = 1;
 #else
 int         Castro::print_update_diagnostics = 0;
 #endif
-#ifdef DEBUG
-int         Castro::coalesce_update_diagnostics = 1;
-#else
-int         Castro::coalesce_update_diagnostics = 0;
-#endif
 int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;
 amrex::Real Castro::sum_per = -1.0e0;
@@ -175,3 +170,8 @@ int         Castro::show_center_of_mass = 0;
 int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
+amrex::Real Castro::reset_checkpoint_time = -1.e200;
+int         Castro::reset_checkpoint_step = -1;
+#ifdef PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif
