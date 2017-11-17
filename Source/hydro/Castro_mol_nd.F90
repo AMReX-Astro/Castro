@@ -657,7 +657,7 @@ subroutine ca_mol_single_stage(time, &
 
 #if BL_SPACEDIM == 2
               if (n == UMX) then
-                 ! add the pressure source term for axisummetry
+                 ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
                     update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
                  endif
