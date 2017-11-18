@@ -1,5 +1,14 @@
 # changes since last release
 
+  -- The Source_Type StateData now holds the actual old- and new-time sources
+     (previously it held the source term predictor). This StateData is used to
+     fill the sources_for_hydro MultiFab which provides the source terms used
+     in the hydrodynamic update. Since it is StateData, this operation is done
+     with a FillPatch. Consequently the sources_for_hydro data has meaningful
+     data in both physical domain ghost zones and ghost zones at a coarse-fine
+     interface (previously it only had meaningful data on fully interior ghost
+     zones). Checkpoints will now have both old and new data. (#116, #253)
+
   -- The parameter castro.keep_sources_until_end has been removed.
 
   -- Source terms (gravity, rotation, etc.) have now been all coalesced into
