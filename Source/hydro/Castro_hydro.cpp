@@ -473,7 +473,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  
 	ca_mol_single_stage
 	  (&time,
-	   lo, hi, domain_lo, domain_hi,
+	   ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 	   &(b_mol[mol_iteration]),
 	   BL_TO_FORTRAN_3D(statein), 
 	   BL_TO_FORTRAN_3D(stateout),
@@ -482,17 +482,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	   BL_TO_FORTRAN_3D(source_in),
 	   BL_TO_FORTRAN_3D(source_out),
 	   BL_TO_FORTRAN_3D(source_hydro_only),
-	   dx, &dt,
+	   ZFILL(dx), &dt,
 	   D_DECL(BL_TO_FORTRAN_3D(flux[0]),
 		  BL_TO_FORTRAN_3D(flux[1]),
 		  BL_TO_FORTRAN_3D(flux[2])),
-#if (BL_SPACEDIM < 3)
-	   BL_TO_FORTRAN_3D(pradial),
-#endif
 	   D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
 		  BL_TO_FORTRAN_3D(area[1][mfi]),
 		  BL_TO_FORTRAN_3D(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
+	   BL_TO_FORTRAN_3D(pradial),
 	   BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
 	   BL_TO_FORTRAN_3D(volume[mfi]),
