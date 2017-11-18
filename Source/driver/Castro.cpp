@@ -505,13 +505,13 @@ Castro::Castro (Amr&            papa,
    // Initialize old and new source terms to zero.
 
    MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
-   sdc_sources_new.setVal(0.0);
+   sdc_sources_new.setVal(0.0, NUM_GROW);
 
    // Initialize reactions source term to zero.
 
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0);
+   react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
 
@@ -855,10 +855,10 @@ Castro::initData ()
 
 #ifdef SDC
    MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0);
+   sources_new.setVal(0.0, NUM_GROW);
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0);
+   react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
 
