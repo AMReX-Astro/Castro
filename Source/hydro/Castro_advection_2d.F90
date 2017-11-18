@@ -300,13 +300,13 @@ contains
        do n = 1, NQ
           call ppm_reconstruct(q(:,:,n), q_lo, q_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
 
           call ppm_int_profile(q(:,:,n), q_lo, q_hi, &
                                q(:,:,QU:QV), q_lo, q_hi, &
                                qaux(:,:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &  ! additional sxm, sxp are dummy
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                Ip(:,:,:,:,n), Im(:,:,:,:,n), I_lo, I_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
        end do
@@ -351,27 +351,28 @@ contains
        if (ppm_temp_fix /= 1) then
           call ppm_reconstruct(qaux(:,:,QGAMC), qa_lo, qa_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
           
           call ppm_int_profile(qaux(:,:,QGAMC), qa_lo, qa_hi, &
                                q(:,:,QU:QV), q_lo, q_hi, &
                                qaux(:,:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                Ip_gc(:,:,:,:,1), Im_gc(:,:,:,:,1), I_lo, I_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
        endif
 
+
        do n = 1, QVAR
           call ppm_reconstruct(srcQ(:,:,n), src_lo, src_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &   ! extra sxm, sxp are dummy
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], 0, 0)
 
           call ppm_int_profile(srcQ(:,:,n), src_lo, src_hi, &
                                q(:,:,QU:QV), q_lo, q_hi, &
                                qaux(:,:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sym, syp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, sym, syp, q_lo, q_hi, &
                                Ip_src(:,:,:,:,n), Im_src(:,:,:,:,n), I_lo, I_hi, &
                                lo(1), lo(2), hi(1), hi(2), [dx, dy, ZERO], dt, 0, 0)
        enddo

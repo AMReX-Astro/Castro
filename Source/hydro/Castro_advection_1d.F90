@@ -118,7 +118,7 @@ contains
     real(rt), allocatable :: sxm(:), sxp(:)
 
     type(eos_t) :: eos_state
-    
+
     qp_lo = [ilo-1, 0, 0]
     qp_hi = [ihi+2, 0, 0]
 
@@ -128,12 +128,12 @@ contains
     I_lo = [ilo-1, 0, 0]
     I_hi = [ihi+1, 0, 0]
 
-    
+
     if (ppm_type > 0) then
        ! indices: (x, y, dimension, wave, variable)
        allocate(Ip(I_lo(1):I_hi(1), 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), 3, NQ))
-       
+
        allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
        allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
 
@@ -207,13 +207,13 @@ contains
        do n = 1, NQ
           call ppm_reconstruct(q(:,n), q_lo, q_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
-          
+
           call ppm_int_profile(q(:,n), q_lo, q_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                Ip(:,:,n), Im(:,:,n), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        enddo
@@ -227,26 +227,26 @@ contains
                 eos_state%T     = Ip(i,iwave,QTEMP)
                 eos_state%xn(:) = Ip(i,iwave,QFS:QFS-1+nspec)
                 eos_state%aux   = Ip(i,iwave,QFX:QFX-1+naux)
-                
+
                 call eos(eos_input_rt, eos_state)
-                
+
                 Ip(i,iwave,QPRES) = eos_state%p
                 Ip(i,iwave,QREINT) = Ip(i,iwave,QRHO)*eos_state%e
                 Ip_gc(i,iwave,1) = eos_state%gam1
-                
+
                 eos_state%rho   = Im(i,iwave,QRHO)
                 eos_state%T     = Im(i,iwave,QTEMP)
                 eos_state%xn(:) = Im(i,iwave,QFS:QFS-1+nspec)
                 eos_state%aux   = Im(i,iwave,QFX:QFX-1+naux)
-                
+
                 call eos(eos_input_rt, eos_state)
-                
+
                 Im(i,iwave,QPRES) = eos_state%p
                 Im(i,iwave,QREINT) = Im(i,iwave,QRHO)*eos_state%e
                 Im_gc(i,iwave,1) = eos_state%gam1
              enddo
           enddo
-          
+
        endif
 
 
@@ -255,27 +255,28 @@ contains
        if (ppm_temp_fix /= 1) then
           call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &  ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
           call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &   ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                Ip_gc(:,:,1), Im_gc(:,:,1), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        endif
 
+
        do n = 1, QVAR
           call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
-             
+
           call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, sxm, sxp, q_lo, q_hi, &
                                Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        enddo
@@ -283,7 +284,7 @@ contains
        deallocate(sxm, sxp)
     endif
 
-    ! Trace to edges 
+    ! Trace to edges
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
        call tracexy_ppm_rad(q, q_lo, q_hi, &
