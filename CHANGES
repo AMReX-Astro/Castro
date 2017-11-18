@@ -1,5 +1,9 @@
 # changes since last release
 
+  -- The parameter gravity.max_solve_level was removed. This was added to work
+     around convergence issues in the multigrid solve, but those convergence
+     issues have since been fixed, so the parameter is no longer used.
+
   -- The Source_Type StateData now holds the actual old- and new-time sources
      (previously it held the source term predictor). This StateData is used to
      fill the sources_for_hydro MultiFab which provides the source terms used
