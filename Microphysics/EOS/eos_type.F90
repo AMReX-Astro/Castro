@@ -100,6 +100,8 @@ module eos_type_module
   ! dpdZ     -- d pressure/ d zbar
   ! dedA     -- d energy/ d abar
   ! dedZ     -- d energy/ d zbar
+  ! dpde     -- d pressure / d energy |_rho
+  ! dpdr_e   -- d pressure / d rho |_energy
 
   type :: eos_t
 
