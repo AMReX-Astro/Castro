@@ -515,12 +515,25 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
+  Vector<BCRec> source_bcs(NUM_STATE);
   Vector<std::string> state_type_source_names(NUM_STATE);
 
-  for (int i = 0; i < NUM_STATE; i++)
+  for (int i = 0; i < NUM_STATE; ++i) {
     state_type_source_names[i] = name[i] + "_source";
+    source_bcs[i] = bcs[i];
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,
+    // Replace inflow BCs with FOEXTRAP.
+
+    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+        if (source_bcs[i].lo(j) == EXT_DIR)
+            source_bcs[i].setLo(j, FOEXTRAP);
+
+        if (source_bcs[i].hi(j) == EXT_DIR)
+            source_bcs[i].setHi(j, FOEXTRAP);
+    }
+  }
+
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
 #ifdef REACTIONS
