@@ -11,7 +11,10 @@
      with a FillPatch. Consequently the sources_for_hydro data has meaningful
      data in both physical domain ghost zones and ghost zones at a coarse-fine
      interface (previously it only had meaningful data on fully interior ghost
-     zones). Checkpoints will now have both old and new data. (#116, #253)
+     zones). Checkpoints will now have both old and new data. This change does
+     result in a difference in the simulation output for simulations with source
+     terms, as the answer will be different at the boundaries and at coarse-fine
+     interfaces. (#116, #253) A related bug when using SDC was fixed too. (#56)
 
   -- The parameter castro.keep_sources_until_end has been removed.
 
