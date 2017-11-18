@@ -83,10 +83,17 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Construct the old-time sources.
 
-    old_sources.setVal(0.0);
+    MultiFab& old_sources = get_old_data(Source_Type);
+
+    old_sources.setVal(0.0, NUM_GROW);
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
+
+    // The individual source terms only calculate the source on the valid domain.
+    // FillPatch to get valid data in the ghost zones.
+
+    AmrLevel::FillPatch(*this, old_sources, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     // Apply the old-time sources directly to the new-time state,
     // S_new -- note that this addition is for full dt, since we
@@ -123,18 +130,24 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     // For the new-time source terms, we have an option for how to proceed.
     // We can either construct all of the old-time sources using the same
     // state that comes out of the hydro update, or we can evaluate the sources
     // one by one and apply them as we go.
 
-    new_sources.setVal(0.0);
+    new_sources.setVal(0.0, NUM_GROW);
 
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n)
         construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
+
+    // The individual source terms only calculate the source on the valid domain.
+    // FillPatch to get valid data in the ghost zones.
+
+    AmrLevel::FillPatch(*this, new_sources, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     // Apply the new-time sources to the state.
     // Only do this if at least one source term has a non-zero contribution.
@@ -337,7 +350,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
   bool local = true;
 
-  MultiFab& source = is_new ? new_sources : old_sources;
+  MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
 
   summed_updates = evaluate_source_change(source, dt, local);
 
@@ -376,6 +389,9 @@ Castro::sum_of_sources(MultiFab& source)
   int ng = source.nGrow();
 
   source.setVal(0.0);
+
+  MultiFab& old_sources = get_old_data(Source_Type);
+  MultiFab& new_sources = get_new_data(Source_Type);
 
   MultiFab::Add(source, old_sources, 0, 0, NUM_STATE, ng);
 
@@ -458,7 +474,9 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
     MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
 
     // Now fill all of the ghost zones.
-    react_src.FillBoundary(geom.periodicity());
+    Real time = get_state_data(SDC_React_Type).curTime();
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, SDC_React_Type, 0, NUM_STATE);
+
 }
 #endif
 #endif

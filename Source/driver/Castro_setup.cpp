@@ -347,7 +347,7 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-  // Source terms. Currently this holds dS/dt for each of the NVAR state variables.
+  // Source terms.
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
@@ -515,12 +515,25 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
+  Vector<BCRec> source_bcs(NUM_STATE);
   Vector<std::string> state_type_source_names(NUM_STATE);
 
-  for (int i = 0; i < NUM_STATE; i++)
+  for (int i = 0; i < NUM_STATE; ++i) {
     state_type_source_names[i] = name[i] + "_source";
+    source_bcs[i] = bcs[i];
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,
+    // Replace inflow BCs with FOEXTRAP.
+
+    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+        if (source_bcs[i].lo(j) == EXT_DIR)
+            source_bcs[i].setLo(j, FOEXTRAP);
+
+        if (source_bcs[i].hi(j) == EXT_DIR)
+            source_bcs[i].setHi(j, FOEXTRAP);
+    }
+  }
+
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
 #ifdef REACTIONS
@@ -538,13 +551,24 @@ Castro::variableSetUp ()
 #ifdef SDC
   for (int i = 0; i < NUM_STATE; ++i)
       state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,
+  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,source_bcs,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
       sprintf(buf, "sdc_react_source_%d", i);
       set_scalar_bc(bc,phys_bc);
+
+      // Replace inflow BCs with FOEXTRAP.
+
+      for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+          if (bc.lo(j) == EXT_DIR)
+              bc.setLo(j, FOEXTRAP);
+
+          if (bc.hi(j) == EXT_DIR)
+              bc.setHi(j, FOEXTRAP);
+      }
+
       desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
   }
 #endif
