@@ -504,8 +504,8 @@ Castro::Castro (Amr&            papa,
 #ifdef SDC
    // Initialize old and new source terms to zero.
 
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0);
+   MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
+   sdc_sources_new.setVal(0.0);
 
    // Initialize reactions source term to zero.
 
