@@ -150,7 +150,7 @@ contains
 
              ! Add to the outgoing source array.
 
-             source(i,j,k,:) = src
+             source(i,j,k,:) = source(i,j,k,:) + src
 
           enddo
        enddo
@@ -535,7 +535,7 @@ contains
 
              ! Add to the outgoing source array.
 
-             source(i,j,k,:) = src
+             source(i,j,k,:) = source(i,j,k,:) + src
 
           enddo
        enddo

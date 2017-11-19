@@ -122,11 +122,6 @@ module probdata_module
 
   logical, save :: single_star
 
-  ! Should we override the domain boundary conditions with
-  ! ambient material?
-
-  logical, save :: fill_ambient_bc = .false.
-
 
 
   ! 1D initial models
@@ -208,12 +203,6 @@ module probdata_module
 
 
 
-  ! Number of zones that have passed the critical radius for thermonuclear ignition
-  integer,          save :: num_zones_ignited = 0
-
-  ! Level on which the initial ignition happened; negative means it hasn't happened yet
-  integer,          save :: ignition_level = -1
-
   ! Relaxation parameters for problem 3
 
   double precision, save :: relaxation_damping_timescale = -1.0d0
@@ -282,8 +271,7 @@ module probdata_module
        initial_model_npts, &
        initial_model_mass_tol, &
        initial_model_hse_tol, &
-       gw_dist, &
-       fill_ambient_bc
+       gw_dist
 
 
   ! Stores whether we assert that the simulation has completed.

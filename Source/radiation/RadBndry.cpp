@@ -14,8 +14,8 @@
 using namespace amrex;
 
 int         RadBndry::first = 1;
-Array<int>  RadBndry::bcflag(2*BL_SPACEDIM);
-Array<Real> RadBndry::bcval(2*BL_SPACEDIM);
+Vector<int>  RadBndry::bcflag(2*BL_SPACEDIM);
+Vector<Real> RadBndry::bcval(2*BL_SPACEDIM);
 Real        RadBndry::time = 0.0;
 int         RadBndry::correction = 0;
 
@@ -82,11 +82,11 @@ void RadBndry::init()
 
   ParmParse pp("radiation");
 
-  Array<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
+  Vector<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
   pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
   pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
 
-  Array<Real> lo_bcval(BL_SPACEDIM, 0.0), hi_bcval(BL_SPACEDIM, 0.0);
+  Vector<Real> lo_bcval(BL_SPACEDIM, 0.0), hi_bcval(BL_SPACEDIM, 0.0);
   pp.queryarr("lo_bcval",lo_bcval,0,BL_SPACEDIM);
   pp.queryarr("hi_bcval",hi_bcval,0,BL_SPACEDIM);
 
@@ -132,8 +132,8 @@ void RadBndry::setBndryConds(const BCRec& bc,
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-    Array<Real> &bloc = bcloc[face];
-    Array<RadBoundCond> &bctag = bcond[face];
+    Vector<Real> &bloc = bcloc[face];
+    Vector<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     Real delta = dx[dir]*ratio[dir];
@@ -196,8 +196,8 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
-//    Array<Real> &bloc = bcloc[face];
-//    Array<RadBoundCond> &bctag = bcond[face];
+//    Vector<Real> &bloc = bcloc[face];
+//    Vector<RadBoundCond> &bctag = bcond[face];
 
     int dir = face.coordDir();
     int p_bc = (face.isLow() ? bc.lo(dir) : bc.hi(dir));

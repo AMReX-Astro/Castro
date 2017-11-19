@@ -6,11 +6,11 @@ using namespace amrex;
 void
 Castro::construct_old_hybrid_source(Real time, Real dt)
 {
-    int ng = Sborder.nGrow();
+    Real mult_factor = 1.0;
 
-    old_sources[hybrid_src]->setVal(0.0);
+    MultiFab& old_sources = get_old_data(Source_Type);
 
-    fill_hybrid_hydro_source(*old_sources[hybrid_src], Sborder);
+    fill_hybrid_hydro_source(old_sources, Sborder, mult_factor);
 }
 
 
@@ -21,38 +21,39 @@ Castro::construct_new_hybrid_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = 0;
+    MultiFab& new_sources = get_new_data(Source_Type);
 
-    new_sources[hybrid_src]->setVal(0.0);
+    // Start by subtracting off the old-time data.
 
-    fill_hybrid_hydro_source(*new_sources[hybrid_src], S_new);
+    Real mult_factor = -0.5;
 
-    // Time center the source term.
+    fill_hybrid_hydro_source(new_sources, S_old, mult_factor);
 
-    new_sources[hybrid_src]->mult(0.5);
+    // Time center with the new data.
 
-    MultiFab::Saxpy(*new_sources[hybrid_src],-0.5,*old_sources[hybrid_src],0,0,NUM_STATE,ng);
+    mult_factor = 0.5;
+
+    fill_hybrid_hydro_source(new_sources, S_new, mult_factor);
+
 }
 
 
 
 void
-Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state)
+Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_factor)
 {
-  int ng = state.nGrow();
-
-  BL_ASSERT(sources.nGrow() >= ng);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
 
-    const Box& bx = mfi.growntilebox(ng);
+    const Box& bx = mfi.tilebox();
 
     ca_hybrid_hydro_source(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			   BL_TO_FORTRAN_3D(state[mfi]),
-			   BL_TO_FORTRAN_3D(sources[mfi]));
+			   BL_TO_FORTRAN_3D(sources[mfi]),
+                           mult_factor);
 
   }
 

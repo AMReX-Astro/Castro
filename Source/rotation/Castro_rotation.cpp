@@ -9,9 +9,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 
-    int ng = Sborder.nGrow();
-
-    old_sources[rot_src]->setVal(0.0);
+    MultiFab& old_sources = get_old_data(Source_Type);
 
     // Fill the rotation data.
 
@@ -35,14 +33,14 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 #endif
     for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
     {
-	const Box& bx = mfi.growntilebox();
+	const Box& bx = mfi.tilebox();
 
 	ca_rsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D((*old_sources[rot_src])[mfi]),
+		BL_TO_FORTRAN_3D(old_sources[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
 
@@ -63,9 +61,7 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    int ng = 0;
-
-    new_sources[rot_src]->setVal(0.0);
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     // Fill the rotation data.
 
@@ -102,7 +98,7 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(rot_new[mfi]),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D((*new_sources[rot_src])[mfi]),
+			BL_TO_FORTRAN_3D(new_sources[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),

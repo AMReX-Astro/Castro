@@ -52,9 +52,6 @@ Real Castro::ts_te_curr_max = 0.0;
 
 Real Castro::total_ener_array[num_previous_ener_timesteps] = { 0.0 };
 
-int Castro::num_zones_ignited = 0;
-int Castro::ignition_level = -1;
-
 #ifdef DO_PROBLEM_POST_TIMESTEP
 void
 Castro::problem_post_timestep()
@@ -501,7 +498,7 @@ Castro::gwstrain (Real time,
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    Array< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
+    Vector< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
     for (int i=0; i<nthreads; i++) {
 	priv_Qtt[i].reset(new FArrayBox(bx));
     }
@@ -628,16 +625,6 @@ void Castro::problem_post_init() {
 
   get_relaxation_status(&relaxation_is_done);
 
-  // If we're doing an initial relaxation step, ensure that we are not subcycling.
-
-  if (problem == 3 && !relaxation_is_done && parent->subCycle())
-    amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
-
-  // If we're doing an initial relaxation step, ensure that we retain source terms.
-
-  if (problem == 3 && !relaxation_is_done && !keep_sources_until_end)
-    amrex::Abort("Error: cannot perform relaxation step if we are not retaining source terms.");
-
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);
@@ -697,10 +684,6 @@ void Castro::problem_post_restart() {
   T_curr_max = T_global_max;
   rho_curr_max = rho_global_max;
   ts_te_curr_max = ts_te_global_max;
-
-  // Get the ignition status.
-
-  get_num_zones_ignited(&num_zones_ignited, &ignition_level);
 
   // If we're restarting from a checkpoint at t = 0 but don't yet
   // have diagnostics, we want to generate the headers and the t = 0
@@ -963,124 +946,30 @@ void
 Castro::update_relaxation(Real time, Real dt) {
 
     // Check to make sure whether we should be doing the relaxation here.
+    // Update the relaxation conditions if we are not stopping.
 
     if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    Real old_time = state[State_Type].prevTime();
-    Real new_time = state[State_Type].curTime();
+    // Calculate the omega needed to match the velocity: omega = v / r.
 
-    int ng = 0;
+    // First, get the inertial velocity corresponding to the current velocity. Note that this is
+    // using the old omega.
 
-    // Construct the desired rotation force data.
+    Real inertial_vel_p[3];
+    Real inertial_vel_s[3];
 
-    int finest_level = parent->finestLevel();
-    int n_levs = finest_level + 1;
+    get_inertial_velocity(com_p, vel_p, &time, inertial_vel_p);
+    get_inertial_velocity(com_s, vel_s, &time, inertial_vel_s);
 
-    Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-
-	rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng));
-
-	rot_force[lev]->setVal(0.0);
-
-	MultiFab::Add(*rot_force[lev], *(getLevel(lev).old_sources[grav_src]), 0, 0, NUM_STATE, ng);
-        MultiFab::Add(*rot_force[lev], *(getLevel(lev).new_sources[grav_src]), 0, 0, NUM_STATE, ng);
-
-	MultiFab::Add(*rot_force[lev], getLevel(lev).hydro_source, 0, 0, NUM_STATE, ng);
-
-	// Mask out regions covered by fine grids.
-
-	if (lev < finest_level) {
-	    const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-	    MultiFab::Multiply(*rot_force[lev], mask, 0, 0, NUM_STATE, 0);
-	}
-
-    }
-
-    // Construct omega from this.
-
-    Real force_p[3] = { 0.0 };
-    Real force_s[3] = { 0.0 };
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-
-	MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-
-	auto pmask = getLevel(lev).derive("primarymask", time, 0);
-	auto smask = getLevel(lev).derive("secondarymask", time, 0);
-
-	MultiFab& vol = getLevel(lev).Volume();
-
-	Real fpx = 0.0;
-	Real fpy = 0.0;
-	Real fpz = 0.0;
-	Real fsx = 0.0;
-	Real fsy = 0.0;
-	Real fsz = 0.0;
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:fpx, fpy, fpz, fsx, fsy, fsz)
-#endif
-	for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
-
-	    const Box& box = mfi.tilebox();
-
-	    const int* lo  = box.loVect();
-	    const int* hi  = box.hiVect();
-
-	    sum_force_on_stars(lo, hi,
-			       BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
-			       BL_TO_FORTRAN_3D(S_new[mfi]),
-			       BL_TO_FORTRAN_3D(vol[mfi]),
-			       BL_TO_FORTRAN_3D((*pmask)[mfi]),
-                               BL_TO_FORTRAN_3D((*smask)[mfi]),
-			       &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
-
-	}
-
-	force_p[0] += fpx;
-	force_p[1] += fpy;
-	force_p[2] += fpz;
-
-	force_s[0] += fsx;
-	force_s[1] += fsy;
-	force_s[2] += fsz;
-
-    }
-
-    Real foo[6];
-
-    // Do the reduction over processors, and then
-    // normalize by the masses of the stars.
-
-    foo[0] = force_p[0];
-    foo[1] = force_p[1];
-    foo[2] = force_p[2];
-
-    foo[3] = force_s[0];
-    foo[4] = force_s[1];
-    foo[5] = force_s[2];
-
-    amrex::ParallelDescriptor::ReduceRealSum(foo, 6);
-
-    force_p[0] = foo[0];
-    force_p[1] = foo[1];
-    force_p[2] = foo[2];
-
-    force_s[0] = foo[3];
-    force_s[1] = foo[4];
-    force_s[2] = foo[5];
-
-    // Divide by the mass of the stars to obtain the acceleration, and then get the new rotation frequency.
-
-    Real fp = std::sqrt(std::pow(force_p[0], 2) + std::pow(force_p[1], 2) + std::pow(force_p[2], 2));
-    Real fs = std::sqrt(std::pow(force_s[0], 2) + std::pow(force_s[1], 2) + std::pow(force_s[2], 2));
+    Real vp = std::sqrt(std::pow(inertial_vel_p[0], 2) + std::pow(inertial_vel_p[1], 2) + std::pow(inertial_vel_p[2], 2));
+    Real vs = std::sqrt(std::pow(inertial_vel_s[0], 2) + std::pow(inertial_vel_s[1], 2) + std::pow(inertial_vel_s[2], 2));
 
     Real ap = std::sqrt(std::pow(com_p[0], 2) + std::pow(com_p[1], 2) + std::pow(com_p[2], 2));
     Real as = std::sqrt(std::pow(com_s[0], 2) + std::pow(com_s[1], 2) + std::pow(com_s[2], 2));
 
-    Real omega = 0.5 * ( std::sqrt((fp / mass_p) / ap) + std::sqrt((fs / mass_s) / as) );
+    // Take the average of the two stars.
+
+    Real omega = 0.5 * ( vp / ap + vs / as );
 
     std::cout << "force_p " << force_p[0] << " " << force_p[1] << " " << force_p[2] << "\n";
     std::cout << "force_s " << force_s[0] << " " << force_s[1] << " " << force_s[2] << "\n";
@@ -1099,38 +988,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
     rotational_period = period;
     set_period(&period);
-
-    // Update the force applied to the state using the new rotation vector.
-    // To do this we'll need to copy the old state into Sborder since that
-    // is what the source term constructors rely on for the old time.
-
-    for (int lev = 0; lev <= finest_level; ++lev) {
-
-	MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
-	MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-
-	MultiFab& Sb = getLevel(lev).Sborder;
-
-	// Note that we'll do this exactly the same way as it occurs in the advance
-	// since the construction of Sborder includes more than just a FillPatch.
-	// The only difference is that we don't need NUM_GROW ghost cells.
-
-	Sb.define(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, ng);
-
-	getLevel(lev).expand_state(Sb, old_time, ng);
-
-	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, -dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
-
-	getLevel(lev).construct_old_source(rot_src, old_time, dt);
-	getLevel(lev).construct_new_source(rot_src, new_time, dt);
-
-	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).old_sources[rot_src]), 0, 0, NUM_STATE, ng);
-	MultiFab::Saxpy(S_new, dt, *(getLevel(lev).new_sources[rot_src]), 0, 0, NUM_STATE, ng);
-
-	Sb.clear();
-
-    }
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the

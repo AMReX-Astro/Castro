@@ -82,7 +82,31 @@ Castro::restart (Amr&     papa,
    	}
   	ParallelDescriptor::Bcast(&input_version, 1, ParallelDescriptor::IOProcessorNumber());
     }
- 
+
+    // Check if there's a file in the header indicating that the
+    // previous timestep was limited to hit a plot interval. If so,
+    // read in the value, so that the timestep after this restart is
+    // limited appropriately.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+        std::ifstream dtHeaderFile;
+        std::string FullPathdtHeaderFile = papa.theRestartFile();
+        FullPathdtHeaderFile += "/dtHeader";
+        dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::in);
+
+        if (dtHeaderFile.good()) {
+
+            lastDtPlotLimited = 1;
+            dtHeaderFile >> lastDtBeforePlotLimiting;
+
+        }
+
+    }
+
+    ParallelDescriptor::Bcast(&lastDtPlotLimited, 1, ParallelDescriptor::IOProcessorNumber());
+    ParallelDescriptor::Bcast(&lastDtBeforePlotLimiting, 1, ParallelDescriptor::IOProcessorNumber());
+
     BL_ASSERT(input_version >= 0);
  
     // also need to mod checkPoint function to store the new version in a text file
@@ -261,7 +285,7 @@ Castro::restart (Amr&     papa,
 
 	int len = dir.size();
 
-	Array<int> int_dir_name(len);
+	Vector<int> int_dir_name(len);
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
@@ -369,8 +393,8 @@ Castro::restart (Amr&     papa,
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
-       int nc = S_new.nComp();
-       int n1d = get_numpts();
+       const int nc = S_new.nComp();
+       const int n1d = get_numpts();
        allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
@@ -436,7 +460,7 @@ Castro::restart (Amr&     papa,
 }
 
 void
-Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
+Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
 {
   for (int i=0; i<num_state_type; ++i)
     state_in_checkpoint[i] = 1;
@@ -503,6 +527,23 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile.close();
 	}
 
+        // If we have limited this last timestep to hit a plot interval,
+        // store the timestep we took before limiting. After the restart,
+        // this dt will be read in and used to limit the next timestep
+        // appropriately, rather than the shortened timestep.
+
+        if (lastDtPlotLimited == 1) {
+
+            std::ofstream dtHeaderFile;
+            std::string FullPathdtHeaderFile = dir;
+            FullPathdtHeaderFile += "/dtHeader";
+            dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::out);
+
+            dtHeaderFile << lastDtBeforePlotLimiting << std::endl;
+            dtHeaderFile.close();
+
+        }
+
 	{
 	    // store elapsed CPU time
 	    std::ofstream CPUFile;
@@ -537,7 +578,7 @@ Castro::checkPoint(const std::string& dir,
 
 	    int len = dir.size();
 
-	    Array<int> int_dir_name(len);
+	    Vector<int> int_dir_name(len);
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
@@ -611,7 +652,7 @@ Castro::setPlotVariables ()
 	  for (int i = 0; i < NumSpec; i++)
           {
               int len = 20;
-              Array<int> int_spec_names(len);
+              Vector<int> int_spec_names(len);
               //
               // This call return the actual length of each string in "len"
               //
@@ -766,7 +807,7 @@ Castro::writeJobInfo (const std::string& dir)
     }
 
   jobInfoFile << " Boundary conditions\n";
-  Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+  Vector<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
   ParmParse pp("castro");
   pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
   pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
@@ -814,7 +855,7 @@ Castro::writeJobInfo (const std::string& dir)
     {
 
       int len = mlen;
-      Array<int> int_spec_names(len);
+      Vector<int> int_spec_names(len);
       //
       // This call return the actual length of each string in "len"
       //

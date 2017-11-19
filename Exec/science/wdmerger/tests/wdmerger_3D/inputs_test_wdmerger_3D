@@ -7,7 +7,7 @@
 
 amr.probin_file = probin_test_wdmerger_3D          # Name of the probin file
 
-max_step = 10                                      # Maximum coarse timestep
+max_step = 5                                       # Maximum coarse timestep
 
 geometry.is_periodic = 0 0 0                       # Non-periodic boundary conditions
 

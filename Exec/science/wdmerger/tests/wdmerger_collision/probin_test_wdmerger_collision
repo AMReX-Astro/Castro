@@ -19,8 +19,6 @@
   stellar_density_threshold = 1.0d0
  
   smallu = 1.0d-12
-
-  fill_ambient_bc = F
 /
 
 &tagging 

@@ -525,20 +525,19 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! to it later
    
 #ifdef RADIATION
-  NQAUX = 7 !+ ngroups to be added later
+  NQAUX = 6 !+ ngroups to be added later
 #else
-  NQAUX = 5
+  NQAUX = 4
 #endif        
 
   QGAMC   = 1
   QC      = 2
-  QCSML   = 3
-  QDPDR   = 4
-  QDPDE   = 5
+  QDPDR   = 3
+  QDPDE   = 4
 #ifdef RADIATION
-  QGAMCG  = 6
-  QCG     = 7
-  QLAMS   = 8
+  QGAMCG  = 5
+  QCG     = 6
+  QLAMS   = 7
 #endif
 
   ! easy indexing for the passively advected quantities.  This
@@ -644,7 +643,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !$acc device(QTHERM, QVAR) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE) &
+  !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
@@ -837,19 +836,6 @@ subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
 
 end subroutine ca_set_grid_info
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-subroutine ca_set_special_tagging_flag(dummy,flag) &
-     bind(C, name="ca_set_special_tagging_flag")
-
-  use amrex_fort_module, only: rt => amrex_real
-
-  real(rt) :: dummy
-  integer  :: flag
-
-end subroutine ca_set_special_tagging_flag
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -863,8 +849,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   use tagging_module
   use amrex_fort_module, only: rt => amrex_real
 
-  integer :: namlen
-  integer :: name(namlen)
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
 
   integer :: un, i, status
 
@@ -949,8 +935,8 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   use sponge_module
   use amrex_fort_module, only: rt => amrex_real
 
-  integer :: namlen
-  integer :: name(namlen)
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
 
   integer :: un, i, status
 

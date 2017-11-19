@@ -191,15 +191,6 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
-# should we time center the sponge?
-time_center_sponge           int           1
-
-# should we update the state in between evaluations of the new-time source terms
-update_state_between_sources int           1
-
-# retain source terms until end of timestep
-keep_sources_until_end       int           0
-
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
@@ -339,6 +330,10 @@ dtnuc_mode                   int           1                  y
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
+
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -483,10 +478,6 @@ print_fortran_warnings       int           (0, 1)
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
 
-# if we're printing diagnostic information about the updates, should we
-# break down the information into the constitent source terms?
-coalesce_update_diagnostics  int           (0, 1)
-
 # calculate losses of material through physical grid boundaries
 track_grid_losses            int            0                    y
 
@@ -521,6 +512,43 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
+
+
+
+
+#-----------------------------------------------------------------------------
+# category: particles
+#-----------------------------------------------------------------------------
+
+# permits tracer particle calculation to be turned on and off
+do_tracer_particles          int           0       n      PARTICLES
+
+
+@namespace: particles Castro static
+
+# the level of verbosity for the tracer particle (0 or 1)
+(v, particle_verbose)                int            0
+
+# the name of an input file containing the total particle number and the initial position of each particle.
+particle_init_file           string        ""
+
+# the name of a file with new particles at restart 
+particle_restart_file        string        ""
+
+# to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE 
+restart_from_nonparticle_chkfile     int      0
+
+# the name of timestamp files.
+particle_output_file         string        ""
+
+# the name of a directory in which timestamp files are stored.
+timestamp_dir        	      string        ""
+
+# whether the local densities at given positions of particles are stored in output files
+timestamp_density            int           1
+
+# whether the local temperatures at given positions of particles are stored in output files
+timestamp_temperature        int           0
 
 
 
@@ -560,18 +588,20 @@ no_composite                int            0
 # at the cost of an additional Poisson solve per timestep.
 do_composite_phi_correction int            1
 
-#  For all gravity types, we can choose a maximum level for explicitly
-#  calculating the gravity and associated potential. Above that level,
-#  we interpolate from coarser levels.
-max_solve_level             int            MAX_LEV-1
-
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+mlmg_consolidation           int           1                  n
 
 @namespace: diffusion Diffusion static
 
