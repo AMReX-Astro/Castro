@@ -8,11 +8,12 @@
 using namespace amrex;
 
 void
-Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
+Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt, int ng)
 {
-    AMREX_ASSERT(source.nGrow() >= state.nGrow());
+    AMREX_ASSERT(source.nGrow() >= ng);
+    AMREX_ASSERT(state.nGrow() >= ng);
 
-    MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
+    MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
 }
 
 void
@@ -113,7 +114,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     }
 
     if (apply_source)    
-        apply_source_to_state(S_new, old_sources, dt);
+        apply_source_to_state(S_new, old_sources, dt, S_new.nGrow());
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -162,7 +163,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     if (apply_source) {
 
-        apply_source_to_state(S_new, new_sources, dt);
+        apply_source_to_state(S_new, new_sources, dt, S_new.nGrow());
 
         clean_state(S_new);
 
