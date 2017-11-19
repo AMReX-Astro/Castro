@@ -122,11 +122,6 @@ module probdata_module
 
   logical, save :: single_star
 
-  ! Should we override the domain boundary conditions with
-  ! ambient material?
-
-  logical, save :: fill_ambient_bc = .false.
-
 
 
   ! 1D initial models
@@ -276,8 +271,7 @@ module probdata_module
        initial_model_npts, &
        initial_model_mass_tol, &
        initial_model_hse_tol, &
-       gw_dist, &
-       fill_ambient_bc
+       gw_dist
 
 
   ! Stores whether we assert that the simulation has completed.
