@@ -251,11 +251,27 @@ Castro::do_advance (Real time,
       // define the temperature now
       clean_state(S_new);
 
+      // If the state has ghost zones, sync them up now
+      // since the hydro source only works on the valid zones.
+
+      if (S_new.nGrow() > 0) {
+          bool do_clean = false;
+          expand_state(S_new, cur_time, S_new.nGrow(), do_clean);
+      }
+
     } else if (do_ctu) {
 
       // Sync up state after old sources and hydro source.
 
       frac_change = clean_state(S_new, Sborder);
+
+      // If the state has ghost zones, sync them up now
+      // since the hydro source only works on the valid zones.
+
+      if (S_new.nGrow() > 0) {
+          bool do_clean = false;
+          expand_state(S_new, cur_time, S_new.nGrow(), do_clean);
+      }
 
       // Check for NaN's.
 
