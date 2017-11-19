@@ -270,13 +270,13 @@ contains
        do n = 1, QVAR
           call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
           call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        enddo
