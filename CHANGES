@@ -63,6 +63,11 @@
      Numerical experiments have show this scales better than the old
      solver.
 
+  -- Apply the sources to the state's ghost zones (#255).  This fixes
+     #213 -- it ensures the advances give a valid update for the ghost
+     zones in the State_Type.
+
+
 # 17.11.1
 
   -- Minor bug fixes from the 17.11 release. There is a corresponding
