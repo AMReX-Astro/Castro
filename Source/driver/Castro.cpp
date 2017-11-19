@@ -303,6 +303,13 @@ Castro::read_params ()
       }
 #endif
 
+#ifdef HYBRID_MOMENTUM
+    // We do not support hybrid advection when using the HLLC solver.
+
+    if (riemann_solver == 2) {
+        amrex::Abort("HLLC Riemann solver unsupported when using hybrid momentum.");
+    }
+#endif
 
 
     // sanity checks
