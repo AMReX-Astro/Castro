@@ -1,5 +1,21 @@
 # changes since last release
 
+  -- The parameter gravity.max_solve_level was removed. This was added to work
+     around convergence issues in the multigrid solve, but those convergence
+     issues have since been fixed, so the parameter is no longer used.
+
+  -- The Source_Type StateData now holds the actual old- and new-time sources
+     (previously it held the source term predictor). This StateData is used to
+     fill the sources_for_hydro MultiFab which provides the source terms used
+     in the hydrodynamic update. Since it is StateData, this operation is done
+     with a FillPatch. Consequently the sources_for_hydro data has meaningful
+     data in both physical domain ghost zones and ghost zones at a coarse-fine
+     interface (previously it only had meaningful data on fully interior ghost
+     zones). Checkpoints will now have both old and new data. This change does
+     result in a difference in the simulation output for simulations with source
+     terms, as the answer will be different at the boundaries and at coarse-fine
+     interfaces. (#116, #253) A related bug when using SDC was fixed too. (#56)
+
   -- The parameter castro.keep_sources_until_end has been removed.
 
   -- Source terms (gravity, rotation, etc.) have now been all coalesced into
@@ -46,6 +62,11 @@
 
      Numerical experiments have show this scales better than the old
      solver.
+
+  -- Apply the sources to the state's ghost zones (#255).  This fixes
+     #213 -- it ensures the advances give a valid update for the ghost
+     zones in the State_Type.
+
 
 # 17.11.1
 

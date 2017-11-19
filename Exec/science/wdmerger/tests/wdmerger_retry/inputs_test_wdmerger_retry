@@ -239,9 +239,6 @@ gravity.abs_tol = 1.e-10
 # Turn off sync solve for gravity after refluxing
 gravity.no_sync = 0
 
-# Maximum level for doing explicit gravity solves
-gravity.max_solve_level = 20
-
 ############################################################################################
 # Rotation
 ############################################################################################

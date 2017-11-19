@@ -242,9 +242,6 @@ gravity.no_sync = 0
 # Disable the use of the lagged composite correction for the potential
 gravity.do_composite_phi_correction = 0
 
-# Maximum level for doing explicit gravity solves
-gravity.max_solve_level = 20
-
 ############################################################################################
 # Rotation
 ############################################################################################

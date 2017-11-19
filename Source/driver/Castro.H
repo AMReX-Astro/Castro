@@ -301,7 +301,7 @@ public:
 
     void construct_new_ext_source(amrex::Real time, amrex::Real dt);
 
-    void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src, int ng);
+    void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -536,14 +536,14 @@ public:
 
     void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
 
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const int ng, const amrex::Real mult_factor);
+    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
 
     void hybrid_sync(amrex::MultiFab& state);
 #endif
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
@@ -659,12 +659,6 @@ protected:
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif
-
-    //
-    // Non-hydro source terms.
-    //
-    amrex::MultiFab old_sources;
-    amrex::MultiFab new_sources;
 
     //
     // State data to hold if we want to do a retry.
