@@ -10,9 +10,9 @@ using namespace amrex;
 void
 Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt)
 {
+    AMREX_ASSERT(source.nGrow() >= state.nGrow());
 
-  MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, 0);
-
+    MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, state.nGrow());
 }
 
 void
