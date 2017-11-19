@@ -3363,7 +3363,6 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
     AmrLevel::FillPatch(*this,S,ng,time,State_Type,0,NUM_STATE);
 
     clean_state(S);
-
 }
 
 
