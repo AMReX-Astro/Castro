@@ -3356,15 +3356,13 @@ Castro::build_interior_boundary_mask (int ng)
 // Fill a version of the state with ng ghost zones from the state data.
 
 void
-Castro::expand_state(MultiFab& S, Real time, int ng, bool do_clean)
+Castro::expand_state(MultiFab& S, Real time, int ng)
 {
     BL_ASSERT(S.nGrow() >= ng);
 
     AmrLevel::FillPatch(*this,S,ng,time,State_Type,0,NUM_STATE);
 
-    if (do_clean)
-        clean_state(S);
-
+    clean_state(S);
 }
 
 

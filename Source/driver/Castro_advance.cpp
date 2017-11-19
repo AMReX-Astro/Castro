@@ -255,8 +255,7 @@ Castro::do_advance (Real time,
       // since the hydro source only works on the valid zones.
 
       if (S_new.nGrow() > 0) {
-          bool do_clean = false;
-          expand_state(S_new, cur_time, S_new.nGrow(), do_clean);
+          expand_state(S_new, cur_time, S_new.nGrow());
       }
 
     } else if (do_ctu) {
@@ -269,8 +268,7 @@ Castro::do_advance (Real time,
       // since the hydro source only works on the valid zones.
 
       if (S_new.nGrow() > 0) {
-          bool do_clean = false;
-          expand_state(S_new, cur_time, S_new.nGrow(), do_clean);
+          expand_state(S_new, cur_time, S_new.nGrow());
       }
 
       // Check for NaN's.
