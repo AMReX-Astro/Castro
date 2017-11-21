@@ -12,6 +12,8 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 
     update_sponge_params(&time);
 
+    MultiFab& old_sources = get_old_data(Source_Type);
+
     const Real *dx = geom.CellSize();
 
     const Real mult_factor = 1.0;
@@ -38,6 +40,8 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     if (!do_sponge) return;
 

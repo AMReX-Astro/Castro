@@ -303,6 +303,13 @@ Castro::read_params ()
       }
 #endif
 
+#ifdef HYBRID_MOMENTUM
+    // We do not support hybrid advection when using the HLLC solver.
+
+    if (riemann_solver == 2) {
+        amrex::Abort("HLLC Riemann solver unsupported when using hybrid momentum.");
+    }
+#endif
 
 
     // sanity checks
@@ -489,8 +496,8 @@ Castro::Castro (Amr&            papa,
 
    // Initialize source term data to zero.
 
-   MultiFab& dSdt_new = get_new_data(Source_Type);
-   dSdt_new.setVal(0.0);
+   MultiFab& sources_new = get_new_data(Source_Type);
+   sources_new.setVal(0.0, NUM_GROW);
 
 #ifdef REACTIONS
 
@@ -504,14 +511,14 @@ Castro::Castro (Amr&            papa,
 #ifdef SDC
    // Initialize old and new source terms to zero.
 
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0);
+   MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
+   sdc_sources_new.setVal(0.0, NUM_GROW);
 
    // Initialize reactions source term to zero.
 
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0);
+   react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
 
@@ -712,11 +719,6 @@ Castro::initMFs()
 
     if (do_reflux && update_sources_after_reflux) {
 
-	// These arrays hold all source terms that update the state.
-
-        old_sources.define(grids, dmap, NUM_STATE, NUM_GROW);
-        new_sources.define(grids, dmap, NUM_STATE, get_new_data(State_Type).nGrow());
-
 	// This array holds the hydrodynamics update.
 
 	hydro_source.define(grids,dmap,NUM_STATE,0);
@@ -860,10 +862,10 @@ Castro::initData ()
 
 #ifdef SDC
    MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0);
+   sources_new.setVal(0.0, NUM_GROW);
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
-   react_src_new.setVal(0.0);
+   react_src_new.setVal(0.0, NUM_GROW);
 #endif
 #endif
 
@@ -975,8 +977,8 @@ Castro::initData ()
     phi_new.setVal(0.);
 #endif
 
-    MultiFab& dSdt_new = get_new_data(Source_Type);
-    dSdt_new.setVal(0.);
+    MultiFab& source_new = get_new_data(Source_Type);
+    source_new.setVal(0., NUM_GROW);
 
 #ifdef ROTATION
     MultiFab& rot_new = get_new_data(Rotation_Type);
@@ -2485,7 +2487,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
 
-            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).new_sources, -dt);
+            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
@@ -3358,7 +3360,6 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
     AmrLevel::FillPatch(*this,S,ng,time,State_Type,0,NUM_STATE);
 
     clean_state(S);
-
 }
 
 

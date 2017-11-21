@@ -6,19 +6,19 @@ using namespace amrex;
 void
 Castro::construct_old_ext_source(Real time, Real dt)
 {
-    int ng = Sborder.nGrow();
-
     if (!add_ext_src) return;
 
-    MultiFab src(grids, dmap, NUM_STATE, ng);
+    MultiFab& old_sources = get_old_data(Source_Type);
+
+    MultiFab src(grids, dmap, NUM_STATE, 0);
 
     src.setVal(0.0);
 
-    fill_ext_source(time, dt, Sborder, Sborder, src, ng);
+    fill_ext_source(time, dt, Sborder, Sborder, src);
 
     Real mult_factor = 1.0;
 
-    MultiFab::Saxpy(old_sources, mult_factor, src, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(old_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
 }
 
 
@@ -29,11 +29,11 @@ Castro::construct_new_ext_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = 0;
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     if (!add_ext_src) return;
 
-    MultiFab src(grids, dmap, NUM_STATE, ng);
+    MultiFab src(grids, dmap, NUM_STATE, 0);
 
     src.setVal(0.0);
 
@@ -42,9 +42,9 @@ Castro::construct_new_ext_source(Real time, Real dt)
     Real old_time = time - dt;
     Real mult_factor = -0.5;
 
-    fill_ext_source(old_time, dt, S_old, S_old, src, ng);
+    fill_ext_source(old_time, dt, S_old, S_old, src);
 
-    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
 
     // Time center with the new data.
 
@@ -52,16 +52,16 @@ Castro::construct_new_ext_source(Real time, Real dt)
 
     mult_factor = 0.5;
 
-    fill_ext_source(time, dt, S_old, S_new, src, ng);
+    fill_ext_source(time, dt, S_old, S_new, src);
 
-    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
 
 }
 
 
 
 void
-Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src, int ng)
+Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src)
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
@@ -72,7 +72,7 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
     for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
     {
 
-        const Box& bx = mfi.growntilebox(ng);
+        const Box& bx = mfi.tilebox();
 
 #ifdef DIMENSION_AGNOSTIC
         BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)

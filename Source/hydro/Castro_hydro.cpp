@@ -20,48 +20,11 @@ Castro::construct_hydro_source(Real time, Real dt)
     hydro_source.setVal(0.0);
 
     // Set up the source terms to go into the hydro.
+    // Note that we are doing an add here, not a copy,
+    // in case we have already started with some source
+    // terms (e.g. the source term predictor, or the SDC source).
 
-    sources_for_hydro.setVal(0.0);
-
-    MultiFab::Add(sources_for_hydro, old_sources, 0, 0, NUM_STATE, NUM_GROW);
-
-    sources_for_hydro.FillBoundary(geom.periodicity());
-
-#ifndef SDC
-    // Optionally we can predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n.
-
-    if (source_term_predictor == 1) {
-
-      MultiFab& dSdt_new = get_new_data(Source_Type);
-
-      dSdt_new.FillBoundary(geom.periodicity());
-
-      MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, dSdt_new, 0, 0, NUM_STATE, NUM_GROW);
-
-    }
-#else
-    // If we're doing SDC, time-center the source term (using the
-    // current iteration's old sources and the last iteration's new
-    // sources). Since the "new-time" sources are just the corrector step
-    // of the predictor-corrector formalism, we want to add the full
-    // value of the "new-time" sources to the old-time sources to get a
-    // time-centered value.
-
-    MultiFab& SDC_source = get_new_data(SDC_Source_Type);
-
-    MultiFab::Add(sources_for_hydro, SDC_source, 0, 0, NUM_STATE, 0);
-
-    sources_for_hydro.FillBoundary(geom.periodicity());
-#ifdef REACTIONS
-    // Make sure that we have valid data on the ghost zones of the reactions source.
-
-    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
-    SDC_react_source.FillBoundary(geom.periodicity());
-#endif
-#endif
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     int finest_level = parent->finestLevel();
 
@@ -69,6 +32,12 @@ Castro::construct_hydro_source(Real time, Real dt)
     Real courno    = -1.0e+200;
 
     MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef SDC
+#ifdef REACTIONS
+    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
+#endif
+#endif
 
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
@@ -381,7 +350,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   sources_for_hydro.setVal(0.0);
 
-  MultiFab::Add(sources_for_hydro, old_sources, 0, 0, NUM_STATE, 0);
+  AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
   int finest_level = parent->finestLevel();
 
