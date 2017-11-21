@@ -2827,64 +2827,61 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
-    for (int j = 0; j < err_list.size(); j++)
-    {
-        auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
+    auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
 
-        BL_ASSERT(mf);
+    BL_ASSERT(mf);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	{
-	    Vector<int>  itags;
+    {
+        Vector<int>  itags;
 
-	    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
-	    {
-		// FABs
-		FArrayBox&  datfab  = (*mf)[mfi];
-		TagBox&     tagfab  = tags[mfi];
+        for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+        {
+            // FABs
+            FArrayBox&  datfab  = (*mf)[mfi];
+            TagBox&     tagfab  = tags[mfi];
 
-		// tile box
-		const Box&  tilebx  = mfi.tilebox();
+            // tile box
+            const Box&  tilebx  = mfi.tilebox();
 
-		// physical tile box
-		const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
+            // physical tile box
+            const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
 
-		//fab box
-		const Box&  datbox  = datfab.box();
+            //fab box
+            const Box&  datbox  = datfab.box();
 
-		// We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-		// So we are going to get a temporary integer array.
-		tagfab.get_itags(itags, tilebx);
+            // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+            // So we are going to get a temporary integer array.
+            tagfab.get_itags(itags, tilebx);
 
-		// data pointer and index space
-		int*        tptr    = itags.dataPtr();
-		const int*  tlo     = tilebx.loVect();
-		const int*  thi     = tilebx.hiVect();
-		//
-		const int*  lo      = tlo;
-		const int*  hi      = thi;
-		//
-		const Real* xlo     = pbx.lo();
-		//
-		Real*       dat     = datfab.dataPtr();
-		const int*  dlo     = datbox.loVect();
-		const int*  dhi     = datbox.hiVect();
-		const int   ncomp   = datfab.nComp();
+            // data pointer and index space
+            int*        tptr    = itags.dataPtr();
+            const int*  tlo     = tilebx.loVect();
+            const int*  thi     = tilebx.hiVect();
+            //
+            const int*  lo      = tlo;
+            const int*  hi      = thi;
+            //
+            const Real* xlo     = pbx.lo();
+            //
+            Real*       dat     = datfab.dataPtr();
+            const int*  dlo     = datbox.loVect();
+            const int*  dhi     = datbox.hiVect();
+            const int   ncomp   = datfab.nComp();
 
-		err_list[j].errFunc()(tptr, tlo, thi, &tagval,
-				      &clearval, dat, dlo, dhi,
-				      lo,hi, &ncomp, domain_lo, domain_hi,
-				      dx, xlo, prob_lo, &time, &level);
-		//
-		// Now update the tags in the TagBox.
-		//
-                tagfab.tags_and_untags(itags, tilebx);
-	    }
-	}
-
+            err_list[j].errFunc()(tptr, tlo, thi, &tagval,
+                                  &clearval, dat, dlo, dhi,
+                                  lo,hi, &ncomp, domain_lo, domain_hi,
+                                  dx, xlo, prob_lo, &time, &level);
+            //
+            // Now update the tags in the TagBox.
+            //
+            tagfab.tags_and_untags(itags, tilebx);
+        }
     }
+
 }
 
 
