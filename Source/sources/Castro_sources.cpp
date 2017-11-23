@@ -414,19 +414,37 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     int ng = 0;
 
-    // Carries the contribution of all non-reacting source terms.
-
-    MultiFab A(grids, dmap, NUM_STATE, ng);
-
-    sum_of_sources(A);
-
-    // Compute the state that has effectively only been updated with advection.
+    // Compute the state that has effectively only been updated with non-reacting source terms.
     // U* = U_old + dt A
     // where A = -div U + S_hydro
-    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
 
-    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
-    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
+    // Our technique to do this is to subtract the old- and new-time burn states.
+    // To do this we need to account for the changes to the species, the internal
+    // energy, and the total energy (the latter of which have the same change).
+    // This requires a little care because the reactions state data carries the
+    // change in X, not the change in (rho X). So the order of operations that
+    // follows is a little unintuitive, but it works. First we'll subtract off
+    // all of the changes from the reactions; at the end, we'll add the new state.
+
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
+    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
+    S_noreact.setVal(0.0, ng);
+
+    for (int i = 0; i < NumSpec; ++i) {
+        MultiFab::AddProduct(S_noreact, S_old, Density, R_old, i, FirstSpec + i, 1, ng);
+        MultiFab::AddProduct(S_noreact, S_new, Density, R_new, i, FirstSpec + i, 1, ng);
+    }
+    S_noreact.mult(-0.5 * dt);
+
+    MultiFab::Saxpy(S_noreact, -0.5 * dt, R_old, NumSpec+1, Eden, 1, ng);
+    MultiFab::Saxpy(S_noreact, -0.5 * dt, R_old, NumSpec+1, Eint, 1, ng);
+
+    MultiFab::Saxpy(S_noreact, -0.5 * dt, R_new, NumSpec+1, Eden, 1, ng);
+    MultiFab::Saxpy(S_noreact, -0.5 * dt, R_new, NumSpec+1, Eint, 1, ng);
+
+    MultiFab::Add(S_noreact, S_new, 0, 0, NUM_STATE, ng);
 
     clean_state(S_noreact);
 
