@@ -1811,7 +1811,7 @@ Castro::check_for_post_regrid (Real time)
 
 	// Globally collate the tags.
 
-	std::vector<IntVect> tvec;
+	Vector<IntVect> tvec;
 
 	tags.collate(tvec);
 
