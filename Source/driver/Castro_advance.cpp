@@ -424,17 +424,6 @@ void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
-#ifdef SDC
-    // The new sources are broken into types (ext, diff, hybrid, grav,
-    // ...) via an enum.  For SDC, store the sum of the new_sources
-    // over these different physics types in the state data -- that's
-    // what hydro really cares about.
-
-    MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
-    MultiFab& sources_new = get_new_data(Source_Type);
-    MultiFab::Copy(SDC_source_new, sources_new, 0, 0, NUM_STATE, sources_new.nGrow());
-#endif
-
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
 	MultiFab& Er_old = get_old_data(Rad_Type);
@@ -578,7 +567,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // value of the "new-time" sources to the old-time sources to get a
     // time-centered value.
 
-    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, SDC_Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
 #endif
 
@@ -595,8 +584,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	// don't want to allocate memory for it.
 
 #ifdef SDC
-	if (k == SDC_Source_Type)
-	    state[k].swapTimeLevels(0.0);
 #ifdef REACTIONS
 	if (k == SDC_React_Type)
 	    state[k].swapTimeLevels(0.0);
@@ -933,8 +920,6 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             for (int k = 0; k < num_state_type; k++) {
 
 #ifdef SDC
-                if (k == SDC_Source_Type)
-                    state[k].swapTimeLevels(0.0);
 #ifdef REACTIONS
                 if (k == SDC_React_Type)
                     state[k].swapTimeLevels(0.0);

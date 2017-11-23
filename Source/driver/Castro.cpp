@@ -509,14 +509,9 @@ Castro::Castro (Amr&            papa,
 #endif
 
 #ifdef SDC
-   // Initialize old and new source terms to zero.
-
-   MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
-   sdc_sources_new.setVal(0.0, NUM_GROW);
-
+#ifdef REACTIONS
    // Initialize reactions source term to zero.
 
-#ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
 #endif
@@ -861,8 +856,6 @@ Castro::initData ()
 #endif
 
 #ifdef SDC
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
@@ -2550,7 +2543,6 @@ Castro::avgDown ()
 #endif
 
 #ifdef SDC
-  avgDown(SDC_Source_Type);
 #ifdef REACTIONS
   avgDown(SDC_React_Type);
 #endif
