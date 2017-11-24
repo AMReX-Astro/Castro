@@ -50,10 +50,11 @@
 
        if (problem == 3 .and. relaxation_damping_timescale > ZERO) then
 
-          ! Note that we are applying this update implicitly. This helps
-          ! avoid numerical problems if the relaxation_damping_timescale
-          ! is shorter than the timestep. For further information, see
-          ! see Source/sources/sponge_nd.F90.
+          ! Note that we are applying this update implicitly. The implicit and
+          ! explicit methods agree in the limit where the damping timescale is
+          ! much larger than dt, but the implicit method helps avoid numerical
+          ! problems when the damping timescale is shorter than the timestep.
+          ! For further information, see Source/sources/sponge_nd.F90.
 
           damping_factor = -(ONE - ONE / (ONE + dt / relaxation_damping_timescale)) / dt
 
@@ -93,7 +94,9 @@
 
           radial_damping_timescale = radial_damping_factor * dynamical_timescale
 
-          damping_factor = ONE / radial_damping_timescale
+          ! Use an implicit damping, with the same logic as the damping.
+
+          damping_factor = -(ONE - ONE / (ONE + dt / radial_damping_timescale)) / dt
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
@@ -116,12 +119,12 @@
                    ! in approximate dynamical equilibrium at all times before significant mass
                    ! transfer begins. So, if we write the force as
                    ! d(v_rad) / dt = -|v_phi| / tau,
-                   ! where tau is the timescale and |v_phi| is the magnitude of the azimuthal velocity,
-                   ! tau = radial_damping_factor * dynamical_timescale,
-                   ! where radial_damping_factor should be much greater than unity.
+                   ! where tau = radial_damping_factor * dynamical_timescale is the timescale
+                   ! and |v_phi| is the magnitude of the azimuthal velocity, then
+                   ! radial_damping_factor should be much greater than unity.
 
-                   Sr(axis_1) = -cosTheta * abs(v_rad) * damping_factor
-                   Sr(axis_2) = -sinTheta * abs(v_rad) * damping_factor
+                   Sr(axis_1) = cosTheta * abs(v_rad) * damping_factor
+                   Sr(axis_2) = sinTheta * abs(v_rad) * damping_factor
                    Sr(axis_3) = ZERO
 
                    src(i,j,k,UMX:UMZ) = src(i,j,k,UMX:UMZ) + Sr
