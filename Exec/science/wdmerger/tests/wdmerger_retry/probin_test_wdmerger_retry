@@ -19,7 +19,6 @@
 
   relaxation_damping_timescale = -1.0d0
   relaxation_density_cutoff = 1.0d3
-  relaxation_implicit = F
 
   radial_damping_factor = -1.0d2
   initial_radial_velocity_factor = -1.0d-3

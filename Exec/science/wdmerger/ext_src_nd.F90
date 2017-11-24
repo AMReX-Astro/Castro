@@ -8,7 +8,7 @@
        use prob_params_module,  only: center
        use bl_constants_module, only: ZERO, HALF, ONE, TWO
        use probdata_module,     only: problem, relaxation_damping_timescale, radial_damping_factor, &
-                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3, relaxation_implicit
+                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3
        use castro_util_module,  only: position
        use wdmerger_util_module, only: inertial_velocity
 #ifdef HYBRID_MOMENTUM
@@ -50,14 +50,12 @@
 
        if (problem == 3 .and. relaxation_damping_timescale > ZERO) then
 
-          ! For the logic explaining implicit versus explicit,
-          ! see Castro/Source/Src_nd/sponge_nd.F90.
+          ! Note that we are applying this update implicitly. This helps
+          ! avoid numerical problems if the relaxation_damping_timescale
+          ! is shorter than the timestep. For further information, see
+          ! see Source/sources/sponge_nd.F90.
 
-          if (relaxation_implicit) then
-             damping_factor = -(ONE - ONE / (ONE + dt / relaxation_damping_timescale)) / dt
-          else
-             damping_factor = -ONE / relaxation_damping_timescale
-          endif
+          damping_factor = -(ONE - ONE / (ONE + dt / relaxation_damping_timescale)) / dt
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
