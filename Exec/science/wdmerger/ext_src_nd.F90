@@ -7,7 +7,7 @@
        use meth_params_module,  only: NVAR, URHO, UMX, UMZ, UEDEN
        use prob_params_module,  only: center
        use bl_constants_module, only: ZERO, HALF, ONE, TWO
-       use probdata_module,     only: problem, relaxation_damping_timescale, radial_damping_factor, &
+       use probdata_module,     only: problem, relaxation_damping_factor, radial_damping_factor, &
                                       t_ff_P, t_ff_S, axis_1, axis_2, axis_3
        use castro_util_module,  only: position
        use wdmerger_util_module, only: inertial_velocity
@@ -29,7 +29,7 @@
 
        ! Local variables
 
-       double precision :: radial_damping_timescale
+       double precision :: relaxation_damping_timescale, radial_damping_timescale
        double precision :: dynamical_timescale, damping_factor
        double precision :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
        integer          :: i, j, k
@@ -40,15 +40,22 @@
 
        src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
-       ! The relevant dynamical timescale for determining our source term timescales should be
-       ! the larger of the two WD timescales. Generally this should be the secondary, but we'll
-       ! be careful just in case.
-
-       dynamical_timescale = max(t_ff_P, t_ff_S)
-
        ! First do any relaxation source terms.
 
-       if (problem == 3 .and. relaxation_damping_timescale > ZERO) then
+       if (problem == 3 .and. relaxation_damping_factor > ZERO) then
+
+          ! The relevant dynamical timescale for determining this source term timescale should be
+          ! the smaller of the two WD timescales. Generally this should be the primary, but we'll
+          ! be careful just in case.
+
+          dynamical_timescale = min(t_ff_P, t_ff_S)
+
+          ! The relaxation damping factor should be less than unity, so that the damping
+          ! timescale is less than the dynamical timescale. This ensures that the stars
+          ! are always responding to the damping with quasistatic motion; if the stars
+          ! could respond too quickly, they might expand and make contact too early.
+
+          relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale
 
           ! Note that we are applying this update implicitly. The implicit and
           ! explicit methods agree in the limit where the damping timescale is
@@ -91,6 +98,10 @@
        ! Now do the radial drift source terms.
 
        if (problem == 3 .and. radial_damping_factor > ZERO) then
+
+          ! For this source term, the relevant dynamical timescale is the larger of the two.
+
+          dynamical_timescale = max(t_ff_P, t_ff_S)
 
           radial_damping_timescale = radial_damping_factor * dynamical_timescale
 
