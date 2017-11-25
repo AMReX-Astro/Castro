@@ -529,32 +529,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifndef SDC
 
-    // Optionally predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term.
+    // Add the source term predictor.
     // This must happen before the swap.
-    // Note that if the old data doesn't exist yet (e.g. it is
-    // the first step of the simulation) FillPatch will just
-    // return the new data, so this is a valid operation and
-    // the result will be zero, so there is no source term
-    // prediction in the first step.
 
     if (source_term_predictor == 1) {
 
-        const Real old_time = get_state_data(Source_Type).prevTime();
-        const Real new_time = get_state_data(Source_Type).curTime();
-
-        const Real dt_old = new_time - old_time;
-
-        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
-
-        sources_for_hydro.negate(NUM_GROW);
-
-        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
-
-        sources_for_hydro.mult((0.5 * dt) / dt_old, NUM_GROW);
+        apply_source_term_predictor(time, dt);
 
     }
 
@@ -803,6 +783,16 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	}
 
+        // Reset the source term predictor.
+
+        sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+        if (source_term_predictor == 1)
+            apply_source_term_predictor(time, dt_subcycle);
+#endif
+
+
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
 	    material_lost_through_boundary_temp[i] = 0.0;
@@ -916,6 +906,16 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         // to entering this routine.
 
         if (sub_iteration > 1) {
+
+            // Reset the source term predictor.
+            // This must come before the swap.
+
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+            if (source_term_predictor == 1)
+                apply_source_term_predictor(subcycle_time, dt_advance);
+#endif
 
             for (int k = 0; k < num_state_type; k++) {
 

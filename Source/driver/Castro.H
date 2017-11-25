@@ -473,6 +473,8 @@ public:
 
     void computeTemp (amrex::MultiFab& State);
 
+    void apply_source_term_predictor(const Real time, const Real dt);
+
 #ifdef DIFFUSION
     void construct_old_diff_source(amrex::Real time, amrex::Real dt);
     void construct_new_diff_source(amrex::Real time, amrex::Real dt);
