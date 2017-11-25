@@ -19,13 +19,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     hydro_source.setVal(0.0);
 
-    // Set up the source terms to go into the hydro.
-    // Note that we are doing an add here, not a copy,
-    // in case we have already started with some source
-    // terms (e.g. the source term predictor, or the SDC source).
-
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
     int finest_level = parent->finestLevel();
 
     const Real *dx = geom.CellSize();
