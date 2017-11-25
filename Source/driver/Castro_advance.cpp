@@ -228,7 +228,7 @@ Castro::do_advance (Real time,
     if (do_hydro)
     {
       // Construct the primitive variables.
-      cons_to_prim();
+      cons_to_prim(time);
 
       // Check for CFL violations.
       check_for_cfl_violation(dt);
@@ -520,6 +520,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef RADIATION
     if (do_radiation)
         radiation->pre_timestep(level);
+
+    Erborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
+    lamborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
 #endif
 
 #ifdef SELF_GRAVITY
@@ -711,6 +714,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     q.clear();
     qaux.clear();
     src_q.clear();
+
+#ifdef RADIATION
+    Erborder.clear();
+    lamborder.clear();
+#endif
 
     sources_for_hydro.clear();
 

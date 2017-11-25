@@ -248,7 +248,7 @@ public:
 
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-    void cons_to_prim();
+    void cons_to_prim(const amrex::Real time);
 
     void check_for_cfl_violation(const amrex::Real dt);
 
@@ -610,6 +610,11 @@ protected:
     // A state array with ghost zones.
     //
     amrex::MultiFab Sborder;
+
+#ifdef RADIATION
+    amrex::MultiFab Erborder;
+    amrex::MultiFab lamborder;
+#endif
 
     //
     // A state array for the post burn state to be used in MOL integration
