@@ -509,14 +509,9 @@ Castro::Castro (Amr&            papa,
 #endif
 
 #ifdef SDC
-   // Initialize old and new source terms to zero.
-
-   MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
-   sdc_sources_new.setVal(0.0, NUM_GROW);
-
+#ifdef REACTIONS
    // Initialize reactions source term to zero.
 
-#ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
 #endif
@@ -861,8 +856,6 @@ Castro::initData ()
 #endif
 
 #ifdef SDC
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
@@ -2550,7 +2543,6 @@ Castro::avgDown ()
 #endif
 
 #ifdef SDC
-  avgDown(SDC_Source_Type);
 #ifdef REACTIONS
   avgDown(SDC_React_Type);
 #endif
@@ -3076,6 +3068,40 @@ Castro::computeTemp(MultiFab& State)
 #endif
     }
 }
+
+
+
+void
+Castro::apply_source_term_predictor(const Real time, const Real dt)
+{
+
+    // Optionally predict the source terms to t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+    // terms later; now we add the second term.
+
+    // Note that if the old data doesn't exist yet (e.g. it is
+    // the first step of the simulation) FillPatch will just
+    // return the new data, so this is a valid operation and
+    // the result will be zero, so there is no source term
+    // prediction in the first step.
+
+    const Real old_time = get_state_data(Source_Type).prevTime();
+    const Real new_time = get_state_data(Source_Type).curTime();
+
+    const Real dt_old = new_time - old_time;
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
+
+    sources_for_hydro.negate(NUM_GROW);
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
+
+    sources_for_hydro.mult((0.5 * dt) / dt_old, NUM_GROW);
+
+}
+
 
 
 #ifdef SELF_GRAVITY

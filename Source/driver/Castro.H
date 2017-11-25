@@ -40,7 +40,6 @@ enum StateType { State_Type = 0,
                  Reactions_Type,
 #endif
 #ifdef SDC
-		 SDC_Source_Type,
 #ifdef REACTIONS
 		 SDC_React_Type
 #endif
@@ -473,6 +472,8 @@ public:
     void reset_internal_energy (amrex::MultiFab& State);
 
     void computeTemp (amrex::MultiFab& State);
+
+    void apply_source_term_predictor(const Real time, const Real dt);
 
 #ifdef DIFFUSION
     void construct_old_diff_source(amrex::Real time, amrex::Real dt);
