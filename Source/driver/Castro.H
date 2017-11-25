@@ -473,7 +473,7 @@ public:
 
     void computeTemp (amrex::MultiFab& State);
 
-    void apply_source_term_predictor(const Real time, const Real dt);
+    void apply_source_term_predictor();
 
     void swap_state_time_levels (const Real dt);
 

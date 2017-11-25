@@ -373,6 +373,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #endif
 #endif
 
+    // Scale the source term predictor by the current timestep.
+
+#ifndef SDC
+    if (source_term_predictor == 1) {
+        sources_for_hydro.mult(0.5 * dt, NUM_GROW);
+    }
+#endif
+
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
@@ -546,7 +554,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     if (source_term_predictor == 1) {
 
-        apply_source_term_predictor(time, dt);
+        apply_source_term_predictor();
 
     }
 
@@ -802,7 +810,7 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
                 for (int k = 0; k < num_state_type; k++)
                     state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
 
-                apply_source_term_predictor(time, dt_subcycle);
+                apply_source_term_predictor();
 
                 swap_state_time_levels(0.0);
 
@@ -936,7 +944,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
 #ifndef SDC
             if (source_term_predictor == 1)
-                apply_source_term_predictor(subcycle_time, dt_advance);
+                apply_source_term_predictor();
 #endif
 
             swap_state_time_levels(0.0);

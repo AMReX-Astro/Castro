@@ -3072,14 +3072,17 @@ Castro::computeTemp(MultiFab& State)
 
 
 void
-Castro::apply_source_term_predictor(const Real time, const Real dt)
+Castro::apply_source_term_predictor()
 {
 
     // Optionally predict the source terms to t + dt/2,
     // which is the time-level n+1/2 value, To do this we use a
     // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
     // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term.
+    // terms later; now we add the second term. We defer the
+    // multiplication by dt / 2 to initialize_do_advance since
+    // for a retry we may not yet know at this point what the
+    // advance timestep is.
 
     // Note that if the old data doesn't exist yet (e.g. it is
     // the first step of the simulation) FillPatch will just
@@ -3098,7 +3101,7 @@ Castro::apply_source_term_predictor(const Real time, const Real dt)
 
     AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
 
-    sources_for_hydro.mult((0.5 * dt) / dt_old, NUM_GROW);
+    sources_for_hydro.mult(1.0 / dt_old, NUM_GROW);
 
 }
 
