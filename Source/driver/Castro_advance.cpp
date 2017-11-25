@@ -921,7 +921,8 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             sources_for_hydro.setVal(0.0, NUM_GROW);
 
 #ifndef SDC
-            apply_source_term_predictor(subcycle_time, dt_advance);
+            if (source_term_predictor == 1)
+                apply_source_term_predictor(subcycle_time, dt_advance);
 #endif
 
         }
