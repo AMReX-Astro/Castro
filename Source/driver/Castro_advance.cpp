@@ -227,6 +227,12 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
+      // Construct the primitive variables.
+      cons_to_prim();
+
+      // Check for CFL violations.
+      check_for_cfl_violation(dt);
+
       if (do_ctu) {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
@@ -634,6 +640,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 
 
+    // Allocate space for the primitive variables.
+
+#ifdef RADIATION
+    q.define(grids, dmap, QRADVAR, NUM_GROW);
+#else
+    q.define(grids, dmap, QVAR, NUM_GROW);
+#endif
+
+    qaux.define(grids, dmap, NQAUX, NUM_GROW);
+
+    src_q.define(grids, dmap, QVAR, NUM_GROW);
+
+
+
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method
       // of lines, and need storage for hte intermediate stages
@@ -706,6 +726,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	hydro_source.clear();
 
     }
+
+    q.clear();
+    qaux.clear();
+    src_q.clear();
 
     sources_for_hydro.clear();
 

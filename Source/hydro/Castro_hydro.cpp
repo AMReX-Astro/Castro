@@ -29,7 +29,9 @@ Castro::construct_hydro_source(Real time, Real dt)
     int finest_level = parent->finestLevel();
 
     const Real *dx = geom.CellSize();
-    Real courno    = -1.0e+200;
+
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -71,83 +73,6 @@ Castro::construct_hydro_source(Real time, Real dt)
     Real zang_lost       = 0.;
 
     BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
-
-#ifdef RADIATION
-  MultiFab q(grids, dmap, QRADVAR, NUM_GROW);
-#else
-  MultiFab q(grids, dmap, QVAR, NUM_GROW);
-#endif
-
-  MultiFab qaux(grids, dmap, NQAUX, NUM_GROW);
-
-  MultiFab src_q(grids, dmap, QVAR, NUM_GROW);
-
-  const int* domain_lo = geom.Domain().loVect();
-  const int* domain_hi = geom.Domain().hiVect();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      const Box& qbx = mfi.growntilebox(NUM_GROW);
-      const int idx = mfi.tileIndex();
-
-      // Convert the conservative state to the primitive variable state.
-      // This fills both q and qaux.
-
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-#ifdef RADIATION
-                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(lamborder[mfi]),
-#endif
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                 &idx);
-
-      // Convert the source terms expressed as sources to the conserved state to those
-      // expressed as sources for the primitive state.
-
-      ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
-		   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                   BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                   &idx);
-
-      
-#ifndef RADIATION
-
-	  // Add in the reactions source term; only done in SDC.
-
-#ifdef SDC
-#ifdef REACTIONS
-	  if (do_react)
-	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
-#endif
-#endif
-#endif
-      
-  }
-
-
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(max:courno)
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      const Box& bx = mfi.tilebox();
-
-      ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
-                     BL_TO_FORTRAN_ANYD(q[mfi]),
-                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                     &dt, dx, &courno);
-
-  }
-
-
 
 #ifdef _OPENMP
 #ifdef RADIATION
@@ -338,12 +263,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       }
 #endif
 
-    if (courno > 1.0) {
-	std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-	if (hard_cfl_limit == 1)
-	  amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
-    }
-
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << std::endl << "... Leaving hydro advance" << std::endl << std::endl;
 
@@ -380,7 +299,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
   int finest_level = parent->finestLevel();
 
   const Real *dx = geom.CellSize();
-  Real courno    = -1.0e+200;
 
   MultiFab& S_new = get_new_data(State_Type);
 
@@ -409,63 +327,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
-#ifdef RADIATION
-  MultiFab q(grids, dmap, QRADVAR, NUM_GROW);
-#else
-  MultiFab q(grids, dmap, QVAR, NUM_GROW);
-#endif
-
-  MultiFab qaux(grids, dmap, NQAUX, NUM_GROW);
-
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      const Box& qbx = mfi.growntilebox(NUM_GROW);
-      const int idx = mfi.tileIndex();
-
-      // Convert the conservative state to the primitive variable state.
-      // This fills both q and qaux.
-
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
-                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(lamborder[mfi]),
-#endif
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                 &idx);
-
-  }
-
-
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(max:courno)
-#endif
-  for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      const Box& bx = mfi.tilebox();
-
-      ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
-                     BL_TO_FORTRAN_ANYD(q[mfi]),
-                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                     &dt, dx, &courno);
-
-  }
-
-
-
-#ifdef _OPENMP
-#ifdef RADIATION
-#pragma omp parallel reduction(max:courno, max:nstep_fsp)
-#else
-#pragma omp parallel reduction(max:courno)
+#pragma omp parallel reduction(max:nstep_fsp)
 #endif
 #endif
   {
@@ -597,11 +464,96 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
     }
 
+}
 
-  if (courno > 1.0) {
-    std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-    if (hard_cfl_limit == 1)
-      amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
-  }
+
+
+void
+Castro::cons_to_prim()
+{
+
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+        const Box& qbx = mfi.growntilebox(NUM_GROW);
+        const int idx = mfi.tileIndex();
+
+        // Convert the conservative state to the primitive variable state.
+        // This fills both q and qaux.
+
+        ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+#ifdef RADIATION
+                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+#endif
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                   &idx);
+
+        // Convert the source terms expressed as sources to the conserved state to those
+        // expressed as sources for the primitive state.
+
+        ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
+                     BL_TO_FORTRAN_ANYD(q[mfi]),
+                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                     BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
+                     BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                     &idx);
+
+#ifndef RADIATION
+
+        // Add in the reactions source term; only done in SDC.
+
+#ifdef SDC
+#ifdef REACTIONS
+        if (do_react)
+	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
+#endif
+#endif
+#endif
+      
+    }
+
+}
+
+
+
+void
+Castro::check_for_cfl_violation(const Real dt)
+{
+
+    Real courno = -1.0e+200;
+
+    const Real *dx = geom.CellSize();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(max:courno)
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.tilebox();
+
+        ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       &dt, dx, &courno);
+
+    }
+
+    if (courno > 1.0) {
+        std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+        if (hard_cfl_limit == 1)
+            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+    }
 
 }
