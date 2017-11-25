@@ -17,10 +17,10 @@ public:
                       amrex::MultiFab*             area);
 
   void applyop(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
-               amrex::MultiFab& DiffTerm, amrex::Array<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
+               amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
 
   void applyViscOp(int level,amrex::MultiFab& Vel, amrex::MultiFab& CrseVel,
-                   amrex::MultiFab& ViscTerm, amrex::Array<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
+                   amrex::MultiFab& ViscTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
 
   void make_mg_bc();
 
@@ -36,17 +36,17 @@ protected:
   // Pointers to amr,amrlevel.
   //
   amrex::Amr*             parent;
-  amrex::Array<amrex::AmrLevel*> LevelData;
+  amrex::Vector<amrex::AmrLevel*> LevelData;
 
   //
   // BoxArray at each level
   //
-  amrex::Array<amrex::BoxArray> grids;
+  amrex::Vector<amrex::BoxArray> grids;
   //
   // Volume and area fractions.
   //
-  amrex::Array<amrex::MultiFab*> volume;
-  amrex::Array<amrex::MultiFab*> area;
+  amrex::Vector<amrex::MultiFab*> volume;
+  amrex::Vector<amrex::MultiFab*> area;
 
   int mg_bc[2*BL_SPACEDIM];
 
@@ -57,7 +57,7 @@ protected:
   static int   stencil_type;
 
 #if (BL_SPACEDIM < 3)
-  void applyMetricTerms(int level,amrex::MultiFab& Rhs, amrex::Array<std::unique_ptr<amrex::MultiFab> >& coeffs);
+  void applyMetricTerms(int level,amrex::MultiFab& Rhs, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& coeffs);
   void   weight_cc(int level,amrex::MultiFab& cc);
   void unweight_cc(int level,amrex::MultiFab& cc);
 #endif

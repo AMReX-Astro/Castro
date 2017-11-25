@@ -209,13 +209,13 @@ contains
        do n = 1, NQ
           call ppm_reconstruct(q(:,n), q_lo, q_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
           
           call ppm_int_profile(q(:,n), q_lo, q_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                               sxm, sxp, q_lo, q_hi, &
                                Ip(:,:,n), Im(:,:,n), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        enddo
@@ -257,13 +257,13 @@ contains
        if (ppm_temp_fix /= 1) then
           call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
                                flatn, q_lo, q_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &  ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
 
           call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
-                               sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &   ! extras are dummy
+                               sxm, sxp, q_lo, q_hi, &
                                Ip_gc(:,:,1), Im_gc(:,:,1), I_lo, I_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
        endif
@@ -272,13 +272,13 @@ contains
           do n = 1, QVAR
              call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
                                   flatn, q_lo, q_hi, &
-                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                                  sxm, sxp, q_lo, q_hi, &
                                   ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
              
              call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
                                   q(:,QU), q_lo, q_hi, &
                                   qaux(:,QC), qa_lo, qa_hi, &
-                                  sxm, sxp, sxm, sxp, sxm, sxp, q_lo, q_hi, &
+                                  sxm, sxp, q_lo, q_hi, &
                                   Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
                                   ilo, 0, ihi, 0, [dx, ZERO, ZERO], dt, 0, 0)
           enddo
@@ -327,15 +327,16 @@ contains
     end if
 
     ! Solve Riemann problem, compute xflux from improved predicted states
-    call cmpflx(lo, hi, domlo, domhi, &
-                qm, qp, qp_lo, qp_hi, &
+    call cmpflx(qm, qp, qp_lo, qp_hi, &
                 flux, fd_lo, fd_hi, &
                 q1, q1_lo, q1_hi, &
 #ifdef RADIATION
                 rflux, rfd_lo,rfd_hi, &
 #endif
                 qaux, qa_lo, qa_hi, &
-                ilo, ihi)
+                shk, shk_lo, shk_hi, &
+                1, ilo, ihi+1, 0, 0, 0, 0, 0, &
+                [domlo(1), 0, 0], [domhi(1), 0, 0])
 
     deallocate (qm,qp)
 

@@ -24,10 +24,5 @@ ca_f90EXE_sources += problem_derive_nd.f90
 ca_f90EXE_sources += Problem.f90
 
 ifneq ($(DIMENSION_AGNOSTIC), TRUE)
-  ifeq ($(DIM), 1)
-    ca_F90EXE_sources += bc_ext_fill_1d.F90
-  endif
-  ifeq ($(DIM), 2)
-    ca_F90EXE_sources += bc_ext_fill_2d.F90
-  endif
+    ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
 endif

@@ -48,11 +48,12 @@ using namespace amrex;
 // 3: A ReactHeader file was generated and the maximum de/dt was stored there
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
 // 5: SDC_Source_Type and SDC_React_Type added to checkpoint
+// 6: SDC_Source_Type removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 5;
+    int current_version = 6;
 }
 
 // I/O routines for Castro
@@ -82,7 +83,31 @@ Castro::restart (Amr&     papa,
    	}
   	ParallelDescriptor::Bcast(&input_version, 1, ParallelDescriptor::IOProcessorNumber());
     }
- 
+
+    // Check if there's a file in the header indicating that the
+    // previous timestep was limited to hit a plot interval. If so,
+    // read in the value, so that the timestep after this restart is
+    // limited appropriately.
+
+    if (ParallelDescriptor::IOProcessor()) {
+
+        std::ifstream dtHeaderFile;
+        std::string FullPathdtHeaderFile = papa.theRestartFile();
+        FullPathdtHeaderFile += "/dtHeader";
+        dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::in);
+
+        if (dtHeaderFile.good()) {
+
+            lastDtPlotLimited = 1;
+            dtHeaderFile >> lastDtBeforePlotLimiting;
+
+        }
+
+    }
+
+    ParallelDescriptor::Bcast(&lastDtPlotLimited, 1, ParallelDescriptor::IOProcessorNumber());
+    ParallelDescriptor::Bcast(&lastDtBeforePlotLimiting, 1, ParallelDescriptor::IOProcessorNumber());
+
     BL_ASSERT(input_version >= 0);
  
     // also need to mod checkPoint function to store the new version in a text file
@@ -106,8 +131,8 @@ Castro::restart (Amr&     papa,
 #endif
 
 #ifdef SDC
-    if (input_version < 5) { // old checkpoint without SDC_Source_Type
-      state[SDC_Source_Type].restart(desc_lst[SDC_Source_Type], state[State_Type]);
+    if (input_version < 6) { // old checkpoint with SDC_Source_Type
+        amrex::Abort("Cannot restart from this checkpoint when using SDC.");
     }
 #ifdef REACTIONS
     if (input_version < 5) { // old checkpoint without SDC_React_Type
@@ -261,7 +286,7 @@ Castro::restart (Amr&     papa,
 
 	int len = dir.size();
 
-	Array<int> int_dir_name(len);
+	Vector<int> int_dir_name(len);
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
@@ -436,7 +461,7 @@ Castro::restart (Amr&     papa,
 }
 
 void
-Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
+Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
 {
   for (int i=0; i<num_state_type; ++i)
     state_in_checkpoint[i] = 1;
@@ -459,10 +484,6 @@ Castro::set_state_in_checkpoint (Array<int>& state_in_checkpoint)
     }
 #endif
 #ifdef SDC
-    if (input_version < 5 && i == SDC_Source_Type) {
-      // We are reading an old checkpoint with no SDC_Source_Type
-      state_in_checkpoint[i] = 0;
-    }
 #ifdef REACTIONS
     if (input_version < 5 && i == SDC_React_Type) {
       // We are reading an old checkpoint with no SDC_React_Type
@@ -503,6 +524,23 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile.close();
 	}
 
+        // If we have limited this last timestep to hit a plot interval,
+        // store the timestep we took before limiting. After the restart,
+        // this dt will be read in and used to limit the next timestep
+        // appropriately, rather than the shortened timestep.
+
+        if (lastDtPlotLimited == 1) {
+
+            std::ofstream dtHeaderFile;
+            std::string FullPathdtHeaderFile = dir;
+            FullPathdtHeaderFile += "/dtHeader";
+            dtHeaderFile.open(FullPathdtHeaderFile.c_str(), std::ios::out);
+
+            dtHeaderFile << lastDtBeforePlotLimiting << std::endl;
+            dtHeaderFile.close();
+
+        }
+
 	{
 	    // store elapsed CPU time
 	    std::ofstream CPUFile;
@@ -537,7 +575,7 @@ Castro::checkPoint(const std::string& dir,
 
 	    int len = dir.size();
 
-	    Array<int> int_dir_name(len);
+	    Vector<int> int_dir_name(len);
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
@@ -585,8 +623,6 @@ Castro::setPlotVariables ()
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
 #ifdef SDC
-  for (int i = 0; i < desc_lst[SDC_Source_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[SDC_Source_Type].name(i));
 #ifdef REACTIONS
   for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
@@ -611,7 +647,7 @@ Castro::setPlotVariables ()
 	  for (int i = 0; i < NumSpec; i++)
           {
               int len = 20;
-              Array<int> int_spec_names(len);
+              Vector<int> int_spec_names(len);
               //
               // This call return the actual length of each string in "len"
               //
@@ -766,7 +802,7 @@ Castro::writeJobInfo (const std::string& dir)
     }
 
   jobInfoFile << " Boundary conditions\n";
-  Array<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+  Vector<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
   ParmParse pp("castro");
   pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
   pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
@@ -814,7 +850,7 @@ Castro::writeJobInfo (const std::string& dir)
     {
 
       int len = mlen;
-      Array<int> int_spec_names(len);
+      Vector<int> int_spec_names(len);
       //
       // This call return the actual length of each string in "len"
       //

@@ -232,7 +232,7 @@ Castro::variableSetUp ()
   std::string gravity_type = "none";
   pp.query("gravity_type", gravity_type);
   const int gravity_type_length = gravity_type.length();
-  Array<int> gravity_type_name(gravity_type_length);
+  Vector<int> gravity_type_name(gravity_type_length);
 
   for (int i = 0; i < gravity_type_length; i++)
     gravity_type_name[i] = gravity_type[i];
@@ -264,7 +264,7 @@ Castro::variableSetUp ()
   const int coord_type = Geometry::Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
-  Array<Real> center(BL_SPACEDIM, 0.0);
+  Vector<Real> center(BL_SPACEDIM, 0.0);
   ParmParse ppc("castro");
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
@@ -276,7 +276,7 @@ Castro::variableSetUp ()
   // and store them in the Fortran module.
 
   const int probin_file_length = probin_file.length();
-  Array<int> probin_file_name(probin_file_length);
+  Vector<int> probin_file_name(probin_file_length);
 
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
@@ -347,7 +347,7 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-  // Source terms. Currently this holds dS/dt for each of the NVAR state variables.
+  // Source terms.
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
@@ -379,16 +379,9 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  // For SDC we want to store the source terms.
-
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
-
-  // We also want to store the reactions source.
-
 #ifdef REACTIONS
+  // For SDC, we want to store the reactions source.
+
   store_in_checkpoint = true;
   desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,QVAR,
@@ -396,8 +389,8 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  Array<BCRec>       bcs(NUM_STATE);
-  Array<std::string> name(NUM_STATE);
+  Vector<BCRec>       bcs(NUM_STATE);
+  Vector<std::string> name(NUM_STATE);
 
   BCRec bc;
   cnt = 0;
@@ -425,7 +418,7 @@ Castro::variableSetUp ()
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
     int len = 20;
-    Array<int> int_spec_names(len);
+    Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
     char char_spec_names[len+1];
@@ -455,7 +448,7 @@ Castro::variableSetUp ()
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
     int len = 20;
-    Array<int> int_aux_names(len);
+    Vector<int> int_aux_names(len);
     // This call return the actual length of each string in "len"
     ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
     char char_aux_names[len+1];
@@ -515,12 +508,25 @@ Castro::variableSetUp ()
 
   // Source term array will use standard hyperbolic fill.
 
-  Array<std::string> state_type_source_names(NUM_STATE);
+  Vector<BCRec> source_bcs(NUM_STATE);
+  Vector<std::string> state_type_source_names(NUM_STATE);
 
-  for (int i = 0; i < NUM_STATE; i++)
+  for (int i = 0; i < NUM_STATE; ++i) {
     state_type_source_names[i] = name[i] + "_source";
+    source_bcs[i] = bcs[i];
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,bcs,
+    // Replace inflow BCs with FOEXTRAP.
+
+    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+        if (source_bcs[i].lo(j) == EXT_DIR)
+            source_bcs[i].setLo(j, FOEXTRAP);
+
+        if (source_bcs[i].hi(j) == EXT_DIR)
+            source_bcs[i].setHi(j, FOEXTRAP);
+    }
+  }
+
+  desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
                         BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 
 #ifdef REACTIONS
@@ -536,15 +542,22 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  for (int i = 0; i < NUM_STATE; ++i)
-      state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];
       sprintf(buf, "sdc_react_source_%d", i);
       set_scalar_bc(bc,phys_bc);
+
+      // Replace inflow BCs with FOEXTRAP.
+
+      for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+          if (bc.lo(j) == EXT_DIR)
+              bc.setLo(j, FOEXTRAP);
+
+          if (bc.hi(j) == EXT_DIR)
+              bc.setHi(j, FOEXTRAP);
+      }
+
       desc_lst.setComponent(SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
   }
 #endif
@@ -941,6 +954,7 @@ Castro::variableSetUp ()
 #ifdef ROTATION
   source_names[rot_src] = "rotation";
 #endif
+
 
 
   // method of lines Butcher tableau

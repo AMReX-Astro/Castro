@@ -96,3 +96,27 @@ hydro and gravity:
        adsurl = {http://adsabs.harvard.edu/abs/2016ApJ...819...94K},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
+
+
+For performance numbers, please cite:
+
+
+    @ARTICLE{2017arXiv171106203Z,
+       author = {{Zingale}, M. and {Almgren}, A.~S. and {Barrios Sazo}, M.~G. and 
+            {Beckner}, V.~E. and {Bell}, J.~B. and {Friesen}, B. and {Jacobs}, A.~M. and 
+            {Katz}, M.~P. and {Malone}, C.~M. and {Nonaka}, A.~J. and {Willcox}, D.~E. and 
+            {Zhang}, W.},
+        title = "{Meeting the Challenges of Modeling Astrophysical Thermonuclear Explosions: Castro, Maestro, and the AMReX Astrophysics Suite}",
+      journal = {ArXiv e-prints},
+    archivePrefix = "arXiv",
+       eprint = {1711.06203},
+     primaryClass = "astro-ph.IM",
+     keywords = {Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2017,
+        month = nov,
+       adsurl = {http://adsabs.harvard.edu/abs/2017arXiv171106203Z},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
+
+
+

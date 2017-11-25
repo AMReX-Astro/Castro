@@ -1,13 +1,14 @@
 module bc_ext_fill_module
 
   use bl_constants_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-                                 UEDEN, UEINT, UFS, UTEMP, const_grav, &
-                                 hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                 xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, &
+                                UEDEN, UEINT, UFS, UTEMP, const_grav, &
+                                hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
+                                xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
   use interpolate_module
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_filcc_module, only: filccn
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   include 'AMReX_bc_types.fi'
@@ -28,27 +29,26 @@ contains
                       domlo, domhi, delta, xlo, time, bc) &
                       bind(C, name="ext_fill")
 
-    use prob_params_module, only : problo
+    use prob_params_module, only: problo
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module
 
-    use amrex_fort_module, only : rt => amrex_real
-    integer adv_l1, adv_l2, adv_h1, adv_h2
-    integer bc(2,2,*)
-    integer domlo(2), domhi(2)
-    real(rt)         delta(2), xlo(2), time
-    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer,  intent(in   ) :: bc(2,2,NVAR)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer i, j, q, n, iter, m
-    real(rt)         y
-    real(rt)         :: dens_above, dens_base, temp_above
-    real(rt)         :: pres_above, p_want, pres_zone, A
-    real(rt)         :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
+    integer  :: i, j, q, n, iter, m
+    real(rt) :: y
+    real(rt) :: dens_above, dens_base, temp_above
+    real(rt) :: pres_above, p_want, pres_zone, A
+    real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
-    integer, parameter :: MAX_ITER = 100
-    real(rt)        , parameter :: TOL = 1.e-8_rt
+    integer,  parameter :: MAX_ITER = 100
+    real(rt), parameter :: TOL = 1.e-8_rt
     logical :: converged_hse
 
     type (eos_t) :: eos_state
@@ -351,20 +351,26 @@ contains
                          domlo,domhi,delta,xlo,time,bc) &
                          bind(C, name="ext_denfill")
 
-    use prob_params_module, only : problo
+    use prob_params_module, only: problo
     use interpolate_module
     use model_parser_module
     use bl_error_module
 
-    use amrex_fort_module, only : rt => amrex_real
-    integer adv_l1,adv_l2,adv_h1,adv_h2
-    integer bc(2,2,*)
-    integer domlo(2), domhi(2)
-    real(rt)         delta(2), xlo(2), time
-    real(rt)         adv(adv_l1:adv_h1,adv_l2:adv_h2)
+    implicit none
 
-    integer i,j
-    real(rt)         y
+    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer,  intent(in   ) :: bc(2,2)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2)
+
+    integer  :: i, j
+    real(rt) :: y
+
+    integer :: adv_lo(3), adv_hi(3)
+
+    adv_lo = [adv_l1, adv_l2, 0]
+    adv_hi = [adv_h1, adv_h2, 0]
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
@@ -372,20 +378,20 @@ contains
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-    call filcc(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,bc)
+    call filccn(adv_lo, adv_hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
     ! XLO
-    if ( bc(1,1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
+    if ( bc(1,1) == EXT_DIR .and. adv_l1 < domlo(1)) then
        call bl_error("We shoundn't be here (xlo denfill)")
     end if
 
     ! XHI
-    if ( bc(1,2,1) == EXT_DIR .and. adv_h1 > domhi(1)) then
+    if ( bc(1,2) == EXT_DIR .and. adv_h1 > domhi(1)) then
        call bl_error("We shoundn't be here (xlo denfill)")
     endif
 
     ! YLO
-    if ( bc(2,1,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
+    if ( bc(2,1) == EXT_DIR .and. adv_l2 < domlo(2)) then
        do j = adv_l2, domlo(2)-1
           y = problo(2) + delta(2)*(dble(j) + HALF)
           do i = adv_l1, adv_h1
@@ -395,7 +401,7 @@ contains
     end if
 
     ! YHI
-    if ( bc(2,2,1) == EXT_DIR .and. adv_h2 > domhi(2)) then
+    if ( bc(2,2) == EXT_DIR .and. adv_h2 > domhi(2)) then
        do j = domhi(2)+1, adv_h2
           y = problo(2) + delta(2)*(dble(j)+ HALF)
           do i = adv_l1, adv_h1

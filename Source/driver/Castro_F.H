@@ -34,8 +34,6 @@ extern "C"
 
   void ca_get_nqaux(int* nqaux);
 
-  void ca_set_special_tagging_flag(const amrex::Real& max_den, const int* flag);
-
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
 		       const amrex::Real& time, const amrex::Real& dt);
 
@@ -141,7 +139,8 @@ extern "C"
   void ca_hybrid_hydro_source
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources));
+     BL_FORT_FAB_ARG_3D(sources),
+     const amrex::Real mult_factor);
 
   void ca_hybrid_update
     (const int* lo, const int* hi,
@@ -593,8 +592,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt,
-     const amrex::Real* time, const amrex::Real mult_factor);
+     const amrex::Real* dx, const amrex::Real dt,
+     const amrex::Real time, const amrex::Real mult_factor);
 
   void update_sponge_params(const amrex::Real* time);
 #endif

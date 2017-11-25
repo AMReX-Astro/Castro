@@ -7,13 +7,12 @@ using namespace amrex;
 void
 Castro::construct_old_sponge_source(Real time, Real dt)
 {
-    int ng = Sborder.nGrow();
-
-    old_sources[sponge_src]->setVal(0.0);
 
     if (!do_sponge) return;
 
     update_sponge_params(&time);
+
+    MultiFab& old_sources = get_old_data(Source_Type);
 
     const Real *dx = geom.CellSize();
 
@@ -28,9 +27,9 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		  BL_TO_FORTRAN_3D(Sborder[mfi]),
-		  BL_TO_FORTRAN_3D((*old_sources[sponge_src])[mfi]),
+		  BL_TO_FORTRAN_3D(old_sources[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
-		  ZFILL(dx), dt, &time, mult_factor);
+		  ZFILL(dx), dt, time, mult_factor);
 
     }
 
@@ -42,9 +41,7 @@ Castro::construct_new_sponge_source(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    int ng = 0;
-
-    new_sources[sponge_src]->setVal(0.0);
+    MultiFab& new_sources = get_new_data(Source_Type);
 
     if (!do_sponge) return;
 
@@ -60,15 +57,15 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
     {
-	const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.tilebox();
 
-	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+        ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_old[mfi]),
-		  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
-		  BL_TO_FORTRAN_3D(volume[mfi]),
-		  ZFILL(dx), dt, &time, mult_factor_old);
+                  BL_TO_FORTRAN_3D(new_sources[mfi]),
+                  BL_TO_FORTRAN_3D(volume[mfi]),
+                  ZFILL(dx), dt, time, mult_factor_old);
 
     }
 
@@ -86,9 +83,9 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_new[mfi]),
-		  BL_TO_FORTRAN_3D((*new_sources[sponge_src])[mfi]),
+		  BL_TO_FORTRAN_3D(new_sources[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
-		  ZFILL(dx), dt, &time, mult_factor_new);
+		  ZFILL(dx), dt, time, mult_factor_new);
 
     }
 

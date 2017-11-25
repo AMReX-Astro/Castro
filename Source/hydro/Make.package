@@ -16,10 +16,9 @@ ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_nd.F90
 ca_F90EXE_sources += trace_ppm_nd.F90
 
-ca_F90EXE_sources += Castro_ctu_$(DIM)d.F90 
-ca_F90EXE_sources += Castro_mol_$(DIM)d.F90 
+ca_F90EXE_sources += Castro_ctu_$(DIM)d.F90
+ca_F90EXE_sources += Castro_mol_nd.F90
 ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
-ca_F90EXE_sources += riemann_$(DIM)d.F90 
 
 ifeq ($(DIM), 2)
   ca_F90EXE_sources += trans_$(DIM)d.F90

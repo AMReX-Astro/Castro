@@ -16,7 +16,7 @@ public:
   virtual void setBndryFluxConds(const amrex::BCRec& bc,
 		       const BC_Mode phys_bc_mode = Inhomogeneous_BC) = 0;
 
-  const amrex::Array< std::unique_ptr<amrex::BaseFab<int> > >& bndryTypes(const amrex::Orientation& _face) const {
+  const amrex::Vector< std::unique_ptr<amrex::BaseFab<int> > >& bndryTypes(const amrex::Orientation& _face) const {
     return bctypearray[_face];
   }
 
@@ -26,7 +26,7 @@ public:
 
 protected:
   // If used, these arrays must be built/deleted by a derived class:
-  amrex::Array< std::unique_ptr<amrex::BaseFab<int> > > bctypearray[2*BL_SPACEDIM];
+  amrex::Vector< std::unique_ptr<amrex::BaseFab<int> > > bctypearray[2*BL_SPACEDIM];
 
 private:
   NGBndry(const NGBndry& src);

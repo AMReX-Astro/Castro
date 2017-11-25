@@ -146,6 +146,16 @@ architecture.  This is done as:
 module swap craype-{haswell,mic-knl}
 \end{verbatim}
 
+It could happen that even when the various verbosities are set to 0, when using several nodes (more than 64) in a run compiled with Intel, the follwing error shows:
+\begin{verbatim}
+"forrtl: severe (40): recursive I/O operation, unit -1, file unknown"
+\end{verbatim}
+
+Seems like the error is due to all threads printing to stdout. Adding the following to the inputs file, prevents this error to occur:
+\begin{verbatim}
+castro.print_fortran_warnings = 0
+\end{verbatim}
+
 
 \subsection{Hypre and radiation}
 

@@ -19,7 +19,14 @@ contains
 
   subroutine ppm_reconstruct(s, s_lo, s_hi, &
                              flatn, f_lo, f_hi, &
-                             sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                             sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                             sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                             szm, szp, &
+#endif
+                             sd_lo, sd_hi, &
                              ilo1, ilo2, ihi1, ihi2, dx, k3d, kc, &
                              force_type_in)
 
@@ -37,10 +44,14 @@ contains
     real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
     real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#if BL_SPACEDIM >= 2
     real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+#if BL_SPACEDIM == 3
     real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
     real(rt)        , intent(in) :: dx(3)
 
     integer, intent(in), optional :: force_type_in
@@ -54,14 +65,28 @@ contains
 
         call ppm_type1(s, s_lo, s_hi, &
                        flatn, f_lo, f_hi, &
-                       sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                       sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                       sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                       szm, szp, &
+#endif
+                       sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
     else if (ppm_type_to_use == 2) then
 
         call ppm_type2(s, s_lo, s_hi, &
                        flatn, f_lo, f_hi, &
-                       sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                       sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                       sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                       szm, szp, &
+#endif
+                       sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
     end if
@@ -74,7 +99,14 @@ contains
 
   subroutine ppm_type1(s, s_lo, s_hi, &
                        flatn, f_lo, f_hi, &
-                       sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                       sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                       sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                       szm, szp, &
+#endif
+                       sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -89,15 +121,19 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
-    real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) :: dx(3)
+    real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
+    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#if BL_SPACEDIM >= 2
+    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+#if BL_SPACEDIM == 3
+    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+    real(rt), intent(in) :: dx(3)
 
     ! local
     integer i,j,k
@@ -367,7 +403,14 @@ contains
 
   subroutine ppm_type2(s, s_lo, s_hi, &
                        flatn, f_lo, f_hi, &
-                       sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                       sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                       sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                       szm, szp, &
+#endif
+                       sd_lo, sd_hi, &
                        ilo1, ilo2, ihi1, ihi2, dx, k3d, kc)
 
     use mempool_module, only : bl_allocate, bl_deallocate
@@ -383,15 +426,19 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    real(rt)        , intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) :: dx(3)
+    real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#if BL_SPACEDIM >= 2
+    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+#if BL_SPACEDIM == 3
+    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+    real(rt), intent(in) :: dx(3)
 
 
     ! local
@@ -788,7 +835,14 @@ contains
   subroutine ppm_int_profile(s, s_lo, s_hi, &
                              u, qd_lo, qd_hi, &
                              cspd, qa_lo, qa_hi, &
-                             sxm, sxp, sym, syp, szm, szp, sd_lo, sd_hi, &
+                             sxm, sxp, &
+#if BL_SPACEDIM >= 2
+                             sym, syp, &
+#endif
+#if BL_SPACEDIM == 3
+                             szm, szp, &
+#endif
+                             sd_lo, sd_hi, &
                              Ip, Im, I_lo, I_hi, &
                              ilo1, ilo2, ihi1, ihi2, dx, dt, k3d, kc)
 
@@ -802,19 +856,23 @@ contains
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: k3d, kc
 
-    real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
-    real(rt)        , intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    real(rt)        , intent(in) ::  cspd(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3))
-    real(rt)        , intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) ::   sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) ::   syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) ::   szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(in) ::   szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
-    real(rt)        , intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3)
-    real(rt)        , intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3)
+    real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3))
+    real(rt), intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
+    real(rt), intent(in) ::  cspd(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3))
+    real(rt), intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#if BL_SPACEDIM >= 2
+    real(rt), intent(in) ::   sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+#if BL_SPACEDIM == 3
+    real(rt), intent(in) ::   szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+#endif
+    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3)
+    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3)
 
-    real(rt)        , intent(in) :: dx(3), dt
+    real(rt), intent(in) :: dx(3), dt
 
 
     ! local

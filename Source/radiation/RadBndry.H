@@ -41,8 +41,8 @@ protected:
   static void init(amrex::Real bv);
 
   static int first;            // only set up bcval once
-  static amrex::Array<int> bcflag;    // 0 = use constant bcval; 1 = use function
-  static amrex::Array<amrex::Real> bcval;    // constant bcval across each face
+  static amrex::Vector<int> bcflag;    // 0 = use constant bcval; 1 = use function
+  static amrex::Vector<amrex::Real> bcval;    // constant bcval across each face
   static amrex::Real time;            // time value passed to bc function
   static int correction;       // ignore bcval when this is set
 };
