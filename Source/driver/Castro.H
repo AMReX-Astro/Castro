@@ -672,6 +672,11 @@ protected:
 #endif
 
     //
+    // Did we trigger a CFL violation?
+    //
+    int cfl_violation;
+
+    //
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
