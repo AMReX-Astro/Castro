@@ -35,12 +35,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-#ifdef SDC
-#ifdef REACTIONS
-    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
-#endif
-#endif
-
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
 
@@ -514,6 +508,8 @@ Castro::cons_to_prim()
 
 #ifdef SDC
 #ifdef REACTIONS
+        MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
+
         if (do_react)
 	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
 #endif
