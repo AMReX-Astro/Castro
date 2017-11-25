@@ -477,6 +477,10 @@ public:
 
     void computeTemp (amrex::MultiFab& State);
 
+    void apply_source_term_predictor();
+
+    void swap_state_time_levels (const Real dt);
+
 #ifdef DIFFUSION
     void construct_old_diff_source(amrex::Real time, amrex::Real dt);
     void construct_new_diff_source(amrex::Real time, amrex::Real dt);
@@ -675,6 +679,13 @@ protected:
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
+
+    //
+    // Save the simulation time of the prev_state.
+    //
+    amrex::Real prev_state_old_time;
+    amrex::Real prev_state_new_time;
+    bool prev_state_had_old_data;
 
     //
     // Storage for the method of lines stages

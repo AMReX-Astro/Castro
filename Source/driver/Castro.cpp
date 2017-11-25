@@ -320,6 +320,16 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
+    // The source term predictor mechanism is currently incompatible with MOL.
+
+    if (!do_ctu && source_term_predictor)
+        amrex::Error("Method of lines integration is incompatible with the source term predictor.");
+
+    // The timestep retry mechanism is currently incompatible with MOL.
+
+    if (!do_ctu && use_retry)
+        amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
+
     // for the moment, ppm_type = 0 does not support ppm_trace_sources --
     // we need to add the momentum sources to the states (and not
     // add it in trans_3d
@@ -3068,6 +3078,73 @@ Castro::computeTemp(MultiFab& State)
 #endif
     }
 }
+
+
+
+void
+Castro::apply_source_term_predictor()
+{
+
+    // Optionally predict the source terms to t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+    // terms later; now we add the second term. We defer the
+    // multiplication by dt / 2 to initialize_do_advance since
+    // for a retry we may not yet know at this point what the
+    // advance timestep is.
+
+    // Note that if the old data doesn't exist yet (e.g. it is
+    // the first step of the simulation) FillPatch will just
+    // return the new data, so this is a valid operation and
+    // the result will be zero, so there is no source term
+    // prediction in the first step.
+
+    const Real old_time = get_state_data(Source_Type).prevTime();
+    const Real new_time = get_state_data(Source_Type).curTime();
+
+    const Real dt_old = new_time - old_time;
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
+
+    sources_for_hydro.negate(NUM_GROW);
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
+
+    sources_for_hydro.mult(1.0 / dt_old, NUM_GROW);
+
+}
+
+
+
+void
+Castro::swap_state_time_levels(const Real dt)
+{
+
+    for (int k = 0; k < num_state_type; k++) {
+
+	// The following is a hack to make sure that we only
+	// ever have new data for certain state types that only
+	// ever need new time data; by doing a swap now, we'll
+	// guarantee that allocOldData() does nothing. We do
+	// this because we never need the old data, so we
+	// don't want to allocate memory for it.
+
+#ifdef SDC
+#ifdef REACTIONS
+        if (k == SDC_React_Type)
+            state[k].swapTimeLevels(0.0);
+#endif
+#endif
+
+        state[k].allocOldData();
+
+        state[k].swapTimeLevels(dt);
+
+    }
+
+}
+
 
 
 #ifdef SELF_GRAVITY
