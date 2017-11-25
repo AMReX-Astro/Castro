@@ -783,6 +783,16 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	}
 
+        // Reset the source term predictor.
+
+        sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+        if (source_term_predictor == 1)
+            apply_source_term_predictor(time, dt_subcycle);
+#endif
+
+
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
 	    material_lost_through_boundary_temp[i] = 0.0;
@@ -897,6 +907,16 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
         if (sub_iteration > 1) {
 
+            // Reset the source term predictor.
+            // This must come before the swap.
+
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+            if (source_term_predictor == 1)
+                apply_source_term_predictor(subcycle_time, dt_advance);
+#endif
+
             for (int k = 0; k < num_state_type; k++) {
 
 #ifdef SDC
@@ -914,15 +934,6 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
             if (do_grav) {
                 gravity->swapTimeLevels(level);
             }
-#endif
-
-            // Reset the source term predictor.
-
-            sources_for_hydro.setVal(0.0, NUM_GROW);
-
-#ifndef SDC
-            if (source_term_predictor == 1)
-                apply_source_term_predictor(subcycle_time, dt_advance);
 #endif
 
         }
