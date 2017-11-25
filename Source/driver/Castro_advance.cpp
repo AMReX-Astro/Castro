@@ -518,6 +518,18 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
+    // If we're going to do a retry, save the simulation times of the
+    // previous state data. This must happen before the swap.
+
+    if (use_retry) {
+
+        prev_state_old_time = get_state_data(State_Type).prevTime();
+        prev_state_new_time = get_state_data(State_Type).curTime();
+
+        prev_state_had_old_data = get_state_data(State_Type).hasOldData();
+
+    }
+
     // This array holds the sum of all source terms that affect the
     // hydrodynamics.  If we are doing the source term predictor,
     // we'll also use this after the hydro update to store the sum of
@@ -554,26 +566,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Swap the new data from the last timestep into the old state data.
 
-    for (int k = 0; k < num_state_type; k++) {
-
-	// The following is a hack to make sure that we only
-	// ever have new data for a few state types that only
-	// ever need new time data; by doing a swap now, we'll
-	// guarantee that allocOldData() does nothing. We do
-	// this because we never need the old data, so we
-	// don't want to allocate memory for it.
-
-#ifdef SDC
-#ifdef REACTIONS
-	if (k == SDC_React_Type)
-	    state[k].swapTimeLevels(0.0);
-#endif
-#endif
-
-	state[k].allocOldData();
-	state[k].swapTimeLevels(dt);
-
-    }
+    swap_state_time_levels(dt);
 
 #ifdef SELF_GRAVITY
     if (do_grav)
@@ -788,8 +781,37 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
         sources_for_hydro.setVal(0.0, NUM_GROW);
 
 #ifndef SDC
-        if (source_term_predictor == 1)
-            apply_source_term_predictor(time, dt_subcycle);
+        if (source_term_predictor == 1) {
+
+            // Normally the source term predictor is done before the swap,
+            // but the prev_state data is saved after the initial swap had
+            // been done. So we will temporarily swap the state data back,
+            // and reset the time levels.
+
+            // Note that unlike the initial application of the source term
+            // predictor before the swap, the old data will have already
+            // been allocated when we get to this point. So we want to skip
+            // this step if we didn't have old data initially.
+
+            if (prev_state_had_old_data) {
+
+                swap_state_time_levels(0.0);
+
+                const Real dt_old = prev_state_new_time - prev_state_old_time;
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
+
+                apply_source_term_predictor(time, dt_subcycle);
+
+                swap_state_time_levels(0.0);
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(time + dt, dt, 0.0);
+
+            }
+
+        }
 #endif
 
 
@@ -917,18 +939,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
                 apply_source_term_predictor(subcycle_time, dt_advance);
 #endif
 
-            for (int k = 0; k < num_state_type; k++) {
-
-#ifdef SDC
-#ifdef REACTIONS
-                if (k == SDC_React_Type)
-                    state[k].swapTimeLevels(0.0);
-#endif
-#endif
-
-                state[k].swapTimeLevels(0.0);
-
-            }
+            swap_state_time_levels(0.0);
 
 #ifdef SELF_GRAVITY
             if (do_grav) {

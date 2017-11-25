@@ -3104,6 +3104,36 @@ Castro::apply_source_term_predictor(const Real time, const Real dt)
 
 
 
+void
+Castro::swap_state_time_levels(const Real dt)
+{
+
+    for (int k = 0; k < num_state_type; k++) {
+
+	// The following is a hack to make sure that we only
+	// ever have new data for certain state types that only
+	// ever need new time data; by doing a swap now, we'll
+	// guarantee that allocOldData() does nothing. We do
+	// this because we never need the old data, so we
+	// don't want to allocate memory for it.
+
+#ifdef SDC
+#ifdef REACTIONS
+        if (k == SDC_React_Type)
+            state[k].swapTimeLevels(0.0);
+#endif
+#endif
+
+        state[k].allocOldData();
+
+        state[k].swapTimeLevels(dt);
+
+    }
+
+}
+
+
+
 #ifdef SELF_GRAVITY
 int
 Castro::get_numpts ()
