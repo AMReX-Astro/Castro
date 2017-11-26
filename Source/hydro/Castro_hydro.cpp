@@ -19,13 +19,6 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     hydro_source.setVal(0.0);
 
-    // Set up the source terms to go into the hydro.
-    // Note that we are doing an add here, not a copy,
-    // in case we have already started with some source
-    // terms (e.g. the source term predictor, or the SDC source).
-
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
     int finest_level = parent->finestLevel();
 
     const Real *dx = geom.CellSize();
@@ -35,28 +28,11 @@ Castro::construct_hydro_source(Real time, Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-#ifdef SDC
-#ifdef REACTIONS
-    MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
-#endif
-#endif
-
 #ifdef RADIATION
     MultiFab& Er_new = get_new_data(Rad_Type);
 
     if (!Radiation::rad_hydro_combined) {
       amrex::Abort("Castro::construct_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
-    }
-
-    FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
-    MultiFab& Erborder = fpi_rad.get_mf();
-
-    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
-    if (radiation->pure_hydro) {
-      lamborder.setVal(0.0, NUM_GROW);
-    }
-    else {
-      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
     }
 
     int nstep_fsp = -1;
@@ -109,6 +85,12 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 	  FArrayBox &source_in  = sources_for_hydro[mfi];
 	  FArrayBox &source_out = hydro_source[mfi];
+
+#ifdef RADIATION
+          FArrayBox &Er = Erborder[mfi];
+          FArrayBox &lam = lamborder[mfi];
+          FArrayBox &Erout = Er_new[mfi];
+#endif
 
 	  // Allocate fabs for fluxes
 	  for (int i = 0; i < BL_SPACEDIM ; i++)  {
@@ -287,15 +269,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     hydro_source.setVal(0.0);
   }
 
-  // Set up the source terms to go into the hydro -- note: the
-  // sources_for_hydro MF has ghost zones, but we don't need them
-  // here, since sources don't explicitly enter into the prediction
-  // for MOL integration
-
-  sources_for_hydro.setVal(0.0);
-
-  AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
   int finest_level = parent->finestLevel();
 
   const Real *dx = geom.CellSize();
@@ -309,17 +282,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   if (!Radiation::rad_hydro_combined) {
     amrex::Abort("Castro::construct_mol_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
-  }
-
-  FillPatchIterator fpi_rad(*this, Er_new, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
-  MultiFab& Erborder = fpi_rad.get_mf();
-
-  MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
-  if (radiation->pure_hydro) {
-    lamborder.setVal(0.0, NUM_GROW);
-  }
-  else {
-    radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
   }
 
   int nstep_fsp = -1;
@@ -469,8 +431,20 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 
 void
-Castro::cons_to_prim()
+Castro::cons_to_prim(const Real time)
 {
+
+#ifdef RADIATION
+    AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+
+    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
+    if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+    }
+    else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+    }
+#endif
 
     const int* domain_lo = geom.Domain().loVect();
     const int* domain_hi = geom.Domain().hiVect();
@@ -514,6 +488,8 @@ Castro::cons_to_prim()
 
 #ifdef SDC
 #ifdef REACTIONS
+        MultiFab& SDC_react_source = get_new_data(SDC_React_Type);
+
         if (do_react)
 	    src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,QVAR);
 #endif
