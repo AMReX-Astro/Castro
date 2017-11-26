@@ -40,7 +40,6 @@ enum StateType { State_Type = 0,
                  Reactions_Type,
 #endif
 #ifdef SDC
-		 SDC_Source_Type,
 #ifdef REACTIONS
 		 SDC_React_Type
 #endif
@@ -248,6 +247,10 @@ public:
     void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+
+    void cons_to_prim(const amrex::Real time);
+
+    void check_for_cfl_violation(const amrex::Real dt);
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
@@ -474,6 +477,10 @@ public:
 
     void computeTemp (amrex::MultiFab& State);
 
+    void apply_source_term_predictor();
+
+    void swap_state_time_levels (const amrex::Real dt);
+
 #ifdef DIFFUSION
     void construct_old_diff_source(amrex::Real time, amrex::Real dt);
     void construct_new_diff_source(amrex::Real time, amrex::Real dt);
@@ -489,13 +496,13 @@ public:
     void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& ViscousTerm);
     void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& ViscousTermforEnergy);
 #endif
-    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
+    void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, amrex::Real mult_factor = 1.0);
 #if (BL_SPACEDIM == 1)
-    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, Real mult_factor = 1.0);
+    void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& DiffTerm, amrex::Real t, int is_old, amrex::Real mult_factor = 1.0);
 #endif
 #if (BL_SPACEDIM == 1)
     void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& ViscousTermforMomentum, 
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, Real mult_factor = 1.0);
+                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #endif
 
@@ -536,7 +543,7 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
@@ -604,10 +611,30 @@ protected:
     //
     amrex::MultiFab Sborder;
 
+#ifdef RADIATION
+    amrex::MultiFab Erborder;
+    amrex::MultiFab lamborder;
+#endif
+
     //
     // A state array for the post burn state to be used in MOL integration
     //
     amrex::MultiFab Sburn;
+
+    //
+    // The primitive variable state array.
+    //
+    amrex::MultiFab q;
+
+    //
+    // The auxiliary primitive variable state array.
+    //
+    amrex::MultiFab qaux;
+
+    //
+    // The source terms in primitive form.
+    //
+    amrex::MultiFab src_q;
 
     //
     // Source terms to the hydrodynamics solve.
@@ -657,6 +684,13 @@ protected:
     // State data to hold if we want to do a retry.
     //
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
+
+    //
+    // Save the simulation time of the prev_state.
+    //
+    amrex::Real prev_state_old_time;
+    amrex::Real prev_state_new_time;
+    bool prev_state_had_old_data;
 
     //
     // Storage for the method of lines stages

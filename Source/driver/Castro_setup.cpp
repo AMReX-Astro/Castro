@@ -379,16 +379,9 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  // For SDC we want to store the source terms.
-
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(SDC_Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
-
-  // We also want to store the reactions source.
-
 #ifdef REACTIONS
+  // For SDC, we want to store the reactions source.
+
   store_in_checkpoint = true;
   desc_lst.addDescriptor(SDC_React_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point,NUM_GROW,QVAR,
@@ -549,10 +542,6 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef SDC
-  for (int i = 0; i < NUM_STATE; ++i)
-      state_type_source_names[i] = "sdc_sources_" + name[i];
-  desc_lst.setComponent(SDC_Source_Type,Density,state_type_source_names,source_bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
 #ifdef REACTIONS
   for (int i = 0; i < QVAR; ++i) {
       char buf[64];

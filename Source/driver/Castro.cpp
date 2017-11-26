@@ -320,6 +320,28 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
+    // The source term predictor mechanism is currently incompatible with MOL.
+
+    if (!do_ctu && source_term_predictor)
+        amrex::Error("Method of lines integration is incompatible with the source term predictor.");
+
+    // The timestep retry mechanism is currently incompatible with MOL.
+
+    if (!do_ctu && use_retry)
+        amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
+
+    // for the moment, ppm_type = 0 does not support ppm_trace_sources --
+    // we need to add the momentum sources to the states (and not
+    // add it in trans_3d
+    if (ppm_type == 0 && ppm_trace_sources == 1)
+      {
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "WARNING: ppm_trace_sources = 1 not implemented for ppm_type = 0" << std::endl;
+	ppm_trace_sources = 0;
+	pp.add("ppm_trace_sources",ppm_trace_sources);
+      }
+
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -497,14 +519,9 @@ Castro::Castro (Amr&            papa,
 #endif
 
 #ifdef SDC
-   // Initialize old and new source terms to zero.
-
-   MultiFab& sdc_sources_new = get_new_data(SDC_Source_Type);
-   sdc_sources_new.setVal(0.0, NUM_GROW);
-
+#ifdef REACTIONS
    // Initialize reactions source term to zero.
 
-#ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
 #endif
@@ -705,14 +722,6 @@ Castro::initMFs()
 
     }
 
-    if (do_reflux && update_sources_after_reflux) {
-
-	// This array holds the hydrodynamics update.
-
-	hydro_source.define(grids,dmap,NUM_STATE,0);
-
-    }
-
     post_step_regrid = 0;
 
 }
@@ -849,8 +858,6 @@ Castro::initData ()
 #endif
 
 #ifdef SDC
-   MultiFab& sources_new = get_new_data(SDC_Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
 #ifdef REACTIONS
    MultiFab& react_src_new = get_new_data(SDC_React_Type);
    react_src_new.setVal(0.0, NUM_GROW);
@@ -1799,7 +1806,7 @@ Castro::check_for_post_regrid (Real time)
 
 	// Globally collate the tags.
 
-	std::vector<IntVect> tvec;
+	Vector<IntVect> tvec;
 
 	tags.collate(tvec);
 
@@ -2318,10 +2325,6 @@ Castro::reflux(int crse_level, int fine_level)
 		temp_fluxes[i].reset();
 	    }
 
-	    // Reflux into the hydro_source array so that we have the most up-to-date version of it.
-
-	    reg->Reflux(crse_lev.hydro_source, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
-
 	}
 
 	// We no longer need the flux register data, so clear it out.
@@ -2358,8 +2361,6 @@ Castro::reflux(int crse_level, int fine_level)
 
 		MultiFab::Add(crse_lev.P_radial, *temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
 		temp_fluxes[0].reset();
-
-                reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    }
 
@@ -2538,7 +2539,6 @@ Castro::avgDown ()
 #endif
 
 #ifdef SDC
-  avgDown(SDC_Source_Type);
 #ifdef REACTIONS
   avgDown(SDC_React_Type);
 #endif
@@ -2815,64 +2815,61 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
-    for (int j = 0; j < err_list.size(); j++)
-    {
-        auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
+    auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
 
-        BL_ASSERT(mf);
+    BL_ASSERT(mf);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	{
-	    Vector<int>  itags;
+    {
+        Vector<int>  itags;
 
-	    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
-	    {
-		// FABs
-		FArrayBox&  datfab  = (*mf)[mfi];
-		TagBox&     tagfab  = tags[mfi];
+        for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+        {
+            // FABs
+            FArrayBox&  datfab  = (*mf)[mfi];
+            TagBox&     tagfab  = tags[mfi];
 
-		// tile box
-		const Box&  tilebx  = mfi.tilebox();
+            // tile box
+            const Box&  tilebx  = mfi.tilebox();
 
-		// physical tile box
-		const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
+            // physical tile box
+            const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
 
-		//fab box
-		const Box&  datbox  = datfab.box();
+            //fab box
+            const Box&  datbox  = datfab.box();
 
-		// We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-		// So we are going to get a temporary integer array.
-		tagfab.get_itags(itags, tilebx);
+            // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
+            // So we are going to get a temporary integer array.
+            tagfab.get_itags(itags, tilebx);
 
-		// data pointer and index space
-		int*        tptr    = itags.dataPtr();
-		const int*  tlo     = tilebx.loVect();
-		const int*  thi     = tilebx.hiVect();
-		//
-		const int*  lo      = tlo;
-		const int*  hi      = thi;
-		//
-		const Real* xlo     = pbx.lo();
-		//
-		Real*       dat     = datfab.dataPtr();
-		const int*  dlo     = datbox.loVect();
-		const int*  dhi     = datbox.hiVect();
-		const int   ncomp   = datfab.nComp();
+            // data pointer and index space
+            int*        tptr    = itags.dataPtr();
+            const int*  tlo     = tilebx.loVect();
+            const int*  thi     = tilebx.hiVect();
+            //
+            const int*  lo      = tlo;
+            const int*  hi      = thi;
+            //
+            const Real* xlo     = pbx.lo();
+            //
+            Real*       dat     = datfab.dataPtr();
+            const int*  dlo     = datbox.loVect();
+            const int*  dhi     = datbox.hiVect();
+            const int   ncomp   = datfab.nComp();
 
-		err_list[j].errFunc()(tptr, tlo, thi, &tagval,
-				      &clearval, dat, dlo, dhi,
-				      lo,hi, &ncomp, domain_lo, domain_hi,
-				      dx, xlo, prob_lo, &time, &level);
-		//
-		// Now update the tags in the TagBox.
-		//
-                tagfab.tags_and_untags(itags, tilebx);
-	    }
-	}
-
+            err_list[j].errFunc()(tptr, tlo, thi, &tagval,
+                                  &clearval, dat, dlo, dhi,
+                                  lo,hi, &ncomp, domain_lo, domain_hi,
+                                  dx, xlo, prob_lo, &time, &level);
+            //
+            // Now update the tags in the TagBox.
+            //
+            tagfab.tags_and_untags(itags, tilebx);
+        }
     }
+
 }
 
 
@@ -3067,6 +3064,76 @@ Castro::computeTemp(MultiFab& State)
 #endif
     }
 }
+
+
+
+void
+Castro::apply_source_term_predictor()
+{
+
+    // Optionally predict the source terms to t + dt/2,
+    // which is the time-level n+1/2 value, To do this we use a
+    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+    // terms later; now we add the second term. We defer the
+    // multiplication by dt / 2 to initialize_do_advance since
+    // for a retry we may not yet know at this point what the
+    // advance timestep is.
+
+    // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+    // we only need to take twice the new-time source term, since in
+    // the predictor-corrector approach, the new-time source term is
+    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+    // non-momentum sources, so for safety we'll only apply it to the
+    // momentum sources.
+
+    // Note that if the old data doesn't exist yet (e.g. it is
+    // the first step of the simulation) FillPatch will just
+    // return the new data, so this is a valid operation and
+    // the result will be zero, so there is no source term
+    // prediction in the first step.
+
+    const Real old_time = get_state_data(Source_Type).prevTime();
+    const Real new_time = get_state_data(Source_Type).curTime();
+
+    const Real dt_old = new_time - old_time;
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, Xmom, 3, Xmom);
+
+    sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
+
+}
+
+
+
+void
+Castro::swap_state_time_levels(const Real dt)
+{
+
+    for (int k = 0; k < num_state_type; k++) {
+
+	// The following is a hack to make sure that we only
+	// ever have new data for certain state types that only
+	// ever need new time data; by doing a swap now, we'll
+	// guarantee that allocOldData() does nothing. We do
+	// this because we never need the old data, so we
+	// don't want to allocate memory for it.
+
+#ifdef SDC
+#ifdef REACTIONS
+        if (k == SDC_React_Type)
+            state[k].swapTimeLevels(0.0);
+#endif
+#endif
+
+        state[k].allocOldData();
+
+        state[k].swapTimeLevels(dt);
+
+    }
+
+}
+
 
 
 #ifdef SELF_GRAVITY
