@@ -3080,6 +3080,13 @@ Castro::apply_source_term_predictor()
     // for a retry we may not yet know at this point what the
     // advance timestep is.
 
+    // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+    // we only need to take twice the new-time source term, since in
+    // the predictor-corrector approach, the new-time source term is
+    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+    // non-momentum sources, so for safety we'll only apply it to the
+    // momentum sources.
+
     // Note that if the old data doesn't exist yet (e.g. it is
     // the first step of the simulation) FillPatch will just
     // return the new data, so this is a valid operation and
@@ -3091,13 +3098,9 @@ Castro::apply_source_term_predictor()
 
     const Real dt_old = new_time - old_time;
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, Xmom, 3, Xmom);
 
-    sources_for_hydro.negate(NUM_GROW);
-
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
-
-    sources_for_hydro.mult(1.0 / dt_old, NUM_GROW);
+    sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
 
 }
 
