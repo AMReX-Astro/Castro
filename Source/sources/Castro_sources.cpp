@@ -103,6 +103,13 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    // Apply them to the sources for the hydro as well.
+    // Note that we are doing an add here, not a copy,
+    // in case we have already started with some source
+    // terms (e.g. the source term predictor, or the SDC source).
+
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
     // Only do this if at least one source term has a non-zero contribution.
 
     bool apply_source = false;

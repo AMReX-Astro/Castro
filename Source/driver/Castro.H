@@ -248,6 +248,10 @@ public:
 
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
+    void cons_to_prim(const amrex::Real time);
+
+    void check_for_cfl_violation(const amrex::Real dt);
+
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
@@ -607,10 +611,30 @@ protected:
     //
     amrex::MultiFab Sborder;
 
+#ifdef RADIATION
+    amrex::MultiFab Erborder;
+    amrex::MultiFab lamborder;
+#endif
+
     //
     // A state array for the post burn state to be used in MOL integration
     //
     amrex::MultiFab Sburn;
+
+    //
+    // The primitive variable state array.
+    //
+    amrex::MultiFab q;
+
+    //
+    // The auxiliary primitive variable state array.
+    //
+    amrex::MultiFab qaux;
+
+    //
+    // The source terms in primitive form.
+    //
+    amrex::MultiFab src_q;
 
     //
     // Source terms to the hydrodynamics solve.
