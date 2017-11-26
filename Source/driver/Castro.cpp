@@ -722,14 +722,6 @@ Castro::initMFs()
 
     }
 
-    if (do_reflux && update_sources_after_reflux) {
-
-	// This array holds the hydrodynamics update.
-
-	hydro_source.define(grids,dmap,NUM_STATE,0);
-
-    }
-
     post_step_regrid = 0;
 
 }
@@ -2333,10 +2325,6 @@ Castro::reflux(int crse_level, int fine_level)
 		temp_fluxes[i].reset();
 	    }
 
-	    // Reflux into the hydro_source array so that we have the most up-to-date version of it.
-
-	    reg->Reflux(crse_lev.hydro_source, crse_lev.volume, 1.0, 0, 0, NUM_STATE, crse_lev.geom);
-
 	}
 
 	// We no longer need the flux register data, so clear it out.
@@ -2373,8 +2361,6 @@ Castro::reflux(int crse_level, int fine_level)
 
 		MultiFab::Add(crse_lev.P_radial, *temp_fluxes[0], 0, 0, crse_lev.P_radial.nComp(), 0);
 		temp_fluxes[0].reset();
-
-                reg->Reflux(crse_lev.hydro_source, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
 
 	    }
 

@@ -614,13 +614,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    if (!(do_reflux && update_sources_after_reflux)) {
+    // This array holds the hydrodynamics update.
 
-      // This array holds the hydrodynamics update.
-
-      hydro_source.define(grids,dmap,NUM_STATE,0);
-
-    }
+    hydro_source.define(grids,dmap,NUM_STATE,0);
 
 
 
@@ -705,11 +701,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     Real cur_time = state[State_Type].curTime();
 
-    if (!(do_reflux && update_sources_after_reflux)) {
-
-	hydro_source.clear();
-
-    }
+    hydro_source.clear();
 
     q.clear();
     qaux.clear();
