@@ -463,6 +463,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     sub_iteration = 0;
     sub_ncycle = 0;
     dt_subcycle = 1.e200;
+    dt_advance = dt;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -931,7 +932,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     Real subcycle_time = time;
     dt_subcycle = dt / sub_ncycle;
-    Real dt_advance = dt_subcycle;
+    dt_advance = dt_subcycle;
 
     Real dt_new = 1.e200;
 

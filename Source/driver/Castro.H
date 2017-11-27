@@ -846,6 +846,7 @@ protected:
     int sub_ncycle;
     bool do_subcycle;
     amrex::Real dt_subcycle;
+    amrex::Real dt_advance;
   
     // sdc
     int sdc_iteration;
