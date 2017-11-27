@@ -2322,6 +2322,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
+                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], Density, 0, 1, 0);
 		temp_fluxes[i].reset();
 	    }
 
@@ -2456,25 +2457,9 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
-#ifdef GRAVITY
-            // Store the updated mass_fluxes for use in the gravity source term.
-
-            getLevel(lev).mass_fluxes.resize(3);
-
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
-                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).getEdgeBoxArray(i), getLevel(lev).dmap, 1, 0));
-                MultiFab::Copy(*getLevel(lev).mass_fluxes[i], *getLevel(lev).fluxes[i], Density, 0, 1, 0);
-            }
-
-            for (int i = BL_SPACEDIM; i < 3; ++i) {
-                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).get_new_data(State_Type).boxArray(), getLevel(lev).dmap, 1, 0));
-                getLevel(lev).mass_fluxes[i]->setVal(0.0);
-            }
-#endif
-
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
-	    Real dt = parent->dtLevel(lev);
+	    Real dt = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
 
             getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt);
 
@@ -2483,7 +2468,38 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    getLevel(lev).clean_state(S_new);
 
+            // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
+            // This is only necessary if we've done a retry on that level.
+
+            if (use_retry && dt < parent->dtLevel(lev)) {
+
+                for (int k = 0; k < num_state_type; k++) {
+
+                    if (getLevel(lev).prev_state[k]->hasOldData())
+                        getLevel(lev).state[k].replaceOldData(*getLevel(lev).prev_state[k]);
+
+                    getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
+                    getLevel(lev).prev_state[k]->setTimeLevel(time, dt, 0.0);
+
+                }
+
+            }
+
 	    getLevel(lev).do_new_sources(time, dt);
+
+            if (use_retry && dt < parent->dtLevel(lev)) {
+
+                for (int k = 0; k < num_state_type; k++) {
+
+                    if (getLevel(lev).prev_state[k]->hasOldData())
+                        getLevel(lev).state[k].replaceOldData(*prev_state[k]);
+
+                    getLevel(lev).state[k].setTimeLevel(time, dt, 0.0);
+                    getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
+
+                }
+
+            }
 
 #ifdef GRAVITY
             // Clear out the mass flux data, we no longer need it.

@@ -715,15 +715,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     sources_for_hydro.clear();
 
-    amrex::FillNull(prev_state);
+//    amrex::FillNull(prev_state);
 
     if (!do_ctu) {
       k_mol.clear();
       Sburn.clear();
     }
 
-    for (int dir = 0; dir < 3; ++dir)
-	mass_fluxes[dir].reset();
+    // for (int dir = 0; dir < 3; ++dir)
+    //     mass_fluxes[dir].reset();
 
 }
 
@@ -1005,14 +1005,25 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     // Finally, copy the original data back to the old state
     // data so that externally it appears like we took only
-    // a single timestep.
+    // a single timestep. We'll do this as a swap so that
+    // we still have the last iteration's old data if we need
+    // it later.
 
     for (int k = 0; k < num_state_type; k++) {
 
         if (prev_state[k]->hasOldData())
-            state[k].copyOld(*prev_state[k]);
+        //     int nc = get_old_data(k).nComp();
+        //     int ng = get_old_data(k).nGrow();
+        //     MultiFab temp(grids, dmap, nc, ng);
+        //     MultiFab::Copy(temp, get_new_data(k), 0, 0, nc, ng);
+        //     MultiFab::Copy(get_new_data(k), prev_state[k]->oldData(), 0, 0, nc, ng);
+        //     MultiFab::Copy(prev_state[k]->oldData(), temp, 0, 0, nc, ng);
+        // }
+//            state[k].copyOld(*prev_state[k]);
+            state[k].replaceOldData(*prev_state[k]);
 
         state[k].setTimeLevel(time + dt, dt, 0.0);
+        prev_state[k]->setTimeLevel(time + dt, dt_advance, 0.0);
 
     }
 

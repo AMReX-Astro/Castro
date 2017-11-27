@@ -348,4 +348,4 @@ fab.format = NATIVE_32
 # than the safe hydrodynamic timestep given the above
 # CFL value. This guarantees that we will retry on
 # all levels, at least in the first timestep.
-castro.fixed_dt = 0.08
+castro.fixed_dt = 0.06
