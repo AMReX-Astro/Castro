@@ -648,6 +648,14 @@ Castro::initMFs()
     for (int dir = BL_SPACEDIM; dir < 3; ++dir)
 	fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
 
+    mass_fluxes.resize(3);
+
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
+	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
@@ -2322,6 +2330,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
+                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], Density, 0, 1, 0);
 		temp_fluxes[i].reset();
 	    }
 
@@ -2456,22 +2465,6 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
-#ifdef GRAVITY
-            // Store the updated mass_fluxes for use in the gravity source term.
-
-            getLevel(lev).mass_fluxes.resize(3);
-
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
-                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).getEdgeBoxArray(i), getLevel(lev).dmap, 1, 0));
-                MultiFab::Copy(*getLevel(lev).mass_fluxes[i], *getLevel(lev).fluxes[i], Density, 0, 1, 0);
-            }
-
-            for (int i = BL_SPACEDIM; i < 3; ++i) {
-                getLevel(lev).mass_fluxes[i].reset(new MultiFab(getLevel(lev).get_new_data(State_Type).boxArray(), getLevel(lev).dmap, 1, 0));
-                getLevel(lev).mass_fluxes[i]->setVal(0.0);
-            }
-#endif
-
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt = parent->dtLevel(lev);
@@ -2484,13 +2477,6 @@ Castro::reflux(int crse_level, int fine_level)
 	    getLevel(lev).clean_state(S_new);
 
 	    getLevel(lev).do_new_sources(time, dt);
-
-#ifdef GRAVITY
-            // Clear out the mass flux data, we no longer need it.
-            for (int i = 0; i < 3; ++i) {
-                getLevel(lev).mass_fluxes[i].reset();
-            }
-#endif
 
 	}
 

@@ -653,6 +653,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int dir = 0; dir < 3; ++dir)
 	fluxes[dir]->setVal(0.0);
 
+    for (int dir = 0; dir < 3; ++dir)
+        mass_fluxes[dir]->setVal(0.0);
+
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
 	P_radial.setVal(0.0);
@@ -663,18 +666,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	    rad_fluxes[dir]->setVal(0.0);
 #endif
-
-    mass_fluxes.resize(3);
-
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
-	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
-        mass_fluxes[dir]->setVal(0.0);
-    }
-
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
-	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
-        mass_fluxes[dir]->setVal(0.0);
-    }
 
 }
 
@@ -721,9 +712,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
-
-    for (int dir = 0; dir < 3; ++dir)
-	mass_fluxes[dir].reset();
 
 }
 
