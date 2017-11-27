@@ -648,6 +648,14 @@ Castro::initMFs()
     for (int dir = BL_SPACEDIM; dir < 3; ++dir)
 	fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
 
+    mass_fluxes.resize(3);
+
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
+	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
@@ -2500,13 +2508,6 @@ Castro::reflux(int crse_level, int fine_level)
                 }
 
             }
-
-#ifdef GRAVITY
-            // Clear out the mass flux data, we no longer need it.
-            for (int i = 0; i < 3; ++i) {
-                getLevel(lev).mass_fluxes[i].reset();
-            }
-#endif
 
 	}
 
