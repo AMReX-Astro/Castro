@@ -1019,7 +1019,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         // reflux immediately following this, skip this if we're on the
         // finest level and this is not the last iteration.
 
-        if (!(amr_iteration == amr_ncycle && level == parent->finestLevel()))
+        if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
             keep_prev_state = true;
 
     }
