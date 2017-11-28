@@ -340,7 +340,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#ifdef RADIATION
+#if defined(RADIATION) || defined(MHD)
   // Radiation should always have at least one ghost zone.
   int ngrow_state = std::max(1, state_nghost);
 #else
