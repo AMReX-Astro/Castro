@@ -2486,7 +2486,14 @@ Castro::reflux(int crse_level, int fine_level)
 
                     if (getLevel(lev).prev_state[k]->hasOldData()) {
 
-                        getLevel(lev).state[k].replaceOldData(*getLevel(lev).prev_state[k]);
+                        // Use the new-time data as a temporary buffer. Ideally this would be done
+                        // as a pointer swap, but we cannot assume that the distribution mapping
+                        // is the same between the current state and the original state, due to
+                        // possible regrids that have occurred in between.
+
+                        MultiFab& old = getLevel(lev).get_old_data(k);
+                        MultiFab::Copy(getLevel(lev).prev_state[k]->newData(), old, 0, 0, old.nComp(), old.nGrow());
+                        MultiFab::Copy(old, getLevel(lev).prev_state[k]->oldData(), 0, 0, old.nComp(), old.nGrow());
 
                         getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
                         getLevel(lev).prev_state[k]->setTimeLevel(time, dt_amr, 0.0);
@@ -2505,7 +2512,10 @@ Castro::reflux(int crse_level, int fine_level)
 
                     if (getLevel(lev).prev_state[k]->hasOldData()) {
 
-                        getLevel(lev).state[k].replaceOldData(*prev_state[k]);
+                        // Now retrieve the original old time data.
+
+                        MultiFab& old = getLevel(lev).get_old_data(k);
+                        MultiFab::Copy(old, getLevel(lev).prev_state[k]->newData(), 0, 0, old.nComp(), old.nGrow());
 
                         getLevel(lev).state[k].setTimeLevel(time, dt_amr, 0.0);
                         getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
@@ -2516,7 +2526,10 @@ Castro::reflux(int crse_level, int fine_level)
 
                 // Now deallocate the old data, it is no longer needed.
 
-                amrex::FillNull(getLevel(lev).prev_state);
+                if (lev == 0 || lev > level) {
+                    amrex::FillNull(getLevel(lev).prev_state);
+                    getLevel(lev).keep_prev_state = false;
+                }
 
             }
 
