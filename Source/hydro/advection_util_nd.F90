@@ -366,32 +366,32 @@ contains
              if (do_ctu == 1) then
                 ! CTU integration constraint
 
-                ! if (courx .gt. ONE) then
-                !    print *,'   '
-                !    call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                !    print *,'>>> ... (u+c) * dt / dx > 1 ', courx
-                !    print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                !    print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
-                !    print *,'>>> ... density             ', q(i,j,k,QRHO)
-                ! end if
+                if (courx .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (u+c) * dt / dx > 1 ', courx
+                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                   print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
 
-                ! if (coury .gt. ONE) then
-                !    print *,'   '
-                !    call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                !    print *,'>>> ... (v+c) * dt / dx > 1 ', coury
-                !    print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                !    print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
-                !    print *,'>>> ... density             ', q(i,j,k,QRHO)
-                ! end if
+                if (coury .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (v+c) * dt / dx > 1 ', coury
+                   print *,'>>> ... at cell (i,j,k)   : ', i,j,k
+                   print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
 
-                ! if (courz .gt. ONE) then
-                !    print *,'   '
-                !    call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
-                !    print *,'>>> ... (w+c) * dt / dx > 1 ', courz
-                !    print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                !    print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
-                !    print *,'>>> ... density             ', q(i,j,k,QRHO)
-                ! end if
+                if (courz .gt. ONE) then
+                   print *,'   '
+                   call bl_warning("Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl")
+                   print *,'>>> ... (w+c) * dt / dx > 1 ', courz
+                   print *,'>>> ... at cell (i,j,k)   : ', i, j, k
+                   print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
+                   print *,'>>> ... density             ', q(i,j,k,QRHO)
+                end if
              else
 
                 ! method-of-lines constraint
