@@ -11,11 +11,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       hydro_source.setVal(0.0);
 
-      for (int n = 0; n < num_src; ++n)
-        MultiFab::Add(sources_for_hydro, *old_sources[n], 0, 0, NUM_STATE, NUM_GROW);
+      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
-      sources_for_hydro.FillBoundary(geom.periodicity());
-  
       const int finest_level = parent->finestLevel();
 
       const Real *dx = geom.CellSize();
