@@ -2467,9 +2467,10 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
-	    Real dt = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
+	    Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
+            Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt);
+            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt_advance);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
@@ -2477,35 +2478,45 @@ Castro::reflux(int crse_level, int fine_level)
 	    getLevel(lev).clean_state(S_new);
 
             // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
-            // This is only necessary if we've done a retry on that level.
+            // This is only necessary if we've done subcycles on that level.
 
-            if (use_retry && dt < parent->dtLevel(lev)) {
+            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
 
                 for (int k = 0; k < num_state_type; k++) {
 
-                    if (getLevel(lev).prev_state[k]->hasOldData())
+                    if (getLevel(lev).prev_state[k]->hasOldData()) {
+
                         getLevel(lev).state[k].replaceOldData(*getLevel(lev).prev_state[k]);
 
-                    getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
-                    getLevel(lev).prev_state[k]->setTimeLevel(time, dt, 0.0);
+                        getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
+                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_amr, 0.0);
+
+                    }
 
                 }
 
             }
 
-	    getLevel(lev).do_new_sources(time, dt);
+	    getLevel(lev).do_new_sources(time, dt_advance);
 
-            if (use_retry && dt < parent->dtLevel(lev)) {
+            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
 
                 for (int k = 0; k < num_state_type; k++) {
 
-                    if (getLevel(lev).prev_state[k]->hasOldData())
+                    if (getLevel(lev).prev_state[k]->hasOldData()) {
+
                         getLevel(lev).state[k].replaceOldData(*prev_state[k]);
 
-                    getLevel(lev).state[k].setTimeLevel(time, dt, 0.0);
-                    getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
+                        getLevel(lev).state[k].setTimeLevel(time, dt_amr, 0.0);
+                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
+
+                    }
 
                 }
+
+                // Now deallocate the old data, it is no longer needed.
+
+                amrex::FillNull(getLevel(lev).prev_state);
 
             }
 

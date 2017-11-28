@@ -693,6 +693,11 @@ protected:
     bool prev_state_had_old_data;
 
     //
+    // Flag for indicating that we want to save prev_state until the reflux.
+    //
+    bool keep_prev_state;
+
+    //
     // Storage for the method of lines stages
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
 
