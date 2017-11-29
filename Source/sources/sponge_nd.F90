@@ -7,6 +7,7 @@ module sponge_module
   real(rt), save :: sponge_lower_factor, sponge_upper_factor
   real(rt), save :: sponge_lower_radius, sponge_upper_radius
   real(rt), save :: sponge_lower_density, sponge_upper_density
+  real(rt), save :: sponge_target_velocity(3)
   real(rt), save :: sponge_timescale
 
   public
@@ -64,7 +65,7 @@ contains
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
 
-             Sr(:) = state(i,j,k,UMX:UMZ) * update_factor(r, rho, dt) * mult_factor / dt
+             Sr(:) = (state(i,j,k,UMX:UMZ) - rho * sponge_target_velocity) * update_factor(r, rho, dt) * mult_factor / dt
 
              src(UMX:UMZ) = Sr(:)
 
