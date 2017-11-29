@@ -1,5 +1,9 @@
 # changes since last release
 
+  -- The sponge can now operate based on pressure. The new parameters belong
+     in the sponge namelist, and are named sponge_lower_pressure and
+     sponge_upper_pressure. It works on the same principle as the density sponge.
+
   -- The sponge can now drive the system to a particular velocity (the default
      is still zero velocity). The new parameters belong in the sponge namelist
      in your probin file, and are named sponge_target_{x,y,z}_velocity.
