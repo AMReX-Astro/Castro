@@ -403,6 +403,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   integer :: iadv, ispec
 
   integer :: QLAST
+  integer :: NTHERM, QTHERM
 
   integer :: i
   integer :: ioproc
@@ -636,11 +637,11 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NTHERM, NVAR) &
+  !$acc device(NVAR) &
   !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QTHERM, QVAR) &
+  !$acc device(QVAR) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &

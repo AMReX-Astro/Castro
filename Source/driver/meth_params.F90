@@ -20,13 +20,13 @@ module meth_params_module
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
-  ! NTHERM: number of thermodynamic variables
-  integer, save :: NTHERM, NVAR
+  ! conservative variables
+  integer, save :: NVAR
   integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, save :: USHK
 
-  ! QTHERM: number of primitive variables
-  integer, save :: QTHERM, QVAR
+  ! primitive variables
+  integer, save :: QVAR
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
@@ -81,12 +81,12 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
-  !$acc create(NTHERM, NVAR) &
+  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QTHERM, QVAR) &
+  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
