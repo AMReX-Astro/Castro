@@ -944,10 +944,18 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
+  real(rt) :: sponge_target_x_velocity
+  real(rt) :: sponge_target_y_velocity
+  real(rt) :: sponge_target_z_velocity
+
   namelist /sponge/ &
        sponge_lower_factor, sponge_upper_factor, &
        sponge_lower_radius, sponge_upper_radius, &
        sponge_lower_density, sponge_upper_density, &
+       sponge_lower_pressure, sponge_upper_pressure, &
+       sponge_target_x_velocity, &
+       sponge_target_y_velocity, &
+       sponge_target_z_velocity, &
        sponge_timescale
 
   ! Set namelist defaults
@@ -960,6 +968,13 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   sponge_lower_density = -1.e0_rt
   sponge_upper_density = -1.e0_rt
+
+  sponge_lower_pressure = -1.e0_rt
+  sponge_upper_pressure = -1.e0_rt
+
+  sponge_target_x_velocity = 0.e0_rt
+  sponge_target_y_velocity = 0.e0_rt
+  sponge_target_z_velocity = 0.e0_rt
 
   sponge_timescale    = -1.e0_rt
 
@@ -987,6 +1002,10 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   endif
 
   close (unit=un)
+
+  sponge_target_velocity = [sponge_target_x_velocity, &
+                            sponge_target_y_velocity, &
+                            sponge_target_z_velocity]
 
   ! Sanity check
 
