@@ -465,6 +465,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     dt_subcycle = 1.e200;
     dt_advance = dt;
 
+    keep_prev_state = false;
+
     if (use_post_step_regrid && level > 0) {
 
 	if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
@@ -706,7 +708,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     sources_for_hydro.clear();
 
-    amrex::FillNull(prev_state);
+    if (!keep_prev_state)
+        amrex::FillNull(prev_state);
 
     if (!do_ctu) {
       k_mol.clear();
@@ -993,14 +996,31 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     // Finally, copy the original data back to the old state
     // data so that externally it appears like we took only
-    // a single timestep.
+    // a single timestep. We'll do this as a swap so that
+    // we still have the last iteration's old data if we need
+    // it later.
 
     for (int k = 0; k < num_state_type; k++) {
 
         if (prev_state[k]->hasOldData())
-            state[k].copyOld(*prev_state[k]);
+            state[k].replaceOldData(*prev_state[k]);
 
         state[k].setTimeLevel(time + dt, dt, 0.0);
+        prev_state[k]->setTimeLevel(time + dt, dt_advance, 0.0);
+
+    }
+
+    // If we took more than one step and are going to do a reflux,
+    // keep the data past the end of the step.
+
+    if (sub_iteration > 2 && do_reflux && update_sources_after_reflux) {
+
+        // Note that since we only want to do this if there's actually a
+        // reflux immediately following this, skip this if we're on the
+        // finest level and this is not the last iteration.
+
+        if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
+            keep_prev_state = true;
 
     }
 

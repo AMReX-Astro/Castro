@@ -2467,16 +2467,71 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
-	    Real dt = parent->dtLevel(lev);
+	    Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
+            Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt);
+            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt_advance);
 
 	    // Make the state data consistent with this earlier version before
 	    // recalculating the new-time source terms.
 
 	    getLevel(lev).clean_state(S_new);
 
-	    getLevel(lev).do_new_sources(time, dt);
+            // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
+            // This is only necessary if we've done subcycles on that level.
+
+            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
+
+                for (int k = 0; k < num_state_type; k++) {
+
+                    if (getLevel(lev).prev_state[k]->hasOldData()) {
+
+                        // Use the new-time data as a temporary buffer. Ideally this would be done
+                        // as a pointer swap, but we cannot assume that the distribution mapping
+                        // is the same between the current state and the original state, due to
+                        // possible regrids that have occurred in between.
+
+                        MultiFab& old = getLevel(lev).get_old_data(k);
+                        MultiFab::Copy(getLevel(lev).prev_state[k]->newData(), old, 0, 0, old.nComp(), old.nGrow());
+                        MultiFab::Copy(old, getLevel(lev).prev_state[k]->oldData(), 0, 0, old.nComp(), old.nGrow());
+
+                        getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
+                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_amr, 0.0);
+
+                    }
+
+                }
+
+            }
+
+	    getLevel(lev).do_new_sources(time, dt_advance);
+
+            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
+
+                for (int k = 0; k < num_state_type; k++) {
+
+                    if (getLevel(lev).prev_state[k]->hasOldData()) {
+
+                        // Now retrieve the original old time data.
+
+                        MultiFab& old = getLevel(lev).get_old_data(k);
+                        MultiFab::Copy(old, getLevel(lev).prev_state[k]->newData(), 0, 0, old.nComp(), old.nGrow());
+
+                        getLevel(lev).state[k].setTimeLevel(time, dt_amr, 0.0);
+                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
+
+                    }
+
+                }
+
+                // Now deallocate the old data, it is no longer needed.
+
+                if (lev == 0 || lev > level) {
+                    amrex::FillNull(getLevel(lev).prev_state);
+                    getLevel(lev).keep_prev_state = false;
+                }
+
+            }
 
 	}
 
