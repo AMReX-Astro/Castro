@@ -135,7 +135,7 @@
                 
     uout(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:) = uin(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:)
 
-    call bl_allocate(     q, lo-NHYP, hi+NHYP, QVAR+3)
+    call bl_allocate(     q, lo-NHYP, hi+NHYP, QVAR)
     call bl_allocate( flatn, lo-NHYP, hi+NHYP      )
     call bl_allocate(    cx, lo-NHYP, hi+NHYP      )
     call bl_allocate(    cy, lo-NHYP, hi+NHYP      )
@@ -213,6 +213,7 @@
                  srcQ, srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3, &
                  grav,gv_lo, gv_hi, &
                  courno,dx,dy,dz,dt,ngq,ngf)
+
 
     !Step Two, Interpolate Cell centered values to faces
     call plm( lo, hi, q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3,&
@@ -356,7 +357,7 @@
       real(rt) :: by(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
       real(rt) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
 
-      real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR+3) !Contains Cell Centered Mag Field
+      real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR) !Contains Cell Centered Mag Field
       real(rt) :: cx(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
       real(rt) :: cy(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
       real(rt) :: cz(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)

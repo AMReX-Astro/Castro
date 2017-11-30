@@ -478,7 +478,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   QTHERM = QTHERM - 3
 #endif
 
-  QVAR = QTHERM + nspec + naux + numadv
+  QVAR = QTHERM + nspec + naux + numadv + NMAG
   
   ! NQ will be the number of hydro + radiation variables in the primitive
   ! state.  Initialize it just for hydro here
@@ -502,7 +502,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   QMAGX   = QLAST + 3  ! Bx centered
   QMAGY   = QLAST + 4  ! By centered
   QMAGZ   = QLAST + 5  ! Bz centered
-  !change QTHERM ? 
+  QTHERM  = QTHERM + 3
 #endif
 
   QTEMP   = QTHERM ! = QLAST + 3
