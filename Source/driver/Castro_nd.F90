@@ -403,6 +403,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   integer :: iadv, ispec
 
   integer :: QLAST
+  integer :: NTHERM, QTHERM
 
   integer :: i
   integer :: ioproc
@@ -643,11 +644,11 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! Update device variables
 
   !$acc update &
-  !$acc device(NTHERM, NVAR) &
+  !$acc device(NVAR) &
   !$acc device(NQ) &
   !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
   !$acc device(USHK) &
-  !$acc device(QTHERM, QVAR) &
+  !$acc device(QVAR) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME) &
   !$acc device(QFA, QFS, QFX) &
   !$acc device(NQAUX, QGAMC, QC, QDPDR, QDPDE) &
@@ -950,10 +951,18 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
+  real(rt) :: sponge_target_x_velocity
+  real(rt) :: sponge_target_y_velocity
+  real(rt) :: sponge_target_z_velocity
+
   namelist /sponge/ &
        sponge_lower_factor, sponge_upper_factor, &
        sponge_lower_radius, sponge_upper_radius, &
        sponge_lower_density, sponge_upper_density, &
+       sponge_lower_pressure, sponge_upper_pressure, &
+       sponge_target_x_velocity, &
+       sponge_target_y_velocity, &
+       sponge_target_z_velocity, &
        sponge_timescale
 
   ! Set namelist defaults
@@ -966,6 +975,13 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
   sponge_lower_density = -1.e0_rt
   sponge_upper_density = -1.e0_rt
+
+  sponge_lower_pressure = -1.e0_rt
+  sponge_upper_pressure = -1.e0_rt
+
+  sponge_target_x_velocity = 0.e0_rt
+  sponge_target_y_velocity = 0.e0_rt
+  sponge_target_z_velocity = 0.e0_rt
 
   sponge_timescale    = -1.e0_rt
 
@@ -993,6 +1009,10 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   endif
 
   close (unit=un)
+
+  sponge_target_velocity = [sponge_target_x_velocity, &
+                            sponge_target_y_velocity, &
+                            sponge_target_z_velocity]
 
   ! Sanity check
 

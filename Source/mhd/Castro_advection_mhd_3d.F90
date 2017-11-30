@@ -329,7 +329,7 @@
       use eos_type_module, only : eos_t, eos_input_re 
 !      use flatten_module
       use bl_constants_module
-      use meth_params_module, only : NTHERM, URHO, UMX, UMY, UMZ, &
+      use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
                                      UEDEN, UEINT, UFA, UFS, &
                                      QVAR, QRHO, QU, QV, QW, QC, &
                                      QREINT, QPRES, QFA, QFS, &
@@ -351,7 +351,7 @@
       integer  src_lo(3),  src_hi(3)
       integer srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3
 
-      real(rt) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NTHERM)
+      real(rt) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
       real(rt) :: bx(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
       real(rt) :: by(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
       real(rt) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
@@ -362,7 +362,7 @@
       real(rt) :: cz(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
       real(rt) :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
       real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-      real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NTHERM)
+      real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NVAR)
       real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,QVAR)
       real(rt) :: grav( gv_lo(1): gv_hi(1), gv_lo(2): gv_hi(2), gv_lo(3): gv_hi(3),3)
       real(rt) :: dx, dy, dz, dt, courno

@@ -1,5 +1,22 @@
 # changes since last release
 
+  -- The sponge can now operate based on pressure. The new parameters belong
+     in the sponge namelist, and are named sponge_lower_pressure and
+     sponge_upper_pressure. It works on the same principle as the density sponge.
+
+  -- The sponge can now drive the system to a particular velocity (the default
+     is still zero velocity). The new parameters belong in the sponge namelist
+     in your probin file, and are named sponge_target_{x,y,z}_velocity.
+
+  -- The SDC_Source_Type StateData was removed, as its purpose is now supplanted
+     by the change to always keep the source terms in StateData (see below), and
+     it was thus redundant. This does not change code output but does mean that
+     old checkpoints generated while using SDC are no longer compatible with the
+     current code. Normally we strive to maintain forward compatibility of
+     checkpoints, but this change was considered justified because SDC is still
+     considered an experimental feature under development and to our knowledge
+     no production science runs have yet been done using SDC.
+
   -- The parameter gravity.max_solve_level was removed. This was added to work
      around convergence issues in the multigrid solve, but those convergence
      issues have since been fixed, so the parameter is no longer used.

@@ -23,7 +23,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                          area2, area2_lo, area2_hi, &
                          area3, area3_lo, area3_hi, &
                          vol, vol_lo, vol_hi, &
-                         courno, verbose, &
+                         verbose, &
 #ifdef RADIATION
                          nstep_fsp, &
 #endif
@@ -37,7 +37,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
                                  use_flattening, &
                                  first_order_hydro
-  use advection_util_module, only : compute_cfl, divu
+  use advection_util_module, only : divu
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
 #ifdef RADIATION
@@ -104,7 +104,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
   real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt)        , intent(in) :: delta(3), dt, time
-  real(rt)        , intent(inout) :: courno
 
   real(rt)        , intent(inout) :: mass_lost, xmom_lost, ymom_lost, zmom_lost
   real(rt)        , intent(inout) :: eden_lost, xang_lost, yang_lost, zang_lost
@@ -136,11 +135,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
   call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
   call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
   call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
-
-  ! Check if we have violated the CFL criterion.
-  call compute_cfl(q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   lo, hi, dt, delta, courno)
 
   ! Compute flattening coefficient for slope calculations.
   call bl_allocate( flatn, q_lo, q_hi)
