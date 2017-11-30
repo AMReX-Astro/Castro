@@ -5,9 +5,8 @@
     !===========================================================================
     ! This is called from within threaded loops in advance_gas_tile so *no* OMP here ...
     !===========================================================================
-    subroutine enforce_minimum_density(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                                       uout,uout_l1,uout_l2,uout_l3, &
-                                       uout_h1,uout_h2,uout_h3, &
+    subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
+                                       uout,uout_lo,uout_hi, &
                                        lo,hi,print_fortran_warnings)
 
       use amrex_fort_module, only : rt => amrex_real
@@ -18,10 +17,10 @@
       implicit none
 
       integer          :: lo(3), hi(3), print_fortran_warnings
-      integer          ::  uin_l1,  uin_l2,  uin_l3,  uin_h1,  uin_h2,  uin_h3
-      integer          :: uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-      real(rt) ::  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
-      real(rt) :: uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
+      integer          ::  uin_lo(3), uin_hi(3)
+      integer          :: uout_lo(3), uout_hi(3)
+      real(rt) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+      real(rt) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
 
       ! Local variables
       integer          :: i,ii,ilo,ihi

@@ -29,7 +29,19 @@ Castro::just_the_mhd(Real time, Real dt)
 
       MultiFab grav_vector(grids, dmap, BL_SPACEDIM, 3);
       grav_vector.setVal(0.);
-        
+
+      BL_ASSERT(NUM_GROW == 4);
+
+      // Create FAB for extended grid values (including boundaries) and fill.
+      MultiFab Bx_old_tmp(Bx_old.boxArray(), Bx_old.DistributionMap(), 1, NUM_GROW);
+      MultiFab By_old_tmp(By_old.boxArray(), By_old.DistributionMap(), 1, NUM_GROW);
+      MultiFab Bz_old_tmp(Bz_old.boxArray(), Bz_old.DistributionMap(), 1, NUM_GROW);
+
+      FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
+      FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
+      FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
+
+
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass:courno)
@@ -65,39 +77,49 @@ Castro::just_the_mhd(Real time, Real dt)
 	   qaux.resize(qbx, NQAUX);
 	   src_q.resize(qbx, QVAR);
 
-           FArrayBox& Bx  = Bx_old[mfi];
-           FArrayBox& By  = By_old[mfi]; 
-	   FArrayBox& Bz  = Bz_old[mfi];
+           FArrayBox& Bx  = Bx_old_tmp[mfi];
+           FArrayBox& By  = By_old_tmp[mfi]; 
+	   FArrayBox& Bz  = Bz_old_tmp[mfi];
 
 	   FArrayBox& Bxout = Bx_new[mfi];
 	   FArrayBox& Byout = By_new[mfi];
 	   FArrayBox& Bzout = Bz_new[mfi];
 
            Real se  = 0;
-	   Real ske = 0; 
+	   Real ske = 0;
+
+	   //Allocate fabs for fluxes
+	   for (int i = 0; i < BL_SPACEDIM; i++){
+	      const Box& bxtmp = amrex::surroundingNodes(bx,i);
+              flux[i].resize(bxtmp,NUM_STATE);
+	      E[i].resize(bxtmp,NUM_STATE);
+	      u_gdnv[i].resize(amrex::grow(bxtmp, 1), 1);
+	      u_gdnv[i].setVal(1.e200);
+	   }
+
 
            ca_advance_mhd
             (&time, bx.loVect(), bx.hiVect(),
-             BL_TO_FORTRAN(statein),
-             BL_TO_FORTRAN(stateout),
-             BL_TO_FORTRAN(Bx),
-             BL_TO_FORTRAN(By),
-             BL_TO_FORTRAN(Bz),
-             BL_TO_FORTRAN(Bxout),
-             BL_TO_FORTRAN(Byout),
-             BL_TO_FORTRAN(Bzout),
-             BL_TO_FORTRAN(u_gdnv[0]),
-             BL_TO_FORTRAN(u_gdnv[1]),
-             BL_TO_FORTRAN(u_gdnv[2]),
-             BL_TO_FORTRAN(sources_for_hydro[mfi]),
-             BL_TO_FORTRAN(grav_vector[mfi]),
+             BL_TO_FORTRAN_3D(statein),
+             BL_TO_FORTRAN_3D(stateout),
+             BL_TO_FORTRAN_3D(Bx),
+             BL_TO_FORTRAN_3D(By),
+             BL_TO_FORTRAN_3D(Bz),
+             BL_TO_FORTRAN_3D(Bxout),
+             BL_TO_FORTRAN_3D(Byout),
+             BL_TO_FORTRAN_3D(Bzout),
+             BL_TO_FORTRAN_3D(u_gdnv[0]),
+             BL_TO_FORTRAN_3D(u_gdnv[1]),
+             BL_TO_FORTRAN_3D(u_gdnv[2]),
+             BL_TO_FORTRAN_3D(sources_for_hydro[mfi]),
+             BL_TO_FORTRAN_3D(grav_vector[mfi]),
              dx, &dt,
-             BL_TO_FORTRAN(flux[0]),
-             BL_TO_FORTRAN(flux[1]),
-             BL_TO_FORTRAN(flux[2]),
-             BL_TO_FORTRAN(E[0]),
-             BL_TO_FORTRAN(E[1]),
-             BL_TO_FORTRAN(E[2]),
+             D_DECL(BL_TO_FORTRAN_3D(flux[0]),
+             BL_TO_FORTRAN_3D(flux[1]),
+             BL_TO_FORTRAN_3D(flux[2])),
+             BL_TO_FORTRAN_3D(E[0]),
+             BL_TO_FORTRAN_3D(E[1]),
+             BL_TO_FORTRAN_3D(E[2]),
              &cflLoc, &se, &ske, &print_fortran_warnings);
 
 

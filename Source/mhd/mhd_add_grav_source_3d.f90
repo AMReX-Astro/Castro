@@ -5,9 +5,9 @@
     !===========================================================================
     ! This is called from within threaded loops in advance_gas_tile so *no* OMP here ...
     !===========================================================================
-    subroutine add_grav_source(uin,uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3, &
-                               uout,uout_l1,uout_l2,uout_l3,uout_h1,uout_h2,uout_h3, &
-                               grav, gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3, &
+    subroutine add_grav_source(uin,uin_lo, uin_hi, &
+                               uout,uout_lo,uout_hi, &
+                               grav, gv_lo, gv_hi, &
                                lo,hi,dx,dy,dz,dt,e_added,ke_added)
 
       use amrex_fort_module, only : rt => amrex_real
@@ -18,15 +18,14 @@
       implicit none
 
       integer lo(3), hi(3)
-      integer uin_l1,uin_l2,uin_l3,uin_h1,uin_h2,uin_h3
-      integer  uout_l1, uout_l2, uout_l3, uout_h1, uout_h2, uout_h3
-      integer  gv_l1, gv_l2, gv_l3, gv_h1, gv_h2, gv_h3
+      integer uin_lo(3), uin_hi(3)
+      integer  uout_lo(3), uout_hi(3)
+      integer  gv_lo(3), gv_hi(3)
 
-      real(rt)  uin( uin_l1: uin_h1, uin_l2: uin_h2, uin_l3: uin_h3,NVAR)
-      real(rt) uout(uout_l1:uout_h1,uout_l2:uout_h2,uout_l3:uout_h3,NVAR)
-      real(rt) grav(  gv_l1:  gv_h1,  gv_l2:  gv_h2,  gv_l3:  gv_h3,3)
+      real(rt) uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
+      real(rt) uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+      real(rt) grav(gv_lo(1):  gv_hi(1),  gv_lo(2):  gv_hi(2),  gv_lo(3):  gv_hi(3),3)
       real(rt) dx, dy, dz, dt
-      !real(rt) a_old, a_new
       real(rt) e_added,ke_added
 
       !real(rt) :: a_half, a_oldsq, a_newsq, a_newsq_inv

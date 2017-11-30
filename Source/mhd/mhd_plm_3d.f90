@@ -21,23 +21,23 @@ contains
   !===========================================================================
 
    subroutine plm(lo, hi, s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,&	
-		  bx, bxl1, bxl2, bxl3, bxh1, bxh2, bxh3, &
-		  by, byl1, byl2, byl3, byh1, byh2, byh3, &
-		  bz, bzl1, bzl2, bzl3, bzh1, bzh2, bzh3, &
+		  bx, bxlo, bxhi, &
+		  by, bylo, byhi, &
+		  bz, bzlo, bzhi, &
                   Ip,Im, ilo1,ilo2,ilo3,ihi1,ihi2,ihi3,dx,dy,dz,dt)
 
 
     implicit none
     integer , intent(in   ) ::  	s_l1, s_l2, s_l3, s_h1, s_h2, s_h3, lo(3), hi(3)
     integer , intent(in   ) ::  	ilo1,ilo2,ilo3,ihi1,ihi2,ihi3
-    integer , intent(in   ) ::  	bxl1, bxl2, bxl3, bxh1, bxh2, bxh3	
-    integer , intent(in   ) ::  	byl1, byl2, byl3, byh1, byh2, byh3
-    integer , intent(in   ) ::  	bzl1, bzl2, bzl3, bzh1, bzh2, bzh3
+    integer , intent(in   ) ::  	bxlo(3), bxhi(3)
+    integer , intent(in   ) ::  	bylo(3), byhi(3)
+    integer , intent(in   ) ::  	bzlo(3), bzhi(3)
  
     real(rt), intent(in   ) ::      s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QVAR) !Primitive Vars
-    real(rt), intent(in   ) ::      bx(bxl1:bxh1, bxl2:bxh2, bxl3:bxh3)	!Face Centered Magnetic Fields
-    real(rt), intent(in   ) ::      by(byl1:byh1, byl2:byh2, byl3:byh3)
-    real(rt), intent(in   ) ::      bz(bzl1:bzh1, bzl2:bzh2, bzl3:bzh3)
+    real(rt), intent(in   ) ::      bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))	!Face Centered Magnetic Fields
+    real(rt), intent(in   ) ::      by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
+    real(rt), intent(in   ) ::      bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
 
     real(rt), intent(out) :: 		Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
     real(rt), intent(out) :: 		Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
@@ -87,244 +87,244 @@ contains
 		do j = s_l2-1, s_h2+1
 			do i = s_l1-1, s_h1+1
 	!---------------------------------------------- set up temporary bx ------------------------------------------------
-				if(i.lt.bxl1) then 
-					if(j.lt.bxl2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxl1,bxl2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxl1, bxl2, k)
+				if(i.lt.bxlo(1)) then 
+					if(j.lt.bxlo(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxlo(1),bxlo(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxlo(1), bxlo(2), k)
 						else
-							tbx(i,j,k) = bx(bxl1, bxl2, bxh3)
+							tbx(i,j,k) = bx(bxlo(1), bxlo(2), bxhi(3))
 						endif
-					elseif(j.lt.bxh2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxl1,j,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxl1, j, k)
+					elseif(j.lt.bxhi(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxlo(1),j,bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxlo(1), j, k)
 						else
-							tbx(i,j,k) = bx(bxl1, j, bxh3)
+							tbx(i,j,k) = bx(bxlo(1), j, bxhi(3))
 						endif
 					else
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxl1,bxh2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxl1, bxh2, k)
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxlo(1),bxhi(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxlo(1), bxhi(2), k)
 						else
-							tbx(i,j,k) = bx(bxl1, bxh2, bxh3)
+							tbx(i,j,k) = bx(bxlo(1), bxhi(2), bxhi(3))
 						endif
 					endif
-				elseif(i.lt.bxh1) then 
-					if(j.lt.bxl2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(i,bxl2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(i, bxl2, k)
+				elseif(i.lt.bxhi(1)) then 
+					if(j.lt.bxlo(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(i,bxlo(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(i, bxlo(2), k)
 						else
-							tbx(i,j,k) = bx(i, bxl2, bxh3)
+							tbx(i,j,k) = bx(i, bxlo(2), bxhi(3))
 						endif
-					elseif(j.lt.bxh2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(i,j,bxl3)
-						elseif(k.lt.bxh3) then
+					elseif(j.lt.bxhi(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(i,j,bxlo(3))
+						elseif(k.lt.bxhi(3)) then
 							tbx(i,j,k) = bx(i, j, k)
 						else
-							tbx(i,j,k) = bx(i, j, bxh3)
+							tbx(i,j,k) = bx(i, j, bxhi(3))
 						endif
 					else
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(i,bxh2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(i, bxh2, k)
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(i,bxhi(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(i, bxhi(2), k)
 						else
-							tbx(i,j,k) = bx(i, bxh2, bxh3)
+							tbx(i,j,k) = bx(i, bxhi(2), bxhi(3))
 						endif
 					endif
 				else
-					if(j.lt.bxl2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxh1,bxl2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxh1, bxl2, k)
+					if(j.lt.bxlo(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxhi(1),bxlo(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxhi(1), bxlo(2), k)
 						else
-							tbx(i,j,k) = bx(bxh1, bxl2, bxh3)
+							tbx(i,j,k) = bx(bxhi(1), bxlo(2), bxhi(3))
 						endif
-					elseif(j.lt.bxh2) then
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxh1,j,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxh1, j, k)
+					elseif(j.lt.bxhi(2)) then
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxhi(1),j,bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxhi(1), j, k)
 						else
-							tbx(i,j,k) = bx(bxh1, j, bxh3)
+							tbx(i,j,k) = bx(bxhi(1), j, bxhi(3))
 						endif
 					else
-						if(k.lt.bxl3) then 
-							tbx(i,j,k) = bx(bxh1,bxh2,bxl3)
-						elseif(k.lt.bxh3) then
-							tbx(i,j,k) = bx(bxh1, bxh2, k)
+						if(k.lt.bxlo(3)) then 
+							tbx(i,j,k) = bx(bxhi(1),bxhi(2),bxlo(3))
+						elseif(k.lt.bxhi(3)) then
+							tbx(i,j,k) = bx(bxhi(1), bxhi(2), k)
 						else
-							tbx(i,j,k) = bx(bxh1, bxh2, bxh3)
+							tbx(i,j,k) = bx(bxhi(1), bxhi(2), bxhi(3))
 						endif
 					endif
 				endif
 
 	!---------------------------------------------- set up temporary by ------------------------------------------------
-				if(i.lt.byl1) then 
-					if(j.lt.byl2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byl1,byl2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byl1, byl2, k)
+				if(i.lt.bylo(1)) then 
+					if(j.lt.bylo(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(bylo(1),bylo(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(bylo(1), bylo(2), k)
 						else
-							tby(i,j,k) = by(byl1, byl2, byh3)
+							tby(i,j,k) = by(bylo(1), bylo(2), byhi(3))
 						endif
-					elseif(j.lt.byh2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byl1,j,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byl1, j, k)
+					elseif(j.lt.byhi(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(bylo(1),j,bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(bylo(1), j, k)
 						else
-							tby(i,j,k) = by(byl1, j, byh3)
+							tby(i,j,k) = by(bylo(1), j, byhi(3))
 						endif
 					else
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byl1,byh2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byl1, byh2, k)
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(bylo(1),byhi(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(bylo(1), byhi(2), k)
 						else
-							tby(i,j,k) = by(byl1, byh2, byh3)
+							tby(i,j,k) = by(bylo(1), byhi(2), byhi(3))
 						endif
 					endif
-				elseif(i.lt.byh1) then 
-					if(j.lt.byl2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(i,byl2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(i, byl2, k)
+				elseif(i.lt.byhi(1)) then 
+					if(j.lt.bylo(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(i,bylo(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(i, bylo(2), k)
 						else
-							tby(i,j,k) = by(i, byl2, byh3)
+							tby(i,j,k) = by(i, bylo(2), byhi(3))
 						endif
-					elseif(j.lt.byh2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(i,j,byl3)
-						elseif(k.lt.byh3) then
+					elseif(j.lt.byhi(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(i,j,bylo(3))
+						elseif(k.lt.byhi(3)) then
 							tby(i,j,k) = by(i, j, k)
 						else
-							tby(i,j,k) = by(i, j, byh3)
+							tby(i,j,k) = by(i, j, byhi(3))
 						endif
 					else
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(i,byh2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(i, byh2, k)
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(i,byhi(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(i, byhi(2), k)
 						else
-							tby(i,j,k) = by(i, byh2, byh3)
+							tby(i,j,k) = by(i, byhi(2), byhi(3))
 						endif
 					endif
 				else
-					if(j.lt.byl2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byh1,byl2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byh1, byl2, k)
+					if(j.lt.bylo(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(byhi(1),bylo(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(byhi(1), bylo(2), k)
 						else
-							tby(i,j,k) = by(byh1, byl2, byh3)
+							tby(i,j,k) = by(byhi(1), bylo(2), byhi(3))
 						endif
-					elseif(j.lt.byh2) then
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byh1,j,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byh1, j, k)
+					elseif(j.lt.byhi(2)) then
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(byhi(1),j,bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(byhi(1), j, k)
 						else
-							tby(i,j,k) = by(byh1, j, byh3)
+							tby(i,j,k) = by(byhi(1), j, byhi(3))
 						endif
 					else
-						if(k.lt.byl3) then 
-							tby(i,j,k) = by(byh1,byh2,byl3)
-						elseif(k.lt.byh3) then
-							tby(i,j,k) = by(byh1, byh2, k)
+						if(k.lt.bylo(3)) then 
+							tby(i,j,k) = by(byhi(1),byhi(2),bylo(3))
+						elseif(k.lt.byhi(3)) then
+							tby(i,j,k) = by(byhi(1), byhi(2), k)
 						else
-							tby(i,j,k) = by(byh1, byh2, byh3)
+							tby(i,j,k) = by(byhi(1), byhi(2), byhi(3))
 						endif
 					endif
 				endif
 
 	!---------------------------------------------- set up temporary bz ------------------------------------------------
-				if(i.lt.bzl1) then 
-					if(j.lt.bzl2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzl1,bzl2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzl1, bzl2, k)
+				if(i.lt.bzlo(1)) then 
+					if(j.lt.bzlo(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzlo(1),bzlo(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzlo(1), bzlo(2), k)
 						else
-							tbz(i,j,k) = bz(bzl1, bzl2, bzh3)
+							tbz(i,j,k) = bz(bzlo(1), bzlo(2), bzhi(3))
 						endif
-					elseif(j.lt.bzh2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzl1,j,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzl1, j, k)
+					elseif(j.lt.bzhi(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzlo(1),j,bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzlo(1), j, k)
 						else
-							tbz(i,j,k) = bz(bzl1, j, bzh3)
+							tbz(i,j,k) = bz(bzlo(1), j, bzhi(3))
 						endif
 					else
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzl1,bzh2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzl1, bzh2, k)
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzlo(1),bzhi(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzlo(1), bzhi(2), k)
 						else
-							tbz(i,j,k) = bz(bzl1, bzh2, bzh3)
+							tbz(i,j,k) = bz(bzlo(1), bzhi(2), bzhi(3))
 						endif
 					endif
-				elseif(i.lt.bzh1) then 
-					if(j.lt.bzl2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(i,bzl2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(i, bzl2, k)
+				elseif(i.lt.bzhi(3)) then 
+					if(j.lt.bzlo(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(i,bzlo(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(i, bzlo(2), k)
 						else
-							tbz(i,j,k) = bz(i, bzl2, bzh3)
+							tbz(i,j,k) = bz(i, bzlo(2), bzhi(3))
 						endif
-					elseif(j.lt.bzh2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(i,j,bzl3)
-						elseif(k.lt.bzh3) then
+					elseif(j.lt.bzhi(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(i,j,bzlo(3))
+						elseif(k.lt.bzhi(3)) then
 							tbz(i,j,k) = bz(i, j, k)
 						else
-							tbz(i,j,k) = bz(i, j, bzh3)
+							tbz(i,j,k) = bz(i, j, bzhi(3))
 						endif
 					else
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(i,bzh2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(i, bzh2, k)
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(i,bzhi(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(i, bzhi(2), k)
 						else
-							tbz(i,j,k) = bz(i, bzh2, bzh3)
+							tbz(i,j,k) = bz(i, bzhi(2), bzhi(3))
 						endif
 					endif
 				else
-					if(j.lt.bzl2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzh1,bzl2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzh1, bzl2, k)
+					if(j.lt.bzlo(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzhi(3),bzlo(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzhi(3), bzlo(2), k)
 						else
-							tbz(i,j,k) = bz(bzh1, bzl2, bzh3)
+							tbz(i,j,k) = bz(bzhi(3), bzlo(2), bzhi(3))
 						endif
-					elseif(j.lt.bzh2) then
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzh1,j,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzh1, j, k)
+					elseif(j.lt.bzhi(2)) then
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzhi(3),j,bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzhi(3), j, k)
 						else
-							tbz(i,j,k) = bz(bzh1, j, bzh3)
+							tbz(i,j,k) = bz(bzhi(3), j, bzhi(3))
 						endif
 					else
-						if(k.lt.bzl3) then 
-							tbz(i,j,k) = bz(bzh1,bzh2,bzl3)
-						elseif(k.lt.bzh3) then
-							tbz(i,j,k) = bz(bzh1, bzh2, k)
+						if(k.lt.bzlo(3)) then 
+							tbz(i,j,k) = bz(bzhi(3),bzhi(2),bzlo(3))
+						elseif(k.lt.bzhi(3)) then
+							tbz(i,j,k) = bz(bzhi(3), bzhi(2), k)
 						else
-							tbz(i,j,k) = bz(bzh1, bzh2, bzh3)
+							tbz(i,j,k) = bz(bzhi(3), bzhi(2), bzhi(3))
 						endif
 					endif
 				endif
