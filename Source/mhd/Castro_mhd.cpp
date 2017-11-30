@@ -49,7 +49,6 @@ Castro::just_the_mhd(Real time, Real dt)
     { 
         FArrayBox flux[BL_SPACEDIM], u_gdnv[BL_SPACEDIM], E[BL_SPACEDIM];
 
-        FArrayBox q, qaux, src_q;
 
         int priv_nstep_fsp = -1;
 
@@ -70,12 +69,8 @@ Castro::just_the_mhd(Real time, Real dt)
            FArrayBox &stateout = S_new[mfi];
 
            FArrayBox &source_in  = sources_for_hydro[mfi];
-           FArrayBox &source_out = hydro_source[mfi];
-           
-	   q.resize(qbx, QVAR);
+           FArrayBox &source_out = hydro_source[mfi]; 
 	   
-	   qaux.resize(qbx, NQAUX);
-	   src_q.resize(qbx, QVAR);
 
            FArrayBox& Bx  = Bx_old_tmp[mfi];
            FArrayBox& By  = By_old_tmp[mfi]; 
