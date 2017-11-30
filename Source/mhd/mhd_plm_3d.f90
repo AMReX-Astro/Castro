@@ -20,7 +20,7 @@ contains
   ! This is called from within threaded loops in advance_mhd_tile so *no* OMP here ...
   !===========================================================================
 
-   subroutine plm(lo, hi, s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,&	
+  subroutine plm(lo, hi, s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,&	
 		  bx, bxlo, bxhi, &
 		  by, bylo, byhi, &
 		  bz, bzlo, bzhi, &
@@ -28,29 +28,29 @@ contains
 
 
     implicit none
-    integer , intent(in   ) ::  	s_l1, s_l2, s_l3, s_h1, s_h2, s_h3, lo(3), hi(3)
-    integer , intent(in   ) ::  	ilo1,ilo2,ilo3,ihi1,ihi2,ihi3
-    integer , intent(in   ) ::  	bxlo(3), bxhi(3)
-    integer , intent(in   ) ::  	bylo(3), byhi(3)
-    integer , intent(in   ) ::  	bzlo(3), bzhi(3)
+    integer , intent(in   ) ::  s_l1, s_l2, s_l3, s_h1, s_h2, s_h3, lo(3), hi(3)
+    integer , intent(in   ) ::  ilo1,ilo2,ilo3,ihi1,ihi2,ihi3
+    integer , intent(in   ) ::  bxlo(3), bxhi(3)
+    integer , intent(in   ) ::  bylo(3), byhi(3)
+    integer , intent(in   ) ::  bzlo(3), bzhi(3)
  
-    real(rt), intent(in   ) ::      s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QVAR) !Primitive Vars
-    real(rt), intent(in   ) ::      bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))	!Face Centered Magnetic Fields
-    real(rt), intent(in   ) ::      by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
-    real(rt), intent(in   ) ::      bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
+    real(rt), intent(in   ) ::  s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QVAR) !Primitive Vars
+    real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))!Face Centered Magnetic Fields
+    real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
+    real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
 
-    real(rt), intent(out) :: 		Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
-    real(rt), intent(out) :: 		Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
+    real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
+    real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
 
-    real(rt), intent(in   ) :: 		dx,dy,dz,dt
+    real(rt), intent(in   ) :: dx,dy,dz,dt
 
-    real(rt) 				:: 	dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ(7)
-    real(rt)				:: 	temp(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,8), smhd(7)
-    real(rt)				::      tbx(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
-    real(rt)				::      tby(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
-    real(rt)				::      tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
-    real(rt)				:: 	dt_over_a
-    integer          		        ::	ii,ibx,iby,ibz, i , j, k
+    real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ(7)
+    real(rt) :: temp(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,8), smhd(7)
+    real(rt) :: tbx(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
+    real(rt) :: tby(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
+    real(rt) :: tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
+    real(rt) :: dt_over_a
+    integer  :: ii,ibx,iby,ibz, i , j, k
 
     ibx = 6
     iby = 7
@@ -61,27 +61,70 @@ contains
 !    Im = 0.d0
 
 !------------------------workspace variables---------------------------------------------
-		temp = 0.d0
-		temp(:,:,:,1) = small_dens
-		temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,1  :  5) = s(:,:,:,QRHO:QPRES) !Gas vars Cell Centered
-		temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(:,:,:,QMAGX:QMAGZ) !Mag vars Cell Centered
+    temp = 0.d0
+    temp(:,:,:,1) = small_dens
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,1) = s(:,:,:,QRHO) !Gas vars Cell Centered
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,2) = s(:,:,:,QU)  
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,3) = s(:,:,:,QV)  
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,4) = s(:,:,:,QW)  
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,5) = s(:,:,:,QPRES)  
+    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(:,:,:,QMAGX:QMAGZ) !Mag vars Cell Centered
 !-------------------- Fill Boundaries ---------------------------------------------------
-		temp(s_l1-1,s_l2-1,s_l3-1,1:5) = s(s_l1,s_l2,s_l3,QRHO:QPRES)
-		temp(s_l1-1,s_l2-1,s_l3-1,6:8) = s(s_l1,s_l2,s_l3,QMAGX:QMAGZ)
-		temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,1:5) = s(s_l1,:,:,QRHO:QPRES)
-		temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,6:8) = s(s_l1,:,:,QMAGX:QMAGZ)
-		temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,1:5) = s(:,s_l2,:,QRHO:QPRES)
-		temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,6:8) = s(:,s_l2,:,QMAGX:QMAGZ)
-		temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,1:5) = s(:,:,s_l3,QRHO:QPRES)
-		temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,6:8) = s(:,:,s_l3,QMAGX:QMAGZ)
-		temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,1:5) = s(s_h1,:,:,QRHO:QPRES)
-		temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,6:8) = s(s_h1,:,:,QMAGX:QMAGZ)
-		temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,1:5) = s(:,s_h2,:,QRHO:QPRES)
-		temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,6:8) = s(:,s_h2,:,QMAGX:QMAGZ)
-		temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,1:5) = s(:,:,s_h3,QRHO:QPRES)
-		temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,6:8) = s(:,:,s_h3,QMAGX:QMAGZ)
-		temp(s_h1+1,s_h2+1,s_h3+1,1:5) = s(s_h1,s_h2,s_h3,QRHO:QPRES)
-		temp(s_h1+1,s_h2+1,s_h3+1,6:8) = s(s_h1,s_h2,s_h3,QMAGX:QMAGZ)
+    temp(s_l1-1,s_l2-1,s_l3-1,1) = s(s_l1,s_l2,s_l3,QRHO)
+    temp(s_l1-1,s_l2-1,s_l3-1,2) = s(s_l1,s_l2,s_l3,QU)
+    temp(s_l1-1,s_l2-1,s_l3-1,3) = s(s_l1,s_l2,s_l3,QV)
+    temp(s_l1-1,s_l2-1,s_l3-1,4) = s(s_l1,s_l2,s_l3,QW)
+    temp(s_l1-1,s_l2-1,s_l3-1,5) = s(s_l1,s_l2,s_l3,QPRES)
+    temp(s_l1-1,s_l2-1,s_l3-1,ibx:ibz) = s(s_l1,s_l2,s_l3,QMAGX:QMAGZ)
+
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,1) = s(s_l1,:,:,QRHO)
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,2) = s(s_l1,:,:,QU)
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,3) = s(s_l1,:,:,QV)
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,4) = s(s_l1,:,:,QW)
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,5) = s(s_l1,:,:,QPRES)
+    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_l1,:,:,QMAGX:QMAGZ)
+
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,1) = s(:,s_l2,:,QRHO)
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,2) = s(:,s_l2,:,QU)
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,3) = s(:,s_l2,:,QV)
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,4) = s(:,s_l2,:,QW)
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,5) = s(:,s_l2,:,QPRES)
+    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,ibx:ibz) = s(:,s_l2,:,QMAGX:QMAGZ)
+
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,1) = s(:,:,s_l3,QRHO)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,2) = s(:,:,s_l3,QU)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,3) = s(:,:,s_l3,QV)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,4) = s(:,:,s_l3,QW)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,5) = s(:,:,s_l3,QPRES)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,ibx:ibz) = s(:,:,s_l3,QMAGX:QMAGZ)
+
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,1) = s(s_h1,:,:,QRHO)
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,2) = s(s_h1,:,:,QU)
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,3) = s(s_h1,:,:,QV)
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,4) = s(s_h1,:,:,QW)
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,5) = s(s_h1,:,:,QPRES)
+    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_h1,:,:,QMAGX:QMAGZ)
+
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,1) = s(:,s_h2,:,QRHO)
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,2) = s(:,s_h2,:,QU)
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,3) = s(:,s_h2,:,QV)
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,4) = s(:,s_h2,:,QW)
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,5) = s(:,s_h2,:,QPRES)
+    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,ibx:ibz) = s(:,s_h2,:,QMAGX:QMAGZ)
+
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,1) = s(:,:,s_h3,QRHO)
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,2) = s(:,:,s_h3,QU)
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,3) = s(:,:,s_h3,QV)
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,4) = s(:,:,s_h3,QW)
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,5) = s(:,:,s_h3,QPRES)
+    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,ibx:ibz) = s(:,:,s_h3,QMAGX:QMAGZ)
+
+    temp(s_h1+1,s_h2+1,s_h3+1,1) = s(s_h1,s_h2,s_h3,QRHO)
+    temp(s_h1+1,s_h2+1,s_h3+1,2) = s(s_h1,s_h2,s_h3,QU)
+    temp(s_h1+1,s_h2+1,s_h3+1,3) = s(s_h1,s_h2,s_h3,QV)
+    temp(s_h1+1,s_h2+1,s_h3+1,4) = s(s_h1,s_h2,s_h3,QW)
+    temp(s_h1+1,s_h2+1,s_h3+1,5) = s(s_h1,s_h2,s_h3,QPRES)
+    temp(s_h1+1,s_h2+1,s_h3+1,ibx:ibz) = s(s_h1,s_h2,s_h3,QMAGX:QMAGZ)
 ! Temp face centered magnetic fields
 	do k = s_l3-1, s_h3+1
 		do j = s_l2-1, s_h2+1
