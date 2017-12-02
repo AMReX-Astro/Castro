@@ -526,8 +526,11 @@ Castro::check_for_cfl_violation(const Real dt)
 
     }
 
+    ParallelDescriptor::ReduceRealMax(courno);
+
     if (courno > 1.0) {
-        std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
 
         cfl_violation = 1;
     }
