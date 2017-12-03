@@ -89,7 +89,7 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     old_sources.setVal(0.0, NUM_GROW);
 
     for (int n = 0; n < num_src; ++n)
-        construct_old_source(n, time, dt, amr_iteration, amr_ncycle);
+        construct_old_source(n, old_sources, time, dt, amr_iteration, amr_ncycle);
 
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
@@ -150,7 +150,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n)
-        construct_new_source(n, time, dt, amr_iteration, amr_ncycle);
+        construct_new_source(n, new_sources, time, dt, amr_iteration, amr_ncycle);
 
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
@@ -188,7 +188,7 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 }
 
 void
-Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_old_source(int src, MultiFab& source, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -196,35 +196,35 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef SPONGE
     case sponge_src:
-	construct_old_sponge_source(time, dt);
+	construct_old_sponge_source(source, time, dt);
 	break;
 #endif
 
     case ext_src:
-	construct_old_ext_source(time, dt);
+	construct_old_ext_source(source, time, dt);
 	break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_old_diff_source(time, dt);
+	construct_old_diff_source(source, time, dt);
 	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_old_hybrid_source(time, dt);
+	construct_old_hybrid_source(source, time, dt);
 	break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity_source(time, dt);
+	construct_old_gravity_source(source, time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation_source(time, dt);
+	construct_old_rotation_source(source, time, dt);
 	break;
 #endif
 
@@ -235,7 +235,7 @@ Castro::construct_old_source(int src, Real time, Real dt, int amr_iteration, int
 }
 
 void
-Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_new_source(int src, MultiFab& source, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -243,35 +243,35 @@ Castro::construct_new_source(int src, Real time, Real dt, int amr_iteration, int
 
 #ifdef SPONGE
     case sponge_src:
-	construct_new_sponge_source(time, dt);
+	construct_new_sponge_source(source, time, dt);
 	break;
 #endif
 
     case ext_src:
-	construct_new_ext_source(time, dt);
+	construct_new_ext_source(source, time, dt);
 	break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_new_diff_source(time, dt);
+	construct_new_diff_source(source, time, dt);
 	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_new_hybrid_source(time, dt);
+	construct_new_hybrid_source(source, time, dt);
 	break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_new_gravity_source(time, dt);
+	construct_new_gravity_source(source, time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_new_rotation_source(time, dt);
+	construct_new_rotation_source(source, time, dt);
 	break;
 #endif
 

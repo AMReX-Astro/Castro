@@ -268,11 +268,11 @@ public:
 
     void do_old_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_old_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void construct_old_source(int src, amrex::MultiFab& source, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
     void do_new_sources(amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
-    void construct_new_source(int src, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void construct_new_source(int src, amrex::MultiFab& source, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
     amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt, bool local = false);
 
@@ -288,14 +288,14 @@ public:
 				   amrex::Real dt = 1.0);
 
 #ifdef SPONGE
-    void construct_old_sponge_source(amrex::Real time, amrex::Real dt);
+    void construct_old_sponge_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
-    void construct_new_sponge_source(amrex::Real time, amrex::Real dt);
+    void construct_new_sponge_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 #endif
 
-    void construct_old_ext_source(amrex::Real time, amrex::Real dt);
+    void construct_old_ext_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
-    void construct_new_ext_source(amrex::Real time, amrex::Real dt);
+    void construct_new_ext_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
     void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
@@ -307,9 +307,9 @@ public:
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
 #endif
-    void construct_old_gravity_source(amrex::Real time, amrex::Real dt);
+    void construct_old_gravity_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
-    void construct_new_gravity_source(amrex::Real time, amrex::Real dt);
+    void construct_new_gravity_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 #endif
 
     //
@@ -460,9 +460,9 @@ public:
 
     void construct_new_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
 
-    void construct_old_rotation_source(amrex::Real time, amrex::Real dt);
+    void construct_old_rotation_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
-    void construct_new_rotation_source(amrex::Real time, amrex::Real dt);
+    void construct_new_rotation_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
 #endif
@@ -482,8 +482,8 @@ public:
     void swap_state_time_levels (const amrex::Real dt);
 
 #ifdef DIFFUSION
-    void construct_old_diff_source(amrex::Real time, amrex::Real dt);
-    void construct_new_diff_source(amrex::Real time, amrex::Real dt);
+    void construct_old_diff_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
+    void construct_new_diff_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
     void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& DiffTerm, int is_old);
     void getEnthDiffusionTerm (amrex::Real time, amrex::MultiFab& DiffTerm, int is_old);
@@ -532,9 +532,9 @@ public:
     amrex::Real get_point_mass ();
 
 #ifdef HYBRID_MOMENTUM
-    void construct_old_hybrid_source(amrex::Real time, amrex::Real dt);
+    void construct_old_hybrid_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
-    void construct_new_hybrid_source(amrex::Real time, amrex::Real dt);
+    void construct_new_hybrid_source(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
 
     void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
 

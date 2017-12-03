@@ -5,14 +5,12 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, Real time, Real dt)
 {
 
     if (!do_sponge) return;
 
     update_sponge_params(&time);
-
-    MultiFab& old_sources = get_old_data(Source_Type);
 
     const Real *dx = geom.CellSize();
 
@@ -27,7 +25,7 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		  BL_TO_FORTRAN_3D(Sborder[mfi]),
-		  BL_TO_FORTRAN_3D(old_sources[mfi]),
+		  BL_TO_FORTRAN_3D(source[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor);
 
@@ -36,12 +34,10 @@ Castro::construct_old_sponge_source(Real time, Real dt)
 }
 
 void
-Castro::construct_new_sponge_source(Real time, Real dt)
+Castro::construct_new_sponge_source(MultiFab& source, Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
-
-    MultiFab& new_sources = get_new_data(Source_Type);
 
     if (!do_sponge) return;
 
@@ -63,7 +59,7 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 
         ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_old[mfi]),
-                  BL_TO_FORTRAN_3D(new_sources[mfi]),
+                  BL_TO_FORTRAN_3D(source[mfi]),
                   BL_TO_FORTRAN_3D(volume[mfi]),
                   ZFILL(dx), dt, time, mult_factor_old);
 
@@ -83,7 +79,7 @@ Castro::construct_new_sponge_source(Real time, Real dt)
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
                   BL_TO_FORTRAN_3D(S_new[mfi]),
-		  BL_TO_FORTRAN_3D(new_sources[mfi]),
+		  BL_TO_FORTRAN_3D(source[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor_new);
 

@@ -4,12 +4,10 @@
 
 using namespace amrex;
 
-void Castro::construct_old_rotation_source(Real time, Real dt)
+void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
 {
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
-
-    MultiFab& old_sources = get_old_data(Source_Type);
 
     // Fill the rotation data.
 
@@ -40,7 +38,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
 		BL_TO_FORTRAN_3D(Sborder[mfi]),
-		BL_TO_FORTRAN_3D(old_sources[mfi]),
+		BL_TO_FORTRAN_3D(source[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
 
@@ -50,7 +48,7 @@ void Castro::construct_old_rotation_source(Real time, Real dt)
 
 
 
-void Castro::construct_new_rotation_source(Real time, Real dt)
+void Castro::construct_new_rotation_source(MultiFab& source, Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -60,8 +58,6 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
-
-    MultiFab& new_sources = get_new_data(Source_Type);
 
     // Fill the rotation data.
 
@@ -98,7 +94,7 @@ void Castro::construct_new_rotation_source(Real time, Real dt)
 			BL_TO_FORTRAN_3D(rot_new[mfi]),
 			BL_TO_FORTRAN_3D(S_old[mfi]),
 			BL_TO_FORTRAN_3D(S_new[mfi]),
-			BL_TO_FORTRAN_3D(new_sources[mfi]),
+			BL_TO_FORTRAN_3D(source[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
