@@ -5,7 +5,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(MultiFab& source, Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
 
     if (!do_sponge) return;
@@ -19,12 +19,12 @@ Castro::construct_old_sponge_source(MultiFab& source, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		  BL_TO_FORTRAN_3D(Sborder[mfi]),
+		  BL_TO_FORTRAN_3D(state[mfi]),
 		  BL_TO_FORTRAN_3D(source[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor);
@@ -34,10 +34,8 @@ Castro::construct_old_sponge_source(MultiFab& source, Real time, Real dt)
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, Real time, Real dt)
+Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
 
     if (!do_sponge) return;
 
@@ -53,12 +51,12 @@ Castro::construct_new_sponge_source(MultiFab& source, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_old, true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
         ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                  BL_TO_FORTRAN_3D(S_old[mfi]),
+                  BL_TO_FORTRAN_3D(state_old[mfi]),
                   BL_TO_FORTRAN_3D(source[mfi]),
                   BL_TO_FORTRAN_3D(volume[mfi]),
                   ZFILL(dx), dt, time, mult_factor_old);
@@ -73,12 +71,12 @@ Castro::construct_new_sponge_source(MultiFab& source, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 	ca_sponge(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                  BL_TO_FORTRAN_3D(S_new[mfi]),
+                  BL_TO_FORTRAN_3D(state_new[mfi]),
 		  BL_TO_FORTRAN_3D(source[mfi]),
 		  BL_TO_FORTRAN_3D(volume[mfi]),
 		  ZFILL(dx), dt, time, mult_factor_new);

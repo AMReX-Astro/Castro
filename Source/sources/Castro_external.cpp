@@ -4,7 +4,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_ext_source(MultiFab& source, Real time, Real dt)
+Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
     if (!add_ext_src) return;
 
@@ -12,7 +12,7 @@ Castro::construct_old_ext_source(MultiFab& source, Real time, Real dt)
 
     ext_src.setVal(0.0);
 
-    fill_ext_source(time, dt, Sborder, Sborder, ext_src);
+    fill_ext_source(time, dt, state, state, ext_src);
 
     Real mult_factor = 1.0;
 
@@ -22,11 +22,8 @@ Castro::construct_old_ext_source(MultiFab& source, Real time, Real dt)
 
 
 void
-Castro::construct_new_ext_source(MultiFab& source, Real time, Real dt)
+Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
     if (!add_ext_src) return;
 
     MultiFab ext_src(grids, dmap, NUM_STATE, 0);
@@ -38,7 +35,7 @@ Castro::construct_new_ext_source(MultiFab& source, Real time, Real dt)
     Real old_time = time - dt;
     Real mult_factor = -0.5;
 
-    fill_ext_source(old_time, dt, S_old, S_old, ext_src);
+    fill_ext_source(old_time, dt, state_old, state_old, ext_src);
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 
@@ -48,7 +45,7 @@ Castro::construct_new_ext_source(MultiFab& source, Real time, Real dt)
 
     mult_factor = 0.5;
 
-    fill_ext_source(time, dt, S_old, S_new, ext_src);
+    fill_ext_source(time, dt, state_old, state_new, ext_src);
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 

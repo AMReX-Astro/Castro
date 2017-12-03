@@ -2465,17 +2465,18 @@ Castro::reflux(int crse_level, int fine_level)
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
+            MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
 	    MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+            MultiFab& source = getLevel(lev).get_new_data(Source_Type);
 	    Real time = getLevel(lev).state[State_Type].curTime();
 	    Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            getLevel(lev).apply_source_to_state(S_new, getLevel(lev).get_new_data(Source_Type), -dt_advance);
+            if (getLevel(lev).apply_sources()) {
 
-	    // Make the state data consistent with this earlier version before
-	    // recalculating the new-time source terms.
+                getLevel(lev).apply_source_to_state(S_new, source, -dt_advance);
 
-	    getLevel(lev).clean_state(S_new);
+            }
 
             // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
             // This is only necessary if we've done subcycles on that level.
@@ -2504,7 +2505,13 @@ Castro::reflux(int crse_level, int fine_level)
 
             }
 
-	    getLevel(lev).do_new_sources(time, dt_advance);
+            if (getLevel(lev).apply_sources()) {
+
+                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance);
+
+                getLevel(lev).apply_source_to_state(S_new, source, dt_advance);
+
+            }
 
             if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
 

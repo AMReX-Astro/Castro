@@ -223,7 +223,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 }
 #endif
 
-void Castro::construct_old_gravity_source(MultiFab& source, Real time, Real dt)
+void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
 
 #ifdef SELF_GRAVITY
@@ -242,13 +242,13 @@ void Castro::construct_old_gravity_source(MultiFab& source, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 	ca_gsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
-		BL_TO_FORTRAN_3D(Sborder[mfi]),
+		BL_TO_FORTRAN_3D(state[mfi]),
 #ifdef SELF_GRAVITY
 		BL_TO_FORTRAN_3D(phi_old[mfi]),
 		BL_TO_FORTRAN_3D(grav_old[mfi]),
@@ -260,10 +260,8 @@ void Castro::construct_old_gravity_source(MultiFab& source, Real time, Real dt)
 
 }
 
-void Castro::construct_new_gravity_source(MultiFab& source, Real time, Real dt)
+void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -283,14 +281,14 @@ void Castro::construct_new_gravity_source(MultiFab& source, Real time, Real dt)
 #pragma omp parallel
 #endif
     {
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
 	    ca_corrgsrc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 			ARLIM_3D(domlo), ARLIM_3D(domhi),
-			BL_TO_FORTRAN_3D(S_old[mfi]),
-			BL_TO_FORTRAN_3D(S_new[mfi]),
+			BL_TO_FORTRAN_3D(state_old[mfi]),
+			BL_TO_FORTRAN_3D(state_new[mfi]),
 #ifdef SELF_GRAVITY
 			BL_TO_FORTRAN_3D(phi_old[mfi]),
 			BL_TO_FORTRAN_3D(phi_new[mfi]),
