@@ -1,5 +1,9 @@
 # changes since last release
 
+  -- The deprecated parameter castro.use_colglaz is removed. It was
+     deprecated in June 2016 because it was obsoleted by the parameter
+     castro.riemann_solver, which can be set to 1 to use the Colella
+     and Glaz Riemann solver.
 
 # 17.12
 

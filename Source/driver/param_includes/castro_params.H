@@ -25,7 +25,6 @@ static int ppm_predict_gammae;
 static int ppm_reference_eigenvectors;
 static int plm_iorder;
 static int hybrid_riemann;
-static int use_colglaz;
 static int riemann_solver;
 static int cg_maxiter;
 static amrex::Real cg_tol;

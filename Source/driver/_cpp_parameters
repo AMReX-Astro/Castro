@@ -98,9 +98,6 @@ plm_iorder                   int           2                  y
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
 
-# this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           -1
-
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
 # 1: Colella \& Glaz (a two-shock solver)

@@ -354,11 +354,6 @@ Castro::read_params ()
         amrex::Error();
       }
 
-    if (use_colglaz >= 0)
-      {
-	std::cerr << "ERROR:: use_colglaz is deprecated.  Use riemann_solver instead\n";
-	amrex::Error();
-      }
 
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
