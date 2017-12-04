@@ -4,7 +4,7 @@
 
 using namespace amrex;
 
-void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
+void Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
@@ -20,7 +20,7 @@ void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
 
     }
 
-    fill_rotation_field(phirot_old, rot_old, Sborder, time);
+    fill_rotation_field(phirot_old, rot_old, state, time);
 
     const Real *dx = geom.CellSize();
     const int* domlo = geom.Domain().loVect();
@@ -29,7 +29,7 @@ void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(Sborder,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
@@ -37,7 +37,7 @@ void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
 		ARLIM_3D(domlo), ARLIM_3D(domhi),
 		BL_TO_FORTRAN_3D(phirot_old[mfi]),
 		BL_TO_FORTRAN_3D(rot_old[mfi]),
-		BL_TO_FORTRAN_3D(Sborder[mfi]),
+		BL_TO_FORTRAN_3D(state[mfi]),
 		BL_TO_FORTRAN_3D(source[mfi]),
 		BL_TO_FORTRAN_3D(volume[mfi]),
 		ZFILL(dx),dt,&time);
@@ -48,10 +48,8 @@ void Castro::construct_old_rotation_source(MultiFab& source, Real time, Real dt)
 
 
 
-void Castro::construct_new_rotation_source(MultiFab& source, Real time, Real dt)
+void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
 
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
@@ -70,7 +68,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, Real time, Real dt)
 
     }
 
-    fill_rotation_field(phirot_new, rot_new, S_new, time);
+    fill_rotation_field(phirot_new, rot_new, state_new, time);
 
     // Now do corrector part of rotation source term update
 
@@ -82,7 +80,7 @@ void Castro::construct_new_rotation_source(MultiFab& source, Real time, Real dt)
 #pragma omp parallel
 #endif
     {
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
@@ -92,8 +90,8 @@ void Castro::construct_new_rotation_source(MultiFab& source, Real time, Real dt)
 			BL_TO_FORTRAN_3D(phirot_new[mfi]),
 			BL_TO_FORTRAN_3D(rot_old[mfi]),
 			BL_TO_FORTRAN_3D(rot_new[mfi]),
-			BL_TO_FORTRAN_3D(S_old[mfi]),
-			BL_TO_FORTRAN_3D(S_new[mfi]),
+			BL_TO_FORTRAN_3D(state_old[mfi]),
+			BL_TO_FORTRAN_3D(state_new[mfi]),
 			BL_TO_FORTRAN_3D(source[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
 			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),

@@ -14,6 +14,8 @@ Castro::apply_source_to_state(MultiFab& state, MultiFab& source, Real dt, int ng
     AMREX_ASSERT(state.nGrow() >= ng);
 
     MultiFab::Saxpy(state, dt, source, 0, 0, NUM_STATE, ng);
+
+    clean_state(state);
 }
 
 void
@@ -79,49 +81,20 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
     // Construct the old-time sources.
 
-    MultiFab& old_sources = get_old_data(Source_Type);
-
-    old_sources.setVal(0.0, NUM_GROW);
+    source.setVal(0.0, NUM_GROW);
 
     for (int n = 0; n < num_src; ++n)
-        construct_old_source(n, old_sources, time, dt, amr_iteration, amr_ncycle);
+        construct_old_source(n, source, state, time, dt, amr_iteration, amr_ncycle);
 
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, old_sources, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
-    // Apply the old-time sources directly to the new-time state,
-    // S_new -- note that this addition is for full dt, since we
-    // will do a predictor-corrector on the sources to allow for
-    // state-dependent sources.
-
-    MultiFab& S_new = get_new_data(State_Type);
-
-    // Apply them to the sources for the hydro as well.
-    // Note that we are doing an add here, not a copy,
-    // in case we have already started with some source
-    // terms (e.g. the source term predictor, or the SDC source).
-
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
-    // Only do this if at least one source term has a non-zero contribution.
-
-    bool apply_source = false;
-    for (int n = 0; n < num_src; ++n) {
-        if (source_flag(n)) {
-            apply_source = true;
-            break;
-        }
-    }
-
-    if (apply_source)    
-        apply_source_to_state(S_new, old_sources, dt, S_new.nGrow());
+    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -134,47 +107,20 @@ Castro::do_old_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
 }
 
 void
-Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
-    MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& new_sources = get_new_data(Source_Type);
-
-    // For the new-time source terms, we have an option for how to proceed.
-    // We can either construct all of the old-time sources using the same
-    // state that comes out of the hydro update, or we can evaluate the sources
-    // one by one and apply them as we go.
-
-    new_sources.setVal(0.0, NUM_GROW);
+    source.setVal(0.0, NUM_GROW);
 
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n)
-        construct_new_source(n, new_sources, time, dt, amr_iteration, amr_ncycle);
+        construct_new_source(n, source, state_old, state_new, time, dt, amr_iteration, amr_ncycle);
 
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, new_sources, NUM_GROW, time, Source_Type, 0, NUM_STATE);
-
-    // Apply the new-time sources to the state.
-    // Only do this if at least one source term has a non-zero contribution.
-
-    bool apply_source = false;
-    for (int n = 0; n < num_src; ++n) {
-        if (source_flag(n)) {
-            apply_source = true;
-            break;
-        }
-    }
-
-    if (apply_source) {
-
-        apply_source_to_state(S_new, new_sources, dt, S_new.nGrow());
-
-        clean_state(S_new);
-
-    }
+    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -184,11 +130,10 @@ Castro::do_new_sources(Real time, Real dt, int amr_iteration, int amr_ncycle)
       print_all_source_changes(dt, is_new);
     }
 
-
 }
 
 void
-Castro::construct_old_source(int src, MultiFab& source, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_old_source(int src, MultiFab& source, MultiFab& state, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -196,35 +141,35 @@ Castro::construct_old_source(int src, MultiFab& source, Real time, Real dt, int 
 
 #ifdef SPONGE
     case sponge_src:
-	construct_old_sponge_source(source, time, dt);
+	construct_old_sponge_source(source, state, time, dt);
 	break;
 #endif
 
     case ext_src:
-	construct_old_ext_source(source, time, dt);
+	construct_old_ext_source(source, state, time, dt);
 	break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_old_diff_source(source, time, dt);
+	construct_old_diff_source(source, state, time, dt);
 	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_old_hybrid_source(source, time, dt);
+	construct_old_hybrid_source(source, state, time, dt);
 	break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity_source(source, time, dt);
+	construct_old_gravity_source(source, state, time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation_source(source, time, dt);
+	construct_old_rotation_source(source, state, time, dt);
 	break;
 #endif
 
@@ -235,7 +180,7 @@ Castro::construct_old_source(int src, MultiFab& source, Real time, Real dt, int 
 }
 
 void
-Castro::construct_new_source(int src, MultiFab& source, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_ASSERT(src >= 0 && src < num_src);
 
@@ -243,35 +188,35 @@ Castro::construct_new_source(int src, MultiFab& source, Real time, Real dt, int 
 
 #ifdef SPONGE
     case sponge_src:
-	construct_new_sponge_source(source, time, dt);
+	construct_new_sponge_source(source, state_old, state_new, time, dt);
 	break;
 #endif
 
     case ext_src:
-	construct_new_ext_source(source, time, dt);
+	construct_new_ext_source(source, state_old, state_new, time, dt);
 	break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_new_diff_source(source, time, dt);
+	construct_new_diff_source(source, state_old, state_new, time, dt);
 	break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_new_hybrid_source(source, time, dt);
+	construct_new_hybrid_source(source, state_old, state_new, time, dt);
 	break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_new_gravity_source(source, time, dt);
+	construct_new_gravity_source(source, state_old, state_new, time, dt);
 	break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_new_rotation_source(source, time, dt);
+	construct_new_rotation_source(source, state_old, state_new, time, dt);
 	break;
 #endif
 
@@ -279,6 +224,21 @@ Castro::construct_new_source(int src, MultiFab& source, Real time, Real dt, int 
 	break;
 
     } // end switch
+}
+
+// Returns whether any sources are actually applied.
+
+bool
+Castro::apply_sources()
+{
+
+    for (int n = 0; n < num_src; ++n) {
+        if (source_flag(n))
+            return true;
+    }
+
+    return false;
+
 }
 
 // Evaluate diagnostics quantities describing the effect of an

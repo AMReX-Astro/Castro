@@ -222,7 +222,26 @@ Castro::do_advance (Real time,
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-      do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& old_source = get_old_data(Source_Type);
+
+      if (apply_sources()) {
+
+          do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
+
+          // Apply the old sources to the sources for the hydro.
+          // Note that we are doing an add here, not a copy,
+          // in case we have already started with some source
+          // terms (e.g. the source term predictor, or the SDC source).
+
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+      } else {
+
+          old_source.setVal(0.0, NUM_GROW);
+
+      }
 
       if (!do_ctu) {
 	// store the result of the burn and old-time sources in Sburn for later stages
@@ -326,8 +345,19 @@ Castro::do_advance (Real time,
       construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
-      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& new_source = get_new_data(Source_Type);
 
+      if (apply_sources()) {
+
+          do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, new_source, dt, S_new.nGrow());
+
+      } else {
+
+          new_source.setVal(0.0, NUM_GROW);
+
+      }
 
       // Do the second half of the reactions.
 
