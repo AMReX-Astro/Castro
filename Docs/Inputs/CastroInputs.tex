@@ -358,9 +358,20 @@ the number of level 0 steps taken equals 1000, whichever comes first.
 If {\tt castro.do\_hydro = 1}, then typically 
 the code chooses a time step based on the CFL number:
 \begin{equation}
-dt = \mathtt{cfl} \frac{\Delta x}{\max_{i,j,k}\{|u|_{i,j,k}+c_{i,j,k}\}}
+\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
+                                                               \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
+                                                               \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
 \label{eq:cfl}
 \end{equation}
+
+If method-of-lines integration is used instead, then we have
+\begin{equation}
+\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                    \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
+                                                    \left(\frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
+\end{equation}
+
+(If we are simulating in 1D or 2D, the extraneous parts related to $v$ and/or $w$ are removed.)
 
 The following parameters affect the timestep choice:
 \begin{itemize}
