@@ -21,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
        r_init, nsub, temp_ambient, &
        p_l, u_l, rho_l, p_r, u_r, rho_r, frac, &
-       B_x_l, B_y_l, B_z_l, B_x_r, B_y_r, B_z_r
+       B_x_l, B_y_l, B_z_l, B_x_r, B_y_r, B_z_r, idir
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -244,8 +244,9 @@ subroutine ca_initmag(level, time, lo, hi, &
                       delta, xlo, xhi)
 
   use probdata_module
-
+  use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
+  
   implicit none
   
   integer :: level, nbx, nby, nbz
@@ -253,11 +254,58 @@ subroutine ca_initmag(level, time, lo, hi, &
   integer :: bx_lo(3), bx_hi(3)
   integer :: by_lo(3), by_hi(3)
   integer :: bz_lo(3), bz_hi(3)
-  real(rt) :: xlo(3), xhi(3), time, delta
+  real(rt) :: xlo(3), xhi(3), time, delta(3)
 
   real(rt) :: mag_x(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3), nbx)
   real(rt) :: mag_y(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3), nby)
   real(rt) :: mag_z(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3), nbz)
+
+  real(rt) :: xcen, ycen, zcen
+  integer  :: i, j, k
   
+  print *, "Initializing magnetic field!!"
+ 
+
+  if (idir .eq. 3) then
+     do k = lo(3), hi(3)
+        zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5d0)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)+1
+              if (zcen <= center(3)) then
+                 mag_x(i,j,k,1) = B_x_l
+              else
+                 mag_x(i,j,k,1) = B_x_r
+              endif
+           enddo
+        enddo
+     enddo
+
+     do k = lo(3), hi(3)
+        zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5d0)
+        do j = lo(2), hi(2)+1
+           do i = lo(1), hi(1)
+              if (zcen <= center(3)) then
+                 mag_y(i,j,k,1) = B_y_l
+              else
+                 mag_y(i,j,k,1) = B_y_r
+              endif
+           enddo
+        enddo
+     enddo
+
+     do k = lo(3), hi(3)+1
+        zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5d0)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              if (zcen <= center(3)+1) then
+                 mag_z(i,j,k,1) = B_z_l
+              else
+                 mag_z(i,j,k,1) = B_z_r
+              endif
+           enddo
+        enddo
+     enddo
+
+  endif
 
 end subroutine ca_initmag

@@ -6,6 +6,16 @@
   dens_ambient = 1.0
   nsub = 10
 
+  B_z_l = 1.0d0 !0.75d0
+  B_x_l = 0.0d0
+  B_y_l = 0.0d0
+
+  B_z_r = 1.0d0 !0.75d0
+  B_x_r = 0.0d0
+  B_y_r = 0.0d0
+
+  idir = 3
+
 /
 
 &tagging

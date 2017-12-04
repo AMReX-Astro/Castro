@@ -12,5 +12,6 @@ module probdata_module
   real(rt), save :: p_l, u_l, rho_l, p_r, u_r, rho_r, rhoe_l, rhoe_r, frac, &
                     B_x_l, B_x_r, B_y_l, B_y_r, B_z_l, B_z_r
   !real(rt), save :: center(3)
+  integer, save :: idir
 
 end module probdata_module
