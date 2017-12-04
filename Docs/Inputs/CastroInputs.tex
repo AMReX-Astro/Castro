@@ -435,6 +435,20 @@ sets the {\it initial} level 0 time step to be $10^{-4}$ regardless of
 grow in subsequent steps by a factor of {\tt castro.change\_max} each step.
 
 
+
+{[\ifdef{DIFFUSION}]} If diffusion is enabled, the timestep will also
+be limited by:
+\begin{equation}
+\Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
+                                                   \frac{\Delta y^2}{D_{i,j,k}},
+                                                   \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]
+\end{equation}
+where $D \equiv k / (\rho c_V)$ if we are diffusing temperature, and
+$D \equiv k / (\rho c_P)$ if we are diffusing enthalpy. No input parameter
+is necessary to enable this constraint. See Chapter \ref{ch:diffusion} for more details.
+
+
+
 \subsection{Subcycling}
 Castro supports a number of different modes for subcycling in time,
 set via \runparam{amr.subcycling\_mode}.
