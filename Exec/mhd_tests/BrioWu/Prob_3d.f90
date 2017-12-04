@@ -232,3 +232,32 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   enddo
 
 end subroutine ca_initdata
+
+
+! :::
+! ::: --------------------------------------------------------------------
+! ::: 
+subroutine ca_initmag(level, time, lo, hi, &
+                      nbx, mag_x, bx_lo, bx_hi, &
+                      nby, mag_y, by_lo, by_hi, &
+                      nbz, mag_z, bz_lo, bz_hi, &
+                      delta, xlo, xhi)
+
+  use probdata_module
+
+  use amrex_fort_module, only : rt => amrex_real
+  implicit none
+  
+  integer :: level, nbx, nby, nbz
+  integer :: lo(3), hi(3)
+  integer :: bx_lo(3), bx_hi(3)
+  integer :: by_lo(3), by_hi(3)
+  integer :: bz_lo(3), bz_hi(3)
+  real(rt) :: xlo(3), xhi(3), time, delta
+
+  real(rt) :: mag_x(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3), nbx)
+  real(rt) :: mag_y(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3), nby)
+  real(rt) :: mag_z(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3), nbz)
+  
+
+end subroutine ca_initmag

@@ -911,6 +911,16 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
+#ifdef MHD
+BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& nx, BL_FORT_FAB_ARG_3D(magx),
+   const int& ny, BL_FORT_FAB_ARG_3D(magy),
+   const int& nz, BL_FORT_FAB_ARG_3D(magz),
+   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
+#endif
+
 #ifdef DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,

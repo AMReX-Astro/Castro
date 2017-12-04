@@ -861,6 +861,9 @@ Castro::initData ()
    MultiFab& By_new   = get_new_data(Mag_Type_y);
    By_new.setVal(0.0);
 
+   MultiFab& Bz_new  =  get_new_data(Mag_Type_z);
+   Bz_new.setVal(0.0);
+
 #endif
 
 
@@ -968,6 +971,34 @@ Castro::initData ()
       }
     }
 #endif // RADIATION
+
+#ifdef MHD
+    int nbx = Bx_new.nComp();
+    int nby = By_new.nComp();
+    int nbz = Bz_new.nComp();
+
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+        int i = mfi.index();
+
+        RealBox    gridloc(grids[mfi.index()],
+                           geom.CellSize(), geom.ProbLo());
+        const Box& box = mfi.validbox();
+        const int* lo  = box.loVect();
+        const int* hi  = box.hiVect();
+
+	Bx_new[mfi].setVal(0.0);
+	By_new[mfi].setVal(0.0);
+	Bz_new[mfi].setVal(0.0);
+
+	BL_FORT_PROC_CALL(CA_INITRAD,ca_initmag)
+	     (level, cur_time, lo, hi,
+	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
+	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
+	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
+	      dx, gridloc.lo(),gridloc.hi());
+    }
+
+#endif //MHD
 
 #endif // MAESTRO_INIT
 
