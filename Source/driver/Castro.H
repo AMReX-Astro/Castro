@@ -458,10 +458,6 @@ public:
 #endif
 
 #ifdef ROTATION
-    void construct_old_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
-
-    void construct_new_rotation(int amr_iteration, int amr_ncycle, amrex::Real time);
-
     void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
 
     void construct_new_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
