@@ -447,6 +447,31 @@ where $D \equiv k / (\rho c_V)$ if we are diffusing temperature, and
 $D \equiv k / (\rho c_P)$ if we are diffusing enthalpy. No input parameter
 is necessary to enable this constraint. See Chapter \ref{ch:diffusion} for more details.
 
+{[\ifdef{REACTIONS}]} If reactions are enabled, the timestep will also
+be limited by two constraints:
+\begin{equation}
+  \Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}
+\end{equation}
+\begin{equation}
+  \Delta t = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n\frac{X^n_{i,j,k}}{\dot{X}^n_{i,j,k}}\right\}
+\end{equation}
+where $e$ is the internal energy, and $X^n$ is the mass fraction of
+the $n$th species. The safety factors correspond to the runtime parameters
+\runparam{castro.dtnuc\_e} and \runparam{castro.dtnuc\_X}. These limiters
+say that the timestep must be small enough so that no zone can change
+its internal energy by more than the fraction {\tt{dtnuc\_e}} in one
+step, and so that no zone can change the abundance of any isotope by
+more than the fraction {\tt{dtnuc\_X}} in one step. The time derivatives
+$\dot{e}$ and $\dot{X}^n$ are estimated by calling the right-hand-side
+of the nuclear network given the state at the time the timestep limiter
+is being calculated. (We use a small number floor to prevent division by zero.)
+To prevent the timestep from being dominated by trace species, there is
+an additional option \runparam{castro.dtnuc\_X\_threshold} which is the
+mass fraction threshold below which a species will not be considered in
+the timestep constraint. {\tt{dtnuc\_e}} and {\tt{dtnuc\_X}} are set to
+a large number by default, effectively disabling them. Typical choices
+for these values in the literature are $\sim 0.1$.
+
 
 
 \subsection{Subcycling}
