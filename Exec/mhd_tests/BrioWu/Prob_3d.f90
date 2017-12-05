@@ -18,9 +18,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type(eos_t) :: eos_state
 
-  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub, temp_ambient, &
-       p_l, u_l, rho_l, p_r, u_r, rho_r, frac, &
+  namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, frac, &
        B_x_l, B_y_l, B_z_l, B_x_r, B_y_r, B_z_r, idir
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
@@ -36,28 +34,22 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end do
 
   ! set namelist defaults
-
-  p_ambient = 1.e-5_rt        ! ambient pressure (in erg/cc)
-  dens_ambient = 1.e0_rt      ! ambient density (in g/cc)
-  exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
-  r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
-  nsub = 4
-  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
-
-  u_l = 0.0
-  rho_l = 1.0
+  p_l = 1.0               ! left pressure (erg/cc)
+  u_l = 0.0               ! left velocity (cm/s)
+  rho_l = 1.0             ! left density (g/cc)
   B_x_l = 0.75
-  B_y_l = 1.0
-  B_z_l = 0.0
-  p_l = 1.0
+  B_y_l = 0.
+  B_z_l = 1.
 
-  u_r = 0.0
-  rho_r = 0.125
+  p_r = 0.1               ! right pressure (erg/cc)
+  u_r = 0.0               ! right velocity (cm/s)
+  rho_r = 0.125           ! right density (g/cc)
   B_x_r = 0.75
-  B_y_r = -1.0
-  B_z_r = 0.0
-  p_r = 0.1
-  frac = 0.5
+  B_y_r = 0.
+  B_z_r = -1.
+
+  idir = 1                ! direction across which to jump
+  frac = 0.5              ! fraction of the domain for the interface
 
   ! set local variable defaults
   center(1) = HALF*(problo(1) + probhi(1))
@@ -72,31 +64,28 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 
-  ! override the pressure iwth the temperature
-  if (temp_ambient > ZERO) then
-
-     eos_state % rho = dens_ambient
-     eos_state % xn(:) = xn_zone(:)
-     eos_state % T = temp_ambient
-
-     call eos(eos_input_rt, eos_state)
-
-     p_ambient = eos_state % p
-
-  endif
-
-  ! Calculate ambient state data
-
-  eos_state % rho = dens_ambient
-  eos_state % p   = p_ambient
-  eos_state % T   = 1.d5 ! Initial guess for iterations
-  eos_state % xn  = xn_zone
+  ! compute the internal energy (erg/cc) for the left and right state
+  eos_state%rho = rho_l
+  eos_state%p = p_l
+  eos_state%T = 100000.e0_rt  ! initial guess
+  eos_state%xn(:) = xn_zone(:)
 
   call eos(eos_input_rp, eos_state)
 
-  e_ambient = eos_state % e
+  rhoe_l = rho_l*eos_state%e
+  !   T_l = eos_state%T
 
-end subroutine amrex_probinit
+  eos_state%rho = rho_r
+  eos_state%p = p_r
+  eos_state%T = 100000.e0_rt  ! initial guess
+  eos_state%xn(:) = xn_zone(:)
+
+  call eos(eos_input_rp, eos_state)
+
+  rhoe_r = rho_r*eos_state%e
+  !T_r = eos_state%T
+
+  end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
@@ -125,13 +114,10 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
 
   implicit none
 
@@ -143,95 +129,45 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                     state_l2:state_h2, &
                     state_l3:state_h3,NVAR)
 
-  real(rt) :: xmin,ymin,zmin
-  real(rt) :: xx, yy, zz
-  real(rt) :: dist
-  real(rt) :: eint, p_zone
-  real(rt) :: vctr, p_exp
-
-  integer :: i,j,k, ii, jj, kk
-  integer :: npert, nambient
-  real(rt) :: e_zone
-  type(eos_t) :: eos_state
-
-  ! set explosion pressure -- we will convert the point-explosion energy into
-  ! a corresponding pressure distributed throughout the perturbed volume
-  vctr  = FOUR3RD*M_PI*r_init**3
-
-  e_zone = exp_energy/vctr/dens_ambient
-
-  eos_state % e = e_zone
-  eos_state % rho = dens_ambient
-  eos_state % xn(:) = xn_zone(:)
-  eos_state % T = 100.0  ! initial guess
-
-  call eos(eos_input_re, eos_state)
-
-  p_exp = eos_state % p
+  
+  real(rt) :: xcen, ycen, zcen
+  integer :: i,j,k
 
   do k = lo(3), hi(3)
-     zmin = xlo(3) + delta(3)*dble(k-lo(3))
+     zcen = xlo(3) + delta(3)*(float(k-lo(3)) + 0.5e0_rt)
 
      do j = lo(2), hi(2)
-        ymin = xlo(2) + delta(2)*dble(j-lo(2))
+        ycen = xlo(2) + delta(2)*(float(j-lo(2)) + 0.5e0_rt)
 
         do i = lo(1), hi(1)
-           xmin = xlo(1) + delta(1)*dble(i-lo(1))
-
-           npert = 0
-           nambient = 0
-
-           do kk = 0, nsub-1
-              zz = zmin + (delta(3)/dble(nsub))*(kk + 0.5e0_rt)
-
-              do jj = 0, nsub-1
-                 yy = ymin + (delta(2)/dble(nsub))*(jj + 0.5e0_rt)
-
-                 do ii = 0, nsub-1
-                    xx = xmin + (delta(1)/dble(nsub))*(ii + 0.5e0_rt)
-
-                    dist = (center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2
-
-                    if(dist <= r_init**2) then
-                       npert = npert + 1
-                    else
-                       nambient = nambient + 1
-                    endif
-
-                 enddo
-              enddo
-           enddo
-
-           p_zone = (dble(npert)*p_exp + dble(nambient)*p_ambient)/  &
-                dble(nsub*nsub*nsub)
-
-           eos_state % p = p_zone
-           eos_state % rho = dens_ambient
-           eos_state % xn(:) = xn_zone(:)
-
-           call eos(eos_input_rp, eos_state)
-
-           eint = dens_ambient * eos_state % e
-
-           state(i,j,k,URHO) = dens_ambient
-           state(i,j,k,UMX) = 0.e0_rt
-           state(i,j,k,UMY) = 0.e0_rt
-           state(i,j,k,UMZ) = 0.e0_rt
-
-           state(i,j,k,UEDEN) = eint + &
-                0.5e0_rt*(state(i,j,k,UMX)**2/state(i,j,k,URHO) + &
-                          state(i,j,k,UMY)**2/state(i,j,k,URHO) + &
-                          state(i,j,k,UMZ)**2/state(i,j,k,URHO))
-
-           state(i,j,k,UEINT) = eint
-
-           state(i,j,k,UFS) = state(i,j,k,URHO)
+           xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
+           if (idir == 3) then
+              if (zcen <= center(3)) then
+                 state(i,j,k,URHO) = rho_l
+                 state(i,j,k,UMX) = 0.e0_rt
+                 state(i,j,k,UMY) = 0.e0_rt
+                 state(i,j,k,UMZ) = rho_l*u_l
+                 state(i,j,k,UEDEN) = rhoe_l + 0.5*rho_l*u_l*u_l
+                 state(i,j,k,UEINT) = rhoe_l
+            !     state(i,j,k,UTEMP) = T_l
+              else
+                 state(i,j,k,URHO) = rho_r
+                 state(i,j,k,UMX) = 0.e0_rt
+                 state(i,j,k,UMY) = 0.e0_rt
+                 state(i,j,k,UMZ) = rho_r*u_r
+                 state(i,j,k,UEDEN) = rhoe_r + 0.5*rho_r*u_r*u_r
+                 state(i,j,k,UEINT) = rhoe_r
+           !      state(i,j,k,UTEMP) = T_r
+              endif
+           endif
+!              state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
+              state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
         enddo
      enddo
   enddo
 
-end subroutine ca_initdata
+ end subroutine ca_initdata
 
 
 ! :::
