@@ -75,7 +75,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	  const Box& bx    = mfi.tilebox();
-	  const Box& qbx = amrex::grow(bx, NUM_GROW);
 
 	  const int* lo = bx.loVect();
 	  const int* hi = bx.hiVect();
@@ -312,7 +311,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
-	const Box& qbx = amrex::grow(bx, NUM_GROW);
 
 	const int* lo = bx.loVect();
 	const int* hi = bx.hiVect();
