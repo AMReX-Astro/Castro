@@ -353,20 +353,18 @@
 \runparamNS{transverse\_reset\_rhoe}{castro} &  if the interface state for $(\rho e)$ is negative after we add the transverse terms, then replace the interface value of $(\rho e)$ with a value constructed from the $(\rho e)$ evolution equation & 0 \\
 \rowcolor{tableShade}
 \runparamNS{transverse\_use\_eos}{castro} &  after we add the transverse correction to the interface states, replace the predicted pressure with an EOS call (using $e$ and $\rho$). & 0 \\
-\runparamNS{use\_colglaz}{castro} &  this is deprecated---use {\tt riemann\_solver} instead & -1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_eos\_in\_riemann}{castro} &  should we use the EOS in the Riemann solver to ensure thermodynamic consistency? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{use\_flattening}{castro} &  flatten the reconstructed profiles around shocks to prevent them from becoming too thin & 1 \\
-\rowcolor{tableShade}
 \runparamNS{use\_pslope}{castro} &  for the piecewise linear reconstruction, do we subtract off $(\rho g)$ from the pressure before limiting? & 1 \\
+\rowcolor{tableShade}
 \runparamNS{xl\_ext\_bc\_type}{castro} &  if we are doing an external -x boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{xr\_ext\_bc\_type}{castro} &  if we are doing an external +x boundary condition, who do we interpret it? & "" \\
+\rowcolor{tableShade}
 \runparamNS{yl\_ext\_bc\_type}{castro} &  if we are doing an external -y boundary condition, who do we interpret it? & "" \\
-\rowcolor{tableShade}
 \runparamNS{yr\_ext\_bc\_type}{castro} &  if we are doing an external +y boundary condition, who do we interpret it? & "" \\
-\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \rowcolor{tableShade}
+\runparamNS{zl\_ext\_bc\_type}{castro} &  if we are doing an external -z boundary condition, who do we interpret it? & "" \\
 \runparamNS{zr\_ext\_bc\_type}{castro} &  if we are doing an external +z boundary condition, who do we interpret it? & "" \\
 
 
@@ -495,15 +493,14 @@
 \runparamNS{dtnuc\_X\_threshold}{castro} &  If we are using the timestep limiter based on changes in $X$, set a threshold on the species abundance below which the limiter is not applied. This helps prevent the timestep from becoming very small due to changes in trace species. & 1.e-3 \\
 \rowcolor{tableShade}
 \runparamNS{dtnuc\_e}{castro} &  Limit the timestep based on how much the burning can change the internal energy of a zone. The timestep is equal to {\tt dtnuc}  $\cdot\,(e / \dot{e})$. & 1.e200 \\
-\runparamNS{dtnuc\_mode}{castro} &  If we are doing burning timestep limiting, choose the method for estimating $\dot{e}$ and $\dot{X}$. 1 == call the burner's RHS for an instantaneous calculation 2 == use the second-half burning from the last timestep 3 == use both the first- and the second-half burning from the last timestep 4 == use the change in the full state over the last timestep & 1 \\
-\rowcolor{tableShade}
 \runparamNS{dxnuc}{castro} &  limit the zone size based on how much the burning can change the internal energy of a zone. The zone size on the finest level must be smaller than {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed. This ensures that the sound-crossing time is smaller than the nuclear energy injection timescale. & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{dxnuc\_max}{castro} &  Disable limiting based on dxnuc above this threshold. This allows zones that have already ignited or are about to ignite to be de-refined. & 1.e200 \\
-\rowcolor{tableShade}
 \runparamNS{react\_T\_max}{castro} &  maximum temperature for allowing reactions to occur in a zone & 1.e200 \\
-\runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
 \rowcolor{tableShade}
+\runparamNS{react\_T\_min}{castro} &  minimum temperature for allowing reactions to occur in a zone & 0.0 \\
 \runparamNS{react\_rho\_max}{castro} &  maximum density for allowing reactions to occur in a zone & 1.e200 \\
+\rowcolor{tableShade}
 \runparamNS{react\_rho\_min}{castro} &  minimum density for allowing reactions to occur in a zone & 0.0 \\
 
 

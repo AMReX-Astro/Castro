@@ -112,6 +112,15 @@ Castro::advance (Real time,
       }
     }
 
+    // Optionally kill the job at this point, if we've detected a violation.
+
+    if (cfl_violation && hard_cfl_limit)
+        amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+
+    // If we didn't kill the job, reset the violation counter.
+
+    cfl_violation = 0;
+
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
@@ -213,7 +222,26 @@ Castro::do_advance (Real time,
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-      do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& old_source = get_old_data(Source_Type);
+
+      if (apply_sources()) {
+
+          do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
+
+          // Apply the old sources to the sources for the hydro.
+          // Note that we are doing an add here, not a copy,
+          // in case we have already started with some source
+          // terms (e.g. the source term predictor, or the SDC source).
+
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+      } else {
+
+          old_source.setVal(0.0, NUM_GROW);
+
+      }
 
       if (!do_ctu) {
 	// store the result of the burn and old-time sources in Sburn for later stages
@@ -233,6 +261,10 @@ Castro::do_advance (Real time,
 
       // Check for CFL violations.
       check_for_cfl_violation(dt);
+
+      // If we detect one, return immediately.
+      if (cfl_violation)
+          return dt;
 
       if (do_ctu) {
         construct_hydro_source(time, dt);
@@ -318,8 +350,19 @@ Castro::do_advance (Real time,
       construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
-      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& new_source = get_new_data(Source_Type);
 
+      if (apply_sources()) {
+
+          do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, new_source, dt, S_new.nGrow());
+
+      } else {
+
+          new_source.setVal(0.0, NUM_GROW);
+
+      }
 
       // Do the second half of the reactions.
 
@@ -469,6 +512,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     sub_ncycle = 0;
     dt_subcycle = 1.e200;
     dt_advance = dt;
+
+    keep_prev_state = false;
+
+    cfl_violation = 0;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -711,7 +758,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     sources_for_hydro.clear();
 
-    amrex::FillNull(prev_state);
+    if (!keep_prev_state)
+        amrex::FillNull(prev_state);
 
     if (!do_ctu) {
       k_mol.clear();
@@ -991,6 +1039,11 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         subcycle_time += dt_advance;
         sub_iteration += 1;
 
+        // If we have hit a CFL violation during this subcycle, we must abort.
+
+        if (cfl_violation && hard_cfl_limit)
+            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+
     }
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -998,14 +1051,31 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     // Finally, copy the original data back to the old state
     // data so that externally it appears like we took only
-    // a single timestep.
+    // a single timestep. We'll do this as a swap so that
+    // we still have the last iteration's old data if we need
+    // it later.
 
     for (int k = 0; k < num_state_type; k++) {
 
         if (prev_state[k]->hasOldData())
-            state[k].copyOld(*prev_state[k]);
+            state[k].replaceOldData(*prev_state[k]);
 
         state[k].setTimeLevel(time + dt, dt, 0.0);
+        prev_state[k]->setTimeLevel(time + dt, dt_advance, 0.0);
+
+    }
+
+    // If we took more than one step and are going to do a reflux,
+    // keep the data past the end of the step.
+
+    if (sub_iteration > 2 && do_reflux && update_sources_after_reflux) {
+
+        // Note that since we only want to do this if there's actually a
+        // reflux immediately following this, skip this if we're on the
+        // finest level and this is not the last iteration.
+
+        if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
+            keep_prev_state = true;
 
     }
 

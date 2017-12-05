@@ -4,37 +4,29 @@
 using namespace amrex;
 
 void
-Castro::construct_old_hybrid_source(Real time, Real dt)
+Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
     Real mult_factor = 1.0;
 
-    MultiFab& old_sources = get_old_data(Source_Type);
-
-    fill_hybrid_hydro_source(old_sources, Sborder, mult_factor);
+    fill_hybrid_hydro_source(source, state, mult_factor);
 }
 
 
 
 void
-Castro::construct_new_hybrid_source(Real time, Real dt)
+Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
-    MultiFab& new_sources = get_new_data(Source_Type);
-
     // Start by subtracting off the old-time data.
 
     Real mult_factor = -0.5;
 
-    fill_hybrid_hydro_source(new_sources, S_old, mult_factor);
+    fill_hybrid_hydro_source(source, state_old, mult_factor);
 
     // Time center with the new data.
 
     mult_factor = 0.5;
 
-    fill_hybrid_hydro_source(new_sources, S_new, mult_factor);
-
+    fill_hybrid_hydro_source(source, state_new, mult_factor);
 }
 
 

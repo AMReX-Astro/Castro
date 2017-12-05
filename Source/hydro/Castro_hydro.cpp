@@ -75,7 +75,6 @@ Castro::construct_hydro_source(Real time, Real dt)
       for (MFIter mfi(S_new,hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	  const Box& bx    = mfi.tilebox();
-	  const Box& qbx = amrex::grow(bx, NUM_GROW);
 
 	  const int* lo = bx.loVect();
 	  const int* hi = bx.hiVect();
@@ -312,7 +311,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
-	const Box& qbx = amrex::grow(bx, NUM_GROW);
 
 	const int* lo = bx.loVect();
 	const int* hi = bx.hiVect();
@@ -526,10 +524,13 @@ Castro::check_for_cfl_violation(const Real dt)
 
     }
 
+    ParallelDescriptor::ReduceRealMax(courno);
+
     if (courno > 1.0) {
-        std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
-        if (hard_cfl_limit == 1)
-            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "WARNING -- EFFECTIVE CFL AT THIS LEVEL " << level << " IS " << courno << '\n';
+
+        cfl_violation = 1;
     }
 
 }

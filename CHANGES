@@ -1,66 +1,92 @@
 # changes since last release
 
-  -- The sponge can now operate based on pressure. The new parameters belong
-     in the sponge namelist, and are named sponge_lower_pressure and
-     sponge_upper_pressure. It works on the same principle as the density sponge.
+  -- The parameter dtnuc_mode has been removed. This was initially used
+     for testing various forms of the burning timestep limiter before a
+     final form was settled on.
 
-  -- The sponge can now drive the system to a particular velocity (the default
-     is still zero velocity). The new parameters belong in the sponge namelist
-     in your probin file, and are named sponge_target_{x,y,z}_velocity.
+  -- Minor inconsistencies in how the external and diffusion source terms
+     were constructed when simultaneously using reactions (#268, #269)
+     have been fixed (#271).
 
-  -- The SDC_Source_Type StateData was removed, as its purpose is now supplanted
-     by the change to always keep the source terms in StateData (see below), and
-     it was thus redundant. This does not change code output but does mean that
-     old checkpoints generated while using SDC are no longer compatible with the
-     current code. Normally we strive to maintain forward compatibility of
-     checkpoints, but this change was considered justified because SDC is still
-     considered an experimental feature under development and to our knowledge
-     no production science runs have yet been done using SDC.
+  -- The deprecated parameter castro.use_colglaz is removed. It was
+     deprecated in June 2016 because it was obsoleted by the parameter
+     castro.riemann_solver, which can be set to 1 to use the Colella
+     and Glaz Riemann solver.
 
-  -- The parameter gravity.max_solve_level was removed. This was added to work
-     around convergence issues in the multigrid solve, but those convergence
-     issues have since been fixed, so the parameter is no longer used.
+# 17.12
 
-  -- The Source_Type StateData now holds the actual old- and new-time sources
-     (previously it held the source term predictor). This StateData is used to
-     fill the sources_for_hydro MultiFab which provides the source terms used
-     in the hydrodynamic update. Since it is StateData, this operation is done
-     with a FillPatch. Consequently the sources_for_hydro data has meaningful
-     data in both physical domain ghost zones and ghost zones at a coarse-fine
-     interface (previously it only had meaningful data on fully interior ghost
-     zones). Checkpoints will now have both old and new data. This change does
-     result in a difference in the simulation output for simulations with source
-     terms, as the answer will be different at the boundaries and at coarse-fine
-     interfaces. (#116, #253) A related bug when using SDC was fixed too. (#56)
+  -- The sponge can now operate based on pressure. The new parameters
+     belong in the sponge namelist, and are named
+     sponge_lower_pressure and sponge_upper_pressure. It works on the
+     same principle as the density sponge.
+
+  -- The sponge can now drive the system to a particular velocity (the
+     default is still zero velocity). The new parameters belong in the
+     sponge namelist in your probin file, and are named
+     sponge_target_{x,y,z}_velocity.
+
+  -- The SDC_Source_Type StateData was removed, as its purpose is now
+     supplanted by the change to always keep the source terms in
+     StateData (see below), and it was thus redundant. This does not
+     change code output but does mean that old checkpoints generated
+     while using SDC are no longer compatible with the current
+     code. Normally we strive to maintain forward compatibility of
+     checkpoints, but this change was considered justified because SDC
+     is still considered an experimental feature under development and
+     to our knowledge no production science runs have yet been done
+     using SDC.
+
+  -- The parameter gravity.max_solve_level was removed. This was added
+     to work around convergence issues in the multigrid solve, but
+     those convergence issues have since been fixed, so the parameter
+     is no longer used.
+
+  -- The Source_Type StateData now holds the actual old- and new-time
+     sources (previously it held the source term predictor). This
+     StateData is used to fill the sources_for_hydro MultiFab which
+     provides the source terms used in the hydrodynamic update. Since
+     it is StateData, this operation is done with a
+     FillPatch. Consequently the sources_for_hydro data has meaningful
+     data in both physical domain ghost zones and ghost zones at a
+     coarse-fine interface (previously it only had meaningful data on
+     fully interior ghost zones). Checkpoints will now have both old
+     and new data. This change does result in a difference in the
+     simulation output for simulations with source terms, as the
+     answer will be different at the boundaries and at coarse-fine
+     interfaces. (#116, #253) A related bug when using SDC was fixed
+     too. (#56)
 
   -- The parameter castro.keep_sources_until_end has been removed.
 
-  -- Source terms (gravity, rotation, etc.) have now been all coalesced into
-     a single MultiFab. This reduces the memory footprint of the code. This
-     negates the need for the code parameters update_state_between_sources and
-     coalesce_update_diagnostics, so they have been removed. This will cause
-     a change in results: the previous code behavior was to update the state
-     with each successive source term as it was applied at the new time. Now
-     every source term will be calculated using the same new-time state (the one
-     coming out of the hydro) and the source terms are all applied to the state
-     in one shot at the end. Note that both this and the old approach are
+  -- Source terms (gravity, rotation, etc.) have now been all
+     coalesced into a single MultiFab. This reduces the memory
+     footprint of the code. This negates the need for the code
+     parameters update_state_between_sources and
+     coalesce_update_diagnostics, so they have been removed. This will
+     cause a change in results: the previous code behavior was to
+     update the state with each successive source term as it was
+     applied at the new time. Now every source term will be calculated
+     using the same new-time state (the one coming out of the hydro)
+     and the source terms are all applied to the state in one shot at
+     the end. Note that both this and the old approach are
      second-order accurate in time. For problems that combine multiple
-     source terms, this will cause changes that are larger than roundoff.
-     In particular, if rotation is used in conjunction with other source terms,
-     changes will be relatively large, because the Coriolis force depends on the
-     velocity, so the source term is a bit different now that it is seeing a
-     different velocity. (#165, #249)
+     source terms, this will cause changes that are larger than
+     roundoff.  In particular, if rotation is used in conjunction with
+     other source terms, changes will be relatively large, because the
+     Coriolis force depends on the velocity, so the source term is a
+     bit different now that it is seeing a different velocity. (#165,
+     #249)
 
-  -- As of 17.10, there is a new option castro.plot_per_is_exact. If this
-     is set to 1, timesteps will be shortened to exactly hit the time interval
-     specified by amr.plot_per. An issue with this (#242) was fixed (#243)
-     where an incorrect timestep would be taken after a restart if the
-     previous step had been shortened.
+  -- As of 17.10, there is a new option castro.plot_per_is_exact. If
+     this is set to 1, timesteps will be shortened to exactly hit the
+     time interval specified by amr.plot_per. An issue with this
+     (#242) was fixed (#243) where an incorrect timestep would be
+     taken after a restart if the previous step had been shortened.
 
   -- We can now use the new multigrid solver from AMReX (implemented
-     in C++) instead of the older Fortran solver (#241).  This is enabled
-     with gravity.use_mlmg_solver=1.  Note, this only works in 3-d
-     currently.  This has several options:
+     in C++) instead of the older Fortran solver (#241).  This is
+     enabled with gravity.use_mlmg_solver=1.  Note, this only works in
+     3-d currently.  This has several options:
 
      gravity.mlmg_max_fmg_iter = 0 : This integer parameter determines
      how many FMG cycles will be performed before switching to
