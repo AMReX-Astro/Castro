@@ -60,7 +60,6 @@ Castro::just_the_mhd(Real time, Real dt)
         for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
 	{
 	   const Box& bx = mfi.tilebox();
-	   const Box& qbx = amrex::grow(bx, NUM_GROW);
 
            const int* lo = bx.loVect();
            const int* hi = bx.hiVect();
@@ -70,7 +69,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
            FArrayBox &source_in  = sources_for_hydro[mfi];
            FArrayBox &source_out = hydro_source[mfi]; 
-	   
 
            FArrayBox& Bx  = Bx_old_tmp[mfi];
            FArrayBox& By  = By_old_tmp[mfi]; 
