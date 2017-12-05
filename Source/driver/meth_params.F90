@@ -20,13 +20,13 @@ module meth_params_module
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
-  ! NTHERM: number of thermodynamic variables
-  integer, save :: NTHERM, NVAR
+  ! conservative variables
+  integer, save :: NVAR
   integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, save :: USHK
 
-  ! QTHERM: number of primitive variables
-  integer, save :: QTHERM, QVAR
+  ! primitive variables
+  integer, save :: QVAR
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
   integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
@@ -81,12 +81,12 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
-  !$acc create(NTHERM, NVAR) &
+  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QTHERM, QVAR) &
+  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
@@ -147,7 +147,6 @@ module meth_params_module
   real(rt), save :: dtnuc_e
   real(rt), save :: dtnuc_X
   real(rt), save :: dtnuc_X_threshold
-  integer         , save :: dtnuc_mode
   real(rt), save :: dxnuc
   real(rt), save :: dxnuc_max
   integer         , save :: do_react
@@ -193,17 +192,16 @@ module meth_params_module
   !$acc create(do_sponge, sponge_implicit, first_order_hydro) &
   !$acc create(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
   !$acc create(cfl, dtnuc_e, dtnuc_X) &
-  !$acc create(dtnuc_X_threshold, dtnuc_mode, dxnuc) &
-  !$acc create(dxnuc_max, do_react, react_T_min) &
-  !$acc create(react_T_max, react_rho_min, react_rho_max) &
-  !$acc create(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
-  !$acc create(do_grav, grav_source_type, do_rotation) &
-  !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
-  !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-  !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(dtnuc_X_threshold, dxnuc, dxnuc_max) &
+  !$acc create(do_react, react_T_min, react_T_max) &
+  !$acc create(react_rho_min, react_rho_max, disable_shock_burning) &
+  !$acc create(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+  !$acc create(grav_source_type, do_rotation, rot_period) &
+  !$acc create(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+  !$acc create(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+  !$acc create(implicit_rotation_update, rot_axis, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
+  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -285,7 +283,6 @@ contains
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
     dtnuc_X_threshold = 1.d-3;
-    dtnuc_mode = 1;
     dxnuc = 1.d200;
     dxnuc_max = 1.d200;
     do_react = -1;
@@ -364,7 +361,6 @@ contains
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
     call pp%query("dtnuc_X_threshold", dtnuc_X_threshold)
-    call pp%query("dtnuc_mode", dtnuc_mode)
     call pp%query("dxnuc", dxnuc)
     call pp%query("dxnuc_max", dxnuc_max)
     call pp%query("do_react", do_react)
@@ -437,17 +433,16 @@ contains
     !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
     !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
-    !$acc device(dtnuc_X_threshold, dtnuc_mode, dxnuc) &
-    !$acc device(dxnuc_max, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(dtnuc_X_threshold, dxnuc, dxnuc_max) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(diffuse_cutoff_density, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags

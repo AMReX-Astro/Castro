@@ -112,6 +112,15 @@ Castro::advance (Real time,
       }
     }
 
+    // Optionally kill the job at this point, if we've detected a violation.
+
+    if (cfl_violation && hard_cfl_limit)
+        amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+
+    // If we didn't kill the job, reset the violation counter.
+
+    cfl_violation = 0;
+
     // Check to see if this advance violated certain stability criteria.
     // If so, get a new timestep and do subcycled advances until we reach
     // t = time + dt.
@@ -213,7 +222,26 @@ Castro::do_advance (Real time,
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-      do_old_sources(prev_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& old_source = get_old_data(Source_Type);
+
+      if (apply_sources()) {
+
+          do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
+
+          // Apply the old sources to the sources for the hydro.
+          // Note that we are doing an add here, not a copy,
+          // in case we have already started with some source
+          // terms (e.g. the source term predictor, or the SDC source).
+
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+      } else {
+
+          old_source.setVal(0.0, NUM_GROW);
+
+      }
 
       if (!do_ctu) {
 	// store the result of the burn and old-time sources in Sburn for later stages
@@ -227,6 +255,16 @@ Castro::do_advance (Real time,
 
     if (do_hydro)
     {
+      // Construct the primitive variables.
+      cons_to_prim(time);
+
+      // Check for CFL violations.
+      check_for_cfl_violation(dt);
+
+      // If we detect one, return immediately.
+      if (cfl_violation)
+          return dt;
+
       if (do_ctu) {
         construct_hydro_source(time, dt);
 	apply_source_to_state(S_new, hydro_source, dt);
@@ -307,8 +345,19 @@ Castro::do_advance (Real time,
       construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
-      do_new_sources(cur_time, dt, amr_iteration, amr_ncycle);
+      MultiFab& new_source = get_new_data(Source_Type);
 
+      if (apply_sources()) {
+
+          do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+          apply_source_to_state(S_new, new_source, dt, S_new.nGrow());
+
+      } else {
+
+          new_source.setVal(0.0, NUM_GROW);
+
+      }
 
       // Do the second half of the reactions.
 
@@ -373,6 +422,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #endif
 #endif
 
+    // Scale the source term predictor by the current timestep.
+
+#ifndef SDC
+    if (source_term_predictor == 1) {
+        sources_for_hydro.mult(0.5 * dt, NUM_GROW);
+    }
+#endif
+
     // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
     // but the state data does not carry ghost zones. So we use a FillPatch
     // using the state data to give us Sborder, which does have ghost zones.
@@ -424,17 +481,6 @@ void
 Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
 
-#ifdef SDC
-    // The new sources are broken into types (ext, diff, hybrid, grav,
-    // ...) via an enum.  For SDC, store the sum of the new_sources
-    // over these different physics types in the state data -- that's
-    // what hydro really cares about.
-
-    MultiFab& SDC_source_new = get_new_data(SDC_Source_Type);
-    MultiFab& sources_new = get_new_data(Source_Type);
-    MultiFab::Copy(SDC_source_new, sources_new, 0, 0, NUM_STATE, sources_new.nGrow());
-#endif
-
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
 	MultiFab& Er_old = get_old_data(Rad_Type);
@@ -460,6 +506,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     sub_iteration = 0;
     sub_ncycle = 0;
     dt_subcycle = 1.e200;
+    dt_advance = dt;
+
+    keep_prev_state = false;
+
+    cfl_violation = 0;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -517,6 +568,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef RADIATION
     if (do_radiation)
         radiation->pre_timestep(level);
+
+    Erborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
+    lamborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
 #endif
 
 #ifdef SELF_GRAVITY
@@ -529,6 +583,18 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
+    // If we're going to do a retry, save the simulation times of the
+    // previous state data. This must happen before the swap.
+
+    if (use_retry) {
+
+        prev_state_old_time = get_state_data(State_Type).prevTime();
+        prev_state_new_time = get_state_data(State_Type).curTime();
+
+        prev_state_had_old_data = get_state_data(State_Type).hasOldData();
+
+    }
+
     // This array holds the sum of all source terms that affect the
     // hydrodynamics.  If we are doing the source term predictor,
     // we'll also use this after the hydro update to store the sum of
@@ -540,32 +606,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifndef SDC
 
-    // Optionally predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term.
+    // Add the source term predictor.
     // This must happen before the swap.
-    // Note that if the old data doesn't exist yet (e.g. it is
-    // the first step of the simulation) FillPatch will just
-    // return the new data, so this is a valid operation and
-    // the result will be zero, so there is no source term
-    // prediction in the first step.
 
     if (source_term_predictor == 1) {
 
-        const Real old_time = get_state_data(Source_Type).prevTime();
-        const Real new_time = get_state_data(Source_Type).curTime();
-
-        const Real dt_old = new_time - old_time;
-
-        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
-
-        sources_for_hydro.negate(NUM_GROW);
-
-        AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
-
-        sources_for_hydro.mult((0.5 * dt) / dt_old, NUM_GROW);
+        apply_source_term_predictor();
 
     }
 
@@ -578,35 +624,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // value of the "new-time" sources to the old-time sources to get a
     // time-centered value.
 
-    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, SDC_Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
 #endif
 
 
     // Swap the new data from the last timestep into the old state data.
 
-    for (int k = 0; k < num_state_type; k++) {
-
-	// The following is a hack to make sure that we only
-	// ever have new data for a few state types that only
-	// ever need new time data; by doing a swap now, we'll
-	// guarantee that allocOldData() does nothing. We do
-	// this because we never need the old data, so we
-	// don't want to allocate memory for it.
-
-#ifdef SDC
-	if (k == SDC_Source_Type)
-	    state[k].swapTimeLevels(0.0);
-#ifdef REACTIONS
-	if (k == SDC_React_Type)
-	    state[k].swapTimeLevels(0.0);
-#endif
-#endif
-
-	state[k].allocOldData();
-	state[k].swapTimeLevels(dt);
-
-    }
+    swap_state_time_levels(dt);
 
 #ifdef SELF_GRAVITY
     if (do_grav)
@@ -637,13 +662,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    if (!(do_reflux && update_sources_after_reflux)) {
+    // This array holds the hydrodynamics update.
 
-      // This array holds the hydrodynamics update.
+    hydro_source.define(grids,dmap,NUM_STATE,0);
 
-      hydro_source.define(grids,dmap,NUM_STATE,0);
 
-    }
+
+    // Allocate space for the primitive variables.
+
+#ifdef RADIATION
+    q.define(grids, dmap, QRADVAR, NUM_GROW);
+#else
+    q.define(grids, dmap, QVAR, NUM_GROW);
+#endif
+
+    qaux.define(grids, dmap, NQAUX, NUM_GROW);
+
+    src_q.define(grids, dmap, QVAR, NUM_GROW);
 
 
 
@@ -665,6 +700,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int dir = 0; dir < 3; ++dir)
 	fluxes[dir]->setVal(0.0);
 
+    for (int dir = 0; dir < 3; ++dir)
+        mass_fluxes[dir]->setVal(0.0);
+
 #if (BL_SPACEDIM <= 2)
     if (!Geometry::IsCartesian())
 	P_radial.setVal(0.0);
@@ -675,18 +713,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
 	    rad_fluxes[dir]->setVal(0.0);
 #endif
-
-    mass_fluxes.resize(3);
-
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
-	mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
-        mass_fluxes[dir]->setVal(0.0);
-    }
-
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
-	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
-        mass_fluxes[dir]->setVal(0.0);
-    }
 
 }
 
@@ -714,23 +740,26 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     Real cur_time = state[State_Type].curTime();
 
-    if (!(do_reflux && update_sources_after_reflux)) {
+    hydro_source.clear();
 
-	hydro_source.clear();
+    q.clear();
+    qaux.clear();
+    src_q.clear();
 
-    }
+#ifdef RADIATION
+    Erborder.clear();
+    lamborder.clear();
+#endif
 
     sources_for_hydro.clear();
 
-    amrex::FillNull(prev_state);
+    if (!keep_prev_state)
+        amrex::FillNull(prev_state);
 
     if (!do_ctu) {
       k_mol.clear();
       Sburn.clear();
     }
-
-    for (int dir = 0; dir < 3; ++dir)
-	mass_fluxes[dir].reset();
 
 }
 
@@ -816,6 +845,45 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
 	}
 
+        // Reset the source term predictor.
+
+        sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+        if (source_term_predictor == 1) {
+
+            // Normally the source term predictor is done before the swap,
+            // but the prev_state data is saved after the initial swap had
+            // been done. So we will temporarily swap the state data back,
+            // and reset the time levels.
+
+            // Note that unlike the initial application of the source term
+            // predictor before the swap, the old data will have already
+            // been allocated when we get to this point. So we want to skip
+            // this step if we didn't have old data initially.
+
+            if (prev_state_had_old_data) {
+
+                swap_state_time_levels(0.0);
+
+                const Real dt_old = prev_state_new_time - prev_state_old_time;
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
+
+                apply_source_term_predictor();
+
+                swap_state_time_levels(0.0);
+
+                for (int k = 0; k < num_state_type; k++)
+                    state[k].setTimeLevel(time + dt, dt, 0.0);
+
+            }
+
+        }
+#endif
+
+
 	if (track_grid_losses)
 	  for (int i = 0; i < n_lost; i++)
 	    material_lost_through_boundary_temp[i] = 0.0;
@@ -900,7 +968,7 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     Real subcycle_time = time;
     dt_subcycle = dt / sub_ncycle;
-    Real dt_advance = dt_subcycle;
+    dt_advance = dt_subcycle;
 
     Real dt_new = 1.e200;
 
@@ -930,20 +998,17 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
         if (sub_iteration > 1) {
 
-            for (int k = 0; k < num_state_type; k++) {
+            // Reset the source term predictor.
+            // This must come before the swap.
 
-#ifdef SDC
-                if (k == SDC_Source_Type)
-                    state[k].swapTimeLevels(0.0);
-#ifdef REACTIONS
-                if (k == SDC_React_Type)
-                    state[k].swapTimeLevels(0.0);
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+
+#ifndef SDC
+            if (source_term_predictor == 1)
+                apply_source_term_predictor();
 #endif
-#endif
 
-                state[k].swapTimeLevels(0.0);
-
-            }
+            swap_state_time_levels(0.0);
 
 #ifdef SELF_GRAVITY
             if (do_grav) {
@@ -969,6 +1034,11 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
         subcycle_time += dt_advance;
         sub_iteration += 1;
 
+        // If we have hit a CFL violation during this subcycle, we must abort.
+
+        if (cfl_violation && hard_cfl_limit)
+            amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+
     }
 
     if (verbose && ParallelDescriptor::IOProcessor())
@@ -976,14 +1046,31 @@ Castro::subcycle_advance(const Real time, const Real dt, int amr_iteration, int 
 
     // Finally, copy the original data back to the old state
     // data so that externally it appears like we took only
-    // a single timestep.
+    // a single timestep. We'll do this as a swap so that
+    // we still have the last iteration's old data if we need
+    // it later.
 
     for (int k = 0; k < num_state_type; k++) {
 
         if (prev_state[k]->hasOldData())
-            state[k].copyOld(*prev_state[k]);
+            state[k].replaceOldData(*prev_state[k]);
 
         state[k].setTimeLevel(time + dt, dt, 0.0);
+        prev_state[k]->setTimeLevel(time + dt, dt_advance, 0.0);
+
+    }
+
+    // If we took more than one step and are going to do a reflux,
+    // keep the data past the end of the step.
+
+    if (sub_iteration > 2 && do_reflux && update_sources_after_reflux) {
+
+        // Note that since we only want to do this if there's actually a
+        // reflux immediately following this, skip this if we're on the
+        // finest level and this is not the last iteration.
+
+        if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
+            keep_prev_state = true;
 
     }
 

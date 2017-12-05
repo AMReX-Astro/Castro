@@ -4,57 +4,50 @@
 using namespace amrex;
 
 void
-Castro::construct_old_ext_source(Real time, Real dt)
+Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
     if (!add_ext_src) return;
 
-    MultiFab& old_sources = get_old_data(Source_Type);
+    MultiFab ext_src(grids, dmap, NUM_STATE, 0);
 
-    MultiFab src(grids, dmap, NUM_STATE, 0);
+    ext_src.setVal(0.0);
 
-    src.setVal(0.0);
-
-    fill_ext_source(time, dt, Sborder, Sborder, src);
+    fill_ext_source(time, dt, state, state, ext_src);
 
     Real mult_factor = 1.0;
 
-    MultiFab::Saxpy(old_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 }
 
 
 
 void
-Castro::construct_new_ext_source(Real time, Real dt)
+Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
-    MultiFab& new_sources = get_new_data(Source_Type);
-
     if (!add_ext_src) return;
 
-    MultiFab src(grids, dmap, NUM_STATE, 0);
+    MultiFab ext_src(grids, dmap, NUM_STATE, 0);
 
-    src.setVal(0.0);
+    ext_src.setVal(0.0);
 
     // Subtract off the old-time value first.
 
     Real old_time = time - dt;
     Real mult_factor = -0.5;
 
-    fill_ext_source(old_time, dt, S_old, S_old, src);
+    fill_ext_source(old_time, dt, state_old, state_old, ext_src);
 
-    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 
     // Time center with the new data.
 
-    src.setVal(0.0);
+    ext_src.setVal(0.0);
 
     mult_factor = 0.5;
 
-    fill_ext_source(time, dt, S_old, S_new, src);
+    fill_ext_source(time, dt, state_old, state_new, ext_src);
 
-    MultiFab::Saxpy(new_sources, mult_factor, src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 
 }
 

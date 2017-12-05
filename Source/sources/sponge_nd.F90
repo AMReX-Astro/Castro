@@ -7,6 +7,8 @@ module sponge_module
   real(rt), save :: sponge_lower_factor, sponge_upper_factor
   real(rt), save :: sponge_lower_radius, sponge_upper_radius
   real(rt), save :: sponge_lower_density, sponge_upper_density
+  real(rt), save :: sponge_lower_pressure, sponge_upper_pressure
+  real(rt), save :: sponge_target_velocity(3)
   real(rt), save :: sponge_timescale
 
   public
@@ -49,6 +51,7 @@ contains
     integer  :: i, j, k
 
     real(rt) :: src(NVAR)
+    real(rt) :: local_state(NVAR)
 
     src = ZERO
 
@@ -64,7 +67,9 @@ contains
              rho = state(i,j,k,URHO)
              rhoInv = ONE / rho
 
-             Sr(:) = state(i,j,k,UMX:UMZ) * update_factor(r, rho, dt) * mult_factor / dt
+             local_state = state(i,j,k,:)
+
+             Sr(:) = (state(i,j,k,UMX:UMZ) - rho * sponge_target_velocity) * update_factor(r, local_state, dt) * mult_factor / dt
 
              src(UMX:UMZ) = Sr(:)
 
@@ -88,16 +93,22 @@ contains
 
 
 
-  real(rt) function update_factor(r, rho, dt)
+  real(rt) function update_factor(r, state, dt)
 
     use bl_constants_module, only: ZERO, HALF, ONE, M_PI
-    use meth_params_module, only: sponge_implicit
+    use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
+    use actual_network, only: nspec, naux
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
 
     implicit none
 
-    real(rt), intent(in) :: r(3), rho, dt
+    real(rt), intent(in) :: r(3), state(NVAR), dt
 
-    real(rt) :: radius, delta_r, delta_rho, alpha, sponge_factor
+    real(rt) :: radius, rho, rhoInv, p
+    real(rt) :: delta_r, delta_rho, delta_p
+    real(rt) :: alpha, sponge_factor
+    type(eos_t) :: eos_state
 
     ! Radial distance between upper and lower boundaries.
 
@@ -106,6 +117,10 @@ contains
     ! Density difference between upper and lower cutoffs.
 
     delta_rho = sponge_lower_density - sponge_upper_density
+
+    ! Pressure difference between upper and lower cutoffs.
+
+    delta_p = sponge_lower_pressure - sponge_upper_pressure
 
     ! alpha is a dimensionless measure of the timestep size; if
     ! sponge_timescale < dt, then the sponge will have a larger effect,
@@ -137,19 +152,49 @@ contains
 
     endif
 
-    ! Apply density sponge. By default sponge_upper_density will be zero
-    ! so this sponge is applied only if set by the user.
+    ! Apply density sponge. This sponge is applied only if set by the user.
 
     ! Note that because we do this second, the density sponge gets priority
     ! over the radial sponge in cases where the two would overlap.
 
     if (sponge_upper_density > ZERO .and. sponge_lower_density > ZERO) then
 
+       rho = state(URHO)
+
        if (rho > sponge_upper_density) then
           sponge_factor = sponge_lower_factor
        else if (rho <= sponge_upper_density .and. rho >= sponge_lower_density) then
           sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
                                                 (ONE - cos(M_PI * (rho - sponge_upper_density) / delta_rho))
+       else
+          sponge_factor = sponge_upper_factor
+       endif
+
+    endif
+
+    ! Apply pressure sponge. This sponge is applied only if set by the user.
+
+    ! Note that because we do this third, the pressure sponge gets priority
+    ! over the radial and density sponges in cases where the two would overlap.
+
+    if (sponge_upper_pressure > ZERO .and. sponge_lower_pressure >= ZERO) then
+
+       rhoInv = ONE / state(URHO)
+
+       eos_state % rho = state(URHO)
+       eos_state % T   = state(UTEMP)
+       eos_state % xn  = state(UFS:UFS+nspec-1) * rhoInv
+       eos_state % aux = state(UFX:UFX+naux-1) * rhoInv
+
+       call eos(eos_input_rt, eos_state)
+
+       p = eos_state % p
+
+       if (p > sponge_upper_pressure) then
+          sponge_factor = sponge_lower_factor
+       else if (p <= sponge_upper_pressure .and. p >= sponge_lower_pressure) then
+          sponge_factor = sponge_lower_factor + HALF * (sponge_upper_factor - sponge_lower_factor) * &
+                                                (ONE - cos(M_PI * (p - sponge_upper_pressure) / delta_p))
        else
           sponge_factor = sponge_upper_factor
        endif

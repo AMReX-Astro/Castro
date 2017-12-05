@@ -94,9 +94,6 @@ plm_iorder                   int           2                  y
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
 
-# this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           -1
-
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
 # 1: Colella \& Glaz (a two-shock solver)
@@ -311,14 +308,6 @@ dtnuc_X                      Real          1.e200             y
 # on the species abundance below which the limiter is not applied. This helps
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
-
-# If we are doing burning timestep limiting, choose the method for
-# estimating $\dot{e}$ and $\dot{X}$.
-# 1 == call the burner's RHS for an instantaneous calculation
-# 2 == use the second-half burning from the last timestep
-# 3 == use both the first- and the second-half burning from the last timestep
-# 4 == use the change in the full state over the last timestep
-dtnuc_mode                   int           1                  y
 
 # limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
