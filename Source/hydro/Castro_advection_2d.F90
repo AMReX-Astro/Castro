@@ -570,7 +570,7 @@ contains
 #endif
 
     use amrex_fort_module, only : rt => amrex_real
-    integer, intent(in) :: lo(2), hi(2)
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -701,14 +701,14 @@ contains
                                              area1, area1_lo, area1_hi, &
                                              flux2, flux2_lo, flux2_hi, &
                                              area2, area2_lo, area2_hi, &
-                                             [lo(1), lo(2), 0], [hi(1), hi(2), 0], dt, dx)
+                                             lo, hi, dt, dx)
     endif
 
     ! Normalize the species fluxes.
 
     call normalize_species_fluxes(flux1, flux1_lo, flux1_hi, &
                                   flux2, flux2_lo, flux2_hi, &
-                                  [lo(1), lo(2), 0], [hi(1), hi(2), 0])
+                                  lo, hi)
 
 #ifdef RADIATION
     do g = 0, ngroups-1
