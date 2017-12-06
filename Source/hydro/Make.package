@@ -16,7 +16,7 @@ ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_nd.F90
 ca_F90EXE_sources += trace_ppm_nd.F90
 
-ca_F90EXE_sources += Castro_ctu_3d.F90
+ca_F90EXE_sources += Castro_ctu_nd.F90
 ca_F90EXE_sources += Castro_mol_nd.F90
 ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
 
