@@ -478,8 +478,11 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   QTHERM = QTHERM - 3
 #endif
 
-  QVAR = QTHERM + nspec + naux + numadv + NMAG
-  
+  QVAR = QTHERM + nspec + naux + numadv
+
+#ifdef MHD  
+  QVAR = QVAR + NMAG
+#endif  
   ! NQ will be the number of hydro + radiation variables in the primitive
   ! state.  Initialize it just for hydro here
   NQ = QVAR
