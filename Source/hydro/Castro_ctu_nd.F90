@@ -58,7 +58,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   use advection_util_module, only : divu
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
-  use prob_params_module, only : mom_flux_has_p, dg
+  use prob_params_module, only : mom_flux_has_p, dg, coord_type
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use flatten_module, only : rad_flatten
@@ -101,7 +101,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
 #endif
   integer, intent(in) :: area1_lo(3), area1_hi(3)
-#if BL_SPACEDIM >= 3
+#if BL_SPACEDIM >= 2
   integer, intent(in) :: area2_lo(3), area2_hi(3)
 #endif
 #if BL_SPACEDIM == 3
@@ -304,7 +304,13 @@ subroutine ca_ctu_update(is_finest_level, time, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
 
-#if BL_SPACEDIM < 3
+
+#if BL_SPACEDIM == 1
+  if (coord_type > 0) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+  end if
+#endif
+#if BL_SPACEDIM == 2
   if (.not. mom_flux_has_p(1)%comp(UMX)) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
