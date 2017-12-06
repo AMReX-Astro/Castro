@@ -203,7 +203,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
      flatn = ZERO
   elseif (use_flattening == 1) then
 #ifdef RADIATION
-     call rad_flatten(lo-dg*ngf, hi+dg*ngf,
+     call rad_flatten(lo-dg*ngf, hi+dg*ngf, &
                       q, flatn, q_lo, q_hi)
 #else
      call uflatten(lo-dg*ngf, hi+dg*ngf, &
