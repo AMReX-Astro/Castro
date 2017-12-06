@@ -189,7 +189,9 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
 
   call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
+#if BL_SPACEDIM >= 2
   call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
+#endif
 #if BL_SPACEDIM == 3
   call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
 #endif
