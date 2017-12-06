@@ -41,7 +41,7 @@ Castro::just_the_mhd(Real time, Real dt)
       FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
 
-
+      
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass:courno)

@@ -62,24 +62,30 @@
 
     real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
     real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR) 
+
     real(rt), intent(in   ) :: bxin(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
     real(rt), intent(in   ) :: byin(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
     real(rt), intent(in   ) :: bzin(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
+
     real(rt), intent(inout) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
     real(rt), intent(inout) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
     real(rt), intent(inout) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
+
     real(rt), intent(in   ) :: ugdnvx(ugdnvx_lo(1):ugdnvx_hi(1), ugdnvx_lo(2):ugdnvx_hi(2), ugdnvx_lo(3):ugdnvx_hi(3))
     real(rt), intent(in   ) :: ugdnvy(ugdnvy_lo(1):ugdnvy_hi(1), ugdnvy_lo(2):ugdnvy_hi(2), ugdnvy_lo(3):ugdnvy_hi(3))
     real(rt), intent(in   ) :: ugdnvz(ugdnvz_lo(1):ugdnvz_hi(1), ugdnvz_lo(2):ugdnvz_hi(2), ugdnvz_lo(3):ugdnvz_hi(3))
-    real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NVAR)
-    real(rt), intent(in   ) :: grav(gv_lo(1):gv_hi(1), gv_lo(2):gv_hi(2), gv_lo(3), gv_hi(3),3)
-    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
 
+    real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NVAR)
+    real(rt), intent(in   ) :: grav(gv_lo(1):gv_hi(1), gv_lo(2):gv_hi(2), gv_lo(3):gv_hi(3),3)
+
+    real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
     real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
     real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
+
     real(rt), intent(inout) :: Ex(ex_lo(1):ex_hi(1), ex_lo(2):ex_hi(2), ex_lo(3):ex_hi(3))
     real(rt), intent(inout) :: Ey(ey_lo(1):ey_hi(1), ey_lo(2):ey_hi(2), ey_lo(3):ey_hi(3))
     real(rt), intent(inout) :: Ez(ez_lo(1):ez_hi(1), ez_lo(2):ez_hi(2), ez_lo(3):ez_hi(3))
+
     real(rt), intent(in   ) :: delta(3), time, dt, courno
     real(rt), intent(in   ) :: e_added, ke_added
     
@@ -201,7 +207,6 @@
     dx = delta(1)
     dy = delta(2)
     dz = delta(3)
-    
 
     !Step One, Calculate Primitives based on conservatives
     call ctoprim(lo,hi,uin,uin_lo,uin_hi,&
