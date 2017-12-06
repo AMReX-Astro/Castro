@@ -43,7 +43,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
                          eden_lost, xang_lost, yang_lost, zang_lost) bind(C, name="ca_ctu_update")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, &
+  use meth_params_module, only : NQ, QVAR, QPRES, NQAUX, NVAR, NHYP, NGDNV, UMX, GDPRES, &
 #ifdef RADIATION
                                  QPTOT, &
 #endif
@@ -157,8 +157,6 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   ngf = 1
 
-  print *, lo
-  print *, hi+dg
   call bl_allocate(   div, lo, hi+dg)
 
   q1_lo = flux1_lo - dg
@@ -265,10 +263,16 @@ subroutine ca_ctu_update(is_finest_level, time, &
               area3, area3_lo, area3_hi, &
 #endif
               vol, vol_lo, vol_hi, &
-              div, lo,hi,delta,dt, &
+              div, lo, hi,delta,dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
+
+#if BL_SPACEDIM < 3
+  if (.not. mom_flux_has_p(1)%comp(UMX)) then
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+  end if
+#endif
 
   call bl_deallocate(   div)
 
