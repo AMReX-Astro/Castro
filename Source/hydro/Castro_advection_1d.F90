@@ -7,13 +7,13 @@ module ctu_advection_module
 
   private
 
-  public umeth1d, consup
+  public umeth, consup
 
 contains
 
 ! ::: ---------------------------------------------------------------
-! ::: :: UMETH1D     Compute hyperbolic fluxes using unsplit second
-! ::: ::               order Godunov integrator.
+! ::: :: UMETH     Compute hyperbolic fluxes using unsplit second
+! ::: ::            order Godunov integrator.
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
@@ -25,19 +25,19 @@ contains
 ! ::: :: flux      <=  (modify) flux in X direction on X edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth1d(lo, hi, domlo, domhi, &
-                     q, q_lo, q_hi, &
-                     flatn, &
-                     qaux, qa_lo, qa_hi, &
-                     srcQ, src_lo, src_hi, &
-                     ilo, ihi, dx, dt, &
-                     uout, uout_lo, uout_hi, &
-                     flux, fd_lo, fd_hi, &
+  subroutine umeth(lo, hi, domlo, domhi, &
+                   q, q_lo, q_hi, &
+                   flatn, &
+                   qaux, qa_lo, qa_hi, &
+                   srcQ, src_lo, src_hi, &
+                   ilo, ihi, dx, dt, &
+                   uout, uout_lo, uout_hi, &
+                   flux, fd_lo, fd_hi, &
 #ifdef RADIATION
-                     rflux, rfd_lo, rfd_hi, &
+                   rflux, rfd_lo, rfd_hi, &
 #endif
-                     q1, q1_lo, q1_hi, &
-                     dloga, dloga_lo, dloga_hi)
+                   q1, q1_lo, q1_hi, &
+                   dloga, dloga_lo, dloga_hi)
 
     use meth_params_module, only : QVAR, NQ, NVAR, &
                                    QC, QFS, QFX, QGAMC, QU, QRHO, QTEMP, QPRES, QREINT, &
@@ -118,7 +118,7 @@ contains
     real(rt), allocatable :: sxm(:), sxp(:)
 
     type(eos_t) :: eos_state
-    
+
     qp_lo = [ilo-1, 0, 0]
     qp_hi = [ihi+2, 0, 0]
 
@@ -128,12 +128,12 @@ contains
     I_lo = [ilo-1, 0, 0]
     I_hi = [ihi+1, 0, 0]
 
-    
+
     if (ppm_type > 0) then
        ! indices: (x, y, dimension, wave, variable)
        allocate(Ip(I_lo(1):I_hi(1), 3, NQ))
        allocate(Im(I_lo(1):I_hi(1), 3, NQ))
-       
+
        if (ppm_trace_sources == 1) then
           allocate(Ip_src(I_lo(1):I_hi(1), 3, QVAR))
           allocate(Im_src(I_lo(1):I_hi(1), 3, QVAR))
@@ -211,7 +211,7 @@ contains
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &
                                ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
-          
+
           call ppm_int_profile(q(:,n), q_lo, q_hi, &
                                q(:,QU), q_lo, q_hi, &
                                qaux(:,QC), qa_lo, qa_hi, &
@@ -229,26 +229,26 @@ contains
                 eos_state%T     = Ip(i,iwave,QTEMP)
                 eos_state%xn(:) = Ip(i,iwave,QFS:QFS-1+nspec)
                 eos_state%aux   = Ip(i,iwave,QFX:QFX-1+naux)
-                
+
                 call eos(eos_input_rt, eos_state)
-                
+
                 Ip(i,iwave,QPRES) = eos_state%p
                 Ip(i,iwave,QREINT) = Ip(i,iwave,QRHO)*eos_state%e
                 Ip_gc(i,iwave,1) = eos_state%gam1
-                
+
                 eos_state%rho   = Im(i,iwave,QRHO)
                 eos_state%T     = Im(i,iwave,QTEMP)
                 eos_state%xn(:) = Im(i,iwave,QFS:QFS-1+nspec)
                 eos_state%aux   = Im(i,iwave,QFX:QFX-1+naux)
-                
+
                 call eos(eos_input_rt, eos_state)
-                
+
                 Im(i,iwave,QPRES) = eos_state%p
                 Im(i,iwave,QREINT) = Im(i,iwave,QRHO)*eos_state%e
                 Im_gc(i,iwave,1) = eos_state%gam1
              enddo
           enddo
-          
+
        endif
 
 
@@ -274,7 +274,7 @@ contains
                                   flatn, q_lo, q_hi, &
                                   sxm, sxp, q_lo, q_hi, &
                                   ilo, 0, ihi, 0, [dx, ZERO, ZERO], 0, 0)
-             
+
              call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
                                   q(:,QU), q_lo, q_hi, &
                                   qaux(:,QC), qa_lo, qa_hi, &
@@ -287,7 +287,7 @@ contains
        deallocate(sxm, sxp)
     endif
 
-    ! Trace to edges 
+    ! Trace to edges
     if (ppm_type .gt. 0) then
 #ifdef RADIATION
        call tracexy_ppm_rad(q, q_lo, q_hi, &
@@ -310,7 +310,7 @@ contains
 #endif
     else
 #ifdef RADIATION
-       call bl_error("ppm_type <=0 is not supported in umeth1d_rad")
+       call bl_error("ppm_type <=0 is not supported in umeth with radiation")
 #else
 
        call tracexy(q, q_lo, q_hi, &
@@ -340,7 +340,7 @@ contains
 
     deallocate (qm,qp)
 
-  end subroutine umeth1d
+  end subroutine umeth
 
 ! :::
 ! ::: ------------------------------------------------------------------

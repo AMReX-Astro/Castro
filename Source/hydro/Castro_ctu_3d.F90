@@ -52,7 +52,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
   use advection_util_module, only : divu
   use bl_constants_module, only : ZERO, ONE
   use flatten_module, only: uflatten
-  use prob_params_module, only : mom_flux_has_p
+  use prob_params_module, only : mom_flux_has_p, dg
 #ifdef RADIATION
   use rad_params_module, only : ngroups
   use flatten_module, only : rad_flatten
@@ -67,7 +67,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
   integer, intent(in) :: is_finest_level
   integer, intent(in) :: lo(3), hi(3), verbose
-  integer, intent(in) ::  domlo(3), domhi(3)
+  integer, intent(in) :: domlo(3), domhi(3)
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
 #ifdef RADIATION
@@ -128,10 +128,12 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
   real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
   real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
+#if BL_SPACEDIM == 3
   real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+#endif
   real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
 
-#if BL_SPACEDIM <= 3
+#if BL_SPACEDIM < 3
   real(rt)        , intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
   real(rt)        , intent(inout) :: pradial(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 #endif
@@ -150,24 +152,29 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , pointer:: q2(:,:,:,:)
   real(rt)        , pointer:: q3(:,:,:,:)
 
-  integer :: ngq, ngf
+  integer :: ngf
   integer :: q1_lo(3), q1_hi(3), q2_lo(3), q2_hi(3), q3_lo(3), q3_hi(3)
 
-  ngq = NHYP
   ngf = 1
 
+  print *, lo
+  print *, hi+dg
   call bl_allocate(   div, lo, hi+dg)
 
-  q1_lo = flux1_lo - 1
-  q1_hi = flux1_hi + 1
-  q2_lo = flux2_lo - dg(2)
-  q2_hi = flux2_hi + dg(2)
-  q3_lo = flux3_lo - dg(3)
-  q3_hi = flux3_hi + dg(3)
+  q1_lo = flux1_lo - dg
+  q1_hi = flux1_hi + dg
+  q2_lo = flux2_lo - dg
+  q2_hi = flux2_hi + dg
+#if BL_SPACEDIM == 3
+  q3_lo = flux3_lo - dg
+  q3_hi = flux3_hi + dg
+#endif
 
   call bl_allocate(q1, q1_lo, q1_hi, NGDNV)
   call bl_allocate(q2, q2_lo, q2_hi, NGDNV)
+#if BL_SPACEDIM == 3
   call bl_allocate(q3, q3_lo, q3_hi, NGDNV)
+#endif
 
   ! Compute flattening coefficient for slope calculations.
   call bl_allocate( flatn, q_lo, q_hi)
@@ -197,7 +204,7 @@ subroutine ca_ctu_update(is_finest_level, time, &
              flux2, flux2_lo, flux2_hi, &
 #if BL_SPACEDIM == 3
              flux3, flux3_lo, flux3_hi, &
-#endig
+#endif
 #ifdef RADIATION
              radflux1, radflux1_lo, radflux1_hi, &
              radflux2, radflux2_lo, radflux2_hi, &
@@ -207,37 +214,56 @@ subroutine ca_ctu_update(is_finest_level, time, &
 #endif
              q1, q1_lo, q1_hi, &
              q2, q2_lo, q2_hi, &
+#if BL_SPACEDIM == 3
              q3, q3_lo, q3_hi, &
-             domlo, domhi)
+#endif
+              area1, area1_lo, area1_hi, &
+              area2, area2_lo, area2_hi, &
+#if BL_SPACEDIM == 3
+              area3, area3_lo, area3_hi, &
+#endif
+              vol, vol_lo, vol_hi, &
+#if BL_SPACEDIM < 3
+              dloga, dloga_lo, dloga_hi, &
+#endif
+              domlo, domhi)
 
 
   call bl_deallocate( flatn)
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo,hi,q,q_lo,q_hi,delta,div,lo,hi+1)
+  call divu(lo, hi, q, q_lo, q_hi, delta, div, lo, hi+dg)
 
   ! Conservative update
-  call consup(uin ,  uin_lo , uin_hi, &
+  call consup(uin, uin_lo, uin_hi, &
               q, q_lo, q_hi, &
               uout, uout_lo, uout_hi, &
               update, updt_lo, updt_hi, &
               flux1, flux1_lo, flux1_hi, &
               flux2, flux2_lo, flux2_hi, &
+#if BL_SPACEDIM == 3
               flux3, flux3_lo, flux3_hi, &
+#endif
 #ifdef RADIATION
               Erin, Erin_lo, Erin_hi, &
               Erout, Erout_lo, Erout_hi, &
               radflux1, radflux1_lo, radflux1_hi, &
               radflux2, radflux2_lo, radflux2_hi, &
+#if BL_SPACEDIM == 3
               radflux3, radflux3_lo, radflux3_hi, &
+#endif
               nstep_fsp, &
 #endif
               q1, q1_lo, q1_hi, &
               q2, q2_lo, q2_hi, &
+#if BL_SPACEDIM == 3
               q3, q3_lo, q3_hi, &
+#endif
               area1, area1_lo, area1_hi, &
               area2, area2_lo, area2_hi, &
+#if BL_SPACEDIM == 3
               area3, area3_lo, area3_hi, &
+#endif
               vol, vol_lo, vol_hi, &
               div, lo,hi,delta,dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
@@ -248,6 +274,8 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   call bl_deallocate(    q1)
   call bl_deallocate(    q2)
+#if BL_SPACEDIM == 3
   call bl_deallocate(    q3)
+#endif
 
 end subroutine ca_ctu_update
