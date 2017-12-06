@@ -195,8 +195,8 @@ void Radiation::read_static_params()
   }
 
   if (rad_hydro_combined) {
-    if (Castro::use_colglaz >= 0) {
-      amrex::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
+    if (Castro::riemann_solver == 1) {
+      amrex::Error("The Colella and Glaz Riemann solver cannot be used with rad_hydro_combined.");
     }
   }
 

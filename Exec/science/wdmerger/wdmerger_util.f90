@@ -125,20 +125,6 @@ contains
 
     orbital_angle = orbital_angle * M_PI / 180.0
 
-    ! If we're doing problem 3, which has an initial relaxation, ensure
-    ! that the damping timescale is positive. Be aware that this safety
-    ! check implies that relaxation_damping_timescale must be positive even
-    ! if we're restarting from a checkpoint that indicates that the relaxation
-    ! has already completed. There's no way for us to test that here because
-    ! the checkpoint is read after the namelist initialization step we are
-    ! currently in. If the checkpoint does indicate that, the relaxation
-    ! damping timescale will just be set negative, effectively disabling
-    ! relaxation, at the time the checkpoint is read.
-
-    if (problem .eq. 3 .and. relaxation_damping_timescale <= ZERO) then
-       call bl_error("The relaxation step requires a positive relaxation_damping_timescale.")
-    endif
-
     ! Disable the Coriolis term if we're doing a relaxation.
 
     if (problem .eq. 3) then
@@ -1054,7 +1040,7 @@ contains
 
   ! This routine is called when we've satisfied our criterion
   ! for disabling the initial relaxation phase. We set the
-  ! relaxation timescale to a negative number, which disables
+  ! relaxation damping factor to a negative number, which disables
   ! the damping, and we set the sponge timescale to a negative
   ! number, which disables the sponging.
 
@@ -1068,7 +1054,7 @@ contains
 
     double precision :: time
 
-    relaxation_damping_timescale = -ONE
+    relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
     rotation_include_coriolis = 1
 

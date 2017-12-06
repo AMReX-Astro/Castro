@@ -119,7 +119,7 @@ contains
 
     use bl_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold, dtnuc_mode
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold
     use prob_params_module, only : dim
 #if naux > 0
     use meth_params_module, only : UFX
@@ -213,39 +213,16 @@ contains
              e    = state_new % e
              X    = max(state_new % xn, small_x)
 
-             if (dtnuc_mode == 1) then
+             call burn_to_eos(state_new, eos_state)
+             call eos(eos_input_rt, eos_state)
+             call eos_to_burn(eos_state, state_new)
 
-                call burn_to_eos(state_new, eos_state)
-                call eos(eos_input_rt, eos_state)
-                call eos_to_burn(eos_state, state_new)
+             state_new % dx = minval(dx(1:dim))
 
-                state_new % dx = minval(dx(1:dim))
+             call actual_rhs(state_new)
 
-                call actual_rhs(state_new)
-
-                dedt = state_new % ydot(net_ienuc)
-                dXdt = state_new % ydot(1:nspec) * aion
-
-             else if (dtnuc_mode == 2) then
-
-                dedt = rnew(i,j,k,nspec+1)
-                dXdt = rnew(i,j,k,1:nspec)
-
-             else if (dtnuc_mode == 3) then
-
-                dedt = HALF * (rold(i,j,k,nspec+1) + rnew(i,j,k,nspec+1))
-                dXdt = HALF * (rold(i,j,k,1:nspec) + rnew(i,j,k,1:nspec))
-
-             else if (dtnuc_mode == 4) then
-
-                dedt = (state_new % e - state_old % e) / dt_old
-                dXdt = (state_new % xn - state_old % xn) / dt_old
-
-             else
-
-                call bl_error("Error: unrecognized burning timestep limiter mode in timestep.F90.")
-
-             endif
+             dedt = state_new % ydot(net_ienuc)
+             dXdt = state_new % ydot(1:nspec) * aion
 
              ! Apply a floor to the derivatives. This ensures that we don't
              ! divide by zero; it also gives us a quick method to disable
