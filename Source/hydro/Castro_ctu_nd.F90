@@ -319,7 +319,9 @@ subroutine ca_ctu_update(is_finest_level, time, &
   call bl_deallocate(   div)
 
   call bl_deallocate(    q1)
+#if BL_SPACEDIM >= 2
   call bl_deallocate(    q2)
+#endif
 #if BL_SPACEDIM == 3
   call bl_deallocate(    q3)
 #endif
