@@ -14,19 +14,25 @@ subroutine ca_ctu_update(is_finest_level, time, &
                          update, updt_lo, updt_hi, &
                          delta, dt, &
                          flux1, flux1_lo, flux1_hi, &
+#if BL_SPACEDIM >= 2
                          flux2, flux2_lo, flux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
                          flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
                          radflux1, radflux1_lo, radflux1_hi, &
+#if BL_SPACEDIM >= 2
                          radflux2, radflux2_lo, radflux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
                          radflux3, radflux3_lo, radflux3_hi, &
 #endif
 #endif
                          area1, area1_lo, area1_hi, &
+#if BL_SPACEDIM >= 2
                          area2, area2_lo, area2_hi, &
+#endif
 #if BL_SPACEDIM == 3
                          area3, area3_lo, area3_hi, &
 #endif
@@ -79,19 +85,25 @@ subroutine ca_ctu_update(is_finest_level, time, &
   integer, intent(in) :: srQ_lo(3), srQ_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
+#if BL_SPACEDIM >= 2
   integer, intent(in) :: flux2_lo(3), flux2_hi(3)
+#endif
 #if BL_SPACEDIM == 3
   integer, intent(in) :: flux3_lo(3), flux3_hi(3)
 #endif
 #ifdef RADIATION
   integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
+#if BL_SPACEDIM >= 2
   integer, intent(in) :: radflux2_lo(3), radflux2_hi(3)
+#endif
 #if BL_SPACEDIM == 3
   integer, intent(in) :: radflux3_lo(3), radflux3_hi(3)
 #endif
 #endif
   integer, intent(in) :: area1_lo(3), area1_hi(3)
+#if BL_SPACEDIM >= 3
   integer, intent(in) :: area2_lo(3), area2_hi(3)
+#endif
 #if BL_SPACEDIM == 3
   integer, intent(in) :: area3_lo(3), area3_hi(3)
 #endif
@@ -112,22 +124,28 @@ subroutine ca_ctu_update(is_finest_level, time, &
   real(rt)        , intent(in) :: srcQ(srQ_lo(1):srQ_hi(1), srQ_lo(2):srQ_hi(2), srQ_lo(3):srQ_hi(3), QVAR)
   real(rt)        , intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt)        , intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
+#if BL_SPACEDIM >= 2
   real(rt)        , intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
+#endif
 #if BL_SPACEDIM == 3
   real(rt)        , intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
 #endif
 #ifdef RADIATION
   real(rt)        , intent(inout) :: radflux1(radflux1_lo(1):radflux1_hi(1), radflux1_lo(2):radflux1_hi(2), &
                                               radflux1_lo(3):radflux1_hi(3), 0:ngroups-1)
+#if BL_SPACEDIM >= 2
   real(rt)        , intent(inout) :: radflux2(radflux2_lo(1):radflux2_hi(1), radflux2_lo(2):radflux2_hi(2), &
                                               radflux2_lo(3):radflux2_hi(3), 0:ngroups-1)
+#endif
 #if BL_SPACEDIM == 3
   real(rt)        , intent(inout) :: radflux3(radflux3_lo(1):radflux3_hi(1), radflux3_lo(2):radflux3_hi(2), &
                                               radflux3_lo(3):radflux3_hi(3), 0:ngroups-1)
 #endif
 #endif
   real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
+#if BL_SPACEDIM >= 2
   real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
+#endif
 #if BL_SPACEDIM == 3
   real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
 #endif
@@ -161,8 +179,10 @@ subroutine ca_ctu_update(is_finest_level, time, &
 
   q1_lo = flux1_lo - dg
   q1_hi = flux1_hi + dg
+#if BL_SPACEDIM >= 2
   q2_lo = flux2_lo - dg
   q2_hi = flux2_hi + dg
+#endif
 #if BL_SPACEDIM == 3
   q3_lo = flux3_lo - dg
   q3_hi = flux3_hi + dg
@@ -199,24 +219,32 @@ subroutine ca_ctu_update(is_finest_level, time, &
              lo, hi, delta, dt, &
              uout, uout_lo, uout_hi, &
              flux1, flux1_lo, flux1_hi, &
+#if BL_SPACEDIM >= 2
              flux2, flux2_lo, flux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
              flux3, flux3_lo, flux3_hi, &
 #endif
 #ifdef RADIATION
              radflux1, radflux1_lo, radflux1_hi, &
+#if BL_SPACEDIM >= 2
              radflux2, radflux2_lo, radflux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
              radflux3, radflux3_lo, radflux3_hi, &
 #endif
 #endif
              q1, q1_lo, q1_hi, &
+#if BL_SPACEDIM >= 2
              q2, q2_lo, q2_hi, &
+#endif
 #if BL_SPACEDIM == 3
              q3, q3_lo, q3_hi, &
 #endif
               area1, area1_lo, area1_hi, &
+#if BL_SPACEDIM >= 2
               area2, area2_lo, area2_hi, &
+#endif
 #if BL_SPACEDIM == 3
               area3, area3_lo, area3_hi, &
 #endif
@@ -238,7 +266,9 @@ subroutine ca_ctu_update(is_finest_level, time, &
               uout, uout_lo, uout_hi, &
               update, updt_lo, updt_hi, &
               flux1, flux1_lo, flux1_hi, &
+#if BL_SPACEDIM >= 2
               flux2, flux2_lo, flux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
               flux3, flux3_lo, flux3_hi, &
 #endif
@@ -246,24 +276,30 @@ subroutine ca_ctu_update(is_finest_level, time, &
               Erin, Erin_lo, Erin_hi, &
               Erout, Erout_lo, Erout_hi, &
               radflux1, radflux1_lo, radflux1_hi, &
+#if BL_SPACEDIM >= 2
               radflux2, radflux2_lo, radflux2_hi, &
+#endif
 #if BL_SPACEDIM == 3
               radflux3, radflux3_lo, radflux3_hi, &
 #endif
               nstep_fsp, &
 #endif
               q1, q1_lo, q1_hi, &
+#if BL_SPACEDIM >= 2
               q2, q2_lo, q2_hi, &
+#endif
 #if BL_SPACEDIM == 3
               q3, q3_lo, q3_hi, &
 #endif
               area1, area1_lo, area1_hi, &
+#if BL_SPACEDIM >= 2
               area2, area2_lo, area2_hi, &
+#endif
 #if BL_SPACEDIM == 3
               area3, area3_lo, area3_hi, &
 #endif
               vol, vol_lo, vol_hi, &
-              div, lo, hi,delta,dt, &
+              div, lo, hi, delta, dt, &
               mass_lost,xmom_lost,ymom_lost,zmom_lost, &
               eden_lost,xang_lost,yang_lost,zang_lost, &
               verbose)
