@@ -51,7 +51,7 @@ contains
     real(rt) :: tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
     real(rt) :: dt_over_a
     integer  :: ii,ibx,iby,ibz, i , j, k
-
+     
     ibx = 6
     iby = 7
     ibz = 8
@@ -319,9 +319,9 @@ contains
 							tbz(i,j,k) = bz(bzlo(1), bzhi(2), bzhi(3))
 						endif
 					endif
-				elseif(i.lt.bzhi(3)) then 
+				elseif(i.lt.bzhi(1)) then 
 					if(j.lt.bzlo(2)) then
-						if(k.lt.bzlo(3)) then 
+						if(k.lt.bzlo(3)) then
 							tbz(i,j,k) = bz(i,bzlo(2),bzlo(3))
 						elseif(k.lt.bzhi(3)) then
 							tbz(i,j,k) = bz(i, bzlo(2), k)
