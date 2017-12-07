@@ -24,6 +24,7 @@
    z-velocity             None         QW        (QVAR, NQ)        1      None
    gamma_e                None         QGAME     (QVAR, NQ)        1      None
    pressure               None         QPRES     (QVAR, NQ)        1      None
+   rho-e                  None         QREINT    (QVAR, NQ)        1      None
    B-x                    None         QMAGX     (QVAR, NQ)        1      MHD
    B-y                    None         QMAGY     (QVAR, NQ)        1      MHD
    B-z                    None         QMAGZ     (QVAR, NQ)        1      MHD
@@ -31,6 +32,9 @@
    advected               None         QFA       (QVAR, NQ)      numadv   None
    species                None         QFS       (QVAR, NQ)      nspec    None
    auxillary              None         QFX       (QVAR, NQ)      naux     None
+   total-pressure         None         QPTOT     (QRADVAR, NQ)     1      RADIATION
+   total-reint            None         QREITOT   (QRADVAR, NQ)     1      RADIATION
+   radiation              None         QRAD      (QRADVAR, NQ)   ngroups  RADIATION
 
 
 # the auxillary quantities
