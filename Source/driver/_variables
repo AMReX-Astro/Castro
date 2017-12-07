@@ -1,0 +1,54 @@
+#  descriptive-name     C++-name   Fortran-name   adds-to        count   if-def
+
+# the conserved variable state
+   density                Density      URHO      NVAR              1      None
+   x-momentum             Xmom         UMX       NVAR              1      None
+   y-momentum             Ymom         UMY       NVAR              1      None
+   z-momentum             Zmom         UMZ       NVAR              1      None
+   radial-momentum        None         UMR       NVAR              1      HYBRID_MOMENTUM
+   angular-momentum       None         UML       NVAR              1      HYBRID_MOMENTUM
+   polar-momentum         None         UMP       NVAR              1      HYBRID_MOMENTUM
+   energy-density         Eden         UEDEN     NVAR              1      None
+   internal-energy        Eint         UEINT     NVAR              1      None
+   temperature            Temp         UTEMP     NVAR              1      None
+   advected               FirstAdv     UFA       NVAR            numadv   None
+   species                FirstSpec    UFS       NVAR            nspec    None
+   auxillary              FirstAux     UFX       NVAR            naux     None
+   shock                  Shock        USHK      NVAR              1      None
+
+
+# the primitive variable state
+   density                None         QRHO      (QVAR, NQ)        1      None
+   x-velocity             None         QU        (QVAR, NQ)        1      None
+   y-velocity             None         QV        (QVAR, NQ)        1      None
+   z-velocity             None         QW        (QVAR, NQ)        1      None
+   gamma_e                None         QGAME     (QVAR, NQ)        1      None
+   pressure               None         QPRES     (QVAR, NQ)        1      None
+   B-x                    None         QMAGX     (QVAR, NQ)        1      MHD
+   B-y                    None         QMAGY     (QVAR, NQ)        1      MHD
+   B-z                    None         QMAGZ     (QVAR, NQ)        1      MHD
+   temperature            None         QTEMP     (QVAR, NQ)        1      None
+   advected               None         QFA       (QVAR, NQ)      numadv   None
+   species                None         QFS       (QVAR, NQ)      nspec    None
+   auxillary              None         QFX       (QVAR, NQ)      naux     None
+
+
+# the auxillary quantities
+   gamma_c               None          QGAMC     NQAUX           1        None
+   sound-speed           None          QC        NQAUX           1        None
+   dp/dr                 None          QDPDR     NQAUX           1        None
+   dpde                  None          QDPDE     NQAUX           1        None
+   gamma_c-gas           None          QGAMCC    NQAUX           1        RADIATION
+   sound-speed-gas       None          QCG       NQAUX           1        RADIATION
+   flux-limiter          None          QLAMS     NQAUX         ngroups    RADIATION
+
+
+# interface states
+   density               None          GDRHO     NGDNV           1        None
+   x-velocity            None          GDU       NGDNV           1        None
+   y-velocity            None          GDV       NGDNV           1        None
+   z-velocity            None          GDW       NGDNV           1        None
+   pressure              None          GDPRES    NGDNV           1        None
+   gamma_e               None          GDGAME    NGDNV           1        None
+
+
