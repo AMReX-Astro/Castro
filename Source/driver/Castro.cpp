@@ -985,7 +985,7 @@ Castro::initData ()
 	By_new[mfi].setVal(0.0);
 	Bz_new[mfi].setVal(0.0);
 
-	BL_FORT_PROC_CALL(CA_INITRAD,ca_initmag)
+	BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
 	     (level, cur_time, lo, hi,
 	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
 	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
