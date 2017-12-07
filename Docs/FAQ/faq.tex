@@ -75,7 +75,14 @@ make help
   (defaults to {\tt -lopenblas}).
 
 
+\item {\em How can I check to make sure the function signatures defined
+ in \cpp\ are consistent with their implementations in Fortran?}
 
+Use:
+\begin{verbatim}
+make typecheck
+\end{verbatim}
+This will compile the code and report on any mismatched function signatures.
 
 \end{enumerate}
 
