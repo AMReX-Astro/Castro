@@ -973,8 +973,6 @@ Castro::initData ()
     int nbz = Bz_new.nComp();
 
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-        int i = mfi.index();
-
         RealBox    gridloc(grids[mfi.index()],
                            geom.CellSize(), geom.ProbLo());
         const Box& box = mfi.validbox();
@@ -991,6 +989,7 @@ Castro::initData ()
 	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
 	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
 	      dx, gridloc.lo(),gridloc.hi());
+
     }
 
 #endif //MHD
