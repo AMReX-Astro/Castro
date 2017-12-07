@@ -386,22 +386,22 @@ extern "C"
   
 #ifdef MHD
   void ca_face_fillx
-  (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
+  (BL_FORT_FAB_ARG(state),
+   const int* dlo, const int* dhi,
+   const amrex::Real* dx, const amrex::Real* glo,
+   const amrex::Real* time, const int* bc);
 
   void ca_face_filly
-  (BL_FORT_FAB_ARG_3D(state),
+  (BL_FORT_FAB_ARG(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real* time, const int* bc);
 
   void ca_face_fillz
-  (BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real* time, const int* bc);
+  (BL_FORT_FAB_ARG(state),
+   const int* dlo, const int* dhi,
+   const amrex::Real* dx, const amrex::Real* glo,
+   const amrex::Real* time, const int* bc);
 #endif
 
 
