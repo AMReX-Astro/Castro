@@ -147,7 +147,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMX) = 0.e0_rt
                  state(i,j,k,UMY) = 0.e0_rt
                  state(i,j,k,UMZ) = rho_l*u_l
-                 state(i,j,k,UEDEN) = rhoe_l + 0.5*rho_l*u_l*u_l
+                 state(i,j,k,UEDEN) = rhoe_l + 0.5e0_rt*rho_l*u_l*u_l + 0.5e0_rt * (B_x_l**2 + B_y_l**2 + B_z_l**2)
                  state(i,j,k,UEINT) = rhoe_l
             !     state(i,j,k,UTEMP) = T_l
               else
@@ -155,7 +155,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                  state(i,j,k,UMX) = 0.e0_rt
                  state(i,j,k,UMY) = 0.e0_rt
                  state(i,j,k,UMZ) = rho_r*u_r
-                 state(i,j,k,UEDEN) = rhoe_r + 0.5*rho_r*u_r*u_r
+                 state(i,j,k,UEDEN) = rhoe_r + 0.5e0_rt*rho_r*u_r*u_r + 0.5e0_rt *(B_x_r**2 + B_y_r**2 + B_z_r**2)
                  state(i,j,k,UEINT) = rhoe_r
            !      state(i,j,k,UTEMP) = T_r
               endif
