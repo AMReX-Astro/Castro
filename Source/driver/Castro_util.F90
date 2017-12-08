@@ -230,10 +230,12 @@ contains
 
                    endif
 
+                   ! TODO: needs B^2
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
                 else
 
+                   ! TODO: needs B^2
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
                    ! Reset (e from e) if it's greater than eta * E.
@@ -250,6 +252,7 @@ contains
 
                       call eos(eos_input_rt, eos_state)
 
+                      ! TODO: needs B^2
                       if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
                       endif
@@ -291,10 +294,12 @@ contains
 
                    endif
 
+                   ! TODO: need B^2
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
                 else
 
+                   ! TODO: need B^2
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
                    ! Reset (e from e) if it's greater than eta * E.
@@ -305,6 +310,7 @@ contains
                       ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
                    else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e == 1) then
 
+                      ! TODO: need B^2
                       u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 
                       ! If not resetting and little e is negative ...
@@ -328,6 +334,7 @@ contains
                       end if
 
                       if (dual_energy_update_E_from_e == 1) then
+                         ! TODO: need B^2
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
                       endif
 
@@ -354,6 +361,7 @@ contains
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
+                ! TODO: need B^2
                 u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 
              enddo
