@@ -106,6 +106,10 @@ def doit():
 
             # initialize the counters
             sub += "  {} = 1\n\n".format(default_set[s])
+            for a in adds_to:
+                if a is None:
+                    continue
+                sub += "  {} = 1\n\n".format(a)
 
             # write the lines to set the indices
             # first do those without an ifex
