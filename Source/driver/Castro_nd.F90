@@ -476,7 +476,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   ! primitive state components
   !---------------------------------------------------------------------
 
-  ! QTHERM: number of primitive variables: rho, p, (rho e), T + 3 velocity components 
+  ! QTHERM: number of primitive variables: rho, p, (rho e), T + 3 velocity components
   ! QVAR  : number of total variables in primitive form
 
   QTHERM = NTHERM + 1 ! the + 1 is for QGAME which is always defined in primitive mode
@@ -490,7 +490,7 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
 
   QVAR = QTHERM + nspec + naux + numadv
-  
+
   ! NQ will be the number of hydro + radiation variables in the primitive
   ! state.  Initialize it just for hydro here
   NQ = QVAR
@@ -529,18 +529,28 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   end if
 
+#ifdef RADIATION
+  QPTOT  = QVAR+1
+  QREITOT = QVAR+2
+  QRAD = QVAR+3
+  QRADHI = qrad+ngroups-1
+
+  QRADVAR = QVAR + 2 + ngroups
+
+  ! update NQ -- it was already initialized above
+  NQ = QRADVAR
+#endif
+
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
   ! that we create in the primitive variable call but that do not need to
   ! participate in tracing.
-  ! Note: radiation adds cg, gamcg, lambda (ngroups components), but we don't
-  ! yet know the number of radiation groups, so we'll add that lambda count
-  ! to it later
-   
+  ! Note: radiation adds cg, gamcg, lambda (ngroups components)
+
 #ifdef RADIATION
-  NQAUX = 6 !+ ngroups to be added later
+  NQAUX = 6 + ngroups
 #else
   NQAUX = 4
-#endif        
+#endif
 
   QGAMC   = 1
   QC      = 2
