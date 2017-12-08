@@ -62,6 +62,9 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
+#ifdef RADIATION
+     const int& ngroups,
+#endif
      const int* gravity_type, const int& gravity_type_len);
 
   void ca_finalize_meth_params();

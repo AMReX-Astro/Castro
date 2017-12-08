@@ -239,13 +239,15 @@ Castro::variableSetUp ()
 
 
   // Read in the input values to Fortran.
-
   ca_set_castro_method_params();
 
   ca_set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
 		       NumAdv,
 #ifdef SHOCK_VAR
 		       Shock,
+#endif
+#ifdef RADIATION
+                       Radiation::nGroups,
 #endif
 		       gravity_type_name.dataPtr(), gravity_type_length);
 

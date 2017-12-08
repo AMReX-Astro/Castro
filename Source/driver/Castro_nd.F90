@@ -376,6 +376,9 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #ifdef SHOCK_VAR
                                 Shock, &
 #endif
+#ifdef RADIATION
+                                ngroups_in, &
+#endif
                                 gravity_type_in, gravity_type_len) &
                                 bind(C, name="ca_set_method_params")
 
@@ -384,10 +387,10 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use eos_module, only: eos_init
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
+  use amrex_fort_module, only: rt => amrex_real
 #ifdef RADIATION
   use rad_params_module, only: ngroups
 #endif
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -400,6 +403,10 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
+#ifdef RADIATION
+  integer, intent(in) :: ngroups_in
+#endif
+
   integer :: iadv, ispec
 
   integer :: QLAST
@@ -407,6 +414,10 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 
   integer :: i
   integer :: ioproc
+
+#ifdef RADIATION
+  ngroups = ngroups_in
+#endif
 
   !---------------------------------------------------------------------
   ! conserved state components

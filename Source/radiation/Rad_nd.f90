@@ -67,7 +67,6 @@ subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
   ! Local variables
   integer   :: i
 
-  ngroups = ngr
   ng0 = 0
   ng1 = 0
 
@@ -100,7 +99,6 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
   ! Local variables
   integer   :: i
 
-  ngroups = ngr
   ng0     = ngr0
   ng1     = ngr1
 
@@ -126,8 +124,6 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   ! Local variables
   integer   :: i
-
-  ngroups = ngr
 
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
@@ -159,7 +155,6 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   ! Local variables
   integer   :: i
 
-  ngroups = ngr
   ng0     = ngr0
   ng1     = ngr1
 
