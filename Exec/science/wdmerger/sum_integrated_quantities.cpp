@@ -849,6 +849,45 @@ Castro::sum_integrated_quantities ()
 
       }
 
+      // Rotation period over time
+
+      if (parent->NumDataLogs() > 8) {
+
+	 std::ostream& log = parent->DataLog(8);
+
+	 if ( log.good() ) {
+
+	   if (time == 0.0) {
+
+	     // Output the git commit hashes used to build the executable.
+
+	     writeGitHashes(log);
+
+	     log << std::setw(intwidth) << "#   TIMESTEP";
+	     log << std::setw(fixwidth) << "                     TIME";
+	     log << std::setw(datwidth) << "          ROTATION PERIOD";
+             log << std::setw(datwidth) << "       ROTATION FREQUENCY";
+
+	     log << std::endl;
+
+	   }
+
+	   log << std::fixed;
+
+	   log << std::setw(intwidth)                                     << timestep;
+	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+
+	   log << std::scientific;
+
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_period;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << (2.0 * M_PI / rotational_period);
+
+	   log << std::endl;
+
+	 }
+
+      }
+
     }
 }
 
