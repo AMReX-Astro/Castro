@@ -665,18 +665,33 @@ end subroutine ca_set_method_params
 subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
   use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
+#ifdef RADIATION
+                                GDLAMS, GDERADS, &
+#endif
                                 QU, QV, QW
+
   use amrex_fort_module, only: rt => amrex_real
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
 
   implicit none
 
   NGDNV = 6
+#if RADIATION
+  NGDNV = NGDNV + 2*ngroups
+#endif
+
   GDRHO = 1
   GDU = 2
   GDV = 3
   GDW = 4
   GDPRES = 5
   GDGAME = 6
+#ifdef RADIATION
+  GDLAMS = GDGAME+1            ! starting index for rad lambda
+  GDERADS = GDLAMS + ngroups   ! starting index for rad energy
+#endif
 
   ! sanity check
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then

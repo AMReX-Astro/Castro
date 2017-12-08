@@ -69,11 +69,7 @@ extern "C"
 
   void ca_set_castro_method_params();
 
-#ifdef RADIATION
-  void ca_init_godunov_indices_rad();
-#else
   void ca_init_godunov_indices();
-#endif
 
   void ca_set_problem_params
     (const int& dm,

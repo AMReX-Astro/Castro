@@ -359,30 +359,3 @@ subroutine ca_compute_scattering_2(lo, hi, &
   end if
 
 end subroutine ca_compute_scattering_2
-
-subroutine ca_init_godunov_indices_rad() bind(C, name="ca_init_godunov_indices_rad")
-
-  use meth_params_module, only : GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, ngdnv, &
-       GDLAMS, GDERADS, &
-       QU, QV, QW
-  use rad_params_module, only: ngroups
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  ngdnv = 6 + 2*ngroups
-  GDRHO = 1
-  GDU = 2
-  GDV = 3
-  GDW = 4
-  GDPRES = 5
-  GDGAME = 6
-  GDLAMS = GDGAME+1            ! starting index for rad lambda
-  GDERADS = GDLAMS + ngroups   ! starting index for rad energy
-
-  ! sanity check
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call bl_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-
-end subroutine ca_init_godunov_indices_rad
