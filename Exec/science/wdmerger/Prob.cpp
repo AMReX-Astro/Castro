@@ -1169,11 +1169,16 @@ Castro::update_relaxation(Real time, Real dt) {
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
 
+        // Ensure that we subtract off the new-time source terms before
+        // re-calculating the new-time rotation term.
+
+        getLevel(lev).apply_source_to_state(S_new, source_new, -dt);
+
         rot_force[lev]->setVal(0.0);
 
         construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
+        getLevel(lev).apply_source_to_state(S_new, source_new, dt);
 
         // Since we didn't apply the sources on the ghost zones, do a fill
         // to make the ghost zones consistent.
