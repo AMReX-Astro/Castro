@@ -1163,9 +1163,13 @@ Castro::update_relaxation(Real time, Real dt) {
         // same logic as before: the new-time source depends indirectly
         // on the old-time source.
 
+        rot_force[lev]->setVal(0.0);
+
         construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
+
+        rot_force[lev]->setVal(0.0);
 
         construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
