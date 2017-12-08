@@ -988,7 +988,11 @@ Castro::initData ()
 	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
 	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
 	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
-	      dx, gridloc.lo(),gridloc.hi());
+              dx, gridloc.lo(),gridloc.hi());
+
+	add_magnetic_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_new[mfi]), 
+	               BL_TO_FORTRAN_3D(Bx_new[mfi]), BL_TO_FORTRAN_3D(By_new[mfi]),
+		       BL_TO_FORTRAN_3D(Bz_new[mfi]));
 
     }
 
