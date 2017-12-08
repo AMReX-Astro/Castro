@@ -1,60 +1,64 @@
-#  descriptive-name     C++-name   Fortran-name   adds-to        count   if-def
+#  descriptive-name     C++-name   Fortran-name  also-adds-to    count   if-def
 
 # the conserved variable state
-   density                Density      URHO      NVAR              1      None
-   x-momentum             Xmom         UMX       NVAR              1      None
-   y-momentum             Ymom         UMY       NVAR              1      None
-   z-momentum             Zmom         UMZ       NVAR              1      None
-   radial-momentum        None         UMR       NVAR              1      HYBRID_MOMENTUM
-   angular-momentum       None         UML       NVAR              1      HYBRID_MOMENTUM
-   polar-momentum         None         UMP       NVAR              1      HYBRID_MOMENTUM
-   energy-density         Eden         UEDEN     NVAR              1      None
-   internal-energy        Eint         UEINT     NVAR              1      None
-   temperature            Temp         UTEMP     NVAR              1      None
-   advected               FirstAdv     UFA       NVAR            numadv   None
-   species                FirstSpec    UFS       NVAR            nspec    None
-   auxillary              FirstAux     UFX       NVAR            naux     None
-   shock                  Shock        USHK      NVAR              1      None
+@set: conserved NVAR
+   density                Density      URHO      None             1      None
+   x-momentum             Xmom         UMX       None             1      None
+   y-momentum             Ymom         UMY       None             1      None
+   z-momentum             Zmom         UMZ       None             1      None
+   radial-momentum        None         UMR       None             1      HYBRID_MOMENTUM
+   angular-momentum       None         UML       None             1      HYBRID_MOMENTUM
+   perpendicular-momentum None         UMP       None             1      HYBRID_MOMENTUM
+   energy-density         Eden         UEDEN     None             1      None
+   internal-energy        Eint         UEINT     None             1      None
+   temperature            Temp         UTEMP     None             1      None
+   advected               FirstAdv     UFA       None           numadv   None
+   species                FirstSpec    UFS       None           nspec    None
+   auxillary              FirstAux     UFX       None           naux     None
+   shock                  Shock        USHK      None             1      None
 
 
 # the primitive variable state
-   density                None         QRHO      (QVAR, NQ)        1      None
-   x-velocity             None         QU        (QVAR, NQ)        1      None
-   y-velocity             None         QV        (QVAR, NQ)        1      None
-   z-velocity             None         QW        (QVAR, NQ)        1      None
-   gamma_e                None         QGAME     (QVAR, NQ)        1      None
-   pressure               None         QPRES     (QVAR, NQ)        1      None
-   rho-e                  None         QREINT    (QVAR, NQ)        1      None
-   B-x                    None         QMAGX     (QVAR, NQ)        1      MHD
-   B-y                    None         QMAGY     (QVAR, NQ)        1      MHD
-   B-z                    None         QMAGZ     (QVAR, NQ)        1      MHD
-   temperature            None         QTEMP     (QVAR, NQ)        1      None
-   advected               None         QFA       (QVAR, NQ)      numadv   None
-   species                None         QFS       (QVAR, NQ)      nspec    None
-   auxillary              None         QFX       (QVAR, NQ)      naux     None
-   total-pressure         None         QPTOT     NQ                1      RADIATION
-   total-reint            None         QREITOT   NQ                1      RADIATION
-   radiation              None         QRAD      NQ              ngroups  RADIATION
+@set: primitive NQ
+   density                None         QRHO      QVAR             1      None
+   x-velocity             None         QU        QVAR             1      None
+   y-velocity             None         QV        QVAR             1      None
+   z-velocity             None         QW        QVAR             1      None
+   gamma_e                None         QGAME     QVAR             1      None
+   pressure               None         QPRES     QVAR             1      None
+   rho-e                  None         QREINT    QVAR             1      None
+   B-x                    None         QMAGX     QVAR             1      MHD
+   B-y                    None         QMAGY     QVAR             1      MHD
+   B-z                    None         QMAGZ     QVAR             1      MHD
+   temperature            None         QTEMP     QVAR             1      None
+   advected               None         QFA       QVAR           numadv   None
+   species                None         QFS       QVAR           nspec    None
+   auxillary              None         QFX       QVAR           naux     None
+   total-pressure         None         QPTOT     None             1      RADIATION
+   total-reint            None         QREITOT   None             1      RADIATION
+   radiation              None         QRAD      None           ngroups  RADIATION
 
 
 # the auxillary quantities
-   gamma_c               None          QGAMC     NQAUX           1        None
-   sound-speed           None          QC        NQAUX           1        None
-   dp/dr                 None          QDPDR     NQAUX           1        None
-   dpde                  None          QDPDE     NQAUX           1        None
-   gamma_c-gas           None          QGAMCC    NQAUX           1        RADIATION
-   sound-speed-gas       None          QCG       NQAUX           1        RADIATION
-   flux-limiter          None          QLAMS     NQAUX         ngroups    RADIATION
+@set: auxillary NQAUX
+   gamma_c               None          QGAMC     None            1        None
+   sound-speed           None          QC        None            1        None
+   dp/dr                 None          QDPDR     None            1        None
+   dpde                  None          QDPDE     None            1        None
+   gamma_c-gas           None          QGAMCC    None            1        RADIATION
+   sound-speed-gas       None          QCG       None            1        RADIATION
+   flux-limiter          None          QLAMS     None          ngroups    RADIATION
 
 
-# interface states
-   density               None          GDRHO     NGDNV           1        None
-   x-velocity            None          GDU       NGDNV           1        None
-   y-velocity            None          GDV       NGDNV           1        None
-   z-velocity            None          GDW       NGDNV           1        None
-   pressure              None          GDPRES    NGDNV           1        None
-   gamma_e               None          GDGAME    NGDNV           1        None
-   flux-limiter          None          GDLAMS    NGDNV         ngroups    RADIATION
-   radiation             None          GDERADS   NGDNV         ngroups    RADIATION
+# godunov interface states
+@set: godunov NGDNV
+   density               None          GDRHO     None            1        None
+   x-velocity            None          GDU       None            1        None
+   y-velocity            None          GDV       None            1        None
+   z-velocity            None          GDW       None            1        None
+   pressure              None          GDPRES    None            1        None
+   gamma_e               None          GDGAME    None            1        None
+   flux-limiter          None          GDLAMS    None          ngroups    RADIATION
+   radiation             None          GDERADS   None          ngroups    RADIATION
 
 
