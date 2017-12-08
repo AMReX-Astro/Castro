@@ -54,7 +54,7 @@
    z-velocity            None          GDW       NGDNV           1        None
    pressure              None          GDPRES    NGDNV           1        None
    gamma_e               None          GDGAME    NGDNV           1        None
-   flux-limiter          None          GDLAMS    NGDNV           1        RADIATION
-   radiation             None          GDERADS   NGDNV           1        RADIATION
+   flux-limiter          None          GDLAMS    NGDNV         ngroups    RADIATION
+   radiation             None          GDERADS   NGDNV         ngroups    RADIATION
 
 
