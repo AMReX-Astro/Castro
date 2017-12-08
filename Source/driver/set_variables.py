@@ -121,7 +121,7 @@ def doit():
                 sub += "#endif\n"
 
             # finalize the counters
-            sub += "  {} = {} - 1\n".format(s, s)
+            sub += "  {} = {} - 1\n".format(default_set[s], default_set[s])
             for a in adds_to:
                 if a is None:
                     continue
