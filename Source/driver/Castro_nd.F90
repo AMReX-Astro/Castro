@@ -525,10 +525,8 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   QRAD = QVAR+3
   QRADHI = qrad+ngroups-1
 
-  QRADVAR = QVAR + 2 + ngroups
-
   ! update NQ -- it was already initialized above
-  NQ = QRADVAR
+  NQ = QVAR + 2 + ngroups
 #endif
 
   ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
