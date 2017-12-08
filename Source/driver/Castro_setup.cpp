@@ -252,9 +252,19 @@ Castro::variableSetUp ()
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
-
   ca_get_qvar(&QVAR);
+
+  // and the auxillary variables
   ca_get_nqaux(&NQAUX);
+
+  // initialize the Godunov state array used in hydro 
+  ca_init_godunov_indices();
+
+  // NQ will be used to dimension the primitive variable state
+  // vector it will include the "pure" hydrodynamical variables +
+  // any radiation variables
+  ca_get_nq(&NQ);
+
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 

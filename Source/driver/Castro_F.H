@@ -28,9 +28,7 @@ extern "C"
 
   void ca_get_qvar(int* qvar);
 
-#ifdef RADIATION
-  void ca_get_qradvar(int* qradvar);
-#endif
+  void ca_get_nq(int* nq);
 
   void ca_get_nqaux(int* nqaux);
 

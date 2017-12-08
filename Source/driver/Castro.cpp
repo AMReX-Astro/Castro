@@ -90,7 +90,6 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::QVAR          = -1;
-int          Castro::QRADVAR       = 0;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
@@ -539,25 +538,6 @@ Castro::Castro (Amr&            papa,
       radiation->regrid(level, grids, dmap);
     }
 #endif
-
-
-    // initialize the Godunov state array used in hydro -- we wait
-    // until here so that ngroups is defined (if needed) in
-    // rad_params_module
-#ifdef RADIATION
-    ca_init_godunov_indices_rad();
-    ca_get_qradvar(&QRADVAR);
-
-    // NQAUX depends on radiation groups, so get it fresh here
-    ca_get_nqaux(&NQAUX);
-#else
-    ca_init_godunov_indices();
-#endif
-
-    // NQ will be used to dimension the primitive variable state
-    // vector it will include the "pure" hydrodynamical variables +
-    // any radiation variables
-    NQ = QVAR + QRADVAR;
 
 }
 
@@ -1731,25 +1711,6 @@ Castro::post_restart ()
                                      cs_level.Volume(),cs_level.Area());
          }
 #endif
-
-
-    // initialize the Godunov state array used in hydro -- we wait
-    // until here so that ngroups is defined (if needed) in
-    // rad_params_module
-#ifdef RADIATION
-    ca_init_godunov_indices_rad();
-    ca_get_qradvar(&QRADVAR);
-
-    // NQAUX depends on radiation groups, so get it fresh here
-    ca_get_nqaux(&NQAUX);
-#else
-    ca_init_godunov_indices();
-#endif
-
-    // NQ will be used to dimension the primitive variable state
-    // vector it will include the "pure" hydrodynamical variables +
-    // any radiation variables
-    NQ = QVAR + QRADVAR;
 
 #ifdef DO_PROBLEM_POST_RESTART
     problem_post_restart();

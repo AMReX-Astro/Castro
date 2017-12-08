@@ -155,7 +155,6 @@ end subroutine ca_get_aux_names
 subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
   use meth_params_module, only: QVAR
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -165,30 +164,21 @@ subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
 end subroutine ca_get_qvar
 
-#ifdef RADIATION
-subroutine ca_get_qradvar(qradvar_in) bind(C, name="ca_get_qradvar")
+subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
 
-  use meth_params_module, only: QRADVAR
-  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NQ
 
   implicit none
 
-  integer, intent(inout) :: qradvar_in
+  integer, intent(inout) :: nq_in
 
-  qradvar_in = QRADVAR
+  nq_in = NQ
 
-end subroutine ca_get_qradvar
-#endif
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
+end subroutine ca_get_nq
 
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
