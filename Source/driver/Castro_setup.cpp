@@ -175,49 +175,7 @@ Castro::variableSetUp ()
   ca_get_num_aux(&NumAux);
 
 
-  int cnt = 0;
-  Density = cnt++;
-  Xmom = cnt++;
-  Ymom = cnt++;
-  Zmom = cnt++;
-#ifdef HYBRID_MOMENTUM
-  Rmom = cnt++;
-  Lmom = cnt++;
-  Pmom = cnt++;
-#endif
-  Eden = cnt++;
-  Eint = cnt++;
-  Temp = cnt++;
-
-#ifdef NUM_ADV
-  NumAdv = NUM_ADV;
-#else
-  NumAdv = 0;
-#endif
-
-  if (NumAdv > 0)
-    {
-      FirstAdv = cnt;
-      cnt += NumAdv;
-    }
-
-
-  if (NumSpec > 0)
-    {
-      FirstSpec = cnt;
-      cnt += NumSpec;
-    }
-
-
-  if (NumAux > 0)
-    {
-      FirstAux = cnt;
-      cnt += NumAux;
-    }
-
-#ifdef SHOCK_VAR
-  Shock = cnt++;
-#endif
+#include "set_conserved.H"
 
   NUM_STATE = cnt;
 
