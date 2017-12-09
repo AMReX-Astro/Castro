@@ -161,9 +161,19 @@ Castro::variableSetUp ()
   burner_init();
 #endif
 
+  const int dm = BL_SPACEDIM;
+
+
   //
   // Set number of state variables and pointers to components
   //
+
+  // Get the number of species from the network model.
+  ca_get_num_spec(&NumSpec);
+
+  // Get the number of auxiliary quantities from the network model.
+  ca_get_num_aux(&NumAux);
+
 
   int cnt = 0;
   Density = cnt++;
@@ -191,10 +201,6 @@ Castro::variableSetUp ()
       cnt += NumAdv;
     }
 
-  const int dm = BL_SPACEDIM;
-
-  // Get the number of species from the network model.
-  ca_get_num_spec(&NumSpec);
 
   if (NumSpec > 0)
     {
@@ -202,8 +208,6 @@ Castro::variableSetUp ()
       cnt += NumSpec;
     }
 
-  // Get the number of auxiliary quantities from the network model.
-  ca_get_num_aux(&NumAux);
 
   if (NumAux > 0)
     {
@@ -241,7 +245,11 @@ Castro::variableSetUp ()
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
-  ca_set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
+  ca_set_method_params(dm, Density, Xmom, 
+#ifdef HYBRID_MOMENTUM
+                       Rmom,
+#endif
+                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
 		       NumAdv,
 #ifdef SHOCK_VAR
 		       Shock,

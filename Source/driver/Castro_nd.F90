@@ -361,8 +361,12 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
-                                FirstAdv,FirstSpec,FirstAux,numadv, &
+subroutine ca_set_method_params(dm, Density, Xmom, &
+#ifdef HYBRID_MOMENTUM
+                                Rmom, &
+#endif
+                                Eden, Eint, Temp, &
+                                FirstAdv, FirstSpec, FirstAux, numadv, &
 #ifdef SHOCK_VAR
                                 Shock, &
 #endif
@@ -414,8 +418,17 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   !---------------------------------------------------------------------
   call ca_set_godunov_indices()
 
-  call ca_set_conserved_indices(Xmom+1, Xmom+2, Eint, 0, Density, &
-       FirstSpec, FirstAdv, FirstAux, Xmom, Temp, Eden)
+  call ca_set_conserved_indices( &
+#ifdef HYBRID_ADVECTION
+                                Rmom, Rmom+1, Rmom+2, &
+#endif
+#ifdef SHOCK
+                                Shock, &
+#endif
+                                Density ,Xmom, Xmom+1, Xmom+2, &
+                                Eden, Eint, Temp, &
+                                FirstSpec, FirstAdv, FirstAux &
+                                )
 
   call ca_set_auxillary_indices()
 

@@ -9,6 +9,8 @@
 #
 # ca_set_auxillary_indices: the auxillary state information
 
+import re
+
 CHECK_EQUAL = """
 subroutine check_equal(index1, index2)
 
@@ -38,7 +40,14 @@ class Index(object):
         self.iset = iset
         self.default_group = default_group
         self.adds_to = also_adds_to
-        self.count = count
+
+        # count may have different names in Fortran and C++
+        if count.startswith("("):
+            self.count, self.count_cxx = count.replace("(", "").replace(")", "").split(",")
+        else:
+            self.count = count
+            self.count_cxx = count
+
         self.ifdef = ifdef
 
     def __str__(self):
@@ -46,12 +55,36 @@ class Index(object):
 
     def get_set_string(self):
         sstr = ""
+        if self.ifdef is not None:
+            sstr += "#ifdef {}\n".format(self.ifdef)
+
         sstr += "  {} = {}\n".format(self.f90_var, self.default_group)
         sstr += "  {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
         if self.adds_to is not None:
             sstr += "  {} = {} + {}\n".format(self.adds_to, self.adds_to, self.count)
         if self.cxx_var is not None:
             sstr += "  call check_equal({},{}+1)\n".format(self.f90_var, self.cxx_var)
+        if self.ifdef is not None:
+            sstr += "#endif\n"
+        sstr += "\n"
+        return sstr
+
+    def get_cxx_set_string(self):
+        sstr = ""
+        if self.ifdef is not None:
+            sstr += "#ifdef {}\n".format(self.ifdef)
+
+        if self.count != "1":
+            sstr += "  if ({} > 0) {{\n".format(self.count_cxx)
+            sstr += "    {} = cnt;\n".format(self.cxx_var)
+            sstr += "    cnt += {};\n".format(self.count_cxx)
+            sstr += "  }\n"
+        else:
+            sstr += "  {} = cnt;\n".format(self.cxx_var)
+            sstr += "  cnt += {};\n".format(self.count_cxx)
+
+        if self.ifdef is not None:
+            sstr += "#endif\n"
         sstr += "\n"
         return sstr
 
@@ -67,11 +100,21 @@ def doit():
             if line.startswith("#") or line.strip() == "":
                 continue
             elif line.startswith("@"):
-                print(line)
                 _, current_set, default_group = line.split()
                 default_set[current_set] = default_group
             else:
-                name, cxx_var, f90_var, adds_to, count, ifdef = line.split()
+
+                # this splits the line into separate fields.  A field is a
+                # single word or a pair in parentheses like "(a, b)"
+                fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
+
+                name = fields[0]
+                cxx_var = fields[1]
+                f90_var = fields[2]
+                adds_to = fields[3]
+                count = fields[4].replace(" ","").strip()
+                ifdef = fields[5]
+
                 if adds_to == "None":
                     adds_to = None
                 if cxx_var == "None":
@@ -99,11 +142,8 @@ def doit():
 
             set_indices = [q for q in indices if q.iset == s]
 
-            # within this set, find the unique ifdef names
-            ifdefs = set([q.ifdef for q in set_indices if q.ifdef is not None])
-
             # cxx names in this set
-            cxx_names = set([q.cxx_var for q in set_indices if q.cxx_var is not None])
+            cxx_names = [q.cxx_var for q in set_indices if q.cxx_var is not None]
 
             # add to
             adds_to = set([q.adds_to for q in set_indices if q.adds_to is not None])
@@ -115,21 +155,38 @@ def doit():
                 sub += "subroutine {}()\n".format(subname)
             else:
                 sub += "subroutine {}( &\n".format(subname)
-                for n, cxx in enumerate(cxx_names):
-                    if n == len(cxx_names)-1:
-                        sub += "           {} {})\n".format(" "*len(subname), cxx)
-                    else:
-                        sub += "           {} {}, &\n".format(" "*len(subname), cxx)
+                # we need to put all of the arguments that are ifdef-ed up front
+                # so we can properly close the argument list (no hanging commas)
+                cxx_with_ifdef = [q for q in set_indices if q.cxx_var is not None and q.ifdef is not None]
+                cxx_wo_ifdef = [q for q in set_indices if q.cxx_var is not None and q.ifdef is None]
+
+                cxx_all = cxx_with_ifdef + cxx_wo_ifdef
+                for n, i in enumerate(cxx_all):
+                    if i.cxx_var is not None:
+                        if i.ifdef is not None:
+                            sub += "#ifdef {}\n".format(i.ifdef)
+                        if n == len(cxx_all)-1:
+                            sub += "           {} {} &\n".format(" "*len(subname), i.cxx_var)
+                        else:
+                            sub += "           {} {}, &\n".format(" "*len(subname), i.cxx_var)
+                        if i.ifdef is not None:
+                            sub += "#endif\n"
+
+                sub += "           {})\n".format(" "*len(subname))
 
             sub += "\n\n"
             sub += "  use meth_params_module\n"
             sub += "  use network, only: naux, nspec\n"
             sub += "  implicit none\n"
 
-            for cxx in cxx_names:
-                if cxx is None:
+            for i in set_indices:
+                if i.cxx_var is None:
                     continue
-                sub += "  integer, intent(in) :: {}\n".format(cxx)
+                if i.ifdef is not None:
+                    sub += "#ifdef {}\n".format(i.ifdef)
+                sub += "  integer, intent(in) :: {}\n".format(i.cxx_var)
+                if i.ifdef is not None:
+                    sub += "#endif\n"
             sub += "\n"
 
             # initialize the counters
@@ -139,14 +196,8 @@ def doit():
 
             # write the lines to set the indices
             # first do those without an ifex
-            for i in [q for q in set_indices if q.ifdef is None]:
+            for i in set_indices:
                 sub += i.get_set_string()
-
-            for ifd in ifdefs:
-                sub += "#ifdef {}\n".format(ifd)
-                for i in [q for q in set_indices if q.ifdef == ifd]:
-                    sub += i.get_set_string()
-                sub += "#endif\n"
 
             # finalize the counters
             sub += "  {} = {} - 1\n".format(default_set[s], default_set[s])
@@ -160,7 +211,13 @@ def doit():
 
             f.write(sub)
 
-    # write the C++ function signatures
+    # write the C++ include
+    conserved_indices = [q for q in indices if q.iset == "conserved" and q.cxx_var is not None]
+
+    with open("set_conserved.H", "w") as f:
+        f.write("  int cnt = 0;\n")
+        for c in conserved_indices:
+            f.write(c.get_cxx_set_string())
 
 
 if __name__ == "__main__":

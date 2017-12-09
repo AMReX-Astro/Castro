@@ -53,6 +53,9 @@ extern "C"
   void ca_set_method_params
     (const int& dm,
      const int& Density, const int& Xmom, 
+#ifdef HYBRID_MOMENTUM
+     const int& Rmom,
+#endif
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
