@@ -35,6 +35,7 @@ ca_f90EXE_sources += interpolate.f90
 ca_f90EXE_sources += io.f90
 ca_f90EXE_sources += math.f90
 ca_F90EXE_sources += meth_params.F90
+ca_F90EXE_sources += set_indices.F90
 
 NEED_MGUTIL =
 

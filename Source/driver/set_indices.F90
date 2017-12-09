@@ -1,7 +1,25 @@
-subroutine ca_set_godunov_indices( &
-                                )
+
+subroutine check_equal(index1, index2)
+
+  use bl_error_module
+
+  implicit none
+
+  integer, intent(in) :: index1, index2
+
+  if (index1 /= index2) then
+    call bl_error("ERROR: mismatch of indices")
+  endif
+
+end subroutine check_equal
+
+
+subroutine ca_set_godunov_indices()
+
 
   use meth_params_module
+  use network, only: naux, nspec
+  implicit none
 
   NGDNV = 1
 
@@ -35,31 +53,33 @@ subroutine ca_set_godunov_indices( &
 end subroutine ca_set_godunov_indices
 
 subroutine ca_set_conserved_indices( &
-                                   Eint, &
-                                   Temp, &
-                                   Zmom, &
-                                   Density, &
-                                   Eden, &
-                                   FirstAdv, &
-                                   Shock, &
-                                   FirstSpec, &
-                                   Ymom, &
-                                   FirstAux, &
-                                   Xmom, &
-                                  )
+                                    Ymom, &
+                                    Zmom, &
+                                    Eint, &
+                                    Shock, &
+                                    Density, &
+                                    FirstSpec, &
+                                    FirstAdv, &
+                                    FirstAux, &
+                                    Xmom, &
+                                    Temp, &
+                                    Eden)
+
 
   use meth_params_module
-  integer, intent(in) :: Eint
-  integer, intent(in) :: Temp
-  integer, intent(in) :: Zmom
-  integer, intent(in) :: Density
-  integer, intent(in) :: Eden
-  integer, intent(in) :: FirstAdv
-  integer, intent(in) :: Shock
-  integer, intent(in) :: FirstSpec
+  use network, only: naux, nspec
+  implicit none
   integer, intent(in) :: Ymom
+  integer, intent(in) :: Zmom
+  integer, intent(in) :: Eint
+  integer, intent(in) :: Shock
+  integer, intent(in) :: Density
+  integer, intent(in) :: FirstSpec
+  integer, intent(in) :: FirstAdv
   integer, intent(in) :: FirstAux
   integer, intent(in) :: Xmom
+  integer, intent(in) :: Temp
+  integer, intent(in) :: Eden
 
   NVAR = 1
 
@@ -92,7 +112,7 @@ subroutine ca_set_conserved_indices( &
   call check_equal(UTEMP,Temp+1)
 
   UFA = NVAR
-  NVAR = NVAR + numadv
+  NVAR = NVAR + nadv
   call check_equal(UFA,FirstAdv+1)
 
   UFS = NVAR
@@ -121,10 +141,12 @@ subroutine ca_set_conserved_indices( &
   NVAR = NVAR - 1
 end subroutine ca_set_conserved_indices
 
-subroutine ca_set_auxillary_indices( &
-                                  )
+subroutine ca_set_auxillary_indices()
+
 
   use meth_params_module
+  use network, only: naux, nspec
+  implicit none
 
   NQAUX = 1
 
@@ -154,10 +176,12 @@ subroutine ca_set_auxillary_indices( &
   NQAUX = NQAUX - 1
 end subroutine ca_set_auxillary_indices
 
-subroutine ca_set_primitive_indices( &
-                                  )
+subroutine ca_set_primitive_indices()
+
 
   use meth_params_module
+  use network, only: naux, nspec
+  implicit none
 
   NQ = 1
 
@@ -196,8 +220,8 @@ subroutine ca_set_primitive_indices( &
   QVAR = QVAR + 1
 
   QFA = NQ
-  NQ = NQ + numadv
-  QVAR = QVAR + numadv
+  NQ = NQ + nadv
+  QVAR = QVAR + nadv
 
   QFS = NQ
   NQ = NQ + nspec
@@ -207,17 +231,6 @@ subroutine ca_set_primitive_indices( &
   NQ = NQ + naux
   QVAR = QVAR + naux
 
-#ifdef RADIATION
-  QPTOT = NQ
-  NQ = NQ + 1
-
-  QREITOT = NQ
-  NQ = NQ + 1
-
-  QRAD = NQ
-  NQ = NQ + ngroups
-
-#endif
 #ifdef MHD
   QMAGX = NQ
   NQ = NQ + 1
@@ -230,6 +243,17 @@ subroutine ca_set_primitive_indices( &
   QMAGZ = NQ
   NQ = NQ + 1
   QVAR = QVAR + 1
+
+#endif
+#ifdef RADIATION
+  QPTOT = NQ
+  NQ = NQ + 1
+
+  QREITOT = NQ
+  NQ = NQ + 1
+
+  QRAD = NQ
+  NQ = NQ + ngroups
 
 #endif
   NQ = NQ - 1

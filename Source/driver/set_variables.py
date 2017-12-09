@@ -9,6 +9,25 @@
 #
 # ca_set_auxillary_indices: the auxillary state information
 
+CHECK_EQUAL = """
+subroutine check_equal(index1, index2)
+
+  use bl_error_module
+
+  implicit none
+
+  integer, intent(in) :: index1, index2
+
+  if (index1 /= index2) then
+    call bl_error("ERROR: mismatch of indices")
+  endif
+
+end subroutine check_equal
+
+
+"""
+
+
 class Index(object):
     """an index that we want to set"""
     def __init__(self, name, f90_var, default_group=None, iset=None,
@@ -73,30 +92,39 @@ def doit():
 
         # loop over sets and create the function
         # arg list will be C++ names to compare to
+        f.write(CHECK_EQUAL)
+
         for s in unique_sets:
             subname = "ca_set_{}_indices".format(s)
 
             set_indices = [q for q in indices if q.iset == s]
 
             # within this set, find the unique ifdef names
-            ifdefs = set([q.ifdef for q in set_indices])
+            ifdefs = set([q.ifdef for q in set_indices if q.ifdef is not None])
 
             # cxx names in this set
-            cxx_names = set([q.cxx_var for q in set_indices])
+            cxx_names = set([q.cxx_var for q in set_indices if q.cxx_var is not None])
 
             # add to
-            adds_to = set([q.adds_to for q in set_indices])
+            adds_to = set([q.adds_to for q in set_indices if q.adds_to is not None])
 
             # write the function heading
             sub = ""
-            sub += "subroutine {}( &\n".format(subname)
-            for n, cxx in enumerate(cxx_names):
-                if cxx is None:
-                    continue
-                sub += "          {} {}, &\n".format(" "*len(subname), cxx)
 
-            sub += "          {})\n\n".format(" "*len(subname), cxx)
+            if len(cxx_names) == 0:
+                sub += "subroutine {}()\n".format(subname)
+            else:
+                sub += "subroutine {}( &\n".format(subname)
+                for n, cxx in enumerate(cxx_names):
+                    if n == len(cxx_names)-1:
+                        sub += "           {} {})\n".format(" "*len(subname), cxx)
+                    else:
+                        sub += "           {} {}, &\n".format(" "*len(subname), cxx)
+
+            sub += "\n\n"
             sub += "  use meth_params_module\n"
+            sub += "  use network, only: naux, nspec\n"
+            sub += "  implicit none\n"
 
             for cxx in cxx_names:
                 if cxx is None:
@@ -107,8 +135,6 @@ def doit():
             # initialize the counters
             sub += "  {} = 1\n\n".format(default_set[s])
             for a in adds_to:
-                if a is None:
-                    continue
                 sub += "  {} = 1\n\n".format(a)
 
             # write the lines to set the indices
@@ -117,8 +143,6 @@ def doit():
                 sub += i.get_set_string()
 
             for ifd in ifdefs:
-                if ifd is None:
-                    continue
                 sub += "#ifdef {}\n".format(ifd)
                 for i in [q for q in set_indices if q.ifdef == ifd]:
                     sub += i.get_set_string()

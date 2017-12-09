@@ -12,7 +12,7 @@
    energy-density         Eden         UEDEN     None             1      None
    internal-energy        Eint         UEINT     None             1      None
    temperature            Temp         UTEMP     None             1      None
-   advected               FirstAdv     UFA       None           numadv   None
+   advected               FirstAdv     UFA       None           nadv     None
    species                FirstSpec    UFS       None           nspec    None
    auxillary              FirstAux     UFX       None           naux     None
    shock                  Shock        USHK      None             1      None
@@ -31,7 +31,7 @@
    B-y                    None         QMAGY     QVAR             1      MHD
    B-z                    None         QMAGZ     QVAR             1      MHD
    temperature            None         QTEMP     QVAR             1      None
-   advected               None         QFA       QVAR           numadv   None
+   advected               None         QFA       QVAR           nadv     None
    species                None         QFS       QVAR           nspec    None
    auxillary              None         QFX       QVAR           naux     None
    total-pressure         None         QPTOT     None             1      RADIATION
