@@ -54,45 +54,6 @@ subroutine ca_set_godunov_indices()
   NGDNV = NGDNV - 1
 end subroutine ca_set_godunov_indices
 
-subroutine ca_set_auxillary_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-  implicit none
-
-  NQAUX = 1
-
-  QGAMC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDR = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDE = NQAUX
-  NQAUX = NQAUX + 1
-
-#ifdef RADIATION
-  QGAMCC = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QCG = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QLAMS = NQAUX
-  NQAUX = NQAUX + ngroups
-#endif
-
-  NQAUX = NQAUX - 1
-end subroutine ca_set_auxillary_indices
-
 subroutine ca_set_primitive_indices()
 
 
@@ -184,6 +145,45 @@ subroutine ca_set_primitive_indices()
   NQ = NQ - 1
   QVAR = QVAR - 1
 end subroutine ca_set_primitive_indices
+
+subroutine ca_set_auxillary_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+  implicit none
+
+  NQAUX = 1
+
+  QGAMC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDR = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDE = NQAUX
+  NQAUX = NQAUX + 1
+
+#ifdef RADIATION
+  QGAMCC = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QCG = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QLAMS = NQAUX
+  NQAUX = NQAUX + ngroups
+#endif
+
+  NQAUX = NQAUX - 1
+end subroutine ca_set_auxillary_indices
 
 subroutine ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
@@ -285,16 +285,28 @@ subroutine ca_set_conserved_indices( &
   NVAR = NVAR + 1
   call check_equal(UTEMP,Temp+1)
 
-  UFA = NVAR
-  NVAR = NVAR + nadv
+  if (nadv > 0) then
+    UFA = NVAR
+    NVAR = NVAR + nadv
+  else
+    UFA = 0
+  endif
   call check_equal(UFA,FirstAdv+1)
 
-  UFS = NVAR
-  NVAR = NVAR + nspec
+  if (nspec > 0) then
+    UFS = NVAR
+    NVAR = NVAR + nspec
+  else
+    UFS = 0
+  endif
   call check_equal(UFS,FirstSpec+1)
 
-  UFX = NVAR
-  NVAR = NVAR + naux
+  if (naux > 0) then
+    UFX = NVAR
+    NVAR = NVAR + naux
+  else
+    UFX = 0
+  endif
   call check_equal(UFX,FirstAux+1)
 
 #ifdef SHOCK_VAR

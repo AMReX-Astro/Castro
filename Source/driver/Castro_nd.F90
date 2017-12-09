@@ -427,7 +427,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 #endif
                                 Density ,Xmom, Xmom+1, Xmom+2, &
                                 Eden, Eint, Temp, &
-                                FirstSpec, FirstAdv, FirstAux &
+                                FirstAdv, FirstSpec, FirstAux &
                                 )
 
   call ca_set_auxillary_indices()

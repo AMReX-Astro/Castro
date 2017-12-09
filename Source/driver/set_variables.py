@@ -53,13 +53,22 @@ class Index(object):
     def __str__(self):
         return self.f90_var
 
-    def get_set_string(self):
+    def get_set_string(self, set_default=None):
         sstr = ""
         if self.ifdef is not None:
             sstr += "#ifdef {}\n".format(self.ifdef)
 
-        sstr += "  {} = {}\n".format(self.f90_var, self.default_group)
-        sstr += "  {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
+        if set_default is not None and self.count != "1":
+            sstr += "  if ({} > 0) then\n".format(self.count)
+            sstr += "    {} = {}\n".format(self.f90_var, self.default_group)
+            sstr += "    {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
+            sstr += "  else\n"
+            sstr += "    {} = {}\n".format(self.f90_var, set_default)
+            sstr += "  endif\n"
+        else:
+            sstr += "  {} = {}\n".format(self.f90_var, self.default_group)
+            sstr += "  {} = {} + {}\n".format(self.default_group, self.default_group, self.count)
+
         if self.adds_to is not None:
             sstr += "  {} = {} + {}\n".format(self.adds_to, self.adds_to, self.count)
         if self.cxx_var is not None:
@@ -197,7 +206,10 @@ def doit():
             # write the lines to set the indices
             # first do those without an ifex
             for i in set_indices:
-                sub += i.get_set_string()
+                if s == "conserved":
+                    sub += i.get_set_string(set_default=0)
+                else:
+                    sub += i.get_set_string()
 
             # finalize the counters
             sub += "  {} = {} - 1\n".format(default_set[s], default_set[s])
