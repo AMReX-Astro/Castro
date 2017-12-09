@@ -410,145 +410,16 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
 #endif
 
   !---------------------------------------------------------------------
-  ! conserved state components
+  ! set integer keys to index states
   !---------------------------------------------------------------------
+  call ca_set_godunov_indices()
 
-  ! NTHERM: number of thermodynamic variables (rho, 3 momenta, rho*e, rho*E, T)
-  ! NVAR  : number of total variables in initial system
-  NTHERM = 7
+  call ca_set_conserved_indices(Xmom+1, Xmom+2, Eint, 0, Density, &
+       FirstSpec, FirstAdv, FirstAux, Xmom, Temp, Eden)
 
-#ifdef HYBRID_MOMENTUM
-  ! Include the hybrid momenta in here as well if we're using them.
+  call ca_set_auxillary_indices()
 
-  NTHERM = NTHERM + 3
-#endif
-
-  NVAR = NTHERM + nspec + naux + numadv
-
-  nadv = numadv
-
-  ! We use these to index into the state "U"
-  URHO  = Density   + 1
-  UMX   = Xmom      + 1
-  UMY   = Xmom      + 2
-  UMZ   = Xmom      + 3
-#ifdef HYBRID_MOMENTUM
-  UMR   = Xmom      + 4
-  UML   = Xmom      + 5
-  UMP   = Xmom      + 6
-#endif
-  UEDEN = Eden      + 1
-  UEINT = Eint      + 1
-  UTEMP = Temp      + 1
-
-  if (numadv .ge. 1) then
-     UFA   = FirstAdv  + 1
-  else
-     UFA = 1
-  end if
-
-  UFS   = FirstSpec + 1
-
-  if (naux .ge. 1) then
-     UFX = FirstAux  + 1
-  else
-     UFX = 1
-  end if
-
-#ifdef SHOCK_VAR
-  USHK  = Shock + 1
-  NVAR  = NVAR + 1
-#else
-  USHK  = -1
-#endif
-
-  !---------------------------------------------------------------------
-  ! primitive state components
-  !---------------------------------------------------------------------
-
-  ! QTHERM: number of primitive variables: rho, p, (rho e), T + 3 velocity components
-  ! QVAR  : number of total variables in primitive form
-
-  QTHERM = NTHERM + 1 ! the + 1 is for QGAME which is always defined in primitive mode
-
-#ifdef HYBRID_MOMENTUM
-  ! There is no primitive variable analogue of the hybrid momenta;
-  ! all of the hydro reconstructions are done using the linear momenta,
-  ! which are always intended to be in sync with the hybrid momenta.
-
-  QTHERM = QTHERM - 3
-#endif
-
-  QVAR = QTHERM + nspec + naux + numadv
-
-  ! NQ will be the number of hydro + radiation variables in the primitive
-  ! state.  Initialize it just for hydro here
-  NQ = QVAR
-
-  ! We use these to index into the state "Q"
-  QRHO  = 1
-
-  QU    = 2
-  QV    = 3
-  QW    = 4
-
-  QGAME = 5
-
-  QLAST   = QGAME
-
-  QPRES   = QLAST + 1
-  QREINT  = QLAST + 2
-
-  QTEMP   = QTHERM ! = QLAST + 3
-
-  if (numadv >= 1) then
-     QFA = QTHERM + 1
-     QFS = QFA + numadv
-
-  else
-     QFA = 1   ! density
-     QFS = QTHERM + 1
-
-  end if
-
-  if (naux >= 1) then
-     QFX = QFS + nspec
-
-  else
-     QFX = 1
-
-  end if
-
-#ifdef RADIATION
-  QPTOT  = QVAR+1
-  QREITOT = QVAR+2
-  QRAD = QVAR+3
-  QRADHI = qrad+ngroups-1
-
-  ! update NQ -- it was already initialized above
-  NQ = QVAR + 2 + ngroups
-#endif
-
-  ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
-  ! that we create in the primitive variable call but that do not need to
-  ! participate in tracing.
-  ! Note: radiation adds cg, gamcg, lambda (ngroups components)
-
-#ifdef RADIATION
-  NQAUX = 6 + ngroups
-#else
-  NQAUX = 4
-#endif
-
-  QGAMC   = 1
-  QC      = 2
-  QDPDR   = 3
-  QDPDE   = 4
-#ifdef RADIATION
-  QGAMCG  = 5
-  QCG     = 6
-  QLAMS   = 7
-#endif
+  call ca_set_primitive_indices()
 
   ! easy indexing for the passively advected quantities.  This
   ! lets us loop over all groups (advected, species, aux)

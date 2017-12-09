@@ -15,7 +15,7 @@
    advected               FirstAdv     UFA       None           nadv     None
    species                FirstSpec    UFS       None           nspec    None
    auxillary              FirstAux     UFX       None           naux     None
-   shock                  Shock        USHK      None             1      None
+   shock                  Shock        USHK      None             1      SHOCK_VAR
 
 
 # the primitive variable state

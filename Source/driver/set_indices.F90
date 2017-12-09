@@ -14,72 +14,34 @@ subroutine check_equal(index1, index2)
 end subroutine check_equal
 
 
-subroutine ca_set_godunov_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-  implicit none
-
-  NGDNV = 1
-
-  GDRHO = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDU = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDV = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDW = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDPRES = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDGAME = NGDNV
-  NGDNV = NGDNV + 1
-
-#ifdef RADIATION
-  GDLAMS = NGDNV
-  NGDNV = NGDNV + ngroups
-
-  GDERADS = NGDNV
-  NGDNV = NGDNV + ngroups
-
-#endif
-  NGDNV = NGDNV - 1
-end subroutine ca_set_godunov_indices
-
 subroutine ca_set_conserved_indices( &
-                                    Ymom, &
+                                    Shock, &
+                                    Temp, &
                                     Zmom, &
                                     Eint, &
-                                    Shock, &
-                                    Density, &
-                                    FirstSpec, &
-                                    FirstAdv, &
-                                    FirstAux, &
                                     Xmom, &
-                                    Temp, &
-                                    Eden)
+                                    Ymom, &
+                                    Eden, &
+                                    FirstSpec, &
+                                    FirstAux, &
+                                    Density, &
+                                    FirstAdv)
 
 
   use meth_params_module
   use network, only: naux, nspec
   implicit none
-  integer, intent(in) :: Ymom
+  integer, intent(in) :: Shock
+  integer, intent(in) :: Temp
   integer, intent(in) :: Zmom
   integer, intent(in) :: Eint
-  integer, intent(in) :: Shock
-  integer, intent(in) :: Density
-  integer, intent(in) :: FirstSpec
-  integer, intent(in) :: FirstAdv
-  integer, intent(in) :: FirstAux
   integer, intent(in) :: Xmom
-  integer, intent(in) :: Temp
+  integer, intent(in) :: Ymom
   integer, intent(in) :: Eden
+  integer, intent(in) :: FirstSpec
+  integer, intent(in) :: FirstAux
+  integer, intent(in) :: Density
+  integer, intent(in) :: FirstAdv
 
   NVAR = 1
 
@@ -123,10 +85,6 @@ subroutine ca_set_conserved_indices( &
   NVAR = NVAR + naux
   call check_equal(UFX,FirstAux+1)
 
-  USHK = NVAR
-  NVAR = NVAR + 1
-  call check_equal(USHK,Shock+1)
-
 #ifdef HYBRID_MOMENTUM
   UMR = NVAR
   NVAR = NVAR + 1
@@ -138,8 +96,52 @@ subroutine ca_set_conserved_indices( &
   NVAR = NVAR + 1
 
 #endif
+#ifdef SHOCK_VAR
+  USHK = NVAR
+  NVAR = NVAR + 1
+  call check_equal(USHK,Shock+1)
+
+#endif
   NVAR = NVAR - 1
 end subroutine ca_set_conserved_indices
+
+subroutine ca_set_godunov_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+  implicit none
+
+  NGDNV = 1
+
+  GDRHO = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDU = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDV = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDW = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDPRES = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDGAME = NGDNV
+  NGDNV = NGDNV + 1
+
+#ifdef RADIATION
+  GDLAMS = NGDNV
+  NGDNV = NGDNV + ngroups
+
+  GDERADS = NGDNV
+  NGDNV = NGDNV + ngroups
+
+#endif
+  NGDNV = NGDNV - 1
+end subroutine ca_set_godunov_indices
 
 subroutine ca_set_auxillary_indices()
 
