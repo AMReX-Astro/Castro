@@ -186,6 +186,7 @@ def doit():
             sub += "\n\n"
             sub += "  use meth_params_module\n"
             sub += "  use network, only: naux, nspec\n"
+            sub += "#ifdef RADIATION\n  use rad_params_module, only : ngroups\n#endif\n"
             sub += "  implicit none\n"
 
             for i in set_indices:

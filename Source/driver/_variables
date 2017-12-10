@@ -49,7 +49,7 @@
    sound-speed           None          QC        None            1        None
    dpdr                  None          QDPDR     None            1        None
    dpde                  None          QDPDE     None            1        None
-   gamma_c-gas           None          QGAMCC    None            1        RADIATION
+   gamma_c-gas           None          QGAMCG    None            1        RADIATION
    sound-speed-gas       None          QCG       None            1        RADIATION
    flux-limiter          None          QLAMS     None          ngroups    RADIATION
 

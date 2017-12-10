@@ -14,177 +14,6 @@ subroutine check_equal(index1, index2)
 end subroutine check_equal
 
 
-subroutine ca_set_godunov_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-  implicit none
-
-  NGDNV = 1
-
-  GDRHO = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDU = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDV = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDW = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDPRES = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDGAME = NGDNV
-  NGDNV = NGDNV + 1
-
-#ifdef RADIATION
-  GDLAMS = NGDNV
-  NGDNV = NGDNV + ngroups
-#endif
-
-#ifdef RADIATION
-  GDERADS = NGDNV
-  NGDNV = NGDNV + ngroups
-#endif
-
-  NGDNV = NGDNV - 1
-end subroutine ca_set_godunov_indices
-
-subroutine ca_set_primitive_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-  implicit none
-
-  NQ = 1
-
-  QVAR = 1
-
-  QRHO = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QU = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QV = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QW = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QGAME = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QPRES = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QREINT = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-#ifdef MHD
-  QMAGX = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-#endif
-
-#ifdef MHD
-  QMAGY = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-#endif
-
-#ifdef MHD
-  QMAGZ = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-#endif
-
-  QTEMP = NQ
-  NQ = NQ + 1
-  QVAR = QVAR + 1
-
-  QFA = NQ
-  NQ = NQ + nadv
-  QVAR = QVAR + nadv
-
-  QFS = NQ
-  NQ = NQ + nspec
-  QVAR = QVAR + nspec
-
-  QFX = NQ
-  NQ = NQ + naux
-  QVAR = QVAR + naux
-
-#ifdef RADIATION
-  QPTOT = NQ
-  NQ = NQ + 1
-#endif
-
-#ifdef RADIATION
-  QREITOT = NQ
-  NQ = NQ + 1
-#endif
-
-#ifdef RADIATION
-  QRAD = NQ
-  NQ = NQ + ngroups
-#endif
-
-  NQ = NQ - 1
-  QVAR = QVAR - 1
-end subroutine ca_set_primitive_indices
-
-subroutine ca_set_auxillary_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-  implicit none
-
-  NQAUX = 1
-
-  QGAMC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDR = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDE = NQAUX
-  NQAUX = NQAUX + 1
-
-#ifdef RADIATION
-  QGAMCC = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QCG = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QLAMS = NQAUX
-  NQAUX = NQAUX + ngroups
-#endif
-
-  NQAUX = NQAUX - 1
-end subroutine ca_set_auxillary_indices
-
 subroutine ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
                                     Rmom, &
@@ -213,6 +42,9 @@ subroutine ca_set_conserved_indices( &
 
   use meth_params_module
   use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
   implicit none
   integer, intent(in) :: Density
   integer, intent(in) :: Xmom
@@ -317,4 +149,184 @@ subroutine ca_set_conserved_indices( &
 
   NVAR = NVAR - 1
 end subroutine ca_set_conserved_indices
+
+subroutine ca_set_godunov_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+
+  NGDNV = 1
+
+  GDRHO = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDU = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDV = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDW = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDPRES = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDGAME = NGDNV
+  NGDNV = NGDNV + 1
+
+#ifdef RADIATION
+  GDLAMS = NGDNV
+  NGDNV = NGDNV + ngroups
+#endif
+
+#ifdef RADIATION
+  GDERADS = NGDNV
+  NGDNV = NGDNV + ngroups
+#endif
+
+  NGDNV = NGDNV - 1
+end subroutine ca_set_godunov_indices
+
+subroutine ca_set_auxillary_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+
+  NQAUX = 1
+
+  QGAMC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDR = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDE = NQAUX
+  NQAUX = NQAUX + 1
+
+#ifdef RADIATION
+  QGAMCG = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QCG = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QLAMS = NQAUX
+  NQAUX = NQAUX + ngroups
+#endif
+
+  NQAUX = NQAUX - 1
+end subroutine ca_set_auxillary_indices
+
+subroutine ca_set_primitive_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+
+  NQ = 1
+
+  QVAR = 1
+
+  QRHO = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QU = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QV = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QW = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QGAME = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QPRES = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QREINT = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+#ifdef MHD
+  QMAGX = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+#endif
+
+#ifdef MHD
+  QMAGY = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+#endif
+
+#ifdef MHD
+  QMAGZ = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+#endif
+
+  QTEMP = NQ
+  NQ = NQ + 1
+  QVAR = QVAR + 1
+
+  QFA = NQ
+  NQ = NQ + nadv
+  QVAR = QVAR + nadv
+
+  QFS = NQ
+  NQ = NQ + nspec
+  QVAR = QVAR + nspec
+
+  QFX = NQ
+  NQ = NQ + naux
+  QVAR = QVAR + naux
+
+#ifdef RADIATION
+  QPTOT = NQ
+  NQ = NQ + 1
+#endif
+
+#ifdef RADIATION
+  QREITOT = NQ
+  NQ = NQ + 1
+#endif
+
+#ifdef RADIATION
+  QRAD = NQ
+  NQ = NQ + ngroups
+#endif
+
+  NQ = NQ - 1
+  QVAR = QVAR - 1
+end subroutine ca_set_primitive_indices
 
