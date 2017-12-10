@@ -69,52 +69,77 @@ subroutine ca_set_conserved_indices( &
   integer, intent(in) :: Shock
 #endif
 
+  print *, "in set"
+  print *, "Rmom = ", Rmom
+  print *, "Lmom = ", Lmom
+  print *, "Pmom = ", Pmom
+  print *, "Density = ", Density
+  print *, "Xmom = ", Xmom
+  print *, "Ymom = ", Ymom
+  print *, "Zmom = ", Zmom
+  print *, "Eden = ", Eden
+  print *, "Eint = ", Eint
+  print *, "Temp = ", Temp
+  print *, "FirstAdv = ", FirstAdv
+  print *, "FirstSpec = ", FirstSpec
+  print *, "FirstAux = ", FirstAux
+
   NVAR = 1
 
   URHO = NVAR
   NVAR = NVAR + 1
+  print *, "dens"
   call check_equal(URHO,Density+1)
 
   UMX = NVAR
   NVAR = NVAR + 1
+  print *, "umx"
   call check_equal(UMX,Xmom+1)
 
   UMY = NVAR
   NVAR = NVAR + 1
+  print *, "umy"
   call check_equal(UMY,Ymom+1)
 
   UMZ = NVAR
   NVAR = NVAR + 1
+  print *, "umz"
   call check_equal(UMZ,Zmom+1)
 
 #ifdef HYBRID_MOMENTUM
   UMR = NVAR
   NVAR = NVAR + 1
+  print *, "umr"
   call check_equal(UMR,Rmom+1)
 #endif
 
 #ifdef HYBRID_MOMENTUM
   UML = NVAR
   NVAR = NVAR + 1
+  print *, "uml"
   call check_equal(UML,Lmom+1)
 #endif
 
 #ifdef HYBRID_MOMENTUM
   UMP = NVAR
   NVAR = NVAR + 1
+  print *, "ump"
   call check_equal(UMP,Pmom+1)
 #endif
 
   UEDEN = NVAR
   NVAR = NVAR + 1
+  print *, "ueden"
   call check_equal(UEDEN,Eden+1)
 
   UEINT = NVAR
   NVAR = NVAR + 1
+  print *, "ueint"
   call check_equal(UEINT,Eint+1)
 
   UTEMP = NVAR
   NVAR = NVAR + 1
+  print *, "utemp"
   call check_equal(UTEMP,Temp+1)
 
   if (nadv > 0) then

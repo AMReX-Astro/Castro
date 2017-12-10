@@ -421,6 +421,22 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   !---------------------------------------------------------------------
   call ca_set_godunov_indices()
 
+  print *, "about to call"
+  print *, "Rmom = ", Rmom
+  print *, "Lmom = ", Rmom+1
+  print *, "Pmom = ", Rmom+2
+  print *, "Density = ", Density
+  print *, "Xmom = ", Xmom
+  print *, "Ymom = ", Xmom+1
+  print *, "Zmom = ", Xmom+2
+  print *, "Eden = ", Eden
+  print *, "Eint = ", Eint
+  print *, "Temp = ", Temp
+  print *, "FirstAdv = ", FirstAdv
+  print *, "FirstSpec = ", FirstSpec
+  print *, "FirstAux = ", FirstAux
+
+
   call ca_set_conserved_indices( &
 #ifdef HYBRID_ADVECTION
                                 Rmom, Rmom+1, Rmom+2, &

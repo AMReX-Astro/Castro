@@ -203,6 +203,8 @@ Castro::variableSetUp ()
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
+  std::cout << "C++ " << Rmom << " " << Xmom << std::endl;
+
   ca_set_method_params(dm, Density, Xmom, 
 #ifdef HYBRID_MOMENTUM
                        Rmom,
