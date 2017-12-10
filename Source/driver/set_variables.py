@@ -146,7 +146,7 @@ def doit():
         # arg list will be C++ names to compare to
         f.write(CHECK_EQUAL)
 
-        for s in unique_sets:
+        for s in sorted(unique_sets):
             subname = "ca_set_{}_indices".format(s)
 
             set_indices = [q for q in indices if q.iset == s]
@@ -160,7 +160,7 @@ def doit():
             # write the function heading
             sub = ""
 
-            if len(cxx_names) == 0:
+            if not cxx_names:
                 sub += "subroutine {}()\n".format(subname)
             else:
                 sub += "subroutine {}( &\n".format(subname)
