@@ -390,7 +390,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 
   integer, intent(in) :: dm
   integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
-       FirstAdv, FirstSpec, FirstAux
+                         FirstAdv, FirstSpec, FirstAux
   integer, intent(in) :: numadv
 #ifdef SHOCK_VAR
   integer, intent(in) :: Shock
@@ -399,6 +399,9 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   integer, intent(in) :: gravity_type_in(gravity_type_len)
 #ifdef RADIATION
   integer, intent(in) :: ngroups_in
+#endif
+#ifdef ROTATION
+  integer, intent(in) :: Rmom
 #endif
 
   integer :: iadv, ispec
