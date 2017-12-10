@@ -14,252 +14,6 @@ subroutine check_equal(index1, index2)
 end subroutine check_equal
 
 
-subroutine ca_set_conserved_indices( &
-#ifdef HYBRID_MOMENTUM
-                                    Rmom, &
-#endif
-#ifdef HYBRID_MOMENTUM
-                                    Lmom, &
-#endif
-#ifdef HYBRID_MOMENTUM
-                                    Pmom, &
-#endif
-#ifdef SHOCK_VAR
-                                    Shock, &
-#endif
-                                    Density, &
-                                    Xmom, &
-                                    Ymom, &
-                                    Zmom, &
-                                    Eden, &
-                                    Eint, &
-                                    Temp, &
-                                    FirstAdv, &
-                                    FirstSpec, &
-                                    FirstAux &
-                                   )
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
-  implicit none
-  integer, intent(in) :: Density
-  integer, intent(in) :: Xmom
-  integer, intent(in) :: Ymom
-  integer, intent(in) :: Zmom
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom
-#endif
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Lmom
-#endif
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Pmom
-#endif
-  integer, intent(in) :: Eden
-  integer, intent(in) :: Eint
-  integer, intent(in) :: Temp
-  integer, intent(in) :: FirstAdv
-  integer, intent(in) :: FirstSpec
-  integer, intent(in) :: FirstAux
-#ifdef SHOCK_VAR
-  integer, intent(in) :: Shock
-#endif
-
-  print *, "in set"
-  print *, "Rmom = ", Rmom
-  print *, "Lmom = ", Lmom
-  print *, "Pmom = ", Pmom
-  print *, "Density = ", Density
-  print *, "Xmom = ", Xmom
-  print *, "Ymom = ", Ymom
-  print *, "Zmom = ", Zmom
-  print *, "Eden = ", Eden
-  print *, "Eint = ", Eint
-  print *, "Temp = ", Temp
-  print *, "FirstAdv = ", FirstAdv
-  print *, "FirstSpec = ", FirstSpec
-  print *, "FirstAux = ", FirstAux
-
-  NVAR = 1
-
-  URHO = NVAR
-  NVAR = NVAR + 1
-  print *, "dens"
-  call check_equal(URHO,Density+1)
-
-  UMX = NVAR
-  NVAR = NVAR + 1
-  print *, "umx"
-  call check_equal(UMX,Xmom+1)
-
-  UMY = NVAR
-  NVAR = NVAR + 1
-  print *, "umy"
-  call check_equal(UMY,Ymom+1)
-
-  UMZ = NVAR
-  NVAR = NVAR + 1
-  print *, "umz"
-  call check_equal(UMZ,Zmom+1)
-
-#ifdef HYBRID_MOMENTUM
-  UMR = NVAR
-  NVAR = NVAR + 1
-  print *, "umr"
-  call check_equal(UMR,Rmom+1)
-#endif
-
-#ifdef HYBRID_MOMENTUM
-  UML = NVAR
-  NVAR = NVAR + 1
-  print *, "uml"
-  call check_equal(UML,Lmom+1)
-#endif
-
-#ifdef HYBRID_MOMENTUM
-  UMP = NVAR
-  NVAR = NVAR + 1
-  print *, "ump"
-  call check_equal(UMP,Pmom+1)
-#endif
-
-  UEDEN = NVAR
-  NVAR = NVAR + 1
-  print *, "ueden"
-  call check_equal(UEDEN,Eden+1)
-
-  UEINT = NVAR
-  NVAR = NVAR + 1
-  print *, "ueint"
-  call check_equal(UEINT,Eint+1)
-
-  UTEMP = NVAR
-  NVAR = NVAR + 1
-  print *, "utemp"
-  call check_equal(UTEMP,Temp+1)
-
-  if (nadv > 0) then
-    UFA = NVAR
-    NVAR = NVAR + nadv
-  else
-    UFA = 0
-  endif
-  call check_equal(UFA,FirstAdv+1)
-
-  if (nspec > 0) then
-    UFS = NVAR
-    NVAR = NVAR + nspec
-  else
-    UFS = 0
-  endif
-  call check_equal(UFS,FirstSpec+1)
-
-  if (naux > 0) then
-    UFX = NVAR
-    NVAR = NVAR + naux
-  else
-    UFX = 0
-  endif
-  call check_equal(UFX,FirstAux+1)
-
-#ifdef SHOCK_VAR
-  USHK = NVAR
-  NVAR = NVAR + 1
-  call check_equal(USHK,Shock+1)
-#endif
-
-  NVAR = NVAR - 1
-end subroutine ca_set_conserved_indices
-
-subroutine ca_set_godunov_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
-  implicit none
-
-  NGDNV = 1
-
-  GDRHO = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDU = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDV = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDW = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDPRES = NGDNV
-  NGDNV = NGDNV + 1
-
-  GDGAME = NGDNV
-  NGDNV = NGDNV + 1
-
-#ifdef RADIATION
-  GDLAMS = NGDNV
-  NGDNV = NGDNV + ngroups
-#endif
-
-#ifdef RADIATION
-  GDERADS = NGDNV
-  NGDNV = NGDNV + ngroups
-#endif
-
-  NGDNV = NGDNV - 1
-end subroutine ca_set_godunov_indices
-
-subroutine ca_set_auxillary_indices()
-
-
-  use meth_params_module
-  use network, only: naux, nspec
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
-  implicit none
-
-  NQAUX = 1
-
-  QGAMC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QC = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDR = NQAUX
-  NQAUX = NQAUX + 1
-
-  QDPDE = NQAUX
-  NQAUX = NQAUX + 1
-
-#ifdef RADIATION
-  QGAMCG = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QCG = NQAUX
-  NQAUX = NQAUX + 1
-#endif
-
-#ifdef RADIATION
-  QLAMS = NQAUX
-  NQAUX = NQAUX + ngroups
-#endif
-
-  NQAUX = NQAUX - 1
-end subroutine ca_set_auxillary_indices
-
 subroutine ca_set_primitive_indices()
 
 
@@ -354,4 +108,225 @@ subroutine ca_set_primitive_indices()
   NQ = NQ - 1
   QVAR = QVAR - 1
 end subroutine ca_set_primitive_indices
+
+subroutine ca_set_godunov_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+
+  NGDNV = 1
+
+  GDRHO = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDU = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDV = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDW = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDPRES = NGDNV
+  NGDNV = NGDNV + 1
+
+  GDGAME = NGDNV
+  NGDNV = NGDNV + 1
+
+#ifdef RADIATION
+  GDLAMS = NGDNV
+  NGDNV = NGDNV + ngroups
+#endif
+
+#ifdef RADIATION
+  GDERADS = NGDNV
+  NGDNV = NGDNV + ngroups
+#endif
+
+  NGDNV = NGDNV - 1
+end subroutine ca_set_godunov_indices
+
+subroutine ca_set_auxillary_indices()
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+
+  NQAUX = 1
+
+  QGAMC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QC = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDR = NQAUX
+  NQAUX = NQAUX + 1
+
+  QDPDE = NQAUX
+  NQAUX = NQAUX + 1
+
+#ifdef RADIATION
+  QGAMCG = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QCG = NQAUX
+  NQAUX = NQAUX + 1
+#endif
+
+#ifdef RADIATION
+  QLAMS = NQAUX
+  NQAUX = NQAUX + ngroups
+#endif
+
+  NQAUX = NQAUX - 1
+end subroutine ca_set_auxillary_indices
+
+subroutine ca_set_conserved_indices( &
+#ifdef HYBRID_MOMENTUM
+                                    Rmom, &
+#endif
+#ifdef HYBRID_MOMENTUM
+                                    Lmom, &
+#endif
+#ifdef HYBRID_MOMENTUM
+                                    Pmom, &
+#endif
+#ifdef SHOCK_VAR
+                                    Shock, &
+#endif
+                                    Density, &
+                                    Xmom, &
+                                    Ymom, &
+                                    Zmom, &
+                                    Eden, &
+                                    Eint, &
+                                    Temp, &
+                                    FirstAdv, &
+                                    FirstSpec, &
+                                    FirstAux &
+                                   )
+
+
+  use meth_params_module
+  use network, only: naux, nspec
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
+  implicit none
+  integer, intent(in) :: Density
+  integer, intent(in) :: Xmom
+  integer, intent(in) :: Ymom
+  integer, intent(in) :: Zmom
+#ifdef HYBRID_MOMENTUM
+  integer, intent(in) :: Rmom
+#endif
+#ifdef HYBRID_MOMENTUM
+  integer, intent(in) :: Lmom
+#endif
+#ifdef HYBRID_MOMENTUM
+  integer, intent(in) :: Pmom
+#endif
+  integer, intent(in) :: Eden
+  integer, intent(in) :: Eint
+  integer, intent(in) :: Temp
+  integer, intent(in) :: FirstAdv
+  integer, intent(in) :: FirstSpec
+  integer, intent(in) :: FirstAux
+#ifdef SHOCK_VAR
+  integer, intent(in) :: Shock
+#endif
+
+  NVAR = 1
+
+  URHO = NVAR
+  NVAR = NVAR + 1
+  call check_equal(URHO,Density+1)
+
+  UMX = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UMX,Xmom+1)
+
+  UMY = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UMY,Ymom+1)
+
+  UMZ = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UMZ,Zmom+1)
+
+#ifdef HYBRID_MOMENTUM
+  UMR = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UMR,Rmom+1)
+#endif
+
+#ifdef HYBRID_MOMENTUM
+  UML = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UML,Lmom+1)
+#endif
+
+#ifdef HYBRID_MOMENTUM
+  UMP = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UMP,Pmom+1)
+#endif
+
+  UEDEN = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UEDEN,Eden+1)
+
+  UEINT = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UEINT,Eint+1)
+
+  UTEMP = NVAR
+  NVAR = NVAR + 1
+  call check_equal(UTEMP,Temp+1)
+
+  if (nadv > 0) then
+    UFA = NVAR
+    NVAR = NVAR + nadv
+  else
+    UFA = 0
+  endif
+  call check_equal(UFA,FirstAdv+1)
+
+  if (nspec > 0) then
+    UFS = NVAR
+    NVAR = NVAR + nspec
+  else
+    UFS = 0
+  endif
+  call check_equal(UFS,FirstSpec+1)
+
+  if (naux > 0) then
+    UFX = NVAR
+    NVAR = NVAR + naux
+  else
+    UFX = 0
+  endif
+  call check_equal(UFX,FirstAux+1)
+
+#ifdef SHOCK_VAR
+  USHK = NVAR
+  NVAR = NVAR + 1
+  call check_equal(USHK,Shock+1)
+#endif
+
+  NVAR = NVAR - 1
+end subroutine ca_set_conserved_indices
 
