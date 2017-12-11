@@ -199,7 +199,7 @@ contains
 
     use bl_constants_module, only: ZERO
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, UFX, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
     use castro_util_module, only: position
