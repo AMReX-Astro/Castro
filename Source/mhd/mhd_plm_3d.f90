@@ -57,8 +57,8 @@ contains
     ibz = 8
 
     dt_over_a = dt
-!    Ip = 0.d0
-!    Im = 0.d0
+    Ip = 0.d0
+    Im = 0.d0
 
 !------------------------workspace variables---------------------------------------------
     temp = 0.d0
