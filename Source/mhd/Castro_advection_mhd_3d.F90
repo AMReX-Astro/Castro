@@ -511,6 +511,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
            eos_state % rho = q(i, j, k,QRHO)
            eos_state % e = q(i,j,k,QREINT) / eos_state % rho
+           eos_state % T = q(i,j,k,QTEMP)
            eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
 
            call eos(eos_input_re, eos_state)
