@@ -15,7 +15,7 @@ contains
                                      vol,vol_lo,vol_hi, &
                                      lo,hi,frac_change,verbose)
 
-    use network, only : nspec, naux
+    use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UEINT, UEDEN, small_dens, density_reset_method
     use bl_constants_module, only : ZERO
 
@@ -247,7 +247,7 @@ contains
     eos_state % rho = small_dens
     eos_state % T   = small_temp
     eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
-    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
+    eos_state % aux = new_state(UFX:UFX+naux-1) / small_dens
 
     call eos(eos_input_rt, eos_state)
 
