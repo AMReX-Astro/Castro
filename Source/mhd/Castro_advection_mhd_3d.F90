@@ -337,9 +337,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   !      use flatten_module
   use bl_constants_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
-                                 UEDEN, UEINT, UFA, UFS, &
+                                 UEDEN, UEINT, UFA, UFS, UTEMP, &
                                  QVAR, QRHO, QU, QV, QW, QC, &
-                                 QREINT, QPRES, QFA, QFS, &
+                                 QREINT, QPRES, QFA, QFS, QTEMP, &
                                  QMAGX,  QMAGY, QMAGZ, &
                                  nadv, small_dens, small_pres, &
                                  npassive, upass_map, qpass_map, &
@@ -511,7 +511,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! Pressure = (gamma - 1) * rho * e + 0.5 B dot B
            eos_state % rho = q(i, j, k,QRHO)
            eos_state % e = q(i,j,k,QREINT) / eos_state % rho
-           eos_state % T = q(i,j,k,QTEMP)
+           eos_state % T = uin(i,j,k,UTEMP)   ! initial guess
            eos_state % xn = q(i,j,k,QFS:QFS+nspec-1)
 
            call eos(eos_input_re, eos_state)
@@ -522,6 +522,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
 
            q(i,j,k,QPRES) = eos_state % p &
                 + 0.5d0*(q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)
+
+           q(i,j,k,QTEMP) = eos_state % T
+
         end do
      end do
   end do
