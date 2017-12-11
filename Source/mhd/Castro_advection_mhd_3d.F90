@@ -341,6 +341,7 @@
                                      QREINT, QPRES, QFA, QFS, &
                                      QMAGX,  QMAGY, QMAGZ, &
                                      nadv, small_dens, small_pres, &
+                                     npassive, upass_map, qpass_map, &
                                      use_flattening
 
       implicit none
@@ -376,7 +377,7 @@
 
       integer          :: i, j, k
       integer          :: ngp, ngf, loq(3), hiq(3)
-      integer          :: n, nq
+      integer          :: n, nq, ipassive
       integer          :: iadv, ispec
       real(rt) :: courx, coury, courz, courmx, courmy, courmz, cad
       real(rt) :: a_half, a_dot, rhoInv
@@ -446,9 +447,9 @@
       enddo
 
       ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-      do iadv = 1, nadv
-         n = UFA + iadv - 1
-         nq = QFA + iadv - 1
+      do ipassive = 1, npassive
+         n = upass_map(ipassive)
+         nq = qpass_map(ipassive)
          do k = loq(3),hiq(3)
             do j = loq(2),hiq(2)
                do i = loq(1),hiq(1)
@@ -458,20 +459,6 @@
          enddo
       enddo
 
-      ! Load chemical species and aux. variables, c, into q, assuming they arrived in uin as rho.c
-!      if (UFS .gt. 0) then
-!         do ispec = 1, nspec+naux
-!            n  = UFS + ispec - 1
-!            nq = QFS + ispec - 1
-!            do k = loq(3),hiq(3)
-!               do j = loq(2),hiq(2)
-!                  do i = loq(1),hiq(1)
-!                     q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
-!                  enddo
-!               enddo
-!            enddo
-!         enddo
-!      end if ! UFS > 0
 
       small_pres_over_dens = small_pres / small_dens
 
