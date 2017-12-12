@@ -373,6 +373,7 @@ subroutine PToC(q, u)
    
    type (eos_t) :: eos_state
 
+   integer :: n
 
    u(:) = 0.d0
 
@@ -386,7 +387,6 @@ subroutine PToC(q, u)
    eos_state % xn  = q(QFS:QFS+nspec-1)
    eos_state % T   = 100.0   ! dummy initial guess
 
-   print *, eos_state % rho, eos_state % p, eos_state % xn, eos_state % T
    call eos(eos_input_rp, eos_state)
 
 
@@ -394,6 +394,11 @@ subroutine PToC(q, u)
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
   u(NVAR+1:NVAR+3) = q(QMAGX:QMAGZ)
+
+  ! handle species too
+  do n = 1, nvar
+     u(UFS-1+n) = u(URHO)*q(QFS-1+n)
+  enddo
 
 end subroutine PToC
 

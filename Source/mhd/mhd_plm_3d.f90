@@ -607,10 +607,10 @@ contains
     ! TODO: species
     do n = 1, nspec
        do idir = 1, 3
-          Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,UFS-1+n,idir) = &
-               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,UFS-1+n)
-          Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,UFS-1+n,idir) = &
-               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,UFS-1+n)
+          Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n,idir) = &
+               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n)
+          Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n,idir) = &
+               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n)
        enddo
     enddo
 
