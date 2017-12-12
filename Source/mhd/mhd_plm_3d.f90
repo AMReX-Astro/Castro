@@ -61,6 +61,10 @@ contains
     Im = 0.d0
 
 !------------------------workspace variables---------------------------------------------
+
+    ! temp are just the primitive variables that participate in the Eigensystem
+    ! in temp, the magnetic field are the cell-centered magnetic fields
+
     temp = 0.d0
     temp(:,:,:,1) = small_dens
     temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,1) = s(:,:,:,QRHO) !Gas vars Cell Centered
@@ -126,7 +130,11 @@ contains
     temp(s_h1+1,s_h2+1,s_h3+1,5) = s(s_h1,s_h2,s_h3,QPRES)
     temp(s_h1+1,s_h2+1,s_h3+1,ibx:ibz) = s(s_h1,s_h2,s_h3,QMAGX:QMAGZ)
 
-! Temp face centered magnetic fields
+    ! Temp face centered magnetic fields
+
+    ! the following are face-centered magnetic fields -- we need these for the source terms
+    ! not the eigensystem
+
 	do k = s_l3-1, s_h3+1
 		do j = s_l2-1, s_h2+1
 			do i = s_l1-1, s_h1+1
@@ -402,7 +410,7 @@ contains
 			call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
 			call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
 			call rvecx(reig,s(i,j,k,:))    !!right eigenvectors
-	!MHD Source Terms 
+	!MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
 			smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
 			smhd(3) = temp(i,j,k,iby)/temp(i,j,k,1)
 			smhd(4) = temp(i,j,k,ibz)/temp(i,j,k,1)
@@ -412,7 +420,7 @@ contains
 			smhd 	= smhd*(tbx(i+1,j,k) - tbx(i,j,k))/dx !cross-talk of normal magnetic field direction
 	!Interpolate
 		!Plus
-				!!Using HLLD so sum over all eigenvalues
+				!!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
 			do ii = 1,7
 			        dL = dot_product(leig(ii,:),dQL)
 			        dR = dot_product(leig(ii,:),dQR)
@@ -582,6 +590,7 @@ contains
 		enddo
 	enddo
 
+        ! TODO: revisit setting the interface states for rho eint
 	Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,1)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
 	Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,2)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
 	Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,3)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)

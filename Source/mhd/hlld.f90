@@ -44,6 +44,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    character(len=10) :: choice
 
    type (eos_t) :: eos_state
+
+   ! `n` here is the normal
+   ! `p` are the perpendicular
    
    if (dir .eq. 1) then
       QMAGN  = QMAGX

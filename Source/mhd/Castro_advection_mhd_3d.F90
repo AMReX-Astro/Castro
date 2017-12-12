@@ -489,20 +489,26 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            end if
 
            ! Define the magneto-accoustic speed from the EOS
+           ! Note: QREINT is currently just "e"
+
+
+           ! TODO: first call the EOS as below to get the correct T, then modify these
+           ! calls to use eos_input_rt to save time
+
            cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), &
+           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
-                q(i,j,k,QFS:QFS+nspec-1))
+                                   q(i,j,k,QFS:QFS+nspec-1))
 
 
            ! Convert "e" back to "rho e"
