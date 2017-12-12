@@ -47,9 +47,9 @@ implicit none
 	real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
 
         ! fluxes should be NVAR+3
-	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)	!Half Step Fluxes
-	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR)	!Half Step Fluxes
-	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR)	!Half Step Fluxes
+	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)	!Half Step Fluxes
+	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)	!Half Step Fluxes
+	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)	!Half Step Fluxes
 
 	real(rt), intent(out)  :: Ex(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
 	real(rt), intent(out)  :: Ey(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
@@ -57,12 +57,12 @@ implicit none
  
         ! these are conserved + magnetic field (cell centered)
  ! TODO: should be NVAR+3
-	real(rt)  :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3) !PtoC Vars
-	real(rt)  :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt)  :: cons_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Conservative Vars
-	real(rt)  :: cons_temp_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Conservative Vars
-	real(rt)  :: cons_half_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3) !Flux Corrected Conservative Vars
-	real(rt)  :: cons_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+	real(rt)  :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3) !PtoC Vars
+	real(rt)  :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt)  :: cons_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2) !2D Temporary Conservative Vars
+	real(rt)  :: cons_temp_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2) !2D Temporary Conservative Vars
+	real(rt)  :: cons_half_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3) !Flux Corrected Conservative Vars
+	real(rt)  :: cons_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
 
 	real(rt)  :: q_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Primitive Vars
 	real(rt)  :: q_temp_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Primitive Vars
@@ -70,13 +70,13 @@ implicit none
 	real(rt)  :: q_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3) !Flux Corrected Primitive Vars
 
 
-	real(rt)  :: flxx1D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)
-	real(rt)  :: flxy1D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR) 
-    real(rt)  :: flxz1D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR) !Flux1d for all directions
+	real(rt)  :: flxx1D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
+	real(rt)  :: flxy1D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3) 
+    real(rt)  :: flxz1D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3) !Flux1d for all directions
 
-	real(rt)  :: flxx2D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR, 2) !Flux2d for all directions 2 perpendicular directions
-	real(rt)  :: flxy2D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR, 2) !Flux2d for all directions 2 perpendicular directions
-	real(rt)  :: flxz2D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR, 2) !Flux2d for all directions 2 perpendicular directions
+	real(rt)  :: flxx2D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
+	real(rt)  :: flxy2D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
+	real(rt)  :: flxz2D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
 
 	real(rt)  :: q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 	real(rt)  :: dx, dy, dz, dt
@@ -446,7 +446,7 @@ implicit none
 
 	integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
 	real(rt), intent(in)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-	real(rt), intent(out)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+	real(rt), intent(out)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3)
 	integer					:: i ,j ,k
 
   type(eos_t) :: eos_state        
@@ -473,7 +473,7 @@ implicit none
           u(i,j,k,UEINT) = eos_state % rho * eos_state % e
 
           ! TODO: this indexing needs to be fixed
-          u(i,j,k,QMAGX:QMAGZ) = q(i,j,k,QMAGX:QMAGZ)
+          u(i,j,k,NVAR+1:NVAR+3) = q(i,j,k,QMAGX:QMAGZ)
        enddo
     enddo
  enddo
@@ -492,13 +492,16 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
  implicit none
 
  integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
- real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+ real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3)
  real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
  integer					:: i ,j ,k
+ integer                :: UMAGX, UMAGZ
 
  type (eos_t) :: eos_state
 
- q = u
+ UMAGX = NVAR+1
+ UMAGZ = NVAR+3
+ !q = u
  do k = q_l3,q_h3
     do j = q_l2,q_h2
        do i = q_l1, q_h1
@@ -507,7 +510,7 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
           q(i,j,k,QV)    = u(i,j,k,UMY)/q(i,j,k,QRHO)
           q(i,j,k,QW)    = u(i,j,k,UMZ)/q(i,j,k,QRHO)
           q(i,j,k,QREINT) = u(i,j,k,UEDEN) - 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
-               - 0.5d0*dot_product(u(i,j,k,QMAGX:QMAGZ), u(i,j,k,QMAGX:QMAGZ))			 
+               - 0.5d0*dot_product(u(i,j,k,UMAGX:UMAGZ), u(i,j,k,UMAGX:UMAGZ)) !NVAR+1->UMAGX
           ! TODO: need to compute p from the EOS using (rho e), rho, X
           eos_state % rho = q(i, j, k, QRHO)
           eos_state % e   = q(i, j, k, QREINT) / eos_state % rho
@@ -515,9 +518,9 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
 
           call eos(eos_input_re, eos_state)
 
-
-          q(i,j,k,QPRES) = eos_state % p + 0.5*dot_product(u(i,j,k,QMAGX:QMAGZ),u(i,j,k,QMAGX:QMAGZ))
-          q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,QMAGX:QMAGZ)
+          q(i,j,k, QTEMP) = eos_state % T
+          q(i,j,k,QPRES) = eos_state % p + 0.5*dot_product(u(i,j,k,UMAGX:UMAGZ),u(i,j,k,UMAGX:UMAGZ))
+          q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,UMAGX:UMAGZ)
        enddo
     enddo
  enddo
@@ -542,15 +545,15 @@ implicit none
 	integer, intent(in)		:: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
 	integer, intent(in)		:: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 	
-	real(rt), intent(in)	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+	real(rt), intent(in)	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(in)	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
 
-	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)
-	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR)
-	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR)
+	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
+	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)
+	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
 
-	real(rt), intent(out)	::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2)
-	real(rt), intent(out)	::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2)
+	real(rt), intent(out)	::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
+	real(rt), intent(out)	::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
 
 	real(rt)				:: dx, dy, dz, dt, u, v, w
 	integer					:: i ,j ,k
@@ -663,7 +666,7 @@ subroutine corner_couple_mag(lo, hi, &
     			    		 Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
                              dx, dy, dz, dt)
 use amrex_fort_module, only : rt => amrex_real
-use meth_params_module, only : QVAR, QMAGX, QMAGY, QMAGZ
+use meth_params_module, only : NVAR, UEINT
 
 !Correction using Faraday's Law
 implicit none
@@ -673,10 +676,10 @@ implicit none
 	integer, intent(in)	:: ex_l1,ex_l2,ex_l3,ex_h1,ex_h2, ex_h3
 	integer, intent(in)	:: ey_l1,ey_l2,ey_l3,ey_h1,ey_h2, ey_h3
 	integer, intent(in)	:: ez_l1,ez_l2,ez_l3,ez_h1,ez_h2, ez_h3
-	real(rt), intent(inout)	:: uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2)
-	real(rt), intent(inout) :: uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2)
-	real(rt), intent(in)    :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)    :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)	
+	real(rt), intent(inout)	:: uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
+	real(rt), intent(inout) :: uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
+	real(rt), intent(in)    :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(in)    :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)	
 
 	real(rt), intent(in) 	:: Ex(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
 	real(rt), intent(in) 	:: Ey(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
@@ -684,6 +687,11 @@ implicit none
 
 	real(rt)		:: dx, dy, dz, dt
 	integer			:: i ,j ,k
+        integer                 ::UMAGX, UMAGY, UMAGZ
+
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
 
    	do k = lo(3), hi(3)
 		do j = lo(2), hi(2)
@@ -691,111 +699,111 @@ implicit none
 		!Left State
 				!X-direction 
 				!-> Affected by Y flux
-				uL(i,j,k,QMAGX,1,1) = um(i,j,k,QMAGX,1) + dt/(3.d0*dx)*(Ez(i,j+1,k) - Ez(i,j,k))
-				uL(i,j,k,QMAGZ,1,1) = um(i,j,k,QMAGZ,1) + dt/(6.d0*dx)* &
+				uL(i,j,k,UMAGX,1,1) = um(i,j,k,UMAGX,1) + dt/(3.d0*dx)*(Ez(i,j+1,k) - Ez(i,j,k))
+				uL(i,j,k,UMAGZ,1,1) = um(i,j,k,UMAGZ,1) + dt/(6.d0*dx)* &
 										((Ex(i,j+1,k+1) - Ex(i,j,k+1)) + &
 										 (Ex(i,j+1,k  ) - Ex(i,j,k)))
 				!-> Affected by Z flux
-				uL(i,j,k,QMAGX,1,2) = um(i,j,k,QMAGX,1) - dt/(3.d0*dx)*(Ey(i,j,k+1) - Ey(i,j,k))
-				uL(i,j,k,QMAGY,1,1) = um(i,j,k,QMAGY,1) - dt/(6.d0*dx)*&
+				uL(i,j,k,UMAGX,1,2) = um(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i,j,k+1) - Ey(i,j,k))
+				uL(i,j,k,UMAGY,1,1) = um(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
 									 	((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
 										 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
 				!-> Affected by X flux
-				uL(i,j,k,QMAGY:QMAGZ,1,2) = um(i,j,k,QMAGY:QMAGZ,1)
+				uL(i,j,k,UMAGY:UMAGZ,1,2) = um(i,j,k,UMAGY:UMAGZ,1)
 				!Y-direction
 				!-> Affected by X flux
-				uL(i,j,k,QMAGY,2,1) = um(i,j,k,QMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
-				uL(i,j,k,QMAGZ,2,1) = um(i,j,k,QMAGZ,2) - dt/(6.d0*dy)*&
+				uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
+				uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uL(i,j,k,QMAGY,2,2) = um(i,j,k,QMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
-				uL(i,j,k,QMAGX,2,1) = um(i,j,k,QMAGX,2) + dt/(6.d0*dy)*&
+				uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
+				uL(i,j,k,UMAGX,2,1) = um(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
-				uL(i,j,k,QMAGX,2,2) = um(i,j,k,QMAGX,2)
-				uL(i,j,k,QMAGZ,2,2) = um(i,j,k,QMAGZ,2)
+				uL(i,j,k,UMAGX,2,2) = um(i,j,k,UMAGX,2)
+				uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
-				uL(i,j,k,QMAGZ,3,1) = um(i,j,k,QMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k) - Ey(i,j,k))
-				uL(i,j,k,QMAGY,3,1) = um(i,j,k,QMAGZ,3) + dt/(6.d0*dz)*&
+				uL(i,j,k,UMAGZ,3,1) = um(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k) - Ey(i,j,k))
+				uL(i,j,k,UMAGY,3,1) = um(i,j,k,UMAGZ,3) + dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
 									 (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
 				!-> Affected by Y flux
-				uL(i,j,k,QMAGZ,3,2) = um(i,j,k,QMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k) - Ex(i,j,k))
-				uL(i,j,k,QMAGX,3,1) = um(i,j,k,QMAGX,3) - dt/(6.d0*dz)*&
+				uL(i,j,k,UMAGZ,3,2) = um(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k) - Ex(i,j,k))
+				uL(i,j,k,UMAGX,3,1) = um(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uL(i,j,k,QMAGX:QMAGY,3,2) = um(i,j,k,QMAGY:QMAGZ,3)
-				uL(i,j,k,UEINT,1,1) = uL(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,1,1),uL(i,j,k,QMAGX:QMAGZ,1,1))
+				uL(i,j,k,UMAGX:UMAGY,3,2) = um(i,j,k,UMAGY:UMAGZ,3)
+				uL(i,j,k,UEINT,1,1) = uL(i,j,k,UEINT,1,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,1),uL(i,j,k,UMAGX:UMAGZ,1,1))
 
-				uL(i,j,k,UEINT,1,2) = uL(i,j,k,UEINT,1,2) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,1,2),uL(i,j,k,QMAGX:QMAGZ,1,2))
+				uL(i,j,k,UEINT,1,2) = uL(i,j,k,UEINT,1,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,2),uL(i,j,k,UMAGX:UMAGZ,1,2))
 
-				uL(i,j,k,UEINT,2,1) = uL(i,j,k,UEINT,2,1) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,2,1),uL(i,j,k,QMAGX:QMAGZ,2,1))
+				uL(i,j,k,UEINT,2,1) = uL(i,j,k,UEINT,2,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,2,1),uL(i,j,k,UMAGX:UMAGZ,2,1))
 
-				uL(i,j,k,UEINT,2,2) = uL(i,j,k,UEINT,2,2) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,2,2),uL(i,j,k,QMAGX:QMAGZ,2,2))
+				uL(i,j,k,UEINT,2,2) = uL(i,j,k,UEINT,2,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,2,2),uL(i,j,k,UMAGX:UMAGZ,2,2))
 
-				uL(i,j,k,UEINT,3,1) = uL(i,j,k,UEINT,3,1) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,3,1),uL(i,j,k,QMAGX:QMAGZ,3,1))
+				uL(i,j,k,UEINT,3,1) = uL(i,j,k,UEINT,3,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,3,1),uL(i,j,k,UMAGX:UMAGZ,3,1))
 
-				uL(i,j,k,UEINT,3,2) = uL(i,j,k,UEINT,3,2) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,3,2),uL(i,j,k,QMAGX:QMAGZ,3,2))
+				uL(i,j,k,UEINT,3,2) = uL(i,j,k,UEINT,3,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,3,2),uL(i,j,k,UMAGX:UMAGZ,3,2))
 		!Right State
 				!X-direction 
 				!-> Affected by Y flux
-				uR(i,j,k,QMAGX,1,1) = up(i,j,k,QMAGX,1) + dt/(3.d0*dx)*(Ez(i+1,j+1,k) - Ez(i+1,j,k))
-				uR(i,j,k,QMAGZ,1,1) = up(i,j,k,QMAGZ,1) + dt/(6.d0*dx)*&
+				uR(i,j,k,UMAGX,1,1) = up(i,j,k,UMAGX,1) + dt/(3.d0*dx)*(Ez(i+1,j+1,k) - Ez(i+1,j,k))
+				uR(i,j,k,UMAGZ,1,1) = up(i,j,k,UMAGZ,1) + dt/(6.d0*dx)*&
 										((Ex(i,j+1,k+1) - Ex(i,j,k+1)) + &
 										 (Ex(i,j+1,k  ) - Ex(i,j,k  )))
 				!-> Affected by Z flux
-				uR(i,j,k,QMAGX,1,2) = up(i,j,k,QMAGX,1) - dt/(3.d0*dx)*(Ey(i+1,j,k+1) - Ey(i+1,j,k))
-				uR(i,j,k,QMAGY,1,1) = up(i,j,k,QMAGY,1) - dt/(6.d0*dx)*&
+				uR(i,j,k,UMAGX,1,2) = up(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i+1,j,k+1) - Ey(i+1,j,k))
+				uR(i,j,k,UMAGY,1,1) = up(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
 									 	((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
 										 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
 
-				uR(i,j,k,QMAGY:QMAGZ,1,2) = up(i,j,k,QMAGY:QMAGZ,1)
+				uR(i,j,k,UMAGY:UMAGZ,1,2) = up(i,j,k,UMAGY:UMAGZ,1)
 				!Y-direction
 				!-> Affected by X flux
-				uR(i,j,k,QMAGY,2,1) = up(i,j,k,QMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
-				uR(i,j,k,QMAGZ,2,1) = up(i,j,k,QMAGZ,2) - dt/(6.d0*dy)*&
+				uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
+				uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
 									 (Ey(i+1,j,k  ) - Ey(i,j,k  )))
 				!-> Affected by Z flux
-				uR(i,j,k,QMAGY,2,2) = up(i,j,k,QMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
-				uR(i,j,k,QMAGX,2,1) = up(i,j,k,QMAGX,2) + dt/(6.d0*dy)*&
+				uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
+				uR(i,j,k,UMAGX,2,1) = up(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
 									((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
 									 (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
 
-				uR(i,j,k,QMAGX,2,2) = up(i,j,k,QMAGX,2)
-				uR(i,j,k,QMAGZ,2,2) = up(i,j,k,QMAGZ,2)
+				uR(i,j,k,UMAGX,2,2) = up(i,j,k,UMAGX,2)
+				uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2)
 
 				!Z-Direction
 				!-> Affected by X flux
-				uR(i,j,k,QMAGZ,3,1) = up(i,j,k,QMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k+1) - Ey(i,j,k+1))
-				uR(i,j,k,QMAGY,3,1) = up(i,j,k,QMAGZ,3) + dt/(6.d0*dz)*&
+				uR(i,j,k,UMAGZ,3,1) = up(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k+1) - Ey(i,j,k+1))
+				uR(i,j,k,UMAGY,3,1) = up(i,j,k,UMAGZ,3) + dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
 									 (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
 				!-> Affected by Y flux
-				uR(i,j,k,QMAGZ,3,2) = up(i,j,k,QMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k+1) - Ex(i,j,k+1))
+				uR(i,j,k,UMAGZ,3,2) = up(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k+1) - Ex(i,j,k+1))
 					
-				uR(i,j,k,QMAGX,3,1) = up(i,j,k,QMAGX,3) - dt/(6.d0*dz)*&
+				uR(i,j,k,UMAGX,3,1) = up(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uR(i,j,k,QMAGX:QMAGY,3,2) = up(i,j,k,QMAGY:QMAGZ,3)
+				uR(i,j,k,UMAGX:UMAGY,3,2) = up(i,j,k,UMAGY:UMAGZ,3)
 
-				uR(i,j,k,UEINT,1,1) = uR(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,1,1),uR(i,j,k,QMAGX:QMAGZ,1,1))
+				uR(i,j,k,UEINT,1,1) = uR(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,1),uR(i,j,k,UMAGX:UMAGZ,1,1))
 
-				uR(i,j,k,UEINT,1,2) = uR(i,j,k,UEINT,1,2) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,1,2),uR(i,j,k,QMAGX:QMAGZ,1,2))
+				uR(i,j,k,UEINT,1,2) = uR(i,j,k,UEINT,1,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,2),uR(i,j,k,UMAGX:UMAGZ,1,2))
 
-				uR(i,j,k,UEINT,2,1) = uR(i,j,k,UEINT,2,1) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,2,1),uR(i,j,k,QMAGX:QMAGZ,2,1))
+				uR(i,j,k,UEINT,2,1) = uR(i,j,k,UEINT,2,1) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,2,1),uR(i,j,k,UMAGX:UMAGZ,2,1))
 
-				uR(i,j,k,UEINT,2,2) = uR(i,j,k,UEINT,2,2) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,2,2),uR(i,j,k,QMAGX:QMAGZ,2,2))
+				uR(i,j,k,UEINT,2,2) = uR(i,j,k,UEINT,2,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,2,2),uR(i,j,k,UMAGX:UMAGZ,2,2))
 
-				uR(i,j,k,UEINT,3,1) = uR(i,j,k,UEINT,3,1) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,3,1),uR(i,j,k,QMAGX:QMAGZ,3,1))
+				uR(i,j,k,UEINT,3,1) = uR(i,j,k,UEINT,3,1) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,3,1),uR(i,j,k,UMAGX:UMAGZ,3,1))
 
-				uR(i,j,k,UEINT,3,2) = uR(i,j,k,UEINT,3,2) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,3,2),uR(i,j,k,QMAGX:QMAGZ,3,2))
+				uR(i,j,k,UEINT,3,2) = uR(i,j,k,UEINT,3,2) -0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,3,2),uR(i,j,k,QMAGX:QMAGZ,3,2))
 			enddo
 		enddo
 	enddo
@@ -810,7 +818,7 @@ subroutine half_step(lo, hi, &
 		     flxz, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
                      dx, dy, dz, dt)
 use amrex_fort_module, only : rt => amrex_real
-use meth_params_module, only : QVAR, URHO, UEDEN
+use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, URHO, UEINT
 
 implicit none
 	
@@ -819,15 +827,15 @@ implicit none
 	integer, intent(in)   :: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
 	integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 	
-	real(rt), intent(in)	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+	real(rt), intent(in)	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(in)	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
 
-	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR,2)
-	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR,2)
-	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR,2)
+	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3,2)
+	real(rt), intent(out) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3,2)
+	real(rt), intent(out) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3,2)
 
-	real(rt), intent(out)	::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(out)	::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+	real(rt), intent(out)	::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(out)	::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
 
 	real(rt)				:: dx, dy, dz, dt, u, v, w
 	integer					:: i ,j ,k, n
@@ -878,7 +886,7 @@ subroutine half_step_mag(lo, hi, &
 				 Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
 				 dx, dy, dz, dt)
 use amrex_fort_module, only : rt => amrex_real
-use meth_params_module, only : QVAR, QMAGX,QMAGY,QMAGZ
+use meth_params_module, only : NVAR, UEINT
 
 !Correction using Faraday's Law
 implicit none
@@ -888,10 +896,10 @@ implicit none
 	integer, intent(in)   :: ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3
 	integer, intent(in)   :: ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3
 
-	real(rt), intent(inout)		::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(inout)     ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)    	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)    	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)	
+	real(rt), intent(inout)		::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(inout)     ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(in)    	::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+	real(rt), intent(in)    	::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)	
 
 	real(rt), intent(in)  :: Ex(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
 	real(rt), intent(in)  :: Ey(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
@@ -899,6 +907,11 @@ implicit none
 
 	real(rt)					:: dx, dy, dz, dt
 	integer						:: i ,j ,k, n
+        integer      :: UMAGX, UMAGY, UMAGZ
+
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
 
    	do k = lo(3), hi(3)
 		do j = lo(2), hi(2)
@@ -906,96 +919,96 @@ implicit none
 		!---------------------------------------left state-----------------------------------------------------
 				!X-Direction
 				!Bx
-				uL(i,j,k,QMAGX,1) = um(i,j,k,QMAGX,1) - 0.5d0*dt/dx*((Ey(i,j,k+1) - Ey(i,j,k)) &
+				uL(i,j,k,UMAGX,1) = um(i,j,k,UMAGX,1) - 0.5d0*dt/dx*((Ey(i,j,k+1) - Ey(i,j,k)) &
 								                   - (Ez(i,j+1,k) - Ez(i,j,k)))
 				!By
-				uL(i,j,k,QMAGY,1) = um(i,j,k,QMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
+				uL(i,j,k,UMAGY,1) = um(i,j,k,UMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
 									           + (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)) &
                                                                                    - (Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
 									           - (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)))
 				!Bz
-				uL(i,j,k,QMAGZ,1) = um(i,j,k,QMAGZ,1) + 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j,k+1)) &
+				uL(i,j,k,UMAGZ,1) = um(i,j,k,UMAGZ,1) + 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j,k+1)) &
 									           + (Ex(i  ,j+1,k  ) - Ex(i,j,k  )) &
                                                					   - (Ey(i+1,j  ,k+1) - Ey(i,j,k+1)) &
 									           - (Ey(i+1,j  ,k  ) - Ey(i,j,k  )))
 				!Y-Direction
 				!Bx
-				uL(i,j,k,QMAGX,2) = um(i,j,k,QMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
+				uL(i,j,k,UMAGX,2) = um(i,j,k,UMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
 								                   + (Ey(i  ,j,k+1) - Ey(i  ,j,k)) &
                                                                                    - (Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
 									           - (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 				!By
-				uL(i,j,k,QMAGY,2) = um(i,j,k,QMAGY,2) + 0.5d0*dt/dy*((Ex(i,j,k+1) - Ex(i,j,k)) &
+				uL(i,j,k,UMAGY,2) = um(i,j,k,UMAGY,2) + 0.5d0*dt/dy*((Ex(i,j,k+1) - Ex(i,j,k)) &
 								                   - (Ez(i+1,j,k) - Ez(i,j,k)))
 				!Bz
-				uL(i,j,k,QMAGZ,2) = um(i,j,k,QMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
+				uL(i,j,k,UMAGZ,2) = um(i,j,k,UMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
 								                   + (Ey(i+1,j,k  ) - Ey(i,j,k  )) &
                                                                                    - (Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
 									           - (Ex(i,j+1,k  ) - Ex(i,j,k  )))
 				!Z-direction
 				!Bx
-				uL(i,j,k,QMAGX,3) = um(i,j,k,QMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
+				uL(i,j,k,UMAGX,3) = um(i,j,k,UMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
 								                   + (Ez(i  ,j+1,k) - Ez(i  ,j,k)) &
                                                                                    - (Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
 									           - (Ey(i  ,j+1,k) - Ey(i  ,j,k)))
 				!By
-				uL(i,j,k,QMAGY,3) = um(i,j,k,QMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
+				uL(i,j,k,UMAGY,3) = um(i,j,k,UMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
 								                    +(Ez(i+1,j  ,k  ) - Ez(i,j  ,k)) &
                                                                                     -(Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
 									           - (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)))
 				!Bz
-				uL(i,j,k,QMAGZ,3) = um(i,j,k,QMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k) - Ex(i,j,k)) &
+				uL(i,j,k,UMAGZ,3) = um(i,j,k,UMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k) - Ex(i,j,k)) &
 									           - (Ey(i+1,j,k) - Ey(i,j,k)))
 				do n = 1,3
-					uL(i,j,k,UEINT,n) = uL(i,j,k,UEINT,n) - 0.5d0*dot_product(uL(i,j,k,QMAGX:QMAGZ,n),uL(i,j,k,QMAGX:QMAGZ,n))
+					uL(i,j,k,UEINT,n) = uL(i,j,k,UEINT,n) - 0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,n),uL(i,j,k,UMAGX:UMAGZ,n))
 				enddo
 
 	!---------------------------------------right state-----------------------------------------------------
 				!X-Direction
 				!Bx
-				uR(i,j,k,QMAGX,1) = up(i,j,k,QMAGX,1) - 0.5d0*dt/dx*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
+				uR(i,j,k,UMAGX,1) = up(i,j,k,UMAGX,1) - 0.5d0*dt/dx*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
 								    -                (Ez(i+1,j+1,k) - Ez(i+1,j,k)))
 				!By
-				uR(i,j,k,QMAGY,1) = up(i,j,k,QMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
+				uR(i,j,k,UMAGY,1) = up(i,j,k,UMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
 									           + (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)) &
                                                                                    - (Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
 									           - (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)))
 				!Bz
-				uR(i,j,k,QMAGZ,1) = up(i,j,k,QMAGZ,1) + 0.5d0*dt/dx*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
+				uR(i,j,k,UMAGZ,1) = up(i,j,k,UMAGZ,1) + 0.5d0*dt/dx*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
 									           + (Ex(i,j+1,k  ) - Ex(i,j,k  )) &
                                                                                    - (Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
 									           - (Ey(i+1,j,k  ) - Ey(i,j,k  )))				
 				!Y-Direction
 				!Bx
-				uR(i,j,k,QMAGX,2) = up(i,j,k,QMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
+				uR(i,j,k,UMAGX,2) = up(i,j,k,UMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
 								                   + (Ey(i  ,j,k+1) - Ey(i  ,j,k)) &
                                                                                    - (Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
 									           - (Ez(i  ,j+1,k) - Ez(i,j,k)))
 				!By
-				uR(i,j,k,QMAGY,2) = up(i,j,k,QMAGY,2) + 0.5d0*dt/dy*((Ex(i,j+1,k+1) - Ex(i,j+1,k)) &
+				uR(i,j,k,UMAGY,2) = up(i,j,k,UMAGY,2) + 0.5d0*dt/dy*((Ex(i,j+1,k+1) - Ex(i,j+1,k)) &
 								    - (Ez(i+1,j+1,k) - Ez(i,j+1,k)))
 				!Bz
-				uR(i,j,k,QMAGZ,2) = up(i,j,k,QMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
+				uR(i,j,k,UMAGZ,2) = up(i,j,k,UMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
 								    	+ (Ey(i+1,j,k) - Ey(i,j,k)) &
 								        - (Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
 									- (Ex(i,j+1,k) - Ex(i,j,k)))	
 		
 				!Z-direction
 				!Bx
-				uR(i,j,k,QMAGX,3) = up(i,j,k,QMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
+				uR(i,j,k,UMAGX,3) = up(i,j,k,UMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
       								        + (Ez(i,j+1,k) - Ez(i,j,k)) &
 									- (Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
 									- (Ey(i,j,k+1) - Ey(i,j,k)))
 				!By
-				uR(i,j,k,QMAGY,3) = up(i,j,k,QMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
+				uR(i,j,k,UMAGY,3) = up(i,j,k,UMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
 								                   + (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)) &
                                                                                    - (Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
 									           - (Ex(i  ,j  ,k+1) - Ex(i,j,k)))
 				!Bz
-				uR(i,j,k,QMAGZ,3) = up(i,j,k,QMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
+				uR(i,j,k,UMAGZ,3) = up(i,j,k,UMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
 									           - (Ey(i+1,j,k+1) - Ey(i,j,k+1)))			
 				do n = 1,3
-					uR(i,j,k,UEINT,n) = uR(i,j,k,UEINT,n) - 0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,n),uR(i,j,k,QMAGX:QMAGZ,n))
+					uR(i,j,k,UEINT,n) = uR(i,j,k,UEINT,n) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,n),uR(i,j,k,UMAGX:UMAGZ,n))
 				enddo	
 			enddo
 		enddo
@@ -1011,7 +1024,7 @@ subroutine prim_half(q2D,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 		     dx, dy, dz, dt)
 
  use amrex_fort_module, only : rt => amrex_real
- use meth_params_module, only : QVAR
+ use meth_params_module, only : NVAR
 
 implicit none
 
@@ -1022,13 +1035,13 @@ implicit none
 	integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 
 	real(rt), intent(in)	:: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
-	real(rt), intent(in) 	:: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)
-	real(rt), intent(in) 	:: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR)
-	real(rt), intent(in) 	:: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR)
+	real(rt), intent(in) 	:: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
+	real(rt), intent(in) 	:: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)
+	real(rt), intent(in) 	:: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
 
 	real(rt), intent(out)	::q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 
-	real(rt)				::flx_sum(QVAR)
+	real(rt)				::flx_sum(NVAR+3)
 	real(rt)				::qflx(QVAR)
 	real(rt)				:: dx, dy, dz, dt	
 	integer					::i, j, k
@@ -1062,7 +1075,7 @@ end subroutine prim_half
 
 subroutine qflux(qflx,flx,q)
  use amrex_fort_module, only : rt => amrex_real
- use meth_params_module, only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR
+ use meth_params_module, !only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
  use eos_module, only : eos
  use eos_type_module, only: eos_t, eos_input_rp
  use network, only : nspec
@@ -1074,16 +1087,22 @@ subroutine qflux(qflx,flx,q)
  ! this seems to implement dU/dW . qflux, where dU/dW is the Jacobian of
  ! the conserved quantities (U) with respect to the primitive (W)
 
- real(rt), intent(in)		::flx(QVAR), q(QVAR)
+ real(rt), intent(in)		::flx(NVAR+3), q(QVAR)
  real(rt), intent(out)		::qflx(QVAR)
+
+ integer :: UMAGX, UMAGY, UMAGZ
   
  type (eos_t) :: eos_state
+  
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
 
 	qflx = 0.d0
-	qflx(QRHO)  = flx(QRHO)
-	qflx(QU)    = q(QU)*flx(QRHO) + q(QRHO)*flx(QU)
-	qflx(QV)    = q(QV)*flx(QRHO) + q(QRHO)*flx(QV)
-	qflx(QW)    = q(QW)*flx(QRHO) + q(QRHO)*flx(QW)
+	qflx(QRHO)  = flx(URHO)
+	qflx(QU)    = q(QU)*flx(URHO) + q(URHO)*flx(UMX)
+	qflx(QV)    = q(QV)*flx(URHO) + q(URHO)*flx(UMY)
+	qflx(QW)    = q(QW)*flx(URHO) + q(URHO)*flx(UMZ)
         
         eos_state % rho = q(QRHO)
         eos_state % p   = q(QPRES) 
@@ -1091,15 +1110,15 @@ subroutine qflux(qflx,flx,q)
         call eos(eos_input_rp, eos_state)
 
         ! TODO: we need to figure out how to do this -- should be in Castro somewhere
-	qflx(QPRES) = flx(QRHO)*( eos_state % e + q(QRHO) * (eos_state % dedr - &
+	qflx(QPRES) = flx(URHO)*( eos_state % e + q(QRHO) * (eos_state % dedr - &
                                   eos_state % dedT * eos_state % dPdr * 1.0d0/ eos_state % dPdT ) + & 
                                   0.5d0*(q(QU)**2 + q(QV)**2 + q(QW)**2) ) + & 
-                      q(QRHO)*q(QU)*flx(QU) + q(QRHO)*q(QV)*flx(QV) + q(QRHO)*q(QW)*flx(QW) + & 
-                      ( q(QRHO) * eos_state % dedT * 1.0d0/ eos_state % dPdT )*flx(QPRES) + &
-                      q(QMAGX)*flx(QMAGX) + q(QMAGY)*flx(QMAGY) + q(QMAGZ)*flx(QMAGZ)
-	qflx(QMAGX) = flx(QMAGX)
-	qflx(QMAGY) = flx(QMAGY)
-	qflx(QMAGZ) = flx(QMAGZ)
+                      q(QRHO)*q(QU)*flx(UMX) + q(QRHO)*q(QV)*flx(UMY) + q(QRHO)*q(QW)*flx(UMZ) + & 
+                      ( q(QRHO) * eos_state % dedT * 1.0d0/ eos_state % dPdT )*flx(UEDEN) + &
+                      q(QMAGX)*flx(UMAGX) + q(QMAGY)*flx(UMAGY) + q(QMAGZ)*flx(UMAGZ)
+	qflx(QMAGX) = flx(UMAGX)
+	qflx(QMAGY) = flx(UMAGY)
+	qflx(QMAGZ) = flx(UMAGZ)
 
 end subroutine qflux
 

@@ -496,17 +496,17 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! calls to use eos_input_rt to save time
 
            cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
+           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
+           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,QTEMP), &
+           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 

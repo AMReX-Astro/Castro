@@ -25,26 +25,33 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
    real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
    real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-   real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,QVAR)
+   real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR+3)
 
    real(rt)	  :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
    real(rt) 	  :: caR, canR, asL, asR, ptL, ptR, eL, eR
    real(rt)	  :: QL(QVAR), QR(QVAR)
-   real(rt)	  :: FL(QVAR), FR(QVAR)
-   real(rt)       :: uL(QVAR), uR(QVAR)
-   real(rt)	  :: UsL(QVAR), FsL(QVAR)
-   real(rt)	  :: UsR(QVAR), FsR(QVAR)
-   real(rt)	  :: UssL(QVAR), FssL(QVAR)
-   real(rt)	  :: UssR(QVAR), FssR(QVAR)
+   real(rt)	  :: FL(NVAR+3), FR(NVAR+3)
+   real(rt)       :: uL(NVAR+3), uR(NVAR+3)
+   real(rt)	  :: UsL(NVAR+3), FsL(NVAR+3)
+   real(rt)	  :: UsR(NVAR+3), FsR(NVAR+3)
+   real(rt)	  :: UssL(NVAR+3), FssL(NVAR+3)
+   real(rt)	  :: UssR(NVAR+3), FssR(NVAR+3)
 
    integer           :: QVELN, QVELP1, QVELP2
    integer           :: QMAGN, QMAGP1, QMAGP2
    integer           :: UMN  , UMP1  , UMP2
+   integer           :: UMAGN, UMAGP1, UMAGP2
+   integer           :: UMAGX, UMAGY, UMAGZ
    integer           :: i,j,k
    character(len=10) :: choice
 
    type (eos_t) :: eos_state
 
+   ! in the conserved part, let's have magx, magy and magz at end
+   UMAGX = NVAR+1
+   UMAGY = NVAR+2
+   UMAGZ = NVAR+3
+ 
    ! `n` here is the normal
    ! `p` are the perpendicular
    
@@ -58,6 +65,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       UMN    = UMX
       UMP1   = UMY
       UMP2   = UMZ
+      UMAGN  = UMAGX    
+      UMAGP1 = UMAGY
+      UMAGP2 = UMAGZ
    else if (dir .eq. 2) then
       QMAGN  = QMAGY
       QMAGP1 = QMAGZ
@@ -68,6 +78,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       UMN    = UMY
       UMP1   = UMZ
       UMP2   = UMX
+      UMAGN  = UMAGY
+      UMAGP1 = UMAGZ
+      UMAGP2 = UMAGX
    else if (dir .eq. 3) then
       QMAGN  = QMAGZ
       QMAGP1 = QMAGX
@@ -78,6 +91,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       UMN    = UMZ
       UMP1   = UMX
       UMP2   = UMY
+      UMAGN  = UMAGZ
+      UMAGP1 = UMAGY
+      UMAGP2 = UMAGX
    end if
 
    do k = work_lo(3), work_hi(3)
@@ -117,9 +133,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UMP1)  = qL(QRHO)*qL(QVELN)*qL(QVELP1) - qL(QMAGN)*qL(QMAGP1)
       FL(UMP2)  = qL(QRHO)*qL(QVELN)*qL(QVELP2) - qL(QMAGN)*qL(QMAGP2)
       FL(UEDEN) = qL(QVELN)*(eL + qL(QPRES)) - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
-      FL(QMAGN) = 0.d0
-      FL(QMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
-      FL(QMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
+      FL(UMAGN) = 0.d0
+      FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
+      FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
       ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qR(QRHO)
@@ -137,9 +153,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UMP1)  = qR(QRHO)*qR(QVELN)*qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)
       FR(UMP2)  = qR(QRHO)*qR(QVELN)*qR(QVELP2) - qR(QMAGN)*qR(QMAGP2)
       FR(UEDEN) = qR(QVELN)*(eR + qR(QPRES)) - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
-      FR(QMAGN) = 0.d0
-      FR(QMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
-      FR(QMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
+      FR(UMAGN) = 0.d0
+      FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
+      FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
       ! TODO: asL and asR are just sound-speed square -- we need to use Gamma_1 here, from the EOS
 	asL  = eos_state % gam1 * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
@@ -157,7 +173,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
 	!Riemann Speeds
 	sL   = min(qL(QVELN) - cfL2,qR(QVELN) - cfR)
-	sR 	 = max(qL(QVELN) + cfL2,qR(QVELN) + cfR)
+	sR   = max(qL(QVELN) + cfL2,qR(QVELN) + cfR)
 	sM   = ((sR - qR(QVELN))*qR(QRHO)*qR(QVELN) - (sL - qL(QVELN))*qL(QRHO)*qL(QVELN) - qR(QPRES) + qL(QPRES))/((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
 
 	!Pressures in the Riemann Fan
@@ -169,129 +185,130 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	!------------------------------------------- Density * states-------------------------------------------------------------------------
 
 	! Density
-	UsL(QRHO) = qL(QRHO)*((sL - qL(QVELN))/(sL - sM))
-	UsR(QRHO) = qR(QRHO)*((sR - qR(QVELN))/(sR - sM))
+	UsL(URHO) = qL(QRHO)*((sL - qL(QVELN))/(sL - sM))
+	UsR(URHO) = qR(QRHO)*((sR - qR(QVELN))/(sR - sM))
 
 	!--------------------------------------------------------- Vel * states----------------------------------------------------------------
 
         !Normal dir
-	UsL(QVELN)    = sM
-	UsR(QVELN)    = sM
+	UsL(UMN)    = sM
+	UsR(UMN)    = sM
 
         !Perpendicular dir
 	if(abs(qL(QMAGN)*qL(QMAGP1)*(sM - qL(QVELN))).lt. 1d-14) then
-		UsL(QVELP1)    = qL(QVELP1)
+		UsL(UMP1)    = qL(QVELP1)
 	else
-		UsL(QVELP1)    = qL(QVELP1) - qL(QMAGN)*qL(QMAGP1)*((sM - qL(QVELN))/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2))
+		UsL(UMP1)    = qL(QVELP1) - qL(QMAGN)*qL(QMAGP1)*((sM - qL(QVELN))/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2))
 	endif
 	if(abs(qR(QMAGN)*qR(QMAGP1)*(sM - qR(QVELN))).lt. 1d-14) then
-		UsR(QVELP1) = qR(QVELP1)
+		UsR(UMP1) = qR(QVELP1)
 	else
-		UsR(QVELP1)    = qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2))
+		UsR(UMP1)    = qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2))
 	endif
 	
         ! Second Perpendicular dir
 	if(abs(qL(QMAGN)*qL(QMAGP2)*(sM - qL(QVELN))).le. 1d-14) then
-		UsL(QVELP2) = qL(QVELP2)
+		UsL(UMP2) = qL(QVELP2)
 	else
-		UsL(QVELP2)    = qL(QVELP2) - qL(QMAGN)*qL(QMAGP2)*((sM - qL(QVELN))/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2))
+		UsL(UMP2)    = qL(QVELP2) - qL(QMAGN)*qL(QMAGP2)*((sM - qL(QVELN))/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2))
 	endif
 	if(abs(qR(QMAGN)*qR(QMAGP2)*(sM - qR(QVELN))).le. 1d-14) then
-		UsR(QVELP2) = qR(QVELP2)
+		UsR(UMP2) = qR(QVELP2)
 	else
-		UsR(QVELP2)    = qR(QVELP2) - qR(QMAGN)*qR(QMAGP2)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2))
+		UsR(UMP2)    = qR(QVELP2) - qR(QMAGN)*qR(QMAGP2)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2))
 	endif
 
-	UsL(QU:QW) = UsL(QU:QW)*UsL(QRHO)
-	UsR(QU:QW) = UsR(QU:QW)*UsR(QRHO)
+	UsL(UMX:UMZ) = UsL(UMX:UMZ)*UsL(URHO)
+	UsR(UMX:UMZ) = UsR(UMX:UMZ)*UsR(URHO)
 
 	!--------------------------------------------------------- B * states ----------------------------------------------------------------------
 	
 	!Magnetic Fields
 	
         !Normal dir
-	UsL(QMAGN) = qL(QMAGN)
-	UsR(QMAGN) = qL(QMAGN) 
+	UsL(UMAGN) = qL(QMAGN)
+	UsR(UMAGN) = qL(QMAGN) 
 
         !Perpendicular dir
 	if(abs(qL(QMAGP1)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)).lt.1d-14) then
-		UsL(QMAGP1) = qL(QMAGP1)
+		UsL(UMAGP1) = qL(QMAGP1)
 	else
-		UsL(QMAGP1) = qL(QMAGP1)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2)
+		UsL(UMAGP1) = qL(QMAGP1)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2)
 	endif
 	if(abs(qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qL(QMAGN)**2)).lt.1d-14) then 
-		UsR(QMAGP1) = qR(QMAGP1)
+		UsR(UMAGP1) = qR(QMAGP1)
 	else
-		UsR(QMAGP1) = qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qL(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2)
+		UsR(UMAGP1) = qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qL(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2)
 	endif
 
         ! Second Perpendicular dir
 	if(abs(qL(QMAGP2)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)).lt. 1d-14) then
-		UsL(QMAGP2) = qL(QMAGP2)
+		UsL(UMAGP2) = qL(QMAGP2)
 	else
-		UsL(QMAGP2) = qL(QMAGP2)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2)
+		UsL(UMAGP2) = qL(QMAGP2)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)/(qL(QRHO)*(sL - qL(QVELN))*(sL - sM) - qL(QMAGN)**2)
 	endif
 	if(abs(qR(QMAGP2)*(qR(QRHO)*(sR - qR(QVELN))**2 - qR(QMAGN)**2)).lt.1d-14) then 
-		UsR(QMAGP2) = qR(QMAGP2)
+		UsR(UMAGP2) = qR(QMAGP2)
 	else
-		UsR(QMAGP2) = qR(QMAGP2)*(qR(QRHO)*(sR - qR(QVELN))**2 - qR(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2)
+		UsR(UMAGP2) = qR(QMAGP2)*(qR(QRHO)*(sR - qR(QVELN))**2 - qR(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2)
 	endif
 	
 	!Energy *Stored in Pressure slot
-	UsL(QPRES) = (sL - qL(QVELN))*eL - ptL*qL(QVELN) + pst*sM + &
+	UsL(UEDEN) = (sL - qL(QVELN))*eL - ptL*qL(QVELN) + pst*sM + &
                       qL(QMAGN)*(dot_product(qL(QU:QW),qL(QMAGX:QMAGZ)) &
 		                 -dot_product(UsL(QU:QW)/UsL(QRHO),UsL(QMAGX:QMAGZ)))
-	UsL(QPRES) = UsL(QPRES)/(sL - sM)
-	UsR(QPRES) = (sR - qR(QVELN))*eR - ptR*qR(QVELN) + pst*sM + &
+	UsL(UEDEN) = UsL(QPRES)/(sL - sM)
+	UsR(UEDEN) = (sR - qR(QVELN))*eR - ptR*qR(QVELN) + pst*sM + &
                       qR(QMAGN)*( dot_product(qR(QU:QW),qR(QMAGX:QMAGZ)) &
 		                 -dot_product(UsR(QU:QW)/UsR(QRHO),UsR(QMAGX:QMAGZ)))
-	UsR(QPRES) = UsR(QPRES)/(sR - sM)
+	UsR(UEDEN) = UsR(QPRES)/(sR - sM)
 
 	!speeds
-	ssL = sM - abs(qL(QMAGN))/sqrt(UsL(QRHO))
-	ssR = sM + abs(qR(QMAGN))/sqrt(UsR(QRHO))
+	ssL = sM - abs(qL(QMAGN))/sqrt(UsL(URHO))
+	ssR = sM + abs(qR(QMAGN))/sqrt(UsR(URHO))
 
 	!----------------------------------------- ** states ------------------------------------------------------------------------------
 	!Dens
-	UssL(QRHO)  = UsL(QRHO)
-	UssR(QRHO)  = UsR(QRHO)
+	UssL(URHO)  = UsL(URHO)
+	UssR(URHO)  = UsR(URHO)
 	
 	!Vel in normal direction
-	UssL(QVELN)    = sM
-	UssR(QVELN)    = sM
+	UssL(UMN)    = sM
+	UssR(UMN)    = sM
 
 	!Vel in perpendicular direction
-	UssL(QVELP1)    = (sqrt(UsL(QRHO))*UsL(QVELP1)/UsL(QRHO) + sqrt(UsR(QRHO))*UsR(QVELP1)/UsR(QRHO)&
-				+ (UsR(QMAGP1) - UsL(QMAGP1))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(QRHO)) + sqrt(UsR(QRHO)))
-	UssR(QVELP1)    = UssL(QVELP1)
+	UssL(UMP1)    = (sqrt(UsL(URHO))*UsL(UMP1)/UsL(URHO) + sqrt(UsR(URHO))*UsR(UMP1)/UsR(URHO)&
+	+ (UsR(UMAGP1) - UsL(UMAGP1))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+	UssR(UMP1)    = UssL(UMP1)
 
 	!Vel in second perpendicular direction
-	UssL(QVELP2)    = (sqrt(UsL(QRHO))*UsL(QVELP2)/UsL(QRHO) + sqrt(UsR(QRHO))*UsR(QVELP2)/UsR(QRHO)&
-				+ (UsR(QMAGP2) - UsL(QMAGP2))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(QRHO)) + sqrt(UsR(QRHO)))
-	UssR(QVELP2)    = UssL(QVELP2)
+	UssL(UMP2)    = (sqrt(UsL(URHO))*UsL(UMP2)/UsL(URHO) + sqrt(UsR(URHO))*UsR(UMP2)/UsR(URHO)&
+                                + (UsR(UMAGP2) - UsL(UMAGP2))*sign(1.d0,qL(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 
-	UssL(QU:QW) = UssL(QU:QW)*UssL(QRHO)
-	UssR(QU:QW) = UssR(QU:QW)*UssR(QRHO)
+	UssR(UMP2)    = UssL(UMP2)
+
+	UssL(UMX:UMZ) = UssL(UMX:UMZ)*UssL(URHO)
+	UssR(UMX:UMZ) = UssR(UMX:UMZ)*UssR(URHO)
 	
 	!B in normal direction
-	UssL(QMAGN) = UsL(QMAGN)
-	UssR(QMAGN) = UsR(QMAGN)
+	UssL(UMAGN) = UsL(UMAGN)
+	UssR(UMAGN) = UsR(UMAGN)
 
 	!B in perpendicular direction
-	UssL(QMAGP1) = (sqrt(UsL(QRHO))*UsR(QMAGP1) + sqrt(UsR(QRHO))*UsL(QMAGP1) + sqrt(UsL(QRHO)*UsR(QRHO))&
-				*(UsR(QVELP1)/UsR(QRHO) - UsL(QVELP1)/UsL(QRHO))*sign(1.d0,UsR(QMAGN)))/(sqrt(UsL(QRHO)) + sqrt(UsR(QRHO)))
-	UssR(QMAGP1) = UssL(QMAGP1)
+	UssL(UMAGP1) = (sqrt(UsL(URHO))*UsR(UMAGP1) + sqrt(UsR(URHO))*UsL(UMAGP1) + sqrt(UsL(URHO)*UsR(URHO))& 
+        *(UsR(UMP1)/UsR(URHO) - UsL(UMP1)/UsL(URHO))*sign(1.d0,UsR(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+	UssR(UMAGP1) = UssL(UMAGP1)
 
 	!B in second perpendicular direction
-	UssL(QMAGP2) = (sqrt(UsL(QRHO))*UsR(QMAGP2) + sqrt(UsR(QRHO))*UsL(QMAGP2) + sqrt(UsL(QRHO)*UsR(QRHO))&
-				*(UsR(QVELP2)/UsR(QRHO) - UsL(QVELP2)/UsR(QRHO))*sign(1.d0,UsR(QMAGN)))/(sqrt(UsL(QRHO)) + sqrt(UsR(QRHO)))
-	UssR(QMAGP2) = UssL(QMAGP2)
+	UssL(UMAGP2) = (sqrt(UsL(URHO))*UsR(UMAGP2) + sqrt(UsR(URHO))*UsL(UMAGP2) + sqrt(UsL(URHO)*UsR(URHO))&
+          *(UsR(UMP2)/UsR(URHO) - UsL(UMP2)/UsR(URHO))*sign(1.d0,UsR(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+	UssR(UMAGP2) = UssL(UMAGP2)
 
 	!Energy *Stored in Pressure slot
-	UssL(QPRES) = UsL(QPRES) - sqrt(UsL(QRHO))*(dot_product(UsL(QU:QW)/UsL(QRHO),UsL(QMAGX:QMAGZ)) &
-				- dot_product(UssL(QU:QW)/UssL(QRHO),UssL(QMAGX:QMAGZ)))*sign(1.d0, UsL(QMAGN))
-	UssR(QPRES) = UsR(QPRES) + sqrt(UsR(QRHO))*(dot_product(UsR(QU:QW)/UsR(QRHO),UsR(QMAGX:QMAGZ)) &
-				- dot_product(UssR(QU:QW)/UssR(QRHO),UssR(QMAGX:QMAGZ)))*sign(1.d0, UsR(QMAGN))
+	UssL(UEDEN) = UsL(UEDEN) - sqrt(UsL(URHO))*(dot_product(UsL(UMX:UMZ)/UsL(URHO),UsL(UMAGX:UMAGZ)) &
+	- dot_product(UssL(UMX:UMZ)/UssL(URHO),UssL(UMAGX:UMAGZ)))*sign(1.d0, UsL(UMAGN))
+	UssR(UEDEN) = UsR(UEDEN) + sqrt(UsR(QRHO))*(dot_product(UsR(UMX:UMZ)/UsR(URHO),UsR(UMAGX:UMAGZ)) &
+        - dot_product(UssR(UMX:UMZ)/UssR(URHO),UssR(UMAGX:UMAGZ)))*sign(1.d0, UsR(UMAGN))
 
 	!--------------------------------------------------------- Fluxes ----------------------------------------------------------------------
 
@@ -352,9 +369,10 @@ subroutine PToC(q, u)
    implicit none
 
    real(rt), intent(in)	 ::q(QVAR)
-   real(rt), intent(out) ::u(QVAR)
-
+   real(rt), intent(out) ::u(NVAR+3)
+   
    type (eos_t) :: eos_state
+
 
    u = 0.d0
 
@@ -373,7 +391,7 @@ subroutine PToC(q, u)
   u(UEINT)       = eos_state % rho * eos_state % e
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
-  u(QMAGX:QMAGZ) = q(QMAGX:QMAGZ)
+  u(NVAR+1:NVAR+3) = q(QMAGX:QMAGZ)
 
 end subroutine PToC
 
