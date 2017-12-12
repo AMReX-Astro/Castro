@@ -396,7 +396,7 @@ subroutine PToC(q, u)
   u(NVAR+1:NVAR+3) = q(QMAGX:QMAGZ)
 
   ! handle species too
-  do n = 1, nvar
+  do n = 1, nspec
      u(UFS-1+n) = u(URHO)*q(QFS-1+n)
   enddo
 
