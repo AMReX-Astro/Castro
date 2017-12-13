@@ -114,8 +114,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       flx(i,j,k,:) = 0.d0  
       FL  = 0.d0; FR = 0.d0; UsL = 0.d0; UsR = 0.d0; FsL = 0.d0; FsR = 0.d0; UssL = 0.d0; UssR = 0.d0; FssL = 0.d0; FssR = 0.d0
 
-      call PToC(qL,uL)
-      call PToC(qR,uR)
+      call PToC(qL, uL)
+      call PToC(qR, uR)
       ! Note this is actually (rho e)
       ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qL(QRHO)
@@ -373,17 +373,19 @@ subroutine PToC(q, u)
    
    type (eos_t) :: eos_state
 
+   integer :: n
 
-   u = 0.d0
+   u(:) = 0.d0
 
    u(URHO)       = q(QRHO)
    u(UMX)        = q(QRHO)*q(QU)
    u(UMY)        = q(QRHO)*q(QV)
    u(UMZ)        = q(QRHO)*q(QW)
-   ! TODO: we need to get rhoe from the EOS, using p, rho
+
    eos_state % rho = q(QRHO)
    eos_state % p   = q(QPRES)
    eos_state % xn  = q(QFS:QFS+nspec-1)
+   eos_state % T   = 100.0   ! dummy initial guess
 
    call eos(eos_input_rp, eos_state)
 
@@ -392,6 +394,11 @@ subroutine PToC(q, u)
   u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
 		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
   u(NVAR+1:NVAR+3) = q(QMAGX:QMAGZ)
+
+  ! handle species too
+  do n = 1, nspec
+     u(UFS-1+n) = u(URHO)*q(QFS-1+n)
+  enddo
 
 end subroutine PToC
 
