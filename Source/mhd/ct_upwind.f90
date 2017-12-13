@@ -1075,7 +1075,7 @@ end subroutine prim_half
 
 subroutine qflux(qflx,flx,q)
  use amrex_fort_module, only : rt => amrex_real
- use meth_params_module, !only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
+ use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
  use eos_module, only : eos
  use eos_type_module, only: eos_t, eos_input_rp
  use network, only : nspec
@@ -1089,6 +1089,7 @@ subroutine qflux(qflx,flx,q)
 
  real(rt), intent(in)		::flx(NVAR+3), q(QVAR)
  real(rt), intent(out)		::qflx(QVAR)
+ real(rt) :: dedp, dedrho, totalE
 
  integer :: UMAGX, UMAGY, UMAGZ
   
@@ -1100,22 +1101,25 @@ subroutine qflux(qflx,flx,q)
 
 	qflx = 0.d0
 	qflx(QRHO)  = flx(URHO)
-	qflx(QU)    = q(QU)*flx(URHO) + q(URHO)*flx(UMX)
-	qflx(QV)    = q(QV)*flx(URHO) + q(URHO)*flx(UMY)
-	qflx(QW)    = q(QW)*flx(URHO) + q(URHO)*flx(UMZ)
+	qflx(QU)    = ( flx(UMX) - flx(URHO ) * q(QU))/q(QRHO)
+	qflx(QV)    = ( flx(UMY) - flx(URHO ) * q(QV))/q(QRHO)
+	qflx(QW)    = ( flx(UMZ) - flx(URHO ) * q(QW))/q(QRHO)
         
         eos_state % rho = q(QRHO)
         eos_state % p   = q(QPRES) 
+        eos_state % xn  = q(QFS:QFS+nspec-1)
 
         call eos(eos_input_rp, eos_state)
 
-        ! TODO: we need to figure out how to do this -- should be in Castro somewhere
-	qflx(QPRES) = flx(URHO)*( eos_state % e + q(QRHO) * (eos_state % dedr - &
-                                  eos_state % dedT * eos_state % dPdr * 1.0d0/ eos_state % dPdT ) + & 
-                                  0.5d0*(q(QU)**2 + q(QV)**2 + q(QW)**2) ) + & 
-                      q(QRHO)*q(QU)*flx(UMX) + q(QRHO)*q(QV)*flx(UMY) + q(QRHO)*q(QW)*flx(UMZ) + & 
-                      ( q(QRHO) * eos_state % dedT * 1.0d0/ eos_state % dPdT )*flx(UEDEN) + &
-                      q(QMAGX)*flx(UMAGX) + q(QMAGY)*flx(UMAGY) + q(QMAGZ)*flx(UMAGZ)
+        dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
+        dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
+        totalE  = eos_state % e  + 0.5 * (q(QU)**2+q(QV)**2+q(QW)**2) + &
+                  0.5 * (q(QMAGX)**2 + q(QMAGY)**2 + q(QMAGZ)**2)/q(QRHO)
+
+	qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
+                         flx(URHO)*totalE - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
+                         flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
+                         eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
 	qflx(QMAGX) = flx(UMAGX)
 	qflx(QMAGY) = flx(UMAGY)
 	qflx(QMAGZ) = flx(UMAGZ)
