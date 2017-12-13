@@ -16,7 +16,7 @@
      !Gas Pressure
      real(rt) :: P
      !Sound Speed, Alfven Speed
-     real(rt) :: as, ca
+     real(rt) :: as, ca, cad
 
      type(eos_t) :: eos_state
 
@@ -28,13 +28,12 @@
      call eos(eos_input_re, eos_state)
   
      P = eos_state % p
-     as = eos_state % cs
+     as = (eos_state % cs)**2
      ca = (bx**2 + by**2 + bz**2)/rho
+     cad = bd**2/rho
      !Fast Magneto-Sonic Wave
      ! TODO: double check this expression
-     c = eos_state % gam1 * P + (bx**2 + by**2 + bx**2) + &
-         sqrt((eos_state % gam1 * P + (bx**2+by**2+bz**2))**2 - 4.d0 * eos_state % gam1 *P*(bd))
-     c = 0.5d0*c/rho
+     c = 0.5d0*((as + ca) + sqrt((as + ca)**2 -4*as*cad))
      c = sqrt(c)
 
   end subroutine eos_soundspeed_mhd

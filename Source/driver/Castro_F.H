@@ -497,6 +497,16 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, amrex::Real* dt);
 
+#ifdef MHD
+  void ca_estdt_mhd
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(Bx),
+     const BL_FORT_FAB_ARG_3D(By),
+     const BL_FORT_FAB_ARG_3D(Bz),
+     const amrex::Real* dx, amrex::Real* dt);
+#endif
+
 #ifdef DIFFUSION
   void ca_estdt_temp_diffusion
     (const int* lo, const int* hi,

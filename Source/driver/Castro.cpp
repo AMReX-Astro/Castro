@@ -1125,6 +1125,12 @@ Castro::estTimeStep (Real dt_old)
 
     const MultiFab& stateMF = get_new_data(State_Type);
 
+#ifdef MHD
+    const MultiFab& bxMF = get_new_data(Mag_Type_x);
+    const MultiFab& byMF = get_new_data(Mag_Type_y);
+    const MultiFab& bzMF = get_new_data(Mag_Type_z);
+#endif
+
     const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
@@ -1190,10 +1196,18 @@ Castro::estTimeStep (Real dt_old)
 	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
 		{
 		  const Box& box = mfi.tilebox();
-
+#ifndef MHD
 		  ca_estdt(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
 			   BL_TO_FORTRAN_3D(stateMF[mfi]),
 			   ZFILL(dx),&dt);
+#else
+                  ca_estdt_mhd(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
+		               BL_TO_FORTRAN_3D(stateMF[mfi]),
+			       BL_TO_FORTRAN_3D(bxMF[mfi]),
+			       BL_TO_FORTRAN_3D(byMF[mfi]),
+			       BL_TO_FORTRAN_3D(bzMF[mfi]),
+			       ZFILL(dx),&dt);
+#endif
 		}
               estdt_hydro = std::min(estdt_hydro, dt);
             }

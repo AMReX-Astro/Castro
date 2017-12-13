@@ -107,6 +107,92 @@ contains
 
   end subroutine ca_estdt
 
+#ifdef MHD
+  subroutine ca_estdt_mhd(lo,hi,u,u_lo,u_hi, &
+                           bx, bx_lo, bx_hi, &
+                           by, by_lo, by_hi, &
+                           bz, bz_lo, bz_hi, &
+                           dx,dt) bind(C, name="ca_estdt_mhd")
+
+    use network, only: nspec, naux
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use prob_params_module, only: dim
+    use bl_constants_module
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in) :: bx_lo(3), bx_hi(3)
+    integer, intent(in) :: by_lo(3), by_hi(3)
+    integer, intent(in) :: bz_lo(3), bz_hi(3)
+    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
+    real(rt), intent(in) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
+    real(rt), intent(in) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(inout) :: dt
+    real(rt)         :: spec(nspec)
+    real(rt)         :: rhoInv, ux, uy, uz, dt1, dt2, dt3
+    real(rt)         :: e, cx, cy, cz, bcx, bcy, bcz, cad
+    integer          :: i, j, k
+
+    type (eos_t) :: eos_state
+
+    !
+    ! Translate to primitive variables, compute sound speed
+    !
+
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rhoInv = ONE / u(i,j,k,URHO)
+             bcx = 0.5d0*(bx(i+1,j,k)+bx(i,j,k))
+             bcy = 0.5d0*(by(i,j+1,k)+by(i,j,k))
+             bcz = 0.5d0*(bz(i,j,k+1)+bz(i,j,k))
+
+             ux = u(i,j,k,UMX)*rhoInv
+             uy = u(i,j,k,UMY)*rhoInv
+             uz = u(i,j,k,UMZ)*rhoInv
+
+             e  = u(i,j,k,UEINT)*rhoInv
+             spec = u(i,j,k,UFS:UFS+nspec-1)*rhoInv
+
+             if (e .gt. 0.d0) then
+                cad = bcx
+                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                                        bcx,bcy,bcz,cad, spec) 
+                
+                cad = bcy
+                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                                        bcx,bcy,bcz,cad, spec)
+
+                cad = bcz
+                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                                        bcx,bcy,bcz,cad, spec)
+             else
+                cx = 0.0d0
+                cy = 0.0d0
+                cz = 0.0d0
+             endif
+             
+             dt1 = dx(1)/(cx + abs(ux))
+             dt2 = dx(2)/(cy + abs(uy))
+             dt3 = dx(3)/(cz + abs(uz))
+             dt  = min(dt, dt1, dt2, dt3)
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_estdt_mhd
+#endif 
+
+
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
