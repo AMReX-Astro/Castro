@@ -11,7 +11,13 @@ module c_interface_modules
 
 contains
 
-  subroutine ca_enforce_consistent_e(lo,hi,state,s_lo,s_hi,idx) &
+  subroutine ca_enforce_consistent_e(lo,hi, &
+#ifdef MHD
+                                     bx, bx_lo, bx_hi,&
+                                     by, by_lo, by_hi,&
+                                     bz, bz_lo, bz_hi,&
+#endif
+                                     state,s_lo,s_hi,idx) &
        bind(c, name='ca_enforce_consistent_e')
 
     use castro_util_module, only: enforce_consistent_e
@@ -22,6 +28,14 @@ contains
     integer, intent(in)     :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     integer, intent(in)     :: idx
+#ifdef MHD
+     integer, intent(in)     :: bx_lo(3), bx_hi(3)
+    integer, intent(in)     :: by_lo(3), by_hi(3)
+    integer, intent(in)     :: bz_lo(3), bz_hi(3)
+    real(rt), intent(in)    :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
+    real(rt), intent(in)    :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
+    real(rt), intent(in)    :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+#endif
 
 #ifdef CUDA
 
@@ -48,7 +62,13 @@ contains
 
 #else
 
-    call enforce_consistent_e(lo, hi, state, s_lo, s_hi)
+    call enforce_consistent_e(lo, hi,&
+#ifdef MHD
+                              bx, bx_lo, bx_hi, &
+                              by, by_lo, by_hi, &
+                              bz, bz_lo, bz_hi, &
+#endif
+                              state, s_lo, s_hi)
 
 #endif
 

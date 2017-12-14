@@ -81,7 +81,13 @@ contains
 
 
 
-  subroutine enforce_consistent_e(lo,hi,state,s_lo,s_hi)
+  subroutine enforce_consistent_e(lo,hi,&
+!#ifdef MHD
+                                  bx, bx_lo, bx_hi, &
+                                  by, by_lo, by_hi, &
+                                  bz, bz_lo, bz_hi, &
+!#endif
+                                  state,s_lo,s_hi)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
     use bl_constants_module, only: HALF, ONE
@@ -92,7 +98,14 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
+#ifdef MHD
+    integer,  intent(in   ) :: bx_lo(3), bx_hi(3)
+    integer,  intent(in   ) :: by_lo(3), by_hi(3)
+    integer,  intent(in   ) :: bz_lo(3), bz_hi(3)
+    real(rt), intent(in   ) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
+    real(rt), intent(in   ) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
+    real(rt), intent(in   ) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+#endif
     ! Local variables
     integer  :: i,j,k
     real(rt) :: u, v, w, rhoInv
@@ -111,6 +124,11 @@ contains
 
              state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
                   HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
+!#ifdef MHD
+             !adds 1/2|B^2| to rhoE
+             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + &
+                  HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+!#endif
 
           end do
        end do

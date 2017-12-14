@@ -738,7 +738,13 @@ protected:
 
     void normalize_species (amrex::MultiFab& S_new);
 
-    void enforce_consistent_e (amrex::MultiFab& S);
+    void enforce_consistent_e (
+#ifdef MHD
+                               amrex::MultiFab& Bx,
+			       amrex::MultiFab& By,
+			       amrex::MultiFab& Bz,
+#endif
+                               amrex:: MultiFab& S);
 
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
 
