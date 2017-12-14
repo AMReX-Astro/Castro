@@ -696,6 +696,7 @@ subroutine consup(uin, uin_lo, uin_hi, &
            u = uout(i,j,k,UMX)/uout(i,j,k,URHO)
            v = uout(i,j,k,UMY)/uout(i,j,k,URHO)
            w = uout(i,j,k,UMZ)/uout(i,j,k,URHO)
+           ! note: we correct (rho e) to account for the magnetic field in the magup routine next
            uout(i,j,k,UEINT) = uout(i,j,k,UEDEN) - 0.5d0*uout(i,j,k,URHO)*(u**2 + v**2 + w**2)
      	   !if(uout(i,j,k,UEDEN).le.0.77d0) then
            !print*, uin(i,j,k,UEDEN), uout(i,j,k,UEDEN), "i j k = ", i, j, k
