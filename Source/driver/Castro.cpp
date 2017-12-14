@@ -888,6 +888,35 @@ Castro::initData ()
     MAESTRO_init();
 #else
     {
+
+#ifdef MHD
+       int nbx = Bx_new.nComp();
+       int nby = By_new.nComp();
+       int nbz = Bz_new.nComp();
+
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          RealBox    gridloc(grids[mfi.index()],
+                              geom.CellSize(), geom.ProbLo());
+          const Box& box = mfi.validbox();
+          const int* lo  = box.loVect();
+          const int* hi  = box.hiVect();
+
+	  Bx_new[mfi].setVal(0.0);
+	  By_new[mfi].setVal(0.0);
+	  Bz_new[mfi].setVal(0.0);
+
+	  BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
+	     (level, cur_time, lo, hi,
+	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
+	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
+	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
+              dx, gridloc.lo(),gridloc.hi());
+
+       }
+
+#endif //MHD
+
+
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -970,37 +999,6 @@ Castro::initData ()
       }
     }
 #endif // RADIATION
-
-#ifdef MHD
-    int nbx = Bx_new.nComp();
-    int nby = By_new.nComp();
-    int nbz = Bz_new.nComp();
-
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-        RealBox    gridloc(grids[mfi.index()],
-                           geom.CellSize(), geom.ProbLo());
-        const Box& box = mfi.validbox();
-        const int* lo  = box.loVect();
-        const int* hi  = box.hiVect();
-
-	Bx_new[mfi].setVal(0.0);
-	By_new[mfi].setVal(0.0);
-	Bz_new[mfi].setVal(0.0);
-
-	BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
-	     (level, cur_time, lo, hi,
-	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
-	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
-	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
-              dx, gridloc.lo(),gridloc.hi());
-
-	add_magnetic_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_new[mfi]), 
-	               BL_TO_FORTRAN_3D(Bx_new[mfi]), BL_TO_FORTRAN_3D(By_new[mfi]),
-		       BL_TO_FORTRAN_3D(Bz_new[mfi]));
-
-    }
-
-#endif //MHD
 
 #endif // MAESTRO_INIT
 

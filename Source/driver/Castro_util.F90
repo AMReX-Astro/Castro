@@ -124,58 +124,17 @@ contains
 
              state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
                   HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
-!#ifdef MHD
+#ifdef MHD
              !adds 1/2|B^2| to rhoE
              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + &
                   HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
-!#endif
+#endif
 
           end do
        end do
     end do
 
   end subroutine enforce_consistent_e
-
-#ifdef MHD
-  subroutine add_magnetic_e(lo, hi, state, s_lo, s_hi, &
-                            bx, bx_lo, bx_hi, &
-                            by, by_lo, by_hi, &
-                            bz, bz_lo, bz_hi) & 
-                            bind(c, name='add_magnetic_e')
-
-
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
-    use bl_constants_module, only: HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: bx_lo(3), bx_hi(3), by_lo(3), by_hi(3), bz_lo(3), bz_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
-    real(rt), intent(in   ) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
-    real(rt), intent(in   ) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
-
-    ! Local variables
-    integer  :: i,j,k
-
-    ! adds 1/2|B^2| to rhoE
-    !
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + &
-                  HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
-
-          end do
-       end do
-    end do    
-
-  endsubroutine add_magnetic_e
-#endif
 
   subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
 
