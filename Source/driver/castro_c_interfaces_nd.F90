@@ -92,7 +92,13 @@ contains
   end subroutine ca_compute_temp
 
 
-  subroutine ca_reset_internal_e(lo, hi, u, u_lo, u_hi, verbose, idx) &
+  subroutine ca_reset_internal_e(lo, hi, &
+#ifdef MHD
+                                 bx, bx_lo, bx_hi, &
+                                 by, by_lo, by_hi, &
+                                 bz, bz_lo, bz_hi, &
+#endif
+                                 u, u_lo, u_hi, verbose, idx) &
        bind(C, name="ca_reset_internal_e")
 
     use castro_util_module, only: reset_internal_e
@@ -102,9 +108,23 @@ contains
     integer, intent(in) :: lo(3), hi(3), verbose
     integer, intent(in) :: u_lo(3), u_hi(3)
     real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+#ifdef MHD
+    integer, intent(in) :: bx_lo(3), bx_hi(3)
+    integer, intent(in) :: by_lo(3), by_hi(3)
+    integer, intent(in) :: bz_lo(3), bz_hi(3)
+    real(rt), intent(in):: bx(bx_lo(1):bx_hi(1),bx_lo(2):bx_hi(2),bx_lo(3):bx_hi(3))
+    real(rt), intent(in):: by(by_lo(1):by_hi(1),by_lo(2):by_hi(2),by_lo(3):by_hi(3))
+    real(rt), intent(in):: bz(bz_lo(1):bz_hi(1),bz_lo(2):bz_hi(2),bz_lo(3):bz_hi(3))
+#endif
     integer, intent(in)     :: idx
 
-    call reset_internal_e(lo, hi, u, u_lo, u_hi, verbose)
+    call reset_internal_e(lo, hi, &
+#ifdef MHD
+                          bx, bx_lo, bx_hi, &
+                          by, by_lo, by_hi, &
+                          bz, bz_lo, bz_hi, &
+#endif
+                          u, u_lo, u_hi, verbose)
 
   end subroutine ca_reset_internal_e
 

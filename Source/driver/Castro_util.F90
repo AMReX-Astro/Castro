@@ -136,7 +136,13 @@ contains
 
   end subroutine enforce_consistent_e
 
-  subroutine reset_internal_e(lo,hi,u,u_lo,u_hi,verbose)
+  subroutine reset_internal_e(lo,hi,&
+#ifdef MHD
+                              bx, bx_lo, bx_hi, &
+                              by, by_lo, by_hi, &
+                              bz, bz_lo, bz_hi, &
+#endif
+                              u,u_lo,u_hi,verbose)
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
@@ -152,6 +158,14 @@ contains
     integer, intent(in) :: lo(3), hi(3), verbose
     integer, intent(in) :: u_lo(3), u_hi(3)
     real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+#ifdef MHD
+    integer, intent(in) :: bx_lo(3), bx_hi(3)
+    integer, intent(in) :: by_lo(3), by_hi(3)
+    integer, intent(in) :: bz_lo(3), bz_hi(3)
+    real(rt), intent(in) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
+    real(rt), intent(in) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
+    real(rt), intent(in) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+#endif
 
     ! Local variables
     integer  :: i,j,k
@@ -207,13 +221,17 @@ contains
 
                    endif
 
-                   ! TODO: needs B^2
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
-
+#ifdef MHD
+                   u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
+                                    HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
                 else
 
-                   ! TODO: needs B^2
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+#ifdef MHD
+                   rho_eint = rho_eint - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2) 
+#endif
 
                    ! Reset (e from e) if it's greater than eta * E.
 
@@ -229,9 +247,13 @@ contains
 
                       call eos(eos_input_rt, eos_state)
 
-                      ! TODO: needs B^2
+                      
                       if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
+#ifdef MHD
+                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
+                                          HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
                       endif
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
@@ -271,13 +293,20 @@ contains
 
                    endif
 
-                   ! TODO: need B^2
+                   
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
+#ifdef MHD
+                   u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
+                                    HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
 
                 else
 
-                   ! TODO: need B^2
+                   
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+#ifdef MH
+                   rho_eint = rho_eint - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
 
                    ! Reset (e from e) if it's greater than eta * E.
                    if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
@@ -287,8 +316,12 @@ contains
                       ! If (e from E) < 0 or (e from E) < .0001*E but (e from e) > 0.
                    else if (u(i,j,k,UEINT) .gt. ZERO .and. dual_energy_update_E_from_e == 1) then
 
-                      ! TODO: need B^2
+                      
                       u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
+#ifdef MHD
+                      u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + &
+                                       HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
 
                       ! If not resetting and little e is negative ...
                    else if (u(i,j,k,UEINT) .le. ZERO) then
@@ -311,8 +344,12 @@ contains
                       end if
 
                       if (dual_energy_update_E_from_e == 1) then
-                         ! TODO: need B^2
+                         
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
+#ifdef MHD
+                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + &
+                                          HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
                       endif
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
@@ -338,8 +375,11 @@ contains
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
 
-                ! TODO: need B^2
+                
                 u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
+#ifdef MHD
+                u(i,j,k,UEINT) = u(i,j,k,UEINT) - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+#endif
 
              enddo
           enddo

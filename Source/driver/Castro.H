@@ -478,9 +478,21 @@ public:
                                int ncycle);
 #endif
 
-    void reset_internal_energy (amrex::MultiFab& State);
+    void reset_internal_energy (
+#ifdef MHD
+                                amrex::MultiFab& Bx,
+				amrex::MultiFab& By,
+				amrex::MultiFab& Bz,
+#endif
+                                amrex::MultiFab& State);
 
-    void computeTemp (amrex::MultiFab& State);
+    void computeTemp (
+#ifdef MHD
+                      amrex::MultiFab& Bx,
+		      amrex::MultiFab& By,
+		      amrex::MultiFab& Bz,
+#endif
+                      amrex::MultiFab& State);
 
     void apply_source_term_predictor();
 
@@ -548,9 +560,21 @@ public:
 
     void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (
+#ifdef MHD
+                                amrex::MultiFab& Bx,
+				amrex::MultiFab& By,
+				amrex::MultiFab& Bz,
+#endif
+                                amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
 
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(
+#ifdef MHD
+                      amrex::MultiFab& Bx,
+		      amrex::MultiFab& By,
+		      amrex::MultiFab& Bz,
+#endif
+                      amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
     void make_radial_data (int is_new);
@@ -748,9 +772,21 @@ protected:
 
     amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new);
 
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (
+#ifdef MHD
+                             amrex::MultiFab& Bx,
+			     amrex::MultiFab& By,
+			     amrex::MultiFab& Bz,
+#endif
+                             amrex::MultiFab& state);
 
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::MultiFab& state_old);
+    amrex::Real clean_state (
+#ifdef MHD
+                              amrex::MultiFab& Bx,
+			      amrex::MultiFab& By,
+			      amrex::MultiFab& Bz,
+#endif
+                              amrex::MultiFab& state, amrex::MultiFab& state_old);
 
     void avgDown ();
 

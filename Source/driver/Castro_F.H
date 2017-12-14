@@ -199,7 +199,13 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state), const int* idx);
 
   void ca_reset_internal_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
+    (const int* lo, const int* hi,
+#ifdef MHD
+     BL_FORT_FAB_ARG_3D(bx),
+     BL_FORT_FAB_ARG_3D(by),
+     BL_FORT_FAB_ARG_3D(bz),
+#endif
+     BL_FORT_FAB_ARG_3D(S_new),
      const int* verbose, const int* idx);
 
   void ca_generic_single_fill
