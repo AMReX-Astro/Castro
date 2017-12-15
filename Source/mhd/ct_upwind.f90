@@ -866,6 +866,7 @@ implicit none
 					u = uL(i,j,k,UMX,n)/uL(i,j,k,URHO,n)
 					v = uL(i,j,k,UMY,n)/uL(i,j,k,URHO,n)
 					w = uL(i,j,k,UMZ,n)/uL(i,j,k,URHO,n)
+     
 					uL(i,j,k,UEINT,n) = uL(i,j,k,UEDEN,n) - 0.5d0*uL(i,j,k,URHO,n)*(u**2 + v**2 + w**2)
 				enddo
 !right state				
@@ -1121,11 +1122,9 @@ subroutine qflux(qflx,flx,q)
 
         dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
         dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
-        totalE  = eos_state % e  + 0.5 * (q(QU)**2+q(QV)**2+q(QW)**2) + &
-                  0.5 * (q(QMAGX)**2 + q(QMAGY)**2 + q(QMAGZ)**2)/q(QRHO)
 
 	qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
-                         flx(URHO)*totalE - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
+                         flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
                          flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
                          eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
 	qflx(QMAGX) = flx(UMAGX)

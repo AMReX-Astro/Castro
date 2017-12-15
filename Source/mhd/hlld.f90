@@ -172,8 +172,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	cfR  = sqrt(0.5d0*((asR + caR) + sqrt((asR + caR)**2 - 4.0d0*asR*canR)))
 
 	!Riemann Speeds
-	sL   = min(qL(QVELN) - cfL2,qR(QVELN) - cfR)
-	sR   = max(qL(QVELN) + cfL2,qR(QVELN) + cfR)
+	sL   = min(qL(QVELN) - cfL2, qR(QVELN) - cfR)
+	sR   = max(qL(QVELN) + cfL2, qR(QVELN) + cfR)
 	sM   = ((sR - qR(QVELN))*qR(QRHO)*qR(QVELN) - (sL - qL(QVELN))*qL(QRHO)*qL(QVELN) - qR(QPRES) + qL(QPRES))/((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
 
 	!Pressures in the Riemann Fan
@@ -227,7 +227,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	
         !Normal dir
 	UsL(UMAGN) = qL(QMAGN)
-	UsR(UMAGN) = qL(QMAGN) 
+	UsR(UMAGN) = qR(QMAGN) 
 
         !Perpendicular dir
 	if(abs(qL(QMAGP1)*(qL(QRHO)*(sL - qL(QVELN))**2 - qL(QMAGN)**2)).lt.1d-14) then
