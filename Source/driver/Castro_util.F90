@@ -82,11 +82,11 @@ contains
 
 
   subroutine enforce_consistent_e(lo,hi,&
-!#ifdef MHD
+#ifdef MHD
                                   bx, bx_lo, bx_hi, &
                                   by, by_lo, by_hi, &
                                   bz, bz_lo, bz_hi, &
-!#endif
+#endif
                                   state,s_lo,s_hi)
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT
@@ -105,6 +105,7 @@ contains
     real(rt), intent(in   ) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
     real(rt), intent(in   ) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
     real(rt), intent(in   ) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+    real(rt) :: bx_cell_c, by_cell_c, bz_cell_c
 #endif
     ! Local variables
     integer  :: i,j,k
@@ -125,9 +126,12 @@ contains
              state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
                   HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
 #ifdef MHD
+             bx_cell_c = HALF * (bx(i,j,k) + bx(i+1,j,k))
+             by_cell_c = HALF * (by(i,j,k) + by(i,j+1,k))
+             bz_cell_c = HALF * (bz(i,j,k) + bz(i,j,k+1))
              !adds 1/2|B^2| to rhoE
              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + &
-                  HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                  HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
 
           end do
@@ -165,6 +169,7 @@ contains
     real(rt), intent(in) :: bx(bx_lo(1):bx_hi(1), bx_lo(2):bx_hi(2), bx_lo(3):bx_hi(3))
     real(rt), intent(in) :: by(by_lo(1):by_hi(1), by_lo(2):by_hi(2), by_lo(3):by_hi(3))
     real(rt), intent(in) :: bz(bz_lo(1):bz_hi(1), bz_lo(2):bz_hi(2), bz_lo(3):bz_hi(3))
+    real(rt) :: bx_cell_c, by_cell_c, bz_cell_c
 #endif
 
     ! Local variables
@@ -206,7 +211,11 @@ contains
                 call eos(eos_input_rt, eos_state)
 
                 small_e = eos_state % e
-
+#ifdef MHD
+                bx_cell_c = HALF * (bx(i,j,k) + bx(i+1,j,k))
+                by_cell_c = HALF * (by(i,j,k) + by(i,j+1,k))
+                bz_cell_c = HALF * (bz(i,j,k) + bz(i,j,k+1))   
+#endif
                 ! If E < small_e, reset it so that it's equal to internal + kinetic.
 
                 if (eden < small_e) then
@@ -230,7 +239,7 @@ contains
 
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 #ifdef MHD
-                   rho_eint = rho_eint - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2) 
+                   rho_eint = rho_eint - HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2) 
 #endif
 
                    ! Reset (e from e) if it's greater than eta * E.
@@ -273,7 +282,12 @@ contains
                 Vp = u(i,j,k,UMY) * rhoInv
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
-
+#ifdef MHD
+                bx_cell_c = HALF * (bx(i,j,k) + bx(i+1,j,k))
+                by_cell_c = HALF * (by(i,j,k) + by(i,j+1,k))
+                bz_cell_c = HALF * (bz(i,j,k) + bz(i,j,k+1))   
+#endif
+ 
                 if (u(i,j,k,UEDEN) < ZERO) then
 
                    if (u(i,j,k,UEINT) < ZERO) then
@@ -293,7 +307,7 @@ contains
                    u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 #ifdef MHD
                    u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
-                                    HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                                    HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
 
                 else
@@ -301,7 +315,7 @@ contains
                    
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 #ifdef MHD
-                   rho_eint = rho_eint - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                   rho_eint = rho_eint - HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
 
                    ! Reset (e from e) if it's greater than eta * E.
@@ -316,7 +330,7 @@ contains
                       u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
 #ifdef MHD
                       u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + &
-                                       HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                                       HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
 
                       ! If not resetting and little e is negative ...
@@ -370,7 +384,10 @@ contains
                 
                 u(i,j,k,UEINT) = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
 #ifdef MHD
-                u(i,j,k,UEINT) = u(i,j,k,UEINT) - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+                bx_cell_c = HALF * (bx(i,j,k) + bx(i+1,j,k))
+                by_cell_c = HALF * (by(i,j,k) + by(i,j+1,k))
+                bz_cell_c = HALF * (bz(i,j,k) + bz(i,j,k+1))
+                u(i,j,k,UEINT) = u(i,j,k,UEINT) - HALF * (bx_cell_c**2+by_cell_c**2+bz_cell_c**2)
 #endif
 
              enddo
