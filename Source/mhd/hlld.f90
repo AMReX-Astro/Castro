@@ -120,7 +120,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       ! Note this is actually (rho e)
       ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qL(QRHO)
-      eos_state % p   = qL(QPRES)
+      eos_state % p   = qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))
       eos_state % xn  = qL(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
@@ -141,7 +141,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
       ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qR(QRHO)
-      eos_state % p   = qR(QPRES)
+      eos_state % p   = qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
       eos_state % xn  = qR(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
@@ -386,7 +386,7 @@ subroutine PToC(q, u)
    u(UMZ)        = q(QRHO)*q(QW)
 
    eos_state % rho = q(QRHO)
-   eos_state % p   = q(QPRES)
+   eos_state % p   = q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ))
    eos_state % xn  = q(QFS:QFS+nspec-1)
    eos_state % T   = 100.0   ! dummy initial guess
 

@@ -676,7 +676,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1 from EOS
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -748,7 +748,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1 from EOS
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -816,7 +816,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -885,7 +885,7 @@ contains
     ! TODO: gamma_const -> gamma_1
 
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -951,7 +951,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1018,7 +1018,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)
@@ -1085,7 +1085,7 @@ contains
     !Speeeeeeeedssssss
     ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
+    eos_state % p   = Q(QPRES) - 0.5d0*dot_product(Q(QMAGX:QMAGZ),Q(QMAGX:QMAGZ))
     eos_state % xn  = Q(QFS:QFS+nspec-1)
 
     call eos(eos_input_rp, eos_state)

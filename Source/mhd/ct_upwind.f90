@@ -461,7 +461,7 @@ implicit none
   
           ! TODO: get (rho e) from the EOS using p, rho, X
           eos_state % rho = q(i, j, k, QRHO)
-          eos_state % p   = q(i, j, k, QPRES)
+          eos_state % p   = q(i, j, k, QPRES) - 0.5*dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ))
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
 
           call eos(eos_input_rp, eos_state)
@@ -1088,7 +1088,7 @@ subroutine qflux(qflx,flx,q)
  use eos_module, only : eos
  use eos_type_module, only: eos_t, eos_input_rp
  use network, only : nspec
-
+ 
  implicit none
 
  ! this is step 10 in the paper, just after Eq. 48
@@ -1115,7 +1115,7 @@ subroutine qflux(qflx,flx,q)
 	qflx(QW)    = ( flx(UMZ) - flx(URHO ) * q(QW))/q(QRHO)
         
         eos_state % rho = q(QRHO)
-        eos_state % p   = q(QPRES) 
+        eos_state % p   = q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ), q(QMAGX:QMAGZ))
         eos_state % xn  = q(QFS:QFS+nspec-1)
 
         call eos(eos_input_rp, eos_state)
