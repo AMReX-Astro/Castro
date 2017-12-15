@@ -250,10 +250,6 @@ contains
                       
                       if (dual_energy_update_E_from_e == 1) then
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eos_state % e - u(i,j,k,UEINT))
-#ifdef MHD
-                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) +&
-                                          HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
-#endif
                       endif
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
@@ -304,7 +300,7 @@ contains
 
                    
                    rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-#ifdef MH
+#ifdef MHD
                    rho_eint = rho_eint - HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
 #endif
 
@@ -346,10 +342,6 @@ contains
                       if (dual_energy_update_E_from_e == 1) then
                          
                          u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + (u(i,j,k,URHO) * eint_new - u(i,j,k,UEINT))
-#ifdef MHD
-                         u(i,j,k,UEDEN) = u(i,j,k,UEDEN) + &
-                                          HALF * (bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
-#endif
                       endif
 
                       u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
