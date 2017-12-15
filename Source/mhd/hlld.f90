@@ -36,6 +36,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    real(rt)	  :: UsR(NVAR+3), FsR(NVAR+3)
    real(rt)	  :: UssL(NVAR+3), FssL(NVAR+3)
    real(rt)	  :: UssR(NVAR+3), FssR(NVAR+3)
+   real(rt) :: gam1_L, gam1_R
 
    integer           :: QVELN, QVELP1, QVELP2
    integer           :: QMAGN, QMAGP1, QMAGP2
@@ -127,6 +128,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       eL   = eos_state % rho * eos_state % e & 
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
    	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
+      gam1_L = eos_state % gam1
 
       FL(URHO)  = qL(QRHO)*qL(QVELN)
       FL(UMN)   = qL(QRHO)*qL(QVELN)**2 + qL(QPRES) - qL(QMAGN)**2
@@ -147,6 +149,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       eR   = eos_state % rho * eos_state % e &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
       	                + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
+      gam1_R = eos_state % gam1
 
       FR(URHO)  = qR(QRHO)*qR(QVELN)
       FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + qR(QPRES) - qR(QMAGN)**2
@@ -157,9 +160,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
       FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
-      ! TODO: asL and asR are just sound-speed square -- we need to use Gamma_1 here, from the EOS
-	asL  = eos_state % gam1 * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
-	asR  = eos_state % gam1 * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
+
+	asL  = gam1_L * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
+	asR  = gam1_R * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
 
 	caL  = (qL(QMAGN)**2 + qL(QMAGP1)**2 + qL(QMAGP2)**2)/qL(QRHO) !Magnetic Speeds
 	caR  = (qR(QMAGN)**2 + qR(QMAGP1)**2 + qR(QMAGP2)**2)/qR(QRHO)
