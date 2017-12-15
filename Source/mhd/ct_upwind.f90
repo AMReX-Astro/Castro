@@ -811,7 +811,7 @@ implicit none
 
 				uR(i,j,k,UEINT,3,1) = uR(i,j,k,UEINT,3,1) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,3,1),uR(i,j,k,UMAGX:UMAGZ,3,1))
 
-				uR(i,j,k,UEINT,3,2) = uR(i,j,k,UEINT,3,2) -0.5d0*dot_product(uR(i,j,k,QMAGX:QMAGZ,3,2),uR(i,j,k,QMAGX:QMAGZ,3,2))
+				uR(i,j,k,UEINT,3,2) = uR(i,j,k,UEINT,3,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,3,2),uR(i,j,k,UMAGX:UMAGZ,3,2))
 			enddo
 		enddo
 	enddo
