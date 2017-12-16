@@ -461,7 +461,7 @@ implicit none
   
           ! TODO: get (rho e) from the EOS using p, rho, X
           eos_state % rho = q(i, j, k, QRHO)
-          eos_state % p   = q(i, j, k, QPRES) - 0.5*dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ))
+          eos_state % p   = q(i, j, k, QPRES) 
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
 
           call eos(eos_input_rp, eos_state)
@@ -527,7 +527,7 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
           call eos(eos_input_re, eos_state)
 
           q(i,j,k,QTEMP) = eos_state % T
-          q(i,j,k,QPRES) = eos_state % p + 0.5*dot_product(u(i,j,k,UMAGX:UMAGZ),u(i,j,k,UMAGX:UMAGZ))
+          q(i,j,k,QPRES) = eos_state % p
           q(i,j,k,QMAGX:QMAGZ) = u(i,j,k,UMAGX:UMAGZ)
        enddo
     enddo
@@ -1115,7 +1115,7 @@ subroutine qflux(qflx,flx,q)
 	qflx(QW)    = ( flx(UMZ) - flx(URHO ) * q(QW))/q(QRHO)
         
         eos_state % rho = q(QRHO)
-        eos_state % p   = q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ), q(QMAGX:QMAGZ))
+        eos_state % p   = q(QPRES) 
         eos_state % xn  = q(QFS:QFS+nspec-1)
 
         call eos(eos_input_rp, eos_state)

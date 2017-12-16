@@ -118,9 +118,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call PToC(qL, uL)
       call PToC(qR, uR)
       ! Note this is actually (rho e)
-      ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qL(QRHO)
-      eos_state % p   = qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))
+      eos_state % p   = qL(QPRES) 
       eos_state % xn  = qL(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
@@ -129,19 +128,20 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
    	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
       gam1_L = eos_state % gam1
-
+!here use total p not just p_g eq.11
       FL(URHO)  = qL(QRHO)*qL(QVELN)
-      FL(UMN)   = qL(QRHO)*qL(QVELN)**2 + qL(QPRES) - qL(QMAGN)**2
+      FL(UMN)   = qL(QRHO)*qL(QVELN)**2 + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))&
+                  - qL(QMAGN)**2
       FL(UMP1)  = qL(QRHO)*qL(QVELN)*qL(QVELP1) - qL(QMAGN)*qL(QMAGP1)
       FL(UMP2)  = qL(QRHO)*qL(QVELN)*qL(QVELP2) - qL(QMAGN)*qL(QMAGP2)
-      FL(UEDEN) = qL(QVELN)*(eL + qL(QPRES)) - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
+      FL(UEDEN) = qL(QVELN)*(eL + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
+                  - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
       FL(UMAGN) = 0.d0
       FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
       FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
-      ! TODO: we need to get rho e from the EOS, not using gamma
       eos_state % rho = qR(QRHO)
-      eos_state % p   = qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
+      eos_state % p   = qR(QPRES) 
       eos_state % xn  = qR(QFS:QFS+nspec-1)
 
       call eos(eos_input_rp, eos_state)
@@ -152,17 +152,19 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       gam1_R = eos_state % gam1
 
       FR(URHO)  = qR(QRHO)*qR(QVELN)
-      FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + qR(QPRES) - qR(QMAGN)**2
+      FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + (qR(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))) &
+                  - qR(QMAGN)**2
       FR(UMP1)  = qR(QRHO)*qR(QVELN)*qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)
       FR(UMP2)  = qR(QRHO)*qR(QVELN)*qR(QVELP2) - qR(QMAGN)*qR(QMAGP2)
-      FR(UEDEN) = qR(QVELN)*(eR + qR(QPRES)) - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
+      FR(UEDEN) = qR(QVELN)*(eR + (qR(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
+                  - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
       FR(UMAGN) = 0.d0
       FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
       FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
 
-	asL  = gam1_L * (qL(QPRES) - 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))/qL(QRHO)
-	asR  = gam1_R * (qR(QPRES) - 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))/qR(QRHO)
+	asL  = gam1_L * qL(QPRES)/qL(QRHO)
+	asR  = gam1_R * qR(QPRES)/qR(QRHO)
 
 	caL  = (qL(QMAGN)**2 + qL(QMAGP1)**2 + qL(QMAGP2)**2)/qL(QRHO) !Magnetic Speeds
 	caR  = (qR(QMAGN)**2 + qR(QMAGP1)**2 + qR(QMAGP2)**2)/qR(QRHO)
@@ -260,11 +262,11 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	UsL(UEDEN) = (sL - qL(QVELN))*eL - ptL*qL(QVELN) + pst*sM + &
                       qL(QMAGN)*(dot_product(qL(QU:QW),qL(QMAGX:QMAGZ)) &
 		                 -dot_product(UsL(QU:QW)/UsL(QRHO),UsL(QMAGX:QMAGZ)))
-	UsL(UEDEN) = UsL(QPRES)/(sL - sM)
+	UsL(UEDEN) = UsL(UEDEN)/(sL - sM)
 	UsR(UEDEN) = (sR - qR(QVELN))*eR - ptR*qR(QVELN) + pst*sM + &
                       qR(QMAGN)*( dot_product(qR(QU:QW),qR(QMAGX:QMAGZ)) &
 		                 -dot_product(UsR(QU:QW)/UsR(QRHO),UsR(QMAGX:QMAGZ)))
-	UsR(UEDEN) = UsR(QPRES)/(sR - sM)
+	UsR(UEDEN) = UsR(UEDEN)/(sR - sM)
 
 	!speeds
 	ssL = sM - abs(qL(QMAGN))/sqrt(UsL(URHO))
@@ -386,7 +388,7 @@ subroutine PToC(q, u)
    u(UMZ)        = q(QRHO)*q(QW)
 
    eos_state % rho = q(QRHO)
-   eos_state % p   = q(QPRES) - 0.5d0*dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ))
+   eos_state % p   = q(QPRES) 
    eos_state % xn  = q(QFS:QFS+nspec-1)
    eos_state % T   = 100.0   ! dummy initial guess
 

@@ -526,8 +526,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! TODO: this is a small sound speed -- we should do this how we do in hydro
            csml(i,j,k) = max(small, small * eos_state % cs) !? 
 
-           q(i,j,k,QPRES) = eos_state % p &
-                + 0.5d0*(q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)
+           q(i,j,k,QPRES) = eos_state % p 
 
            q(i,j,k,QTEMP) = eos_state % T
 
