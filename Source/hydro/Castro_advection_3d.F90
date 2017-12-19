@@ -17,7 +17,7 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: qaux        => (const)  auxillary hydro data
+! ::: :: qaux        => (const)  auxiliary hydro data
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction

@@ -7,7 +7,7 @@
 #
 # ca_set_godunov_indices: the interface state
 #
-# ca_set_auxillary_indices: the auxillary state information
+# ca_set_auxiliary_indices: the auxiliary state information
 
 import re
 

@@ -220,7 +220,7 @@ Castro::variableSetUp ()
   // Get the number of primitive variables from Fortran.
   ca_get_qvar(&QVAR);
 
-  // and the auxillary variables
+  // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
   // initialize the Godunov state array used in hydro 

@@ -14,7 +14,7 @@ subroutine check_equal(index1, index2)
 end subroutine check_equal
 
 
-subroutine ca_set_auxillary_indices()
+subroutine ca_set_auxiliary_indices()
 
 
   use meth_params_module
@@ -54,7 +54,7 @@ subroutine ca_set_auxillary_indices()
 #endif
 
   NQAUX = NQAUX - 1
-end subroutine ca_set_auxillary_indices
+end subroutine ca_set_auxiliary_indices
 
 subroutine ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM

@@ -18,7 +18,7 @@
    temperature            Temp         UTEMP     None             1                None
    advected               FirstAdv     UFA       None           (nadv, NumAdv)     None
    species                FirstSpec    UFS       None           (nspec, NumSpec)   None
-   auxillary              FirstAux     UFX       None           (naux, NumAux)     None
+   auxiliary              FirstAux     UFX       None           (naux, NumAux)     None
    shock                  Shock        USHK      None             1                SHOCK_VAR
 
 
@@ -37,14 +37,14 @@
    temperature            None         QTEMP     QVAR             1      None
    advected               None         QFA       QVAR           nadv     None
    species                None         QFS       QVAR           nspec    None
-   auxillary              None         QFX       QVAR           naux     None
+   auxiliary              None         QFX       QVAR           naux     None
    total-pressure         None         QPTOT     None             1      RADIATION
    total-reint            None         QREITOT   None             1      RADIATION
    radiation              None         QRAD      None           ngroups  RADIATION
 
 
-# the auxillary quantities
-@set: auxillary NQAUX
+# the auxiliary quantities
+@set: auxiliary NQAUX
    gamma_c               None          QGAMC     None            1        None
    sound-speed           None          QC        None            1        None
    dpdr                  None          QDPDR     None            1        None

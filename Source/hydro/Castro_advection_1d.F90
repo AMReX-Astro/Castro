@@ -17,7 +17,7 @@ contains
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: qaux        => (const)  auxillary hydro info
+! ::: :: qaux        => (const)  auxiliary hydro info
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: srcQ        => (const)  source for primitive variables
 ! ::: :: dx          => (const)  grid spacing in X direction

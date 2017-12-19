@@ -433,7 +433,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
                                 FirstAdv, FirstSpec, FirstAux &
                                 )
 
-  call ca_set_auxillary_indices()
+  call ca_set_auxiliary_indices()
 
   call ca_set_primitive_indices()
 
