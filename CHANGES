@@ -13,6 +13,11 @@
      castro.riemann_solver, which can be set to 1 to use the Colella
      and Glaz Riemann solver.
 
+  -- The state variable indicies in Fortran are now all defined in a
+     single file, Source/driver/_variables.  This makes it much
+     clearer and consistent and will allow for autodocumentation and
+     clean-ups for GPU acceleration in the future.
+
 # 17.12
 
   -- The sponge can now operate based on pressure. The new parameters
