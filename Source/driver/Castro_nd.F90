@@ -155,7 +155,6 @@ end subroutine ca_get_aux_names
 subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
   use meth_params_module, only: QVAR
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -165,30 +164,21 @@ subroutine ca_get_qvar(qvar_in) bind(C, name="ca_get_qvar")
 
 end subroutine ca_get_qvar
 
-#ifdef RADIATION
-subroutine ca_get_qradvar(qradvar_in) bind(C, name="ca_get_qradvar")
+subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
 
-  use meth_params_module, only: QRADVAR
-  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NQ
 
   implicit none
 
-  integer, intent(inout) :: qradvar_in
+  integer, intent(inout) :: nq_in
 
-  qradvar_in = QRADVAR
+  nq_in = NQ
 
-end subroutine ca_get_qradvar
-#endif
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
+end subroutine ca_get_nq
 
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 
   use meth_params_module, only: NQAUX
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -371,10 +361,17 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
-                                FirstAdv,FirstSpec,FirstAux,numadv, &
+subroutine ca_set_method_params(dm, Density, Xmom, &
+#ifdef HYBRID_MOMENTUM
+                                Rmom, &
+#endif
+                                Eden, Eint, Temp, &
+                                FirstAdv, FirstSpec, FirstAux, numadv, &
 #ifdef SHOCK_VAR
                                 Shock, &
+#endif
+#ifdef RADIATION
+                                ngroups_in, &
 #endif
                                 gravity_type_in, gravity_type_len) &
                                 bind(C, name="ca_set_method_params")
@@ -384,22 +381,29 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   use eos_module, only: eos_init
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use bl_constants_module, only : ZERO, ONE
+  use amrex_fort_module, only: rt => amrex_real
 #ifdef RADIATION
   use rad_params_module, only: ngroups
 #endif
-  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   integer, intent(in) :: dm
   integer, intent(in) :: Density, Xmom, Eden, Eint, Temp, &
-       FirstAdv, FirstSpec, FirstAux
+                         FirstAdv, FirstSpec, FirstAux
   integer, intent(in) :: numadv
 #ifdef SHOCK_VAR
   integer, intent(in) :: Shock
 #endif
   integer, intent(in) :: gravity_type_len
   integer, intent(in) :: gravity_type_in(gravity_type_len)
+#ifdef RADIATION
+  integer, intent(in) :: ngroups_in
+#endif
+#ifdef ROTATION
+  integer, intent(in) :: Rmom
+#endif
+
   integer :: iadv, ispec
 
   integer :: QLAST
@@ -408,138 +412,30 @@ subroutine ca_set_method_params(dm,Density,Xmom,Eden,Eint,Temp, &
   integer :: i
   integer :: ioproc
 
-  !---------------------------------------------------------------------
-  ! conserved state components
-  !---------------------------------------------------------------------
-
-  ! NTHERM: number of thermodynamic variables (rho, 3 momenta, rho*e, rho*E, T)
-  ! NVAR  : number of total variables in initial system
-  NTHERM = 7
-
-#ifdef HYBRID_MOMENTUM
-  ! Include the hybrid momenta in here as well if we're using them.
-
-  NTHERM = NTHERM + 3
+#ifdef RADIATION
+  ngroups = ngroups_in
 #endif
 
-  NVAR = NTHERM + nspec + naux + numadv
+  !---------------------------------------------------------------------
+  ! set integer keys to index states
+  !---------------------------------------------------------------------
+  call ca_set_godunov_indices()
 
-  nadv = numadv
-
-  ! We use these to index into the state "U"
-  URHO  = Density   + 1
-  UMX   = Xmom      + 1
-  UMY   = Xmom      + 2
-  UMZ   = Xmom      + 3
+  call ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
-  UMR   = Xmom      + 4
-  UML   = Xmom      + 5
-  UMP   = Xmom      + 6
+                                Rmom, Rmom+1, Rmom+2, &
 #endif
-  UEDEN = Eden      + 1
-  UEINT = Eint      + 1
-  UTEMP = Temp      + 1
-
-  if (numadv .ge. 1) then
-     UFA   = FirstAdv  + 1
-  else
-     UFA = 1
-  end if
-
-  UFS   = FirstSpec + 1
-
-  if (naux .ge. 1) then
-     UFX = FirstAux  + 1
-  else
-     UFX = 1
-  end if
-
 #ifdef SHOCK_VAR
-  USHK  = Shock + 1
-  NVAR  = NVAR + 1
-#else
-  USHK  = -1
+                                Shock, &
 #endif
+                                Density ,Xmom, Xmom+1, Xmom+2, &
+                                Eden, Eint, Temp, &
+                                FirstAdv, FirstSpec, FirstAux &
+                                )
 
-  !---------------------------------------------------------------------
-  ! primitive state components
-  !---------------------------------------------------------------------
+  call ca_set_auxillary_indices()
 
-  ! QTHERM: number of primitive variables: rho, p, (rho e), T + 3 velocity components 
-  ! QVAR  : number of total variables in primitive form
-
-  QTHERM = NTHERM + 1 ! the + 1 is for QGAME which is always defined in primitive mode
-
-#ifdef HYBRID_MOMENTUM
-  ! There is no primitive variable analogue of the hybrid momenta;
-  ! all of the hydro reconstructions are done using the linear momenta,
-  ! which are always intended to be in sync with the hybrid momenta.
-
-  QTHERM = QTHERM - 3
-#endif
-
-  QVAR = QTHERM + nspec + naux + numadv
-  
-  ! NQ will be the number of hydro + radiation variables in the primitive
-  ! state.  Initialize it just for hydro here
-  NQ = QVAR
-
-  ! We use these to index into the state "Q"
-  QRHO  = 1
-
-  QU    = 2
-  QV    = 3
-  QW    = 4
-
-  QGAME = 5
-
-  QLAST   = QGAME
-
-  QPRES   = QLAST + 1
-  QREINT  = QLAST + 2
-
-  QTEMP   = QTHERM ! = QLAST + 3
-
-  if (numadv >= 1) then
-     QFA = QTHERM + 1
-     QFS = QFA + numadv
-
-  else
-     QFA = 1   ! density
-     QFS = QTHERM + 1
-
-  end if
-
-  if (naux >= 1) then
-     QFX = QFS + nspec
-
-  else
-     QFX = 1
-
-  end if
-
-  ! The NQAUX here are auxiliary quantities (game, gamc, c, csml, dpdr, dpde)
-  ! that we create in the primitive variable call but that do not need to
-  ! participate in tracing.
-  ! Note: radiation adds cg, gamcg, lambda (ngroups components), but we don't
-  ! yet know the number of radiation groups, so we'll add that lambda count
-  ! to it later
-   
-#ifdef RADIATION
-  NQAUX = 6 !+ ngroups to be added later
-#else
-  NQAUX = 4
-#endif        
-
-  QGAMC   = 1
-  QC      = 2
-  QDPDR   = 3
-  QDPDE   = 4
-#ifdef RADIATION
-  QGAMCG  = 5
-  QCG     = 6
-  QLAMS   = 7
-#endif
+  call ca_set_primitive_indices()
 
   ! easy indexing for the passively advected quantities.  This
   ! lets us loop over all groups (advected, species, aux)
@@ -656,18 +552,33 @@ end subroutine ca_set_method_params
 subroutine ca_init_godunov_indices() bind(C, name="ca_init_godunov_indices")
 
   use meth_params_module, only: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME, NGDNV, &
+#ifdef RADIATION
+                                GDLAMS, GDERADS, &
+#endif
                                 QU, QV, QW
+
   use amrex_fort_module, only: rt => amrex_real
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
 
   implicit none
 
   NGDNV = 6
+#if RADIATION
+  NGDNV = NGDNV + 2*ngroups
+#endif
+
   GDRHO = 1
   GDU = 2
   GDV = 3
   GDW = 4
   GDPRES = 5
   GDGAME = 6
+#ifdef RADIATION
+  GDLAMS = GDGAME+1            ! starting index for rad lambda
+  GDERADS = GDLAMS + ngroups   ! starting index for rad energy
+#endif
 
   ! sanity check
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
