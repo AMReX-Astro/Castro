@@ -478,6 +478,10 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
   endif
 
 
+#ifdef RADIATION
+  QRADHI = QRAD + ngroups - 1
+#endif
+
   !---------------------------------------------------------------------
   ! other initializations
   !---------------------------------------------------------------------
