@@ -400,7 +400,7 @@ subroutine ca_set_method_params(dm, Density, Xmom, &
 #ifdef RADIATION
   integer, intent(in) :: ngroups_in
 #endif
-#ifdef ROTATION
+#ifdef HYBRID_MOMENTUM
   integer, intent(in) :: Rmom
 #endif
 
