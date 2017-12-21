@@ -730,17 +730,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
-#ifdef RADIATION
-    q.define(grids, dmap, QRADVAR, NUM_GROW);
-#else
-    q.define(grids, dmap, QVAR, NUM_GROW);
-#endif
-
+    q.define(grids, dmap, NQ, NUM_GROW);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-
     src_q.define(grids, dmap, QVAR, NUM_GROW);
-
-
 
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method

@@ -597,7 +597,6 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
-    static int       QRADVAR;
     static int       NQAUX;
     static int       NQ;
 

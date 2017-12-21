@@ -181,59 +181,21 @@ Castro::variableSetUp ()
   burner_init();
 #endif
 
+  const int dm = BL_SPACEDIM;
+
+
   //
   // Set number of state variables and pointers to components
   //
 
-  int cnt = 0;
-  Density = cnt++;
-  Xmom = cnt++;
-  Ymom = cnt++;
-  Zmom = cnt++;
-#ifdef HYBRID_MOMENTUM
-  Rmom = cnt++;
-  Lmom = cnt++;
-  Pmom = cnt++;
-#endif
-  Eden = cnt++;
-  Eint = cnt++;
-  Temp = cnt++;
-
-#ifdef NUM_ADV
-  NumAdv = NUM_ADV;
-#else
-  NumAdv = 0;
-#endif
-
-  if (NumAdv > 0)
-    {
-      FirstAdv = cnt;
-      cnt += NumAdv;
-    }
-
-  const int dm = BL_SPACEDIM;
-
   // Get the number of species from the network model.
   ca_get_num_spec(&NumSpec);
-
-  if (NumSpec > 0)
-    {
-      FirstSpec = cnt;
-      cnt += NumSpec;
-    }
 
   // Get the number of auxiliary quantities from the network model.
   ca_get_num_aux(&NumAux);
 
-  if (NumAux > 0)
-    {
-      FirstAux = cnt;
-      cnt += NumAux;
-    }
 
-#ifdef SHOCK_VAR
-  Shock = cnt++;
-#endif
+#include "set_conserved.H"
 
   NUM_STATE = cnt;
 
@@ -259,20 +221,36 @@ Castro::variableSetUp ()
 
 
   // Read in the input values to Fortran.
-
   ca_set_castro_method_params();
 
-  ca_set_method_params(dm, Density, Xmom, Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
+  ca_set_method_params(dm, Density, Xmom, 
+#ifdef HYBRID_MOMENTUM
+                       Rmom,
+#endif
+                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
 		       NumAdv,
 #ifdef SHOCK_VAR
 		       Shock,
 #endif
+#ifdef RADIATION
+                       Radiation::nGroups,
+#endif
 		       gravity_type_name.dataPtr(), gravity_type_length);
 
   // Get the number of primitive variables from Fortran.
-
   ca_get_qvar(&QVAR);
+
+  // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
+
+  // initialize the Godunov state array used in hydro 
+  ca_init_godunov_indices();
+
+  // NQ will be used to dimension the primitive variable state
+  // vector it will include the "pure" hydrodynamical variables +
+  // any radiation variables
+  ca_get_nq(&NQ);
+
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
