@@ -11,6 +11,16 @@
 
 import re
 
+
+HEADER = """
+! DO NOT EDIT!!!
+
+! This file is automatically created by set_variables.py.  To update
+! or add variable indices, please edit _variables and then rerun the
+! script.
+
+"""
+
 CHECK_EQUAL = """
 subroutine check_equal(index1, index2)
 
@@ -141,6 +151,8 @@ def doit():
 
     # all these routines will live in a single file
     with open("set_indices.F90", "w") as f:
+
+        f.write(HEADER)
 
         # loop over sets and create the function
         # arg list will be C++ names to compare to
