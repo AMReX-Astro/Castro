@@ -419,17 +419,8 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     }
 
-    if (!local) {
-
-      const int nfoo = 2;
-      Real foo[nfoo] = {vol_p, vol_s};
-
-      amrex::ParallelDescriptor::ReduceRealSum(foo, nfoo);
-
-      vol_p = foo[0];
-      vol_s = foo[1];
-
-    }
+    if (!local)
+      amrex::ParallelDescriptor::ReduceRealSum({vol_p, vol_s});
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
@@ -1103,27 +1094,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
     }
 
-    Real foo[6];
-
     // Do the reduction over processors.
 
-    foo[0] = force_p[0];
-    foo[1] = force_p[1];
-    foo[2] = force_p[2];
-
-    foo[3] = force_s[0];
-    foo[4] = force_s[1];
-    foo[5] = force_s[2];
-
-    amrex::ParallelDescriptor::ReduceRealSum(foo, 6);
-
-    force_p[0] = foo[0];
-    force_p[1] = foo[1];
-    force_p[2] = foo[2];
-
-    force_s[0] = foo[3];
-    force_s[1] = foo[4];
-    force_s[2] = foo[5];
+    amrex::ParallelDescriptor::ReduceRealSum({force_p[0], force_p[1], force_p[2], force_s[0], force_s[1], force_s[2]});
 
     // Divide by the mass of the stars to obtain the acceleration, and then get the new rotation frequency.
 
