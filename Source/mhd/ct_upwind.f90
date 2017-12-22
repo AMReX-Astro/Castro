@@ -1123,6 +1123,7 @@ subroutine qflux(qflx,flx,q)
         dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
         dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
 
+        ! TODO: double check
 	qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
                          flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
                          flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &

@@ -221,6 +221,8 @@
                   uout(i,j,k,UMZ) =  uout(i,j,k,URHO) * new_zvel
 
                   uout(i,j,k,UEINT) = uout(i,j,k,URHO) * new_e
+
+                  ! TODO: add magnetic contribution
                   uout(i,j,k,UEDEN) = uout(i,j,k,UEINT) + 0.5d0 / uout(i,j,k,URHO) * &
                     ( uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2 )
                   

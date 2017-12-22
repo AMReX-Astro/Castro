@@ -733,6 +733,7 @@ contains
 
     flux(URHO) = u(URHO) * v_adv
     flux(UMX:UMZ) = u(UMX:UMZ) * v_adv
+    ! TODO: does this need 0.5 B**2 in pressure?
     flux(UEDEN) = (u(UEDEN) + q(QPRES)) * v_adv
     flux(UEINT) = u(UEINT) * v_adv
 

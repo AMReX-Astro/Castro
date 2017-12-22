@@ -137,6 +137,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UEDEN) = qL(QVELN)*(eL + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
                   - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
       FL(UMAGN) = 0.d0
+      ! TODO: is there a sign error here?
       FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
       FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
 
@@ -152,17 +153,18 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       gam1_R = eos_state % gam1
 
       FR(URHO)  = qR(QRHO)*qR(QVELN)
-      FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + (qR(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))) &
+      FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))) &
                   - qR(QMAGN)**2
       FR(UMP1)  = qR(QRHO)*qR(QVELN)*qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)
       FR(UMP2)  = qR(QRHO)*qR(QVELN)*qR(QVELP2) - qR(QMAGN)*qR(QMAGP2)
-      FR(UEDEN) = qR(QVELN)*(eR + (qR(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
+      FR(UEDEN) = qR(QVELN)*(eR + (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))) &
                   - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
       FR(UMAGN) = 0.d0
       FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
       FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
 
+      ! TODO: check HLLD paper for these
 	asL  = gam1_L * qL(QPRES)/qL(QRHO)
 	asR  = gam1_R * qR(QPRES)/qR(QRHO)
 
