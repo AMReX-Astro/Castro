@@ -977,13 +977,14 @@ Castro::update_relaxation(Real time, Real dt) {
     // Note that this process only really makes sense if we are
     // not subcycling.
 
+    int coarse_level = 0;
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
     Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
     Array< std::unique_ptr<MultiFab> > ext_force(n_levs);
 
-    for (int lev = 0; lev <= finest_level; ++lev) {
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
         const Real old_time = getLevel(lev).state[State_Type].prevTime();
         const Real new_time = getLevel(lev).state[State_Type].curTime();
@@ -1007,16 +1008,16 @@ Castro::update_relaxation(Real time, Real dt) {
         // source has already been added.
 
         getLevel(lev).apply_source_to_state(S_new, source_new, -dt);
-        construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
-        construct_new_ext_source(*ext_force[lev], S_old, S_new, new_time, dt);
+        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        getLevel(lev).construct_new_ext_source(*ext_force[lev], S_old, S_new, new_time, dt);
         getLevel(lev).apply_source_to_state(S_new, source_new, dt);
 
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
         MultiFab::Subtract(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
         rot_force[lev]->setVal(0.0);
 
-        construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
-        construct_old_ext_source(*ext_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_old_ext_source(*ext_force[lev], S_old, old_time, dt);
 
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
         MultiFab::Subtract(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
@@ -1043,9 +1044,10 @@ Castro::update_relaxation(Real time, Real dt) {
 
         // Mask out regions covered by fine grids.
 
-        if (lev < finest_level) {
+        if (lev < parent->finestLevel()) {
             const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-            MultiFab::Multiply(*rot_force[lev], mask, 0, 0, NUM_STATE, 0);
+            for (int n = 0; n < NUM_STATE; ++n)
+                MultiFab::Multiply(*rot_force[lev], mask, 0, n, 1, 0);
         }
 
     }
@@ -1055,7 +1057,7 @@ Castro::update_relaxation(Real time, Real dt) {
     Real force_p[3] = { 0.0 };
     Real force_s[3] = { 0.0 };
 
-    for (int lev = 0; lev <= finest_level; ++lev) {
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
@@ -1146,7 +1148,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
     // Re-calculate and re-apply the rotation source term to the state.
 
-    for (int lev = 0; lev <= finest_level; ++lev) {
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
         const Real old_time = getLevel(lev).state[State_Type].prevTime();
         const Real new_time = getLevel(lev).state[State_Type].curTime();
@@ -1165,7 +1167,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
         rot_force[lev]->setVal(0.0);
 
-        construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
 
@@ -1176,7 +1178,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
         rot_force[lev]->setVal(0.0);
 
-        construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
         MultiFab::Add(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
         getLevel(lev).apply_source_to_state(S_new, source_new, dt);
 
