@@ -111,9 +111,9 @@ of each step.
   double the memory footprint on each level if you choose to use it.
 
 
-\item {[\ifdef{AUX\_UPDATE}]} {\em Auxillary quantitiy evolution} 
+\item {[\ifdef{AUX\_UPDATE}]} {\em Auxiliary quantitiy evolution} 
 
-  Auxillary variables in Castro are those that obey a continuity
+  Auxiliary variables in Castro are those that obey a continuity
   equation (with optional sources) that are passed into the EOS, but
   not subjected to the constraint on mass fractions (summing to one).
 
@@ -598,7 +598,7 @@ step now proceeds as:
 
 
 Note that is it likely that some of the other updates (like any
-non-advective auxillary quantity updates) should be inside the SDC
+non-advective auxiliary quantity updates) should be inside the SDC
 loop, but presently they are only done at the end.  Also note that the
 radiation implicit update is not done as part of the SDC iterations.
 

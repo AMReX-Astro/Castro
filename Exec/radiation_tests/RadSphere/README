@@ -28,7 +28,7 @@ be computed directly in there from the Planck function (multiplied
 by dnu -- the group-bin weight to get a radiation energy density).
 
 
-Auxillary files in Tools/: 
+Auxiliary files in Tools/: 
 
   analytic.f90: computes the analytic solution, using Eqs. 76 and 77
                 from Swesty and Myra (2009).  Swesty and Myra do not

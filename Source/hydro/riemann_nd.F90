@@ -863,7 +863,7 @@ contains
   ! Colella, Glaz, and Ferguson solver
   !
   ! this is a 2-shock solver that uses a very simple approximation for the
-  ! star state, and carries an auxillary jump condition for (rho e) to
+  ! star state, and carries an auxiliary jump condition for (rho e) to
   ! deal with a real gas
   !===========================================================================
   !gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &

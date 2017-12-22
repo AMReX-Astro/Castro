@@ -93,9 +93,9 @@ void Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old
 			BL_TO_FORTRAN_3D(state_old[mfi]),
 			BL_TO_FORTRAN_3D(state_new[mfi]),
 			BL_TO_FORTRAN_3D(source[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[0])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[1])[mfi]),
-			BL_TO_FORTRAN_3D((*fluxes[2])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[0])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[1])[mfi]),
+			BL_TO_FORTRAN_3D((*mass_fluxes[2])[mfi]),
 			ZFILL(dx),dt,&time,
 			BL_TO_FORTRAN_3D(volume[mfi]));
 	}

@@ -12,12 +12,12 @@ contains
 
   subroutine compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
 
-    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, QRADVAR
+    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQ
     use fluxlimiter_module, only : Edd_factor
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in) :: lam(0:ngroups-1)
-    real(rt)        , intent(in) :: q(QRADVAR)
+    real(rt)        , intent(in) :: q(NQ)
     real(rt)        , intent(in) :: cg
     real(rt)        , intent(out) :: ptot
     real(rt)        , intent(out) :: ctot

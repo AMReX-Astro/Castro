@@ -222,13 +222,13 @@ Castro::do_advance (Real time,
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
+      MultiFab& old_source = get_old_data(Source_Type);
+
       if (apply_sources()) {
 
-          MultiFab& source = get_old_data(Source_Type);
+          do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-          do_old_sources(source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-
-          apply_source_to_state(S_new, source, dt, S_new.nGrow());
+          apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
 
           // Apply the old sources to the sources for the hydro.
           // Note that we are doing an add here, not a copy,
@@ -236,6 +236,10 @@ Castro::do_advance (Real time,
           // terms (e.g. the source term predictor, or the SDC source).
 
           AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+      } else {
+
+          old_source.setVal(0.0, NUM_GROW);
 
       }
 
@@ -341,13 +345,17 @@ Castro::do_advance (Real time,
       construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
+      MultiFab& new_source = get_new_data(Source_Type);
+
       if (apply_sources()) {
 
-          MultiFab& source = get_new_data(Source_Type);
+          do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
 
-          do_new_sources(source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+          apply_source_to_state(S_new, new_source, dt, S_new.nGrow());
 
-          apply_source_to_state(S_new, source, dt, S_new.nGrow());
+      } else {
+
+          new_source.setVal(0.0, NUM_GROW);
 
       }
 
@@ -662,17 +670,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
-#ifdef RADIATION
-    q.define(grids, dmap, QRADVAR, NUM_GROW);
-#else
-    q.define(grids, dmap, QVAR, NUM_GROW);
-#endif
-
+    q.define(grids, dmap, NQ, NUM_GROW);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-
     src_q.define(grids, dmap, QVAR, NUM_GROW);
-
-
 
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method
