@@ -973,7 +973,6 @@ Castro::update_relaxation(Real time, Real dt) {
     int n_levs = finest_level + 1;
 
     Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
-    Array< std::unique_ptr<MultiFab> > ext_force(n_levs);
 
     for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
@@ -983,10 +982,7 @@ Castro::update_relaxation(Real time, Real dt) {
         const Real dt = new_time - old_time;
 
         rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-        ext_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-
         rot_force[lev]->setVal(0.0);
-        ext_force[lev]->setVal(0.0);
 
         MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
@@ -994,24 +990,21 @@ Castro::update_relaxation(Real time, Real dt) {
         MultiFab& source_old = getLevel(lev).get_old_data(Source_Type);
         MultiFab& source_new = getLevel(lev).get_new_data(Source_Type);
 
-        // Note that here we need to re-calculate and subtract the new-time source
-        // first, because in principle it depends on a state where the old-time
-        // source has already been added.
-
-        getLevel(lev).apply_source_to_state(S_new, source_new, -dt);
-        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
-        getLevel(lev).construct_new_ext_source(*ext_force[lev], S_old, S_new, new_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, source_new, dt);
-
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
-        MultiFab::Subtract(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
-        rot_force[lev]->setVal(0.0);
+        // Note that in principle we would need to subtract the new-time sources
+        // from the state before doing this, because we originally calculated them
+        // using the state coming out of the hydro. This would matter for, say,
+        // the Coriolis force, since it depends on what the velocity is. But when
+        // we're doing relaxation, we disable the Coriolis force, so it's OK to
+        // use the final state for calculating what the rotation term was.
 
         getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
-        getLevel(lev).construct_old_ext_source(*ext_force[lev], S_old, old_time, dt);
-
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
         MultiFab::Subtract(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
+        rot_force[lev]->setVal(0.0);
+
+        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
+        MultiFab::Subtract(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
         rot_force[lev]->setVal(0.0);
 
         // Now use the rot_force MultiFab as temporary data to hold all of the
@@ -1020,18 +1013,11 @@ Castro::update_relaxation(Real time, Real dt) {
         // (which was in the context of neutron star mergers; it was extended
         // to white dwarf mergers by Dan et al. (2011)). In that paper, the rotation
         // force is calculated by exactly balancing against the gravitational and hydrodynamic
-        // forces. We do not have the hydrodynamic force stored explicitly, so we'll get
-        // at this indirectly by taking the full difference between the old and new states
-        // and subtracting off the rotation force (already done) and the damping force.
-        // In practice, this is approximately equal to the sum of the gravitational and
-        // hydrodynamic forces.
+        // forces. We will just use the gravitational force, since the desired equilibrium
+        // state is for the hydrodynamic forces to be zero.
 
-        MultiFab::Add(*rot_force[lev], S_new, 0, 0, NUM_STATE, 0);
-        MultiFab::Subtract(*rot_force[lev], S_old, 0, 0, NUM_STATE, 0);
-
-        rot_force[lev]->mult(1.0 / dt);
-
-        MultiFab::Subtract(*rot_force[lev], *ext_force[lev], 0, 0, NUM_STATE, 0);
+        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_new_gravity_source(*rot_force[lev], S_old, S_new, new_time, dt);
 
         // Mask out regions covered by fine grids.
 
@@ -1134,26 +1120,15 @@ Castro::update_relaxation(Real time, Real dt) {
         MultiFab& source_old = getLevel(lev).get_old_data(Source_Type);
         MultiFab& source_new = getLevel(lev).get_new_data(Source_Type);
 
-        // Re-calculate and apply the old time source first, using the
-        // same logic as before: the new-time source depends indirectly
-        // on the old-time source.
-
         rot_force[lev]->setVal(0.0);
-
         getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
         getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
 
-        // Ensure that we subtract off the new-time source terms before
-        // re-calculating the new-time rotation term.
-
-        getLevel(lev).apply_source_to_state(S_new, source_new, -dt);
-
         rot_force[lev]->setVal(0.0);
-
         getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
         MultiFab::Add(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
-        getLevel(lev).apply_source_to_state(S_new, source_new, dt);
 
         // Since we didn't apply the sources on the ghost zones, do a fill
         // to make the ghost zones consistent.
