@@ -38,13 +38,13 @@ for s in sorted(papers_by_subj, key=str.lower):
     for p in ps:
 
         t, o, l = p.jstring()
-        ostr += "<td><td>"
+        ostr += "<tr><td>"
         if not l == "":
             ostr += "<a href='{}'>{}</a><br>\n".format(l, t)
         else:
             ostr += "{}<br>\n".format(t)
 
-        ostr += "{}</td></tr>".format(o)
+        ostr += "{}</td></tr>\n".format(o)
 
     ostr += "  </table>\n"
     ostr += "</div>\n"
