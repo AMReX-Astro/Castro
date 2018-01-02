@@ -83,11 +83,11 @@ of each step.
   \item CTU: Calls \code{do\_advance} to take a single step,
     incorporating hydrodynamics, reactions, and source terms.
 
-  \item MOL: Call \code{do\_advance} \variable{MOL\_STAGES} times
+  \item MOL: Call \code{do\_advance\_mol} \variable{MOL\_STAGES} times
     (i.e., once for each of the intermediate stages in the ODE
     integration).  Within {\tt do\_advance} we will use the stage
     number, \variable{mol\_iteration}, to do an pre- or post-hydro
-    sources.
+    sources (e.g., burning).
 
   \end{itemize}
 
@@ -171,15 +171,15 @@ of each step.
 
 \end{enumerate}
 
-\subsection{Main Hydro, Reaction, and Gravity Advancement (Strang-splitting)}
+\subsection{Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)}
 
 The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by \code{do\_advance()}.  Consider
 our system of equations as:
 \begin{equation}
-\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Rb(\Ub) + \Sb,
+\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 \end{equation}
-where $\Fb$ is the flux vector, $\Rb$ are the reaction
+where ${\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)$, with $\Fb$ the flux vector, $\Rb$ are the reaction
 source terms, and $\Sb$ are the non-reaction source terms, which
 includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
@@ -544,6 +544,362 @@ these processes is presented below:
 8. react   &              &            & input / updated
 \end{tabular}
 \end{center}
+
+
+
+
+\subsection{Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)}
+
+The handling of sources differs in the MOL integration, as compared to CTU.
+Again, consider our system as:
+\begin{equation}
+\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .
+\end{equation}
+We will again use Strang splitting to discretize the
+advection-reaction equations, but the hydro update will consist of $s$
+stages.  The update first does the reactions, as with CTU:
+\begin{equation}
+\Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)
+\end{equation}
+We then consider the hydro update discretized in space, but not time, written
+as:
+\begin{equation}
+\frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)
+\end{equation}
+Using a Runge-Kutta (or similar) integrator, we write the update as:
+\begin{equation}
+\Ub^{n+1,\star} = \Ub^\star + \dt \sum_{i=1}^s b_i k_i
+\end{equation}
+where $b_i$ is the weight for stage $i$ and $k_i$ is the stage update:
+\begin{equation}
+k_i = -{\bf A}(\Ub_i) + \Sb(\Ub_i)
+\end{equation}
+with 
+\begin{equation}
+\Ub_i = \Ub^\star  + \dt \sum_{j=1}^{i-1} a_{ij} k_j
+\end{equation}
+Finally, there is the last part of the reactions:
+\begin{equation}
+\Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})
+\end{equation}
+In contrast to the CTU method, the sources are treated together
+with the advection here.
+
+
+Here is the single-level algorithm.  We use the same notation
+as in the CTU flowchart.
+
+In the code, the objective is to evolve the state from the old time,
+{\tt S\_old}, to the new time, {\tt S\_new}.
+
+\begin{enumerate}
+\item \label{strang:init} {\em Initialize}
+
+  \begin{enumerate}
+  \item In \code{initialize\_do\_advance()} :
+    \begin{enumerate}
+    \item Create \variable{Sborder}, initialized from {\tt S\_old}
+    \end{enumerate}
+
+  \item Check for NaNs in the initial state, {\tt S\_old}.
+  \end{enumerate}
+
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_first\_half()}]
+
+  Update the solution due to the effect of reactions over half a time
+  step.  The integration method and system of equations used here is
+  determined by a host of runtime parameters that are part of the
+  \microphysics\ package.  But the basic idea is to evolve the energy
+  release from the reactions, the species mass fractions, and
+  temperature through $\Delta t/2$.
+
+  Using the notation above, we begin with the time-level $n$ state,
+  $\Ub^n$, and produce a state that has evolved only due to reactions,
+  $\Ub^\star$.
+
+  \begin{align}
+    (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+  \end{align}
+  Here, $H_\mathrm{nuc}$ is the energy release (erg/g/s) over the
+  burn, and $\omegadot_k$ is the creation rate for species $k$.
+
+  After exiting the burner, we call the EOS with $\rho^\star$,
+  $e^\star$, and $X_k^\star$ to get the new temperature, $T^\star$.
+
+  Note that the density, $\rho$, does not change via reactions in the
+  Strang-split formulation.
+
+  The reaction data needs to be valid in the ghost cells.  The logic
+  in this routine (accomplished throuh the use of a mask) will burn
+  only in the valid interior cells or in any ghost cells that are on a
+  coarse-fine interface or physical boundary.  This allows us to just
+  use a level {\tt FillBoundary()} call to fill all of the ghost cells
+  on the same level with valid data.
+
+  An experimental option (enabled via
+  \runparam{use\_custom\_knapsack\_weights}) will create a custom
+  distribution map based on the work needed in burning a zone and
+  redistribute the boxes across processors before burning, to better
+  load balance..  \MarginPar{need to explain the logic here,
+    especially what the parallel copies are doing}
+
+  After reactions, \code{clean\_state} is called.
+
+  At the end of this step, \variable{Sborder} sees the effects of the
+  reactions.
+
+
+\item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
+  [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
+
+  The time level $n$ sources are computed, and added to the
+  \statedata\ \variable{Source\_Type}.  The sources are then applied
+  to the state after the burn, $\Ub^\star$ with a full $\Delta t$
+  weighting (this will be corrected later).  This produces the
+  intermediate state, $\Ub^{n+1,(a)}$.
+
+  The sources that we deal with here are:
+  \begin{enumerate}
+  \item sponge : the sponge\index{sponge} is a damping term added to
+    the momentum equation that is designed to drive the velocities to
+    zero over some timescale.  Our implementation of the sponge
+    follows that of \maestro~\cite{maestro:III}
+
+  \item external sources : users can define problem-specific sources
+    in the \code{ext\_src\_?d.f90} file.  Sources for the different
+    equations in the conservative state vector, $\Ub$, are indexed
+    using the integer keys defined in {\tt meth\_params\_module}
+    (e.g., {\tt URHO}).
+
+    This is most commonly used for external heat sources (see the
+    \problem{toy\_convect} problem setup) for an example.  But most
+    problems will not use this.
+
+  \item {[\ifdef{DIFFUSION}]} diffusion : thermal diffusion can be
+    added in an explicit formulation.  Second-order accuracy is
+    achieved by averaging the time-level $n$ and $n+1$ terms, using
+    the same predictor-corrector strategy described here.
+
+    Note: thermal diffusion is distinct from radiation hydrodynamics.
+
+    Also note that incorporating diffusion brings in an additional
+    timestep constraint, since the treatment is explicit.  See
+    Chapter~\ref{ch:diffusion} for more details. 
+
+  \item {[\ifdef{HYBRID\_MOMENTUM}]} angular momentum 
+
+    \MarginPar{need to write this up}
+
+  \item {[\ifdef{GRAVITY}]} gravity:
+
+    For full Poisson gravity, we solve for for gravity using:
+    \begin{equation}
+      \gb^n = -\nabla\phi^n, \qquad
+      \Delta\phi^n = 4\pi G\rho^n,
+    \end{equation}
+
+    The construction of the form of the gravity source for the
+    momentum and energy equation is dependent on the parameter
+    \runparam{castro.grav\_source\_type}.  Full details of the gravity
+    solver are given in Chapter~\ref{ch:gravity}.
+
+    \MarginPar{we should add a description of whether we do a level solve or a composite solve}
+
+    \MarginPar{what do we store? phi and g? source?}
+
+  \item {[\ifdef{ROTATION}]} rotation
+
+    We compute the rotational potential (for use in the energy update)
+    and the rotational acceleration (for use in the momentum
+    equation).  This includes the Coriolis and centrifugal terms in a
+    constant-angular-velocity co-rotating frame.  The form of the
+    rotational source that is constructed then depends on the
+    parameter \runparam{castro.rot\_source\_type}.  More details are
+    given in Chapter~\ref{ch:rotation}.
+    
+  \end{enumerate}
+
+  The source terms here are evaluated using the post-burn state,
+  $\Ub^\star$ (\variable{Sborder}), and later corrected by using the
+  new state just before the burn, $\Ub^{n+1,(b)}$.  This is compatible
+  with Strang-splitting, since the hydro and sources takes place
+  completely inside of the surrounding burn operations.
+
+  Note that the source terms are already applied to \variable{S\_new}
+  in this step, with a full $\Delta t$---this will be corrected later.
+
+  For MOL integration, we need to preserve the state with the result
+  of the burn and old-time sources, so we save this in a
+  \multifab\ \variable{S\_burn}.  After all the stages of the MOL
+  integration are computed, we use this as the starting point for 
+  constructing the final update. \MarginPar{need to revisit sources with MOL}.
+
+\item \label{strang:hydro} {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
+
+  The goal is to advance our system considering only the advective
+  terms (which in Cartesian coordinates can be written as the
+  divergence of a flux).
+
+  We do the hydro update in two parts---first we construct the
+  advective update and store it in the \variable{hydro\_source}
+  \multifab, then we do the conservative update in a separate step.  This
+  separation allows us to use the advective update separately in more
+  complex time-integration schemes.
+
+  In the Strang-split formulation, we start the reconstruction using
+  the state after burning, $\Ub^\star$ (\variable{Sborder}).  There
+  are two approaches we use, the corner transport upwind (CTU) method
+  that uses characteristic tracing as described in
+  \cite{colella:1990}, and a method-of-lines approach.  The choice is 
+  determined by the parameter \runparam{castro.do\_ctu}.
+
+  \begin{enumerate}
+  \item CTU method:
+
+    For the CTU method, we predict to the half-time ($n+1/2$) to get a
+    second-order accurate method.  Note: \variable{Sborder} does not
+    know of any sources except for reactions.  The advection step is
+    complicated, and more detail is given in Section
+    \ref{Sec:Advection Step}.  Here is the summarized version:
+  \begin{enumerate}
+  \item Compute primitive variables.
+  \item Convert the source terms to those acting on primitive variables
+  \item Predict primitive variables to time-centered edges.
+  \item Solve the Riemann problem.
+  \item Compute fluxes and update.
+  \end{enumerate}
+
+  To start the hydrodynamics, we need to know the hydrodynamics source
+  terms at time-level $n$, since this enters into the prediction to
+  the interface states.  This is essentially the same vector that was
+  computed in the previous step, with a few modifications.  The most
+  important is that if we set
+  \runparam{castro.source\_term\_predictor}, then we extrapolate the
+  source terms from $n$ to $n+1/2$, using the change from the previous
+  step.
+
+  Note: we neglect the reaction source terms, since those are already
+  accounted for in the state directly, due to the Strang-splitting
+  nature of this method.
+
+  The update computed here is then immediately applied to
+  \variable{S\_new}.
+
+
+  \item method of lines
+    \MarginPar{this needs to be filled}
+
+  \end{enumerate}
+
+\item \label{strang:clean} {\em Clean State} [\code{clean\_state()}]
+
+  \MarginPar{we only seem to do this for the MOL integration}
+
+  There are many ways that the hydrodynamics state may become
+  unphysical in the evolution.  The \code{clean\_state()} routine
+  enforces some checks on the state.  In particular, it
+  \begin{enumerate}
+  \item enforces that the density is above \runparam{castro.small\_dens}
+  \item normalizes the species so that the mass fractions sum to 1
+  \item resets the internal energy if necessary (too small or negative)
+    and computes the temperature for all zones to be thermodynamically 
+    consistent with the state.
+  \end{enumerate}
+  This is done on \variable{S\_new}.
+
+  After these checks, we check the state for NaNs.
+
+\item \label{strang:radial} {\em Update radial data and center of mass for monopole gravity}
+ \MarginPar{is that right?}
+
+ These quantities are computed using \variable{S\_new}.
+
+
+
+\item \label{strang:newsource} {\em Correct the source terms with the $n+1$ contribution}
+  [\code{construct\_new\_gravity()}, \code{do\_new\_sources}]
+
+  Previously we added $\Delta t\, \Sb(\Ub^\star)$ to the state, when
+  we really want a time-centered approach, $(\Delta t/2)[\Sb(\Ub^\star
+    + \Sb(\Ub^{n+1,(b)})]$.  We fix that here.
+
+  We start by computing the source term vector $\Sb(\Ub^{n+1,(b)})$
+  using the updated state, $\Ub^{n+1,(b)}$.  We then compute the
+  correction, $(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]$ to
+  add to $\Ub^{n+1,(b)}$ to give us the properly time-centered source,
+  and the fully updated state, $\Ub^{n+1,(c)}$.  This correction is stored
+  in the \variable{new\_sources} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
+
+
+  In the process of updating the sources, we update the temperature to
+  make it consistent with the new state.
+
+%% We need to correct the solution by effectively time-centering the
+%% source terms.  These corrections are to be performed sequentially
+%% since new source term evaluations may depend on previous corrections.
+
+%% First, we correct the solution with the updated gravity:
+%% \begin{eqnarray}
+%% (\rho\ub)^{n+1} &=& (\rho\ub)^{n+1} + \frac{\dt}{2}\left[(\rho\gb)^{n+1} - (\rho\gb)^n\right], \\
+%% (\rho E)^{n+1} &=& (\rho E)^{n+1} + \frac{\dt}{2}\left[\left(\rho\ub\cdot\gb\right)^{n+1} - \left(\rho\ub\cdot\gb\right)^n\right].
+%% \end{eqnarray}
+
+%% Next, we correct $\Ub$ with updated external sources.  For example,
+%% for the momentum, we correct using
+%% \begin{equation}
+%% (\rho\ub)^{n+1} = (\rho\ub)^{n+1} + \frac{\dt}{2}\left(\Sb_{{\rm ext},\rho\ub}^{n+1} - \Sb_{{\rm ext},\rho\ub}^n\right).
+%% \end{equation}
+%% We correct $\rho E, \rho A_k, \rho X_k$, and $\rho Y_k$ in an
+%% analogous manner.
+
+%% Finally, we correct the solution with updated thermal diffusion using
+%% \begin{equation}
+%% (\rho E)^{n+1} = (\rho E)^{n+1} + \frac{\dt}{2}\left(\nabla\cdot\kappa\nabla T^{n+1} - \nabla\cdot\kappa\nabla T^n\right).
+%% \end{equation}
+
+
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_second\_half()}]
+
+  We do the final $\dt/2$ reacting on the state, begining with $\Ub^{n+1,(c)}$ to
+  give us the final state on this level, $\Ub^{n+1}$.
+
+  This is largely the same as \code{strang\_react\_first\_half()}, but
+  it does not currently fill the reactions in the ghost cells. \MarginPar{confirm this}
+
+\item \label{strang:finalize} {\em Finalize} [\code{finalize\_do\_advance()}]
+
+  Finalize does the following:
+  \begin{enumerate}
+  \item for the momentum sources, we compute $d\Sb/dt$, to use in the
+    source term prediction/extrapolation for the hydrodynamic
+    interface states during the next step.
+
+  \item If we are doing the hybrid momentum algorithm, then we sync up
+    the hybrid and linear momenta
+  \end{enumerate}
+
+\end{enumerate}
+
+A summary of which state is the input and which is updated for each of
+these processes is presented below:
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|lll}
+{\em step} & {\tt S\_old} & {\tt Sborder} & {\tt S\_new} \\
+\hline
+1. init    &   input      &   updated \\
+2. react   &              &    input / updated \\
+3. old sources &          &   input    & updated \\
+4. hydro   &              & input      & updated \\
+5. clean   &              &            & input / updated \\
+6. radial / center  &     &            & input \\
+7. correct sources &      &            & input / updated \\
+8. react   &              &            & input / updated
+\end{tabular}
+\end{center}
+
 
 
 \section{Overview of a single step (with SDC)}
