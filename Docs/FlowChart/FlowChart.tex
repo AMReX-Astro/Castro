@@ -45,25 +45,26 @@ compile-time---the relevant directive is noted in the [\ ] at the start
 of each step.
 
 \begin{enumerate}
-\item {\em Initialization} 
+\item {\em Initialization} (\code{initialize\_advance()})
 
-  This sets up the current level for advancement.  The following actions
-  are performend:
+  This sets up the current level for advancement.  The following
+  actions are performend (note, we omit the actions taken for a retry,
+  which we will describe later):
   \begin{itemize}
-  \item If we are at the start of a coarse level timestep, or we are
-    in the middle of subcycling on a finer level
-    (\code{amr\_iteration} {\tt > 1}), then swap the \statedata\ from
-    the new to old (e.g., ensures that the next evolution starts with
-    the result from the previous step).
-
-  \item Do a \code{clean\_state}
-
   \item Sync up the level information to the Fortran-side of \castro
 
   \item Do any radiation initialization
 
   \item Initialize all of the intermediate storage arrays (like those
     that hold source terms, etc.).
+
+  \item Swap the \statedata\ from the new to old (e.g., ensures that
+    the next evolution starts with the result from the previous step).
+
+  \item Do a \code{clean\_state}
+
+  \item Create the \multifab s that hold the primitive variable information
+   for the hydro solve.
 
   \item For method of lines integration: allocate the storage for the 
     intermediate stage updates, \code{k\_mol}, and the \code{Sburn} \multifab\
