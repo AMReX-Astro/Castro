@@ -153,14 +153,21 @@ of each step.
 
 \item {\em Finalize}
 
-  This cleans up the memory used during the step.  
+  This cleans up at the end of a step:
+  \begin{itemize}
+    \item Update the flux registers to account for mismatches at
+      coarse-fine interfaces.  This cleans up the memory used during
+      the step.
 
-  If \runparam{castro.track\_grid\_losses} is set, then we also add up
-  the mass that left through the boundary over this
-  step.\footnote{Note: this functionality assumes that only the
-    coarse grid touches the physical boundary.  It does not use any
-    use masks to prevent double counting if multiple levels touch
-    the boundary.}
+    \item If \runparam{castro.track\_grid\_losses} is set, then we
+      also add up the mass that left through the boundary over this
+      step.\footnote{Note: this functionality assumes that only the
+        coarse grid touches the physical boundary.  It does not use
+        any use masks to prevent double counting if multiple levels
+        touch the boundary.}
+
+    \item Free any memory allocated for the level advance.
+  \end{itemize}
 
 \end{enumerate}
 
@@ -199,11 +206,10 @@ fluxes.
 
 At the beginning of the time step, we assume that $\Ub$ and $\phi$ are
 defined consistently, i.e., $\rho^n$ and $\phi^n$ satisfy equation
-(\ref{eq:Self Gravity}).  Also note that in
-Eq.~\ref{eq:source_correct}, we actually can do the new time-level
-source updates in sequence (this is the default, and is controlled by
-\runparam{castro.update\_state\_between\_sources}.  Additionally, some
-terms, like rotation, can be treated implicitly.  Together, this can
+(\ref{eq:Self Gravity}).  Note that in
+Eq.~\ref{eq:source_correct}, we actually can actually do some 
+sources implicitly by updating density first, and then momentum, 
+and then energy.  This is done for rotating and gravity, and can
 make the update more akin to:
 \begin{equation}
 \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
@@ -237,9 +243,6 @@ In the code, the objective is to evolve the state from the old time,
   \begin{enumerate}
   \item In \code{initialize\_do\_advance()} :
     \begin{enumerate}
-    \item Reset the flux registers and initializes a lot of
-      intermediate storage arrays (like source term) to zero.
-
     \item Create \variable{Sborder}, initialized from {\tt S\_old}
     \end{enumerate}
 
@@ -287,6 +290,8 @@ In the code, the objective is to evolve the state from the old time,
   load balance..  \MarginPar{need to explain the logic here,
     especially what the parallel copies are doing}
 
+  After reactions, \code{clean\_state} is called.
+
   At the end of this step, \variable{Sborder} sees the effects of the
   reactions.
 
@@ -294,11 +299,11 @@ In the code, the objective is to evolve the state from the old time,
 \item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
   [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
 
-  The time level $n$ sources are computed, stored in the appropriate
-  \multifab\ in \variable{old\_sources}, and applied to the state
-  after the burn, $\Ub^\star$ with a full $\Delta t$ weighting (this
-  will be corrected later).  This produces the intermediate state,
-  $\Ub^{n+1,(a)}$.
+  The time level $n$ sources are computed, and added to the
+  \statedata\ \variable{Source\_Type}.  The sources are then applied
+  to the state after the burn, $\Ub^\star$ with a full $\Delta t$
+  weighting (this will be corrected later).  This produces the
+  intermediate state, $\Ub^{n+1,(a)}$.
 
   The sources that we deal with here are:
   \begin{enumerate}
@@ -370,6 +375,12 @@ In the code, the objective is to evolve the state from the old time,
   Note that the source terms are already applied to \variable{S\_new}
   in this step, with a full $\Delta t$---this will be corrected later.
 
+  For MOL integration, we need to preserve the state with the result
+  of the burn and old-time sources, so we save this in a
+  \multifab\ \variable{S\_burn}.  After all the stages of the MOL
+  integration are computed, we use this as the starting point for 
+  constructing the final update. \MarginPar{need to revisit sources with MOL}.
+
 \item \label{strang:hydro} {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
 
   The goal is to advance our system considering only the advective
@@ -423,10 +434,13 @@ In the code, the objective is to evolve the state from the old time,
 
 
   \item method of lines
+    \MarginPar{this needs to be filled}
 
   \end{enumerate}
 
 \item \label{strang:clean} {\em Clean State} [\code{clean\_state()}]
+
+  \MarginPar{we only seem to do this for the MOL integration}
 
   There are many ways that the hydrodynamics state may become
   unphysical in the evolution.  The \code{clean\_state()} routine
@@ -463,11 +477,6 @@ In the code, the objective is to evolve the state from the old time,
   and the fully updated state, $\Ub^{n+1,(c)}$.  This correction is stored
   in the \variable{new\_sources} \multifab\footnote{The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.}.
 
-  We have a choice of how to do this correction.  We can first compute
-  all the corrections using the same initial state, $U^{n+1,(b)}$,
-  and then apply them all.  Or we can compute them one-by-one applying
-  them as we go.  This behavior is controlled by the parameter
-  \runparam{castro.update\_state\_between\_sources}.
 
   In the process of updating the sources, we update the temperature to
   make it consistent with the new state.
