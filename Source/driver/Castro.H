@@ -236,6 +236,11 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+    amrex::Real do_advance_mol (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
