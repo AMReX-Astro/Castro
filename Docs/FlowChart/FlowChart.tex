@@ -568,15 +568,15 @@ as:
 \end{equation}
 Using a Runge-Kutta (or similar) integrator, we write the update as:
 \begin{equation}
-\Ub^{n+1,\star} = \Ub^\star + \dt \sum_{i=1}^s b_i k_i
+\Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l
 \end{equation}
 where $b_i$ is the weight for stage $i$ and $k_i$ is the stage update:
 \begin{equation}
-k_i = -{\bf A}(\Ub_i) + \Sb(\Ub_i)
+{\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)
 \end{equation}
 with 
 \begin{equation}
-\Ub_i = \Ub^\star  + \dt \sum_{j=1}^{i-1} a_{ij} k_j
+\Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m
 \end{equation}
 Finally, there is the last part of the reactions:
 \begin{equation}
@@ -585,6 +585,9 @@ Finally, there is the last part of the reactions:
 In contrast to the CTU method, the sources are treated together
 with the advection here.
 
+The integration coefficients are stored in the vectors
+\variable{a\_mol} and \variable{b\_mol}, and the stage updates are
+stored in the \multifab\ \variable{k\_mol}.
 
 Here is the single-level algorithm.  We use the same notation
 as in the CTU flowchart.
@@ -606,49 +609,8 @@ In the code, the objective is to evolve the state from the old time,
 
 \item {\em React $\Delta t/2$.} [\code{strang\_react\_first\_half()}]
 
-  Update the solution due to the effect of reactions over half a time
-  step.  The integration method and system of equations used here is
-  determined by a host of runtime parameters that are part of the
-  \microphysics\ package.  But the basic idea is to evolve the energy
-  release from the reactions, the species mass fractions, and
-  temperature through $\Delta t/2$.
-
-  Using the notation above, we begin with the time-level $n$ state,
-  $\Ub^n$, and produce a state that has evolved only due to reactions,
-  $\Ub^\star$.
-
-  \begin{align}
-    (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
-  \end{align}
-  Here, $H_\mathrm{nuc}$ is the energy release (erg/g/s) over the
-  burn, and $\omegadot_k$ is the creation rate for species $k$.
-
-  After exiting the burner, we call the EOS with $\rho^\star$,
-  $e^\star$, and $X_k^\star$ to get the new temperature, $T^\star$.
-
-  Note that the density, $\rho$, does not change via reactions in the
-  Strang-split formulation.
-
-  The reaction data needs to be valid in the ghost cells.  The logic
-  in this routine (accomplished throuh the use of a mask) will burn
-  only in the valid interior cells or in any ghost cells that are on a
-  coarse-fine interface or physical boundary.  This allows us to just
-  use a level {\tt FillBoundary()} call to fill all of the ghost cells
-  on the same level with valid data.
-
-  An experimental option (enabled via
-  \runparam{use\_custom\_knapsack\_weights}) will create a custom
-  distribution map based on the work needed in burning a zone and
-  redistribute the boxes across processors before burning, to better
-  load balance..  \MarginPar{need to explain the logic here,
-    especially what the parallel copies are doing}
-
-  After reactions, \code{clean\_state} is called.
-
-  At the end of this step, \variable{Sborder} sees the effects of the
-  reactions.
+  This step is unchanged from the CTU version.  At the end of this
+  step, \variable{Sborder} sees the effects of the reactions.
 
 
 \item \label{strang:oldsource} {\em Construct time-level $n$ sources and apply} 
@@ -660,75 +622,13 @@ In the code, the objective is to evolve the state from the old time,
   weighting (this will be corrected later).  This produces the
   intermediate state, $\Ub^{n+1,(a)}$.
 
-  The sources that we deal with here are:
-  \begin{enumerate}
-  \item sponge : the sponge\index{sponge} is a damping term added to
-    the momentum equation that is designed to drive the velocities to
-    zero over some timescale.  Our implementation of the sponge
-    follows that of \maestro~\cite{maestro:III}
+  For full Poisson gravity, we solve for for gravity using:
+  \begin{equation}
+    \gb^n = -\nabla\phi^n, \qquad
+    \Delta\phi^n = 4\pi G\rho^n,
+  \end{equation}
 
-  \item external sources : users can define problem-specific sources
-    in the \code{ext\_src\_?d.f90} file.  Sources for the different
-    equations in the conservative state vector, $\Ub$, are indexed
-    using the integer keys defined in {\tt meth\_params\_module}
-    (e.g., {\tt URHO}).
-
-    This is most commonly used for external heat sources (see the
-    \problem{toy\_convect} problem setup) for an example.  But most
-    problems will not use this.
-
-  \item {[\ifdef{DIFFUSION}]} diffusion : thermal diffusion can be
-    added in an explicit formulation.  Second-order accuracy is
-    achieved by averaging the time-level $n$ and $n+1$ terms, using
-    the same predictor-corrector strategy described here.
-
-    Note: thermal diffusion is distinct from radiation hydrodynamics.
-
-    Also note that incorporating diffusion brings in an additional
-    timestep constraint, since the treatment is explicit.  See
-    Chapter~\ref{ch:diffusion} for more details. 
-
-  \item {[\ifdef{HYBRID\_MOMENTUM}]} angular momentum 
-
-    \MarginPar{need to write this up}
-
-  \item {[\ifdef{GRAVITY}]} gravity:
-
-    For full Poisson gravity, we solve for for gravity using:
-    \begin{equation}
-      \gb^n = -\nabla\phi^n, \qquad
-      \Delta\phi^n = 4\pi G\rho^n,
-    \end{equation}
-
-    The construction of the form of the gravity source for the
-    momentum and energy equation is dependent on the parameter
-    \runparam{castro.grav\_source\_type}.  Full details of the gravity
-    solver are given in Chapter~\ref{ch:gravity}.
-
-    \MarginPar{we should add a description of whether we do a level solve or a composite solve}
-
-    \MarginPar{what do we store? phi and g? source?}
-
-  \item {[\ifdef{ROTATION}]} rotation
-
-    We compute the rotational potential (for use in the energy update)
-    and the rotational acceleration (for use in the momentum
-    equation).  This includes the Coriolis and centrifugal terms in a
-    constant-angular-velocity co-rotating frame.  The form of the
-    rotational source that is constructed then depends on the
-    parameter \runparam{castro.rot\_source\_type}.  More details are
-    given in Chapter~\ref{ch:rotation}.
-    
-  \end{enumerate}
-
-  The source terms here are evaluated using the post-burn state,
-  $\Ub^\star$ (\variable{Sborder}), and later corrected by using the
-  new state just before the burn, $\Ub^{n+1,(b)}$.  This is compatible
-  with Strang-splitting, since the hydro and sources takes place
-  completely inside of the surrounding burn operations.
-
-  Note that the source terms are already applied to \variable{S\_new}
-  in this step, with a full $\Delta t$---this will be corrected later.
+  How are they evaluated?
 
   For MOL integration, we need to preserve the state with the result
   of the burn and old-time sources, so we save this in a
