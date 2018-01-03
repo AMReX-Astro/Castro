@@ -450,7 +450,7 @@ Castro::do_advance_mol (Real time,
   // Apply the update -- we need to build on Sburn, so
   // start with that state
   MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-  for (int i = 0; i < mol_iteration; ++i)
+  for (int i = 0; i < MOL_STAGES; ++i)
     MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
