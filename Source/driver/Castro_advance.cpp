@@ -352,6 +352,8 @@ Castro::do_advance_mol (Real time,
 
   BL_PROFILE("Castro::do_advance()");
 
+  //std::cout << "mol_iteration = " << mol_iteration << std::endl;
+
   const Real prev_time = state[State_Type].prevTime();
   const Real  cur_time = state[State_Type].curTime();
 
@@ -378,7 +380,7 @@ Castro::do_advance_mol (Real time,
 #endif
 
     // store the result of the burn in Sburn for later stages
-    MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, Sborder.nGrow());
+    MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
   }
 
 
@@ -428,24 +430,28 @@ Castro::do_advance_mol (Real time,
       if (cfl_violation)
         return dt;
 
-      // construct the update for the current stage
+      // construct the update for the current stage -- this fills k_mol
+      // with the righthand side for this stage
       construct_mol_hydro_source(time, dt);
     }
 
   // For MOL integration, we are done with this stage, unless it is
   // the last stage
   if (mol_iteration < MOL_STAGES-1) {
+    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
     return dt;
   }
 
   // we just finished the last stage of the MOL integration.
   // Construct S_new now using the weighted sum of the k_mol
-  // updates
+  // updates -- this will include both the advective and 
+  // source terms
 
   // Apply the update -- we need to build on Sburn, so
   // start with that state
   MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-  MultiFab::Saxpy(S_new, dt, hydro_source, 0, 0, S_new.nComp(), 0);
+  for (int i = 0; i < mol_iteration; ++i)
+    MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
   clean_state(S_new);
