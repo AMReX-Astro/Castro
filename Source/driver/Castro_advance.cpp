@@ -108,6 +108,7 @@ Castro::advance (Real time,
     } else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
+        // TODO: should be time or time + c_mol[iter]*dt?
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
     }
@@ -397,18 +398,23 @@ Castro::do_advance_mol (Real time,
 #endif
 
   MultiFab& old_source = get_old_data(Source_Type);
+  MultiFab& new_source = get_new_data(Source_Type);
 
   if (apply_sources()) {
 
     // we pass in the stage time here
     do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
 
-    // Apply the old sources to the sources for the hydro.
-    // Note that we are doing an add here, not a copy,
-    // in case we have already started with some source
-    // terms (e.g. the source term predictor, or the SDC source).
+    // hack: copy the source to the new data too, so fillpatch doesn't have to 
+    // worry about time
+    MultiFab::Copy(new_source, old_source, 0, 0, NUM_STATE, 0);
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    // Apply the old sources to the sources for the hydro.  Note that
+    // we are doing an fill here, not an add (like we do for CTU --
+    // this is because the source term predictor doesn't make sense
+    // here).
+ 
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
   } else {
     old_source.setVal(0.0, NUM_GROW);
