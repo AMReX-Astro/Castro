@@ -470,13 +470,14 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
-
-        ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
-                     BL_TO_FORTRAN_ANYD(q[mfi]),
-                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                     BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                     BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                     &idx);
+        if (do_ctu) {
+          ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       &idx);
+        }
 
 #ifndef RADIATION
 
