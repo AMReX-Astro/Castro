@@ -7,6 +7,8 @@ module fourth_order
 
   implicit none
 
+  real(rt), parameter :: TWENTYFOURTH = ONE/24.0_rt
+
 contains
 
   subroutine states(idir, &
@@ -31,11 +33,11 @@ contains
 
     ! local variables
     real(rt) :: a_int(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: dafm((a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: dafp((a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: d2af((a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: d2ac((a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: d3a(0(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: dafm(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: dafp(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: d2af(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: d2ac(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: d3a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
 
     real(rt), parameter :: C2 = 1.25d0
     real(rt), parameter :: C3 = 0.1d0
@@ -405,9 +407,11 @@ contains
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: U_lo(3), U_hi(3)
+    integer, intent(in) :: U_cc_lo(3), U_cc_hi(3)
     integer, intent(in) :: nc, nc_cc
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
-    real(rt), intent(inout) :: U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc__hi(3), nc_cc)
+    real(rt), intent(inout) :: U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc_hi(3), nc_cc)
 
     integer :: i, j, k, n
     real(rt) :: lap
@@ -431,6 +435,7 @@ contains
        enddo
     enddo
 
+  end subroutine ca_make_cell_center
 
   subroutine ca_make_fourth_average(lo, hi, &
                                     q, q_lo, q_hi, nc, &
@@ -442,11 +447,14 @@ contains
     ! proper 4th-order accurate cell-average
 
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
     integer, intent(in) :: nc, nc_bar
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
-    real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar__hi(3), nc_bar)
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    real(rt), intent(in) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), nc_bar)
 
     integer :: i, j, k, n
+    real(rt) :: lap
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -457,7 +465,7 @@ contains
                 lap = lap + HALF*(q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n))
 #endif
 #if BL_SPACEDIM == 3
-                lap = lap + HALF*(q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) +  q_bar(i,j,k-1,n))
+                lap = lap + HALF*(q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n))
 #endif
 
                 q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap

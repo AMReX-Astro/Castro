@@ -529,10 +529,12 @@ Castro::cons_to_prim_fourth(const Real time)
 
       ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_cc));
+                          BL_TO_FORTRAN_FAB(U_cc),
+                          &idx);
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
+      FArrayBox qaux_bar;
       qaux_bar.resize(qbx, NQAUX);
 
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
@@ -568,8 +570,8 @@ Castro::cons_to_prim_fourth(const Real time)
       // we need here
 
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(q),
-                             BL_TO_FORTRAN_FAB(q_bar),
+                             BL_TO_FORTRAN_FAB(q[mfi]),
+                             BL_TO_FORTRAN_FAB(q_bar[mfi]),
                              &idx);
 
       // not sure if we need to convert qaux this way, or if we can
