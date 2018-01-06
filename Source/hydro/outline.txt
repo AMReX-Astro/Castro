@@ -14,10 +14,26 @@ mfiter loop:
 
       * construct q_avg from q_bar and q_cc (using ctoprim)
 
-   4. main Fortran routine (accepts construct q_avg)
+   4. in C++, loop over dimensions -- to save memory, we do each separately
 
-      * find face-average interface states from q_avg  incl/ flattening
-      * solve Riemann problem
-      * construct face-centered interface state
-      * compute final fluxes
+      a. main Fortran routine (accepts construct q_avg and q_bar)
 
+         * compute flattening coefficients from q_bar
+         * find face-average interface states from q_avg  incl/ flattening
+         * solve Riemann problem and return face-averaged interface states
+
+      b. separate MFIter:
+
+         * construct face-centered interface states
+         * compute face-centered and face-average fluxes
+
+      c. separate MFIter:
+ 
+         * compute final fluxes
+
+
+Extra MFs:
+
+  1. q_bar -- needed throughout the entire process
+  2. q_int_fc and q_int_avg
+  3. F_fc to hold the face-centered fluxes
