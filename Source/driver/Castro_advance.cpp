@@ -850,7 +850,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-    src_q.clear();
+    if (do_cut)
+      src_q.clear();
+    if (fourth_order)
+      q_bar.clear();
 
 #ifdef RADIATION
     Erborder.clear();
