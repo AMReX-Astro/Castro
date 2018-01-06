@@ -515,6 +515,7 @@ Castro::cons_to_prim_fourth(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
+      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
       const int idx = mfi.tileIndex();
 
       // note: these conversions are using a growntilebox, so it
@@ -526,9 +527,9 @@ Castro::cons_to_prim_fourth(const Real time)
       FArrayBox U_cc;
       U_cc.resize(qbx, NUM_STATE);
 
-      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbx),
-                          BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                          BL_TO_FORTRAN_ANYD(U_cc));
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
+                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                          BL_TO_FORTRAN_FAB(U_cc));
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
@@ -546,7 +547,7 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_cc to q_cc (we'll store this temporarily in q,
       // qaux).  This will remain valid only on the NUM_GROW-1 ghost
       // cells.
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
                  BL_TO_FORTRAN_ANYD(U_cc),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
@@ -559,16 +560,16 @@ Castro::cons_to_prim_fourth(const Real time)
 #endif
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      const Box& qbx = mfi.growntilebox(NUM_GROW-1);
+      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
       const int idx = mfi.tileIndex();
 
       // now convert q, qaux into 4th order accurate averages
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
       // we need here
 
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbx),
-                             BL_TO_FORTRAN_ANYD(q),
-                             BL_TO_FORTRAN_ANYD(q_bar),
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
+                             BL_TO_FORTRAN_FAB(q),
+                             BL_TO_FORTRAN_FAB(q_bar),
                              &idx);
 
       // not sure if we need to convert qaux this way, or if we can
