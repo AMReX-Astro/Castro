@@ -498,6 +498,87 @@ Castro::cons_to_prim(const Real time)
 }
 
 
+void
+Castro::cons_to_prim_fourth(const Real time)
+{
+  // convert the conservative state cell averages to primitive cell
+  // averages with 4th order accuracy
+
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbx = mfi.growntilebox(NUM_GROW);
+      const int idx = mfi.tileIndex();
+
+      // note: these conversions are using a growntilebox, so it
+      // will include ghost cells
+
+      // convert U_avg to U_cc -- this will use a Laplacian
+      // operation and will result in U_cc defined only on
+      // NUM_GROW-1 ghost cells at the end.
+      FArrayBox U_cc;
+      U_cc.resize(qbx, NUM_STATE);
+
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbx),
+                          BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                          BL_TO_FORTRAN_ANYD(U_cc));
+
+      // convert U_avg to q_bar -- this will be done on all NUM_GROW
+      // ghost cells.
+      qaux_bar.resize(qbx, NQAUX);
+
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+                 BL_TO_FORTRAN_ANYD(qaux_bar),
+                 &idx);
+
+      // this is what we should construct the flattening coefficient
+      // from
+
+      // convert U_cc to q_cc (we'll store this temporarily in q,
+      // qaux).  This will remain valid only on the NUM_GROW-1 ghost
+      // cells.
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+                 BL_TO_FORTRAN_ANYD(U_cc),
+                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                 &idx);
+    }
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbx = mfi.growntilebox(NUM_GROW-1);
+      const int idx = mfi.tileIndex();
+
+      // now convert q, qaux into 4th order accurate averages
+      // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
+      // we need here
+
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbx),
+                             BL_TO_FORTRAN_ANYD(q),
+                             BL_TO_FORTRAN_ANYD(q_bar),
+                             &idx);
+
+      // not sure if we need to convert qaux this way, or if we can
+      // just evaluate it
+
+    }
+
+}
+
+
 
 void
 Castro::check_for_cfl_violation(const Real dt)

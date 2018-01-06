@@ -783,7 +783,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     q.define(grids, dmap, NQ, NUM_GROW);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-    src_q.define(grids, dmap, QVAR, NUM_GROW);
+    if (do_ctu)
+      src_q.define(grids, dmap, QVAR, NUM_GROW);
+    if (fourth_order) 
+      q_bar.define(grids, dmap, NQ, NUM_GROW);
 
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method

@@ -255,6 +255,8 @@ public:
 
     void cons_to_prim(const amrex::Real time);
 
+    void cons_to_prim_fourth(const amrex::Real time);
+
     void check_for_cfl_violation(const amrex::Real dt);
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
@@ -627,6 +629,9 @@ protected:
     // The primitive variable state array.
     //
     amrex::MultiFab q;
+
+    // we need a second version when doing fourth order
+    amrex::MultiFab q_bar;
 
     //
     // The auxiliary primitive variable state array.
