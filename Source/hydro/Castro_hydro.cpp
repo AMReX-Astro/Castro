@@ -573,7 +573,7 @@ Castro::cons_to_prim_fourth(const Real time)
                              &idx);
 
       // not sure if we need to convert qaux this way, or if we can
-      // just evaluate it
+      // just evaluate it (we may not need qaux at all actually)
 
     }
 
