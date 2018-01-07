@@ -101,7 +101,7 @@ contains
        call bl_error("Can only run a collision or freefall in 1D. Exiting.")
     endif
 
-    ! Don't do a collision or a free-fall in a rotating reference frame.
+    ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
 
     if (problem .eq. 0 .and. do_rotation .eq. 1) then
        call bl_error("The collision problem does not make sense in a rotating reference frame.")
@@ -110,6 +110,10 @@ contains
     if (problem .eq. 4 .and. do_rotation .eq. 1) then
        call bl_error("The free-fall problem does not make sense in a rotating reference frame.")
     endif
+
+    if (problem .eq. 5 .and. do_rotation .eq. 1) then
+       call bl_error("The TDE problem does not make sense in a rotating reference frame.")
+    end if
 
     ! Make sure we have a sensible eccentricity.
 
@@ -130,6 +134,44 @@ contains
     if (problem .eq. 3) then
        rotation_include_coriolis = 0
     endif
+
+    ! TDE sanity checks
+
+    if (problem .eq. 5) then
+
+       ! We must have a BH point mass defined.
+
+       if (point_mass <= ZERO) then
+
+          call bl_error("No point mass specified for the TDE problem.")
+
+       end if
+
+       ! This problem cannot have a secondary WD.
+
+       if (mass_S >= ZERO) then
+
+          call bl_error("TDE problem cannot have a secondary WD.")
+
+       end if
+
+       ! Beta parameter must be positive.
+
+       if (tde_beta <= ZERO) then
+
+          call bl_error("TDE beta must be positive.")
+
+       end if
+
+       ! Initial distance must be positive.
+
+       if (tde_separation <= ZERO) then
+
+          call bl_error("TDE separation must be positive.")
+
+       end if
+
+    end if
 
   end subroutine read_namelist
 
@@ -395,19 +437,22 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period
+    use meth_params_module, only: rot_period, point_mass
     use initial_model_module, only: initialize_model, establish_hse
-    use prob_params_module, only: center, problo, probhi, dim
+    use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
-    use bl_error_module, only: bl_error
+    use bl_error_module, only: bl_error, bl_warn
+    use fundamental_constants_module, only: Gconst, c_light
 
     implicit none
 
     double precision :: v_ff, collision_offset
     double precision :: omega(3)
+
+    integer :: lev
 
     omega = get_omega(ZERO)
 
@@ -671,6 +716,56 @@ contains
        roche_rad_P = roche_rad_P * a
        roche_rad_S = roche_rad_S * a
 
+    else
+
+       if (problem == 5) then
+
+          ! The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
+
+          tde_tidal_radius = (point_mass / mass_P)**THIRD * model_P % radius
+
+          ! The usual definition for the Schwarzschild radius.
+
+          tde_schwarzschild_radius = TWO * Gconst * point_mass / c_light**TWO
+
+          ! The pericenter radius is the distance of closest approach,
+          ! for a point mass on a parabolic orbit.
+
+          tde_pericenter_radius = tde_tidal_radius / tde_beta
+
+          ! Given the pericenter distance, we can calculate the parameters of
+          ! the parabolic orbit. A parabolic orbit has E = 0, so KE = PE,
+          ! or (1/2) M_WD v**2 = G * M_WD * M_BH / r. This simplifies to
+          ! v = sqrt(2 * G * M_BH / r). The initial distance is set at runtime.
+
+          r_P_initial = tde_separation * tde_tidal_radius
+
+          v_P = sqrt(TWO * Gconst * point_mass / r_P_initial)
+
+          ! Now we need to convert this into angular and radial components. To
+          ! do this, we need the orbital angle, which comes from the orbit equation,
+          ! r = r_0 / (1 - eccentricity * cos(phi)), where for a parabolic orbit,
+          ! r_0 is twice the pericenter distance.
+
+          orbital_eccentricity = ONE
+          orbital_angle = acos(ONE - (TWO * tde_pericenter_radius) / r_P_initial)
+
+          ! Now set the x and y components of the position and velocity. The position is
+          ! straightforward: the orbital angle is the usual angle phi such that x = r cos(phi)
+          ! and y = r sin(phi). The velocity is a little more involved and depends on the orbit
+          ! equation. The Cartesian form of the parabolic orbit equation is x = y**2 / (2 * r_0) + r_0 / 2,
+          ! so dx/dt = (y / r_0) * dy/dt. Given that v**2 = v_x**2 + v_y**2, we have
+          ! v_x = v / sqrt( 1 + (r_0 / (r * sin(phi))) )**2 , and
+          ! v_y = v / sqrt( 1 + (r * sin(phi) / r_0)**2 ).
+
+          center_P_initial(axis_1) = center_P_initial(axis_1) - r_P_initial * cos(orbital_angle)
+          center_P_initial(axis_2) = center_P_initial(axis_2) - r_P_initial * sin(orbital_angle)
+
+          vel_P(axis_1) = v_P / sqrt(ONE + (TWO * tde_pericenter_radius / (r_P_initial * sin(orbital_angle)))**2)
+          vel_P(axis_2) = v_P / sqrt(ONE + (r_P_initial * sin(orbital_angle) / (TWO * tde_pericenter_radius))**2)
+
+       end if
+
     endif
 
     ! Reset the terminal color to its previous state.
@@ -701,7 +796,6 @@ contains
          ( center_S_initial(3) + model_S % radius .gt. probhi(3) .and. dim .eq. 3 ) ) then
        call bl_error("Secondary does not fit inside the domain.")
     endif
-
 
   end subroutine binary_setup
 
