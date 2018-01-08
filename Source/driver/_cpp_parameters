@@ -419,6 +419,9 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
+use_point_mass               int           1                  y        POINTMASS
+
+# mass of the point mass
 point_mass                   Real          0.0                y        POINTMASS
 
 # if we have a central point mass, we can prevent mass from building

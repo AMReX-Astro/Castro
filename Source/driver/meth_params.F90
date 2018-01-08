@@ -170,6 +170,7 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
+  integer         , save :: use_point_mass
   real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
@@ -201,9 +202,9 @@ module meth_params_module
   !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
   !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
   !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(use_point_mass, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, grown_factor, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -233,21 +234,6 @@ contains
 #ifdef DIFFUSION
     diffuse_cutoff_density = -1.d200;
     diffuse_cond_scale_fac = 1.0d0;
-#endif
-#ifdef ROTATION
-    rot_period = -1.d200;
-    rot_period_dot = 0.0d0;
-    rotation_include_centrifugal = 1;
-    rotation_include_coriolis = 1;
-    rotation_include_domegadt = 1;
-    state_in_rotating_frame = 1;
-    rot_source_type = 4;
-    implicit_rotation_update = 1;
-    rot_axis = 3;
-#endif
-#ifdef POINTMASS
-    point_mass = 0.0d0;
-    point_mass_fix_solution = 0;
 #endif
     difmag = 0.1d0;
     small_dens = -1.d200;
@@ -319,26 +305,27 @@ contains
     do_acc = -1;
     grown_factor = 1;
     track_grid_losses = 0;
+#ifdef POINTMASS
+    use_point_mass = 1;
+    point_mass = 0.0d0;
+    point_mass_fix_solution = 0;
+#endif
+#ifdef ROTATION
+    rot_period = -1.d200;
+    rot_period_dot = 0.0d0;
+    rotation_include_centrifugal = 1;
+    rotation_include_coriolis = 1;
+    rotation_include_domegadt = 1;
+    state_in_rotating_frame = 1;
+    rot_source_type = 4;
+    implicit_rotation_update = 1;
+    rot_axis = 3;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
-#endif
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef POINTMASS
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -404,6 +391,22 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -431,9 +434,9 @@ contains
     !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
     !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
     !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags

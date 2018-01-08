@@ -148,7 +148,8 @@ Castro::advance (Real time,
 
 #ifdef POINTMASS
     // Update the point mass.
-    pointmass_update(time, dt);
+    if (use_point_mass)
+        pointmass_update(time, dt);
 #endif
 
 #ifdef RADIATION
