@@ -548,6 +548,15 @@ extern "C"
      amrex::Real& zang_lost);
 
 
+  void ca_make_fourth_average(const int lo[], const int hi[],
+                              BL_FORT_FAB_ARG_3D(q), const int* nc,
+                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* idx);
+
+
+  void ca_make_cell_center(const int lo[], const int hi[],
+                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
+                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc, const int* idx);
+
   void ca_mol_single_stage
     (const amrex::Real* time,
      const int    lo[], const int    hi[],
