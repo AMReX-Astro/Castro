@@ -12,8 +12,12 @@
 
   roche_radius_factor = 2.0d0
 
-  collision_separation = 4.0
-  collision_impact_parameter = 0.0
+  collision_separation = 4.0d0
+  collision_impact_parameter = 0.0d0
+
+  tde_separation = 8.0d0
+  tde_beta = 6.0d0
+  tde_initial_velocity = 1
 
   interp_temp = T
 

@@ -92,6 +92,12 @@ module probdata_module
 
   double precision, save :: tde_beta = 6.0d0
 
+  ! For a TDE, should we give the star an initial kick of velocity
+  ! corresponding to its parabolic orbit? By default we will, but
+  ! this option exists so we can test for HSE.
+
+  integer, save :: tde_initial_velocity = 1
+
   double precision, save :: tde_tidal_radius
   double precision, save :: tde_schwarzschild_radius
   double precision, save :: tde_pericenter_radius
@@ -257,6 +263,7 @@ module probdata_module
        collision_impact_parameter, &
        tde_separation, &
        tde_beta, &
+       tde_initial_velocity, &
        interp_temp, &
        relaxation_damping_factor, &
        relaxation_density_cutoff, &

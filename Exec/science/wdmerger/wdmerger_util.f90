@@ -761,8 +761,12 @@ contains
           center_P_initial(axis_1) = center_P_initial(axis_1) - r_P_initial * cos(orbital_angle)
           center_P_initial(axis_2) = center_P_initial(axis_2) - r_P_initial * sin(orbital_angle)
 
-          vel_P(axis_1) = v_P / sqrt(ONE + (TWO * tde_pericenter_radius / (r_P_initial * sin(orbital_angle)))**2)
-          vel_P(axis_2) = v_P / sqrt(ONE + (r_P_initial * sin(orbital_angle) / (TWO * tde_pericenter_radius))**2)
+          if (tde_initial_velocity == 1) then
+
+             vel_P(axis_1) = v_P / sqrt(ONE + (TWO * tde_pericenter_radius / (r_P_initial * sin(orbital_angle)))**2)
+             vel_P(axis_2) = v_P / sqrt(ONE + (r_P_initial * sin(orbital_angle) / (TWO * tde_pericenter_radius))**2)
+
+          end if
 
        end if
 
