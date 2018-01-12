@@ -517,21 +517,27 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! Note: QREINT is currently just "e"
 
 
-           ! TODO: first call the EOS as below to get the correct T, then modify these
-           ! calls to use eos_input_rt to save time
+
+           eos_state % rho = q(i,j,k,QRHO)
+           eos_state % e   = q(i,j,k, QREINT)
+           eos_state % T   = uin(i,j,k,UTEMP)
+           eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
+           
+           call eos(eos_input_re, eos_state)
+
 
            cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
+           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
+           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 
            cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), uin(i,j,k,UTEMP), &
+           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
                                    q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
                                    q(i,j,k,QFS:QFS+nspec-1))
 

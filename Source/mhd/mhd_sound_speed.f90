@@ -4,7 +4,7 @@
      use amrex_fort_module, only : rt => amrex_real
      use meth_params_module
      use eos_module, only : eos
-     use eos_type_module, only : eos_t, eos_input_re
+     use eos_type_module, only : eos_t, eos_input_rt
      use network, only: nspec
 
      implicit none
@@ -25,7 +25,7 @@
      eos_state % T   = temp
      eos_state % xn  = compo
      
-     call eos(eos_input_re, eos_state)
+     call eos(eos_input_rt, eos_state)
   
      P = eos_state % p
      as = (eos_state % cs)**2
