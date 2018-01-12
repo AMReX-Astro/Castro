@@ -26,6 +26,7 @@ static int implicit_rotation_update;
 static int rot_axis;
 #endif
 #ifdef POINTMASS
+static int use_point_mass;
 static amrex::Real point_mass;
 static int point_mass_fix_solution;
 #endif

@@ -1,57 +1,28 @@
 &fortin 
 
-  mass_P = 0.90
-  mass_S = 0.90
+  mass_P = 0.60
+  mass_S = -1.0
 
-  central_density_P = -1.0d0
-  central_density_S = -1.0d0
-
-  nsub = 4
-
-  problem = 2
-
-  roche_radius_factor = 2.0d0
-
-  collision_separation = 4.0d0
-  collision_impact_parameter = 0.0d0
+  problem = 5
 
   tde_separation = 8.0d0
   tde_beta = 6.0d0
-  tde_initial_velocity = 1
 
   interp_temp = T
-
-  relaxation_damping_factor = 1.0d-1
-  relaxation_density_cutoff = 1.0d3
-
-  radial_damping_factor = 1.0d3
-  initial_radial_velocity_factor = -1.0d-3
 
   ambient_density = 1.0d-4
 
   stellar_temp = 1.0d7
   ambient_temp = 1.0d7
 
-  orbital_eccentricity = 0.0d0
-  orbital_angle = 0.0d0
-
-  axis_1 = 1
-  axis_2 = 2 
-
   max_stellar_tagging_level = 20
-  max_temperature_tagging_level = 20
-  max_center_tagging_level = 20
+  max_temperature_tagging_level = 0
+  max_center_tagging_level = 0
   stellar_density_threshold = 1.0d0
   temperature_tagging_threshold = 5.0d8
   center_tagging_radius = 0.0d0
   max_tagging_radius = 0.75d0
   roche_tagging_factor = 2.0d0
-
-  bulk_velx = 0.0d0
-  bulk_vely = 0.0d0
-  bulk_velz = 0.0d0
-
-  smallu = 0.0d0
 
   center_fracx = 0.5d0
   center_fracy = 0.5d0
@@ -61,24 +32,6 @@
   initial_model_npts = 4096
   initial_model_mass_tol = 1.d-6
   initial_model_hse_tol = 1.d-10
-
-  gw_dist = 10.0
-
-  max_he_wd_mass = 0.45d0
-  max_hybrid_wd_mass = 0.6d0
-  hybrid_wd_he_shell_mass = 0.1d0
-  max_co_wd_mass = 1.05d0
-  co_wd_he_shell_mass = 0.0d0
-
-  hybrid_wd_c_frac = 0.50d0
-  hybrid_wd_o_frac = 0.50d0
-
-  co_wd_c_frac = 0.40d0
-  co_wd_o_frac = 0.60d0
-
-  onemg_wd_o_frac  = 0.60d0
-  onemg_wd_ne_frac = 0.35d0
-  onemg_wd_mg_frac = 0.05d0
 
 /
 
@@ -90,8 +43,8 @@
 
   sponge_lower_radius  = 0.0d0
   sponge_upper_radius  = 0.0d0
-  sponge_lower_density = 0.0d0
-  sponge_upper_density = 0.0d0
+  sponge_lower_density = 1.0d0
+  sponge_upper_density = 1.0d0
   sponge_timescale     = 0.01d0
 
 /

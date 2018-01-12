@@ -26,6 +26,7 @@ pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
 #endif
 #ifdef POINTMASS
+pp.query("use_point_mass", use_point_mass);
 pp.query("point_mass", point_mass);
 pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif

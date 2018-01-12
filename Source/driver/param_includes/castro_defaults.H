@@ -26,6 +26,7 @@ int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
 #endif
 #ifdef POINTMASS
+int         Castro::use_point_mass = 1;
 amrex::Real Castro::point_mass = 0.0;
 int         Castro::point_mass_fix_solution = 0;
 #endif

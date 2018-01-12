@@ -534,7 +534,10 @@ public:
 
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+#ifdef POINTMASS
+    int using_point_mass ();
     amrex::Real get_point_mass ();
+#endif
 
 #ifdef HYBRID_MOMENTUM
     void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
@@ -937,6 +940,13 @@ amrex::Real
 Castro::get_point_mass ()
 {
     return point_mass;
+}
+
+inline
+int
+Castro::using_point_mass ()
+{
+    return use_point_mass;
 }
 #endif
 

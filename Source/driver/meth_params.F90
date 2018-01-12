@@ -171,6 +171,7 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
+  integer         , save :: use_point_mass
   real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
@@ -202,9 +203,9 @@ module meth_params_module
   !$acc create(do_rotation, rot_period, rot_period_dot) &
   !$acc create(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
   !$acc create(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-  !$acc create(rot_axis, point_mass, point_mass_fix_solution) &
-  !$acc create(do_acc, grown_factor, track_grid_losses) &
-  !$acc create(const_grav, get_g_from_phi)
+  !$acc create(rot_axis, use_point_mass, point_mass) &
+  !$acc create(point_mass_fix_solution, do_acc, grown_factor) &
+  !$acc create(track_grid_losses, const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -247,6 +248,7 @@ contains
     rot_axis = 3;
 #endif
 #ifdef POINTMASS
+    use_point_mass = 1;
     point_mass = 0.0d0;
     point_mass_fix_solution = 0;
 #endif
@@ -339,6 +341,7 @@ contains
     call pp%query("rot_axis", rot_axis)
 #endif
 #ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
     call pp%query("point_mass", point_mass)
     call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
@@ -434,9 +437,9 @@ contains
     !$acc device(do_rotation, rot_period, rot_period_dot) &
     !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
     !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags

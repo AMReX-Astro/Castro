@@ -53,6 +53,7 @@ module probdata_module
   ! 2 = Keplerian orbit; distance set so that the secondary exactly fills its Roche lobe radius
   ! 3 = Problem 2 with an initial relaxation step
   ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
+  ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
   integer, save :: problem = 2
 
@@ -80,10 +81,33 @@ module probdata_module
 
 
 
+  ! TDE parameters
+
+  ! For a TDE, number of WD tidal radii to separate the WD and BH.
+
+  double precision, save :: tde_separation = 8.0d0
+
+  ! For a TDE, the parameter beta: the ratio of the tidal radius to
+  ! the Schwarzschild radius of the BH.
+
+  double precision, save :: tde_beta = 6.0d0
+
+  ! For a TDE, should we give the star an initial kick of velocity
+  ! corresponding to its parabolic orbit? By default we will, but
+  ! this option exists so we can test for HSE.
+
+  integer, save :: tde_initial_velocity = 1
+
+  double precision, save :: tde_tidal_radius
+  double precision, save :: tde_schwarzschild_radius
+  double precision, save :: tde_pericenter_radius
+
+
+
   ! Binary orbit properties
 
   double precision, save :: r_P_initial, r_S_initial, a_P_initial, a_S_initial, a  
-  double precision, save :: v_P_r, v_S_r, v_P_phi, v_S_phi
+  double precision, save :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
   double precision, save :: center_P_initial(3), center_S_initial(3)
   double precision, save :: orbital_eccentricity = 0.0d0
   double precision, save :: orbital_angle = 0.0d0
@@ -237,6 +261,9 @@ module probdata_module
        problem, &
        collision_separation, &
        collision_impact_parameter, &
+       tde_separation, &
+       tde_beta, &
+       tde_initial_velocity, &
        interp_temp, &
        relaxation_damping_factor, &
        relaxation_density_cutoff, &
