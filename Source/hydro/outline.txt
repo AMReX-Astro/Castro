@@ -37,6 +37,10 @@ Extra MFs:
 
 Also needed:
 
+  -- for the Riemann solver, we return the interface state of only a subset 
+     of varaible NGDNV, not all NQ -- this means that we will need a separate
+     Riemann solver here to get all interface states
+
   -- how do we compute the pdivu term to 4th order -- this is needed
      for the internal energy evolution
 
