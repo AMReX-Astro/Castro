@@ -1,0 +1,20 @@
+State Data will hold the old and new solution (as usually)
+
+We'll have a kold vector of MFs, of size m, and a knew vector of MFs,
+also size m
+
+kold[0] and knew[0] are both the old time solution, so they will just
+be references to the StateData.  The other entries will be at the
+intermediate quadrature points in the time integration.
+
+We will use the "new" time solution in the StateData as our work space,
+copying knew[m] into it when computing the update for m+1.  This allows
+us to fill ghost cells and compute the advective term based on knew[m].
+
+We will also need a vector of m MFs, Aold, to store the advective
+terms at the old iteration (kold).  Note: we cannot update these as we
+do an update from m to m+1, since the integral in the SDC update
+should all be at the same iteration.
+
+None of kold, knew, or Aold need ghost cells.
+
