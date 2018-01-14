@@ -37,9 +37,6 @@ Extra MFs:
 
 Also needed:
 
-  -- we need a Riemann problem that just constructs the interface
-     states, not fluxes
-
   -- how do we compute the pdivu term to 4th order -- this is needed
      for the internal energy evolution
 
@@ -49,3 +46,6 @@ Also needed:
      the proper old and new sources, to allow for multilevel support
 
   -- we need to fix pradial
+
+  -- for non-Cartesian, we need to have our Laplacian (and transverse Lap) have
+     the proper area factors
