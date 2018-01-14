@@ -67,9 +67,9 @@ contains
     integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
     integer, intent(in) :: domlo(3),domhi(3)
 
-    ! note: qm, qp, q come in as planes (all of x,y
+    ! note: qm, qp, q may come in as planes (all of x,y
     ! zones but only 2 elements in the z dir) instead of being
-    ! dimensioned the same as the full box.  We index these with kc
+    ! dimensioned the same as the full box.  We index these with kc.
     ! flux either comes in as planes (like qm, qp, ... above), or
     ! comes in dimensioned as the full box.  We index the flux with
     ! kflux -- this will be set correctly for the different cases.
