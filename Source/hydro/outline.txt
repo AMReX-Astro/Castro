@@ -37,7 +37,15 @@ Extra MFs:
 
 Also needed:
 
-  -- we need to make sure that at the end of evolution Source_Type has the proper
-     old and new sources, to allow for multilevel support
+  -- we need a Riemann problem that just constructs the interface
+     states, not fluxes
+
+  -- how do we compute the pdivu term to 4th order -- this is needed
+     for the internal energy evolution
+
+  -- how do we do source terms to 4th order (like gravity)
+
+  -- we need to make sure that at the end of evolution Source_Type has
+     the proper old and new sources, to allow for multilevel support
 
   -- we need to fix pradial
