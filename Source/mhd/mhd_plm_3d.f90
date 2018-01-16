@@ -581,7 +581,7 @@ contains
              Im(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
              Im(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ(3) + 0.5d0*dt_over_a*smhd(3)
              Im(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QRHO,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
              Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3)		= temp(i,j,k-1,ibz) !! Bz stuff
