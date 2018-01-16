@@ -987,27 +987,7 @@ Castro::update_relaxation(Real time, Real dt) {
         MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-        MultiFab& source_old = getLevel(lev).get_old_data(Source_Type);
-        MultiFab& source_new = getLevel(lev).get_new_data(Source_Type);
-
-        // Note that in principle we would need to subtract the new-time sources
-        // from the state before doing this, because we originally calculated them
-        // using the state coming out of the hydro. This would matter for, say,
-        // the Coriolis force, since it depends on what the velocity is. But when
-        // we're doing relaxation, we disable the Coriolis force, so it's OK to
-        // use the final state for calculating what the rotation term was.
-
-        getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
-        MultiFab::Subtract(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
-        rot_force[lev]->setVal(0.0);
-
-        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], -dt);
-        MultiFab::Subtract(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
-        rot_force[lev]->setVal(0.0);
-
-        // Now use the rot_force MultiFab as temporary data to hold all of the
+        // Use the rot_force MultiFab as temporary data to hold the
         // non-rotation forces that were applied during the step. The inspiration
         // for this approach is the method of Rosswog, Speith & Wynn (2004)
         // (which was in the context of neutron star mergers; it was extended
@@ -1104,39 +1084,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
     rotational_period = period;
     set_period(&period);
-
-    // Re-calculate and re-apply the rotation source term to the state.
-
-    for (int lev = coarse_level; lev <= finest_level; ++lev) {
-
-        const Real old_time = getLevel(lev).state[State_Type].prevTime();
-        const Real new_time = getLevel(lev).state[State_Type].curTime();
-
-        const Real dt = new_time - old_time;
-
-        MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
-        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
-
-        MultiFab& source_old = getLevel(lev).get_old_data(Source_Type);
-        MultiFab& source_new = getLevel(lev).get_new_data(Source_Type);
-
-        rot_force[lev]->setVal(0.0);
-        getLevel(lev).construct_old_rotation_source(*rot_force[lev], S_old, old_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
-        MultiFab::Add(source_old, *rot_force[lev], 0, 0, NUM_STATE, 0);
-
-        rot_force[lev]->setVal(0.0);
-        getLevel(lev).construct_new_rotation_source(*rot_force[lev], S_old, S_new, new_time, dt);
-        getLevel(lev).apply_source_to_state(S_new, *rot_force[lev], dt);
-        MultiFab::Add(source_new, *rot_force[lev], 0, 0, NUM_STATE, 0);
-
-        // Since we didn't apply the sources on the ghost zones, do a fill
-        // to make the ghost zones consistent.
-
-        AmrLevel::FillPatch(*this, source_old, NUM_GROW, old_time, Source_Type, 0, NUM_STATE);
-        AmrLevel::FillPatch(*this, source_new, NUM_GROW, new_time, Source_Type, 0, NUM_STATE);
-
-    }
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the
