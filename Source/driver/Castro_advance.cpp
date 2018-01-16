@@ -473,6 +473,9 @@ Castro::do_advance_mol (Real time,
   // Check for NaN's.
   check_for_nan(S_new);
 
+  // TODO: we need to make source_old and source_new be the source
+  // terms at the old and new time.  we never actually evaluate the
+  // sources using the new time state (since we just constructed it).
 
   // Do the second half of the reactions.
 
