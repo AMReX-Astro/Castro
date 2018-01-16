@@ -668,7 +668,6 @@ contains
     type(eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1 from EOS
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
@@ -740,7 +739,6 @@ contains
     type (eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1 from EOS
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
@@ -808,7 +806,6 @@ contains
     type (eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
@@ -876,7 +873,6 @@ contains
     type (eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1
 
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
@@ -943,7 +939,6 @@ contains
     type(eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
@@ -1010,7 +1005,6 @@ contains
     type (eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
@@ -1077,7 +1071,6 @@ contains
     type(eos_t) :: eos_state
 
     !Speeeeeeeedssssss
-    ! TODO: gamma_const -> gamma_1
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES) 
     eos_state % xn  = Q(QFS:QFS+nspec-1)
