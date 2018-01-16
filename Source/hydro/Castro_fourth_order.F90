@@ -44,7 +44,7 @@ subroutine ca_fourth_single_stage(time, &
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: cmpflx
-  use ppm_module, only : ppm_reconstruct
+  use fourth_order
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
@@ -676,4 +676,4 @@ subroutine ca_fourth_single_stage(time, &
   call bl_deallocate(flx_avg)
 #endif
 
-end subroutine ca_mol_single_stage
+end subroutine ca_fourth_single_stage
