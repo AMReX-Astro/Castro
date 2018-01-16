@@ -137,9 +137,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UEDEN) = qL(QVELN)*(eL + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
                   - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
       FL(UMAGN) = 0.d0
-      ! TODO: is there a sign error here?
-      FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN) 
-      FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
+      FL(UMAGP1) = qL(QVELP1)*qL(QMAGN) - qL(QVELN)*qL(QMAGP1)
+      FL(UMAGP2) = qL(QVELP2)*qL(QMAGN) - qL(QVELN)*qL(QMAGP2)
 
       eos_state % rho = qR(QRHO)
       eos_state % p   = qR(QPRES) 
