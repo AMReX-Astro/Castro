@@ -159,8 +159,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UEDEN) = qR(QVELN)*(eR + (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))) &
                   - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
       FR(UMAGN) = 0.d0
-      FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
-      FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
+      FR(UMAGP1) = qR(QVELP1)*qR(QMAGN) - qR(QVELN)*qR(QMAGP1)  
+      FR(UMAGP2) = qR(QVELP2)*qR(QMAGN) - qR(QVELN)*qR(QMAGP2)  
 
 
       ! TODO: check HLLD paper for these
