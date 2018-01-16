@@ -1335,7 +1335,7 @@ contains
              endif
 
              eos_state % rho = qint(i,j,kc,GDRHO)
-             eos_state % p = qint(i,j,kc,QPRES)
+             eos_state % p = qint(i,j,kc,GDPRES)
              eos_state % xn(:) = xn(:)
              eos_state % T = 1.e4  ! a guess
 
