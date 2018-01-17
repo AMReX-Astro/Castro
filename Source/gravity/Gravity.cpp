@@ -2916,6 +2916,10 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     LPInfo info;
     info.setAgglomeration(mlmg_agglomeration);
     info.setConsolidation(mlmg_consolidation);
+    if (crse_level > 0) {
+        info.setMCoarsening(std::pair<bool,int>(mlmg_msolve,
+                                                parent->refRatio(crse_level-1)[0]));
+    }
 
     MLPoisson mlpoisson(gmv, bav, dmv, info);
 
