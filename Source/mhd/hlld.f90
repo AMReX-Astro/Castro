@@ -163,7 +163,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UMAGP2) = qR(QVELP2)*qR(QMAGN) - qR(QVELN)*qR(QMAGP2)  
 
 
-      ! TODO: check HLLD paper for these
+      ! From Miyoshi and Kusano paper eq.(3) 
 	asL  = gam1_L * qL(QPRES)/qL(QRHO)
 	asR  = gam1_R * qR(QPRES)/qR(QRHO)
 
@@ -174,17 +174,24 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	canR = (qR(QMAGN)**2)/qR(QRHO)
 
 	!Catch the fastest waves, brah
+        !cf as in equation (3) of HLLD paper (Miyoshi and Kusano)
 	cfL2  = sqrt(0.5d0*((asL + caL) + sqrt((asL + caL)**2 - 4.0d0*asL*canL)))
 	cfR  = sqrt(0.5d0*((asR + caR) + sqrt((asR + caR)**2 - 4.0d0*asR*canR)))
 
 	!Riemann Speeds
+        !sL and sR, eq.(12) (Miyoshi and Kusano)
 	sL   = min(qL(QVELN) - cfL2, qR(QVELN) - cfR)
 	sR   = max(qL(QVELN) + cfL2, qR(QVELN) + cfR)
-	sM   = ((sR - qR(QVELN))*qR(QRHO)*qR(QVELN) - (sL - qL(QVELN))*qL(QRHO)*qL(QVELN) - qR(QPRES) + qL(QPRES))/((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
+        !sM, eq.(38)
+	sM   = ((sR - qR(QVELN))*qR(QRHO)*qR(QVELN) - (sL - qL(QVELN))*qL(QRHO)*qL(QVELN) - &
+               (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))) + &
+               (qL(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))))/ &
+               ((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
 
 	!Pressures in the Riemann Fan
-	ptL  = qL(QPRES)
-	ptR  = qR(QPRES)
+	ptL  = qL(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
+	ptR  = qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
+        !pst, eq.(41)
 	pst  = (sR - qR(QVELN))*qR(QRHO)*ptL - (sL - qL(QVELN))*qL(QRHO)*ptR + qL(QRHO)*qR(QRHO)*(sR - qR(QVELN))*(sL - qL(QVELN))*(qR(QVELN) - qL(QVELN))
 	pst  = pst/((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
 
