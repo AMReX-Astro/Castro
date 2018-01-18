@@ -98,9 +98,6 @@ plm_iorder                   int           2                  y
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
 
-# this is deprecated---use {\tt riemann\_solver} instead
-use_colglaz                  int           -1
-
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
 # 1: Colella \& Glaz (a two-shock solver)
@@ -190,12 +187,6 @@ do_sponge                    int           0                  y
 
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
-
-# should we update the state in between evaluations of the new-time source terms
-update_state_between_sources int           1
-
-# retain source terms until end of timestep
-keep_sources_until_end       int           0
 
 # extrapolate the source terms (gravity and rotation) to $n+1/2$
 # timelevel for use in the interface state prediction
@@ -322,20 +313,16 @@ dtnuc_X                      Real          1.e200             y
 # prevent the timestep from becoming very small due to changes in trace species.
 dtnuc_X_threshold            Real          1.e-3              y
 
-# If we are doing burning timestep limiting, choose the method for
-# estimating $\dot{e}$ and $\dot{X}$.
-# 1 == call the burner's RHS for an instantaneous calculation
-# 2 == use the second-half burning from the last timestep
-# 3 == use both the first- and the second-half burning from the last timestep
-# 4 == use the change in the full state over the last timestep
-dtnuc_mode                   int           1                  y
-
 # limit the zone size based on how much the burning can change the internal
 # energy of a zone. The zone size on the finest level must be smaller than
 # {\tt dxnuc} $\cdot\, c_s\cdot (e / \dot{e})$, where $c_s$ is the sound speed.
 # This ensures that the sound-crossing time is smaller than the
 # nuclear energy injection timescale.
 dxnuc                        Real          1.e200             y
+
+# Disable limiting based on dxnuc above this threshold. This allows zones that
+# have already ignited or are about to ignite to be de-refined.
+dxnuc_max                    Real          1.e200             y
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     int          -1                  y
@@ -432,6 +419,9 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
+use_point_mass               int           1                  y        POINTMASS
+
+# mass of the point mass
 point_mass                   Real          0.0                y        POINTMASS
 
 # if we have a central point mass, we can prevent mass from building
@@ -480,10 +470,6 @@ print_fortran_warnings       int           (0, 1)
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
 
-# if we're printing diagnostic information about the updates, should we
-# break down the information into the constitent source terms?
-coalesce_update_diagnostics  int           (0, 1)
-
 # calculate losses of material through physical grid boundaries
 track_grid_losses            int            0                    y
 
@@ -518,6 +504,43 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
+
+
+
+
+#-----------------------------------------------------------------------------
+# category: particles
+#-----------------------------------------------------------------------------
+
+# permits tracer particle calculation to be turned on and off
+do_tracer_particles          int           0       n      PARTICLES
+
+
+@namespace: particles Castro static
+
+# the level of verbosity for the tracer particle (0 or 1)
+(v, particle_verbose)                int            0
+
+# the name of an input file containing the total particle number and the initial position of each particle.
+particle_init_file           string        ""
+
+# the name of a file with new particles at restart 
+particle_restart_file        string        ""
+
+# to restart from a checkpoint that was written with {\tt USE\_PARTICLES}=FALSE 
+restart_from_nonparticle_chkfile     int      0
+
+# the name of timestamp files.
+particle_output_file         string        ""
+
+# the name of a directory in which timestamp files are stored.
+timestamp_dir        	      string        ""
+
+# whether the local densities at given positions of particles are stored in output files
+timestamp_density            int           1
+
+# whether the local temperatures at given positions of particles are stored in output files
+timestamp_temperature        int           0
 
 
 
@@ -557,18 +580,23 @@ no_composite                int            0
 # at the cost of an additional Poisson solve per timestep.
 do_composite_phi_correction int            1
 
-#  For all gravity types, we can choose a maximum level for explicitly
-#  calculating the gravity and associated potential. Above that level,
-#  we interpolate from coarser levels.
-max_solve_level             int            MAX_LEV-1
-
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
 get_g_from_phi              int            0                  y
 
+# Use C++ MLMG linear solver for self gravity
+use_mlmg_solver              int           0                  n
 
+# how many FMG cycles?
+mlmg_max_fmg_iter            int           0                  n
 
+# Do agglomeration?
+mlmg_agglomeration           int           1                  n
+mlmg_consolidation           int           1                  n
+
+# Do M-Solve?
+mlmg_msolve                  int           0                  n
 
 @namespace: diffusion Diffusion static
 

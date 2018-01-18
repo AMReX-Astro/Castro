@@ -24,7 +24,6 @@ contains
                                stellar_density_threshold, &
                                temperature_tagging_threshold, &
                                center_tagging_radius, &
-                               num_zones_ignited, ignition_level, &
                                com_P, com_S, roche_rad_P, roche_rad_S, &
                                problem
 
@@ -57,9 +56,9 @@ contains
 
              if (level < max_stellar_tagging_level) then
 
-                if (problem .eq. 0 .or. problem .eq. 4) then
+                if (problem .eq. 0 .or. problem .eq. 4 .or. problem .eq. 5) then
 
-                   ! For the collision and free-fall problems, we just want to tag every
+                   ! For the collision, free-fall, and TDE problems, we just want to tag every
                    ! zone that meets the density criterion; we don't want to bother with
                    ! the Roche lobe radius as that doesn't mean much in these cases.
 
@@ -131,12 +130,6 @@ contains
                 endif
 
              endif
-
-             ! If we've ignited, clear the tagging.
-
-             if (problem == 0 .and. num_zones_ignited > 0 .and. level >= ignition_level) then
-                tag(i,j,k) = clear
-             end if
 
              ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 

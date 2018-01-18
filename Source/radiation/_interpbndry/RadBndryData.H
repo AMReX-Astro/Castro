@@ -82,11 +82,11 @@ public:
 protected:
 //@ManMemo: internal data
 //@ManDoc: Array (on orientation) of boundary condition type specifiers
-    amrex::Array<RadBoundCond>   bcond[2*BL_SPACEDIM];
+    amrex::Vector<RadBoundCond>   bcond[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition locations
-    amrex::Array<amrex::Real>    bcloc[2*BL_SPACEDIM];
+    amrex::Vector<amrex::Real>    bcloc[2*BL_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
-    amrex::Array<std::unique_ptr<amrex::Mask> > masks[2*BL_SPACEDIM];
+    amrex::Vector<std::unique_ptr<amrex::Mask> > masks[2*BL_SPACEDIM];
 //@ManDoc: Domain used for mask defintions
     amrex::Geometry geom;
 
@@ -114,12 +114,12 @@ public:
 	return bndry[_face];
     }
 //@ManDoc: return boundary location on given face
-    const amrex::Array<amrex::Real>& bndryLocs(const amrex::Orientation& _face) const
+    const amrex::Vector<amrex::Real>& bndryLocs(const amrex::Orientation& _face) const
     {
 	return bcloc[_face];
     }
 //@ManDoc: return boundary type specifyer on given face
-    const amrex::Array<RadBoundCond>& bndryConds(const amrex::Orientation& _face) const
+    const amrex::Vector<RadBoundCond>& bndryConds(const amrex::Orientation& _face) const
     {
 	return bcond[_face];
     }

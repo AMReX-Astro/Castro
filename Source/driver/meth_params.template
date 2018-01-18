@@ -15,15 +15,15 @@ module meth_params_module
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
-  ! NTHERM: number of thermodynamic variables
-  integer, save :: NTHERM, NVAR
+  ! conservative variables
+  integer, save :: NVAR
   integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, save :: USHK
 
-  ! QTHERM: number of primitive variables
-  integer, save :: QTHERM, QVAR
+  ! primitive variables
+  integer, save :: QVAR
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
+  integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, save :: QGAMCG, QCG, QLAMS
 #endif
@@ -35,7 +35,7 @@ module meth_params_module
   integer, save :: NQ         
 
 #ifdef RADIATION
-  integer, save :: QRADVAR, QRAD, QRADHI, QPTOT, QREITOT
+  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
   integer, save :: fspace_type
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
@@ -76,16 +76,16 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
-  !$acc create(NTHERM, NVAR) &
+  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QTHERM, QVAR) &
+  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
-  !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+  !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
   !$acc create(QFA, QFS, QFX) &
@@ -196,19 +196,6 @@ contains
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
 
-    QPTOT  = QVAR+1
-    QREITOT = QVAR+2
-    QRAD = QVAR+3
-    QRADHI = qrad+ngroups-1
-  
-    QRADVAR = QVAR + 2 + ngroups
-  
-    ! update NQ -- it was already initialized in the hydro
-    NQ = QRADVAR
-
-    ! NQAUX already knows about the hydro and the non-group-dependent
-    ! rad variables, update it here
-    NQAUX = NQAUX + ngroups
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -234,7 +221,7 @@ contains
     
     !$acc update &
     !$acc device(NQ,NQAUX) &
-    !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+    !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)

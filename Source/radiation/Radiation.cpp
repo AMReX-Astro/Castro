@@ -41,7 +41,7 @@ Real Radiation::radfluxtoF = 0.;
 int Radiation::do_multigroup = 0;
 int Radiation::nGroups = 1;
 int Radiation::nNeutrinoSpecies = 0;
-Array<int> Radiation::nNeutrinoGroups(0);
+Vector<int> Radiation::nNeutrinoGroups(0);
 int Radiation::plot_neutrino_group_energies_per_MeV = 1;
 int Radiation::plot_neutrino_group_energies_total   = 0;
 int Radiation::accelerate = 1;
@@ -64,7 +64,7 @@ int Radiation::icomp_lab_Er  = -1;
 int Radiation::icomp_lab_Fr  = -1;
 int Radiation::icomp_com_Fr  = -1;
 int Radiation::nplotvar      = 0;
-Array<std::string>  Radiation::plotvar_names;
+Vector<std::string>  Radiation::plotvar_names;
 int Radiation::filter_lambda_T = 0;
 int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
@@ -195,8 +195,8 @@ void Radiation::read_static_params()
   }
 
   if (rad_hydro_combined) {
-    if (Castro::use_colglaz >= 0) {
-      amrex::Error("Castro::use_colglaz and rad_hydro_combined cannot both be true.");
+    if (Castro::riemann_solver == 1) {
+      amrex::Error("The Colella and Glaz Riemann solver cannot be used with rad_hydro_combined.");
     }
   }
 
@@ -354,7 +354,7 @@ void Radiation::read_static_params()
       if (plot_lab_flux) {
 	  icomp_lab_Fr = plotvar_names.size();
 	  std::string frame = "lab";
-	  Array<std::string> dimname;
+	  Vector<std::string> dimname;
 	  dimname.push_back("x");
 	  dimname.push_back("y");
 	  dimname.push_back("z");
@@ -387,7 +387,7 @@ void Radiation::read_static_params()
       if (plot_com_flux) {
 	  icomp_com_Fr = plotvar_names.size();
 	  std::string frame = "com";
-	  Array<std::string> dimname;
+	  Vector<std::string> dimname;
 	  dimname.push_back("x");
 	  dimname.push_back("y");
 	  dimname.push_back("z");
@@ -635,7 +635,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   if (verbose > 2) {
-    Array<int> temp;
+    Vector<int> temp;
     if (pp.queryarr("spot",temp,0,BL_SPACEDIM)) {
       IntVect tempi(temp);
       spot = tempi;
@@ -733,7 +733,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   // incoming flux information in the RadBndry constructor.  we just
   // set the boundary condition type here:
 
-  Array<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
+  Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
   pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
   pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
   for (int i = 0; i < BL_SPACEDIM; i++) {

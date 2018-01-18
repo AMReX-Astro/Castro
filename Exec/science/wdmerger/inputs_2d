@@ -161,9 +161,6 @@ castro.cg_blend = 2
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
-# Whether to take other source terms into account for new-time sources
-castro.update_state_between_sources = 0
-
 # Reset (rho*e) if it goes negative in the transverse terms
 castro.transverse_reset_rhoe = 1
 
@@ -175,9 +172,6 @@ castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
-
-# Time center the sponge source
-castro.time_center_sponge = 1
 
 ############################################################################################
 # Thermodynamics
@@ -247,9 +241,6 @@ gravity.no_sync = 0
 
 # Disable the use of the lagged composite correction for the potential
 gravity.do_composite_phi_correction = 0
-
-# Maximum level for doing explicit gravity solves
-gravity.max_solve_level = 20
 
 ############################################################################################
 # Rotation
@@ -358,7 +349,7 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
 
 # Write out plotfile data in single precision
 fab.format = NATIVE_32

@@ -223,7 +223,7 @@ Castro::sum_integrated_quantities ()
 
     int nfoo_sum = 24 + NumSpec;
 
-    amrex::Array<Real> foo_sum(nfoo_sum);
+    amrex::Vector<Real> foo_sum(nfoo_sum);
 
     foo_sum[0] = mass;
 
@@ -371,55 +371,70 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(datwidth) << "             TOTAL ENERGY";
-	     log << std::setw(datwidth) << "             TOTAL E GRID";
-	     log << std::setw(datwidth) << "               GAS ENERGY";
-	     log << std::setw(datwidth) << "              KIN. ENERGY";
-	     log << std::setw(datwidth) << "              ROT. ENERGY";
-	     log << std::setw(datwidth) << "             GRAV. ENERGY";
-	     log << std::setw(datwidth) << "              INT. ENERGY";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "                     XMOM";
-	     log << std::setw(datwidth) << "                     YMOM";
-	     log << std::setw(datwidth) << "                     ZMOM";
-#ifdef HYBRID_MOMENTUM
-	     log << std::setw(datwidth) << "              HYB. MOM. R";
-	     log << std::setw(datwidth) << "              HYB. MOM. L";
-	     log << std::setw(datwidth) << "              HYB. MOM. P";
-#endif
-	     log << std::setw(datwidth) << "              ANG. MOM. X";
-	     log << std::setw(datwidth) << "              ANG. MOM. Y";
-	     log << std::setw(datwidth) << "              ANG. MOM. Z";
-#else
-	     log << std::setw(datwidth) << "                     RMOM";
-	     log << std::setw(datwidth) << "                     ZMOM";
-	     log << std::setw(datwidth) << "              ANG. MOM. R";
-	     log << std::setw(datwidth) << "              ANG. MOM. Z";
-#endif
-	     log << std::setw(datwidth) << "                     MASS";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "                    X COM";
-	     log << std::setw(datwidth) << "                    Y COM";
-	     log << std::setw(datwidth) << "                    Z COM";
-	     log << std::setw(datwidth) << "                X COM VEL";
-	     log << std::setw(datwidth) << "                Y COM VEL";
-	     log << std::setw(datwidth) << "                Z COM VEL";
-#else
-	     log << std::setw(datwidth) << "                    R COM";
-	     log << std::setw(datwidth) << "                    Z COM";
-	     log << std::setw(datwidth) << "                R COM VEL";
-	     log << std::setw(datwidth) << "                Z COM VEL";
-#endif
-	     log << std::setw(datwidth) << "             h_+ (axis 1)";
-	     log << std::setw(datwidth) << "             h_x (axis 1)";
-	     log << std::setw(datwidth) << "             h_+ (axis 2)";
-	     log << std::setw(datwidth) << "             h_x (axis 2)";
-	     log << std::setw(datwidth) << "             h_+ (axis 3)";
-	     log << std::setw(datwidth) << "             h_x (axis 3)";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "             TOTAL ENERGY"; ++n;
+	     header << std::setw(datwidth) << "             TOTAL E GRID"; ++n;
+	     header << std::setw(datwidth) << "               GAS ENERGY"; ++n;
+	     header << std::setw(datwidth) << "              KIN. ENERGY"; ++n;
+	     header << std::setw(datwidth) << "              ROT. ENERGY"; ++n;
+	     header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
+	     header << std::setw(datwidth) << "              INT. ENERGY"; ++n;
+	     header << std::setw(datwidth) << "                     MASS"; ++n;
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "                     XMOM"; ++n;
+	     header << std::setw(datwidth) << "                     YMOM"; ++n;
+	     header << std::setw(datwidth) << "                     ZMOM"; ++n;
+#ifdef HYBRID_MOMENTUM
+	     header << std::setw(datwidth) << "              HYB. MOM. R"; ++n;
+	     header << std::setw(datwidth) << "              HYB. MOM. L"; ++n;
+	     header << std::setw(datwidth) << "              HYB. MOM. P"; ++n;
+#endif
+	     header << std::setw(datwidth) << "              ANG. MOM. X"; ++n;
+	     header << std::setw(datwidth) << "              ANG. MOM. Y"; ++n;
+	     header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
+#else
+	     header << std::setw(datwidth) << "                     RMOM"; ++n;
+	     header << std::setw(datwidth) << "                     ZMOM"; ++n;
+	     header << std::setw(datwidth) << "              ANG. MOM. R"; ++n;
+	     header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
+#endif
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "                    X COM"; ++n;
+	     header << std::setw(datwidth) << "                    Y COM"; ++n;
+	     header << std::setw(datwidth) << "                    Z COM"; ++n;
+	     header << std::setw(datwidth) << "                X COM VEL"; ++n;
+	     header << std::setw(datwidth) << "                Y COM VEL"; ++n;
+	     header << std::setw(datwidth) << "                Z COM VEL"; ++n;
+#else
+	     header << std::setw(datwidth) << "                    R COM"; ++n;
+	     header << std::setw(datwidth) << "                    Z COM"; ++n;
+	     header << std::setw(datwidth) << "                R COM VEL"; ++n;
+	     header << std::setw(datwidth) << "                Z COM VEL"; ++n;
+#endif
+	     header << std::setw(datwidth) << "             h_+ (axis 1)"; ++n;
+	     header << std::setw(datwidth) << "             h_x (axis 1)"; ++n;
+	     header << std::setw(datwidth) << "             h_+ (axis 2)"; ++n;
+	     header << std::setw(datwidth) << "             h_x (axis 2)"; ++n;
+	     header << std::setw(datwidth) << "             h_+ (axis 3)"; ++n;
+	     header << std::setw(datwidth) << "             h_x (axis 3)"; ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
+
 	   }
 
 	   // Write data for the present time
@@ -438,6 +453,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_energy;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << gravitational_energy;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << internal_energy;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[1];
 #if (BL_SPACEDIM == 3)
@@ -453,7 +469,6 @@ Castro::sum_integrated_quantities ()
 #if (BL_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[1];
 #if (BL_SPACEDIM == 3)
@@ -487,14 +502,28 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
+             int n = 0;
 
-	     log << std::setw(datwidth) << "              WD DISTANCE";
-	     log << std::setw(fixwidth) << "                 WD ANGLE";
-	     log << std::setw(datwidth) << "                     MDOT";
+             std::ostringstream header;
 
-	     log << std::endl;
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+
+	     header << std::setw(datwidth) << "              WD DISTANCE"; ++n;
+	     header << std::setw(fixwidth) << "                 WD ANGLE"; ++n;
+	     header << std::setw(datwidth) << "                     MDOT"; ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -531,8 +560,12 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                  TIME";
+             int n = 0;
+
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";           ++n;
+	     header << std::setw(fixwidth) << "                  TIME"; ++n;
 
 	     // We need to be careful here since the species names have differing numbers of characters
 
@@ -543,10 +576,20 @@ Castro::sum_integrated_quantities ()
                while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
 	       outString += massString;
 	       outString += specString;
-	       log << std::setw(datwidth) << outString;
+	       header << std::setw(datwidth) << outString; ++n;
 	     }
 
-	     log << std::endl;
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -577,12 +620,28 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(fixwidth) << "                       DT";
-	     log << std::setw(intwidth) << "  FINEST LEV";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(fixwidth) << "                       DT"; ++n;
+	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i < n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::setw(intwidth) << n;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -613,18 +672,32 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(datwidth) << "                MASS LOST";
-	     log << std::setw(datwidth) << "                XMOM LOST";
-	     log << std::setw(datwidth) << "                YMOM LOST";
-	     log << std::setw(datwidth) << "                ZMOM LOST";
-	     log << std::setw(datwidth) << "                EDEN LOST";
-	     log << std::setw(datwidth) << "         ANG. MOM. X LOST";
-	     log << std::setw(datwidth) << "         ANG. MOM. Y LOST";
-	     log << std::setw(datwidth) << "         ANG. MOM. Z LOST";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "                MASS LOST"; ++n;
+	     header << std::setw(datwidth) << "                XMOM LOST"; ++n;
+	     header << std::setw(datwidth) << "                YMOM LOST"; ++n;
+	     header << std::setw(datwidth) << "                ZMOM LOST"; ++n;
+	     header << std::setw(datwidth) << "                EDEN LOST"; ++n;
+	     header << std::setw(datwidth) << "         ANG. MOM. X LOST"; ++n;
+	     header << std::setw(datwidth) << "         ANG. MOM. Y LOST"; ++n;
+	     header << std::setw(datwidth) << "         ANG. MOM. Z LOST"; ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -658,35 +731,50 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(datwidth) << "             PRIMARY MASS";
-	     log << std::setw(datwidth) << "             PRIMARY MDOT";
-	     log << std::setw(datwidth) << "          PRIMARY MAG COM";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "            PRIMARY X COM";
-	     log << std::setw(datwidth) << "            PRIMARY Y COM";
-	     log << std::setw(datwidth) << "            PRIMARY Z COM";
-#else
-	     log << std::setw(datwidth) << "            PRIMARY R COM";
-	     log << std::setw(datwidth) << "            PRIMARY Z COM";
-#endif
-	     log << std::setw(datwidth) << "          PRIMARY MAG VEL";
-	     log << std::setw(datwidth) << "          PRIMARY RAD VEL";
-	     log << std::setw(datwidth) << "          PRIMARY ANG VEL";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "            PRIMARY X VEL";
-	     log << std::setw(datwidth) << "            PRIMARY Y VEL";
-	     log << std::setw(datwidth) << "            PRIMARY Z VEL";
-#else
-	     log << std::setw(datwidth) << "            PRIMARY R VEL";
-	     log << std::setw(datwidth) << "            PRIMARY Z VEL";
-#endif
-	     log << std::setw(datwidth) << "       PRIMARY T_FREEFALL";
-	     for (int i = 0; i <= 6; ++i)
-	       log << "       PRIMARY 1E" << i << " RADIUS";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "             PRIMARY MASS"; ++n;
+	     header << std::setw(datwidth) << "             PRIMARY MDOT"; ++n;
+	     header << std::setw(datwidth) << "          PRIMARY MAG COM"; ++n;
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "            PRIMARY X COM"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Y COM"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
+#else
+	     header << std::setw(datwidth) << "            PRIMARY R COM"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
+#endif
+	     header << std::setw(datwidth) << "          PRIMARY MAG VEL"; ++n;
+	     header << std::setw(datwidth) << "          PRIMARY RAD VEL"; ++n;
+	     header << std::setw(datwidth) << "          PRIMARY ANG VEL"; ++n;
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "            PRIMARY X VEL"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Y VEL"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
+#else
+	     header << std::setw(datwidth) << "            PRIMARY R VEL"; ++n;
+	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
+#endif
+	     header << std::setw(datwidth) << "       PRIMARY T_FREEFALL"; ++n;
+	     for (int i = 0; i <= 6; ++i) {
+                 header << "       PRIMARY 1E" << i << " RADIUS";          ++n;
+             }
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -737,35 +825,50 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(datwidth) << "           SECONDARY MASS";
-	     log << std::setw(datwidth) << "           SECONDARY MDOT";
-	     log << std::setw(datwidth) << "        SECONDARY MAG COM";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "          SECONDARY X COM";
-	     log << std::setw(datwidth) << "          SECONDARY Y COM";
-	     log << std::setw(datwidth) << "          SECONDARY Z COM";
-#else
-	     log << std::setw(datwidth) << "          SECONDARY R COM";
-	     log << std::setw(datwidth) << "          SECONDARY Z COM";
-#endif
-	     log << std::setw(datwidth) << "        SECONDARY MAG VEL";
-	     log << std::setw(datwidth) << "        SECONDARY RAD VEL";
-	     log << std::setw(datwidth) << "        SECONDARY ANG VEL";
-#if (BL_SPACEDIM == 3)
-	     log << std::setw(datwidth) << "          SECONDARY X VEL";
-	     log << std::setw(datwidth) << "          SECONDARY Y VEL";
-	     log << std::setw(datwidth) << "          SECONDARY Z VEL";
-#else
-	     log << std::setw(datwidth) << "          SECONDARY R VEL";
-	     log << std::setw(datwidth) << "          SECONDARY Z VEL";
-#endif
-	     log << std::setw(datwidth) << "     SECONDARY T_FREEFALL";
-	     for (int i = 0; i <= 6; ++i)
-	       log << "     SECONDARY 1E" << i << " RADIUS";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "           SECONDARY MASS"; ++n;
+	     header << std::setw(datwidth) << "           SECONDARY MDOT"; ++n;
+	     header << std::setw(datwidth) << "        SECONDARY MAG COM"; ++n;
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "          SECONDARY X COM"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Y COM"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
+#else
+	     header << std::setw(datwidth) << "          SECONDARY R COM"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
+#endif
+	     header << std::setw(datwidth) << "        SECONDARY MAG VEL"; ++n;
+	     header << std::setw(datwidth) << "        SECONDARY RAD VEL"; ++n;
+	     header << std::setw(datwidth) << "        SECONDARY ANG VEL"; ++n;
+#if (BL_SPACEDIM == 3)
+	     header << std::setw(datwidth) << "          SECONDARY X VEL"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Y VEL"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
+#else
+	     header << std::setw(datwidth) << "          SECONDARY R VEL"; ++n;
+	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
+#endif
+	     header << std::setw(datwidth) << "     SECONDARY T_FREEFALL"; ++n;
+	     for (int i = 0; i <= 6; ++i) {
+                 header << "     SECONDARY 1E" << i << " RADIUS";          ++n;
+             }
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -816,16 +919,30 @@ Castro::sum_integrated_quantities ()
 
 	     writeGitHashes(log);
 
-	     log << std::setw(intwidth) << "#   TIMESTEP";
-	     log << std::setw(fixwidth) << "                     TIME";
-	     log << std::setw(datwidth) << "               MAX T CURR";
-	     log << std::setw(datwidth) << "             MAX RHO CURR";
-	     log << std::setw(datwidth) << "           MAX TS_TE CURR";
-	     log << std::setw(datwidth) << "           MAX T ALL TIME";
-	     log << std::setw(datwidth) << "         MAX RHO ALL TIME";
-	     log << std::setw(datwidth) << "       MAX TS_TE ALL TIME";
+             int n = 0;
 
-	     log << std::endl;
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "               MAX T CURR"; ++n;
+	     header << std::setw(datwidth) << "             MAX RHO CURR"; ++n;
+	     header << std::setw(datwidth) << "           MAX TS_TE CURR"; ++n;
+	     header << std::setw(datwidth) << "           MAX T ALL TIME"; ++n;
+	     header << std::setw(datwidth) << "         MAX RHO ALL TIME"; ++n;
+	     header << std::setw(datwidth) << "       MAX TS_TE ALL TIME"; ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
 
 	   }
 
@@ -842,6 +959,59 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << T_global_max;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rho_global_max;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << ts_te_global_max;
+
+	   log << std::endl;
+
+	 }
+
+      }
+
+      // Rotation period over time
+
+      if (parent->NumDataLogs() > 8) {
+
+	 std::ostream& log = parent->DataLog(8);
+
+	 if ( log.good() ) {
+
+	   if (time == 0.0) {
+
+	     // Output the git commit hashes used to build the executable.
+
+	     writeGitHashes(log);
+
+             int n = 0;
+
+             std::ostringstream header;
+
+	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+	     header << std::setw(datwidth) << "          ROTATION PERIOD"; ++n;
+             header << std::setw(datwidth) << "       ROTATION FREQUENCY"; ++n;
+
+	     header << std::endl;
+
+             log << std::setw(intwidth) << "#   COLUMN 1";
+             log << std::setw(fixwidth) << "                        2";
+
+             for (int i = 3; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
+
+             log << std::endl;
+
+             log << header.str();
+
+	   }
+
+	   log << std::fixed;
+
+	   log << std::setw(intwidth)                                     << timestep;
+	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+
+	   log << std::scientific;
+
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_period;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << (2.0 * M_PI / rotational_period);
 
 	   log << std::endl;
 

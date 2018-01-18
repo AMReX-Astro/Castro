@@ -5,7 +5,7 @@ module advection_util_module
 
   private
 
-  public enforce_minimum_density, compute_cfl, ctoprim, srctoprim, dflux, &
+  public enforce_minimum_density, ca_compute_cfl, ctoprim, srctoprim, dflux, &
          limit_hydro_fluxes_on_small_dens, shock, divu, calc_pdivu, normalize_species_fluxes
 
 contains
@@ -305,28 +305,31 @@ contains
 
 
 
-  subroutine compute_cfl(q, q_lo, q_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         lo, hi, dt, dx, courno) &
-                         bind(C, name = "compute_cfl")
+  subroutine ca_compute_cfl(lo, hi, &
+                            q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            dt, dx, courno) &
+                            bind(C, name = "ca_compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
     use prob_params_module, only: dim
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
-    integer :: lo(3), hi(3)
-    integer :: q_lo(3), q_hi(3), qa_lo(3), qa_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: q_lo(3), q_hi(3)
+    integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
 
-    real(rt)         :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)         :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt)         :: dt, dx(3), courno
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(inout) :: courno
 
-    real(rt)         :: courx, coury, courz, courmx, courmy, courmz, courtmp
-    real(rt)         :: dtdx, dtdy, dtdz
-    integer          :: i, j, k
+    real(rt) :: courx, coury, courz, courmx, courmy, courmz, courtmp
+    real(rt) :: dtdx, dtdy, dtdz
+    integer  :: i, j, k
 
     ! Compute running max of Courant number over grids
 
@@ -419,7 +422,7 @@ contains
        courno = max( courmx, courmy, courmz )
     endif
 
-  end subroutine compute_cfl
+  end subroutine ca_compute_cfl
 
 
 
@@ -440,7 +443,7 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   NQ, QC, QCSML, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
                                    QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &
@@ -609,7 +612,6 @@ contains
              qaux(i,j,k,QC   )  = eos_state % cs
 #endif
 
-             qaux(i,j,k,QCSML)  = max(small, small * qaux(i,j,k,QC))
           enddo
        enddo
     enddo

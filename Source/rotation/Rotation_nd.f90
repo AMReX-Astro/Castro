@@ -40,7 +40,7 @@ contains
        else if (idir .eq. 3) then
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
-          call bl_error("Error: unknown direction in compute_hybrid_flux.")
+          call bl_error("Error: unknown direction in inertial_to_rotational_velocity.")
        endif
     else
        loc = position(idx(1),idx(2),idx(3)) - center

@@ -145,9 +145,6 @@ class Param(object):
 
         ostr = ""
 
-        if not self.ifdef is None:
-            ostr = "#ifdef {}\n".format(self.ifdef)
-
         if not self.debug_default is None:
             ostr += "#ifdef DEBUG\n"
             ostr += "{} = {};\n".format(tstr, self.debug_default)
@@ -156,9 +153,6 @@ class Param(object):
             ostr += "#endif\n"
         else:
             ostr += "{} = {};\n".format(tstr, self.default)
-
-        if not self.ifdef is None:
-            ostr += "#endif\n"
 
         return ostr
 
@@ -214,18 +208,12 @@ class Param(object):
         # This goes into castro_queries.H included into Castro.cpp
 
         ostr = ""
-        if not self.ifdef is None:
-            ostr += "#ifdef {}\n".format(self.ifdef)
-
         if language == "C++":
             ostr += "pp.query(\"{}\", {});\n".format(self.name, self.cpp_var_name)
         elif language == "F90":
             ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
         else:
             sys.exit("invalid language choice in get_query_string")
-
-        if not self.ifdef is None:
-            ostr += "#endif\n".format(self.ifdef)
 
         return ostr
 
@@ -247,14 +235,7 @@ class Param(object):
             sys.exit("invalid data type for parameter {}".format(self.name))
 
         ostr = ""
-
-        if not self.ifdef is None:
-            ostr = "#ifdef {}\n".format(self.ifdef)
-
         ostr += tstr
-
-        if not self.ifdef is None:
-            ostr += "#endif\n"
 
         return ostr
 
@@ -332,19 +313,34 @@ def write_meth_module(plist, meth_template):
         elif line.find("@@set_castro_params@@") >= 0:
 
             namespaces = list(set([q.namespace for q in params]))
-            print("namespaces: ", namespaces)
+            print("Fortran namespaces: ", namespaces)
             for nm in namespaces:
                 params_nm = [q for q in params if q.namespace == nm]
+                ifdefs = list(set([q.ifdef for q in params_nm]))
 
-                for p in params_nm:
-                    mo.write(p.get_f90_default_string())
+                for ifdef in ifdefs:
+                    if ifdef is None:
+                        for p in [q for q in params_nm if q.ifdef is None]:
+                            mo.write(p.get_f90_default_string())
+                    else:
+                        mo.write("#ifdef {}\n".format(ifdef))
+                        for p in [q for q in params_nm if q.ifdef == ifdef]:
+                            mo.write(p.get_f90_default_string())
+                        mo.write("#endif\n")
 
                 mo.write("\n")
 
                 mo.write('    call amrex_parmparse_build(pp, "{}")\n'.format(nm))
 
-                for p in params_nm:
-                    mo.write(p.get_query_string("F90"))
+                for ifdef in ifdefs:
+                    if ifdef is None:
+                        for p in [q for q in params_nm if q.ifdef is None]:
+                            mo.write(p.get_query_string("F90"))
+                    else:
+                        mo.write("#ifdef {}\n".format(ifdef))
+                        for p in [q for q in params_nm if q.ifdef == ifdef]:
+                            mo.write(p.get_query_string("F90"))
+                        mo.write("#endif\n")
 
                 mo.write('    call amrex_parmparse_destroy(pp)\n')
                 
@@ -486,6 +482,7 @@ def parse_params(infile, meth_template):
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
+        ifdefs = list(set([q.ifdef for q in params_nm]))
 
         # write name_defaults.H
         try: cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
@@ -494,8 +491,15 @@ def parse_params(infile, meth_template):
 
         cd.write(CWARNING)
 
-        for p in params_nm:
-            cd.write(p.get_default_string())
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    cd.write(p.get_default_string())
+            else:
+                cd.write("#ifdef {}\n".format(ifdef))
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    cd.write(p.get_default_string())
+                cd.write("#endif\n")
 
         cd.close()
 
@@ -506,8 +510,15 @@ def parse_params(infile, meth_template):
 
         cp.write(CWARNING)
 
-        for p in params_nm:
-            cp.write(p.get_decl_string())
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    cp.write(p.get_decl_string())
+            else:
+                cp.write("#ifdef {}\n".format(ifdef))
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    cp.write(p.get_decl_string())
+                cp.write("#endif\n")
 
         cp.close()
 
@@ -518,8 +529,15 @@ def parse_params(infile, meth_template):
 
         cq.write(CWARNING)
 
-        for p in params_nm:
-            cq.write(p.get_query_string("C++"))
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    cq.write(p.get_query_string("C++"))
+            else:
+                cq.write("#ifdef {}\n".format(ifdef))
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    cq.write(p.get_query_string("C++"))
+                cq.write("#endif\n")
 
         cq.close()
 

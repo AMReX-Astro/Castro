@@ -155,9 +155,6 @@ castro.cg_blend = 2
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
-# Whether to take other source terms into account for new-time sources
-castro.update_state_between_sources = 0
-
 # Whether to use the hybrid advection technique that conserves angular momentum
 castro.hybrid_hydro = 0
 
@@ -172,9 +169,6 @@ castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 0
-
-# Time center the sponge source
-castro.time_center_sponge = 1
 
 ############################################################################################
 # Thermodynamics
@@ -242,9 +236,6 @@ gravity.abs_tol = 1.e-10
 # Turn off sync solve for gravity after refluxing
 gravity.no_sync = 0
 
-# Maximum level for doing explicit gravity solves
-gravity.max_solve_level = 20
-
 ############################################################################################
 # Rotation
 ############################################################################################
@@ -274,9 +265,6 @@ DistributionMapping.efficiency = 0.9
 
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
-
-# Diagnostics on mass/momentum/energy added during a hydro update
-castro.print_energy_diagnostics = 1
 
 # Diagnostics on mass/momentum/energy lost through physical ground boundaries
 castro.track_grid_losses = 1
@@ -355,3 +343,9 @@ amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_di
 
 # Write out plotfile data in single precision
 fab.format = NATIVE_32
+
+# Used a forced fixed dt that is known to be larger
+# than the safe hydrodynamic timestep given the above
+# CFL value. This guarantees that we will retry on
+# all levels, at least in the first timestep.
+castro.fixed_dt = 0.08

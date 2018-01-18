@@ -20,15 +20,15 @@ module meth_params_module
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
-  ! NTHERM: number of thermodynamic variables
-  integer, save :: NTHERM, NVAR
+  ! conservative variables
+  integer, save :: NVAR
   integer, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
   integer, save :: USHK
 
-  ! QTHERM: number of primitive variables
-  integer, save :: QTHERM, QVAR
+  ! primitive variables
+  integer, save :: QVAR
   integer, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME
-  integer, save :: NQAUX, QGAMC, QC, QCSML, QDPDR, QDPDE
+  integer, save :: NQAUX, QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   integer, save :: QGAMCG, QCG, QLAMS
 #endif
@@ -40,7 +40,7 @@ module meth_params_module
   integer, save :: NQ         
 
 #ifdef RADIATION
-  integer, save :: QRADVAR, QRAD, QRADHI, QPTOT, QREITOT
+  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
   integer, save :: fspace_type
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
@@ -81,16 +81,16 @@ module meth_params_module
   ! the device update is then done in Castro_nd.f90
 
   !$acc declare &
-  !$acc create(NTHERM, NVAR) &
+  !$acc create(NVAR) &
   !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
   !$acc create(USHK) &
-  !$acc create(QTHERM, QVAR) &
+  !$acc create(QVAR) &
   !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QGAMC, QGAME) &
+  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME) &
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
-  !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+  !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
   !$acc create(QFA, QFS, QFX) &
@@ -148,8 +148,8 @@ module meth_params_module
   real(rt), save :: dtnuc_e
   real(rt), save :: dtnuc_X
   real(rt), save :: dtnuc_X_threshold
-  integer         , save :: dtnuc_mode
   real(rt), save :: dxnuc
+  real(rt), save :: dxnuc_max
   integer         , save :: do_react
   real(rt), save :: react_T_min
   real(rt), save :: react_T_max
@@ -170,6 +170,7 @@ module meth_params_module
   integer         , save :: rot_source_type
   integer         , save :: implicit_rotation_update
   integer         , save :: rot_axis
+  integer         , save :: use_point_mass
   real(rt), save :: point_mass
   integer         , save :: point_mass_fix_solution
   integer         , save :: do_acc
@@ -193,17 +194,17 @@ module meth_params_module
   !$acc create(allow_small_energy, do_sponge, sponge_implicit) &
   !$acc create(first_order_hydro, hse_zero_vels, hse_interp_temp) &
   !$acc create(hse_reflect_vels, cfl, dtnuc_e) &
-  !$acc create(dtnuc_X, dtnuc_X_threshold, dtnuc_mode) &
-  !$acc create(dxnuc, do_react, react_T_min) &
+  !$acc create(dtnuc_X, dtnuc_X_threshold, dxnuc) &
+  !$acc create(dxnuc_max, do_react, react_T_min) &
   !$acc create(react_T_max, react_rho_min, react_rho_max) &
   !$acc create(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
   !$acc create(do_grav, grav_source_type, do_rotation) &
   !$acc create(rot_period, rot_period_dot, rotation_include_centrifugal) &
   !$acc create(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
   !$acc create(rot_source_type, implicit_rotation_update, rot_axis) &
-  !$acc create(point_mass, point_mass_fix_solution, do_acc) &
-  !$acc create(grown_factor, track_grid_losses, const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(use_point_mass, point_mass, point_mass_fix_solution) &
+  !$acc create(do_acc, grown_factor, track_grid_losses) &
+  !$acc create(const_grav, get_g_from_phi)
 
   ! End the declarations of the ParmParse parameters
 
@@ -230,6 +231,26 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+#ifdef DIFFUSION
+    diffuse_cutoff_density = -1.d200;
+    diffuse_cond_scale_fac = 1.0d0;
+#endif
+#ifdef ROTATION
+    rot_period = -1.d200;
+    rot_period_dot = 0.0d0;
+    rotation_include_centrifugal = 1;
+    rotation_include_coriolis = 1;
+    rotation_include_domegadt = 1;
+    state_in_rotating_frame = 1;
+    rot_source_type = 4;
+    implicit_rotation_update = 1;
+    rot_axis = 3;
+#endif
+#ifdef POINTMASS
+    use_point_mass = 1;
+    point_mass = 0.0d0;
+    point_mass_fix_solution = 0;
+#endif
     difmag = 0.1d0;
     small_dens = -1.d200;
     small_temp = -1.d200;
@@ -286,35 +307,42 @@ contains
     dtnuc_e = 1.d200;
     dtnuc_X = 1.d200;
     dtnuc_X_threshold = 1.d-3;
-    dtnuc_mode = 1;
     dxnuc = 1.d200;
+    dxnuc_max = 1.d200;
     do_react = -1;
     react_T_min = 0.0d0;
     react_T_max = 1.d200;
     react_rho_min = 0.0d0;
     react_rho_max = 1.d200;
     disable_shock_burning = 0;
-    diffuse_cutoff_density = -1.d200;
-    diffuse_cond_scale_fac = 1.0d0;
     do_grav = -1;
     grav_source_type = 4;
     do_rotation = -1;
-    rot_period = -1.d200;
-    rot_period_dot = 0.0d0;
-    rotation_include_centrifugal = 1;
-    rotation_include_coriolis = 1;
-    rotation_include_domegadt = 1;
-    state_in_rotating_frame = 1;
-    rot_source_type = 4;
-    implicit_rotation_update = 1;
-    rot_axis = 3;
-    point_mass = 0.0d0;
-    point_mass_fix_solution = 0;
     do_acc = -1;
     grown_factor = 1;
     track_grid_losses = 0;
 
     call amrex_parmparse_build(pp, "castro")
+#ifdef DIFFUSION
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef POINTMASS
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -365,56 +393,17 @@ contains
     call pp%query("dtnuc_e", dtnuc_e)
     call pp%query("dtnuc_X", dtnuc_X)
     call pp%query("dtnuc_X_threshold", dtnuc_X_threshold)
-    call pp%query("dtnuc_mode", dtnuc_mode)
     call pp%query("dxnuc", dxnuc)
+    call pp%query("dxnuc_max", dxnuc_max)
     call pp%query("do_react", do_react)
     call pp%query("react_T_min", react_T_min)
     call pp%query("react_T_max", react_T_max)
     call pp%query("react_rho_min", react_rho_min)
     call pp%query("react_rho_max", react_rho_max)
     call pp%query("disable_shock_burning", disable_shock_burning)
-#ifdef DIFFUSION
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-#endif
-#ifdef DIFFUSION
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
-#endif
     call pp%query("do_grav", do_grav)
     call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-#endif
-#ifdef ROTATION
-    call pp%query("rotational_dPdt", rot_period_dot)
-#endif
-#ifdef ROTATION
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-#endif
-#ifdef ROTATION
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-#endif
-#ifdef ROTATION
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-#endif
-#ifdef ROTATION
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-#endif
-#ifdef ROTATION
-    call pp%query("rot_source_type", rot_source_type)
-#endif
-#ifdef ROTATION
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-#endif
-#ifdef ROTATION
-    call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef POINTMASS
-    call pp%query("point_mass", point_mass)
-#endif
-#ifdef POINTMASS
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
@@ -437,17 +426,17 @@ contains
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
     !$acc device(hse_reflect_vels, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, dtnuc_mode) &
-    !$acc device(dxnuc, do_react, react_T_min) &
+    !$acc device(dtnuc_X, dtnuc_X_threshold, dxnuc) &
+    !$acc device(dxnuc_max, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
     !$acc device(disable_shock_burning, diffuse_cutoff_density, diffuse_cond_scale_fac) &
     !$acc device(do_grav, grav_source_type, do_rotation) &
     !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
     !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
     !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
     ! now set the external BC flags
@@ -551,19 +540,6 @@ contains
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
 
-    QPTOT  = QVAR+1
-    QREITOT = QVAR+2
-    QRAD = QVAR+3
-    QRADHI = qrad+ngroups-1
-  
-    QRADVAR = QVAR + 2 + ngroups
-  
-    ! update NQ -- it was already initialized in the hydro
-    NQ = QRADVAR
-
-    ! NQAUX already knows about the hydro and the non-group-dependent
-    ! rad variables, update it here
-    NQAUX = NQAUX + ngroups
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -589,7 +565,7 @@ contains
     
     !$acc update &
     !$acc device(NQ,NQAUX) &
-    !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+    !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)

@@ -25,9 +25,9 @@ class RadSolve {
   void levelBndry(MGRadBndry& mgbd, const int comp);
 
   void cellCenteredApplyMetrics(int level, amrex::MultiFab& acoefs);
-  static void getCellCenterMetric(const amrex::Geometry& geom, const amrex::Box& reg, amrex::Array<amrex::Real>& r, amrex::Array<amrex::Real>& s);
+  static void getCellCenterMetric(const amrex::Geometry& geom, const amrex::Box& reg, amrex::Vector<amrex::Real>& r, amrex::Vector<amrex::Real>& s);
   static void getEdgeMetric(int idim, const amrex::Geometry& geom, const amrex::Box& edgebox, 
-			    amrex::Array<amrex::Real>& r, amrex::Array<amrex::Real>& s);
+			    amrex::Vector<amrex::Real>& r, amrex::Vector<amrex::Real>& s);
 
   void setLevelACoeffs(int level, const amrex::MultiFab &a);
   void setLevelBCoeffs(int level, const amrex::MultiFab &b, int dir);
@@ -109,7 +109,7 @@ protected:
   HypreMultiABec *hm;
 
   // static storage for sync tolerance information
-  static amrex::Array<amrex::Real> absres;
+  static amrex::Vector<amrex::Real> absres;
 };
 
 #endif

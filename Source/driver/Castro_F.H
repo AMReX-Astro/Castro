@@ -28,13 +28,9 @@ extern "C"
 
   void ca_get_qvar(int* qvar);
 
-#ifdef RADIATION
-  void ca_get_qradvar(int* qradvar);
-#endif
+  void ca_get_nq(int* nq);
 
   void ca_get_nqaux(int* nqaux);
-
-  void ca_set_special_tagging_flag(const amrex::Real& max_den, const int* flag);
 
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
 		       const amrex::Real& time, const amrex::Real& dt);
@@ -57,6 +53,9 @@ extern "C"
   void ca_set_method_params
     (const int& dm,
      const int& Density, const int& Xmom, 
+#ifdef HYBRID_MOMENTUM
+     const int& Rmom,
+#endif
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
@@ -64,17 +63,16 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
+#ifdef RADIATION
+     const int& ngroups,
+#endif
      const int* gravity_type, const int& gravity_type_len);
 
   void ca_finalize_meth_params();
 
   void ca_set_castro_method_params();
 
-#ifdef RADIATION
-  void ca_init_godunov_indices_rad();
-#else
   void ca_init_godunov_indices();
-#endif
 
   void ca_set_problem_params
     (const int& dm,
@@ -141,7 +139,8 @@ extern "C"
   void ca_hybrid_hydro_source
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources));
+     BL_FORT_FAB_ARG_3D(sources),
+     const amrex::Real mult_factor);
 
   void ca_hybrid_update
     (const int* lo, const int* hi,
@@ -162,6 +161,12 @@ extern "C"
 		    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
 		    const amrex::Real* src, const int* src_lo, const int* src_hi,
 		          amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi, const int* idx);
+
+  void ca_compute_cfl(const int* lo, const int* hi,
+                      const BL_FORT_FAB_ARG_ANYD(q),
+                      const BL_FORT_FAB_ARG_ANYD(qaux),
+                      const amrex::Real* dt, const amrex::Real* dx,
+                      amrex::Real* courno);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int* idx);
@@ -529,7 +534,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(dloga),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
-     amrex::Real* cflLoc,
      const int&  verbose,
 #ifdef RADIATION
      const int* priv_nstep_fsp,
@@ -570,7 +574,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(dloga),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
-     amrex::Real* cflLoc,
      const int&  verbose);
 
 
@@ -589,8 +592,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(source),
      BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real& dt,
-     const amrex::Real* time, const amrex::Real mult_factor);
+     const amrex::Real* dx, const amrex::Real dt,
+     const amrex::Real time, const amrex::Real mult_factor);
 
   void update_sponge_params(const amrex::Real* time);
 #endif

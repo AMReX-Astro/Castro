@@ -12,16 +12,19 @@
 
   roche_radius_factor = 2.0d0
 
-  collision_separation = 4.0
-  collision_impact_parameter = 0.0
+  collision_separation = 4.0d0
+  collision_impact_parameter = 0.0d0
+
+  tde_separation = 8.0d0
+  tde_beta = 6.0d0
+  tde_initial_velocity = 1
 
   interp_temp = T
 
-  relaxation_damping_timescale = -1.0d0
+  relaxation_damping_factor = 1.0d-1
   relaxation_density_cutoff = 1.0d3
-  relaxation_implicit = T
 
-  radial_damping_factor = -1.0d2
+  radial_damping_factor = 1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
   ambient_density = 1.0d-4
@@ -60,8 +63,6 @@
   initial_model_hse_tol = 1.d-10
 
   gw_dist = 10.0
-
-  fill_ambient_bc = F
 
   max_he_wd_mass = 0.45d0
   max_hybrid_wd_mass = 0.6d0
