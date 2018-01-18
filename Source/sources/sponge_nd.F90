@@ -32,14 +32,14 @@ contains
 
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: state_lo(3), state_hi(3)
-    integer          :: src_lo(3), src_hi(3)
-    integer          :: vol_lo(3), vol_hi(3)
-    real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt)         :: dx(3)
+    integer , intent(in   ) :: lo(3),hi(3)
+    integer , intent(in   ) :: state_lo(3), state_hi(3)
+    integer , intent(in   ) :: src_lo(3), src_hi(3)
+    integer , intent(in   ) :: vol_lo(3), vol_hi(3)
+    real(rt), intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in   ) :: dx(3)
     real(rt), value  :: dt, time, mult_factor
 
     ! Local variables
