@@ -199,13 +199,13 @@ contains
 
     ! Hydrodynamical mass fluxes
 
-    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
-    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
-    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3))
+    real(rt), intent(in   ) :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt), intent(in   ) :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt), intent(in   ) :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3))
 
-    real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
-    real(rt)         :: dx(3), dt, time
+    real(rt), intent(in   ) :: dx(3), dt, time
 
     integer          :: i,j,k
     real(rt)         :: loc(3)
