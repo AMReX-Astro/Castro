@@ -11,7 +11,7 @@ ca_F90EXE_sources += flatten_nd.F90
 
 ca_F90EXE_sources += ppm_nd.F90
 ca_F90EXE_sources += riemann_nd.F90
-ca_f90EXE_sources += riemann_util.f90
+ca_F90EXE_sources += riemann_util.F90
 ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_nd.F90
 ca_F90EXE_sources += trace_ppm_nd.F90
