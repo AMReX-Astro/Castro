@@ -7,8 +7,8 @@ subroutine problem_checkpoint(int_dir_name, len) bind(C, name="problem_checkpoin
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: len
-  integer :: int_dir_name(len)
+  integer, intent(in) :: len
+  integer, intent(in) :: int_dir_name(len)
   character (len=len) :: dir
 
   integer :: i
@@ -30,8 +30,8 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: len
-  integer :: int_dir_name(len)
+  integer, intent(in) :: len
+  integer, intent(in) :: int_dir_name(len)
   character (len=len) :: dir
 
   integer :: i

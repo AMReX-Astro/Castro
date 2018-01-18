@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-  void problem_checkpoint(int * int_dir_name, int * len);
+  void problem_checkpoint(const int * int_dir_name, const int * len);
 
-  void problem_restart(int * int_dir_name, int * len);
+  void problem_restart(const int * int_dir_name, const int * len);
 
 #ifdef __cplusplus
 }

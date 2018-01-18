@@ -3,9 +3,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer          :: init, namlen
-  integer          :: name(namlen)
-  real(rt)         :: problo(1), probhi(1)
+  integer , intent(in) :: init, namlen
+  integer , intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(1), probhi(1)
 
 end subroutine amrex_probinit
 
