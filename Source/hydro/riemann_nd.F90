@@ -287,7 +287,7 @@ contains
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
     integer, intent(in) :: kc, kflux, k3d
 
@@ -308,7 +308,7 @@ contains
     integer :: i, j
     integer :: n, nqp, ipassive
 
-    real(rt) :: ustar,gamgdnv
+    real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
     real(rt) :: rr, ur, v1r, v2r, pr, rer
     real(rt) :: wl, wr, rhoetot
@@ -773,30 +773,28 @@ contains
 
           ! linearly interpolate between the star and normal state -- this covers the
           ! case where we are inside the rarefaction fan.
-          qint(i,j,kc,GDRHO ) = frac*rstar + (ONE - frac)*ro
-          qint(i,j,kc,iu   ) = frac*ustar + (ONE - frac)*uo
-          qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
-          gamgdnv =  frac*gamstar + (ONE-frac)*gameo
+          qint(i,j,kc,QRHO) = frac*rstar + (ONE - frac)*ro
+          qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
+          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
+          qint(i,j,kc,QGAME) =  frac*gamstar + (ONE-frac)*gameo
 
           ! now handle the cases where instead we are fully in the
           ! star or fully in the original (l/r) state
           if (spout < ZERO) then
-             qint(i,j,kc,GDRHO ) = ro
-             qint(i,j,kc,iu   ) = uo
-             qint(i,j,kc,GDPRES) = po
-             gamgdnv = gameo
+             qint(i,j,kc,QRHO) = ro
+             qint(i,j,kc,iu) = uo
+             qint(i,j,kc,QPRES) = po
+             qint(i,j,kc,QGAME) = gameo
           endif
 
           if (spin >= ZERO) then
-             qint(i,j,kc,GDRHO ) = rstar
-             qint(i,j,kc,iu   ) = ustar
-             qint(i,j,kc,GDPRES) = pstar
-             gamgdnv = gamstar
+             qint(i,j,kc,QRHO) = rstar
+             qint(i,j,kc,iu) = ustar
+             qint(i,j,kc,QPRES) = pstar
+             qint(i,j,kc,QGAME) = gamstar
           endif
 
-          qint(i,j,kc,GDGAME) = gamgdnv
-
-          qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES), small_pres)
+          qint(i,j,kc,QPRES) = max(qint(i,j,kc,QPRES), small_pres)
 
           u_adv = qint(i,j,kc,iu)
 
@@ -810,11 +808,11 @@ contains
           u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,QRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu)
           if (mom_flux_has_p(idir) %  comp(im1)) then
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + qint(i,j,kc,GDPRES)
+             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + qint(i,j,kc,QPRES)
           endif
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
@@ -824,11 +822,12 @@ contains
 #endif
 
           ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-          rhoetot = qint(i,j,kc,GDPRES)/(gamgdnv - ONE) + &
-               HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+          qint(i,j,kc,QREINT) = qint(i,j,kc,QPRES)/(qint(i,j,kc,QGAME) - ONE)
+          rhoetot = qint(i,j,kc,QREINT) + &
+               HALF*qint(i,j,kc,QRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
-          uflx(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,GDPRES)/(gamgdnv - ONE)
+          uflx(i,j,kflux,UEDEN) = u_adv*(qint(i,j,kc,QREINT) + qint(i,j,kc,QPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*qint(i,j,kc,QREINT)
 
           us1d(i) = ustar
        end do
@@ -840,11 +839,14 @@ contains
 
           do i = ilo, ihi
              if (us1d(i) > ZERO) then
+                qint(i,j,kc,nqp) = ql(i,j,kc,nqp)
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
              else if (us1d(i) < ZERO) then
+                qint(i,j,kc,nqp) = qr(i,j,kc,nqp)
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
              else
                 qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
+                qint(i,j,kc,nqp) = avg
                 uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
              endif
           enddo
@@ -866,8 +868,6 @@ contains
   ! star state, and carries an auxiliary jump condition for (rho e) to
   ! deal with a real gas
   !===========================================================================
-  !gamcl, gamcr, cav, smallc, gd_lo, gd_hi, &
-  !gamcgl, gamcgr, &
   subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
                        qaux, qa_lo, qa_hi, &
                        uflx, uflx_lo, uflx_hi, &
@@ -910,7 +910,7 @@ contains
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1),rflx_lo(2):rflx_hi(2),rflx_lo(3):rflx_hi(3),0:ngroups-1)
@@ -1254,7 +1254,7 @@ contains
           frac = (ONE + (spout + spin)/scr)*HALF
           frac = max(ZERO, min(ONE, frac))
 
-          qint(i,j,kc,GDRHO) = frac*rstar + (ONE - frac)*ro
+          qint(i,j,kc,QRHO) = frac*rstar + (ONE - frac)*ro
           qint(i,j,kc,iu  ) = frac*ustar + (ONE - frac)*uo
 
 #ifdef RADIATION
@@ -1263,7 +1263,7 @@ contains
           regdnv_g = frac*estar_g + (1.e0_rt - frac)*reo_g
           regdnv_r(:) = frac*estar_r(:) + (1.e0_rt - frac)*reo_r(:)
 #else
-          qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
+          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
           regdnv = frac*estar + (ONE - frac)*reo
 #endif
 
@@ -1275,7 +1275,7 @@ contains
           ! to determine which region we are in
           if (spout < ZERO) then
              ! the l or r state is on the interface
-             qint(i,j,kc,GDRHO) = ro
+             qint(i,j,kc,QRHO) = ro
              qint(i,j,kc,iu  ) = uo
 #ifdef RADIATION
              pgdnv_t = po
@@ -1283,14 +1283,14 @@ contains
              regdnv_g = reo_g
              regdnv_r = reo_r(:)
 #else
-             qint(i,j,kc,GDPRES) = po
+             qint(i,j,kc,QPRES) = po
              regdnv = reo
 #endif
           endif
 
           if (spin >= ZERO) then
              ! the star state is on the interface
-             qint(i,j,kc,GDRHO) = rstar
+             qint(i,j,kc,QRHO) = rstar
              qint(i,j,kc,iu  ) = ustar
 #ifdef RADIATION
              pgdnv_t = pstar
@@ -1298,7 +1298,7 @@ contains
              regdnv_g = estar_g
              regdnv_r = estar_r(:)
 #else
-             qint(i,j,kc,GDPRES) = pstar
+             qint(i,j,kc,QPRES) = pstar
              regdnv = estar
 #endif
           endif
@@ -1306,16 +1306,16 @@ contains
 
 #ifdef RADIATION
           do g=0, ngroups-1
-             qint(i,j,kc,GDERADS+g) = max(regdnv_r(g), 0.e0_rt)
+             qint(i,j,kc,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
           end do
 
-          qint(i,j,kc,GDPRES) = pgdnv_g
-          qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda(:)
+          qint(i,j,kc,QPRES) = pgdnv_g
+          qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda (:)
 
-          qint(i,j,kc,GDGAME) = pgdnv_g/regdnv_g + ONE
+          qint(i,j,kc,QGAME) = pgdnv_g/regdnv_g + ONE
 #else
-          qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
-          qint(i,j,kc,GDPRES) = max(qint(i,j,kc,GDPRES),small_pres)
+          qint(i,j,kc,QGAME) = qint(i,j,kc,QPRES)/regdnv + ONE
+          qint(i,j,kc,QPRES) = max(qint(i,j,kc,QPRES),small_pres)
 #endif
 
 
@@ -1334,14 +1334,14 @@ contains
                               qr(i,j,kc,QFS:QFS-1+nspec))
              endif
 
-             eos_state % rho = qint(i,j,kc,GDRHO)
-             eos_state % p = qint(i,j,kc,GDPRES)
+             eos_state % rho = qint(i,j,kc,QRHO)
+             eos_state % p = qint(i,j,kc,QPRES)
              eos_state % xn(:) = xn(:)
              eos_state % T = 1.e4  ! a guess
 
              call eos(eos_input_rp, eos_state)
 
-             qint(i,j,kc,GDGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
+             qint(i,j,kc,QGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
 #ifdef RADIATION
              regdnv_g = eos_state % rho * eos_state % e
 #else
@@ -1370,11 +1370,11 @@ contains
 
 
           ! Compute fluxes, order as conserved state (not q)
-          uflx(i,j,kflux,URHO) = qint(i,j,kc,GDRHO)*u_adv
+          uflx(i,j,kflux,URHO) = qint(i,j,kc,QRHO)*u_adv
 
           uflx(i,j,kflux,im1) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iu )
           if (mom_flux_has_p(idir) %  comp(im1)) then
-             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + qint(i,j,kc,GDPRES)
+             uflx(i,j,kflux,im1) = uflx(i,j,kflux,im1) + qint(i,j,kc,QPRES)
           endif
           uflx(i,j,kflux,im2) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv1)
           uflx(i,j,kflux,im3) = uflx(i,j,kflux,URHO)*qint(i,j,kc,iv2)
@@ -1384,15 +1384,15 @@ contains
 #endif
 
 #ifdef RADIATION
-          rhoetot = regdnv_g + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+          rhoetot = regdnv_g + HALF*qint(i,j,kc,QRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
           uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + pgdnv_g)
 
           uflx(i,j,kflux,UEINT) = u_adv*regdnv_g
 #else
-          rhoetot = regdnv + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+          rhoetot = regdnv + HALF*qint(i,j,kc,QRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
 
-          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,QPRES))
           uflx(i,j,kflux,UEINT) = u_adv*regdnv
 #endif
 
@@ -1404,11 +1404,11 @@ contains
              do g=0,ngroups-1
                 eddf = Edd_factor(lambda(g))
                 f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                rflx(i,j,kflux,g) = (1.e0_rt+f1) * qint(i,j,kc,GDERADS+g) * u_adv
+                rflx(i,j,kflux,g) = (1.e0_rt+f1) * qint(i,j,kc,QRAD+g) * u_adv
              end do
           else ! type 2
              do g=0,ngroups-1
-                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * u_adv
+                rflx(i,j,kflux,g) = qint(i,j,kc,QRAD+g) * u_adv
              end do
           end if
 #endif
@@ -1477,7 +1477,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     integer, intent(in) :: kc, kflux, k3d
 
     ! Note:
@@ -1672,8 +1672,8 @@ contains
           regdnv = frac*estar + (ONE - frac)*reo
 
           qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
-          qint(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
-          qint(i,j,kc,GDGAME) = qint(i,j,kc,GDPRES)/regdnv + ONE
+          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
+          qint(i,j,kc,QGAME) = qint(i,j,kc,QPRES)/regdnv + ONE
 
 
           ! now we do the HLLC construction

@@ -438,8 +438,113 @@ contains
 
   end subroutine HLLC_state
 
+  pure subroutine compute_flux_q(idir, bnd_fac, qint, F)
+    ! given a primitive state, compute the flux in direction idir
+
+    integer, intent(in) :: idir
+    real(rt), intent(in) :: bnd_fac
+    real(rt), intent(in) :: qint(NQ)
+    real(rt), intent(out) :: F(NVAR)
+
+    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
+
+    if (idir == 1) then
+       iu = QU
+       iv1 = QV
+       iv2 = QW
+       im1 = UMX
+       im2 = UMY
+       im3 = UMZ
+       sx = 1
+       sy = 0
+       sz = 0
+    else if (idir == 2) then
+       iu = QV
+       iv1 = QU
+       iv2 = QW
+       im1 = UMY
+       im2 = UMX
+       im3 = UMZ
+       sx = 0
+       sy = 1
+       sz = 0
+    else
+       iu = QW
+       iv1 = QU
+       iv2 = QV
+       im1 = UMZ
+       im2 = UMX
+       im3 = UMY
+       sx = 0
+       sy = 0
+       sz = 1
+    end if
+
+    u_adv = qint(i,j,kc,iu)
+
+    ! Compute fluxes, order as conserved state (not q)
+    F(URHO) = qint(GDRHO)*u_adv
+
+    F(im1) = F(URHO)*qint(iu)
+    if (mom_flux_has_p(idir) % comp(im1)) then
+       F(im1) = F(im1) + qint(GDPRES)
+    endif
+    F(im2) = F(URHO)*qint(iv1)
+    F(im3) = F(URHO)*qint(iv2)
+
+#ifdef HYBRID_MOMENTUM
+    ! TODO: need to check this loc
+    call compute_hybrid_flux(qint, F, idir, [0, 0, 0])
+#endif
+
+    rhoetot = regdnv + HALF*qint(i,j,kc,GDRHO)*(qint(i,j,kc,iu)**2 + qint(i,j,kc,iv1)**2 + qint(i,j,kc,iv2)**2)
+
+          uflx(i,j,kflux,UEDEN) = u_adv*(rhoetot + qint(i,j,kc,GDPRES))
+          uflx(i,j,kflux,UEINT) = u_adv*regdnv
+#endif
+
+          ! store this for vectorization
+          us1d(i) = ustar
+
+#ifdef RADIATION
+          if (fspace_type==1) then
+             do g=0,ngroups-1
+                eddf = Edd_factor(lambda(g))
+                f1 = 0.5e0_rt*(1.e0_rt-eddf)
+                rflx(i,j,kflux,g) = (1.e0_rt+f1) * qint(i,j,kc,GDERADS+g) * u_adv
+             end do
+          else ! type 2
+             do g=0,ngroups-1
+                rflx(i,j,kflux,g) = qint(i,j,kc,GDERADS+g) * u_adv
+             end do
+          end if
+#endif
+       end do
+
+       ! passively advected quantities
+       do ipassive = 1, npassive
+          n  = upass_map(ipassive)
+          nqp = qpass_map(ipassive)
+
+          !dir$ ivdep
+          do i = ilo, ihi
+             if (us1d(i) > ZERO) then
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*ql(i,j,kc,nqp)
+
+             else if (us1d(i) < ZERO) then
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qr(i,j,kc,nqp)
+
+             else
+                qavg = HALF * (ql(i,j,kc,nqp) + qr(i,j,kc,nqp))
+                uflx(i,j,kflux,n) = uflx(i,j,kflux,URHO)*qavg
+             endif
+          enddo
+
+       enddo
+
 
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
+    ! given a conserved state, compute the flux in direction idir
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
          npassive, upass_map
