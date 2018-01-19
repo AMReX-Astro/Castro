@@ -440,6 +440,7 @@ contains
 
   pure subroutine compute_flux_q(idir, qint, F, &
 #ifdef RADIATION
+                                 lambda, &
                                  rF, &
 #endif
                                  qgdnv)
@@ -453,6 +454,7 @@ contains
                                    QPRES, QGAME, QREINT, QFS, QFX, &
                                    QC, QGAMC, &
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   GDRHO, GDU, GDV, GDW, &
 #ifdef RADIATION
                                    qrad, &
                                    GDERADS, GDLAMS, &
@@ -464,10 +466,11 @@ contains
 
     integer, intent(in) :: idir
     real(rt), intent(in) :: qint(NQ)
-    real(rt), intent(in) :: qgdnv(NGDNV)
+    real(rt), intent(inout) :: qgdnv(NGDNV)
     real(rt), intent(out) :: F(NVAR)
 #ifdef RADIATION
-    real(rt), intent(out) :: F(0:ngroups-1)
+    real(rt), intent(in) :: lambda(0:ngroups-1)
+    real(rt), intent(out) :: rF(0:ngroups-1)
 #endif
 
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
@@ -541,6 +544,18 @@ contains
 
        F(n) = F(URHO)*qint(nqp)
     enddo
+
+    ! store the subset of the Godunov state
+    qgdnv(GDRHO) = qint(QRHO)
+    qgdnv(GDU) = qint(QU)
+    qgdnv(GDV) = qint(QV)
+    qgdnv(GDW) = qint(QW)
+    qgdnv(GDPRES) = qint(QPRES)
+    qgdnv(GDGAME) = qint(QGAME)
+#ifdef RADIATION
+    qgdnv(GDLAMS:GDLAMS-1+ngroups) = lambda(:)
+    qgdnv(GDERADS:GDERADS-1+ngroups) = qint(QRAD:QRAD-1+ngroups)
+#endif
 
   end subroutine compute_flux_q
 

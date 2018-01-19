@@ -172,10 +172,10 @@ contains
 
     ! Solve Riemann problem
     if (riemann_solver == 0) then
+       ! Colella, Glaz, & Ferguson solver
 
        call bl_allocate(qint, q_lo, q_hi, NQ)
 
-       ! Colella, Glaz, & Ferguson solver
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
@@ -186,6 +186,7 @@ contains
           do i = ilo, ihi
              call compute_flux_q(idir, qint(i,j,kc,:), flx(i,j,kflux,:), &
 #ifdef RADIATION
+                                 lambda_int(i,j,kc,:), &
                                  rflx(i,j,kflux,:), &
 #endif
                                  qgdnv(i,j,kc,:))
@@ -195,10 +196,11 @@ contains
        call bl_deallocate(qint)
 
     elseif (riemann_solver == 1) then
+       ! Colella & Glaz solver
 
+#ifndef RADIATION
        call bl_allocate(qint, q_lo, q_hi, NQ)
 
-       ! Colella & Glaz solver
        call riemanncg(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
@@ -208,14 +210,14 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              call compute_flux_q(idir, qint(i,j,kc,:), flx(i,j,kflux,:), &
-#ifdef RADIATION
-                                 rflx(i,j,kflux,:), &
-#endif
                                  qgdnv(i,j,kc,:))
           enddo
        enddo
 
        call bl_deallocate(qint)
+#else
+       call bl_error("ERROR: CG solver does not support radiaiton")
+#endif
 
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -324,6 +326,8 @@ contains
     !  kc: the k corresponding to the 2-wide slab of k-planes, so in
     !      this routine it takes values only of 1 or 2
     !
+    ! qint, ql, and qr will always be indexed the same way
+    ! qaux is assumed to be a full 3-d array
 
     integer :: i, j
     integer :: n, nqp, ipassive
