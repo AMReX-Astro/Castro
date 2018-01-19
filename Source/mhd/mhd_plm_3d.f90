@@ -28,6 +28,8 @@ contains
 
 
     use network, only: nspec
+    use eos_module
+    use eos_type_module, only: eos_t, eos_input_rp
 
     implicit none
 
@@ -54,6 +56,8 @@ contains
     real(rt) :: tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
     real(rt) :: dt_over_a
     integer  :: ii,ibx,iby,ibz, i , j, k, n, idir
+
+    type(eos_t) :: eos_state
 
     ! Ip and Im are the interface states in each dimension (the last index '3' is the
     ! direction
@@ -441,6 +445,15 @@ contains
 
              Ip(i,j,k,QMAGX,1) 		 = temp(i+1,j,k,ibx) !! Bx stuff
              Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             
+             !update this, when species work is done
+             eos_state % rho = Ip(i,j,k,QRHO,1)
+             eos_state % p   = Ip(i,j,k,QPRES,1)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
+
              !Minus
              summ = 0.d0
              do ii = 1,7
@@ -457,6 +470,14 @@ contains
 
              Im(i,j,k,QMAGX,1)		 = temp(i-1,j,k,ibx) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+
+             !update this, when species work is done
+             eos_state % rho = Im(i,j,k,QRHO,1)
+             eos_state % p   = Im(i,j,k,QPRES,1)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Im(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
 
 
 
@@ -508,6 +529,16 @@ contains
              Ip(i,j,k,QMAGY,2) 		= temp(i,j+1,k,iby) !! By stuff
              Ip(i,j,k,QMAGZ,2)  		= temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
 
+             !update this, when species work is done
+             eos_state % rho = Ip(i,j,k,QRHO,2)
+             eos_state % p   = Ip(i,j,k,QPRES,2)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
+
+
+
              summ = 0.d0
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
@@ -524,6 +555,16 @@ contains
              Im(i,j,k,QMAGX,2) 		= temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
              Im(i,j,k,QMAGY,2)		= temp(i,j-1,k,iby) !! By stuff
              Im(i,j,k,QMAGZ,2) 		= temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+
+             !update this, when species work is done
+             eos_state % rho = Im(i,j,k,QRHO,2)
+             eos_state % p   = Im(i,j,k,QPRES,2)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Im(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
+
+
 
              !======================= Z Direction ============================
              summ = 0.d0
@@ -570,6 +611,16 @@ contains
 
              Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Ip(i,j,k,QMAGZ,3) 		= temp(i,j,k+1,ibz) !! Bz stuff
+      
+             !update this, when species work is done
+             eos_state % rho = Ip(i,j,k,QRHO,3)
+             eos_state % p   = Ip(i,j,k,QPRES,3)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
+
+
              summ = 0.d0
              do ii = 1,7
                 dL = dot_product(leig(ii,:),dQL)
@@ -586,17 +637,19 @@ contains
              Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3)		= temp(i,j,k-1,ibz) !! Bz stuff
 
+             !update this, when species work is done
+             eos_state % rho = Im(i,j,k,QRHO,3)
+             eos_state % p   = Im(i,j,k,QPRES,3)
+             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+
+             call eos(eos_input_rp, eos_state)
+             Im(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
+
+
+
           enddo
        enddo
     enddo
-
-    ! TODO: revisit setting the interface states for rho eint
-    Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,1)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
-    Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,2)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
-    Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,3)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
-    Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,1)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
-    Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,2)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
-    Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT,3)       = s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QREINT)
 
     ! TODO: species
     do n = 1, nspec

@@ -459,7 +459,6 @@ implicit none
           u(i,j,k,UMY)    = q(i,j,k,QRHO)*q(i,j,k,QV)
           u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
   
-          ! TODO: get (rho e) from the EOS using p, rho, X
           eos_state % rho = q(i, j, k, QRHO)
           eos_state % p   = q(i, j, k, QPRES) 
           eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
@@ -1054,26 +1053,14 @@ implicit none
 	real(rt)				::qflx(QVAR)
 	real(rt)				:: dx, dy, dz, dt	
 	integer					::i, j, k
-!	q2D = q
+
 	do k = q_l3+1,q_h3-1
 		do j = q_l2+1,q_h2-1
 			do i = q_l1+1,q_h1-1
 				flx_sum = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) + (flxy(i,j+1,k,:) - flxy(i,j,k,:)) + (flxz(i,j,k+1,:) - flxz(i,j,k,:)) 
 				call qflux(qflx,flx_sum,q(i,j,k,:))
+                                !Right below eq. 48 
 				q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt/dx*qflx
-				!if(i.eq.3.and.j.eq.64.and.k.eq.2) then 
-				!	print *, "q^n+1/2 at ", i, j, k, " = ", q2D(i,j,k,QMAGX:QMAGY)
-				!	print *, "q in = ", q(i,j,k,QMAGX:QMAGY) 
-				!	print *, "fluxes x = ", flxx(i+1,j,k,QMAGX:QMAGY) 
-				!	print *, flxx(i,j,k,QMAGX:QMAGY)
-				!	print *, "fluxes y = ", flxy(i,j+1,k,QMAGX:QMAGY) 
-				!	print *, flxy(i,j,k,QMAGX:QMAGY)
-				!	print *, "fluxes z = ", flxz(i,j,k+1,QMAGX:QMAGY)
-				!	print *, flxz(i,j,k,QMAGX:QMAGY)
-				!	print *, "flux sum = ", flx_sum(QMAGX:QMAGY)
-				!	print *, "qflux = ", qflx(QMAGX:QMAGY)
-				!	pause
-				!endif
 			enddo
 		enddo
 	enddo
@@ -1093,8 +1080,8 @@ subroutine qflux(qflx,flx,q)
 
  ! this is step 10 in the paper, just after Eq. 48
 
- ! this seems to implement dU/dW . qflux, where dU/dW is the Jacobian of
- ! the conserved quantities (U) with respect to the primitive (W)
+ ! this seems to implement dW/dU . qflux, where dW/dU is the Jacobian of
+ ! the primitive quantities (W) with respect to conserved quantities (U) 
 
  real(rt), intent(in)		::flx(NVAR+3), q(QVAR)
  real(rt), intent(out)		::qflx(QVAR)
@@ -1123,7 +1110,6 @@ subroutine qflux(qflx,flx,q)
         dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
         dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
 
-        ! TODO: double check
 	qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
                          flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
                          flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
