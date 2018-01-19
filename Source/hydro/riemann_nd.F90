@@ -11,7 +11,7 @@ module riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, fspace_type, &
-                                 GDERADS, GDLAMS, QGAMCG, QLAMS, &
+                                 GDERADS, GDLAMS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
@@ -93,6 +93,7 @@ contains
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     real(rt), pointer :: qint(:,:,:,:)
+    real(rt), pointer :: lambda_int(:,:,:,:)
 
     ! local variables
 
@@ -175,10 +176,16 @@ contains
        ! Colella, Glaz, & Ferguson solver
 
        call bl_allocate(qint, q_lo, q_hi, NQ)
+#ifdef RADIATION
+       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
+#endif
 
        call riemannus(qm, qp, qpd_lo, qpd_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint, q_lo, q_hi, &
+#ifdef RADIATION
+                      lambda_int, q_lo, q_hi, &
+#endif
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                       domlo, domhi)
 
@@ -194,6 +201,9 @@ contains
        enddo
 
        call bl_deallocate(qint)
+#ifdef RADIATION
+       call bl_deallocate(lambda_int)
+#endif
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -876,6 +886,9 @@ contains
   subroutine riemannus(ql, qr, qpd_lo, qpd_hi, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
+#ifdef RADIATION
+                       lambda_int, l_lo, l_hi, &
+#endif
                        idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                        domlo, domhi)
 
@@ -900,7 +913,7 @@ contains
     integer, intent(in) :: domlo(3),domhi(3)
 
 #ifdef RADIATION
-    integer, intent(in) :: rflx_lo(3),rflx_hi(3)
+    integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
 
     real(rt), intent(in) :: ql(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
@@ -910,7 +923,9 @@ contains
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
+#ifdef RADIATION
+    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
+#endif
     integer, intent(in) :: kc, kflux, k3d
 
     ! Note:
@@ -1304,9 +1319,9 @@ contains
           qint(i,j,kc,QPRES) = pgdnv_g
           qint(i,j,kc,QPTOT) = pgdnv_t
           qint(i,j,kc,QREINT) = regdnv_g
-          qint(i,j,kc,QEITOT) = regdnv_r(:) + regdnv_g
+          qint(i,j,kc,QREITOT:QREITOT-1+ngroups) = regdnv_r(:) + regdnv_g
 
-          qint(i,j,kc,GDLAMS:GDLAMS-1+ngroups) = lambda (:)
+          lambda_int(i,j,kc,:) = lambda(:)
 
 #else
           qint(i,j,kc,QGAME) = qint(i,j,kc,QPRES)/regdnv + ONE

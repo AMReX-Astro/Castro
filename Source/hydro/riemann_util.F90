@@ -533,7 +533,7 @@ contains
 
 #ifdef RADIATION
     do g=0,ngroups-1
-       rF(g) =  * qint(QRAD+g) * u_adv
+       rF(g) =  qint(QRAD+g) * u_adv
     end do
 #endif
 
