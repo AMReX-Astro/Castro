@@ -438,7 +438,7 @@ contains
 
   end subroutine HLLC_state
 
-  pure subroutine compute_flux_q(idir, qint, F, &
+  subroutine compute_flux_q(idir, qint, F, &
 #ifdef RADIATION
                                  lambda, &
                                  rF, &
@@ -456,11 +456,12 @@ contains
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
 #ifdef RADIATION
-                                   qrad, &
+                                   qrad, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
                                    npassive, upass_map, qpass_map
 #ifdef RADIATION
+    use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
 #endif
 
@@ -476,6 +477,7 @@ contains
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
     integer :: g, n, ipassive, nqp
     real(rt) :: u_adv, rhoetot
+    real(rt) :: eddf, f1
 
     if (idir == 1) then
        iu = QU
@@ -532,9 +534,17 @@ contains
     F(UEINT) = u_adv*qint(QREINT)
 
 #ifdef RADIATION
-    do g=0,ngroups-1
-       rF(g) =  qint(QRAD+g) * u_adv
-    end do
+    if (fspace_type == 1) then
+       do g=0,ngroups-1
+          eddf = Edd_factor(lambda(g))
+          f1 = 0.5e0_rt*(1.e0_rt-eddf)
+          rF(g) = (1.e0_rt + f1) * qint(QRAD+g) * u_adv
+       end do
+    else ! type 2
+       do g=0,ngroups-1
+          rF(g) = qint(QRAD+g) * u_adv
+       end do
+    end if
 #endif
 
     ! passively advected quantities

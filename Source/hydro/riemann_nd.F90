@@ -10,7 +10,7 @@ module riemann_module
                                  QC, QGAMC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, fspace_type, &
+                                 qrad, qradhi, qptot, qreitot, &
                                  GDERADS, GDLAMS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
@@ -20,7 +20,6 @@ module riemann_module
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
 #endif
 
   implicit none
@@ -957,7 +956,6 @@ contains
     real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
     real(rt) :: estar_g, pstar_g
     real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
-    real(rt) :: eddf, f1
     integer :: g
     real(rt) :: gamcgl, gamcgr
 #endif
@@ -1381,19 +1379,6 @@ contains
           ! store this for vectorization
           us1d(i) = ustar
 
-#ifdef RADIATION
-          if (fspace_type==1) then
-             do g=0,ngroups-1
-                eddf = Edd_factor(lambda(g))
-                f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                qint(i,j,kc,QRAD+g) = (1.e0_rt+f1) * qint(i,j,kc,QRAD+g)
-             end do
-          else ! type 2
-             do g=0,ngroups-1
-                qint(i,j,kc,QRAD+g) = qint(i,j,kc,QRAD+g)
-             end do
-          end if
-#endif
        end do
 
        ! passively advected quantities
