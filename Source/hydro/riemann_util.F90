@@ -478,7 +478,7 @@ contains
 #endif
     integer, intent(in) :: zone(3)
 
-    integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
+    integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
     real(rt) :: u_adv, rhoetot
     real(rt) :: eddf, f1
@@ -490,9 +490,6 @@ contains
        im1 = UMX
        im2 = UMY
        im3 = UMZ
-       sx = 1
-       sy = 0
-       sz = 0
     else if (idir == 2) then
        iu = QV
        iv1 = QU
@@ -500,9 +497,6 @@ contains
        im1 = UMY
        im2 = UMX
        im3 = UMZ
-       sx = 0
-       sy = 1
-       sz = 0
     else
        iu = QW
        iv1 = QU
@@ -510,9 +504,6 @@ contains
        im1 = UMZ
        im2 = UMX
        im3 = UMY
-       sx = 0
-       sy = 0
-       sz = 1
     end if
 
     u_adv = qint(iu)
@@ -526,10 +517,6 @@ contains
     endif
     F(im2) = F(URHO)*qint(iv1)
     F(im3) = F(URHO)*qint(iv2)
-
-#ifdef HYBRID_MOMENTUM
-    call compute_hybrid_flux(qint, F, idir, zone)
-#endif
 
     rhoetot = qint(QREINT) + HALF*qint(QRHO)*(qint(iu)**2 + qint(iv1)**2 + qint(iv2)**2)
 
@@ -569,6 +556,12 @@ contains
     qgdnv(GDLAMS:GDLAMS-1+ngroups) = lambda(:)
     qgdnv(GDERADS:GDERADS-1+ngroups) = qint(QRAD:QRAD-1+ngroups)
 #endif
+
+#ifdef HYBRID_MOMENTUM
+    ! the hybrid routine uses the Godunov indices, not the full NQ state
+    call compute_hybrid_flux(qgdnv, F, idir, zone)
+#endif
+
 
   end subroutine compute_flux_q
 
