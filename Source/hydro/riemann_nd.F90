@@ -195,7 +195,7 @@ contains
                                  lambda_int(i,j,kc,:), &
                                  rflx(i,j,kflux,:), &
 #endif
-                                 qgdnv(i,j,kc,:))
+                                 qgdnv(i,j,kc,:), [i, j, k3d])
           enddo
        enddo
 
@@ -219,7 +219,7 @@ contains
        do j = jlo, jhi
           do i = ilo, ihi
              call compute_flux_q(idir, qint(i,j,kc,:), flx(i,j,kflux,:), &
-                                 qgdnv(i,j,kc,:))
+                                 qgdnv(i,j,kc,:), [i, j, k3d])
           enddo
        enddo
 

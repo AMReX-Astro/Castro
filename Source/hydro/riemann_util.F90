@@ -443,7 +443,7 @@ contains
                                  lambda, &
                                  rF, &
 #endif
-                                 qgdnv)
+                                 qgdnv, zone)
     ! given a primitive state, compute the flux in direction idir
 
     use prob_params_module, only : mom_flux_has_p
@@ -464,6 +464,9 @@ contains
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
 #endif
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : compute_hybrid_flux
+#endif
 
     integer, intent(in) :: idir
     real(rt), intent(in) :: qint(NQ)
@@ -473,6 +476,7 @@ contains
     real(rt), intent(in) :: lambda(0:ngroups-1)
     real(rt), intent(out) :: rF(0:ngroups-1)
 #endif
+    integer, intent(in) :: zone(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3, sx, sy, sz
     integer :: g, n, ipassive, nqp
@@ -524,8 +528,7 @@ contains
     F(im3) = F(URHO)*qint(iv2)
 
 #ifdef HYBRID_MOMENTUM
-    ! TODO: need to check this loc
-    call compute_hybrid_flux(qint, F, idir, [0, 0, 0])
+    call compute_hybrid_flux(qint, F, idir, zone)
 #endif
 
     rhoetot = qint(QREINT) + HALF*qint(QRHO)*(qint(iu)**2 + qint(iv1)**2 + qint(iv2)**2)
