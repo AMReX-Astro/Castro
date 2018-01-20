@@ -11,7 +11,7 @@ module riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
-                                 GDERADS, GDLAMS, QGAMCG, QLAMS, QREITOT, &
+                                 GDERADS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
@@ -1317,7 +1317,7 @@ contains
           qint(i,j,kc,QPRES) = pgdnv_g
           qint(i,j,kc,QPTOT) = pgdnv_t
           qint(i,j,kc,QREINT) = regdnv_g
-          qint(i,j,kc,QREITOT:QREITOT-1+ngroups) = regdnv_r(:) + regdnv_g
+          qint(i,j,kc,QREITOT) = sum(regdnv_r(:)) + regdnv_g
 
           lambda_int(i,j,kc,:) = lambda(:)
 
