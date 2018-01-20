@@ -17,4 +17,4 @@ int         Gravity::use_mlmg_solver = 0;
 int         Gravity::mlmg_max_fmg_iter = 0;
 int         Gravity::mlmg_agglomeration = 1;
 int         Gravity::mlmg_consolidation = 1;
-int         Gravity::mlmg_msolve = 0;
+int         Gravity::mlmg_nsolve = 0;
