@@ -17,4 +17,4 @@ pp.query("use_mlmg_solver", use_mlmg_solver);
 pp.query("mlmg_max_fmg_iter", mlmg_max_fmg_iter);
 pp.query("mlmg_agglomeration", mlmg_agglomeration);
 pp.query("mlmg_consolidation", mlmg_consolidation);
-pp.query("mlmg_msolve", mlmg_msolve);
+pp.query("mlmg_nsolve", mlmg_nsolve);
