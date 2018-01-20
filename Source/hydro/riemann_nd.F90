@@ -1409,7 +1409,7 @@ contains
   subroutine HLLC(ql, qr, qpd_lo, qpd_hi, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qint, q_lo, q_hi, &
+                  qgdnv, q_lo, q_hi, &
                   idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                   domlo, domhi)
 
@@ -1442,7 +1442,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     integer, intent(in) :: kc, kflux, k3d
 
     ! Note:
@@ -1636,9 +1636,9 @@ contains
           rgdnv = frac*rstar + (ONE - frac)*ro
           regdnv = frac*estar + (ONE - frac)*reo
 
-          qint(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
-          qint(i,j,kc,QPRES) = frac*pstar + (ONE - frac)*po
-          qint(i,j,kc,QGAME) = qint(i,j,kc,QPRES)/regdnv + ONE
+          qgdnv(i,j,kc,iu) = frac*ustar + (ONE - frac)*uo
+          qgdnv(i,j,kc,GDPRES) = frac*pstar + (ONE - frac)*po
+          qgdnv(i,j,kc,GDGAME) = qgdnv(i,j,kc,GDPRES)/regdnv + ONE
 
 
           ! now we do the HLLC construction
