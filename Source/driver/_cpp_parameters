@@ -598,6 +598,9 @@ mlmg_max_fmg_iter            int           0                  n
 mlmg_agglomeration           int           1                  n
 mlmg_consolidation           int           1                  n
 
+# Do N-Solve?
+mlmg_nsolve                  int           0                  n
+
 @namespace: diffusion Diffusion static
 
 # the level of verbosity for the diffusion solve (higher number means

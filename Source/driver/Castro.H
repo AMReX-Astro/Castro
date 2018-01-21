@@ -723,6 +723,9 @@ protected:
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
 
+    // Wall time that we started the timestep
+    amrex::Real wall_time_start;
+
     //
     //  Call extern/networks/.../network.f90::network_init()
     //

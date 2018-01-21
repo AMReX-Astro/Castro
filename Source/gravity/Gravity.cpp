@@ -2950,6 +2950,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
+        mlmg.setNSolve(mlmg_nsolve);
         final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);
 
         mlmg.getGradSolution(grad_phi);
