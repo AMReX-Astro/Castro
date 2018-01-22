@@ -349,6 +349,13 @@ Castro::sum_integrated_quantities ()
 
     }
 
+    // Calculate wall time for the step.
+
+    Real wall_time = 0.0;
+
+    if (time > 0.0)
+        wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
+
     // Write data out to the log.
 
     if ( amrex::ParallelDescriptor::IOProcessor() )
@@ -608,6 +615,8 @@ Castro::sum_integrated_quantities ()
 	 }
       }
 
+      // Information about the AMR driver.
+
       if (parent->NumDataLogs() > 3) {
 
 	 std::ostream& log = parent->DataLog(3);
@@ -628,16 +637,20 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(fixwidth) << "                     TIME"; ++n;
 	     header << std::setw(fixwidth) << "                       DT"; ++n;
 	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
+             header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
 
 	     header << std::endl;
 
              log << std::setw(intwidth) << "#   COLUMN 1";
              log << std::setw(fixwidth) << "                        2";
 
-             for (int i = 3; i < n; ++i)
+             for (int i = 3; i < 4; ++i)
                  log << std::setw(datwidth) << i;
 
-             log << std::setw(intwidth) << n;
+             log << std::setw(intwidth) << 4; // Handle the finest lev column
+
+             for (int i = 5; i <= n; ++i)
+                 log << std::setw(datwidth) << i;
 
              log << std::endl;
 
@@ -651,6 +664,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
 	   log << std::setw(intwidth)                                     << parent->finestLevel();
+           log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
 
 	   log << std::endl;
 

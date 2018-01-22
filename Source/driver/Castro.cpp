@@ -608,6 +608,8 @@ Castro::buildMetrics ()
 #endif
 
     if (level == 0) setGridInfo();
+
+    wall_time_start = 0.0;
 }
 
 // Initialize the MultiFabs and flux registers that live as class members.
