@@ -151,9 +151,11 @@ contains
                                         vol, vol_lo, vol_hi, &
                                         lo, hi, frac_change, verbose, idx) &
                                         bind(C, name="ca_enforce_minimum_density")
-
+#ifndef MHD 
     use advection_util_module, only: enforce_minimum_density
-
+#else
+    use mhd_util_module, only: enforce_minimum_density
+#endif
     implicit none
 
     integer, intent(in) :: lo(3), hi(3), verbose
@@ -191,7 +193,7 @@ contains
 
   end subroutine ca_check_initial_species
 
-
+#ifndef MHD
   subroutine ca_ctoprim(lo, hi, &
                         uin, uin_lo, uin_hi, &
 #ifdef RADIATION
@@ -269,5 +271,6 @@ contains
                    srcQ,srQ_lo, srQ_hi)
 
   end subroutine ca_srctoprim
+#endif
 
 end module c_interface_modules

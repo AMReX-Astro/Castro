@@ -159,21 +159,28 @@ contains
              ux = u(i,j,k,UMX)*rhoInv
              uy = u(i,j,k,UMY)*rhoInv
              uz = u(i,j,k,UMZ)*rhoInv
+       
+             eos_state % rho = u(i,j,k,URHO)
+             eos_state % e = u(i,j,k,UEINT) * rhoInv
+             eos_state % T = u(i,j,k,UTEMP)
+             eos_state % xn = u(i,j,k,UFS:UFS+nspec-1)*rhoInv
+
+             call eos(eos_input_re, eos_state)
 
              e  = u(i,j,k,UEINT)*rhoInv
              spec = u(i,j,k,UFS:UFS+nspec-1)*rhoInv
 
              if (e .gt. 0.d0) then
                 cad = bcx
-                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),e, eos_state % T, &
                                         bcx,bcy,bcz,cad, spec) 
                 
                 cad = bcy
-                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),e, eos_state % T, &
                                         bcx,bcy,bcz,cad, spec)
 
                 cad = bcz
-                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),e,u(i,j,k,UTEMP), &
+                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),e, eos_state % T, &
                                         bcx,bcy,bcz,cad, spec)
              else
                 cx = 0.0d0

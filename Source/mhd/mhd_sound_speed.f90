@@ -32,7 +32,7 @@
      ca = (bx**2 + by**2 + bz**2)/rho
      cad = bd**2/rho
      !Fast Magneto-Sonic Wave
-     c = 0.5d0*((as + ca) + sqrt((as + ca)**2 -4*as*cad))
+     c = 0.5d0*((as + ca) + sqrt((as + ca)**2 -4.0d0*as*cad))
      c = sqrt(c)
 
   end subroutine eos_soundspeed_mhd

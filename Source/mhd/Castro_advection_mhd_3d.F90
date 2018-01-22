@@ -629,6 +629,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            coury = ( cy(i,j,k)+abs(q(i,j,k,QV)) ) * dtdyaold
            courz = ( cz(i,j,k)+abs(q(i,j,k,QW)) ) * dtdzaold
 
+
            courmx = max( courmx, courx )
            courmy = max( courmy, coury )
            courmz = max( courmz, courz )
