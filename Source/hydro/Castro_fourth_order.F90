@@ -7,6 +7,7 @@ subroutine ca_fourth_single_stage(time, &
                                   uout, uout_lo, uout_hi, &
                                   q, q_lo, q_hi, &
                                   q_bar, q_bar_lo, q_bar_hi, &
+                                  qaux, qa_lo, qa_hi, &
                                   srcU, srU_lo, srU_hi, &
                                   update, updt_lo, updt_hi, &
                                   update_flux, uf_lo, uf_hi, &
@@ -33,7 +34,7 @@ subroutine ca_fourth_single_stage(time, &
                                   verbose) bind(C, name="ca_mol_single_stage")
 
   use mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
                                  UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                  use_flattening, QPRES, NQAUX, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
@@ -62,6 +63,7 @@ subroutine ca_fourth_single_stage(time, &
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
@@ -85,6 +87,7 @@ subroutine ca_fourth_single_stage(time, &
   real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
   real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+  real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
@@ -134,7 +137,7 @@ subroutine ca_fourth_single_stage(time, &
   integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  real(rt) :: div1
+  real(rt) :: div1, lap
   integer :: i, j, k, n
 
   type (eos_t) :: eos_state
@@ -175,8 +178,6 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(qzm, It_lo, It_hi, NQ)
   call bl_allocate(qzp, It_lo, It_hi, NQ)
 #endif
-
-  call bl_allocate(qint, It_lo, It_hi, NGDNV)
 
   call bl_allocate(shk, shk_lo, shk_hi)
 
@@ -338,12 +339,12 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)+1
 
               ! note: need to consider axisymmetry in the future
-              lap = qx_avg(i,j+1,k) - TWO*qx_avg(i,j,k) + qx_avg(i,j-1,k)
+              lap = qx_avg(i,j+1,k,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j-1,k,n)
 #if BL_SPACEDIM == 3
-              lap = lap + qx_avg(i,j,k+1) - TWO*qx_avg(i,j,k) + qx_avg(i,j,k-1)
+              lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
 #endif
 
-              qx_fc(i,j,k,n) = qx_avg(i,j,k) - 1.0_rt/24.0_rt * lap
+              qx_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -356,12 +357,12 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future
-              lap = qy_avg(i+1,j,k) - TWO*qy_avg(i,j,k) + qy_avg(i-1,j,k)
+              lap = qy_avg(i+1,j,k,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i-1,j,k,n)
 #if BL_SPACEDIM == 3
-              lap = lap + qy_avg(i,j,k+1) - TWO*qy_avg(i,j,k) + qy_avg(i,j,k-1)
+              lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
 #endif
 
-              qy_fc(i,j,k,n) = qy_avg(i,j,k) - 1.0_rt/24.0_rt * lap
+              qy_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -375,10 +376,10 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future
-              lap = qz_avg(i+1,j,k) - TWO*qz_avg(i,j,k) + qz_avg(i-1,j,k)
-              lap = lap + qz_avg(i,j+1,k) - TWO*qz_avg(i,j,k) + qz_avg(i,j-1,k)
+              lap = qz_avg(i+1,j,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i-1,j,k,n)
+              lap = lap + qz_avg(i,j+1,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i,j-1,k,n)
 
-              qz_fc(i,j,k,n) = qz_avg(i,j,k) - 1.0_rt/24.0_rt * lap
+              qz_fc(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -397,12 +398,12 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)+1
 
               ! note: need to consider axisymmetry in the future
-              lap = flx_avg(i,j+1,k) - TWO*flx_avg(i,j,k) + flx_avg(i,j-1,k)
+              lap = flx_avg(i,j+1,k,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j-1,k,n)
 #if BL_SPACEDIM == 3
-              lap = lap + flx_avg(i,j,k+1) - TWO*flx_avg(i,j,k) + flx_avg(i,j,k-1)
+              lap = lap + flx_avg(i,j,k+1,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j,k-1,n)
 #endif
 
-              flx(i,j,k,n) = flx(i,j,k) + 1.0_rt/24.0_rt * lap
+              flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -415,12 +416,12 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future
-              lap = fly_avg(i+1,j,k) - TWO*fly_avg(i,j,k) + fly_avg(i-1,j,k)
+              lap = fly_avg(i+1,j,k,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i-1,j,k,n)
 #if BL_SPACEDIM == 3
-              lap = lap + fly_avg(i,j,k+1) - TWO*fly_avg(i,j,k) + fly_avg(i,j,k-1)
+              lap = lap + fly_avg(i,j,k+1,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i,j,k-1,n)
 #endif
 
-              fly(i,j,k,n) = fly(i,j,k) + 1.0_rt/24.0_rt * lap
+              fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -434,10 +435,10 @@ subroutine ca_fourth_single_stage(time, &
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future
-              lap = flz_avg(i+1,j,k) - TWO*flz_avg(i,j,k) + flz_avg(i-1,j,k)
-              lap = lap + flz_avg(i,j+1,k) - TWO*flz_avg(i,j,k) + flz_avg(i,j-1,k)
+              lap = flz_avg(i+1,j,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i-1,j,k,n)
+              lap = lap + flz_avg(i,j+1,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i,j-1,k,n)
 
-              flz(i,j,k,n) = flz(i,j,k) + 1.0_rt/24.0_rt * lap
+              flz(i,j,k,n) = flz(i,j,k,n) + 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -452,6 +453,7 @@ subroutine ca_fourth_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
+  ! TODO: how do we do this to fourth order?
   call calc_pdivu(lo, hi, &
                   q1, flx_lo, flx_hi, &
                   area1, area1_lo, area1_hi, &
