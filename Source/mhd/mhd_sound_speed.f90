@@ -28,11 +28,10 @@
      call eos(eos_input_rt, eos_state)
   
      P = eos_state % p
-     as = (eos_state % cs)**2
+     as = eos_state % gam1 * P/rho
      ca = (bx**2 + by**2 + bz**2)/rho
      cad = bd**2/rho
      !Fast Magneto-Sonic Wave
-     ! TODO: double check this expression
      c = 0.5d0*((as + ca) + sqrt((as + ca)**2 -4*as*cad))
      c = sqrt(c)
 
