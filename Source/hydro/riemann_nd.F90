@@ -283,6 +283,170 @@ contains
 
   end subroutine cmpflx
 
+
+  subroutine riemann_state(qm, qp, qpd_lo, qpd_hi, &
+                           qint, q_lo, q_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, domlo, domhi)
+
+
+    use mempool_module, only : bl_allocate, bl_deallocate
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use network, only: nspec, naux
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+
+    implicit none
+
+    integer, intent(in) :: qpd_lo(3), qpd_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+
+    integer, intent(in) :: idir
+    ! note: ilo, ihi, jlo, jhi are not necessarily the limits of the
+    ! valid (no ghost cells) domain, but could be hi+1 in some
+    ! dimensions.  We rely on the caller to specific the interfaces
+    ! over which to solve the Riemann problems
+    integer, intent(in) :: ilo, ihi, jlo, jhi, kc, kflux, k3d
+    integer, intent(in) :: domlo(3),domhi(3)
+
+    ! note: qm, qp, q may come in as planes (all of x,y
+    ! zones but only 2 elements in the z dir) instead of being
+    ! dimensioned the same as the full box.  We index these with kc.
+    ! flux either comes in as planes (like qm, qp, ... above), or
+    ! comes in dimensioned as the full box.  We index the flux with
+    ! kflux -- this will be set correctly for the different cases.
+
+    real(rt), intent(inout) :: qm(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+
+    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+
+    ! qaux come in dimensioned as the full box, so we use k3d here to
+    ! index it in z
+
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+
+    real(rt), pointer :: lambda_int(:,:,:,:)
+
+    ! local variables
+
+    integer i, j
+
+    real(rt) :: cl, cr
+    type (eos_t) :: eos_state
+
+#ifdef RADIATION
+    if (hybrid_riemann == 1) then
+       call bl_error("ERROR: hybrid Riemann not supported for radiation")
+    endif
+
+    if (riemann_solver > 0) then
+       call bl_error("ERROR: only the CGF Riemann solver is supported for radiation")
+    endif
+#endif
+
+#if BL_SPACEDIM == 1
+    if (riemann_solver > 1) then
+       call bl_error("ERROR: HLLC not implemented for 1-d")
+    endif
+#endif
+
+    if (ppm_temp_fix == 2) then
+       ! recompute the thermodynamics on the interface to make it
+       ! all consistent
+
+       ! we want to take the edge states of rho, p, and X, and get
+       ! new values for gamc and (rho e) on the edges that are
+       ! thermodynamically consistent.
+
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             ! this is an initial guess for iterations, since we
+             ! can't be certain that temp is on interfaces
+             eos_state % T = 10000.0e0_rt
+
+             ! minus state
+             eos_state % rho = qm(i,j,kc,QRHO)
+             eos_state % p   = qm(i,j,kc,QPRES)
+             eos_state % e   = qm(i,j,kc,QREINT)/qm(i,j,kc,QRHO)
+             eos_state % xn  = qm(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qm(i,j,kc,QFX:QFX+naux-1)
+
+             call eos(eos_input_re, eos_state)
+
+             qm(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             qm(i,j,kc,QPRES)  = eos_state % p
+             !gamcm(i,j)        = eos_state % gam1
+
+          enddo
+       enddo
+
+       ! plus state
+       do j = jlo, jhi
+          do i = ilo, ihi
+
+             eos_state % rho = qp(i,j,kc,QRHO)
+             eos_state % p   = qp(i,j,kc,QPRES)
+             eos_state % e   = qp(i,j,kc,QREINT)/qp(i,j,kc,QRHO)
+             eos_state % xn  = qp(i,j,kc,QFS:QFS+nspec-1)
+             eos_state % aux = qp(i,j,kc,QFX:QFX+naux-1)
+
+             call eos(eos_input_re, eos_state)
+
+             qp(i,j,kc,QREINT) = eos_state % e * eos_state % rho
+             qp(i,j,kc,QPRES)  = eos_state % p
+             !gamcp(i,j)        = eos_state % gam1
+
+          enddo
+       enddo
+
+    endif
+
+    ! Solve Riemann problem
+    if (riemann_solver == 0) then
+       ! Colella, Glaz, & Ferguson solver
+
+#ifdef RADIATION
+       call bl_allocate(lambda_int, q_lo, q_hi, ngroups)
+#endif
+
+       call riemannus(qm, qp, qpd_lo, qpd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      qint, q_lo, q_hi, &
+#ifdef RADIATION
+                      lambda_int, q_lo, q_hi, &
+#endif
+                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                      domlo, domhi)
+
+#ifdef RADIATION
+       call bl_deallocate(lambda_int)
+#endif
+
+    elseif (riemann_solver == 1) then
+       ! Colella & Glaz solver
+
+#ifndef RADIATION
+       call riemanncg(qm, qp, qpd_lo, qpd_hi, &
+                      qaux, qa_lo, qa_hi, &
+                      qint, q_lo, q_hi, &
+                      idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
+                      domlo, domhi)
+#else
+       call bl_error("ERROR: CG solver does not support radiaiton")
+#endif
+
+    else
+       call bl_error("ERROR: invalid value of riemann_solver")
+    endif
+
+  end subroutine riemann_state
+
+
+
   subroutine riemanncg(ql, qr, qpd_lo, qpd_hi, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
