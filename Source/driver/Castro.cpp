@@ -126,10 +126,13 @@ std::string  Castro::probin_file = "probin";
 
 #if BL_SPACEDIM == 1
 IntVect      Castro::hydro_tile_size(1024);
+IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
 IntVect      Castro::hydro_tile_size(1024,16);
+IntVect      Castro::no_tile_size(1024,1024);
 #else
 IntVect      Castro::hydro_tile_size(1024,16,16);
+IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
 // this will be reset upon restart

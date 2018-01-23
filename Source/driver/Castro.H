@@ -857,6 +857,7 @@ protected:
     static std::string probin_file;
 
     static amrex::IntVect hydro_tile_size;
+    static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
     static int num_state_type;
