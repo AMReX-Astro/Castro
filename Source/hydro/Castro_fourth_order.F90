@@ -158,33 +158,33 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
-  call bl_allocate(qx_avg, flx_lo, flx_hi, NQ)
-  call bl_allocate(qx_fc, flx_lo, flx_hi, NQ)
+  call bl_allocate(qx_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qx_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
-  call bl_allocate(flx_avg, flx_lo, flx_hi, NVAR)
+  call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if BL_SPACEDIM >= 2
-  call bl_allocate(qy_avg, fly_lo, fly_hi, NQ)
-  call bl_allocate(qy_fc, fly_lo, fly_hi, NQ)
+  call bl_allocate(qy_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qy_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
-  call bl_allocate(fly_avg, fly_lo, fly_hi, NVAR)
+  call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(qz_avg, flz_lo, flz_hi, NQ)
-  call bl_allocate(qz_fc, flz_lo, flz_hi, NQ)
+  call bl_allocate(qz_avg, q_lo, q_hi, NQ)
+  call bl_allocate(qz_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
-  call bl_allocate(flz_avg, flz_lo, flz_hi, NVAR)
+  call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
-  call bl_allocate(qxm, It_lo, It_hi, NQ)
-  call bl_allocate(qxp, It_lo, It_hi, NQ)
+  call bl_allocate(qxm, q_lo, q_hi, NQ)
+  call bl_allocate(qxp, q_lo, q_hi, NQ)
 
 #if BL_SPACEDIM >= 2
-  call bl_allocate(qym, It_lo, It_hi, NQ)
-  call bl_allocate(qyp, It_lo, It_hi, NQ)
+  call bl_allocate(qym, q_lo, q_hi, NQ)
+  call bl_allocate(qyp, q_lo, q_hi, NQ)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(qzm, It_lo, It_hi, NQ)
-  call bl_allocate(qzp, It_lo, It_hi, NQ)
+  call bl_allocate(qzm, q_lo, q_hi, NQ)
+  call bl_allocate(qzp, q_lo, q_hi, NQ)
 #endif
 
   call bl_allocate(shk, shk_lo, shk_hi)
@@ -244,7 +244,7 @@ subroutine ca_fourth_single_stage(time, &
      call states(1, &
                  q(:,:,:,n), q_lo, q_hi, &
                  flatn, q_lo, q_hi, &
-                 qxm, qxp, It_lo, It_hi, &
+                 qxm, qxp, q_lo, q_hi, &
                  lo, hi)
 
 #if BL_SPACEDIM >= 2
@@ -252,7 +252,7 @@ subroutine ca_fourth_single_stage(time, &
      call states(2, &
                  q(:,:,:,n), q_lo, q_hi, &
                  flatn, q_lo, q_hi, &
-                 qym, qyp, It_lo, It_hi, &
+                 qym, qyp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
@@ -261,7 +261,7 @@ subroutine ca_fourth_single_stage(time, &
      call states(3, &
                  q(:,:,:,n), q_lo, q_hi, &
                  flatn, q_lo, q_hi, &
-                 qzm, qzp, It_lo, It_hi, &
+                 qzm, qzp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
@@ -282,8 +282,8 @@ subroutine ca_fourth_single_stage(time, &
 
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
-     call riemann_state(qxm, qxp, It_lo, It_hi, &
-                        qx_avg, It_lo, It_hi, &
+     call riemann_state(qxm, qxp, q_lo, q_hi, &
+                        qx_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
                         1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi)
 
@@ -299,8 +299,8 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM >= 2
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
-     call riemann_state(qym, qyp, It_lo, It_hi, &
-                        qy_avg, It_lo, It_hi, &
+     call riemann_state(qym, qyp, q_lo, q_hi, &
+                        qy_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
 
@@ -316,8 +316,8 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM == 3
   do k = lo(3), hi(3)+dg(3)
 
-     call riemann_state(qzm, qzp, It_lo, It_hi, &
-                        qz_avg, It_lo, It_hi, &
+     call riemann_state(qzm, qzp, q_lo, q_hi, &
+                        qz_avg, q_lo, q_hi, &
                         qaux, qa_lo, qa_hi, &
                         3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
 
@@ -484,8 +484,8 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM == 3
   ! z-interfaces
   do n = 1, NVAR
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)+1
+     do k = lo(3), hi(3)+1
+        do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future

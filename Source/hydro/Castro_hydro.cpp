@@ -345,7 +345,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	}
 #endif
 
-        std::cout << "fourth_order = " << fourth_order << std::endl;
         if (fourth_order) {
           ca_fourth_single_stage
             (&time,
