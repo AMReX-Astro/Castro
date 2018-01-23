@@ -44,7 +44,8 @@ subroutine ca_fourth_single_stage(time, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
-  use riemann_module, only: riemann_state, compute_flux_q
+  use riemann_module, only: riemann_state
+  use riemann_util_module, only: compute_flux_q
   use fourth_order
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
@@ -412,8 +413,8 @@ subroutine ca_fourth_single_stage(time, &
 
   ! compute face-centered fluxes
   ! these will be stored in flx, fly, flz
-  do k = lo(3)-dg(3), hi(3)+dg(3)
-     do j = lo(2)-dg(2), hi(2)+dg(2)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
         do i = lo(1), hi(1)+1
            call compute_flux_q(1, qx_fc(i,j,k,:), flx(i,j,k,:), &
                                qgdnvx(i,j,k,:), [i, j, k])
@@ -422,9 +423,9 @@ subroutine ca_fourth_single_stage(time, &
   enddo
 
 #if BL_SPACEDIM >= 2
-  do k = lo(3)-dg(3), hi(3)+dg(3)
+  do k = lo(3), hi(3)
      do j = lo(2), hi(2)+1
-        do i = lo(1)-1, hi(1)+1
+        do i = lo(1), hi(1)
            call compute_flux_q(2, qy_fc(i,j,k,:), fly(i,j,k,:), &
                                qgdnvy(i,j,k,:), [i, j, k])
         enddo
@@ -433,9 +434,9 @@ subroutine ca_fourth_single_stage(time, &
 #endif
 
 #if BL_SPACEDIM == 3
-  do k = lo(3), hi(3)+dg(3)
-     do j = lo(2)-1, hi(2)+1
-        do i = lo(1)-1, hi(1)+1
+  do k = lo(3), hi(3)+1
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
            call compute_flux_q(3, qz_fc(i,j,k,:), flz(i,j,k,:), &
                                qgdnvz(i,j,k,:), [i, j, k])
         enddo

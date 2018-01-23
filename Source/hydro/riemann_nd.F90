@@ -26,7 +26,7 @@ module riemann_module
 
   private
 
-  public :: riemanncg, riemannus, hllc, cmpflx, riemann_state, compute_flux_q
+  public :: riemanncg, riemannus, hllc, cmpflx, riemann_state
 
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
