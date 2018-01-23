@@ -31,7 +31,7 @@ subroutine ca_fourth_single_stage(time, &
                                   dloga, dloga_lo, dloga_hi, &
 #endif
                                   vol, vol_lo, vol_hi, &
-                                  verbose) bind(C, name="ca_mol_single_stage")
+                                  verbose) bind(C, name="ca_fourth_single_stage")
 
   use mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
@@ -44,7 +44,7 @@ subroutine ca_fourth_single_stage(time, &
                                     divu, normalize_species_fluxes, calc_pdivu
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
-  use riemann_module, only: cmpflx
+  use riemann_module, only: riemann_state, compute_flux_q
   use fourth_order
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
@@ -123,6 +123,11 @@ subroutine ca_fourth_single_stage(time, &
   real(rt), pointer :: qy_fc(:,:,:,:)
   real(rt), pointer :: qz_fc(:,:,:,:)
 
+  ! Temporaries (for now)
+  real(rt), pointer :: qgdnvx(:,:,:,:)
+  real(rt), pointer :: qgdnvy(:,:,:,:)
+  real(rt), pointer :: qgdnvz(:,:,:,:)
+
   real(rt), pointer :: flx_avg(:,:,:,:)
   real(rt), pointer :: fly_avg(:,:,:,:)
   real(rt), pointer :: flz_avg(:,:,:,:)
@@ -153,17 +158,20 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
   call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
-  call bl_allocate(qx_avg, flx_lo, flx_hi, NGDNV)
-  call bl_allocate(qx_fc, flx_lo, flx_hi, NGDNV)
+  call bl_allocate(qx_avg, flx_lo, flx_hi, NQ)
+  call bl_allocate(qx_fc, flx_lo, flx_hi, NQ)
+  call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
   call bl_allocate(flx_avg, flx_lo, flx_hi, NVAR)
 #if BL_SPACEDIM >= 2
-  call bl_allocate(qy_avg, fly_lo, fly_hi, NGDNV)
-  call bl_allocate(qy_fc, fly_lo, fly_hi, NGDNV)
+  call bl_allocate(qy_avg, fly_lo, fly_hi, NQ)
+  call bl_allocate(qy_fc, fly_lo, fly_hi, NQ)
+  call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
   call bl_allocate(fly_avg, fly_lo, fly_hi, NVAR)
 #endif
 #if BL_SPACEDIM == 3
-  call bl_allocate(qz_avg, flz_lo, flz_hi, NGDNV)
-  call bl_allocate(qz_fc, flz_lo, flz_hi, NGDNV)
+  call bl_allocate(qz_avg, flz_lo, flz_hi, NQ)
+  call bl_allocate(qz_fc, flz_lo, flz_hi, NQ)
+  call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
   call bl_allocate(flz_avg, flz_lo, flz_hi, NVAR)
 #endif
 
@@ -266,44 +274,63 @@ subroutine ca_fourth_single_stage(time, &
   ! this is where we would implement ppm_temp_fix
 
 
-  ! solve the Riemann problems -- this will give us both the unique
-  ! face-average state and the fluxes for that state
+  ! solve the Riemann problems -- we just require the interface state
+  ! at this point
 
   ! note that the Riemann solver is written to work in slabs, so we
   ! need to pass the k index for both the state and flux separately.
 
+  ! TODO: we should explicitly compute a gamma with this state, since
+  ! we cannot get away with the first-order construction that we pull
+  ! from qaux in the Riemann solver
+
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
-     call cmpflx(qxm, qxp, It_lo, It_hi, &
-                 flx_avg, flx_lo, flx_hi, &
-                 qx_avg, It_lo, It_hi, &
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 1, lo(1), hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
+     call riemann_state(qxm, qxp, It_lo, It_hi, &
+                        qx_avg, It_lo, It_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi)
+
+     do j = lo(2)-dg(2), hi(2)+dg(2)
+        do i = lo(1), hi(1)+1
+           call compute_flux_q(1, qx_avg(i,j,k,:), flx_avg(i,j,k,:), &
+                               qgdnvx(i,j,k,:), [i, j, k])
+        enddo
+     enddo
   enddo
 
 
 #if BL_SPACEDIM >= 2
   do k = lo(3)-dg(3), hi(3)+dg(3)
 
-     call cmpflx(qym, qyp, It_lo, It_hi, &
-                 fly_avg, fly_lo, fly_hi, &
-                 qy_avg, It_lo, It_hi, &  ! temporary
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
+     call riemann_state(qym, qyp, It_lo, It_hi, &
+                        qy_avg, It_lo, It_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
+
+     do j = lo(2), hi(2)+1
+        do i = lo(1)-1, hi(1)+1
+           call compute_flux_q(2, qy_avg(i,j,k,:), fly_avg(i,j,k,:), &
+                               qgdnvy(i,j,k,:), [i, j, k])
+        enddo
+     enddo
   enddo
 #endif
 
 #if BL_SPACEDIM == 3
   do k = lo(3), hi(3)+dg(3)
 
-     call cmpflx(qzm, qzp, It_lo, It_hi, &
-                 flz_avg, flz_lo, flz_hi, &
-                 qz_avg, It_lo, It_hi, &
-                 qaux, qa_lo, qa_hi, &
-                 shk, shk_lo, shk_hi, &
-                 3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
+     call riemann_state(qzm, qzp, It_lo, It_hi, &
+                        qz_avg, It_lo, It_hi, &
+                        qaux, qa_lo, qa_hi, &
+                        3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
+
+     do j = lo(2)-1, hi(2)+1
+        do i = lo(1)-1, hi(1)+1
+           call compute_flux_q(3, qz_avg(i,j,k,:), flz_avg(i,j,k,:), &
+                               qgdnvz(i,j,k,:), [i, j, k])
+        enddo
+     enddo
   enddo
 #endif
 
@@ -387,8 +414,39 @@ subroutine ca_fourth_single_stage(time, &
 #endif
 
 
-  ! $$$ compute face-centered fluxes
-  TODO -- these should be stored in flx, fly, flz
+  ! compute face-centered fluxes
+  ! these will be stored in flx, fly, flz
+  do k = lo(3)-dg(3), hi(3)+dg(3)
+     do j = lo(2)-dg(2), hi(2)+dg(2)
+        do i = lo(1), hi(1)+1
+           call compute_flux_q(1, qx_fc(i,j,k,:), flx(i,j,k,:), &
+                               qgdnvx(i,j,k,:), [i, j, k])
+        enddo
+     enddo
+  enddo
+
+#if BL_SPACEDIM >= 2
+  do k = lo(3)-dg(3), hi(3)+dg(3)
+     do j = lo(2), hi(2)+1
+        do i = lo(1)-1, hi(1)+1
+           call compute_flux_q(2, qy_fc(i,j,k,:), fly(i,j,k,:), &
+                               qgdnvy(i,j,k,:), [i, j, k])
+        enddo
+     enddo
+  enddo
+#endif
+
+#if BL_SPACEDIM == 3
+  do k = lo(3), hi(3)+dg(3)
+     do j = lo(2)-1, hi(2)+1
+        do i = lo(1)-1, hi(1)+1
+           call compute_flux_q(3, qz_fc(i,j,k,:), flz(i,j,k,:), &
+                               qgdnvz(i,j,k,:), [i, j, k])
+        enddo
+     enddo
+  enddo
+#endif
+
 
   ! compute the final fluxes include the transverse correction
   ! x-interfaces
@@ -453,16 +511,17 @@ subroutine ca_fourth_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
-  ! TODO: how do we do this to fourth order?
+  ! TODO: how do we do this to fourth order? -- we can make 
+  ! the qgdnv really 4th order accurate by doing a transverse fix
   call calc_pdivu(lo, hi, &
-                  q1, flx_lo, flx_hi, &
+                  qgdnvx, flx_lo, flx_hi, &
                   area1, area1_lo, area1_hi, &
 #if BL_SPACEDIM >= 2
-                  q2, fly_lo, fly_hi, &
+                  qgdnvy, fly_lo, fly_hi, &
                   area2, area2_lo, area2_hi, &
 #endif
 #if BL_SPACEDIM == 3
-                  q3, flz_lo, flz_hi, &
+                  qgdnvz, flz_lo, flz_hi, &
                   area3, area3_lo, area3_hi, &
 #endif
                   vol, vol_lo, vol_hi, &
@@ -666,15 +725,18 @@ subroutine ca_fourth_single_stage(time, &
 
   call bl_deallocate(qx_avg)
   call bl_deallocate(qx_fc)
+  call bl_deallocate(qgdnvx)
   call bl_deallocate(flx_avg)
 #if BL_SPACEDIM >= 2
   call bl_deallocate(qy_avg)
   call bl_deallocate(qy_fc)
+  call bl_deallocate(qgdnvy)
   call bl_deallocate(flx_avg)
 #endif
 #if BL_SPACEDIM == 3
   call bl_deallocate(qz_avg)
   call bl_deallocate(qz_fc)
+  call bl_deallocate(qgdnvz)
   call bl_deallocate(flx_avg)
 #endif
 
