@@ -345,14 +345,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	}
 #endif
 
+        std::cout << "fourth_order = " << fourth_order << std::endl;
         if (fourth_order) {
-          ca_mol_single_stage
+          ca_fourth_single_stage
             (&time,
              ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
              BL_TO_FORTRAN_3D(q[mfi]),
+             BL_TO_FORTRAN_3D(q_bar[mfi]),
              BL_TO_FORTRAN_3D(qaux[mfi]),
              BL_TO_FORTRAN_3D(source_in),
              BL_TO_FORTRAN_3D(source_out),
@@ -372,14 +374,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
              verbose);
 
         } else {
-          ca_fourth_single_stage
+          ca_mol_single_stage
             (&time,
              ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
              BL_TO_FORTRAN_3D(q[mfi]),
-             BL_TO_FORTRAN_3D(q_bar[mfi]),
              BL_TO_FORTRAN_3D(qaux[mfi]),
              BL_TO_FORTRAN_3D(source_in),
              BL_TO_FORTRAN_3D(source_out),
