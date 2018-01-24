@@ -46,37 +46,42 @@ implicit none
 
 	real(rt), intent(in)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 
-        real(rt), intent(in) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR) 
-        real(rt), intent(in) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR)
+        real(rt), intent(in) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3) 
+        real(rt), intent(in) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
 
 	real(rt), intent(out)	:: E(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
 	
 	real(rt)				::Ecen
 	real(rt)				::a ,b ,d1 ,d2 ,dd1 ,dd2 
 	
-	integer					::i ,j ,k	
+	integer					::i ,j ,k
+        integer :: UMAGX, UMAGY, UMAGZ
 
-	!E = 0.d0
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
+
+	E = 0.d0
 	do k = work_lo(3), work_hi(3)
 		do j = work_lo(2), work_hi(2)
 			do i = work_lo(1), work_hi(1)
 
 !============================================= Ex i, j -1/2, k -1/2 ===========================================================================
 				call electric(q(i,j-1,k-1,:),Ecen,1)
-				a = 2.d0*(flxz(i,j-1,k,QMAGY) - Ecen)
+				a = 2.d0*(flxz(i,j-1,k,UMAGY) - Ecen)
 
 				call electric(q(i,j-1,k,:),Ecen,1)
-				b = 2.d0*(Ecen - flxz(i,j-1,k,QMAGY))
+				b = 2.d0*(Ecen - flxz(i,j-1,k,UMAGY))
 
-				if(flxz(i,j-1,k,QRHO).gt. 0.d0) then
+				if(flxz(i,j-1,k,URHO).gt. 0.d0) then
 					d1 = a
-				elseif(flxz(i,j-1,k,QRHO).lt. 0.d0) then
+				elseif(flxz(i,j-1,k,URHO).lt. 0.d0) then
 					d1 = b
 				else
 					d1 = 0.5d0*(a+b)
 				endif
 				a = b
-				b = 2.d0*(flxz(i,j-1,k+1,QMAGY) - Ecen)
+				b = 2.d0*(flxz(i,j-1,k+1,UMAGY) - Ecen)
 				
 				if(q(i,j-1,k,QW).gt. 0.d0) then
 					d2 = a
@@ -88,23 +93,23 @@ implicit none
 				dd1 = 0.125d0*(d1 - d2)
 			
 				call electric(q(i,j-1,k-1,:),Ecen,1)
-				a = 2.d0*(-flxy(i,j,k-1,QMAGZ) - Ecen)
+				a = 2.d0*(-flxy(i,j,k-1,UMAGZ) - Ecen)
 
 				call electric(q(i,j,k-1,:),Ecen,1)
-				b = 2.d0*(Ecen + flxy(i,j,k-1,QMAGZ))
+				b = 2.d0*(Ecen + flxy(i,j,k-1,UMAGZ))
 
-				if(flxy(i,j,k-1,QRHO).gt. 0.d0) then
+				if(flxy(i,j,k-1,URHO).gt. 0.d0) then
 					d1 = a
-				elseif(flxy(i,j,k-1,QRHO).lt. 0.d0) then
+				elseif(flxy(i,j,k-1,URHO).lt. 0.d0) then
 					d1 = b
 				else
 					d1 = 0.5d0*(a+b)
 				endif
 
 				a = b 
-				b = 2.d0*(-flxy(i,j+1,k-1,QMAGZ) - Ecen) 
+				b = 2.d0*(-flxy(i,j+1,k-1,UMAGZ) - Ecen) 
 
-				if(q(i,j,k-1,QV).gt.0.d0) then
+				if(q(i,j,k-1, QV).gt.0.d0) then
 					d2 = a
 				elseif(q(i,j,k-1,QV).lt. 0.d0) then
 					d2 = b
@@ -113,8 +118,8 @@ implicit none
 				endif
 				dd2 = 0.125*(d1 - d2)
 
-				E(i,j,k) = 0.25d0*(-flxy(i,j,k-1,QMAGZ) - flxy(i,j,k,QMAGZ) + &
-                                                    flxz(i,j-1,k,QMAGY) + flxz(i,j,k,QMAGY))! + dd1 + dd2
+				E(i,j,k) = 0.25d0*(-flxy(i,j,k-1,UMAGZ) - flxy(i,j,k,UMAGZ) + &
+                                                    flxz(i,j-1,k,UMAGY) + flxz(i,j,k,UMAGY))! + dd1 + dd2
 !				E(i,j,k) = 0.5d0*(-flxy(i,j,k-1,QMAGZ) + flxz(i,j-1,k,QMAGY))
 
 			
@@ -144,8 +149,8 @@ implicit none
 
 	real(rt), intent(in)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 
-        real(rt), intent(in) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)
-        real(rt), intent(in) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR)
+        real(rt), intent(in) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
+        real(rt), intent(in) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
 
 	real(rt), intent(out)	:: E(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
 	
@@ -153,6 +158,11 @@ implicit none
 	real(rt)				::a ,b ,d1 ,d2 ,dd1 ,dd2 
 	
 	integer					::i ,j ,k	
+        integer :: UMAGX, UMAGY, UMAGZ
+
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
 
 	E = 0.d0
 	do k = work_lo(3), work_hi(3)
@@ -162,21 +172,21 @@ implicit none
 !============================================= Ey i-1/2, j, k-1/2 ===========================================================================
 
 				call electric(q(i-1,j,k-1,:),Ecen,2)
-				a = 2.d0*(-flxx(i,j,k-1,QMAGZ) - Ecen)
+				a = 2.d0*(-flxx(i,j,k-1,UMAGZ) - Ecen)
 
 				call electric(q(i,j,k-1,:),Ecen,2)
-				b = 2.d0*(Ecen - flxx(i,j,k-1,QMAGZ))
+				b = 2.d0*(Ecen - flxx(i,j,k-1,UMAGZ))
 
-				if(flxx(i,j,k-1,QRHO).gt. 0.d0) then
+				if(flxx(i,j,k-1,URHO).gt. 0.d0) then
 					d1 = a
-				elseif(flxx(i,j,k-1,QRHO).lt. 0.d0) then
+				elseif(flxx(i,j,k-1,URHO).lt. 0.d0) then
 					d1 = b
 				else
 					d1 = 0.5d0*(a+b)
 				endif
 
 				a = b
-				b = 2.d0*(flxx(i+1,j,k-1,QMAGZ) - Ecen)
+				b = 2.d0*(flxx(i+1,j,k-1,UMAGZ) - Ecen)
 
 				if(q(i,j,k-1,QU).gt. 0.d0) then
 					d2 = a
@@ -188,20 +198,20 @@ implicit none
 				dd1 = 0.125d0*(d1 - d2)
 
 				call electric(q(i-1,j,k-1,:),Ecen,2)
-				a = 2.d0*(flxz(i-1,j,k,QMAGX) - Ecen)
+				a = 2.d0*(flxz(i-1,j,k,UMAGX) - Ecen)
 
     			        call electric(q(i-1,j,k,:),Ecen,2)
-				b = 2.d0*(Ecen - flxz(i-1,j,k,QMAGX))
+				b = 2.d0*(Ecen - flxz(i-1,j,k,UMAGX))
 
-				if(flxz(i-1,j,k,QRHO).gt. 0.d0) then
+				if(flxz(i-1,j,k,URHO).gt. 0.d0) then
 					d1 = a
-				elseif(flxz(i-1,j,k,QRHO).lt. 0.d0) then
+				elseif(flxz(i-1,j,k,URHO).lt. 0.d0) then
 					d1 = b
 				else
 					d1 = 0.5d0*(a+b)
 				endif
 				a = b 
-				b = 2.d0*(flxz(i-1,j,k+1,QMAGX) - Ecen) 
+				b = 2.d0*(flxz(i-1,j,k+1,UMAGX) - Ecen) 
 				if(q(i-1,j,k,QW).gt.0.d0) then
 					d2 = a
 				elseif(q(i-1,j,k,QW).lt. 0.d0) then
@@ -211,8 +221,8 @@ implicit none
 				endif
 				dd2 = 0.125*(d1 - d2)
 
-				E(i,j,k) = 0.25d0*( flxx(i,j,k-1,QMAGZ) + flxx(i,j,k,QMAGZ) &
-                                                   -flxz(i-1,j,k,QMAGX) - flxz(i,j,k,QMAGX))!  + dd1 + dd2
+				E(i,j,k) = 0.25d0*( flxx(i,j,k-1,UMAGZ) + flxx(i,j,k,UMAGZ) &
+                                                   -flxz(i-1,j,k,UMAGX) - flxz(i,j,k,UMAGX))!  + dd1 + dd2
 !				E(i,j,k) = 0.5d0*( flxx(i,j,k-1,QMAGZ) -flxz(i-1,j,k,QMAGX))
 			enddo
 		enddo
@@ -239,8 +249,8 @@ implicit none
 
         real(rt), intent(in)    ::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
 
-        real(rt), intent(in) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR)
-        real(rt), intent(in) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR)
+        real(rt), intent(in) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
+        real(rt), intent(in) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)
 
         real(rt), intent(out)   :: E(ez_l1:ez_h1,ez_l2:ez_h2,ez_l3:ez_h3)
 	
@@ -248,8 +258,13 @@ implicit none
 	real(rt)		:: a ,b ,d1 ,d2 ,dd1 ,dd2 
 
 	integer			:: i ,j ,k	
+        integer :: UMAGX, UMAGY, UMAGZ
 
-	!E = 0.d0
+        UMAGX = NVAR+1
+        UMAGY = NVAR+2
+        UMAGZ = NVAR+3
+        
+	E = 0.d0
 
 ! ====  Ez i-1/2, j-1/2, k ====
 
@@ -258,12 +273,12 @@ implicit none
 			do i = work_lo(1), work_hi(1)
 
 				call electric(q(i-1,j-1,k,:),Ecen,3)
-				a = 2.d0*(-flxx(i,j-1,k,QMAGY) - Ecen)
+				a = 2.d0*(-flxx(i,j-1,k,UMAGY) - Ecen)
 
 				call electric(q(i,j-1,k,:),Ecen,3)
-				b = 2.d0*(Ecen + flxx(i,j-1,k,QMAGY))
+				b = 2.d0*(Ecen + flxx(i,j-1,k,UMAGY))
 
-				u_face = flxx(i,j-1,k,QRHO)
+				u_face = flxx(i,j-1,k,URHO)
 				if (u_face.gt. 0.d0) then
 					d1 = a
 				elseif (u_face.lt. 0.d0) then
@@ -273,7 +288,7 @@ implicit none
 				endif
 
 				a = b
-				b = 2.d0*(-flxx(i+1,j-1,k,QMAGY) - Ecen)
+				b = 2.d0*(-flxx(i+1,j-1,k,UMAGY) - Ecen)
 
 				u_face = q(i,j-1,k,QU)
 				if (u_face.gt. 0.d0) then
@@ -290,12 +305,12 @@ implicit none
 !			endif
 
 				call electric(q(i-1,j-1,k,:),Ecen,3)
-				a = 2.d0*(flxy(i-1,j,k,QMAGX) - Ecen)
+				a = 2.d0*(flxy(i-1,j,k,UMAGX) - Ecen)
 
 				call electric(q(i-1,j,k,:),Ecen,3)
-				b = 2.d0*(Ecen - flxy(i-1,j,k,QMAGX))
+				b = 2.d0*(Ecen - flxy(i-1,j,k,UMAGX))
 
-				v_face = flxy(i-1,j,k,QRHO)
+				v_face = flxy(i-1,j,k,URHO)
 				if (v_face.gt. 0.d0) then
 					d1 = a
 				elseif (v_face.lt. 0.d0) then
@@ -305,7 +320,7 @@ implicit none
 				endif
 
 				a = b 
-				b = 2.d0*(flxy(i-1,j+1,k,QMAGX) - Ecen) 
+				b = 2.d0*(flxy(i-1,j+1,k,UMAGX) - Ecen) 
 
 				if(q(i-1,j,k,QV).gt.0.d0) then
 					d2 = a
@@ -316,8 +331,8 @@ implicit none
 				endif
 				dd2 = 0.125*(d1 - d2)
 
-				E(i,j,k) = 0.25d0*(-flxx(i,j-1,k,QMAGY) - flxx(i,j,k,QMAGY) &
-                                                   +flxy(i-1,j,k,QMAGX) + flxy(i,j,k,QMAGX))! + dd1 + dd2
+				E(i,j,k) = 0.25d0*(-flxx(i,j-1,k,UMAGY) - flxx(i,j,k,UMAGY) &
+                                                   +flxy(i-1,j,k,UMAGX) + flxy(i,j,k,UMAGX))! + dd1 + dd2
 !				 E(i,j,k) = 0.5d0*(-flxx(i,j-1,k,QMAGY) + flxy(i-1,j,k,QMAGX))
 				!if((i.eq.3.and.j.eq.17.and.k.eq.1).or.(i.eq.4.and.j.eq.17.and.k.eq.1)) then
 				!	print *, "Electric Z at ", i,j,k

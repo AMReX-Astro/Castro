@@ -30,6 +30,17 @@ Castro::just_the_mhd(Real time, Real dt)
       MultiFab grav_vector(grids, dmap, BL_SPACEDIM, 3);
       grav_vector.setVal(0.);
 
+      MultiFab fluxes[BL_SPACEDIM];
+      MultiFab electric[BL_SPACEDIM];
+      for (int j = 0; j < BL_SPACEDIM; j++)
+      {
+        fluxes[j].define(getEdgeBoxArray(j), dmap, NUM_STATE, 0);
+	fluxes[j].setVal(0,0);
+	electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
+	electric[j].setVal(0.0);
+      }
+
+
       BL_ASSERT(NUM_GROW == 4);
 
       // Create FAB for extended grid values (including boundaries) and fill.
@@ -114,6 +125,11 @@ Castro::just_the_mhd(Real time, Real dt)
              BL_TO_FORTRAN_3D(E[1]),
              BL_TO_FORTRAN_3D(E[2]),
              &cflLoc, &se, &ske, &print_fortran_warnings);
+
+           for (int i = 0; i < BL_SPACEDIM; i++){
+	     fluxes[i][mfi].copy(flux[i], mfi.nodaltilebox(i));
+	     electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
+	   }
 
 
 	}

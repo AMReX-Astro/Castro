@@ -191,9 +191,9 @@ subroutine ca_advance_mhd(time, lo, hi, &
   eztemp_h2 = hi(2)+4
   eztemp_h3 = hi(3)+3
 
-  allocate(flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,QVAR))
-  allocate(flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,QVAR))
-  allocate(flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,QVAR))
+  allocate(flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3))
+  allocate(flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3))
+  allocate(flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3))
 
   allocate(Extemp(extemp_l1:extemp_h1,extemp_l2:extemp_h2,extemp_l3:extemp_h3))
   allocate(Eytemp(eytemp_l1:eytemp_h1,eytemp_l2:eytemp_h2,eytemp_l3:eytemp_h3))
@@ -709,9 +709,9 @@ subroutine consup(uin, uin_lo, uin_hi, &
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
   real(rt), intent(in)  :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3), NVAR)
-  real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,QVAR)
-  real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,QVAR)
-  real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,QVAR)
+  real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
+  real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
+  real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
   real(rt), intent(in) 	:: dx,dy,dz,dt 
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
   real(rt)				:: u, v, w
@@ -803,6 +803,7 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
      do j = lo(2), hi(2)
 	do i = lo(1), hi(1)+1
            bxout(i,j,k) = bxin(i,j,k) + dt/dz*(Ey(i,j,k+1) - Ey(i,j,k)) - dt/dy*(Ez(i,j+1,k) - Ez(i,j,k))
+
 	enddo
      enddo
   enddo
