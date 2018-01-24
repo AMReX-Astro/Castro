@@ -185,11 +185,11 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
         !sM, eq.(38)
 	sM   = ((sR - qR(QVELN))*qR(QRHO)*qR(QVELN) - (sL - qL(QVELN))*qL(QRHO)*qL(QVELN) - &
                (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))) + &
-               (qL(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))))/ &
+               (qL(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))))/ &
                ((sR - qR(QVELN))*qR(QRHO) - (sL - qL(QVELN))*qL(QRHO))
 
 	!Pressures in the Riemann Fan
-	ptL  = qL(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
+	ptL  = qL(QPRES)+0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ))
 	ptR  = qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ))
         !pst, eq.(41)
 	pst  = (sR - qR(QVELN))*qR(QRHO)*ptL - (sL - qL(QVELN))*qL(QRHO)*ptR + qL(QRHO)*qR(QRHO)*(sR - qR(QVELN))*(sL - qL(QVELN))*(qR(QVELN) - qL(QVELN))
@@ -197,7 +197,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
 	!------------------------------------------- Density * states-------------------------------------------------------------------------
 
-	! Density
+	! Density eq.(43)
 	UsL(URHO) = qL(QRHO)*((sL - qL(QVELN))/(sL - sM))
 	UsR(URHO) = qR(QRHO)*((sR - qR(QVELN))/(sR - sM))
 
@@ -216,7 +216,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	if(abs(qR(QMAGN)*qR(QMAGP1)*(sM - qR(QVELN))).lt. 1d-14) then
 		UsR(UMP1) = qR(QVELP1)
 	else
-		UsR(UMP1)    = qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2))
+		UsR(UMP1)    = qR(QVELP1) - qR(QMAGN)*qR(QMAGP1)*((sM - qR(QVELN))/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2))
 	endif
 	
         ! Second Perpendicular dir
@@ -251,7 +251,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	if(abs(qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qL(QMAGN)**2)).lt.1d-14) then 
 		UsR(UMAGP1) = qR(QMAGP1)
 	else
-		UsR(UMAGP1) = qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qL(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qL(QMAGN)**2)
+		UsR(UMAGP1) = qR(QMAGP1)*(qR(QRHO)*(sR - qR(QVELN))**2 - qR(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2)
 	endif
 
         ! Second Perpendicular dir
@@ -266,17 +266,17 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 		UsR(UMAGP2) = qR(QMAGP2)*(qR(QRHO)*(sR - qR(QVELN))**2 - qR(QMAGN)**2)/(qR(QRHO)*(sR - qR(QVELN))*(sR - sM) - qR(QMAGN)**2)
 	endif
 	
-	!Energy *Stored in Pressure slot
+	!Energy, eq.(48)
 	UsL(UEDEN) = (sL - qL(QVELN))*eL - ptL*qL(QVELN) + pst*sM + &
                       qL(QMAGN)*(dot_product(qL(QU:QW),qL(QMAGX:QMAGZ)) &
-		                 -dot_product(UsL(QU:QW)/UsL(QRHO),UsL(QMAGX:QMAGZ)))
+		                 -dot_product(UsL(UMX:UMZ)/UsL(URHO),UsL(UMAGX:UMAGZ)))
 	UsL(UEDEN) = UsL(UEDEN)/(sL - sM)
 	UsR(UEDEN) = (sR - qR(QVELN))*eR - ptR*qR(QVELN) + pst*sM + &
                       qR(QMAGN)*( dot_product(qR(QU:QW),qR(QMAGX:QMAGZ)) &
-		                 -dot_product(UsR(QU:QW)/UsR(QRHO),UsR(QMAGX:QMAGZ)))
+		                 -dot_product(UsR(UMX:UMZ)/UsR(URHO),UsR(UMAGX:UMAGZ)))
 	UsR(UEDEN) = UsR(UEDEN)/(sR - sM)
 
-	!speeds
+	!speeds, eq.(51)
 	ssL = sM - abs(qL(QMAGN))/sqrt(UsL(URHO))
 	ssR = sM + abs(qR(QMAGN))/sqrt(UsR(URHO))
 
@@ -289,14 +289,14 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	UssL(UMN)    = sM
 	UssR(UMN)    = sM
 
-	!Vel in perpendicular direction
+	!Vel in perpendicular directioni, eq.(59)
 	UssL(UMP1)    = (sqrt(UsL(URHO))*UsL(UMP1)/UsL(URHO) + sqrt(UsR(URHO))*UsR(UMP1)/UsR(URHO)&
 	+ (UsR(UMAGP1) - UsL(UMAGP1))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 	UssR(UMP1)    = UssL(UMP1)
 
-	!Vel in second perpendicular direction
+	!Vel in second perpendicular direction, eq(60)
 	UssL(UMP2)    = (sqrt(UsL(URHO))*UsL(UMP2)/UsL(URHO) + sqrt(UsR(URHO))*UsR(UMP2)/UsR(URHO)&
-                                + (UsR(UMAGP2) - UsL(UMAGP2))*sign(1.d0,qL(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+                                + (UsR(UMAGP2) - UsL(UMAGP2))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 
 	UssR(UMP2)    = UssL(UMP2)
 
@@ -309,26 +309,27 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
 	!B in perpendicular direction
 	UssL(UMAGP1) = (sqrt(UsL(URHO))*UsR(UMAGP1) + sqrt(UsR(URHO))*UsL(UMAGP1) + sqrt(UsL(URHO)*UsR(URHO))& 
-        *(UsR(UMP1)/UsR(URHO) - UsL(UMP1)/UsL(URHO))*sign(1.d0,UsR(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+        *(UsR(UMP1)/UsR(URHO) - UsL(UMP1)/UsL(URHO))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 	UssR(UMAGP1) = UssL(UMAGP1)
 
 	!B in second perpendicular direction
 	UssL(UMAGP2) = (sqrt(UsL(URHO))*UsR(UMAGP2) + sqrt(UsR(URHO))*UsL(UMAGP2) + sqrt(UsL(URHO)*UsR(URHO))&
-          *(UsR(UMP2)/UsR(URHO) - UsL(UMP2)/UsR(URHO))*sign(1.d0,UsR(UMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
+          *(UsR(UMP2)/UsR(URHO) - UsL(UMP2)/UsR(URHO))*sign(1.d0,qL(QMAGN)))/(sqrt(UsL(URHO)) + sqrt(UsR(URHO)))
 	UssR(UMAGP2) = UssL(UMAGP2)
 
-	!Energy *Stored in Pressure slot
+	!Energy , eq.(63)
 	UssL(UEDEN) = UsL(UEDEN) - sqrt(UsL(URHO))*(dot_product(UsL(UMX:UMZ)/UsL(URHO),UsL(UMAGX:UMAGZ)) &
-	- dot_product(UssL(UMX:UMZ)/UssL(URHO),UssL(UMAGX:UMAGZ)))*sign(1.d0, UsL(UMAGN))
+	- dot_product(UssL(UMX:UMZ)/UssL(URHO),UssL(UMAGX:UMAGZ)))*sign(1.d0, qL(UMAGN))
 	UssR(UEDEN) = UsR(UEDEN) + sqrt(UsR(QRHO))*(dot_product(UsR(UMX:UMZ)/UsR(URHO),UsR(UMAGX:UMAGZ)) &
-        - dot_product(UssR(UMX:UMZ)/UssR(URHO),UssR(UMAGX:UMAGZ)))*sign(1.d0, UsR(UMAGN))
+        - dot_product(UssR(UMX:UMZ)/UssR(URHO),UssR(UMAGX:UMAGZ)))*sign(1.d0, qR(UMAGN))
 
 	!--------------------------------------------------------- Fluxes ----------------------------------------------------------------------
-
+       ! eq. (64)
 	FsL  = FL + sL*UsL - sL*uL
-	FssL = FsL + ssL*UssL - ssL*UsL
+        !eq. (65)
+	FssL = FL + ssL*UssL - (ssL-sL)*UsL - sL*uL
 	FsR  = FR + sR*UsR - sR*uR
-	FssR = FsR + ssR*UssR - ssR*UsR
+	FssR = FR + ssR*UssR - (ssR-sR)*UsR - sR*uR
 
 	!Solve the RP
 	if(sL .gt. 0.d0) then
@@ -350,6 +351,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	   flx(i,j,k,:) = FR
 	   choice = "FR"
 	endif
+
 
 	!if(dir.eq.2.and.((i.eq.3.and.j.eq.16.and.k.eq.1).or.(i.eq.4.and.j.eq.16.and.k.eq.1))) then
 	!	print*, "dir, i, j, k =", dir, i, j, k
