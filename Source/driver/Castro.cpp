@@ -343,6 +343,14 @@ Castro::read_params ()
 	pp.add("ppm_trace_sources",ppm_trace_sources);
       }
 
+    // fourth order implies do_ctu=0
+    if (fourth_order == 1 && do_ctu == 1)
+      {
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
+	do_ctu = 0;
+	pp.add("do_ctu", do_ctu);
+      }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {

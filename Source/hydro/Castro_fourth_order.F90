@@ -222,11 +222,9 @@ subroutine ca_fourth_single_stage(time, &
 
   ! Compute flattening coefficient for slope calculations -- we do
   ! this with q_bar, since we need all of the ghost cells
-  call bl_allocate(flatn, q_lo, q_hi)
+  call bl_allocate(flatn, q_bar_lo, q_bar_hi)
 
-  if (first_order_hydro == 1) then
-     flatn = ZERO
-  elseif (use_flattening == 1) then
+  if (use_flattening == 1) then
      call uflatten(lo - ngf*dg, hi + ngf*dg, &
                    q_bar, flatn, q_bar_lo, q_bar_hi, QPRES)
   else
@@ -235,6 +233,21 @@ subroutine ca_fourth_single_stage(time, &
 
   ! in contrast to the other solvers, we do not use 2-d slabs for 3-d,
   ! but we consider the full 3-d box at once.
+
+  if (any(isnan(q))) then
+     print *, "q is NaN"
+     stop
+  endif
+
+  if (any(isnan(q_bar))) then
+     print *, "q_bar is NaN"
+     stop
+  endif
+
+  if (any(isnan(flatn))) then
+     print *, "flatn is NaN"
+     stop
+  endif
 
 
   ! $$$ do the reconstruction here -- get the interface states
@@ -267,6 +280,18 @@ subroutine ca_fourth_single_stage(time, &
 #endif
 
   enddo
+
+  if (any(isnan(qxm)) .or. any(isnan(qxp))) then
+     print *, "qxm or qxp are NaN"
+  endif
+
+  if (any(isnan(qym)) .or. any(isnan(qyp))) then
+     print *, "qym or qyp are NaN"
+  endif
+
+  if (any(isnan(qzm)) .or. any(isnan(qzp))) then
+     print *, "qzm or qzp are NaN"
+  endif
 
   ! this is where we would implement ppm_temp_fix
 
