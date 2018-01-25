@@ -93,8 +93,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       UMP1   = UMX
       UMP2   = UMY
       UMAGN  = UMAGZ
-      UMAGP1 = UMAGY
-      UMAGP2 = UMAGX
+      UMAGP1 = UMAGX
+      UMAGP2 = UMAGY
    end if
 
    do k = work_lo(3), work_hi(3)
