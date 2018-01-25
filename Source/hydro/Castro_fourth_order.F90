@@ -244,7 +244,7 @@ subroutine ca_fourth_single_stage(time, &
      stop
   endif
 
-  if (any(isnan(flatn))) then
+  if (any(isnan(flatn(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)))) then
      print *, "flatn is NaN"
      stop
   endif

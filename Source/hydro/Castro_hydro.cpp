@@ -586,6 +586,11 @@ Castro::cons_to_prim_fourth(const Real time)
     }
 
 
+    // check for NaNs
+    check_for_nan(q);
+    check_for_nan(q_bar);
+
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -608,6 +613,8 @@ Castro::cons_to_prim_fourth(const Real time)
 
     }
 
+    std::cout << "checking q_bar for NaNs" << std::endl;
+    check_for_nan(q_bar);
 }
 
 

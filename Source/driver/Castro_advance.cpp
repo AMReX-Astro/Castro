@@ -432,7 +432,11 @@ Castro::do_advance_mol (Real time,
   if (do_hydro)
     {
       // Construct the primitive variables.
-      cons_to_prim(time);
+      if (fourth_order) {
+        cons_to_prim_fourth(time);
+      } else {
+        cons_to_prim(time);
+      }
 
       // Check for CFL violations.
       check_for_cfl_violation(dt);
@@ -790,6 +794,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Allocate space for the primitive variables.
 
     q.define(grids, dmap, NQ, NUM_GROW);
+    q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (do_ctu)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
