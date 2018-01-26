@@ -934,82 +934,73 @@ Castro::variableSetUp ()
 #endif
 
 
-
   // method of lines Butcher tableau
-#define SECONDORDER_TVD
+  if (mol_order == 1) {
 
-#ifdef THIRDORDER
-  MOL_STAGES = 3;
+      // first order Euler
+      MOL_STAGES = 1;
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+      a_mol.resize(MOL_STAGES);
+      for (int n = 0; n < MOL_STAGES; ++n)
+        a_mol[n].resize(MOL_STAGES);
 
-  a_mol[0] = {0,   0, 0};
-  a_mol[1] = {0.5, 0, 0};
-  a_mol[2] = {-1,  2, 0};
+      a_mol[0] = {1};
+      b_mol = {1.0};
+      c_mol = {0.0};
 
-  b_mol = {1./6., 2./3., 1./6.};
+  } else if (mol_order == 2) {
 
-  c_mol = {0.0, 0.5, 1};
-#endif
+    // second order TVD
+    MOL_STAGES = 2;
 
-#ifdef THIRDORDER_TVD
-  MOL_STAGES = 3;
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    a_mol[0] = {0,   0,};
+    a_mol[1] = {1.0, 0,};
 
-  a_mol[0] = {0.0,  0.0,  0.0};
-  a_mol[1] = {1.0,  0.0,  0.0};
-  a_mol[2] = {0.25, 0.25, 0.0};
+    b_mol = {0.5, 0.5};
 
-  b_mol = {1./6., 1./6., 2./3.};
+    c_mol = {0.0, 1.0};
 
-  c_mol = {0.0, 1.0, 0.5};
-#endif
+  } else if (mol_order == 3) {
 
-#ifdef SECONDORDER
-  MOL_STAGES = 2;
+    // third order TVD
+    MOL_STAGES = 3;
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  a_mol[0] = {0,   0,};
-  a_mol[1] = {0.5, 0,};
+    a_mol[0] = {0.0,  0.0,  0.0};
+    a_mol[1] = {1.0,  0.0,  0.0};
+    a_mol[2] = {0.25, 0.25, 0.0};
 
-  b_mol = {0.0, 1.0};
+    b_mol = {1./6., 1./6., 2./3.};
 
-  c_mol = {0.0, 0.5};
-#endif
+    c_mol = {0.0, 1.0, 0.5};
 
-#ifdef SECONDORDER_TVD
-  MOL_STAGES = 2;
+  } else if (mol_order == 4) {
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
+    // fourth order TVD
+    MOL_STAGES = 4;
 
-  a_mol[0] = {0,   0,};
-  a_mol[1] = {1.0, 0,};
+    a_mol.resize(MOL_STAGES);
+    for (int n = 0; n < MOL_STAGES; ++n)
+      a_mol[n].resize(MOL_STAGES);
 
-  b_mol = {0.5, 0.5};
+    a_mol[0] = {0.0,  0.0,  0.0,  0.0};
+    a_mol[1] = {0.5,  0.0,  0.0,  0.0};
+    a_mol[2] = {0.0,  0.5,  0.0,  0.0};
+    a_mol[3] = {0.0,  0.0,  1.0,  0.0};
 
-  c_mol = {0.0, 1.0};
-#endif
+    b_mol = {1./6., 1./3., 1./3., 1./6.};
 
-#ifdef FIRSTORDER
-  MOL_STAGES = 1;
+    c_mol = {0.0, 0.5, 0.5, 1.0};
 
-  a_mol.resize(MOL_STAGES);
-  for (int n = 0; n < MOL_STAGES; ++n)
-    a_mol[n].resize(MOL_STAGES);
-
-  a_mol[0] = {1};
-  b_mol = {1.0};
-  c_mol = {0.0};
-#endif
+  } else {
+    amrex::Error("invalid value of mol_order\n");
+  }
 
 }
