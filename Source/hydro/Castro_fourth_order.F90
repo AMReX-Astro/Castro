@@ -144,7 +144,7 @@ subroutine ca_fourth_single_stage(time, &
   integer :: shk_lo(3), shk_hi(3)
 
   real(rt) :: div1, lap
-  integer :: i, j, k, n
+  integer :: i, j, k, n, m
 
   type (eos_t) :: eos_state
 
@@ -234,39 +234,24 @@ subroutine ca_fourth_single_stage(time, &
   ! in contrast to the other solvers, we do not use 2-d slabs for 3-d,
   ! but we consider the full 3-d box at once.
 
-  if (any(isnan(q))) then
-     print *, "q is NaN"
-     stop
-  endif
 
-  if (any(isnan(q_bar))) then
-     print *, "q_bar is NaN"
-     stop
-  endif
-
-  if (any(isnan(flatn(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1)))) then
-     print *, "flatn is NaN"
-     stop
-  endif
-
-
-  ! $$$ do the reconstruction here -- get the interface states
+  ! do the reconstruction here -- get the interface states
 
   do n = 1, NQ
 
      ! x-interfaces
      call states(1, &
                  q(:,:,:,n), q_lo, q_hi, &
-                 flatn, q_lo, q_hi, &
-                 qxm, qxp, q_lo, q_hi, &
+                 flatn, q_bar_lo, q_bar_hi, &
+                 qxm(:,:,:,n), qxp(:,:,:,n), q_lo, q_hi, &
                  lo, hi)
 
 #if BL_SPACEDIM >= 2
      ! y-interfaces
      call states(2, &
                  q(:,:,:,n), q_lo, q_hi, &
-                 flatn, q_lo, q_hi, &
-                 qym, qyp, q_lo, q_hi, &
+                 flatn, q_bar_lo, q_bar_hi, &
+                 qym(:,:,:,n), qyp(:,:,:,n), q_lo, q_hi, &
                  lo, hi)
 #endif
 
@@ -274,24 +259,12 @@ subroutine ca_fourth_single_stage(time, &
      ! z-interfaces
      call states(3, &
                  q(:,:,:,n), q_lo, q_hi, &
-                 flatn, q_lo, q_hi, &
-                 qzm, qzp, q_lo, q_hi, &
+                 flatn, q_bar_lo, q_bar_hi, &
+                 qzm(:,:,:,n), qzp(:,:,:,n), q_lo, q_hi, &
                  lo, hi)
 #endif
 
   enddo
-
-  if (any(isnan(qxm)) .or. any(isnan(qxp))) then
-     print *, "qxm or qxp are NaN"
-  endif
-
-  if (any(isnan(qym)) .or. any(isnan(qyp))) then
-     print *, "qym or qyp are NaN"
-  endif
-
-  if (any(isnan(qzm)) .or. any(isnan(qzp))) then
-     print *, "qzm or qzp are NaN"
-  endif
 
   ! this is where we would implement ppm_temp_fix
 
@@ -320,7 +293,6 @@ subroutine ca_fourth_single_stage(time, &
         enddo
      enddo
   enddo
-
 
 #if BL_SPACEDIM >= 2
   do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -377,10 +349,10 @@ subroutine ca_fourth_single_stage(time, &
   ! we now have the face-average interface states and fluxes evaluated with these
   ! for 1-d, we are done
 
-#if BL_SPACEDIM >= 2
 
   ! construct the face-center interface states
 
+#if BL_SPACEDIM >= 2
   ! x-interfaces
   do n = 1, NQ
      do k = lo(3), hi(3)
@@ -392,7 +364,6 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM == 3
               lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
 #endif
-
               qx_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
@@ -410,7 +381,6 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM == 3
               lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
 #endif
-
               qy_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
            enddo
         enddo
@@ -420,8 +390,8 @@ subroutine ca_fourth_single_stage(time, &
 #if BL_SPACEDIM == 3
   ! z-interfaces
   do n = 1, NQ
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)+1
+     do k = lo(3), hi(3)+1
+        do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
               ! note: need to consider axisymmetry in the future
@@ -433,6 +403,7 @@ subroutine ca_fourth_single_stage(time, &
         enddo
      enddo
   enddo
+
 #endif
 
 
