@@ -54,8 +54,8 @@ contains
     ! we need interface values on all faces of the domain
     if (idir == 1) then
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
-          do j = lo(2)-dg(2), lo(2)+dg(2)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
+          do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-2, hi(1)+3
 
                 ! interpolate to the edges
@@ -69,7 +69,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-2, hi(1)+3
                 ! these live on cell-centers
@@ -82,7 +82,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-3, hi(1)+3
                 d2ac(i,j,k) = a(i-1,j,k) - 2.0d0*a(i,j,k) + a(i+1,j,k)
@@ -90,7 +90,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-2, hi(1)+3
                 ! this lives on the interface
@@ -101,7 +101,7 @@ contains
 
        ! this is a look over cell centers, affecting
        ! i-1/2,R and i+1/2,L
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-1, hi(1)+1
 
@@ -168,7 +168,7 @@ contains
 
     else if (idir == 2) then
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-2, hi(2)+3
              do i = lo(1)-1, hi(1)+1
 
@@ -183,7 +183,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-2, hi(2)+3
              do i = lo(1)-1, hi(1)+1
                 ! these live on cell-centers
@@ -196,7 +196,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-3, hi(2)+3
              do i = lo(1)-1, hi(1)+1
                 d2ac(i,j,k) = a(i,j-1,k) - 2.0d0*a(i,j,k) + a(i,j+1,k)
@@ -204,7 +204,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-2, hi(2)+3
              do i = lo(1)-1, hi(1)+1
                 ! this lives on the interface
@@ -215,7 +215,7 @@ contains
 
        ! this is a look over cell centers, affecting
        ! j-1/2,R and j+1/2,L
-       do k = lo(3)-dg(3), lo(3)+dg(3)
+       do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
@@ -282,7 +282,7 @@ contains
 
     else if (idir == 3) then
 
-       do k = lo(3)-2, lo(3)+3
+       do k = lo(3)-2, hi(3)+3
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
@@ -297,7 +297,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-2, lo(3)+3
+       do k = lo(3)-2, hi(3)+3
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
                 ! these live on cell-centers
@@ -310,7 +310,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-3, lo(3)+3
+       do k = lo(3)-3, hi(3)+3
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
                 d2ac(i,j,k) = a(i,j,k-1) - 2.0d0*a(i,j,k) + a(i,j,k+1)
@@ -318,7 +318,7 @@ contains
           enddo
        enddo
 
-       do k = lo(3)-2, lo(3)+3
+       do k = lo(3)-2, hi(3)+3
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
                 ! this lives on the interface
@@ -329,7 +329,7 @@ contains
 
        ! this is a look over cell centers, affecting
        ! j-1/2,R and j+1/2,L
-       do k = lo(3)-1, lo(3)+1
+       do k = lo(3)-1, hi(3)+1
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
