@@ -613,7 +613,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
     }
 
-    std::cout << "checking q_bar for NaNs" << std::endl;
     check_for_nan(q_bar);
 }
 
