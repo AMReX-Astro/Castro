@@ -162,7 +162,12 @@ contains
                    endif
                 endif
 
+                ! apply flattening
+                al(i+1,j,k) = flatn(i,j,k)*al(i+1,j,k) + (ONE - flatn(i,j,k))*a(i,j,k)
+                ar(i,j,k) = flatn(i,j,k)*ar(i,j,k) + (ONE - flatn(i,j,k))*a(i,j,k)
+
              enddo
+
           enddo
        enddo
 
@@ -275,6 +280,10 @@ contains
                       al(i,j+1,k) = a(i,j,k) + 2.0d0*dafm(i,j,k)
                    endif
                 endif
+
+                ! apply flattening
+                al(i,j+1,k) = flatn(i,j,k)*al(i,j+1,k) + (ONE - flatn(i,j,k))*a(i,j,k)
+                ar(i,j,k) = flatn(i,j,k)*ar(i,j,k) + (ONE - flatn(i,j,k))*a(i,j,k)
 
              enddo
           enddo
@@ -389,6 +398,10 @@ contains
                       al(i,j,k+1) = a(i,j,k) + 2.0d0*dafm(i,j,k)
                    endif
                 endif
+
+                ! apply flattening
+                al(i,j,k+1) = flatn(i,j,k)*al(i,j,k+1) + (ONE - flatn(i,j,k))*a(i,j,k)
+                ar(i,j,k) = flatn(i,j,k)*ar(i,j,k) + (ONE - flatn(i,j,k))*a(i,j,k)
 
              enddo
           enddo
