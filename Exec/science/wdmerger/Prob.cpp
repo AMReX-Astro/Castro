@@ -419,17 +419,8 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
     }
 
-    if (!local) {
-
-      const int nfoo = 2;
-      Real foo[nfoo] = {vol_p, vol_s};
-
-      amrex::ParallelDescriptor::ReduceRealSum(foo, nfoo);
-
-      vol_p = foo[0];
-      vol_s = foo[1];
-
-    }
+    if (!local)
+      amrex::ParallelDescriptor::ReduceRealSum({vol_p, vol_s});
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
@@ -624,6 +615,11 @@ void Castro::problem_post_init() {
   // Get the relaxation status.
 
   get_relaxation_status(&relaxation_is_done);
+
+  // If we're doing an initial relaxation step, ensure that we are not subcycling.
+
+  if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
+      amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
@@ -950,26 +946,133 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    // Calculate the omega needed to match the velocity: omega = v / r.
+    // Reconstruct the rotation force at the old and new times.
+    // For the old time we can simply use the old state data; for
+    // the new time, we need to reconstruct the state as it was
+    // before the new-time sources were applied, so we'll temporarily
+    // subtract off all the new-time sources before doing so.
 
-    // First, get the inertial velocity corresponding to the current velocity. Note that this is
-    // using the old omega.
+    // This process is technically incorrect if reactions are
+    // enabled. We reconstruct the new-time rotation force by
+    // subtracting the new-time sources, but ignore the fact that
+    // a Strang-split burn happened in between. We will not worry
+    // about this for two reasons: first, reactions are generally
+    // not going to be enabled during the relaxation step, and if
+    // they are enabled, they will contribute negligibly anyway
+    // since the relaxation step happens prior to the merger;
+    // second, the reactions do not directly affect the gravity
+    // or rotation source terms, so even if there were substantial
+    // reactions occurring, the error introduced by not accounting
+    // for them here would be small.
 
-    Real inertial_vel_p[3];
-    Real inertial_vel_s[3];
+    // Note that this process only really makes sense if we are
+    // not subcycling.
 
-    get_inertial_velocity(com_p, vel_p, &time, inertial_vel_p);
-    get_inertial_velocity(com_s, vel_s, &time, inertial_vel_s);
+    int coarse_level = 0;
+    int finest_level = parent->finestLevel();
+    int n_levs = finest_level + 1;
 
-    Real vp = std::sqrt(std::pow(inertial_vel_p[0], 2) + std::pow(inertial_vel_p[1], 2) + std::pow(inertial_vel_p[2], 2));
-    Real vs = std::sqrt(std::pow(inertial_vel_s[0], 2) + std::pow(inertial_vel_s[1], 2) + std::pow(inertial_vel_s[2], 2));
+    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
+
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
+
+        const Real old_time = getLevel(lev).state[State_Type].prevTime();
+        const Real new_time = getLevel(lev).state[State_Type].curTime();
+
+        const Real dt = new_time - old_time;
+
+        rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        rot_force[lev]->setVal(0.0);
+
+        MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
+        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+
+        // Use the rot_force MultiFab as temporary data to hold the
+        // non-rotation forces that were applied during the step. The inspiration
+        // for this approach is the method of Rosswog, Speith & Wynn (2004)
+        // (which was in the context of neutron star mergers; it was extended
+        // to white dwarf mergers by Dan et al. (2011)). In that paper, the rotation
+        // force is calculated by exactly balancing against the gravitational and hydrodynamic
+        // forces. We will just use the gravitational force, since the desired equilibrium
+        // state is for the hydrodynamic forces to be zero.
+
+        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_old, old_time, dt);
+        getLevel(lev).construct_new_gravity_source(*rot_force[lev], S_old, S_new, new_time, dt);
+
+        // Mask out regions covered by fine grids.
+
+        if (lev < parent->finestLevel()) {
+            const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+            for (int n = 0; n < NUM_STATE; ++n)
+                MultiFab::Multiply(*rot_force[lev], mask, 0, n, 1, 0);
+        }
+
+    }
+
+    // Construct omega from this.
+
+    Real force_p[3] = { 0.0 };
+    Real force_s[3] = { 0.0 };
+
+    for (int lev = coarse_level; lev <= finest_level; ++lev) {
+
+        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+
+        auto pmask = getLevel(lev).derive("primarymask", time, 0);
+        auto smask = getLevel(lev).derive("secondarymask", time, 0);
+
+        MultiFab& vol = getLevel(lev).Volume();
+
+        Real fpx = 0.0;
+        Real fpy = 0.0;
+        Real fpz = 0.0;
+        Real fsx = 0.0;
+        Real fsy = 0.0;
+        Real fsz = 0.0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:fpx, fpy, fpz, fsx, fsy, fsz)
+#endif
+        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+
+            const Box& box = mfi.tilebox();
+
+            const int* lo  = box.loVect();
+            const int* hi  = box.hiVect();
+
+            sum_force_on_stars(lo, hi,
+                               BL_TO_FORTRAN_3D((*rot_force[lev])[mfi]),
+                               BL_TO_FORTRAN_3D(S_new[mfi]),
+                               BL_TO_FORTRAN_3D(vol[mfi]),
+                               BL_TO_FORTRAN_3D((*pmask)[mfi]),
+                               BL_TO_FORTRAN_3D((*smask)[mfi]),
+                               &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
+
+        }
+
+        force_p[0] += fpx;
+        force_p[1] += fpy;
+        force_p[2] += fpz;
+
+        force_s[0] += fsx;
+        force_s[1] += fsy;
+        force_s[2] += fsz;
+
+    }
+
+    // Do the reduction over processors.
+
+    amrex::ParallelDescriptor::ReduceRealSum({force_p[0], force_p[1], force_p[2], force_s[0], force_s[1], force_s[2]});
+
+    // Divide by the mass of the stars to obtain the acceleration, and then get the new rotation frequency.
+
+    Real fp = std::sqrt(std::pow(force_p[0], 2) + std::pow(force_p[1], 2) + std::pow(force_p[2], 2));
+    Real fs = std::sqrt(std::pow(force_s[0], 2) + std::pow(force_s[1], 2) + std::pow(force_s[2], 2));
 
     Real ap = std::sqrt(std::pow(com_p[0], 2) + std::pow(com_p[1], 2) + std::pow(com_p[2], 2));
     Real as = std::sqrt(std::pow(com_s[0], 2) + std::pow(com_s[1], 2) + std::pow(com_s[2], 2));
 
-    // Take the average of the two stars.
-
-    Real omega = 0.5 * ( vp / ap + vs / as );
+    Real omega = 0.5 * ( std::sqrt((fp / mass_p) / ap) + std::sqrt((fs / mass_s) / as) );
 
     Real period = 2.0 * M_PI / omega;
 

@@ -42,6 +42,10 @@ Castro::advance (Real time,
 {
     BL_PROFILE("Castro::advance()");
 
+    // Save the wall time when we started the step.
+
+    wall_time_start = ParallelDescriptor::second();
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
@@ -148,7 +152,8 @@ Castro::advance (Real time,
 
 #ifdef POINTMASS
     // Update the point mass.
-    pointmass_update(time, dt);
+    if (use_point_mass)
+        pointmass_update(time, dt);
 #endif
 
 #ifdef RADIATION
@@ -670,17 +675,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
-#ifdef RADIATION
-    q.define(grids, dmap, QRADVAR, NUM_GROW);
-#else
-    q.define(grids, dmap, QVAR, NUM_GROW);
-#endif
-
+    q.define(grids, dmap, NQ, NUM_GROW);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-
     src_q.define(grids, dmap, QVAR, NUM_GROW);
-
-
 
     if (!do_ctu) {
       // if we are not doing CTU advection, then we are doing a method

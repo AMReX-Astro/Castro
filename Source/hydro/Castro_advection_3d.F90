@@ -7,17 +7,17 @@ module ctu_advection_module
 
   private
 
-  public umeth3d, consup
+  public umeth, consup
 
 contains
 
 ! ::: ---------------------------------------------------------------
-! ::: :: UMETH3D     Compute hyperbolic fluxes using unsplit second
-! ::: ::               order Godunov integrator.
+! ::: :: UMETH     Compute hyperbolic fluxes using unsplit second
+! ::: ::           order Godunov integrator.
 ! ::: ::
 ! ::: :: inputs/outputs
 ! ::: :: q           => (const)  input state, primitives
-! ::: :: qaux        => (const)  auxillary hydro data
+! ::: :: qaux        => (const)  auxiliary hydro data
 ! ::: :: flatn       => (const)  flattening parameter
 ! ::: :: src         => (const)  source
 ! ::: :: nx          => (const)  number of cells in X direction
@@ -30,24 +30,28 @@ contains
 ! ::: :: flux3      <=  (modify) flux in Z direction on Z edges
 ! ::: ----------------------------------------------------------------
 
-  subroutine umeth3d(q, qd_lo, qd_hi, &
-                     flatn, &
-                     qaux, qa_lo, qa_hi, &
-                     srcQ, src_lo, src_hi, &
-                     lo, hi, dx, dt, &
-                     uout, uout_lo, uout_hi, &
-                     flux1, fd1_lo, fd1_hi, &
-                     flux2, fd2_lo, fd2_hi, &
-                     flux3, fd3_lo, fd3_hi, &
+  subroutine umeth(q, qd_lo, qd_hi, &
+                   flatn, &
+                   qaux, qa_lo, qa_hi, &
+                   srcQ, src_lo, src_hi, &
+                   lo, hi, dx, dt, &
+                   uout, uout_lo, uout_hi, &
+                   flux1, fd1_lo, fd1_hi, &
+                   flux2, fd2_lo, fd2_hi, &
+                   flux3, fd3_lo, fd3_hi, &
 #ifdef RADIATION
-                     rflux1, rfd1_lo, rfd1_hi, &
-                     rflux2, rfd2_lo, rfd2_hi, &
-                     rflux3, rfd3_lo, rfd3_hi, &
+                   rflux1, rfd1_lo, rfd1_hi, &
+                   rflux2, rfd2_lo, rfd2_hi, &
+                   rflux3, rfd3_lo, rfd3_hi, &
 #endif
-                     q1, q1_lo, q1_hi, &
-                     q2, q2_lo, q2_hi, &
-                     q3, q3_lo, q3_hi, &
-                     domlo, domhi)
+                   q1, q1_lo, q1_hi, &
+                   q2, q2_lo, q2_hi, &
+                   q3, q3_lo, q3_hi, &
+                   area1, area1_lo, area1_hi, &
+                   area2, area2_lo, area2_hi, &
+                   area3, area3_lo, area3_hi, &
+                   vol, vol_lo, vol_hi, &
+                   domlo, domhi)
 
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : QVAR, NQ, NVAR, QPRES, QRHO, QU, QW, &
@@ -92,6 +96,10 @@ contains
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: q3_lo(3), q3_hi(3)
+    integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: area3_lo(3), area3_hi(3)
+    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 #ifdef RADIATION
     integer, intent(in) :: rfd1_lo(3), rfd1_hi(3)
@@ -111,6 +119,11 @@ contains
     real(rt)        , intent(inout) ::    q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt)        , intent(inout) ::    q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
+    real(rt)        , intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
+    real(rt)        , intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
+    real(rt)        , intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
+    real(rt)        , intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+
     real(rt)        , intent(in) :: dx(3), dt
 
 #ifdef RADIATION
@@ -896,7 +909,7 @@ contains
 
     call bl_deallocate(shk)
 
-  end subroutine umeth3d
+  end subroutine umeth
 
 ! :::
 ! ::: ------------------------------------------------------------------

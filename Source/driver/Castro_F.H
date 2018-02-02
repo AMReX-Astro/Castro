@@ -28,9 +28,7 @@ extern "C"
 
   void ca_get_qvar(int* qvar);
 
-#ifdef RADIATION
-  void ca_get_qradvar(int* qradvar);
-#endif
+  void ca_get_nq(int* nq);
 
   void ca_get_nqaux(int* nqaux);
 
@@ -55,6 +53,9 @@ extern "C"
   void ca_set_method_params
     (const int& dm,
      const int& Density, const int& Xmom, 
+#ifdef HYBRID_MOMENTUM
+     const int& Rmom,
+#endif
      const int& Eden,    const int& Eint, 
      const int& Temp     , const int& FirstAdv, 
      const int& FirstSpec, const int& FirstAux, 
@@ -62,17 +63,16 @@ extern "C"
 #ifdef SHOCK_VAR
      const int& Shock,
 #endif
+#ifdef RADIATION
+     const int& ngroups,
+#endif
      const int* gravity_type, const int& gravity_type_len);
 
   void ca_finalize_meth_params();
 
   void ca_set_castro_method_params();
 
-#ifdef RADIATION
-  void ca_init_godunov_indices_rad();
-#else
   void ca_init_godunov_indices();
-#endif
 
   void ca_set_problem_params
     (const int& dm,

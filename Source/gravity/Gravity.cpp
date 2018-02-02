@@ -948,9 +948,11 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
-    Real point_mass = cs->get_point_mass();
-    MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
-    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+    if (cs->using_point_mass()) {
+        Real point_mass = cs->get_point_mass();
+        MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
+        add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+    }
 #endif
 }
 
@@ -1016,9 +1018,11 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
 #ifdef POINTMASS
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
-    Real point_mass = cs->get_point_mass();
-    MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
-    add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+    if (cs->using_point_mass()) {
+        Real point_mass = cs->get_point_mass();
+        MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
+        add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+    }
 #endif
 }
 
@@ -2946,6 +2950,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
+        mlmg.setNSolve(mlmg_nsolve);
         final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);
 
         mlmg.getGradSolution(grad_phi);

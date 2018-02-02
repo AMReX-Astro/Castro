@@ -238,7 +238,7 @@
 \runparamNS{implicit\_rotation\_update}{castro} &  we can do a implicit solution of the rotation update to allow for better coupling of the Coriolis terms & 1 \\
 \rowcolor{tableShade}
 \runparamNS{moving\_center}{castro} &  to we recompute the center used for the multipole gravity solve each step? & 0 \\
-\runparamNS{point\_mass}{castro} &  include a central point mass & 0.0 \\
+\runparamNS{point\_mass}{castro} &  mass of the point mass & 0.0 \\
 \rowcolor{tableShade}
 \runparamNS{point\_mass\_fix\_solution}{castro} &  if we have a central point mass, we can prevent mass from building up in the zones adjacent to it by keeping their density constant and adding their mass to the point mass object & 0 \\
 \runparamNS{rot\_axis}{castro} &  the coordinate axis ($x=1$, $y=2$, $z=3$) for the rotation vector & 3 \\
@@ -253,6 +253,7 @@
 \runparamNS{rotational\_period}{castro} &  the rotation period for the corotating frame & -1.e200 \\
 \rowcolor{tableShade}
 \runparamNS{state\_in\_rotating\_frame}{castro} &  Which reference frame to measure the state variables with respect to. The standard in the literature when using a rotating reference frame is to measure the state variables with respect to an observer fixed in that rotating frame. If this option is disabled by setting it to 0, the state variables will be measured with respect to an observer fixed in the inertial frame (but the frame will still rotate). & 1 \\
+\runparamNS{use\_point\_mass}{castro} &  include a central point mass & 1 \\
 
 
 \end{longtable}
@@ -723,10 +724,12 @@
 \runparamNS{mlmg\_consolidation}{gravity} &  & 1 \\
 \runparamNS{mlmg\_max\_fmg\_iter}{gravity} &  how many FMG cycles? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{mlmg\_nsolve}{gravity} &  Do N-Solve? & 0 \\
 \runparamNS{no\_composite}{gravity} &  do we do a composite solve? & 0 \\
-\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{no\_sync}{gravity} &  do we perform the synchronization at coarse-fine interfaces? & 0 \\
 \runparamNS{use\_mlmg\_solver}{gravity} &  Use C++ MLMG linear solver for self gravity & 0 \\
+\rowcolor{tableShade}
 \runparamNS{v}{gravity} &  the level of verbosity for the gravity solve (higher number means more output on the status of the solve / multigrid & 0 \\
 
 

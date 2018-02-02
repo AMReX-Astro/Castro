@@ -15,10 +15,10 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys = 0
 
 # Lower boundary limits in physical space
-geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9
+geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 
 # Upper boundary limits in physical space
-geometry.prob_hi =  5.12e9  5.12e9  5.12e9
+geometry.prob_hi =  1.28e11  1.28e11  1.28e11
 
 # System center of mass
 castro.center    =   0.0e0   0.0e0   0.0e0
@@ -59,7 +59,7 @@ castro.cfl = 0.5
 castro.fixed_dt = -1.0
 
 # Scale back initial timestep by this factor
-castro.init_shrink = 0.0001
+castro.init_shrink = 0.1
 
 # Factor by which dt is allowed to change each timestep
 castro.change_max = 1.05
@@ -81,10 +81,10 @@ castro.retry_neg_dens_factor = -1.0
 ############################################################################################
 
 # Number of cells on the coarse grid
-amr.n_cell = 256 256 256
+amr.n_cell = 128 128 128
 
 # Maximum level number allowed
-amr.max_level = 0
+amr.max_level = 3
 
 # Refinement ratio
 amr.ref_ratio = 4 4 4 4 4 4 4 4 4
@@ -133,7 +133,7 @@ castro.do_sponge = 1
 castro.add_ext_src = 1
 
 # Whether or not to include the rotation source term
-castro.do_rotation = 1
+castro.do_rotation = 0
 
 ############################################################################################
 # PPM/Hydro options
@@ -245,6 +245,10 @@ gravity.no_sync = 0
 # Disable the use of the lagged composite correction for the potential
 gravity.do_composite_phi_correction = 0
 
+# Add a black hole point mass (1000 M_sun)
+castro.point_mass = 1.9884e36
+castro.point_mass_fix_solution = 1
+
 ############################################################################################
 # Rotation
 ############################################################################################
@@ -355,7 +359,7 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
 
 # Write out plotfile data in single precision
 fab.format = NATIVE_32

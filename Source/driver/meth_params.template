@@ -35,7 +35,7 @@ module meth_params_module
   integer, save :: NQ         
 
 #ifdef RADIATION
-  integer, save :: QRADVAR, QRAD, QRADHI, QPTOT, QREITOT
+  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
   integer, save :: fspace_type
   logical, save :: do_inelastic_scattering
   logical, save :: comoving
@@ -85,7 +85,7 @@ module meth_params_module
   !$acc create(NQ) &
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
-  !$acc create(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+  !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
   !$acc create(QFA, QFS, QFX) &
@@ -196,19 +196,6 @@ contains
     integer, intent(in) :: fsp_type_in, do_is_in, com_in
     real(rt)        , intent(in) :: fppt
 
-    QPTOT  = QVAR+1
-    QREITOT = QVAR+2
-    QRAD = QVAR+3
-    QRADHI = qrad+ngroups-1
-  
-    QRADVAR = QVAR + 2 + ngroups
-  
-    ! update NQ -- it was already initialized in the hydro
-    NQ = QRADVAR
-
-    ! NQAUX already knows about the hydro and the non-group-dependent
-    ! rad variables, update it here
-    NQAUX = NQAUX + ngroups
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -234,7 +221,7 @@ contains
     
     !$acc update &
     !$acc device(NQ,NQAUX) &
-    !$acc device(QRADVAR, QRAD, QRADHI, QPTOT, QREITOT) &
+    !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)

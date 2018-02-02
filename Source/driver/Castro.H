@@ -527,7 +527,10 @@ public:
 
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+#ifdef POINTMASS
+    int using_point_mass ();
     amrex::Real get_point_mass ();
+#endif
 
 #ifdef HYBRID_MOMENTUM
     void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
@@ -566,7 +569,6 @@ public:
     static int       Shock;
 #endif
     static int       QVAR;
-    static int       QRADVAR;
     static int       NQAUX;
     static int       NQ;
 
@@ -710,6 +712,9 @@ protected:
     static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
+
+    // Wall time that we started the timestep
+    amrex::Real wall_time_start;
 
     //
     //  Call extern/networks/.../network.f90::network_init()
@@ -928,6 +933,13 @@ amrex::Real
 Castro::get_point_mass ()
 {
     return point_mass;
+}
+
+inline
+int
+Castro::using_point_mass ()
+{
+    return use_point_mass;
 }
 #endif
 

@@ -1,5 +1,12 @@
 # changes since last release
 
+  -- The approximate state Riemann solvers have been split into two
+     parts: the computation of the interface state and the evaluation
+     of the fluxes from this interface state.  This gives additional
+     flexibililty in using these solvers in other methods.
+
+# 18.01
+
   -- The parameter dtnuc_mode has been removed. This was initially used
      for testing various forms of the burning timestep limiter before a
      final form was settled on.
@@ -12,6 +19,11 @@
      deprecated in June 2016 because it was obsoleted by the parameter
      castro.riemann_solver, which can be set to 1 to use the Colella
      and Glaz Riemann solver.
+
+  -- The state variable indicies in Fortran are now all defined in a
+     single file, Source/driver/_variables.  This makes it much
+     clearer and consistent and will allow for autodocumentation and
+     clean-ups for GPU acceleration in the future.
 
 # 17.12
 

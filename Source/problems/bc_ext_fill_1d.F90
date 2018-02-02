@@ -254,7 +254,7 @@ contains
        endif
 
 
-       ! YHI
+       ! XHI
        if (bc(1,2,n) == EXT_DIR .and. adv_h1 > domhi(1)) then
 
           if (xr_ext == EXT_HSE) then
