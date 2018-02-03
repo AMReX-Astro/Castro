@@ -628,7 +628,7 @@ subroutine ca_fourth_single_stage(time, &
 
 #if BL_SPACEDIM == 1
               if (n == UMX) then
-                 update(i,j,k,UMX) = update(i,j,k,UMX) - ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
+                 update(i,j,k,UMX) = update(i,j,k,UMX) - ( qgdnvx(i+1,j,k,GDPRES) - qgdnvx(i,j,k,GDPRES) ) / dx(1)
               endif
 #endif
 
@@ -636,7 +636,7 @@ subroutine ca_fourth_single_stage(time, &
               if (n == UMX) then
                  ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
-                    update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
+                    update(i,j,k,n) = update(i,j,k,n) - (qgdnvx(i+1,j,k,GDPRES) - qgdnvx(i,j,k,GDPRES))/ dx(1)
                  endif
               endif
 #endif
@@ -656,9 +656,9 @@ subroutine ca_fourth_single_stage(time, &
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
-                                   q1, flx_lo, flx_hi, &
-                                   q2, fly_lo, fly_hi, &
-                                   q3, flz_lo, flz_hi)
+                                   qgdnvx, flx_lo, flx_hi, &
+                                   qgdnvy, fly_lo, fly_hi, &
+                                   qqgdnvz, flz_lo, flz_hi)
 #endif
 #endif
 
@@ -674,7 +674,7 @@ subroutine ca_fourth_single_stage(time, &
 
 #if BL_SPACEDIM == 1
               if (coord_type .eq. 0 .and. n == UMX) then
-                 flx(i,j,k,n) = flx(i,j,k,n) + dt * area1(i,j,k) * q1(i,j,k,GDPRES)
+                 flx(i,j,k,n) = flx(i,j,k,n) + dt * area1(i,j,k) * qgdnvx(i,j,k,GDPRES)
               endif
 #endif
 
@@ -709,7 +709,7 @@ subroutine ca_fourth_single_stage(time, &
 
 #if BL_SPACEDIM < 3
   if (coord_type > 0) then
-     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
+     pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = qgdnvx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
 #endif
 
