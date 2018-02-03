@@ -658,7 +658,7 @@ subroutine ca_fourth_single_stage(time, &
                                    update, uout_lo, uout_hi, &
                                    qgdnvx, flx_lo, flx_hi, &
                                    qgdnvy, fly_lo, fly_hi, &
-                                   qqgdnvz, flz_lo, flz_hi)
+                                   qgdnvz, flz_lo, flz_hi)
 #endif
 #endif
 
