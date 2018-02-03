@@ -495,7 +495,8 @@ subroutine ca_fourth_single_stage(time, &
 #endif
 
 #else
-  TODO : for 1-d, we just copy flx_avg -> flx
+  ! for 1-d, we just copy flx_avg -> flx, since there is no face averaging
+  flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
 #endif
 
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
