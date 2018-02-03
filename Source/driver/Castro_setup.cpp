@@ -912,7 +912,7 @@ Castro::variableSetUp ()
     source_names[n] = "";
 
   source_names[ext_src] = "user-defined external";
-
+  source_names[thermo_src] = "pdivU source";
 #ifdef SPONGE
   source_names[sponge_src] = "sponge";
 #endif

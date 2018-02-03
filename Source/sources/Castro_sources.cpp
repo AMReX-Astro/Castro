@@ -149,6 +149,10 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state, Real ti
 	construct_old_ext_source(source, state, time, dt);
 	break;
 
+    case thermo_src:
+        construct_old_thermo_source(source, state, time, dt);
+        break;
+
 #ifdef DIFFUSION
     case diff_src:
 	construct_old_diff_source(source, state, time, dt);

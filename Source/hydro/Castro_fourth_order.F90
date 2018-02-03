@@ -113,7 +113,6 @@ subroutine ca_fourth_single_stage(time, &
   ! Automatic arrays for workspace
   real(rt), pointer :: flatn(:,:,:)
   real(rt), pointer :: div(:,:,:)
-  real(rt), pointer :: pdivu(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt), pointer :: qx_avg(:,:,:,:)
@@ -157,7 +156,6 @@ subroutine ca_fourth_single_stage(time, &
   shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
   call bl_allocate(qx_avg, q_lo, q_hi, NQ)
   call bl_allocate(qx_fc, q_lo, q_hi, NQ)
@@ -504,22 +502,6 @@ subroutine ca_fourth_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
-  ! TODO: how do we do this to fourth order? -- we can make 
-  ! the qgdnv really 4th order accurate by doing a transverse fix
-  call calc_pdivu(lo, hi, &
-                  qgdnvx, flx_lo, flx_hi, &
-                  area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
-                  qgdnvy, fly_lo, fly_hi, &
-                  area2, area2_lo, area2_hi, &
-#endif
-#if BL_SPACEDIM == 3
-                  qgdnvz, flz_lo, flz_hi, &
-                  area3, area3_lo, area3_hi, &
-#endif
-                  vol, vol_lo, vol_hi, &
-                  dx, pdivu, lo, hi)
-
   do n = 1, NVAR
 
      if ( n == UTEMP ) then
@@ -621,10 +603,6 @@ subroutine ca_fourth_single_stage(time, &
                     fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) + &
                     flz(i,j,k,n) * area3(i,j,k) - flz(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
-              ! Add the p div(u) source term to (rho e).
-              if (n .eq. UEINT) then
-                 update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
-              endif
 
 #if BL_SPACEDIM == 1
               if (n == UMX) then
@@ -714,7 +692,6 @@ subroutine ca_fourth_single_stage(time, &
 #endif
 
   call bl_deallocate(   div)
-  call bl_deallocate( pdivu)
 
   call bl_deallocate(qx_avg)
   call bl_deallocate(qx_fc)
