@@ -325,12 +325,15 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
-  // Source terms.
+  // Source terms -- for the CTU method, because we do characteristic
+  // tracing on the source terms, we need NUM_GROW ghost cells to do
+  // the reconstruction.  For MOL, on the otherhand, we only need 1
+  // (for the fourth-order stuff).
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,NUM_STATE,
-			 &cell_cons_interp, state_data_extrap,store_in_checkpoint);
+			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NUM_STATE,
+			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;

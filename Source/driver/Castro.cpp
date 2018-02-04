@@ -512,7 +512,7 @@ Castro::Castro (Amr&            papa,
    // Initialize source term data to zero.
 
    MultiFab& sources_new = get_new_data(Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
+   sources_new.setVal(0.0, sources_new.nGrow());
 
 #ifdef REACTIONS
 
@@ -969,7 +969,7 @@ Castro::initData ()
 #endif
 
     MultiFab& source_new = get_new_data(Source_Type);
-    source_new.setVal(0., NUM_GROW);
+    source_new.setVal(0., source_new.nGrow());
 
 #ifdef ROTATION
     MultiFab& rot_new = get_new_data(Rotation_Type);

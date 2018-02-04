@@ -86,7 +86,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, in
 
     // Construct the old-time sources.
 
-    source.setVal(0.0, NUM_GROW);
+    source.setVal(0.0, source.nGrow());
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, source, state, time, dt, amr_iteration, amr_ncycle);
@@ -94,7 +94,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state, Real time, Real dt, in
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NUM_STATE);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
