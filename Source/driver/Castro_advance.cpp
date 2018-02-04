@@ -379,12 +379,13 @@ Castro::do_advance_mol (Real time,
 
   if (mol_iteration == 0) {
 
+#ifndef SDC
 #ifdef REACTIONS
     // this operates on Sborder (which is initially S_old).  The result
     // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 #endif
-
+#endif
     // store the result of the burn in Sburn for later stages
     MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
   }
@@ -487,8 +488,10 @@ Castro::do_advance_mol (Real time,
 
   // Do the second half of the reactions.
 
+#ifndef SDC
 #ifdef REACTIONS
   strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+#endif
 #endif
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
