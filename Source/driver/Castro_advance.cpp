@@ -423,7 +423,7 @@ Castro::do_advance_mol (Real time,
     AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
   } else {
-    old_source.setVal(0.0, NUM_GROW);
+    old_source.setVal(0.0, old_source.nGrow());
   }
 
 
