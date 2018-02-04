@@ -198,10 +198,10 @@ subroutine ca_fourth_single_stage(time, &
 
   ! Store the shock data for future use in the burning step.
 
-  do k3d = lo(3), hi(3)
+  do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           uout(i,j,k3d,USHK) = shk(i,j,k3d)
+           uout(i,j,k,USHK) = shk(i,j,k)
         enddo
      enddo
   enddo
