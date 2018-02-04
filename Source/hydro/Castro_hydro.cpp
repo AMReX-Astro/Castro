@@ -538,6 +538,10 @@ Castro::cons_to_prim_fourth(const Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    // we don't support radiation here
+#ifdef RADIATION
+    amrex::Abort("radiation not supported to fourth order");
+#else
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -614,6 +618,7 @@ Castro::cons_to_prim_fourth(const Real time)
     }
 
     check_for_nan(q_bar);
+#endif // RADIATION
 }
 
 

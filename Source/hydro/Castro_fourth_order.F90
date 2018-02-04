@@ -42,6 +42,7 @@ subroutine ca_fourth_single_stage(time, &
                                  limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, shock, &
                                     divu, normalize_species_fluxes, calc_pdivu
+  use bl_error_module
   use bl_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: uflatten
   use riemann_module, only: riemann_state
@@ -110,6 +111,7 @@ subroutine ca_fourth_single_stage(time, &
   real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt), intent(in) :: dx(3), dt, time
 
+#ifndef RADIATION
   ! Automatic arrays for workspace
   real(rt), pointer :: flatn(:,:,:)
   real(rt), pointer :: div(:,:,:)
@@ -146,6 +148,7 @@ subroutine ca_fourth_single_stage(time, &
   integer :: i, j, k, n, m
 
   type (eos_t) :: eos_state
+
 
   ngf = 1
 
@@ -710,5 +713,8 @@ subroutine ca_fourth_single_stage(time, &
   call bl_deallocate(qgdnvz)
   call bl_deallocate(flx_avg)
 #endif
-
+#else
+  ! RADIATION check
+  call bl_error("ERROR: ca_fourth_single_stage does not support radiation")
+#endif
 end subroutine ca_fourth_single_stage
