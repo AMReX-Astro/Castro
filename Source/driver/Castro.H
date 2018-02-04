@@ -49,6 +49,7 @@ enum StateType { State_Type = 0,
 // Create storage for all source terms.
 
 enum sources { ext_src = 0,
+               thermo_src,
 #ifdef SPONGE
                sponge_src,
 #endif
@@ -307,6 +308,16 @@ public:
     void construct_new_ext_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
     void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+
+    void construct_old_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                                     amrex::Real time, amrex::Real dt);
+
+    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+                                     amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+    void fill_thermo_source(amrex::Real time, amrex::Real dt,
+                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
+                            amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -857,6 +868,7 @@ protected:
     static std::string probin_file;
 
     static amrex::IntVect hydro_tile_size;
+    static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
     static int num_state_type;

@@ -1,5 +1,10 @@
 # changes since last release
 
+  -- The approximate state Riemann solvers have been split into two
+     parts: the computation of the interface state and the evaluation
+     of the fluxes from this interface state.  This gives additional
+     flexibililty in using these solvers in other methods.
+
 # 18.01
 
   -- The parameter dtnuc_mode has been removed. This was initially used

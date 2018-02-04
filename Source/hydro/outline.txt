@@ -32,3 +32,24 @@ Extra MFs:
   1. q_bar -- needed throughout the entire process
   2. q_int_fc and q_int_avg
   3. F_fc to hold the face-centered fluxes
+
+
+
+Also needed:
+
+  -- for the Riemann solver, we return the interface state of only a subset 
+     of varaible NGDNV, not all NQ -- this means that we will need a separate
+     Riemann solver here to get all interface states
+
+  -- how do we compute the pdivu term to 4th order -- this is needed
+     for the internal energy evolution
+
+  -- how do we do source terms to 4th order (like gravity)
+
+  -- we need to make sure that at the end of evolution Source_Type has
+     the proper old and new sources, to allow for multilevel support
+
+  -- we need to fix pradial
+
+  -- for non-Cartesian, we need to have our Laplacian (and transverse Lap) have
+     the proper area factors

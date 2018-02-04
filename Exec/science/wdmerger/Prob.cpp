@@ -972,7 +972,7 @@ Castro::update_relaxation(Real time, Real dt) {
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    Array< std::unique_ptr<MultiFab> > rot_force(n_levs);
+    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
 
     for (int lev = coarse_level; lev <= finest_level; ++lev) {
 

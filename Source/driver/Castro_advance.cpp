@@ -379,12 +379,13 @@ Castro::do_advance_mol (Real time,
 
   if (mol_iteration == 0) {
 
+#ifndef SDC
 #ifdef REACTIONS
     // this operates on Sborder (which is initially S_old).  The result
     // of the reactions is added directly back to Sborder.
     strang_react_first_half(prev_time, 0.5 * dt);
 #endif
-
+#endif
     // store the result of the burn in Sburn for later stages
     MultiFab::Copy(Sburn, Sborder, 0, 0, NUM_STATE, 0);
   }
@@ -422,7 +423,7 @@ Castro::do_advance_mol (Real time,
     AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
   } else {
-    old_source.setVal(0.0, NUM_GROW);
+    old_source.setVal(0.0, old_source.nGrow());
   }
 
 
@@ -432,7 +433,11 @@ Castro::do_advance_mol (Real time,
   if (do_hydro)
     {
       // Construct the primitive variables.
-      cons_to_prim(time);
+      if (fourth_order) {
+        cons_to_prim_fourth(time);
+      } else {
+        cons_to_prim(time);
+      }
 
       // Check for CFL violations.
       check_for_cfl_violation(dt);
@@ -477,11 +482,16 @@ Castro::do_advance_mol (Real time,
   // Check for NaN's.
   check_for_nan(S_new);
 
+  // TODO: we need to make source_old and source_new be the source
+  // terms at the old and new time.  we never actually evaluate the
+  // sources using the new time state (since we just constructed it).
 
   // Do the second half of the reactions.
 
+#ifndef SDC
 #ifdef REACTIONS
   strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+#endif
 #endif
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -787,6 +797,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Allocate space for the primitive variables.
 
     q.define(grids, dmap, NQ, NUM_GROW);
+    q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
     if (do_ctu)
       src_q.define(grids, dmap, QVAR, NUM_GROW);

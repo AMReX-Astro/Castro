@@ -126,10 +126,13 @@ std::string  Castro::probin_file = "probin";
 
 #if BL_SPACEDIM == 1
 IntVect      Castro::hydro_tile_size(1024);
+IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
 IntVect      Castro::hydro_tile_size(1024,16);
+IntVect      Castro::no_tile_size(1024,1024);
 #else
 IntVect      Castro::hydro_tile_size(1024,16,16);
+IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
 // this will be reset upon restart
@@ -340,6 +343,14 @@ Castro::read_params ()
 	pp.add("ppm_trace_sources",ppm_trace_sources);
       }
 
+    // fourth order implies do_ctu=0
+    if (fourth_order == 1 && do_ctu == 1)
+      {
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
+	do_ctu = 0;
+	pp.add("do_ctu", do_ctu);
+      }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
@@ -501,7 +512,7 @@ Castro::Castro (Amr&            papa,
    // Initialize source term data to zero.
 
    MultiFab& sources_new = get_new_data(Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
+   sources_new.setVal(0.0, sources_new.nGrow());
 
 #ifdef REACTIONS
 
@@ -958,7 +969,7 @@ Castro::initData ()
 #endif
 
     MultiFab& source_new = get_new_data(Source_Type);
-    source_new.setVal(0., NUM_GROW);
+    source_new.setVal(0., source_new.nGrow());
 
 #ifdef ROTATION
     MultiFab& rot_new = get_new_data(Rotation_Type);
