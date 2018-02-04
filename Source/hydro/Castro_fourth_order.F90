@@ -130,6 +130,10 @@ subroutine ca_fourth_single_stage(time, &
   real(rt), pointer :: qgdnvy(:,:,:,:)
   real(rt), pointer :: qgdnvz(:,:,:,:)
 
+  real(rt), pointer :: qgdnvx_avg(:,:,:,:)
+  real(rt), pointer :: qgdnvy_avg(:,:,:,:)
+  real(rt), pointer :: qgdnvz_avg(:,:,:,:)
+
   real(rt), pointer :: flx_avg(:,:,:,:)
   real(rt), pointer :: fly_avg(:,:,:,:)
   real(rt), pointer :: flz_avg(:,:,:,:)
@@ -150,6 +154,12 @@ subroutine ca_fourth_single_stage(time, &
   type (eos_t) :: eos_state
 
 
+  ! to do 4th order for axisymmetry, we need to derive the transformations between
+  ! averages and cell-centers with the correct volume terms in the integral.
+  if (coord_type > 0) then
+     call bl_error("Error: fourth order not implemented for axisymmetric")
+  endif
+
   ngf = 1
 
   It_lo = lo(:) - dg(:)
@@ -163,17 +173,20 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(qx_avg, q_lo, q_hi, NQ)
   call bl_allocate(qx_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
+  call bl_allocate(qgdnvx_avg, flx_lo, flx_hi, NGDNV)
   call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if BL_SPACEDIM >= 2
   call bl_allocate(qy_avg, q_lo, q_hi, NQ)
   call bl_allocate(qy_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
+  call bl_allocate(qgdnvy_avg, fly_lo, fly_hi, NGDNV)
   call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if BL_SPACEDIM == 3
   call bl_allocate(qz_avg, q_lo, q_hi, NQ)
   call bl_allocate(qz_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
+  call bl_allocate(qgdnvz_avg, flz_lo, flz_hi, NGDNV)
   call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
@@ -290,7 +303,7 @@ subroutine ca_fourth_single_stage(time, &
      do j = lo(2)-dg(2), hi(2)+dg(2)
         do i = lo(1), hi(1)+1
            call compute_flux_q(1, qx_avg(i,j,k,:), flx_avg(i,j,k,:), &
-                               qgdnvx(i,j,k,:), [i, j, k])
+                               qgdnvx_avg(i,j,k,:), [i, j, k])
         enddo
      enddo
   enddo
@@ -306,7 +319,7 @@ subroutine ca_fourth_single_stage(time, &
      do j = lo(2), hi(2)+1
         do i = lo(1)-1, hi(1)+1
            call compute_flux_q(2, qy_avg(i,j,k,:), fly_avg(i,j,k,:), &
-                               qgdnvy(i,j,k,:), [i, j, k])
+                               qgdnvy_avg(i,j,k,:), [i, j, k])
         enddo
      enddo
   enddo
@@ -323,7 +336,7 @@ subroutine ca_fourth_single_stage(time, &
      do j = lo(2)-1, hi(2)+1
         do i = lo(1)-1, hi(1)+1
            call compute_flux_q(3, qz_avg(i,j,k,:), flz_avg(i,j,k,:), &
-                               qgdnvz(i,j,k,:), [i, j, k])
+                               qgdnvz_avg(i,j,k,:), [i, j, k])
         enddo
      enddo
   enddo
@@ -449,13 +462,18 @@ subroutine ca_fourth_single_stage(time, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)+1
 
-              ! note: need to consider axisymmetry in the future
               lap = flx_avg(i,j+1,k,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j-1,k,n)
 #if BL_SPACEDIM == 3
               lap = lap + flx_avg(i,j,k+1,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j,k-1,n)
 #endif
-
               flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+              lap = qgdnvx_avg(i,j+1,k,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j-1,k,n)
+#if BL_SPACEDIM == 3
+              lap = lap + qgdnvx_avg(i,j,k+1,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j,k-1,n)
+#endif
+              qgdnvx(i,j,k,n) = qgdnvx(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
            enddo
         enddo
      enddo
@@ -467,13 +485,17 @@ subroutine ca_fourth_single_stage(time, &
         do j = lo(2), hi(2)+1
            do i = lo(1), hi(1)
 
-              ! note: need to consider axisymmetry in the future
               lap = fly_avg(i+1,j,k,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i-1,j,k,n)
 #if BL_SPACEDIM == 3
               lap = lap + fly_avg(i,j,k+1,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i,j,k-1,n)
 #endif
-
               fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+              lap = qgdnvy_avg(i+1,j,k,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i-1,j,k,n)
+#if BL_SPACEDIM == 3
+              lap = lap + qgdnvy_avg(i,j,k+1,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i,j,k-1,n)
+#endif
+              qgdnvy(i,j,k,n) = qgdnvy(i,j,k,n) + 1.0_rt/24.0_rt * lap
            enddo
         enddo
      enddo
@@ -486,11 +508,14 @@ subroutine ca_fourth_single_stage(time, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-              ! note: need to consider axisymmetry in the future
               lap = flz_avg(i+1,j,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i-1,j,k,n)
               lap = lap + flz_avg(i,j+1,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i,j-1,k,n)
-
               flz(i,j,k,n) = flz(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+              lap = qgdnvz_avg(i+1,j,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i-1,j,k,n)
+              lap = lap + qgdnvz_avg(i,j+1,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i,j-1,k,n)
+              qgdnvz(i,j,k,n) = qgdnvz(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
            enddo
         enddo
      enddo
@@ -700,17 +725,20 @@ subroutine ca_fourth_single_stage(time, &
   call bl_deallocate(qx_avg)
   call bl_deallocate(qx_fc)
   call bl_deallocate(qgdnvx)
+  call bl_deallocate(qgdnvx_avg)
   call bl_deallocate(flx_avg)
 #if BL_SPACEDIM >= 2
   call bl_deallocate(qy_avg)
   call bl_deallocate(qy_fc)
   call bl_deallocate(qgdnvy)
+  call bl_deallocate(qgdnvy_avg)
   call bl_deallocate(flx_avg)
 #endif
 #if BL_SPACEDIM == 3
   call bl_deallocate(qz_avg)
   call bl_deallocate(qz_fc)
   call bl_deallocate(qgdnvz)
+  call bl_deallocate(qgdnvz_avg)
   call bl_deallocate(flx_avg)
 #endif
 #else
