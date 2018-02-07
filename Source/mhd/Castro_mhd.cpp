@@ -68,7 +68,7 @@ Castro::just_the_mhd(Real time, Real dt)
         const int*  domain_lo = geom.Domain().loVect();
         const int*  domain_hi = geom.Domain().hiVect();
 
-        for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
 	{
 	   const Box& bx = mfi.tilebox();
 

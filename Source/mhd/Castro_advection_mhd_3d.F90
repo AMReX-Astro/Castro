@@ -264,6 +264,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
              Eztemp, eztemp_l1,eztemp_l2,eztemp_l3,eztemp_h1,eztemp_h2,eztemp_h3, &
              lo, hi, dx, dy, dz, dt)
 
+
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),URHO) = &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),URHO)
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),UMX) = &
@@ -681,6 +682,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      enddo
   enddo
   courno = max( courmx, courmy, courmz )
+
 end subroutine ctoprim
 ! :::
 ! ::: ========================== Conservative Update ===============================================================
@@ -721,25 +723,31 @@ subroutine consup(uin, uin_lo, uin_hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           uout(i,j,k,URHO:UEDEN) = uin(i,j,k,URHO:UEDEN) - dt/dx*(fluxx(i+1,j,k,URHO:UEDEN) - fluxx(i,j,k,URHO:UEDEN)) &
-                - dt/dy*(fluxy(i,j+1,k,URHO:UEDEN) - fluxy(i,j,k,URHO:UEDEN)) &
-                - dt/dz*(fluxz(i,j,k+1,URHO:UEDEN) - fluxz(i,j,k,URHO:UEDEN)) !Add source terms later
+           uout(i,j,k,URHO) = uin(i,j,k,URHO) - dt/dx*(fluxx(i+1,j,k,URHO) - fluxx(i,j,k,URHO)) &
+                - dt/dy*(fluxy(i,j+1,k,URHO) - fluxy(i,j,k,URHO)) &
+                - dt/dz*(fluxz(i,j,k+1,URHO) - fluxz(i,j,k,URHO)) !Add source terms later
+           uout(i,j,k,UMX) = uin(i,j,k,UMX) - dt/dx*(fluxx(i+1,j,k,UMX) - fluxx(i,j,k,UMX)) &
+                - dt/dy*(fluxy(i,j+1,k,UMX) - fluxy(i,j,k,UMX)) &
+                - dt/dz*(fluxz(i,j,k+1,UMX) - fluxz(i,j,k,UMX)) !Add source terms later
+           uout(i,j,k,UMY) = uin(i,j,k,UMY) - dt/dx*(fluxx(i+1,j,k,UMY) - fluxx(i,j,k,UMY)) &
+                - dt/dy*(fluxy(i,j+1,k,UMY) - fluxy(i,j,k,UMY)) &
+                - dt/dz*(fluxz(i,j,k+1,UMY) - fluxz(i,j,k,UMY)) !Add source terms later
+           uout(i,j,k,UMZ) = uin(i,j,k,UMZ) - dt/dx*(fluxx(i+1,j,k,UMZ) - fluxx(i,j,k,UMZ)) &
+                - dt/dy*(fluxy(i,j+1,k,UMZ) - fluxy(i,j,k,UMZ)) &
+                - dt/dz*(fluxz(i,j,k+1,UMZ) - fluxz(i,j,k,UMZ)) !Add source terms later
+           uout(i,j,k,UEDEN) = uin(i,j,k,UEDEN) - dt/dx*(fluxx(i+1,j,k,UEDEN) - fluxx(i,j,k,UEDEN)) &
+                - dt/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
+                - dt/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN)) !Add source terms later
+
            u = uout(i,j,k,UMX)/uout(i,j,k,URHO)
            v = uout(i,j,k,UMY)/uout(i,j,k,URHO)
            w = uout(i,j,k,UMZ)/uout(i,j,k,URHO)
            ! note: we correct (rho e) to account for the magnetic field in the magup routine next
            uout(i,j,k,UEINT) = uout(i,j,k,UEDEN) - 0.5d0*uout(i,j,k,URHO)*(u**2 + v**2 + w**2)
-     	   !if(uout(i,j,k,UEDEN).le.0.77d0) then
-           !print*, uin(i,j,k,UEDEN), uout(i,j,k,UEDEN), "i j k = ", i, j, k
-           !print*, "flux x = ", fluxx(i+1,j,k,UEDEN) , fluxx(i,j,k,UEDEN)
-           !print*, "flux y = ", fluxy(i,j+1,k,UEDEN) , fluxy(i,j,k,UEDEN)
-           !print*, "flux z = ", fluxz(i,j,k+1,UEDEN) , fluxz(i,j,k,UEDEN)
-           !print*, " E = ", uout(i,j,k,UEDEN)
-           !pause
-           !		   endif
         enddo
      enddo
   enddo
+
 end subroutine consup
 
 ! :::
