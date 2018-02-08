@@ -408,12 +408,44 @@ Castro::do_advance_mol (Real time,
 
   if (apply_sources()) {
 
-    // TODO: if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+    if (fourth_order) {
+      // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+      // we'll reuse sources_for_hydro for this memory buffer at the moment
+
+      for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const int idx = mfi.tileIndex();
+        ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
+                            BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                            BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
+                            &idx);
+
+      }
+    }
 
     // we pass in the stage time here
-    do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+    if (fourth_order) {
+      do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
 
-    // TODO: if we are 4th order, then fillpatch and convert to cell-averages
+      // Note: this filled the ghost cells for us, so we can now convert to
+      // cell averages.  This loop cannot be tiled.
+      for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const int idx = mfi.tileIndex();
+        ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                                BL_TO_FORTRAN_FAB(old_source[mfi]),
+                                &idx);
+
+      }
+
+      // now that we redid these, redo the ghost fill
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+
+    } else {
+      do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+    }
+
+
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time
@@ -423,7 +455,10 @@ Castro::do_advance_mol (Real time,
     // we are doing an fill here, not an add (like we do for CTU --
     // this is because the source term predictor doesn't make sense
     // here).
- 
+
+    // we only need a fill here if sources_for_hydro has more ghost
+    // cells than Source_Type, because otherwise, do_old_sources
+    // already did the fill for us
     AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
   } else {
