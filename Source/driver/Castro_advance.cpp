@@ -408,8 +408,12 @@ Castro::do_advance_mol (Real time,
 
   if (apply_sources()) {
 
+    // TODO: if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+
     // we pass in the stage time here
     do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+
+    // TODO: if we are 4th order, then fillpatch and convert to cell-averages
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time
