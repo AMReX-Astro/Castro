@@ -173,20 +173,20 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(qx_avg, q_lo, q_hi, NQ)
   call bl_allocate(qx_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvx, flx_lo, flx_hi, NGDNV)
-  call bl_allocate(qgdnvx_avg, flx_lo, flx_hi, NGDNV)
+  call bl_allocate(qgdnvx_avg, q_lo, q_hi, NGDNV)
   call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if BL_SPACEDIM >= 2
   call bl_allocate(qy_avg, q_lo, q_hi, NQ)
   call bl_allocate(qy_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvy, fly_lo, fly_hi, NGDNV)
-  call bl_allocate(qgdnvy_avg, fly_lo, fly_hi, NGDNV)
+  call bl_allocate(qgdnvy_avg, q_lo, q_hi, NGDNV)
   call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if BL_SPACEDIM == 3
   call bl_allocate(qz_avg, q_lo, q_hi, NQ)
   call bl_allocate(qz_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
-  call bl_allocate(qgdnvz_avg, flz_lo, flz_hi, NGDNV)
+  call bl_allocate(qgdnvz_avg, qlo, q_hi, NGDNV)
   call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
@@ -468,6 +468,16 @@ subroutine ca_fourth_single_stage(time, &
 #endif
               flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
 
+           enddo
+        enddo
+     enddo
+  enddo
+
+  do n = 1, NGDNV
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)+1
+
               lap = qgdnvx_avg(i,j+1,k,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j-1,k,n)
 #if BL_SPACEDIM == 3
               lap = lap + qgdnvx_avg(i,j,k+1,n) - TWO*qgdnvx_avg(i,j,k,n) + qgdnvx_avg(i,j,k-1,n)
@@ -478,6 +488,7 @@ subroutine ca_fourth_single_stage(time, &
         enddo
      enddo
   enddo
+
 
   ! y-interfaces
   do n = 1, NVAR
@@ -490,6 +501,15 @@ subroutine ca_fourth_single_stage(time, &
               lap = lap + fly_avg(i,j,k+1,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i,j,k-1,n)
 #endif
               fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
+           enddo
+        enddo
+     enddo
+  enddo
+
+  do n = 1, NGDNV
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)+1
+           do i = lo(1), hi(1)
 
               lap = qgdnvy_avg(i+1,j,k,n) - TWO*qgdnvy_avg(i,j,k,n) + qgdnvy_avg(i-1,j,k,n)
 #if BL_SPACEDIM == 3
@@ -511,6 +531,16 @@ subroutine ca_fourth_single_stage(time, &
               lap = flz_avg(i+1,j,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i-1,j,k,n)
               lap = lap + flz_avg(i,j+1,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i,j-1,k,n)
               flz(i,j,k,n) = flz(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+           enddo
+        enddo
+     enddo
+  enddo
+
+  do n = 1, NGDNV
+     do k = lo(3), hi(3)+1
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
 
               lap = qgdnvz_avg(i+1,j,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i-1,j,k,n)
               lap = lap + qgdnvz_avg(i,j+1,k,n) - TWO*qgdnvz_avg(i,j,k,n) + qgdnvz_avg(i,j-1,k,n)
