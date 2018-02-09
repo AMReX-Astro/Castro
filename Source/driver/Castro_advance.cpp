@@ -244,7 +244,6 @@ Castro::do_advance (Real time,
       AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
     } else {
-
       old_source.setVal(0.0, NUM_GROW);
 
     }
@@ -444,8 +443,6 @@ Castro::do_advance_mol (Real time,
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
     }
-
-
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to 
     // worry about time

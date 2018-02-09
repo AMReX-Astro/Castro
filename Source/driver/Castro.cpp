@@ -917,13 +917,14 @@ Castro::initData ()
 
              const int idx = mfi.tileIndex();
 
-             ca_make_fourth_in_place(lo, hi,
+             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                      BL_TO_FORTRAN_FAB(Sborder[mfi]),
                                      &idx);
            }
 
          // now copy back the averages
          MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+         Sborder.clear();
        }
 
        // Do a FillPatch so that we can get the ghost zones filled.
