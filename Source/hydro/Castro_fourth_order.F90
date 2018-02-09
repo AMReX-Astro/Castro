@@ -762,14 +762,14 @@ subroutine ca_fourth_single_stage(time, &
   call bl_deallocate(qy_fc)
   call bl_deallocate(qgdnvy)
   call bl_deallocate(qgdnvy_avg)
-  call bl_deallocate(flx_avg)
+  call bl_deallocate(fly_avg)
 #endif
 #if BL_SPACEDIM == 3
   call bl_deallocate(qz_avg)
   call bl_deallocate(qz_fc)
   call bl_deallocate(qgdnvz)
   call bl_deallocate(qgdnvz_avg)
-  call bl_deallocate(flx_avg)
+  call bl_deallocate(flz_avg)
 #endif
 #else
   ! RADIATION check
