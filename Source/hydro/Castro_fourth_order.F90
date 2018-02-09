@@ -186,7 +186,7 @@ subroutine ca_fourth_single_stage(time, &
   call bl_allocate(qz_avg, q_lo, q_hi, NQ)
   call bl_allocate(qz_fc, q_lo, q_hi, NQ)
   call bl_allocate(qgdnvz, flz_lo, flz_hi, NGDNV)
-  call bl_allocate(qgdnvz_avg, qlo, q_hi, NGDNV)
+  call bl_allocate(qgdnvz_avg, q_lo, q_hi, NGDNV)
   call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
