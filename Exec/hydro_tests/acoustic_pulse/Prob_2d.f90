@@ -74,7 +74,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        delta,xlo,xhi)
 
   use probdata_module
-  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, ONE
+  use bl_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only : center, coord_type
   use amrex_fort_module, only : rt => amrex_real
@@ -105,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2)
 
         if (dist <= HALF) then
-           state(i,j,URHO) = rho0 + drho0*np.exp(-16*dist[idx]**2) * np.cos(np.pi*dist[idx])**6
+           state(i,j,URHO) = rho0 + drho0*exp(-16*dist**2) * cos(M_PI*dist)**6
         else
            state(i,j,URHO) = rho0
         endif
@@ -113,13 +113,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,j,UMX:UMZ) = 0.e0_rt
 
         ! we are isentropic, so p = (dens/rho0)**Gamma_1
-        p = (dens/rho0)**eos_gamma
+        p = (state(i,j,URHO)/rho0)**eos_gamma
         eint = p/(eos_gamma - ONE)
 
         state(i,j,UEDEN) = eint
         state(i,j,UEINT) = eint
 
-        state(i,j,UFS) = state(i,j,URHO)*xn_zone(:)
+        state(i,j,UFS:UFS-1+nspec) = state(i,j,URHO)*xn_zone(:)
 
      enddo
   enddo
