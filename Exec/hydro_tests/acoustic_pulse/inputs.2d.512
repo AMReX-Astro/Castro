@@ -1,9 +1,9 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 500
+max_step = 5000
 stop_time = 0.24
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic =  0 0
+geometry.is_periodic =  1 1
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0    0
 geometry.prob_hi     =  1    1
@@ -14,8 +14,8 @@ amr.n_cell           = 512  512
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   2
-castro.hi_bc       =  2   2
+castro.lo_bc       =  0   0
+castro.hi_bc       =  0   0
 
 # WHICH PHYSICS
 castro.do_hydro = 1
