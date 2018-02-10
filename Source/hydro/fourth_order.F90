@@ -490,6 +490,58 @@ contains
 
   end subroutine ca_make_fourth_average
 
+  subroutine ca_make_fourth_in_place(lo, hi, &
+                                     q, q_lo, q_hi, nc) &
+                                     bind(C, name="ca_make_fourth_in_place")
+
+    use mempool_module, only : bl_allocate, bl_deallocate
+
+    ! this takes the cell-center q and makes it a cell-average q, in
+    ! place (e.g. q is overwritten by its average).  Note: this
+    ! routine is not tile safe.
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: nc
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+
+    integer :: i, j, k, n
+    real(rt), pointer :: lap(:,:,:,:)
+
+    call bl_allocate(lap, lo, hi, nc)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             do n = 1, nc
+                lap(i,j,k,n) = HALF*(q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n))
+#if BL_SPACEDIM >= 2
+                lap(i,j,k,n) = lap(i,j,k,n) + HALF*(q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n))
+#endif
+#if BL_SPACEDIM == 3
+                lap(i,j,k,n) = lap(i,j,k,n) + HALF*(q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n))
+#endif
+             enddo
+          enddo
+       enddo
+    enddo
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             do n = 1, nc
+
+                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k,n)
+
+             enddo
+          enddo
+       enddo
+    enddo
+
+    call bl_deallocate(lap)
+
+  end subroutine ca_make_fourth_in_place
+
 
 end module fourth_order
 

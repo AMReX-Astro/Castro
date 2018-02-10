@@ -901,6 +901,32 @@ Castro::initData ()
        }
        enforce_consistent_e(S_new);
 
+       // thus far, we assume that all initialization has worked on cell-centers
+       // (to second-order, these are cell-averages, so we're done in that case).
+       // For fourth-order, we need to convert to cell-averages now.
+       if (fourth_order) {
+         Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+         AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+
+         // note: this cannot be tiled
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box     = mfi.validbox();
+             const int* lo      = box.loVect();
+             const int* hi      = box.hiVect();
+
+             const int idx = mfi.tileIndex();
+
+             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                     &idx);
+           }
+
+         // now copy back the averages
+         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+         Sborder.clear();
+       }
+
        // Do a FillPatch so that we can get the ghost zones filled.
 
        int ng = S_new.nGrow();
