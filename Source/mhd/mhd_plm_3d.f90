@@ -435,7 +435,7 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call vanleer(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx)*lam(ii)*dW*reig(:,ii)
+                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              Ip(i,j,k,QRHO,1) = temp(i,j,k,1) + 0.5d0*summ(1) + 0.5d0*dt_over_a*smhd(1)
              Ip(i,j,k,QU,1) = temp(i,j,k,2) + 0.5d0*summ(2) + 0.5d0*dt_over_a*smhd(2)
@@ -508,7 +508,7 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call vanleer(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx)*lam(ii)*dW*reig(:,ii)
+                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
@@ -594,7 +594,7 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call vanleer(dW,dL,dR)
-                summ(:) = summ(:) + (1 - dt_over_a/dx)*lam(ii)*dW*reig(:,ii)
+                summ(:) = summ(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
