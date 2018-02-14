@@ -469,6 +469,9 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // using the state data to give us Sborder, which does have ghost zones.
 
     if (do_ctu) {
+
+      // TODO: We need to define the grown Bx_old_tmp here
+
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
