@@ -412,7 +412,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
-	  P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
+	  P_radial[mfi].saxpy(b_mol[mol_iteration], pradial,
+                              mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
 	}
 #endif
       } // MFIter loop
