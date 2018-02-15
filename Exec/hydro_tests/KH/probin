@@ -1,12 +1,12 @@
 &fortin
 
-   problem = 4
+   problem = 3
 
    rho1 = 1.0
    rho2 = 2.0
    pressure = 2.5
 
-   bulk_velocity = 10.0
+   bulk_velocity = 0.0
    
 /
 
@@ -20,5 +20,5 @@
 &extern
 
   eos_assume_neutral = T
-  eos_gamma = 1.66666667
+
 /
