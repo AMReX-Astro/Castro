@@ -21,9 +21,6 @@ contains
 #if (BL_SPACEDIM < 3)
                          dloga, dloga_lo, dloga_hi, &
 #endif
-#if (BL_SPACEDIM == 1)
-                         SrcQ, src_lo, src_hi, &
-#endif
                          ilo1, ilo2, ihi1, ihi2, domlo, domhi, &
                          dx, dt, kc, k3d)
 
@@ -31,7 +28,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFX, QFS, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_trace_sources, &
+                                   ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    npassive, qpass_map, ppm_temp_fix, &
                                    fix_mass_flux
@@ -49,9 +46,6 @@ contains
     integer, intent(in) :: I_lo(3), I_hi(3)
 #if (BL_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
-#if (BL_SPACEDIM == 1)
-    integer, intent(in) :: src_lo(3), src_hi(3)
 #endif
     integer, intent(in) :: ilo1, ilo2, ihi1, ihi2
     integer, intent(in) :: kc, k3d
@@ -75,9 +69,6 @@ contains
     real(rt), intent(inout) :: qyp(qs_lo(1):qs_hi(1),qs_lo(2):qs_hi(2),qs_lo(3):qs_hi(3),NQ)
 #if (BL_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
-#if (BL_SPACEDIM == 1)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
 #endif
     real(rt), intent(in) :: dt, dx(3)
 
@@ -238,34 +229,29 @@ contains
              ! Note: for the transverse velocities, the jump is carried
              !       only by the u wave (the contact)
 
-             dum = u_ref - Im(i,j,kc,1,1,QU)
-             dptotm = p_ref - Im(i,j,kc,1,1,QPRES)
 
-             drho = rho_ref - Im(i,j,kc,1,2,QRHO)
-             dptot = p_ref - Im(i,j,kc,1,2,QPRES)
-             drhoe_g = rhoe_g_ref - Im(i,j,kc,1,2,QREINT)
+             ! we also add the sources here so they participate in the tracing
+             dum = u_ref - Im(i,j,kc,1,1,QU) - hdt*Im_src(i,j,kc,1,1,QU)
+             dptotm = p_ref - Im(i,j,kc,1,1,QPRES) - hdt*Im_src(i,j,kc,1,1,QPRES)
 
+             drho = rho_ref - Im(i,j,kc,1,2,QRHO) - hdt*Im_src(i,j,kc,1,2,QRHO)
+             dptot = p_ref - Im(i,j,kc,1,2,QPRES) - hdt*Im_src(i,j,kc,1,2,QPRES)
+             drhoe_g = rhoe_g_ref - Im(i,j,kc,1,2,QREINT) - hdt*Im_src(i,j,kc,1,2,QREINT)
+
+             ! TODO: need to figure sources for this out...
              dTm = temp_ref - Im(i,j,kc,1,1,QTEMP)
              dT0 = temp_ref - Im(i,j,kc,1,2,QTEMP)
              dTp = temp_ref - Im(i,j,kc,1,3,QTEMP)
 
-             ! we are treating tau as 1/rho, but we could have reconstructed 
+             ! we are treating tau as 1/rho, but we could have reconstructed
              ! it separately
-             dtaum = tau_ref - ONE/Im(i,j,kc,1,1,QRHO)
-             dtau  = tau_ref - ONE/Im(i,j,kc,1,2,QRHO)
-             dtaup = tau_ref - ONE/Im(i,j,kc,1,3,QRHO)
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtaum = tau_ref - ONE/Im(i,j,kc,1,1,QRHO) + hdt*Im_src(i,j,kc,1,1,QRHO)/Im(i,j,kc,1,1,QRHO)**2
+             dtau  = tau_ref - ONE/Im(i,j,kc,1,2,QRHO) + hdt*Im_src(i,j,kc,1,2,QRHO)/Im(i,j,kc,1,2,QRHO)**2
+             dtaup = tau_ref - ONE/Im(i,j,kc,1,3,QRHO) + hdt*Im_src(i,j,kc,1,3,QRHO)/Im(i,j,kc,1,3,QRHO)**2
 
-             dup = u_ref - Im(i,j,kc,1,3,QU)
-             dptotp = p_ref - Im(i,j,kc,1,3,QPRES)
-
-
-             ! If we are doing source term tracing, then we add the force to
-             ! the velocity here, otherwise we will deal with this in the
-             ! trans_X routines
-             if (ppm_trace_sources == 1) then
-                dum = dum - hdt*Im_src(i,j,kc,1,1,QU)
-                dup = dup - hdt*Im_src(i,j,kc,1,3,QU)
-             endif
+             dup = u_ref - Im(i,j,kc,1,3,QU) - hdt*Im_src(i,j,kc,1,3,QU)
+             dptotp = p_ref - Im(i,j,kc,1,3,QPRES) - hdt*Im_src(i,j,kc,1,3,QPRES)
 
 
              ! Optionally use the reference state in evaluating the
@@ -421,27 +407,8 @@ contains
              ! Recall that I already takes the limit of the parabola
              ! in the event that the wave is not moving toward the
              ! interface
-             qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV)
-             qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW)
-
-             if (ppm_trace_sources == 1) then
-                qxp(i,j,kc,QV) = qxp(i,j,kc,QV) + hdt*Im_src(i,j,kc,1,2,QV)
-                qxp(i,j,kc,QW) = qxp(i,j,kc,QW) + hdt*Im_src(i,j,kc,1,2,QW)
-             endif
-
-#if (BL_SPACEDIM == 1)
-             ! if we did not trace sources, then add them here (for 1-d; 2- and 3-d will
-             ! get them in the transverse parts)
-             if (ppm_trace_sources == 0) then
-                qxp(i,j,kc,QU) = qxp(i,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
-             endif
-
-             ! add source terms -- there is no corresponding trans
-             qxp(i,j,kc,QRHO) = qxp(i,j,kc,QRHO) + HALF*dt*srcQ(i,j,k3d,QRHO)
-             qxp(i,j,kc,QRHO  ) = max(small_dens, qxp(i,j,kc,QRHO))
-             qxp(i,j,kc,QREINT) = qxp(i,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
-             qxp(i,j,kc,QPRES ) = qxp(i,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
-#endif
+             qxp(i,j,kc,QV) = Im(i,j,kc,1,2,QV) + hdt*Im_src(i,j,kc,1,2,QV)
+             qxp(i,j,kc,QW) = Im(i,j,kc,1,2,QW) + hdt*Im_src(i,j,kc,1,2,QW)
 
           end if
 
@@ -477,32 +444,24 @@ contains
              ! *m are the jumps carried by u-c
              ! *p are the jumps carried by u+c
 
-             dum = u_ref - Ip(i,j,kc,1,1,QU)
-             dptotm  = p_ref - Ip(i,j,kc,1,1,QPRES)
+             dum = u_ref - Ip(i,j,kc,1,1,QU) - hdt*Ip_src(i,j,kc,1,1,QU)
+             dptotm  = p_ref - Ip(i,j,kc,1,1,QPRES) - hdt*Ip_src(i,j,kc,1,1,QPRES)
 
-             drho = rho_ref - Ip(i,j,kc,1,2,QRHO)
-             dptot = p_ref - Ip(i,j,kc,1,2,QPRES)
-             drhoe_g = rhoe_g_ref - Ip(i,j,kc,1,2,QREINT)
+             drho = rho_ref - Ip(i,j,kc,1,2,QRHO) - hdt*Ip_src(i,j,kc,1,2,QRHO)
+             dptot = p_ref - Ip(i,j,kc,1,2,QPRES) - hdt*Ip_src(i,j,kc,1,2,QPRES)
+             drhoe_g = rhoe_g_ref - Ip(i,j,kc,1,2,QREINT) - hdt*Ip_src(i,j,kc,1,2,QREINT)
 
              dTm = temp_ref - Ip(i,j,kc,1,1,QTEMP)
              dT0 = temp_ref - Ip(i,j,kc,1,2,QTEMP)
              dTp = temp_ref - Ip(i,j,kc,1,3,QTEMP)
 
-             dtaum = tau_ref - ONE/Ip(i,j,kc,1,1,QRHO)
-             dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO)
-             dtaup = tau_ref - ONE/Ip(i,j,kc,1,3,QRHO)
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtaum = tau_ref - ONE/Ip(i,j,kc,1,1,QRHO) + hdt*Ip_src(i,j,kc,1,1,QRHO)/Ip(i,j,kc,1,1,QRHO)**2
+             dtau = tau_ref - ONE/Ip(i,j,kc,1,2,QRHO) + hdt*Ip_src(i,j,kc,1,2,QRHO)/Ip(i,j,kc,1,2,QRHO)**2
+             dtaup = tau_ref - ONE/Ip(i,j,kc,1,3,QRHO) + hdt*Ip_src(i,j,kc,1,3,QRHO)/Ip(i,j,kc,1,3,QRHO)**2
 
-             dup = u_ref - Ip(i,j,kc,1,3,QU)
-             dptotp = p_ref - Ip(i,j,kc,1,3,QPRES)
-
-             ! If we are doing source term tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (ppm_trace_sources == 1) then
-                dum = dum - hdt*Ip_src(i,j,kc,1,1,QU)
-                dup = dup - hdt*Ip_src(i,j,kc,1,3,QU)
-             endif
-
+             dup = u_ref - Ip(i,j,kc,1,3,QU) - hdt*Ip_src(i,j,kc,1,3,QU)
+             dptotp = p_ref - Ip(i,j,kc,1,3,QPRES) - hdt*Ip_src(i,j,kc,1,3,QPRES)
 
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
@@ -648,29 +607,8 @@ contains
              qxm(i+1,j,kc,QPRES) = max(qxm(i+1,j,kc,QPRES),small_pres)
 
              ! transverse velocities
-             qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV)
-             qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW)
-
-             ! the transverse velocities only jump across the middle wave, so there
-             ! is no tracing needed
-             if (ppm_trace_sources == 1) then
-                qxm(i+1,j,kc,QV) = qxm(i+1,j,kc,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
-                qxm(i+1,j,kc,QW) = qxm(i+1,j,kc,QW) + hdt*Ip_src(i,j,kc,1,2,QW)
-             endif
-
-#if (BL_SPACEDIM == 1)
-             ! if we did not trace sources, then add them here (for 1-d; 2- and 3-d will
-             ! get them in the transverse parts)
-             if (ppm_trace_sources == 0) then
-                qxm(i+1,j,kc,QU) = qxm(i+1,j,kc,QU) + HALF*dt*srcQ(i,j,k3d,QU)
-             endif
-
-             ! add remaining sources here
-             qxm(i+1,j,kc,QRHO) = qxm(i+1,j,kc,QRHO) + HALF*dt*srcQ(i,j,k3d,QRHO)
-             qxm(i+1,j,kc,QRHO) = max(small_dens, qxm(i+1,j,kc,QRHO))
-             qxm(i+1,j,kc,QREINT) = qxm(i+1,j,kc,QREINT) + HALF*dt*srcQ(i,j,k3d,QREINT)
-             qxm(i+1,j,kc,QPRES) = qxm(i+1,j,kc,QPRES) + HALF*dt*srcQ(i,j,k3d,QPRES)
-#endif
+             qxm(i+1,j,kc,QV    ) = Ip(i,j,kc,1,2,QV) + hdt*Ip_src(i,j,kc,1,2,QV)
+             qxm(i+1,j,kc,QW    ) = Ip(i,j,kc,1,2,QW) + hdt*Ip_src(i,j,kc,1,2,QW)
 
           end if
 
@@ -888,31 +826,24 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
 
-             dvm = v_ref - Im(i,j,kc,2,1,QV)
-             dptotm = p_ref - Im(i,j,kc,2,1,QPRES)
+             dvm = v_ref - Im(i,j,kc,2,1,QV) - hdt*Im_src(i,j,kc,2,1,QV)
+             dptotm = p_ref - Im(i,j,kc,2,1,QPRES) - hdt*Im_src(i,j,kc,2,1,QPRES)
 
-             drho = rho_ref - Im(i,j,kc,2,2,QRHO)
-             dptot = p_ref - Im(i,j,kc,2,2,QPRES)
-             drhoe_g = rhoe_g_ref - Im(i,j,kc,2,2,QREINT)
+             drho = rho_ref - Im(i,j,kc,2,2,QRHO) - hdt*Im_src(i,j,kc,2,2,QRHO)
+             dptot = p_ref - Im(i,j,kc,2,2,QPRES) - hdt*Im_src(i,j,kc,2,2,QPRES)
+             drhoe_g = rhoe_g_ref - Im(i,j,kc,2,2,QREINT) - hdt*Im_src(i,j,kc,2,2,QREINT)
 
              dTm = temp_ref - Im(i,j,kc,2,1,QTEMP)
              dT0 = temp_ref - Im(i,j,kc,2,2,QTEMP)
              dTp = temp_ref - Im(i,j,kc,2,3,QTEMP)
 
-             dtaum = tau_ref - ONE/Im(i,j,kc,2,1,QRHO)
-             dtau = tau_ref - ONE/Im(i,j,kc,2,2,QRHO)
-             dtaup = tau_ref - ONE/Im(i,j,kc,2,3,QRHO)
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtaum = tau_ref - ONE/Im(i,j,kc,2,1,QRHO) + hdt*Im_src(i,j,kc,2,1,QRHO)/Im(i,j,kc,2,1,QRHO)**2
+             dtau = tau_ref - ONE/Im(i,j,kc,2,2,QRHO) + hdt*Im_src(i,j,kc,2,2,QRHO)/Im(i,j,kc,2,2,QRHO)**2
+             dtaup = tau_ref - ONE/Im(i,j,kc,2,3,QRHO) + hdt*Im_src(i,j,kc,2,2,QRHO)/Im(i,j,kc,2,3,QRHO)**2
 
-             dvp = v_ref - Im(i,j,kc,2,3,QV)
-             dptotp = p_ref - Im(i,j,kc,2,3,QPRES)
-
-             ! If we are doing source term tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (ppm_trace_sources == 1) then
-                dvm = dvm - hdt*Im_src(i,j,kc,2,1,QV)
-                dvp = dvp - hdt*Im_src(i,j,kc,2,3,QV)
-             endif
+             dvp = v_ref - Im(i,j,kc,2,3,QV) - hdt*Im_src(i,j,kc,2,3,QV)
+             dptotp = p_ref - Im(i,j,kc,2,3,QPRES) - hdt*Im_src(i,j,kc,2,3,QPRES)
 
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
@@ -1059,13 +990,8 @@ contains
              qyp(i,j,kc,QPRES) = max(qyp(i,j,kc,QPRES), small_pres)
 
              ! transverse velocities
-             qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU)
-             qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW)
-
-             if (ppm_trace_sources == 1) then
-                qyp(i,j,kc,QU) = qyp(i,j,kc,QU) + hdt*Im_src(i,j,kc,2,2,QU)
-                qyp(i,j,kc,QW) = qyp(i,j,kc,QW) + hdt*Im_src(i,j,kc,2,2,QW)
-             endif
+             qyp(i,j,kc,QU    ) = Im(i,j,kc,2,2,QU) + hdt*Im_src(i,j,kc,2,2,QU)
+             qyp(i,j,kc,QW    ) = Im(i,j,kc,2,2,QW) + hdt*Im_src(i,j,kc,2,2,QW)
 
           end if
 
@@ -1101,32 +1027,24 @@ contains
              ! *m are the jumps carried by v-c
              ! *p are the jumps carried by v+c
 
-             dvm = v_ref - Ip(i,j,kc,2,1,QV)
-             dptotm = p_ref - Ip(i,j,kc,2,1,QPRES)
+             dvm = v_ref - Ip(i,j,kc,2,1,QV) - hdt*Ip_src(i,j,kc,2,1,QV)
+             dptotm = p_ref - Ip(i,j,kc,2,1,QPRES) - hdt*Ip_src(i,j,kc,2,1,QPRES)
 
-             drho = rho_ref - Ip(i,j,kc,2,2,QRHO)
-             dptot = p_ref - Ip(i,j,kc,2,2,QPRES)
-             drhoe_g = rhoe_g_ref - Ip(i,j,kc,2,2,QREINT)
+             drho = rho_ref - Ip(i,j,kc,2,2,QRHO) - hdt*Ip_src(i,j,kc,2,2,QRHO)
+             dptot = p_ref - Ip(i,j,kc,2,2,QPRES) - hdt*Ip_src(i,j,kc,2,2,QPRES)
+             drhoe_g = rhoe_g_ref - Ip(i,j,kc,2,2,QREINT) - hdt*Ip_src(i,j,kc,2,2,QREINT)
 
              dTm = temp_ref - Ip(i,j,kc,2,1,QTEMP)
              dT0 = temp_ref - Ip(i,j,kc,2,2,QTEMP)
              dTp = temp_ref - Ip(i,j,kc,2,3,QTEMP)
 
-             dtaum = tau_ref - ONE/Ip(i,j,kc,2,1,QRHO)
-             dtau = tau_ref - ONE/Ip(i,j,kc,2,2,QRHO)
-             dtaup = tau_ref - ONE/Ip(i,j,kc,2,3,QRHO)
+             ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+             dtaum = tau_ref - ONE/Ip(i,j,kc,2,1,QRHO) + hdt*Ip_src(i,j,kc,2,2,QRHO)/Ip(i,j,kc,2,2,QRHO)**2
+             dtau = tau_ref - ONE/Ip(i,j,kc,2,2,QRHO) + hdt*Ip_src(i,j,kc,2,2,QRHO)/Ip(i,j,kc,2,2,QRHO)**2
+             dtaup = tau_ref - ONE/Ip(i,j,kc,2,3,QRHO) + hdt*Ip_src(i,j,kc,2,2,QRHO)/Ip(i,j,kc,2,2,QRHO)**2
 
-             dvp = v_ref - Ip(i,j,kc,2,3,QV)
-             dptotp = p_ref - Ip(i,j,kc,2,3,QPRES)
-
-             ! If we are doing source term tracing, then we add the force
-             ! to the velocity here, otherwise we will deal with this
-             ! in the trans_X routines
-             if (ppm_trace_sources == 1) then
-                dvm = dvm - hdt*Ip_src(i,j,kc,2,1,QV)
-                dvp = dvp - hdt*Ip_src(i,j,kc,2,3,QV)
-             endif
-
+             dvp = v_ref - Ip(i,j,kc,2,3,QV) - hdt*Ip_src(i,j,kc,2,3,QV)
+             dptotp = p_ref - Ip(i,j,kc,2,3,QPRES) - hdt*Ip_src(i,j,kc,2,3,QPRES)
 
              ! Optionally use the reference state in evaluating the
              ! eigenvectors
@@ -1272,14 +1190,8 @@ contains
              qym(i,j+1,kc,QPRES) = max(qym(i,j+1,kc,QPRES), small_pres)
 
              ! transverse velocities
-             qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU)
-             qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW)
-
-             if (ppm_trace_sources == 1) then
-                qym(i,j+1,kc,QU) = qym(i,j+1,kc,QU) + hdt*Ip_src(i,j,kc,2,2,QU)
-                qym(i,j+1,kc,QW) = qym(i,j+1,kc,QW) + hdt*Ip_src(i,j,kc,2,2,QW)
-             endif
-
+             qym(i,j+1,kc,QU    ) = Ip(i,j,kc,2,2,QU) + hdt*Ip_src(i,j,kc,2,2,QU)
+             qym(i,j+1,kc,QW    ) = Ip(i,j,kc,2,2,QW) + hdt*Ip_src(i,j,kc,2,2,QW)
           end if
 
        end do
@@ -1385,7 +1297,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_trace_sources, &
+                                   ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
                                    ppm_temp_fix, &
                                    npassive, qpass_map
@@ -1540,31 +1452,25 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm = w_ref - Im(i,j,kc,3,1,QW)
-          dptotm = p_ref - Im(i,j,kc,3,1,QPRES)
+          dwm = w_ref - Im(i,j,kc,3,1,QW) - hdt*Im_src(i,j,kc,3,1,QW)
+          dptotm = p_ref - Im(i,j,kc,3,1,QPRES) - hdt*Im_src(i,j,kc,3,1,QPRES)
 
-          drho = rho_ref - Im(i,j,kc,3,2,QRHO)
-          dptot = p_ref - Im(i,j,kc,3,2,QPRES)
-          drhoe_g = rhoe_g_ref - Im(i,j,kc,3,2,QREINT)
+          drho = rho_ref - Im(i,j,kc,3,2,QRHO) - hdt*Im_src(i,j,kc,3,2,QRHO)
+          dptot = p_ref - Im(i,j,kc,3,2,QPRES) - hdt*Im_src(i,j,kc,3,2,QPRES)
+          drhoe_g = rhoe_g_ref - Im(i,j,kc,3,2,QREINT) - hdt*Im_src(i,j,kc,3,2,QREINT)
 
           dTm = temp_ref - Im(i,j,kc,3,1,QTEMP)
           dT0 = temp_ref - Im(i,j,kc,3,2,QTEMP)
           dTp = temp_ref - Im(i,j,kc,3,3,QTEMP)
 
-          dtaum = tau_ref - ONE/Im(i,j,kc,3,1,QRHO)
-          dtau = tau_ref - ONE/Im(i,j,kc,3,2,QRHO)
-          dtaup = tau_ref - ONE/Im(i,j,kc,3,3,QRHO)
+          ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+          dtaum = tau_ref - ONE/Im(i,j,kc,3,1,QRHO) + hdt*Im_src(i,j,kc,3,1,QRHO)/Im(i,j,kc,3,1,QRHO)**2
+          dtau = tau_ref - ONE/Im(i,j,kc,3,2,QRHO) + hdt*Im_src(i,j,kc,3,2,QRHO)/Im(i,j,kc,3,2,QRHO)**2
+          dtaup = tau_ref - ONE/Im(i,j,kc,3,3,QRHO) + hdt*Im_src(i,j,kc,3,3,QRHO)/Im(i,j,kc,3,3,QRHO)**2
 
-          dwp = w_ref - Im(i,j,kc,3,3,QW)
-          dptotp = p_ref - Im(i,j,kc,3,3,QPRES)
+          dwp = w_ref - Im(i,j,kc,3,3,QW) - hdt*Im_src(i,j,kc,3,3,QW)
+          dptotp = p_ref - Im(i,j,kc,3,3,QPRES) - hdt*Im_src(i,j,kc,3,3,QPRES)
 
-          ! If we are doing source term tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (ppm_trace_sources == 1) then
-             dwm = dwm - hdt*Im_src(i,j,kc,3,1,QW)
-             dwp = dwp - hdt*Im_src(i,j,kc,3,3,QW)
-          endif
 
           ! Optionally use the reference state in evaluating the
           ! eigenvectors
@@ -1707,13 +1613,8 @@ contains
           qzp(i,j,kc,QPRES) = max(qzp(i,j,kc,QPRES), small_pres)
 
           ! transverse velocities
-          qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU)
-          qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV)
-
-          if (ppm_trace_sources == 1) then
-             qzp(i,j,kc,QU) = qzp(i,j,kc,QU) + hdt*Im_src(i,j,kc,3,2,QU)
-             qzp(i,j,kc,QV) = qzp(i,j,kc,QV) + hdt*Im_src(i,j,kc,3,2,QV)
-          endif
+          qzp(i,j,kc,QU    ) = Im(i,j,kc,3,2,QU) + hdt*Im_src(i,j,kc,3,2,QU)
+          qzp(i,j,kc,QV    ) = Im(i,j,kc,3,2,QV) + hdt*Im_src(i,j,kc,3,2,QV)
 
 
           !-------------------------------------------------------------------
@@ -1772,31 +1673,25 @@ contains
           ! Note: for the transverse velocities, the jump is carried
           !       only by the w wave (the contact)
 
-          dwm = w_ref - Ip(i,j,km,3,1,QW)
-          dptotm = p_ref - Ip(i,j,km,3,1,QPRES)
+          dwm = w_ref - Ip(i,j,km,3,1,QW) - hdt*Ip_src(i,j,km,3,1,QW)
+          dptotm = p_ref - Ip(i,j,km,3,1,QPRES) - hdt*Ip_src(i,j,km,3,1,QPRES)
 
-          drho = rho_ref - Ip(i,j,km,3,2,QRHO)
-          dptot = p_ref - Ip(i,j,km,3,2,QPRES)
-          drhoe_g = rhoe_g_ref - Ip(i,j,km,3,2,QREINT)
+          drho = rho_ref - Ip(i,j,km,3,2,QRHO) - hdt*Ip_src(i,j,km,3,2,QRHO)
+          dptot = p_ref - Ip(i,j,km,3,2,QPRES) - hdt*Ip_src(i,j,km,3,2,QPRES)
+          drhoe_g = rhoe_g_ref - Ip(i,j,km,3,2,QREINT) - hdt*Ip_src(i,j,km,3,2,QREINT)
 
-          dtaum = tau_ref - ONE/Ip(i,j,km,3,1,QRHO)
-          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO)
-          dtaup = tau_ref - ONE/Ip(i,j,km,3,3,QRHO)
+          ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
+          dtaum = tau_ref - ONE/Ip(i,j,km,3,1,QRHO) + hdt*Ip_src(i,j,km,3,1,QRHO)/Ip(i,j,km,3,1,QRHO)**2
+          dtau = tau_ref - ONE/Ip(i,j,km,3,2,QRHO) + hdt*Ip_src(i,j,km,3,2,QRHO)/Ip(i,j,km,3,2,QRHO)**2
+          dtaup = tau_ref - ONE/Ip(i,j,km,3,3,QRHO) + hdt*Ip_src(i,j,km,3,3,QRHO)/Ip(i,j,km,3,3,QRHO)**2
 
           dTm = temp_ref - Ip(i,j,km,3,1,QTEMP)
           dT0 = temp_ref - Ip(i,j,km,3,2,QTEMP)
           dTp = temp_ref - Ip(i,j,km,3,3,QTEMP)
 
-          dwp = w_ref - Ip(i,j,km,3,3,QW)
-          dptotp = p_ref - Ip(i,j,km,3,3,QPRES)
+          dwp = w_ref - Ip(i,j,km,3,3,QW) - hdt*Ip_src(i,j,km,3,3,QW)
+          dptotp = p_ref - Ip(i,j,km,3,3,QPRES) - hdt*Ip_src(i,j,km,3,3,QPRES)
 
-          ! If we are doing source term tracing, then we add the force to
-          ! the velocity here, otherwise we will deal with this in the
-          ! trans_X routines
-          if (ppm_trace_sources == 1) then
-             dwm = dwm - hdt*Ip_src(i,j,km,3,1,QW)
-             dwp = dwp - hdt*Ip_src(i,j,km,3,3,QW)
-          endif
 
           ! Optionally use the reference state in evaluating the
           ! eigenvectors
@@ -1938,13 +1833,8 @@ contains
           qzm(i,j,kc,QPRES) = max(qzm(i,j,kc,QPRES),small_pres)
 
           ! Transverse velocity
-          qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU)
-          qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV)
-
-          if (ppm_trace_sources == 1) then
-             qzm(i,j,kc,QU) = qzm(i,j,kc,QU) + hdt*Ip_src(i,j,km,3,2,QU)
-             qzm(i,j,kc,QV) = qzm(i,j,kc,QV) + hdt*Ip_src(i,j,km,3,2,QV)
-          endif
+          qzm(i,j,kc,QU    ) = Ip(i,j,km,3,2,QU) + hdt*Ip_src(i,j,km,3,2,QU)
+          qzm(i,j,kc,QV    ) = Ip(i,j,km,3,2,QV) + hdt*Ip_src(i,j,km,3,2,QV)
 
        end do
     end do

@@ -112,7 +112,6 @@ Castro::advance (Real time,
     } else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
-        // TODO: should be time or time + c_mol[iter]*dt?
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
     }
