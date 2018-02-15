@@ -227,7 +227,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UMX)  = dens * velx
            state(i,j,k,UMY)  = dens * vely
            state(i,j,k,UMZ)  = dens * velz
-           state(i,j,k,UFA)  = dye
+           !state(i,j,k,UFA)  = dye
 
            ! Establish the thermodynamic quantities
 

@@ -1,5 +1,11 @@
 # changes since last release
 
+  -- The option ppm_trace_sources has been removed -- we now
+     always trace on source terms with ppm.  Additionally, all
+     sources are now traced, not just momentum sources.
+
+# 18.02
+
   -- The approximate state Riemann solvers have been split into two
      parts: the computation of the interface state and the evaluation
      of the fluxes from this interface state.  This gives additional
