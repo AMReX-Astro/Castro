@@ -283,9 +283,9 @@ contains
                 Wp = u(i,j,k,UMZ) * rhoInv
                 ke = HALF * (Up**2 + Vp**2 + Wp**2)
 #ifdef MHD
-                bx_cell_c = HALF *bx(1,1,1) !HALF * (bx(i,j,k) + bx(i+1,j,k))
-                by_cell_c = HALF *by(1,1,1) !HALF * (by(i,j,k) + by(i,j+1,k))
-                bz_cell_c = HALF *bz(1,1,1) !HALF * (bz(i,j,k) + bz(i,j,k+1))
+                bx_cell_c = HALF * (bx(i,j,k) + bx(i+1,j,k))
+                by_cell_c = HALF * (by(i,j,k) + by(i,j+1,k))
+                bz_cell_c = HALF * (bz(i,j,k) + bz(i,j,k+1))
 #endif
  
                 if (u(i,j,k,UEDEN) < ZERO) then

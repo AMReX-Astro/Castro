@@ -19,9 +19,6 @@ Castro::just_the_mhd(Real time, Real dt)
       Real courno = -1.0e+200;
 
       MultiFab& S_new = get_new_data(State_Type);
-      MultiFab& Bx_old= get_old_data(Mag_Type_x);
-      MultiFab& By_old= get_old_data(Mag_Type_y);
-      MultiFab& Bz_old= get_old_data(Mag_Type_z);
       MultiFab& Bx_new= get_new_data(Mag_Type_x);
       MultiFab& By_new= get_new_data(Mag_Type_y);
       MultiFab& Bz_new= get_new_data(Mag_Type_z);
@@ -43,16 +40,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
       BL_ASSERT(NUM_GROW == 4);
 
-      // Create FAB for extended grid values (including boundaries) and fill.
-      MultiFab Bx_old_tmp(Bx_old.boxArray(), Bx_old.DistributionMap(), 1, NUM_GROW);
-      MultiFab By_old_tmp(By_old.boxArray(), By_old.DistributionMap(), 1, NUM_GROW);
-      MultiFab Bz_old_tmp(Bz_old.boxArray(), Bz_old.DistributionMap(), 1, NUM_GROW);
-
-      FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
-      FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
-      FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
-
-      
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass:courno)

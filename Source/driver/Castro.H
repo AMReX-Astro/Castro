@@ -639,6 +639,12 @@ protected:
     //
     amrex::MultiFab Sborder;
 
+#ifdef MHD
+   amrex::MultiFab Bx_old_tmp;
+   amrex::MultiFab By_old_tmp;
+   amrex::MultiFab Bz_old_tmp;
+#endif
+
 #ifdef RADIATION
     amrex::MultiFab Erborder;
     amrex::MultiFab lamborder;

@@ -469,17 +469,27 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // using the state data to give us Sborder, which does have ghost zones.
 
     if (do_ctu) {
+#ifdef MHD
+      MultiFab& Bx_old = get_old_data(Mag_Type_x);
+      MultiFab& By_old = get_old_data(Mag_Type_y);
+      MultiFab& Bz_old = get_old_data(Mag_Type_z);
 
-      // TODO: We need to define the grown Bx_old_tmp here
+      Bx_old_tmp.define(Bx_old.boxArray(), Bx_old.DistributionMap(), 1, NUM_GROW);
+      By_old_tmp.define(By_old.boxArray(), By_old.DistributionMap(), 1, NUM_GROW);
+      Bz_old_tmp.define(Bz_old.boxArray(), Bz_old.DistributionMap(), 1, NUM_GROW);
 
+      FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
+      FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
+      FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
+#endif
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(
 #ifdef MHD
-                   get_old_data(Mag_Type_x), 
-		   get_old_data(Mag_Type_y),
-		   get_old_data(Mag_Type_z),
+                   Bx_old_tmp, 
+		   By_old_tmp,
+		   Bz_old_tmp,
 #endif
                    Sborder, prev_time, NUM_GROW);
 
