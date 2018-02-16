@@ -76,10 +76,6 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-# to we reconstruct and trace under the parabolas of the source
-# terms to the velocity (gravity and rotation)
-ppm_trace_sources            int           1                  y
-
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y
