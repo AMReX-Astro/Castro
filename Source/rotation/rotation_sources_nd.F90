@@ -197,11 +197,11 @@ contains
 
     real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
 
-    ! Hydrodynamics fluxes
+    ! Hydrodynamical mass fluxes
 
-    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
+    real(rt)         :: flux1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt)         :: flux2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt)         :: flux3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3))
 
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
 
@@ -438,12 +438,12 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
-                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k,URHO) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                    flux1(i+1*dg(1),j,k,URHO) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k,URHO) * (phi(i,j,k) - phi(i,j-1,k)) - &
-                                                    flux2(i,j+1*dg(2),k,URHO) * (phi(i,j,k) - phi(i,j+1,k)) + &
-                                                    flux3(i,j,k        ,URHO) * (phi(i,j,k) - phi(i,j,k-1)) - &
-                                                    flux3(i,j,k+1*dg(3),URHO) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
+                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                    flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-1,k)) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+1,k)) + &
+                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-1)) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+1)) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;

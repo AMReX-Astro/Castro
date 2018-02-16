@@ -308,11 +308,6 @@ The current \statedata\ names  \castro\ carries are:
 
 \MarginPar{why do we need rho edot and edot separately?}
 
-\item \variable{SDC\_Source\_Type} : this is used with the SDC
-  time-advancement algorithm (not the default Strang-splitting
-  algorithn).  This will store the {\tt NUM\_STATE} advective source
-  terms for use in the evolution of the reactive terms in the SDC
-  advancement.
 
 \item \variable{SDC\_React\_Type} : this is used with the SDC
   time-advancement algorithm.  This stores the {\tt QVAR} terms
@@ -353,33 +348,9 @@ that hold source term information.
     \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
   \end{equation}
 
-\item \variable{old\_sources} : this is an array of \multifab s, with
-  each \multifab\ with {\tt NUM\_STATE} components (e.g., one for each
-  of our conservative state variables).  There are \variable{num\_src}
-  \multifab s in the array, corresponding to the sponge, external
-  sources, diffusion, hybrid momentum, gravity, and rotation.
-
-  Each of the different physical processes will store the
-  old-time-level source in its respective \multifab.  This makes it
-  easy to sum over all of the physical processes to get a single
-  source that affects a particular state variable.
-
-\item \variable{new\_sources} : the correction to the sources to
-  time-center the source update.  This is the counterpart to
-  {\tt old\_sources}.
-
-  The general idea is that for a source component {\tt k}, then {\tt
-    old\_source[k]} + {\tt new\_source[k]} should give an approximation
-  to $S_k^{n+1/2}$.
-
-  Generally this is accomplished by setting {\tt new\_source[k]} to
-  $(S_k^{n+1} - S_k^{n})/2$.  For gravity, since we adopt a conservative
-  formulation using the time-centered fluxes the form is slightly
-  different.
 
 \item \variable{sources\_for\_hydro} : a single \multifab\ that stores
-  the sum of sources over each physical process (from {\tt
-    old\_sources} or {\tt new\_sources})
+  the sum of sources over each physical process.
 
 \end{itemize}
 

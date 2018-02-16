@@ -11,6 +11,15 @@ static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
+#ifdef POINTMASS
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
+#ifdef MHD
+static int ppm_reference;
+static int ppm_flatten_before_integrals;
+#endif
 #ifdef PARTICLES
 static int do_tracer_particles;
 #endif
@@ -24,10 +33,6 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
-#endif
-#ifdef POINTMASS
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -45,13 +50,6 @@ static int do_ctu;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
-#ifdef MHD
-static int ppm_reference;
-#endif
-#ifdef MHD
-static int ppm_flatten_before_integrals;
-#endif
-static int ppm_trace_sources;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
 static int ppm_reference_eigenvectors;

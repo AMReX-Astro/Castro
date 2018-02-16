@@ -42,6 +42,10 @@ Castro::advance (Real time,
 {
     BL_PROFILE("Castro::advance()");
 
+    // Save the wall time when we started the step.
+
+    wall_time_start = ParallelDescriptor::second();
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
@@ -148,7 +152,8 @@ Castro::advance (Real time,
 
 #ifdef POINTMASS
     // Update the point mass.
-    pointmass_update(time, dt);
+    if (use_point_mass)
+        pointmass_update(time, dt);
 #endif
 
 #ifdef RADIATION

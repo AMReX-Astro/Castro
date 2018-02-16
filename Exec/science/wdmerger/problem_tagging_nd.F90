@@ -56,9 +56,9 @@ contains
 
              if (level < max_stellar_tagging_level) then
 
-                if (problem .eq. 0 .or. problem .eq. 4) then
+                if (problem .eq. 0 .or. problem .eq. 4 .or. problem .eq. 5) then
 
-                   ! For the collision and free-fall problems, we just want to tag every
+                   ! For the collision, free-fall, and TDE problems, we just want to tag every
                    ! zone that meets the density criterion; we don't want to bother with
                    ! the Roche lobe radius as that doesn't mean much in these cases.
 

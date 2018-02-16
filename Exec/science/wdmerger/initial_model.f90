@@ -299,14 +299,14 @@ contains
   ! 3D Cartesian grid space. Optionally does a sub-grid-scale interpolation
   ! if nsub > 1 (set in the probin file).
 
-  subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, dx, state, nsub_in)
+  subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, star_radius, dx, state, nsub_in)
 
     implicit none
 
     double precision,  intent(in   ) :: rho(npts)
     double precision,  intent(in   ) :: T(npts)
     double precision,  intent(in   ) :: xn(npts, nspec)
-    double precision,  intent(in   ) :: r(npts)
+    double precision,  intent(in   ) :: r(npts), star_radius
     integer,           intent(in   ) :: npts
     double precision,  intent(in   ) :: loc(3), dx(3)
     type (eos_t),      intent(inout) :: state
@@ -327,41 +327,57 @@ contains
     state % T   = ZERO
     state % xn  = ZERO
 
-    ! We perform a sub-grid-scale interpolation, where 
-    ! nsub determines the number of intervals we split the zone into.
-    ! If nsub = 1, we simply interpolate using the cell-center location.
-    ! As an example, if nsub = 3, then the sampled locations will be
-    ! k = 0 --> z = loc(3) - dx(3) / 3   (1/6 of way from left edge of zone)
-    ! k = 1 --> z = loc(3)               (halfway between left and right edge)
-    ! k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
+    ! If the model radius is smaller than the zone size, just use the center of the model.
 
-    do k = 0, nsub-1
-       z = loc(3) + dble(k + HALF * (1 - nsub)) * dx(3) / nsub
+    dist = (loc(1)**2 + loc(2)**2 + loc(3)**2)**HALF
 
-       do j = 0, nsub-1
-          y = loc(2) + dble(j + HALF * (1 - nsub)) * dx(2) / nsub
+    if (star_radius <= maxval(dx) .and. dist < maxval(dx)) then
 
-          do i = 0, nsub-1
-             x = loc(1) + dble(i + HALF * (1 - nsub)) * dx(1) / nsub
+       state % rho = rho(1)
+       state % T   = T(1)
+       state % xn  = xn(1,:)
 
-             dist = (x**2 + y**2 + z**2)**HALF
+    else
 
-             state % rho = state % rho + interpolate(dist, npts, r, rho)
-             state % T   = state % T   + interpolate(dist, npts, r, T)
+       ! We perform a sub-grid-scale interpolation, where
+       ! nsub determines the number of intervals we split the zone into.
+       ! If nsub = 1, we simply interpolate using the cell-center location.
+       ! As an example, if nsub = 3, then the sampled locations will be
+       ! k = 0 --> z = loc(3) - dx(3) / 3   (1/6 of way from left edge of zone)
+       ! k = 1 --> z = loc(3)               (halfway between left and right edge)
+       ! k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
 
-             do n = 1, nspec
-                state % xn(n) = state % xn(n) + interpolate(dist, npts, r, xn(:,n))
+       do k = 0, nsub-1
+          z = loc(3) + dble(k + HALF * (1 - nsub)) * dx(3) / nsub
+
+          do j = 0, nsub-1
+             y = loc(2) + dble(j + HALF * (1 - nsub)) * dx(2) / nsub
+
+             do i = 0, nsub-1
+                x = loc(1) + dble(i + HALF * (1 - nsub)) * dx(1) / nsub
+
+                dist = (x**2 + y**2 + z**2)**HALF
+
+                state % rho = state % rho + interpolate(dist, npts, r, rho)
+                state % T   = state % T   + interpolate(dist, npts, r, T)
+
+                do n = 1, nspec
+                   state % xn(n) = state % xn(n) + interpolate(dist, npts, r, xn(:,n))
+                enddo
+
              enddo
-
           enddo
        enddo
-    enddo
 
-    ! Now normalize by the number of intervals, and complete the thermodynamics.
+       ! Now normalize by the number of intervals.
 
-    state % rho = state % rho / (nsub**3)
-    state % T   = state % T   / (nsub**3)
-    state % xn  = state % xn  / (nsub**3)
+       state % rho = state % rho / (nsub**3)
+       state % T   = state % T   / (nsub**3)
+       state % xn  = state % xn  / (nsub**3)
+
+    end if
+
+    ! Complete the thermodynamics.
 
     call eos(eos_input_rt, state)
                     

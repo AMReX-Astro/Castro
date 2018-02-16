@@ -11,6 +11,15 @@ pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
+#ifdef POINTMASS
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
+#ifdef MHD
+pp.query("ppm_reference", ppm_reference);
+pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
+#endif
 #ifdef PARTICLES
 pp.query("do_tracer_particles", do_tracer_particles);
 #endif
@@ -24,10 +33,6 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
-#endif
-#ifdef POINTMASS
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
@@ -45,13 +50,6 @@ pp.query("do_ctu", do_ctu);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
-#ifdef MHD
-pp.query("ppm_reference", ppm_reference);
-#endif
-#ifdef MHD
-pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
-#endif
-pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);

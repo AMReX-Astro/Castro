@@ -1,4 +1,11 @@
 
+! DO NOT EDIT!!!
+
+! This file is automatically created by set_variables.py.  To update
+! or add variable indices, please edit _variables and then rerun the
+! script.
+
+
 subroutine check_equal(index1, index2)
 
   use bl_error_module

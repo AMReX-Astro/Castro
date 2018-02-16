@@ -17,3 +17,4 @@ static int use_mlmg_solver;
 static int mlmg_max_fmg_iter;
 static int mlmg_agglomeration;
 static int mlmg_consolidation;
+static int mlmg_nsolve;

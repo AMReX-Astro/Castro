@@ -11,6 +11,15 @@ int         Castro::diffuse_vel = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
+#ifdef POINTMASS
+int         Castro::use_point_mass = 1;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
+#endif
+#ifdef MHD
+int         Castro::ppm_reference = 1;
+int         Castro::ppm_flatten_before_integrals = 1;
+#endif
 #ifdef PARTICLES
 int         Castro::do_tracer_particles = 0;
 #endif
@@ -24,10 +33,6 @@ int         Castro::state_in_rotating_frame = 1;
 int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
-#endif
-#ifdef POINTMASS
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
 #endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
@@ -45,13 +50,6 @@ int         Castro::do_ctu = 1;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
-#ifdef MHD
-int         Castro::ppm_reference = 1;
-#endif
-#ifdef MHD
-int         Castro::ppm_flatten_before_integrals = 1;
-#endif
-int         Castro::ppm_trace_sources = 1;
 int         Castro::ppm_temp_fix = 0;
 int         Castro::ppm_predict_gammae = 0;
 int         Castro::ppm_reference_eigenvectors = 0;
