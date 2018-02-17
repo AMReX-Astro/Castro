@@ -249,6 +249,11 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+    amrex::Real do_advance_sdc (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
@@ -746,6 +751,9 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_old;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    static int SDC_NODES;
+    static amrex::Vector<amrex::Real> dt_sdc;
 
     // Wall time that we started the timestep
     amrex::Real wall_time_start;

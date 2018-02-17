@@ -100,6 +100,8 @@ Vector< Vector<Real> > Castro::a_mol;
 Vector<Real> Castro::b_mol;
 Vector<Real> Castro::c_mol;
 
+int          Castro::SDC_NODES;
+Vector<Real> Castro::dt_sdc;
 
 #include <castro_defaults.H>
 

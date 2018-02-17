@@ -1006,4 +1006,24 @@ Castro::variableSetUp ()
     amrex::Error("invalid value of mol_order\n");
   }
 
+
+
+  if (sdc_order == 2) {
+
+    SDC_NODES = 2;
+
+    dt_sdc.resize(SDC_NODES);
+    dt_sdc = {0.0, 1.0};
+
+  } else if (sdc_order == 4) {
+
+    SDC_NODES = 3;
+
+    dt_sdc.resize(SDC_NODES);
+    dt_sdc = {0.0, 0.5, 1.0};
+
+  } else {
+    amrex::Error("invalid value of sdc_order");
+  }
+
 }

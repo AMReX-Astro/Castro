@@ -85,6 +85,7 @@ pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("mol_order", mol_order);
+pp.query("sdc_order", sdc_order);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);

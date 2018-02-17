@@ -229,6 +229,10 @@ hse_reflect_vels             int           0                  y
 # 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
 mol_order                    int           2                  y
 
+# integration order for SDC integration
+# valid options are 2 and 4
+sdc_order                    int           2                  y
+
 
 #-----------------------------------------------------------------------------
 # category: timestep control
