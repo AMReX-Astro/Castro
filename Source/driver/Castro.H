@@ -734,6 +734,12 @@ protected:
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
 
+    //
+    // Storage for the SDC time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_old;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
     // Wall time that we started the timestep
     amrex::Real wall_time_start;
 
