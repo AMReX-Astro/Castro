@@ -104,7 +104,7 @@ module meth_params_module
   real(rt), save :: small_pres
   real(rt), save :: small_ener
   integer         , save :: do_hydro
-  integer         , save :: do_ctu
+  integer         , save :: time_integration_method
   integer         , save :: fourth_order
   integer         , save :: hybrid_hydro
   integer         , save :: ppm_type
@@ -183,7 +183,7 @@ module meth_params_module
   !$acc declare &
   !$acc create(difmag, small_dens, small_temp) &
   !$acc create(small_pres, small_ener, do_hydro) &
-  !$acc create(do_ctu, fourth_order, hybrid_hydro) &
+  !$acc create(time_integration_method, fourth_order, hybrid_hydro) &
   !$acc create(ppm_type, ppm_temp_fix, ppm_predict_gammae) &
   !$acc create(ppm_reference_eigenvectors, plm_iorder, hybrid_riemann) &
   !$acc create(riemann_solver, cg_maxiter, cg_tol) &
@@ -258,7 +258,7 @@ contains
     small_pres = -1.d200;
     small_ener = -1.d200;
     do_hydro = -1;
-    do_ctu = 1;
+    time_integration_method = 0;
     fourth_order = 0;
     hybrid_hydro = 0;
     ppm_type = 1;
@@ -351,7 +351,7 @@ contains
     call pp%query("small_pres", small_pres)
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
-    call pp%query("do_ctu", do_ctu)
+    call pp%query("time_integration_method", time_integration_method)
     call pp%query("fourth_order", fourth_order)
     call pp%query("hybrid_hydro", hybrid_hydro)
     call pp%query("ppm_type", ppm_type)
@@ -417,7 +417,7 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(do_ctu, fourth_order, hybrid_hydro) &
+    !$acc device(time_integration_method, fourth_order, hybrid_hydro) &
     !$acc device(ppm_type, ppm_temp_fix, ppm_predict_gammae) &
     !$acc device(ppm_reference_eigenvectors, plm_iorder, hybrid_riemann) &
     !$acc device(riemann_solver, cg_maxiter, cg_tol) &

@@ -324,32 +324,15 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with MOL.
 
-    if (!do_ctu && use_retry)
+    if (time_integration_method != CTU && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-<<<<<<< HEAD
-    // for the moment, ppm_type = 0 does not support ppm_trace_sources --
-    // we need to add the momentum sources to the states (and not
-    // add it in trans_3d
-    if (ppm_type == 0 && ppm_trace_sources == 1)
+    // fourth order implies MOL or SDC
+    if (fourth_order == 1 && time_integration_method == CTU)
       {
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: ppm_trace_sources = 1 not implemented for ppm_type = 0" << std::endl;
-	ppm_trace_sources = 0;
-	pp.add("ppm_trace_sources",ppm_trace_sources);
+        amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
       }
 
-    // fourth order implies do_ctu=0
-    if (fourth_order == 1 && do_ctu == 1)
-      {
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
-	do_ctu = 0;
-	pp.add("do_ctu", do_ctu);
-      }
-
-=======
->>>>>>> development
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";

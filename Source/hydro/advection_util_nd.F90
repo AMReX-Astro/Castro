@@ -312,7 +312,7 @@ contains
                             bind(C, name = "ca_compute_cfl")
 
     use bl_constants_module, only: ZERO, ONE
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, do_ctu
+    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
     use amrex_fort_module, only : rt => amrex_real
 
@@ -363,7 +363,7 @@ contains
              courmy = max( courmy, coury )
              courmz = max( courmz, courz )
 
-             if (do_ctu == 1) then
+             if (time_integration_method == 0) then
                 ! CTU integration constraint
 
                 if (courx .gt. ONE) then
@@ -418,7 +418,7 @@ contains
        enddo
     enddo
 
-    if (do_ctu == 1) then
+    if (time_integration_method == 0) then
        courno = max( courmx, courmy, courmz )
     endif
 

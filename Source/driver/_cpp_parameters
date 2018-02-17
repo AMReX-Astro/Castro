@@ -56,8 +56,8 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# do we do the CTU unsplit method or a method-of-lines approach?
-do_ctu                       int           1                  y
+# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC
+time_integration_method      int           0                  y
 
 # do we do fourth-order accurate MOL hydro?
 fourth_order                 int           0                  y

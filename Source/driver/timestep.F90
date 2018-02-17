@@ -13,7 +13,7 @@ contains
   subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
 
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
@@ -87,7 +87,7 @@ contains
                 dt3 = dt1
              endif
 
-             if (do_ctu == 1) then
+             if (time_integration_method == 0) then
                 dt  = min(dt,dt1,dt2,dt3)
              else
                 ! method of lines constraint is tougher

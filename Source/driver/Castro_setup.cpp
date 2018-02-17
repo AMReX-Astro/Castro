@@ -332,7 +332,7 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NUM_STATE,
+			 StateDescriptor::Point, time_integration_method == CTU ? NUM_GROW : 1, NUM_STATE,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION

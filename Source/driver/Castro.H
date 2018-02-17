@@ -67,6 +67,13 @@ enum sources { ext_src = 0,
 #endif
 	       num_src };
 
+
+// time integration method
+
+enum int_method { CTU = 0,
+                  MOL,
+                  SDC };
+
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media
 //
