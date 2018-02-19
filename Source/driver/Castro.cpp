@@ -100,6 +100,8 @@ Vector< Vector<Real> > Castro::a_mol;
 Vector<Real> Castro::b_mol;
 Vector<Real> Castro::c_mol;
 
+int          Castro::SDC_NODES;
+Vector<Real> Castro::dt_sdc;
 
 #include <castro_defaults.H>
 
@@ -324,16 +326,13 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with MOL.
 
-    if (!do_ctu && use_retry)
+    if (time_integration_method != CTU && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-    // fourth order implies do_ctu=0
-    if (fourth_order == 1 && do_ctu == 1)
+    // fourth order implies MOL or SDC
+    if (fourth_order == 1 && time_integration_method == CTU)
       {
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
-	do_ctu = 0;
-	pp.add("do_ctu", do_ctu);
+        amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)

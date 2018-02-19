@@ -67,6 +67,13 @@ enum sources { ext_src = 0,
 #endif
 	       num_src };
 
+
+// time integration method
+
+enum int_method { CTU = 0,
+                  MOL,
+                  SDC };
+
 //
 // AmrLevel-derived class for hyperbolic conservation equations for stellar media
 //
@@ -238,6 +245,11 @@ public:
                      int  amr_ncycle);
 
     amrex::Real do_advance_mol (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
+    amrex::Real do_advance_sdc (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
@@ -733,6 +745,15 @@ protected:
     static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
     static amrex::Vector<amrex::Real> b_mol;
     static amrex::Vector<amrex::Real> c_mol;
+
+    //
+    // Storage for the SDC time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_old;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    static int SDC_NODES;
+    static amrex::Vector<amrex::Real> dt_sdc;
 
     // Wall time that we started the timestep
     amrex::Real wall_time_start;
