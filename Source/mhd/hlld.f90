@@ -137,8 +137,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UEDEN) = qL(QVELN)*(eL + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))) &
                   - qL(QMAGN)*dot_product(qL(QMAGX:QMAGZ),qL(QU:QW))
       FL(UMAGN) = 0.d0
-      FL(UMAGP1) = qL(QVELP1)*qL(QMAGN) - qL(QVELN)*qL(QMAGP1)
-      FL(UMAGP2) = qL(QVELP2)*qL(QMAGN) - qL(QVELN)*qL(QMAGP2)
+      FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN)  
+      FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN) 
 
       eos_state % rho = qR(QRHO)
       eos_state % p   = qR(QPRES) 
@@ -159,8 +159,8 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UEDEN) = qR(QVELN)*(eR + (qR(QPRES)+0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)))) &
                   - qR(QMAGN)*dot_product(qR(QMAGX:QMAGZ),qR(QU:QW))
       FR(UMAGN) = 0.d0
-      FR(UMAGP1) = qR(QVELP1)*qR(QMAGN) - qR(QVELN)*qR(QMAGP1)  
-      FR(UMAGP2) = qR(QVELP2)*qR(QMAGN) - qR(QVELN)*qR(QMAGP2)  
+      FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)   
+      FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN) 
 
 
       ! From Miyoshi and Kusano paper eq.(3) 
@@ -319,9 +319,9 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
 	!Energy , eq.(63)
 	UssL(UEDEN) = UsL(UEDEN) - sqrt(UsL(URHO))*(dot_product(UsL(UMX:UMZ)/UsL(URHO),UsL(UMAGX:UMAGZ)) &
-	- dot_product(UssL(UMX:UMZ)/UssL(URHO),UssL(UMAGX:UMAGZ)))*sign(1.d0, qL(UMAGN))
+	- dot_product(UssL(UMX:UMZ)/UssL(URHO),UssL(UMAGX:UMAGZ)))*sign(1.d0, qL(QMAGN))
 	UssR(UEDEN) = UsR(UEDEN) + sqrt(UsR(QRHO))*(dot_product(UsR(UMX:UMZ)/UsR(URHO),UsR(UMAGX:UMAGZ)) &
-        - dot_product(UssR(UMX:UMZ)/UssR(URHO),UssR(UMAGX:UMAGZ)))*sign(1.d0, qR(UMAGN))
+        - dot_product(UssR(UMX:UMZ)/UssR(URHO),UssR(UMAGX:UMAGZ)))*sign(1.d0, qR(QMAGN))
 
 	!--------------------------------------------------------- Fluxes ----------------------------------------------------------------------
        ! eq. (64)
@@ -353,18 +353,6 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	endif
 
 
-	!if(dir.eq.2.and.((i.eq.3.and.j.eq.16.and.k.eq.1).or.(i.eq.4.and.j.eq.16.and.k.eq.1))) then
-	!	print*, "dir, i, j, k =", dir, i, j, k
-	!	print*, "flux is ", choice, " = ", flx(i,j,k,UMX:UMZ), flx(i,j,k,QMAGX:QMAGZ)
-	!	print*, "FL = ",  FL(UMX:UMZ), FL(QMAGX:QMAGZ)
-	!	print*, "FsL = ", FsL(UMX:UMZ), FsL(QMAGX:QMAGZ)
-	!	print*, "ssL = ", ssL, "sL = ", sL, "sM =", sM
-	!	print*, "UsL = ", UsL(UMX:UMZ), UsL(QMAGX:QMAGZ) 
-	!	print*, "UssL = ", UssL(UMX:UMZ), UssL(QMAGX:QMAGZ) 
-	!	print*, "qL = ", qL(QMAGX:QMAGZ)
-	!	print*, "qR = ", qR(QMAGX:QMAGZ)
-	!	pause
-	!endif
    end do
    end do
    end do
