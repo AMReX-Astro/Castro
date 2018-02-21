@@ -1,0 +1,49 @@
+&fortin
+
+  model_name = "convective_flame.hse.tanh.delta_0.040cm.dx_0.050cm"
+
+  cutoff_density = 1.e-8
+
+  x_pert_loc = 1.0
+  pert_width = 0.025d0
+  pert_factor = 1.d0
+
+/
+
+&tagging
+
+  denerr = 1.d-7
+  dengrad = 0.01
+  max_denerr_lev = 5
+  max_dengrad_lev = 5
+
+  presserr = 1.d20
+  pressgrad = 1.d20
+  max_presserr_lev = 5
+  max_pressgrad_lev = 5
+
+/
+
+&sponge
+
+  sponge_upper_density = 5.0d-8
+  sponge_lower_density = 1.0d-8
+  sponge_timescale     = 1.0d-6
+  
+/
+
+&extern
+
+  eos_assume_neutral = T
+
+  rtilde = 40.d0
+  nu = 4
+  specific_q_burn = 1240000000.0
+  T_burn_ref = 1.0d0
+
+  rho_burn_ref = 1.0d0
+  f_act = 1.2d0
+  
+  const_conductivity = 5000000000.0
+
+/
