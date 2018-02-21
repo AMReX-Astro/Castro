@@ -319,27 +319,10 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
-    // The source term predictor mechanism is currently incompatible with MOL.
-
-    if (!do_ctu && source_term_predictor)
-        amrex::Error("Method of lines integration is incompatible with the source term predictor.");
-
     // The timestep retry mechanism is currently incompatible with MOL.
 
     if (!do_ctu && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
-
-    // for the moment, ppm_type = 0 does not support ppm_trace_sources --
-    // we need to add the momentum sources to the states (and not
-    // add it in trans_3d
-    if (ppm_type == 0 && ppm_trace_sources == 1)
-      {
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: ppm_trace_sources = 1 not implemented for ppm_type = 0" << std::endl;
-	ppm_trace_sources = 0;
-	pp.add("ppm_trace_sources",ppm_trace_sources);
-      }
-
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {

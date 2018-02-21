@@ -46,7 +46,6 @@ pp.query("do_ctu", do_ctu);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
-pp.query("ppm_trace_sources", ppm_trace_sources);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
