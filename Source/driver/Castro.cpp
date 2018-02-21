@@ -1205,20 +1205,20 @@ Castro::estTimeStep (Real dt_old)
               MultiFab& S_old = get_old_data(State_Type);
               MultiFab& R_old = get_old_data(Reactions_Type);
 
-              ca_estdt_burning(BL_TO_FORTRAN_3D(S_old[mfi]),
+              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                               BL_TO_FORTRAN_3D(S_old[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(R_old[mfi]),
                                BL_TO_FORTRAN_3D(R_new[mfi]),
-                               ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
                                ZFILL(dx),&dt_old,&dt);
               
             } else {
               
-              ca_estdt_burning(BL_TO_FORTRAN_3D(S_new[mfi]),
+              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                               BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(S_new[mfi]),
                                BL_TO_FORTRAN_3D(R_new[mfi]),
                                BL_TO_FORTRAN_3D(R_new[mfi]),
-                               ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
                                ZFILL(dx),&dt_old,&dt);
 
             }
@@ -2554,8 +2554,8 @@ Castro::normalize_species (MultiFab& S_new)
        const Box& bx = mfi.growntilebox(ng);
        const int idx = mfi.tileIndex();
 
-       ca_normalize_species(BL_TO_FORTRAN_3D(S_new[mfi]), 
-			    ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), &idx);
+       ca_normalize_species(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), 
+                                     BL_TO_FORTRAN_3D(S_new[mfi]), &idx);
     }
 }
 
@@ -2617,10 +2617,10 @@ Castro::enforce_min_density (MultiFab& S_old, MultiFab& S_new)
 	const FArrayBox& vol      = volume[mfi];
 	const int idx = mfi.tileIndex();
 	
-	ca_enforce_minimum_density(stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
+	ca_enforce_minimum_density(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                                   stateold.dataPtr(), ARLIM_3D(stateold.loVect()), ARLIM_3D(stateold.hiVect()),
 				   statenew.dataPtr(), ARLIM_3D(statenew.loVect()), ARLIM_3D(statenew.hiVect()),
 				   vol.dataPtr(), ARLIM_3D(vol.loVect()), ARLIM_3D(vol.hiVect()),
-				   ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 				   &dens_change, &verbose, &idx);
 
     }
@@ -2771,17 +2771,17 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  thi     = tilebx.hiVect();
 
 #ifdef DIMENSION_AGNOSTIC
-	    set_problem_tags(tptr,  ARLIM_3D(tlo), ARLIM_3D(thi),
+	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
+                             tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
 			     BL_TO_FORTRAN_3D(S_new[mfi]),
 			     &tagval, &clearval,
-			     ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
 			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
 #else
-	    set_problem_tags(tptr,  ARLIM(tlo), ARLIM(thi),
+	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
+                             tptr, ARLIM(tlo), ARLIM(thi),
 			     BL_TO_FORTRAN(S_new[mfi]),
 			     &tagval, &clearval,
-			     tilebx.loVect(), tilebx.hiVect(),
-			     dx, prob_lo, &time, &level);
+		             dx, prob_lo, &time, &level);
 #endif
 
 	    //

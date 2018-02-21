@@ -10,10 +10,9 @@ contains
   ! This is a template routine for users to set their own tags based on the state.
   ! It will be overwritten by having a copy of this file in the user's problem setup.
   
-  subroutine set_problem_tags(tag,tagl1,tagh1, &
+  subroutine set_problem_tags(lo, hi, tag,tagl1,tagh1, &
                               state,state_l1,state_h1,&
                               set,clear,&
-                              lo,hi,&
                               dx,problo,time,level) &
                               bind(C, name="set_problem_tags")
 

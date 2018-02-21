@@ -789,13 +789,13 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	const int* lo = bx.loVect();
 	const int* hi = bx.hiVect();
 
-	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
+	ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
 			  BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
 			  BL_TO_FORTRAN_3D(R_old[mfi]),
 			  BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
+			  ZFILL(dx),
 			  &dt, &dt_sub);
 
     }
