@@ -1086,9 +1086,10 @@ Castro::estTimeStep (Real dt_old)
               gPr.resize(tbox);
               radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 
-              ca_estdt_rad(BL_TO_FORTRAN(stateMF[mfi]),
+              ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
+                           BL_TO_FORTRAN(stateMF[mfi]),
                            BL_TO_FORTRAN(gPr),
-                           tbox.loVect(),tbox.hiVect(),dx,&dt);
+                           dx,&dt);
             }
           estdt_hydro = std::min(estdt_hydro, dt);
         }

@@ -474,9 +474,9 @@ extern "C"
 
 #ifdef RADIATION
   void ca_estdt_rad
-    (const BL_FORT_FAB_ARG(state),
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(gpr),
-     const int lo[], const int hi[],
      const amrex::Real dx[], amrex::Real* dt);
 #endif
 
