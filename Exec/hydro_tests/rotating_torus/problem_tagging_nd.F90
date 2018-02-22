@@ -1,10 +1,9 @@
 ! This is a template routine for users to set their own tags based on the state.
 ! It will be overwritten by having a copy of this file in the user's problem setup.
 
-subroutine set_problem_tags(tag,tag_lo,tag_hi, &
+subroutine set_problem_tags(lo, hi, tag,tag_lo,tag_hi, &
                             state,state_lo,state_hi, &
                             set,clear,&
-                            lo,hi,&
                             dx,problo,time,level) bind(C)
 
   use meth_params_module, only: NVAR
