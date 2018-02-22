@@ -400,8 +400,8 @@ subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
 
 end subroutine ca_correct_dterm
 
-subroutine ca_estdt_rad(u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
-  lo,hi,dx,dt) bind(C)
+subroutine ca_estdt_rad(lo, hi, u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
+  dx,dt) bind(C)
 
   use network, only : nspec, naux
   use eos_module, only : eos

@@ -2170,10 +2170,10 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
    {
        const Box& bx = mfi.growntilebox();
 
-       pm_add_to_grav(&point_mass,BL_TO_FORTRAN_3D(phi[mfi]),
+       pm_add_to_grav(ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()),
+                      &point_mass,BL_TO_FORTRAN_3D(phi[mfi]),
 		      BL_TO_FORTRAN_3D(grav_vector[mfi]),
-                      ZFILL(problo),ZFILL(dx),
-		      ARLIM_3D(bx.loVect()),ARLIM_3D(bx.hiVect()));
+                      ZFILL(problo),ZFILL(dx));
    }
 }
 #endif
