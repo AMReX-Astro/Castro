@@ -29,7 +29,7 @@
   sponge_upper_density = 5.0d-8
   sponge_lower_density = 1.0d-8
   sponge_timescale     = 1.0d-6
-  
+
 /
 
 &extern
@@ -43,7 +43,6 @@
 
   rho_burn_ref = 1.0d0
   f_act = 1.2d0
-  
-  const_conductivity = 5000000000.0
 
+  const_conductivity = 5000000000.0
 /
