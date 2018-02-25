@@ -329,20 +329,10 @@ Castro::read_params ()
     if (time_integration_method != CTU && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-<<<<<<< HEAD
     // fourth order implies MOL or SDC
     if (fourth_order == 1 && time_integration_method == CTU)
       {
         amrex::Error("WARNING: fourth_order requires a different time_integration_method.");
-=======
-    // fourth order implies do_ctu=0
-    if (fourth_order == 1 && do_ctu == 1)
-      {
-	if (ParallelDescriptor::IOProcessor())
-	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
-	do_ctu = 0;
-	pp.add("do_ctu", do_ctu);
->>>>>>> development
       }
 
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
