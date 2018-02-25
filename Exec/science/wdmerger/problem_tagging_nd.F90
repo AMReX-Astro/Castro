@@ -6,10 +6,9 @@ module problem_tagging_module
 
 contains
 
-  subroutine set_problem_tags(tag,tag_lo,tag_hi, &
+  subroutine set_problem_tags(lo, hi, tag,tag_lo,tag_hi, &
                               state,state_lo,state_hi, &
                               set,clear,&
-                              lo,hi,&
                               dx,problo,time,level) bind(C,name='set_problem_tags')
 
     use bl_constants_module, only: ZERO, HALF, TWO

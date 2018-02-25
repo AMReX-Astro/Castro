@@ -107,8 +107,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 	  ca_ctu_update
-	    (&is_finest_level, &time,
-	     ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
+	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 	     BL_TO_FORTRAN_3D(statein), 
 	     BL_TO_FORTRAN_3D(stateout),
 #ifdef RADIATION
@@ -344,11 +344,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
+<<<<<<< HEAD
 
         if (fourth_order) {
           ca_fourth_single_stage
-            (&time,
-             ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
@@ -374,8 +374,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
         } else {
           ca_mol_single_stage
-            (&time,
-             ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
