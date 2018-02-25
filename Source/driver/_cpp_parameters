@@ -62,6 +62,9 @@ time_integration_method      int           0                  y
 # do we do fourth-order accurate MOL hydro?
 fourth_order                 int           0                  y
 
+# do we do fourth-order accurate MOL hydro?
+fourth_order                 int           0                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 
@@ -232,7 +235,6 @@ mol_order                    int           2                  y
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y
-
 
 #-----------------------------------------------------------------------------
 # category: timestep control

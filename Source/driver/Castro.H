@@ -249,11 +249,14 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+<<<<<<< HEAD
     amrex::Real do_advance_sdc (amrex::Real time,
                      amrex::Real dt,
                      int  amr_iteration,
                      int  amr_ncycle);
 
+=======
+>>>>>>> development
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);

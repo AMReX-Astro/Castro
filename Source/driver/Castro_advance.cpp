@@ -99,18 +99,28 @@ Castro::advance (Real time,
 
     if (time_integration_method == CTU) {
 
+<<<<<<< HEAD
       if (do_subcycle) {
         dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
       }
       else {
         dt_new = do_advance(time, dt, amr_iteration, amr_ncycle);
       }
+=======
+        if (do_subcycle) {
+
+            dt_new = std::min(dt_new, subcycle_advance(time, dt, amr_iteration, amr_ncycle));
+
+        }
+        else {
+>>>>>>> development
 
     } else if (time_integration_method == MOL) {
 
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
+<<<<<<< HEAD
       }
 
     } else if (time_integration_method == SDC) {
@@ -118,6 +128,8 @@ Castro::advance (Real time,
       for (int iter = 0; iter < sdc_order; ++iter) {
 	sdc_iteration = iter;
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
+=======
+>>>>>>> development
       }
 
     }
@@ -206,7 +218,11 @@ Castro::do_advance (Real time,
 
     check_for_nan(S_old);
 
+<<<<<<< HEAD
     // Since we are Strang splitting the reactions, do them now
+=======
+    // Since we are Strang splitting the reactions, do them now 
+>>>>>>> development
 
 
 #ifdef REACTIONS
@@ -234,6 +250,7 @@ Castro::do_advance (Real time,
 #endif
 
     MultiFab& old_source = get_old_data(Source_Type);
+<<<<<<< HEAD
 
     if (apply_sources()) {
 
@@ -248,6 +265,22 @@ Castro::do_advance (Real time,
 
       AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
 
+=======
+
+    if (apply_sources()) {
+
+      do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+      apply_source_to_state(S_new, old_source, dt, S_new.nGrow());
+
+      // Apply the old sources to the sources for the hydro.
+      // Note that we are doing an add here, not a copy,
+      // in case we have already started with some source
+      // terms (e.g. the source term predictor, or the SDC source).
+
+      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+>>>>>>> development
     } else {
       old_source.setVal(0.0, NUM_GROW);
 
@@ -354,6 +387,7 @@ Castro::do_advance_mol (Real time,
 
   // this routine will advance the old state data (called S_old here)
   // to the new time, for a single level.  The new data is called
+<<<<<<< HEAD
   // S_new here.  The update includes reactions, hydro, and the source
   // terms.
 
@@ -361,6 +395,15 @@ Castro::do_advance_mol (Real time,
   // current stage
 
   BL_PROFILE("Castro::do_advance_mol()");
+=======
+  // S_new here.  The update includes reactions (if we are not doing
+  // SDC), hydro, and the source terms.
+
+  // NOTE: the time that passes through here is the time for the 
+  // current stage
+
+  BL_PROFILE("Castro::do_advance()");
+>>>>>>> development
 
   //std::cout << "mol_iteration = " << mol_iteration << std::endl;
 
@@ -395,7 +438,11 @@ Castro::do_advance_mol (Real time,
   }
 
 
+<<<<<<< HEAD
   // Construct the "old-time" sources from Sborder.  Since we are
+=======
+  // Construct the "old-time" sources from Sborder.  Since we are 
+>>>>>>> development
   // working from Sborder, this will actually evaluate the sources
   // using the current stage's starting point.
 
@@ -426,11 +473,19 @@ Castro::do_advance_mol (Real time,
 
       }
     }
+<<<<<<< HEAD
 
     // we pass in the stage time here
     if (fourth_order) {
       do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
 
+=======
+
+    // we pass in the stage time here
+    if (fourth_order) {
+      do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
+
+>>>>>>> development
       // Note: this filled the ghost cells for us, so we can now convert to
       // cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -448,6 +503,7 @@ Castro::do_advance_mol (Real time,
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
     }
+<<<<<<< HEAD
 
     // hack: copy the source to the new data too, so fillpatch doesn't have to
     // worry about time
@@ -644,9 +700,42 @@ Castro::do_advance_sdc (Real time,
     if (sdc_iteration == 0 && m == 0) {
       for (int n=0; n < SDC_NODES; n++) {
         MultiFab::Copy(A_old[n], k_new[0], 0, 0, NUM_STATE, 0);
+=======
+
+    // hack: copy the source to the new data too, so fillpatch doesn't have to 
+    // worry about time
+    MultiFab::Copy(new_source, old_source, 0, 0, NUM_STATE, 0);
+
+    // Apply the old sources to the sources for the hydro.  Note that
+    // we are doing an fill here, not an add (like we do for CTU --
+    // this is because the source term predictor doesn't make sense
+    // here).
+
+    // we only need a fill here if sources_for_hydro has more ghost
+    // cells than Source_Type, because otherwise, do_old_sources
+    // already did the fill for us
+    AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+
+  } else {
+    old_source.setVal(0.0, old_source.nGrow());
+  }
+
+
+  // Do the hydro update.  We build directly off of Sborder, which
+  // is the state that has already seen the burn
+
+  if (do_hydro)
+    {
+      // Construct the primitive variables.
+      if (fourth_order) {
+        cons_to_prim_fourth(time);
+      } else {
+        cons_to_prim(time);
+>>>>>>> development
       }
     }
 
+<<<<<<< HEAD
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data
 
@@ -654,6 +743,51 @@ Castro::do_advance_sdc (Real time,
   } // node iteration
 
 
+=======
+      // Check for CFL violations.
+      check_for_cfl_violation(dt);
+
+      // If we detect one, return immediately.
+      if (cfl_violation)
+        return dt;
+
+      // construct the update for the current stage -- this fills k_mol
+      // with the righthand side for this stage
+      construct_mol_hydro_source(time, dt);
+    }
+
+  // For MOL integration, we are done with this stage, unless it is
+  // the last stage
+  if (mol_iteration < MOL_STAGES-1) {
+    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    return dt;
+  }
+
+  // we just finished the last stage of the MOL integration.
+  // Construct S_new now using the weighted sum of the k_mol
+  // updates -- this will include both the advective and 
+  // source terms
+
+  // Apply the update -- we need to build on Sburn, so
+  // start with that state
+  MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
+  for (int i = 0; i < MOL_STAGES; ++i)
+    MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
+
+  // define the temperature now
+  clean_state(S_new);
+
+  // If the state has ghost zones, sync them up now
+  // since the hydro source only works on the valid zones.
+
+  if (S_new.nGrow() > 0) {
+    expand_state(S_new, cur_time, S_new.nGrow());
+  }
+
+  // Check for NaN's.
+  check_for_nan(S_new);
+
+>>>>>>> development
   // We need to make source_old and source_new be the source terms at
   // the old and new time.  we never actually evaluate the sources
   // using the new time state (since we just constructed it).  Note:
@@ -662,6 +796,16 @@ Castro::do_advance_sdc (Real time,
   do_old_sources(old_source, S_old, prev_time, dt, amr_iteration, amr_ncycle);
   do_old_sources(new_source, S_new, cur_time, dt, amr_iteration, amr_ncycle);
 
+<<<<<<< HEAD
+=======
+  // Do the second half of the reactions.
+
+#ifndef SDC
+#ifdef REACTIONS
+  strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+#endif
+#endif
+>>>>>>> development
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
@@ -968,9 +1112,15 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
+<<<<<<< HEAD
     if (time_integration_method == CTU)
       src_q.define(grids, dmap, QVAR, NUM_GROW);
     if (fourth_order)
+=======
+    if (do_ctu)
+      src_q.define(grids, dmap, QVAR, NUM_GROW);
+    if (fourth_order) 
+>>>>>>> development
       q_bar.define(grids, dmap, NQ, NUM_GROW);
 
     if (time_integration_method == MOL) {
@@ -1035,7 +1185,11 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
+<<<<<<< HEAD
     if (time_integration_method == CTU)
+=======
+    if (do_ctu)
+>>>>>>> development
       src_q.clear();
     if (fourth_order)
       q_bar.clear();
@@ -1086,13 +1240,13 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	const int* lo = bx.loVect();
 	const int* hi = bx.hiVect();
 
-	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
+	ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
 			  BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
 			  BL_TO_FORTRAN_3D(R_old[mfi]),
 			  BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
+			  ZFILL(dx),
 			  &dt, &dt_sub);
 
     }

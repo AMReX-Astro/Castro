@@ -1,7 +1,6 @@
 ! advection routines in support of method of lines integration
 
-subroutine ca_fourth_single_stage(time, &
-                                  lo, hi, domlo, domhi, &
+subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   stage_weight, &
                                   uin, uin_lo, uin_hi, &
                                   uout, uout_lo, uout_hi, &

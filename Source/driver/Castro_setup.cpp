@@ -332,7 +332,11 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
+<<<<<<< HEAD
 			 StateDescriptor::Point, time_integration_method == CTU ? NUM_GROW : 1, NUM_STATE,
+=======
+			 StateDescriptor::Point, do_ctu ? NUM_GROW : 1, NUM_STATE,
+>>>>>>> development
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -999,6 +1003,7 @@ Castro::variableSetUp ()
     a_mol[3] = {0.0,  0.0,  1.0,  0.0};
 
     b_mol = {1./6., 1./3., 1./3., 1./6.};
+<<<<<<< HEAD
 
     c_mol = {0.0, 0.5, 0.5, 1.0};
 
@@ -1024,6 +1029,13 @@ Castro::variableSetUp ()
 
   } else {
     amrex::Error("invalid value of sdc_order");
+=======
+
+    c_mol = {0.0, 0.5, 0.5, 1.0};
+
+  } else {
+    amrex::Error("invalid value of mol_order\n");
+>>>>>>> development
   }
 
 }
