@@ -126,10 +126,13 @@ std::string  Castro::probin_file = "probin";
 
 #if BL_SPACEDIM == 1
 IntVect      Castro::hydro_tile_size(1024);
+IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
 IntVect      Castro::hydro_tile_size(1024,16);
+IntVect      Castro::no_tile_size(1024,1024);
 #else
 IntVect      Castro::hydro_tile_size(1024,16,16);
+IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
 // this will be reset upon restart
@@ -324,6 +327,15 @@ Castro::read_params ()
     if (!do_ctu && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
+    // fourth order implies do_ctu=0
+    if (fourth_order == 1 && do_ctu == 1)
+      {
+	if (ParallelDescriptor::IOProcessor())
+	    std::cout << "WARNING: fourth_order requires do_ctu = 0.  Resetting do_ctu = 0" << std::endl;
+	do_ctu = 0;
+	pp.add("do_ctu", do_ctu);
+      }
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -484,7 +496,7 @@ Castro::Castro (Amr&            papa,
    // Initialize source term data to zero.
 
    MultiFab& sources_new = get_new_data(Source_Type);
-   sources_new.setVal(0.0, NUM_GROW);
+   sources_new.setVal(0.0, sources_new.nGrow());
 
 #ifdef REACTIONS
 
@@ -873,6 +885,32 @@ Castro::initData ()
        }
        enforce_consistent_e(S_new);
 
+       // thus far, we assume that all initialization has worked on cell-centers
+       // (to second-order, these are cell-averages, so we're done in that case).
+       // For fourth-order, we need to convert to cell-averages now.
+       if (fourth_order) {
+         Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+         AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+
+         // note: this cannot be tiled
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box     = mfi.validbox();
+             const int* lo      = box.loVect();
+             const int* hi      = box.hiVect();
+
+             const int idx = mfi.tileIndex();
+
+             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                     &idx);
+           }
+
+         // now copy back the averages
+         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+         Sborder.clear();
+       }
+
        // Do a FillPatch so that we can get the ghost zones filled.
 
        int ng = S_new.nGrow();
@@ -941,7 +979,7 @@ Castro::initData ()
 #endif
 
     MultiFab& source_new = get_new_data(Source_Type);
-    source_new.setVal(0., NUM_GROW);
+    source_new.setVal(0., source_new.nGrow());
 
 #ifdef ROTATION
     MultiFab& rot_new = get_new_data(Rotation_Type);

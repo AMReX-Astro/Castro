@@ -305,8 +305,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 #endif
 
     int priv_nstep_fsp = -1;
-
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi)
+    // The fourth order stuff cannot do tiling because of the Laplacian corrections
+    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -344,30 +344,57 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
-	  
-	ca_mol_single_stage
-	  (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-	   &(b_mol[mol_iteration]),
-	   BL_TO_FORTRAN_3D(statein), 
-	   BL_TO_FORTRAN_3D(stateout),
-	   BL_TO_FORTRAN_3D(q[mfi]),
-	   BL_TO_FORTRAN_3D(qaux[mfi]),
-	   BL_TO_FORTRAN_3D(source_in),
-	   BL_TO_FORTRAN_3D(source_out),
-	   BL_TO_FORTRAN_3D(source_hydro_only),
-	   ZFILL(dx), &dt,
-	   D_DECL(BL_TO_FORTRAN_3D(flux[0]),
-		  BL_TO_FORTRAN_3D(flux[1]),
-		  BL_TO_FORTRAN_3D(flux[2])),
-	   D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
-		  BL_TO_FORTRAN_3D(area[1][mfi]),
-		  BL_TO_FORTRAN_3D(area[2][mfi])),
+        if (fourth_order) {
+          ca_fourth_single_stage
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+             &(b_mol[mol_iteration]),
+             BL_TO_FORTRAN_3D(statein), 
+             BL_TO_FORTRAN_3D(stateout),
+             BL_TO_FORTRAN_3D(q[mfi]),
+             BL_TO_FORTRAN_3D(q_bar[mfi]),
+             BL_TO_FORTRAN_3D(qaux[mfi]),
+             BL_TO_FORTRAN_3D(source_in),
+             BL_TO_FORTRAN_3D(source_out),
+             BL_TO_FORTRAN_3D(source_hydro_only),
+             ZFILL(dx), &dt,
+             D_DECL(BL_TO_FORTRAN_3D(flux[0]),
+                    BL_TO_FORTRAN_3D(flux[1]),
+                    BL_TO_FORTRAN_3D(flux[2])),
+             D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
+                    BL_TO_FORTRAN_3D(area[1][mfi]),
+                    BL_TO_FORTRAN_3D(area[2][mfi])),
 #if (BL_SPACEDIM < 3)
-	   BL_TO_FORTRAN_3D(pradial),
-	   BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
+             BL_TO_FORTRAN_3D(pradial),
+             BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
 #endif
-	   BL_TO_FORTRAN_3D(volume[mfi]),
-	   verbose);
+             BL_TO_FORTRAN_3D(volume[mfi]),
+             verbose);
+
+        } else {
+          ca_mol_single_stage
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+             &(b_mol[mol_iteration]),
+             BL_TO_FORTRAN_3D(statein), 
+             BL_TO_FORTRAN_3D(stateout),
+             BL_TO_FORTRAN_3D(q[mfi]),
+             BL_TO_FORTRAN_3D(qaux[mfi]),
+             BL_TO_FORTRAN_3D(source_in),
+             BL_TO_FORTRAN_3D(source_out),
+             BL_TO_FORTRAN_3D(source_hydro_only),
+             ZFILL(dx), &dt,
+             D_DECL(BL_TO_FORTRAN_3D(flux[0]),
+                    BL_TO_FORTRAN_3D(flux[1]),
+                    BL_TO_FORTRAN_3D(flux[2])),
+             D_DECL(BL_TO_FORTRAN_3D(area[0][mfi]),
+                    BL_TO_FORTRAN_3D(area[1][mfi]),
+                    BL_TO_FORTRAN_3D(area[2][mfi])),
+#if (BL_SPACEDIM < 3)
+             BL_TO_FORTRAN_3D(pradial),
+             BL_TO_FORTRAN_3D(dLogArea[0][mfi]),
+#endif
+             BL_TO_FORTRAN_3D(volume[mfi]),
+             verbose);
+        }
 
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
@@ -382,7 +409,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
-	  P_radial[mfi].plus(pradial,mfi.nodaltilebox(0),0,0,1);
+	  P_radial[mfi].saxpy(b_mol[mol_iteration], pradial,
+                              mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
 	}
 #endif
       } // MFIter loop
@@ -469,13 +497,14 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
-
-        ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
-                     BL_TO_FORTRAN_ANYD(q[mfi]),
-                     BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                     BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                     BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                     &idx);
+        if (do_ctu) {
+          ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                       BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
+                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       &idx);
+        }
 
 #ifndef RADIATION
 
@@ -493,6 +522,101 @@ Castro::cons_to_prim(const Real time)
       
     }
 
+}
+
+
+void
+Castro::cons_to_prim_fourth(const Real time)
+{
+  // convert the conservative state cell averages to primitive cell
+  // averages with 4th order accuracy
+
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    // we don't support radiation here
+#ifdef RADIATION
+    amrex::Abort("radiation not supported to fourth order");
+#else
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbx = mfi.growntilebox(NUM_GROW);
+      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+      const int idx = mfi.tileIndex();
+
+      // note: these conversions are using a growntilebox, so it
+      // will include ghost cells
+
+      // convert U_avg to U_cc -- this will use a Laplacian
+      // operation and will result in U_cc defined only on
+      // NUM_GROW-1 ghost cells at the end.
+      FArrayBox U_cc;
+      U_cc.resize(qbx, NUM_STATE);
+
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
+                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                          BL_TO_FORTRAN_FAB(U_cc),
+                          &idx);
+
+      // convert U_avg to q_bar -- this will be done on all NUM_GROW
+      // ghost cells.
+      FArrayBox qaux_bar;
+      qaux_bar.resize(qbx, NQAUX);
+
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
+                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+                 BL_TO_FORTRAN_ANYD(qaux_bar),
+                 &idx);
+
+      // this is what we should construct the flattening coefficient
+      // from
+
+      // convert U_cc to q_cc (we'll store this temporarily in q,
+      // qaux).  This will remain valid only on the NUM_GROW-1 ghost
+      // cells.
+      ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
+                 BL_TO_FORTRAN_ANYD(U_cc),
+                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                 &idx);
+    }
+
+
+    // check for NaNs
+    check_for_nan(q);
+    check_for_nan(q_bar);
+
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+      const int idx = mfi.tileIndex();
+
+      // now convert q, qaux into 4th order accurate averages
+      // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
+      // we need here
+
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
+                             BL_TO_FORTRAN_FAB(q[mfi]),
+                             BL_TO_FORTRAN_FAB(q_bar[mfi]),
+                             &idx);
+
+      // not sure if we need to convert qaux this way, or if we can
+      // just evaluate it (we may not need qaux at all actually)
+
+    }
+
+    check_for_nan(q_bar);
+#endif // RADIATION
 }
 
 

@@ -548,6 +548,19 @@ extern "C"
      amrex::Real& zang_lost);
 
 
+  void ca_make_fourth_average(const int lo[], const int hi[],
+                              BL_FORT_FAB_ARG_3D(q), const int* nc,
+                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* idx);
+
+  void ca_make_fourth_in_place(const int lo[], const int hi[],
+                               BL_FORT_FAB_ARG_3D(q), const int* nc,
+                               const int* idx);
+
+
+  void ca_make_cell_center(const int lo[], const int hi[],
+                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
+                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc, const int* idx);
+
   void ca_mol_single_stage
     (const int    lo[], const int    hi[],
      const amrex::Real* time,
@@ -556,6 +569,36 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(qaux), 
+     const BL_FORT_FAB_ARG_3D(srcU),
+     BL_FORT_FAB_ARG_3D(update),
+     BL_FORT_FAB_ARG_3D(update_flux),
+     const amrex::Real dx[], const amrex::Real* dt,
+     D_DECL(BL_FORT_FAB_ARG_3D(flux1),
+	    BL_FORT_FAB_ARG_3D(flux2),
+	    BL_FORT_FAB_ARG_3D(flux3)),
+#if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG_3D(pradial), 
+#endif
+     D_DECL(const BL_FORT_FAB_ARG_3D(area1),
+	    const BL_FORT_FAB_ARG_3D(area2),
+	    const BL_FORT_FAB_ARG_3D(area3)),
+#if (BL_SPACEDIM < 3)
+     BL_FORT_FAB_ARG_3D(dloga),
+#endif
+     const BL_FORT_FAB_ARG_3D(volume),
+     const int&  verbose);
+
+
+  void ca_fourth_single_stage
+    (const int    lo[], const int    hi[],
+     const amrex::Real* time,
+     const int domlo[], const int domhi[],
+     const amrex::Real *stage_weight,
+     const BL_FORT_FAB_ARG_3D(statein),
+     BL_FORT_FAB_ARG_3D(stateout),
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux), 
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
@@ -786,6 +829,13 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, const int* coord_type);
 
+  void ca_thermo_src
+    (const int*lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state_old),
+     const BL_FORT_FAB_ARG_3D(state_new),
+     BL_FORT_FAB_ARG_3D(thermo_src),
+     const amrex::Real* prob_lo, const amrex::Real* dx, 
+     const amrex::Real* time, const amrex::Real* dt);
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
