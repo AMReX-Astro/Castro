@@ -344,8 +344,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
-<<<<<<< HEAD
-
         if (fourth_order) {
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),

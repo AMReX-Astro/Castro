@@ -591,8 +591,8 @@ extern "C"
 
 
   void ca_fourth_single_stage
-    (const amrex::Real* time,
-     const int    lo[], const int    hi[],
+    (const int    lo[], const int    hi[],
+     const amrex::Real* time,
      const int domlo[], const int domhi[],
      const amrex::Real *stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
