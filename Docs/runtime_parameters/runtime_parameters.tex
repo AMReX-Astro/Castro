@@ -318,15 +318,18 @@
 \runparamNS{first\_order\_hydro}{castro} &  set the flattening parameter to zero to force the reconstructed profiles to be flat, resulting in a first-order method & 0 \\
 \rowcolor{tableShade}
 \runparamNS{fix\_mass\_flux}{castro} &  & 0 \\
+\runparamNS{fourth\_order}{castro} &  do we do fourth-order accurate MOL hydro? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_interp\_temp}{castro} &  if we are doing HSE boundary conditions, should we get the temperature via interpolation (using model\_parser) or hold it constant? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hse\_reflect\_vels}{castro} &  if we are doing HSE boundary conditions, how do we treat the velocity? reflect? or outflow? & 0 \\
+\rowcolor{tableShade}
 \runparamNS{hse\_zero\_vels}{castro} &  if we are doing HSE boundary conditions, do we zero the velocity? & 0 \\
-\rowcolor{tableShade}
 \runparamNS{hybrid\_hydro}{castro} &  whether to use the hybrid advection scheme that updates z-angular momentum, cylindrical momentum, and azimuthal momentum (3D only) & 0 \\
-\runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
 \rowcolor{tableShade}
+\runparamNS{hybrid\_riemann}{castro} &  do we drop from our regular Riemann solver to HLL when we are in shocks to avoid the odd-even decoupling instability? & 0 \\
 \runparamNS{limit\_fluxes\_on\_small\_dens}{castro} &  Should we limit the density fluxes so that we do not create small densities? & 0 \\
+\rowcolor{tableShade}
+\runparamNS{mol\_order}{castro} &  integration order for MOL integration 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK & 2 \\
 \runparamNS{plm\_iorder}{castro} &  for piecewise linear, reconstruction order to use & 2 \\
 \rowcolor{tableShade}
 \runparamNS{ppm\_predict\_gammae}{castro} &  do we construct $\gamma_e = p/(\rho e) + 1$ and bring it to the interfaces for additional thermodynamic information (this is the Colella \& Glaz technique) or do we use $(\rho e)$ (the classic \castro\ behavior).  Note this also uses $\tau = 1/\rho$ instead of $\rho$. & 0 \\

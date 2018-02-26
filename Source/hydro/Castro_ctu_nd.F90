@@ -1,7 +1,7 @@
 ! advection routines in support of the CTU unsplit advection scheme
 
-subroutine ca_ctu_update(is_finest_level, time, &
-                         lo, hi, domlo, domhi, &
+subroutine ca_ctu_update(lo, hi, is_finest_level, time, &
+                         domlo, domhi, &
                          uin, uin_lo, uin_hi, &
                          uout, uout_lo, uout_hi, &
 #ifdef RADIATION

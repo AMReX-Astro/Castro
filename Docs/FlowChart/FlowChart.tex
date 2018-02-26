@@ -32,6 +32,17 @@ the different code paths.
 Several helper functions are used throughout:
 \begin{itemize}
   \item \code{clean\_state}:
+    There are many ways that the hydrodynamics state may become
+    unphysical in the evolution.  The \code{clean\_state()} routine
+    enforces some checks on the state.  In particular, it \MarginPar{double check}
+    \begin{enumerate}
+    \item enforces that the density is above \runparam{castro.small\_dens}
+    \item normalizes the species so that the mass fractions sum to 1
+    \item resets the internal energy if necessary (too small or negative)
+      and computes the temperature for all zones to be thermodynamically 
+      consistent with the state.
+    \end{enumerate}
+
 \end{itemize}
 
 \section{Overview of a single step (no SDC)}
@@ -83,11 +94,11 @@ of each step.
   \item CTU: Calls \code{do\_advance} to take a single step,
     incorporating hydrodynamics, reactions, and source terms.
 
-  \item MOL: Call \code{do\_advance} \variable{MOL\_STAGES} times
+  \item MOL: Call \code{do\_advance\_mol} \variable{MOL\_STAGES} times
     (i.e., once for each of the intermediate stages in the ODE
     integration).  Within {\tt do\_advance} we will use the stage
     number, \variable{mol\_iteration}, to do an pre- or post-hydro
-    sources.
+    sources (e.g., burning).
 
   \end{itemize}
 
@@ -171,15 +182,15 @@ of each step.
 
 \end{enumerate}
 
-\subsection{Main Hydro, Reaction, and Gravity Advancement (Strang-splitting)}
+\subsection{Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)}
 
 The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by \code{do\_advance()}.  Consider
 our system of equations as:
 \begin{equation}
-\frac{\partial\Ub}{\partial t} = \nabla\cdot\Fb + \Rb(\Ub) + \Sb,
+\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 \end{equation}
-where $\Fb$ is the flux vector, $\Rb$ are the reaction
+where ${\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)$, with $\Fb$ the flux vector, $\Rb$ are the reaction
 source terms, and $\Sb$ are the non-reaction source terms, which
 includes any user-defined external sources, $\Sb_{\rm ext}$.  We use
 Strang splitting to discretize the advection-reaction equations.  In
@@ -375,12 +386,6 @@ In the code, the objective is to evolve the state from the old time,
   Note that the source terms are already applied to \variable{S\_new}
   in this step, with a full $\Delta t$---this will be corrected later.
 
-  For MOL integration, we need to preserve the state with the result
-  of the burn and old-time sources, so we save this in a
-  \multifab\ \variable{S\_burn}.  After all the stages of the MOL
-  integration are computed, we use this as the starting point for 
-  constructing the final update. \MarginPar{need to revisit sources with MOL}.
-
 \item \label{strang:hydro} {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
 
   The goal is to advance our system considering only the advective
@@ -442,16 +447,6 @@ In the code, the objective is to evolve the state from the old time,
 
   \MarginPar{we only seem to do this for the MOL integration}
 
-  There are many ways that the hydrodynamics state may become
-  unphysical in the evolution.  The \code{clean\_state()} routine
-  enforces some checks on the state.  In particular, it
-  \begin{enumerate}
-  \item enforces that the density is above \runparam{castro.small\_dens}
-  \item normalizes the species so that the mass fractions sum to 1
-  \item resets the internal energy if necessary (too small or negative)
-    and computes the temperature for all zones to be thermodynamically 
-    consistent with the state.
-  \end{enumerate}
   This is done on \variable{S\_new}.
 
   After these checks, we check the state for NaNs.
@@ -544,6 +539,182 @@ these processes is presented below:
 8. react   &              &            & input / updated
 \end{tabular}
 \end{center}
+
+
+
+
+\subsection{Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)}
+
+The handling of sources differs in the MOL integration, as compared to CTU.
+Again, consider our system as:
+\begin{equation}
+\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .
+\end{equation}
+We will again use Strang splitting to discretize the
+advection-reaction equations, but the hydro update will consist of $s$
+stages.  The update first does the reactions, as with CTU:
+\begin{equation}
+\Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)
+\end{equation}
+We then consider the hydro update discretized in space, but not time, written
+as:
+\begin{equation}
+\frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)
+\end{equation}
+Using a Runge-Kutta (or similar) integrator, we write the update as:
+\begin{equation}
+\Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l
+\end{equation}
+where $b_i$ is the weight for stage $i$ and $k_i$ is the stage update:
+\begin{equation}
+{\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)
+\end{equation}
+with 
+\begin{equation}
+\Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m
+\end{equation}
+Finally, there is the last part of the reactions:
+\begin{equation}
+\Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})
+\end{equation}
+In contrast to the CTU method, the sources are treated together
+with the advection here.
+
+The time at the intermediate stages is evaluated as:
+\begin{equation}
+t_l = c_l \dt
+\end{equation}
+
+The integration coefficients are stored in the vectors
+\variable{a\_mol}, \variable{b\_mol}, and \variable{c\_mol}, and the
+stage updates are stored in the \multifab\ \variable{k\_mol}.
+
+Here is the single-level algorithm.  We use the same notation
+as in the CTU flowchart.
+
+In the code, the objective is to evolve the state from the old time,
+{\tt S\_old}, to the new time, {\tt S\_new}.
+
+\begin{enumerate}
+\item \label{strang:init} {\em Initialize}
+
+  In \code{initialize\_do\_advance()}, set the starting point for the stage's integration:
+    \begin{enumerate}
+      \item if \variable{mol\_iteration} {\tt = 0}: initialize
+        \variable{Sborder} from  \variable{S\_old}
+
+      \item if \variable{mol\_iteration} {\tt > 0}: we need to create
+        the starting point for the current stage.  We store this,
+        temporarily in the new-time slot (what we normally refer to as
+        \variable{S\_new}):
+        \begin{equation}
+          \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
+        \end{equation}
+
+        Then initialize \variable{Sborder} from \variable{S\_new}.
+
+    \end{enumerate}
+
+  Check for NaNs in the initial state, {\tt S\_old}.
+
+
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_first\_half()}]
+
+  This step is unchanged from the CTU version.  At the end of this
+  step, \variable{Sborder} sees the effects of the reactions.
+
+  Each stage needs to build its starting point from this point, so we
+  store the effect of the burn in a new \multifab, \variable{Sburn},
+  for use in the stage initialization.
+
+\item \label{strang:oldsource} {\em Construct sources from the current
+  stage's state}
+  [\code{construct\_old\_gravity()}, \code{do\_old\_sources()}]
+
+  \MarginPar{fix: gravity is still using {\tt S\_old}}
+
+  The time level $n$ sources are computed, and added to the
+  \statedata\ \variable{Source\_Type}.  The sources are then applied
+  to the state after the burn, $\Ub^\star$ with a full $\Delta t$
+  weighting (this will be corrected later).  This produces the
+  intermediate state, $\Ub^{n+1,(a)}$.
+
+  For full Poisson gravity, we solve for for gravity using:
+  \begin{equation}
+    \gb^n = -\nabla\phi^n, \qquad
+    \Delta\phi^n = 4\pi G\rho^n,
+  \end{equation}
+
+
+\item \label{strang:hydro} {\em Construct the hydro update} [\code{construct\_hydro\_source()}]
+
+  The hydro update in the MOL branch will include both the advective
+  and source terms.  In each stage, store in \variable{k\_mol}{\tt
+    [istage]} the righthand side for the current stage.
+
+  In constructing the stage update, we use the source evaluated earlier,
+  and compute:
+  \begin{equation}
+    \mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)
+  \end{equation}
+
+  Each call to {\tt do\_advance\_mol} only computes this update for
+  a single stage.  On the last stage, we compute the final update
+  as:
+  \begin{equation}
+    \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
+  \end{equation}
+
+
+\item \label{strang:clean} {\em Clean State} [\code{clean\_state()}]
+
+  \MarginPar{we only seem to do this for the MOL integration}
+
+  This is done on \variable{S\_new}.
+
+  After these checks, we check the state for NaNs.
+
+
+\item {\em React $\Delta t/2$.} [\code{strang\_react\_second\_half()}]
+
+  We do the final $\dt/2$ reacting on the state, begining with $\Ub^{n+1,(c)}$ to
+  give us the final state on this level, $\Ub^{n+1}$.
+
+  This is largely the same as \code{strang\_react\_first\_half()}, but
+  it does not currently fill the reactions in the ghost cells. \MarginPar{confirm this}
+
+\item \label{strang:finalize} {\em Finalize} [\code{finalize\_do\_advance()}]
+
+  Finalize does the following:
+  \begin{enumerate}
+  \item for the momentum sources, we compute $d\Sb/dt$, to use in the
+    source term prediction/extrapolation for the hydrodynamic
+    interface states during the next step.
+
+  \item If we are doing the hybrid momentum algorithm, then we sync up
+    the hybrid and linear momenta
+  \end{enumerate}
+
+\end{enumerate}
+
+A summary of which state is the input and which is updated for each of
+these processes is presented below:
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{l|lll}
+{\em step} & {\tt S\_old} & {\tt Sborder} & {\tt S\_new} \\
+\hline
+1. init    &   input      &   updated \\
+2. react   &              &    input / updated \\
+3. old sources &          &   input    & updated \\
+4. hydro   &              & input      & updated \\
+5. clean   &              &            & input / updated \\
+6. radial / center  &     &            & input \\
+7. correct sources &      &            & input / updated \\
+8. react   &              &            & input / updated
+\end{tabular}
+\end{center}
+
 
 
 \section{Overview of a single step (with SDC)}

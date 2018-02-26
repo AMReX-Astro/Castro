@@ -1197,9 +1197,9 @@ subroutine ca_correct_dterm(  &
 end subroutine ca_correct_dterm
 
 
-subroutine ca_estdt_rad(u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
+subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
      gpr,gpr_l1,gpr_l2,gpr_l3,gpr_h1,gpr_h2,gpr_h3, &
-     lo,hi,dx,dt) bind(C)
+     dx,dt) bind(C)
 
   use network, only : nspec, naux
   use eos_module, only : eos
