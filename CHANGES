@@ -4,6 +4,10 @@
      always trace on source terms with ppm.  Additionally, all
      sources are now traced, not just momentum sources.
 
+  -- The method-of-lines integrator has been rewritten.  It now works
+     properly with sources.  Note: it is not intended for multilevel
+     yet.  (#288, #287, #286, #164, #291, #137)
+
 # 18.02
 
   -- The approximate state Riemann solvers have been split into two
