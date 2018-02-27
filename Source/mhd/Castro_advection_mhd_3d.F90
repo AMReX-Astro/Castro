@@ -99,6 +99,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
 
   ! Automatic arrays for workspace
   real(rt), pointer :: q(:,:,:,:)
+  real(rt), pointer :: bcc(:,:,:,:)
   real(rt), pointer :: cx(:,:,:)
   real(rt), pointer :: cy(:,:,:)
   real(rt), pointer :: cz(:,:,:)
@@ -142,6 +143,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   uout(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:) = uin(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:)
 
   call bl_allocate(     q, lo-NHYP, hi+NHYP, QVAR)
+  call bl_allocate(   bcc, lo-NHYP, hi+NHYP,  3  )
   call bl_allocate( flatn, lo-NHYP, hi+NHYP      )
   call bl_allocate(    cx, lo-NHYP, hi+NHYP      )
   call bl_allocate(    cy, lo-NHYP, hi+NHYP      )
@@ -209,7 +211,8 @@ subroutine ca_advance_mhd(time, lo, hi, &
   dz = delta(3)
 
   !Step One, Calculate Primitives based on conservatives
-  call ctoprim(lo,hi,uin,uin_lo,uin_hi,&
+  call ctoprim(lo,hi,uin,uin_lo,uin_hi, &
+               bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
                bxin, bxin_lo, bxin_hi, &
                byin, byin_lo, byin_hi, &
                bzin, bzin_lo, bzin_hi, &
@@ -244,6 +247,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   !Step Four, Conservative update
   call consup(uin,  uin_lo, uin_hi, &
               uout, uout_lo, uout_hi, &
+              bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
               src , src_lo, src_hi, &
               flxx,flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
               flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
@@ -257,13 +261,18 @@ subroutine ca_advance_mhd(time, lo, hi, &
              bxout, bxout_lo, bxout_hi, &
              byout, byout_lo, byout_hi, &
              bzout, bzout_lo, bzout_hi, &
-             uout, uout_lo, uout_hi, &
              src ,  src_lo, src_hi, &
              Extemp, extemp_l1,extemp_l2,extemp_l3,extemp_h1,extemp_h2,extemp_h3, &
              Eytemp, eytemp_l1,eytemp_l2,eytemp_l3,eytemp_h1,eytemp_h2,eytemp_h3, &
              Eztemp, eztemp_l1,eztemp_l2,eztemp_l3,eztemp_h1,eztemp_h2,eztemp_h3, &
              lo, hi, dx, dy, dz, dt)
 
+  call enercorr(bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
+                bxout, bxout_lo, bxout_hi, &
+                byout, byout_lo, byout_hi, &
+                bzout, bzout_lo, bzout_hi, &
+                uout, uout_lo, uout_hi, &
+                lo, hi)
 
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),URHO) = &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),URHO)
@@ -304,6 +313,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
 
   ! We are done with these here so can go ahead and free up the space
   call bl_deallocate(q)
+  call bl_deallocate(bcc)
   call bl_deallocate(flatn)
   call bl_deallocate(cx)
   call bl_deallocate(cy)
@@ -320,6 +330,9 @@ subroutine ca_advance_mhd(time, lo, hi, &
   ! Enforce the density >= small_dens.  Make sure we do this immediately after consup.
   call enforce_minimum_density(uin, uin_lo, uin_hi, &
                                uout,uout_lo, uout_hi, &
+                               bxout, bxout_lo, bxout_hi, &
+                               byout, byout_lo, byout_hi, &
+                               bzout, bzout_lo, bzout_hi, &
                                lo,hi,print_fortran_warnings)
 
   if (do_grav .gt. 0)  then
@@ -340,6 +353,7 @@ end subroutine ca_advance_mhd
 ! :::
 
 subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
+                   bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
                    bx, bxin_lo, bxin_hi, &
                    by, byin_lo, byin_hi, &
                    bz, bzin_lo, bzin_hi, &
@@ -381,6 +395,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   integer byin_lo(3), byin_hi(3)
   integer bzin_lo(3), bzin_hi(3)
   integer    q_l1,   q_l2,   q_l3,   q_h1,   q_h2,   q_h3
+  integer bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
   integer   gv_lo(3),  gv_hi(3)
   integer  src_lo(3),  src_hi(3)
   integer srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3
@@ -389,6 +404,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: bx(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
   real(rt) :: by(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
   real(rt) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
+  real(rt) :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
 
   real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR) !Contains Cell Centered Mag Field
   real(rt) :: cx(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
@@ -428,6 +444,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      do j = loq(2),hiq(2)
         do i = loq(1),hiq(1)
            q(i,j,k,QMAGX) = 0.5d0*(bx(i+1,j,k) + bx(i,j,k))
+           bcc(i,j,k, 1) = q(i,j,k,QMAGX)
         end do
      end do
   end do
@@ -436,6 +453,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      do j = loq(2),hiq(2)
         do i = loq(1),hiq(1)
            q(i,j,k,QMAGY) = 0.5d0*(by(i,j+1,k) + by(i,j,k))
+           bcc(i,j,k,2) = q(i,j,k,QMAGY)
         end do
      end do
   end do
@@ -444,6 +462,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      do j = loq(2),hiq(2)
         do i = loq(1),hiq(1)
            q(i,j,k,QMAGZ) = 0.5d0*(bz(i,j,k+1) + bz(i,j,k))
+           bcc(i,j,k,3) = q(i,j,k,QMAGZ)
         end do
      end do
   end do
@@ -690,6 +709,7 @@ end subroutine ctoprim
 
 subroutine consup(uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
+                  bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
                   src , src_lo, src_hi, &
                   fluxx,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                   fluxy,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
@@ -703,6 +723,7 @@ subroutine consup(uin, uin_lo, uin_hi, &
 
   integer,  intent(in)  :: uin_lo(3), uin_hi(3)
   integer,  intent(in)  :: uout_lo(3), uout_hi(3)
+  integer,  intent(in)  :: bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
   integer,  intent(in)  :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
   integer,  intent(in)  :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
   integer,  intent(in)  :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
@@ -710,13 +731,13 @@ subroutine consup(uin, uin_lo, uin_hi, &
   integer, intent(in) 	:: lo(3), hi(3)
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
+  real(rt), intent(inout)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
   real(rt), intent(in)  :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3), NVAR)
   real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
   real(rt), intent(in) 	:: dx,dy,dz,dt 
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
-  real(rt)				:: u, v, w
 
   integer 				:: i, j, k	
   !****TO DO ******* SOURCES
@@ -739,11 +760,9 @@ subroutine consup(uin, uin_lo, uin_hi, &
                 - dt/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
                 - dt/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN)) !Add source terms later
 
-           u = uout(i,j,k,UMX)/uout(i,j,k,URHO)
-           v = uout(i,j,k,UMY)/uout(i,j,k,URHO)
-           w = uout(i,j,k,UMZ)/uout(i,j,k,URHO)
-           ! note: we correct (rho e) to account for the magnetic field in the magup routine next
-           uout(i,j,k,UEINT) = uout(i,j,k,UEDEN) - 0.5d0*uout(i,j,k,URHO)*(u**2 + v**2 + w**2)
+           bcc(i,j,k,:) = bcc(i,j,k,:) - dt/dx*(fluxx(i+1, j, k, NVAR+1:NVAR+3)- fluxx(i,j,k, NVAR+1:NVAR+3)) &
+                                       - dt/dy*(fluxy(i, j+1, k, NVAR+1:NVAR+3)- fluxy(i,j,k, NVAR+1:NVAR+3)) &
+                                       - dt/dz*(fluxz(i, j, k+1, NVAR+1:NVAR+3)- fluxz(i,j,k, NVAR+1:NVAR+3))
         enddo
      enddo
   enddo
@@ -760,7 +779,6 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
                  bxout, bxout_lo, bxout_hi, &
                  byout, byout_lo, byout_hi, &
                  bzout, bzout_lo, bzout_hi, &
-                 uout,uout_lo, uout_hi, &
                  src ,  src_lo, src_hi, &
                  Ex,ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                  Ey,ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
@@ -778,7 +796,6 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   integer, intent(in)   :: bxout_lo(3), bxout_hi(3)
   integer, intent(in)   :: byout_lo(3), byout_hi(3)
   integer, intent(in)   :: bzout_lo(3), bzout_hi(3)
-  integer, intent(in)   :: uout_lo(3), uout_hi(3)
   integer, intent(in)   :: src_lo(3), src_hi(3)
   integer, intent(in)   ::  ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3
   integer, intent(in)   ::  ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3
@@ -796,13 +813,11 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
 
   real(rt), intent(in)  :: dx, dy, dz, dt
 
-  real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
 
   real(rt), intent(out) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
   real(rt), intent(out) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
   real(rt), intent(out) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
 
-  real(rt)			  :: bx, by ,bz, e
   integer				  :: i, j, k
 
   !***** TO DO ***** SOURCES
@@ -821,26 +836,10 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
      do j = lo(2), hi(2)+1
 	do i = lo(1), hi(1)
            byout(i,j,k) = byin(i,j,k) + dt/dx*(Ez(i+1,j,k) - Ez(i,j,k)) - dt/dz*(Ex(i,j,k+1) - Ex(i,j,k))
-           !if(i.eq.3.and.j.eq.64.and.k.eq.2) then
-           !	print *, "byout = ", byout(i,j,k), "at ", i, j ,k
-           !	print *, "byin = ", byin(i,j,k)
-           !	print *, "Ez =", Ez(i+1, j, k), Ez(i, j, k)
-           !	print *, "Ex =", Ex(i, j, k+1), Ex(i, j, k)
-           !	pause
-           !endif
 	enddo
      enddo
   enddo
-  !			print *, "byout = ", byout(2,17,1), "at ", 2, 17 ,1
-  !			print *, "byin = ", byin(2,17,1)
-  !			print *, "Ez =", Ez(3,17,1), Ez(2,17,1)
-  !			print *, "Ex =", Ex(2,17,2), Ex(2,17,1)
-  !			print *, "byout = ", byout(3,17,1), "at ", 3,17,1
-  !			print *, "byin = ", byin(3,17,1)
-  !			print *, "Ez =", Ez(4,17,1), Ez(3,17,1)
-  !			print *, "Ex =", Ex(3,17,2), Ex(3,17,1)
-  !			pause
-  !------------------------------- bz --------------------------------------------------
+ !------------------------------- bz --------------------------------------------------
   do k = lo(3), hi(3)+1
      do j = lo(2), hi(2)
 	do i = lo(1), hi(1)
@@ -848,27 +847,59 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
 	enddo
      enddo
   enddo
-  !-------------------------------- Internal Energy ----------------------------------------------------
+
+ end subroutine magup
+
+! :::
+! ::: ============================== Energy Correction ============================================
+! :::
+
+subroutine enercorr(bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
+                    bxout, bxout_lo, bxout_hi, &
+                    byout, byout_lo, byout_hi, &
+                    bzout, bzout_lo, bzout_hi, &
+                    uout,uout_lo, uout_hi, &
+                    lo, hi)
+
+  use amrex_fort_module, only : rt => amrex_real
+  use meth_params_module
+
+  implicit none 
+ 
+  integer, intent(in)   :: bxout_lo(3), bxout_hi(3)
+  integer, intent(in)   :: byout_lo(3), byout_hi(3)
+  integer, intent(in)   :: bzout_lo(3), bzout_hi(3)
+  integer, intent(in)   :: uout_lo(3), uout_hi(3)
+  integer, intent(in)   :: bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
+  integer, intent(in)   :: lo(3), hi(3)
+
+  real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
+  real(rt), intent(out) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
+  real(rt), intent(out) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
+  real(rt), intent(out) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
+  real(rt), intent(in)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
+
+  real(rt) :: bx, by, bz, u, v, w, e
+  integer  :: i,j,k
+
+
+ !-------------------------------- Internal Energy ----------------------------------------------------
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
 	do i = lo(1), hi(1)
            bx = 0.5d0*(bxout(i+1,j,k)+bxout(i,j,k))
            by = 0.5d0*(byout(i,j+1,k)+byout(i,j,k))
            bz = 0.5d0*(bzout(i,j,k+1)+bzout(i,j,k))
-           e = uout(i,j,k,UEINT)
+           u = uout(i,j,k,UMX)/uout(i,j,k,URHO)
+           v = uout(i,j,k,UMY)/uout(i,j,k,URHO)
+           w = uout(i,j,k,UMZ)/uout(i,j,k,URHO)
+          
+           uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + 0.5d0*(bx**2 +by**2 + bz**2 - dot_product(bcc(i,j,k,1:3),bcc(i,j,k,1:3)))
+           e = uout(i,j,k,UEDEN) - 0.5d0*(u**2 + v**2 + w**2)
            uout(i,j,k,UEINT) = e - 0.5d0*(bx**2 + by**2 + bz**2)
-           if(uout(i,j,k,UEINT).le.0.d0) then
-              print*, "e < 0 !", uout(i,j,k,UEINT)
-              print*, "e before = ", e
-              print*, "Total NRG = ", uout(i,j,k, UEDEN)
-              print*, "bx = ", bx, "by = ", by, "bz = ", bz
-              print*, "byout =", byout(i,j,k), byout(i,j+1,k)
-              print*, "-1/2|B| = ", - 0.5d0*(bx**2 + by**2 + bz**2)
-              print*, "i j k = ", i, j, k
-              pause
-           endif
 	enddo
      enddo
   enddo
 
-end subroutine magup
+
+end subroutine enercorr

@@ -7,6 +7,9 @@
     !===========================================================================
     subroutine enforce_minimum_density(uin,uin_lo,uin_hi, &
                                        uout,uout_lo,uout_hi, &
+                                       bxout, bxout_lo, bxout_hi, &
+                                       byout, byout_lo, byout_hi, &
+                                       bzout, bzout_lo, bzout_hi, &
                                        lo,hi,print_fortran_warnings)
 
       use amrex_fort_module, only : rt => amrex_real
@@ -19,8 +22,14 @@
       integer          :: lo(3), hi(3), print_fortran_warnings
       integer          ::  uin_lo(3), uin_hi(3)
       integer          :: uout_lo(3), uout_hi(3)
+      integer          :: bxout_lo(3), bxout_hi(3)
+      integer          :: byout_lo(3), byout_hi(3)
+      integer          :: bzout_lo(3), bzout_hi(3)
       real(rt) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
       real(rt) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
+      real(rt) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
+      real(rt) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
+      real(rt) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
 
       ! Local variables
       integer          :: i,ii,ilo,ihi
@@ -221,10 +230,9 @@
                   uout(i,j,k,UMZ) =  uout(i,j,k,URHO) * new_zvel
 
                   uout(i,j,k,UEINT) = uout(i,j,k,URHO) * new_e
-
-                  ! TODO: add magnetic contribution
                   uout(i,j,k,UEDEN) = uout(i,j,k,UEINT) + 0.5d0 / uout(i,j,k,URHO) * &
-                    ( uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2 )
+                    ( uout(i,j,k,UMX)**2 + uout(i,j,k,UMY)**2 + uout(i,j,k,UMZ)**2 ) &
+                    + 0.5d0*(bxout(i,j,k)**2 + byout(i,j,k)**2 + bzout(i,j,k)**2)
                   
                   ! Make sure the velocities didn't go nutty
                   if (do_diag) then

@@ -898,13 +898,13 @@ contains
     N = 0.5d0/as
 
     !Need to double check the rows
-    leig(1,:) = (/0.d0, N*Qs*betz , -N*Cff , N*Qs*betx 	, N*alf/Q(QRHO)	, N*AAs*betz/Q(QRHO)			, N*AAs*betx/Q(QRHO)			/) ! v - cf
-    leig(2,:) = (/0.d0, -0.5d0*betx, 0.d0, 0.5d0*betz	, 0.d0			, -0.5d0*betx*S/(sqrt(Q(QRHO)))	, 0.5d0*betz*S/(sqrt(Q(QRHO)))	/) ! v - cAy
-    leig(3,:) = (/0.d0, -N*Qf*betz, -N*Css, -N*Qf*betx	, N*als/Q(QRHO)	, -N*AAf*betz/Q(QRHO)			, -N*AAf*betx/Q(QRHO)			/) ! v - cs
-    leig(4,:) = (/1.d0,  0.d0  ,  0.d0	, 0.d0			, -1.d0/as		, 0.d0							, 0.d0							/) ! v
-    leig(5,:) = (/0.d0, N*Qf*betz, N*Css, N*Qf*betx		, N*als/Q(QRHO)	, -N*AAf*betz/Q(QRHO)			, -N*AAf*betx/Q(QRHO)			/) ! v + cs
-    leig(6,:) = (/0.d0, 0.5d0*betx, 0.d0,  -0.5d0*betz	, 0.d0			, -0.5d0*betx*S/(sqrt(Q(QRHO)))	, 0.5d0*betz*S/(sqrt(Q(QRHO)))	/) ! v + cAy
-    leig(7,:) = (/0.d0, -N*Qs*betz, N*Cff, -N*Qs*betx	, N*alf/Q(QRHO)	, N*AAs*betz/Q(QRHO)			, N*AAs*betx/Q(QRHO)			/) ! v + cf
+    leig(1,:) = (/0.d0, N*Qs*betx , -N*Cff , N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v - cf
+    leig(2,:) = (/0.d0, -0.5d0*betz, 0.d0, 0.5d0*betx, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*betx*S/(sqrt(Q(QRHO)))/) ! v - cAy
+    leig(3,:) = (/0.d0, -N*Qf*betx, -N*Css, -N*Qf*betz, N*als/Q(QRHO), -N*AAf*betx/Q(QRHO), -N*AAf*betz/Q(QRHO)/) ! v - cs
+    leig(4,:) = (/1.d0,  0.d0  ,  0.d0, 0.d0, -1.d0/as, 0.d0, 0.d0/) ! v
+    leig(5,:) = (/0.d0, N*Qf*betx, N*Css, N*Qf*betz, N*als/Q(QRHO), -N*AAf*betx/Q(QRHO), -N*AAf*betz/Q(QRHO)/) ! v + cs
+    leig(6,:) = (/0.d0, 0.5d0*betz, 0.d0,  -0.5d0*betx, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*betx*S/(sqrt(Q(QRHO)))/) ! v + cAy
+    leig(7,:) = (/0.d0, -N*Qs*betx, N*Cff, -N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v + cf
 
 
   end subroutine lvecy
@@ -1096,13 +1096,13 @@ contains
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
     !   v - cf 				v - Cay 				v - cs			v 		v + cs			v + Cay					v + cf
-    reig(1,:) = (/	Q(QRHO)*alf		, 0.d0					, Q(QRHO)*als	, 1.d0	, Q(QRHO)*als	, 0.d0					, Q(QRHO)*alf	/)
-    reig(3,:) = (/	-cff    	    , 0.d0  				, -css			, 0.d0  , css			, 0.d0  				, 	cff			/)
-    reig(2,:) = (/	Qs*betz			, -betx					, -Qf*betz		, 0.d0  , Qf*betz		, betx 					, -Qs*betz		/)
-    reig(4,:) = (/	Qs*betx			, betz 					, -Qf*betx		, 0.d0  , Qf*betx		, -betz 				, -Qs*betx		/)
-    reig(5,:) = (/	Q(QRHO)*as*alf	, 0.d0	 				, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0  				, Q(QRHO)*as*alf/)
-    reig(6,:) = (/	AAs*betz		, -betx*S*sqrt(Q(QRHO))	, -AAf*betz		, 0.d0  , -AAf*betz		, -betx*S*sqrt(Q(QRHO)) , AAs*betz		/)
-    reig(7,:) = (/	AAs*betx		, betz*S*sqrt(Q(QRHO))	, -AAf*betx		, 0.d0	, -AAf*betx		, betz*S*sqrt(Q(QRHO))	, AAs*betx		/)
+    reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
+    reig(3,:) = (/-cff, 0.d0, -css, 0.d0  , css, 0.d0, cff/)
+    reig(2,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betz/)
+    reig(4,:) = (/Qs*betz, betx, -Qf*betz, 0.d0  , Qf*betz, -betx , -Qs*betz/)
+    reig(5,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
+    reig(6,:) = (/AAs*betx, -betz*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0  , -AAf*betx, -betz*S*sqrt(Q(QRHO)) , AAs*betx/)
+    reig(7,:) = (/AAs*betz, betx*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, betx*S*sqrt(Q(QRHO)), AAs*betz/)
 
 
   end subroutine rvecy
