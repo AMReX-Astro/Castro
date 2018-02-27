@@ -843,7 +843,7 @@ contains
 
   subroutine ppm_int_profile(s, s_lo, s_hi, ncomp, n, &
                              u, qd_lo, qd_hi, &
-                             cspd, qa_lo, qa_hi, &
+                             qaux, qa_lo, qa_hi, &
                              sxm, sxp, &
 #if BL_SPACEDIM >= 2
                              sym, syp, &
@@ -869,7 +869,7 @@ contains
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
-    real(rt), intent(in) ::  cspd(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3))
+    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3), NQAUX)
     real(rt), intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
     real(rt), intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #if BL_SPACEDIM >= 2
@@ -923,16 +923,16 @@ contains
           ! Im integrates to the left edge of a cell
 
           ! u-c wave
-          sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dtdx
+          sigma = abs(u(i,j,k3d,1)-qaux(i,j,k3d,QC))*dtdx
 
-          if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,1)-qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,1,1,ic) = sp
           else
              Ip(i,j,kc,1,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,1)-cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,1)-qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,1,1,ic) = sm
           else
              Im(i,j,kc,1,1,ic) = sm + &
@@ -957,16 +957,16 @@ contains
           endif
 
           ! u+c wave
-          sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
+          sigma = abs(u(i,j,k3d,1)+qaux(i,j,k3d,QC))*dtdx
 
-          if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,1)+qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,1,3,ic) = sp
           else
              Ip(i,j,kc,1,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,1)+qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,1,3,ic) = sm
           else
              Im(i,j,kc,1,3,ic) = sm + &
@@ -992,16 +992,16 @@ contains
           s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
           ! v-c wave
-          sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dtdy
+          sigma = abs(u(i,j,k3d,2)-qaux(i,j,k3d,QC))*dtdy
 
-          if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,2)-qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,2,1,ic) = sp
           else
              Ip(i,j,kc,2,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,2)-qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,2,1,ic) = sm
           else
              Im(i,j,kc,2,1,ic) = sm + &
@@ -1026,16 +1026,16 @@ contains
           endif
 
           ! v+c wave
-          sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
+          sigma = abs(u(i,j,k3d,2)+qaux(i,j,k3d,QC))*dtdy
 
-          if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,2)+qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,2,3,ic) = sp
           else
              Ip(i,j,kc,2,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,2)+qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,2,3,ic) = sm
           else
              Im(i,j,kc,2,3,ic) = sm + &
@@ -1061,16 +1061,16 @@ contains
           s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
           ! w-c wave
-          sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
+          sigma = abs(u(i,j,k3d,3)-qaux(i,j,k3d,QC))*dtdz
 
-          if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,3)-qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,3,1,ic) = sp
           else
              Ip(i,j,kc,3,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,3)-qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,3,1,ic) = sm
           else
              Im(i,j,kc,3,1,ic) = sm + &
@@ -1095,16 +1095,16 @@ contains
           endif
 
           ! w+c wave
-          sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
+          sigma = abs(u(i,j,k3d,3)+qaux(i,j,k3d,QC))*dtdz
 
-          if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
+          if (u(i,j,k3d,3)+qaux(i,j,k3d,QC) <= ZERO) then
              Ip(i,j,kc,3,3,ic) = sp
           else
              Ip(i,j,kc,3,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
-          if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
+          if (u(i,j,k3d,3)+qaux(i,j,k3d,QC) >= ZERO) then
              Im(i,j,kc,3,3,ic) = sm
           else
              Im(i,j,kc,3,3,ic) = sm + &
