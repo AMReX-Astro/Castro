@@ -30,10 +30,11 @@ contains
                              ilo1, ilo2, ihi1, ihi2, dx, k3d, kc, &
                              force_type_in)
 
-    ! perform the ppm reconstruction on component n in the array s
-    ! and store the limits of the parabola in s[xyz][mp].
+    ! perform the ppm reconstruction on component n in the array s and
+    ! store the limits of the parabola in s[xyz][mp] indexed with ic.
 
-    ! we assume that s[xyz][mp] have the same number of components (ncomp) as s
+    ! Here, s[xyz][mp] is for only a single component
+    ! s has ncomp components
 
     use meth_params_module, only : ppm_type
 
@@ -48,15 +49,15 @@ contains
 
     real(rt)        , intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt)        , intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
-    real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt)        , intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt)        , intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #if BL_SPACEDIM >= 2
-    real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt)        , intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt)        , intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
 #if BL_SPACEDIM == 3
-    real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt)        , intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt)        , intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
     real(rt)        , intent(in) :: dx(3)
 
@@ -130,15 +131,15 @@ contains
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
-    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #if BL_SPACEDIM >= 2
-    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
 #if BL_SPACEDIM == 3
-    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
     real(rt), intent(in) :: dx(3)
 
@@ -436,15 +437,15 @@ contains
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #if BL_SPACEDIM >= 2
-    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
 #if BL_SPACEDIM == 3
-    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(inout) :: szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(inout) :: szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
     real(rt), intent(in) :: dx(3)
 
@@ -670,7 +671,7 @@ contains
              D2     = SIX*(alpham + alphap)
              D2L    = s(i,j-2,k3d,n)-TWO*s(i,j-1,k3d,n)+s(i,j,k3d,n)
              D2R    = s(i,j,k3d,n)-TWO*s(i,j+1,k3d,n)+s(i,j+2,k3d,n)
-             D2C    = s(i,j-1,k3d,n)-TWO*s(i,j,k3d.n)+s(i,j+1,k3d,n)
+             D2C    = s(i,j-1,k3d,n)-TWO*s(i,j,k3d,n)+s(i,j+1,k3d,n)
              sgn    = sign(ONE,D2)
              D2LIM  = max(min(sgn*D2,C*sgn*D2L,C*sgn*D2R,C*sgn*D2C),ZERO)
              alpham = alpham*D2LIM/max(abs(D2), SMALL)
@@ -770,7 +771,7 @@ contains
              !
              dafacem   = sedgez(i,j,k) - sedgez(i,j,k-1)
              dafacep   = sedgez(i,j,k+2) - sedgez(i,j,k+1)
-             dabarm    = s(i,j,k.n) - s(i,j,k-1,n)
+             dabarm    = s(i,j,k,n) - s(i,j,k-1,n)
              dabarp    = s(i,j,k+1,n) - s(i,j,k,n)
              dafacemin = min(abs(dafacem),abs(dafacep))
              dabarmin  = min(abs(dabarm),abs(dabarp))
@@ -851,13 +852,14 @@ contains
                              szm, szp, &
 #endif
                              sd_lo, sd_hi, &
-                             Ip, Im, I_lo, I_hi, &
+                             Ip, Im, I_lo, I_hi, icomp, ic, &
                              ilo1, ilo2, ihi1, ihi2, dx, dt, k3d, kc)
 
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
     integer, intent(in) :: ncomp, n
+    integer, intent(in) :: icomp, ic
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: sd_lo(3), sd_hi(3)
@@ -868,18 +870,18 @@ contains
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) ::     u(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),3)
     real(rt), intent(in) ::  cspd(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3))
-    real(rt), intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(in) ::   sxm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   sxp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #if BL_SPACEDIM >= 2
-    real(rt), intent(in) ::   sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(in) ::   syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(in) ::   sym( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   syp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
 #if BL_SPACEDIM == 3
-    real(rt), intent(in) ::   szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
-    real(rt), intent(in) ::   szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3), ncomp)
+    real(rt), intent(in) ::   szm( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
+    real(rt), intent(in) ::   szp( sd_lo(1): sd_hi(1), sd_lo(2): sd_hi(2), sd_lo(3): sd_hi(3))
 #endif
-    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, ncomp)
-    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, ncomp)
+    real(rt), intent(inout) :: Ip(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, icomp)
+    real(rt), intent(inout) :: Im(I_lo(1):I_hi(1),I_lo(2):I_hi(2),I_lo(3):I_hi(3),1:BL_SPACEDIM,1:3, icomp)
 
     real(rt), intent(in) :: dx(3), dt
 
@@ -908,11 +910,11 @@ contains
 
           ! copy sedge into sp and sm
           sp = sxp(i,j,kc)
-          sm = sxm(i,j,kc) 
+          sm = sxm(i,j,kc)
 
 
           ! compute x-component of Ip and Im
-          s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
+          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
           ! Ip/m is the integral under the parabola for the extent
           ! that a wave can travel over a timestep
@@ -924,16 +926,16 @@ contains
           sigma = abs(u(i,j,k3d,1)-cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,1,1) = sp
+             Ip(i,j,kc,1,1,ic) = sp
           else
-             Ip(i,j,kc,1,1) = sp - &
+             Ip(i,j,kc,1,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,1)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,1,1) = sm
+             Im(i,j,kc,1,1,ic) = sm
           else
-             Im(i,j,kc,1,1) = sm + &
+             Im(i,j,kc,1,1,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -941,16 +943,16 @@ contains
           sigma = abs(u(i,j,k3d,1))*dtdx
 
           if (u(i,j,k3d,1) <= ZERO) then
-             Ip(i,j,kc,1,2) = sp
+             Ip(i,j,kc,1,2,ic) = sp
           else
-             Ip(i,j,kc,1,2) = sp - &
+             Ip(i,j,kc,1,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,1) >= ZERO) then
-             Im(i,j,kc,1,2) = sm
+             Im(i,j,kc,1,2,ic) = sm
           else
-             Im(i,j,kc,1,2) = sm + &
+             Im(i,j,kc,1,2,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -958,16 +960,16 @@ contains
           sigma = abs(u(i,j,k3d,1)+cspd(i,j,k3d))*dtdx
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,1,3) = sp
+             Ip(i,j,kc,1,3,ic) = sp
           else
-             Ip(i,j,kc,1,3) = sp - &
+             Ip(i,j,kc,1,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,1)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,1,3) = sm
+             Im(i,j,kc,1,3,ic) = sm
           else
-             Im(i,j,kc,1,3) = sm + &
+             Im(i,j,kc,1,3,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -987,22 +989,22 @@ contains
           sm = sym(i,j,kc)
 
           ! compute y-component of Ip and Im
-          s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
+          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
           ! v-c wave
           sigma = abs(u(i,j,k3d,2)-cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,2,1) = sp
+             Ip(i,j,kc,2,1,ic) = sp
           else
-             Ip(i,j,kc,2,1) = sp - &
+             Ip(i,j,kc,2,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,1) = sm
+             Im(i,j,kc,2,1,ic) = sm
           else
-             Im(i,j,kc,2,1) = sm + &
+             Im(i,j,kc,2,1,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -1010,16 +1012,16 @@ contains
           sigma = abs(u(i,j,k3d,2))*dtdy
 
           if (u(i,j,k3d,2) <= ZERO) then
-             Ip(i,j,kc,2,2) = sp
+             Ip(i,j,kc,2,2,ic) = sp
           else
-             Ip(i,j,kc,2,2) = sp - &
+             Ip(i,j,kc,2,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2) >= ZERO) then
-             Im(i,j,kc,2,2) = sm
+             Im(i,j,kc,2,2,ic) = sm
           else
-             Im(i,j,kc,2,2) = sm + &
+             Im(i,j,kc,2,2,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -1027,16 +1029,16 @@ contains
           sigma = abs(u(i,j,k3d,2)+cspd(i,j,k3d))*dtdy
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,2,3) = sp
+             Ip(i,j,kc,2,3,ic) = sp
           else
-             Ip(i,j,kc,2,3) = sp - &
+             Ip(i,j,kc,2,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,2)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,2,3) = sm
+             Im(i,j,kc,2,3,ic) = sm
           else
-             Im(i,j,kc,2,3) = sm + &
+             Im(i,j,kc,2,3,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -1056,22 +1058,22 @@ contains
           sm = szm(i,j,kc)
 
           ! compute z-component of Ip and Im
-          s6 = SIX*s(i,j,k3d) - THREE*(sm+sp)
+          s6 = SIX*s(i,j,k3d,n) - THREE*(sm+sp)
 
           ! w-c wave
           sigma = abs(u(i,j,k3d,3)-cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,1) = sp
+             Ip(i,j,kc,3,1,ic) = sp
           else
-             Ip(i,j,kc,3,1) = sp - &
+             Ip(i,j,kc,3,1,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)-cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,1) = sm
+             Im(i,j,kc,3,1,ic) = sm
           else
-             Im(i,j,kc,3,1) = sm + &
+             Im(i,j,kc,3,1,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -1079,16 +1081,16 @@ contains
           sigma = abs(u(i,j,k3d,3))*dtdz
 
           if (u(i,j,k3d,3) <= ZERO) then
-             Ip(i,j,kc,3,2) = sp
+             Ip(i,j,kc,3,2,ic) = sp
           else
-             Ip(i,j,kc,3,2) = sp - &
+             Ip(i,j,kc,3,2,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3) >= ZERO) then
-             Im(i,j,kc,3,2) = sm
+             Im(i,j,kc,3,2,ic) = sm
           else
-             Im(i,j,kc,3,2) = sm + &
+             Im(i,j,kc,3,2,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
@@ -1096,16 +1098,16 @@ contains
           sigma = abs(u(i,j,k3d,3)+cspd(i,j,k3d))*dtdz
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) <= ZERO) then
-             Ip(i,j,kc,3,3) = sp
+             Ip(i,j,kc,3,3,ic) = sp
           else
-             Ip(i,j,kc,3,3) = sp - &
+             Ip(i,j,kc,3,3,ic) = sp - &
                HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
           endif
 
           if (u(i,j,k3d,3)+cspd(i,j,k3d) >= ZERO) then
-             Im(i,j,kc,3,3) = sm
+             Im(i,j,kc,3,3,ic) = sm
           else
-             Im(i,j,kc,3,3) = sm + &
+             Im(i,j,kc,3,3,ic) = sm + &
                HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
           endif
 
