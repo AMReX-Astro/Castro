@@ -254,26 +254,26 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      ! x-interfaces
      call states(1, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qxm(:,:,:,n), qxp(:,:,:,n), q_lo, q_hi, &
+                 qxm, qxp, q_lo, q_hi, &
                  lo, hi)
 
 #if BL_SPACEDIM >= 2
      ! y-interfaces
      call states(2, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qym(:,:,:,n), qyp(:,:,:,n), q_lo, q_hi, &
+                 qym, qyp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
 #if BL_SPACEDIM == 3
      ! z-interfaces
      call states(3, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qzm(:,:,:,n), qzp(:,:,:,n), q_lo, q_hi, &
+                 qzm, qzp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
