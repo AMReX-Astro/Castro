@@ -855,6 +855,8 @@ contains
                              Ip, Im, I_lo, I_hi, icomp, ic, &
                              ilo1, ilo2, ihi1, ihi2, dx, dt, k3d, kc)
 
+    use meth_params_module, only : NQAUX, QC
+
     implicit none
 
     integer, intent(in) ::  s_lo(3),  s_hi(3)
