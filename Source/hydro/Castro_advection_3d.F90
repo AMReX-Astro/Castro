@@ -392,7 +392,7 @@ contains
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
              call ppm_int_profile(q, qd_lo, qd_hi, NQ, n, &
-                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   Ip, Im, It_lo, It_hi, NQ, n, &
@@ -407,7 +407,7 @@ contains
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
              call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
-                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   Ip_src, Im_src, It_lo, It_hi, QVAR, n, &
@@ -422,7 +422,7 @@ contains
                                   lo(1), lo(2), hi(1), hi(2), dx, k3d, kc)
 
              call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  q(:,:,:,QU:QW), qd_lo, qd_hi, &
+                                  q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sxm, sxp, sym, syp, szm, szp, It_lo, It_hi, &
                                   Ip_gc, Im_gc, It_lo, It_hi, 1, 1, &
