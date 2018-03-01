@@ -462,9 +462,6 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-#ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only : compute_hybrid_flux
-#endif
     use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
     use riemann_util_module, only : wsqge, pstar_bisection
 
@@ -1055,10 +1052,6 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall, &
                                    mom_flux_has_p
-#ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only : compute_hybrid_flux
-#endif
-
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec

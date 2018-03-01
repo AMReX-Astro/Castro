@@ -495,6 +495,8 @@ contains
     real(rt) :: eddf, f1
     integer :: i, j
 
+    real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
+
     if (idir == 1) then
        iu = QU
        iv1 = QV
@@ -575,7 +577,10 @@ contains
 
 #ifdef HYBRID_MOMENTUM
           ! the hybrid routine uses the Godunov indices, not the full NQ state
-          call compute_hybrid_flux(qgdnv, F, idir, [i, j, k3d])
+          F_zone(:) = F(i,j,kflux,:)
+          qgdnv_zone(:) = qgdnv(i,j,kc,:)
+          call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k3d])
+          F(i,j,kflux,:) = F_zone(:)
 #endif
 
        enddo
