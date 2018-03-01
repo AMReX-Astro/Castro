@@ -188,16 +188,14 @@ contains
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                       domlo, domhi)
 
-       do j = jlo, jhi
-          do i = ilo, ihi
-             call compute_flux_q(idir, qint(i,j,kc,:), flx(i,j,kflux,:), &
+       call compute_flux_q(idir, qint, q_lo, q_hi, &
+                           flx, flx_lo, flx_hi, &
 #ifdef RADIATION
-                                 lambda_int(i,j,kc,:), &
-                                 rflx(i,j,kflux,:), &
+                           lambda_int, q_lo, q_hi, &
+                           rflx, rflx_lo, rflx_hi, &
 #endif
-                                 qgdnv(i,j,kc,:), [i, j, k3d])
-          enddo
-       enddo
+                           qgdnv, q_lo, q_hi, &
+                           ilo, ihi, jlo, jhi, kc, kflux, k3d)
 
        call bl_deallocate(qint)
 #ifdef RADIATION
@@ -216,12 +214,10 @@ contains
                       idir, ilo, ihi, jlo, jhi, kc, kflux, k3d, &
                       domlo, domhi)
 
-       do j = jlo, jhi
-          do i = ilo, ihi
-             call compute_flux_q(idir, qint(i,j,kc,:), flx(i,j,kflux,:), &
-                                 qgdnv(i,j,kc,:), [i, j, k3d])
-          enddo
-       enddo
+       call compute_flux_q(idir, qint, q_lo, q_hi, &
+                           flx, flx_lo, flx_hi, &
+                           qgdnv, q_lo, q_hi, &
+                           ilo, ihi, jlo, jhi, kc, kflux, k3d)
 
        call bl_deallocate(qint)
 #else
