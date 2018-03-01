@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import yt
 
@@ -14,4 +15,5 @@ sp.set_zlim("Temp", 1.e-3, 100)
 sp.annotate_contour("density", ncont=2, clim=(0.01, 1.0), 
                     plot_args={"colors": "red", "linewidths": 2})
 
-sp.save("slice.png")
+sp.save("{}_slice.png".format(os.path.basename(plotfile)))
+
