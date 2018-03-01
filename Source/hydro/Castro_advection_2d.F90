@@ -280,8 +280,9 @@ contains
           ! reconstruction based on the BDS advection method to construct
           ! the x- and y-slopes together
           do n = 1, NQ
-             call multid_slope(q(:,:,n), flatn, q_lo, q_hi, &
-                               dqx(:,:,n), dqy(:,:,n), q_lo, q_hi, &
+             call multid_slope(q, q_lo, q_hi, NQ, n, &
+                               flatn, &
+                               dqx, dqy, q_lo, q_hi, &
                                dx(1), dx(2), &
                                lo(1), lo(2), hi(1), hi(2))
           enddo
