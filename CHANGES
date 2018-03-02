@@ -1,8 +1,12 @@
-# changes since last release
+# 18.03
 
   -- The option ppm_trace_sources has been removed -- we now
      always trace on source terms with ppm.  Additionally, all
      sources are now traced, not just momentum sources.
+
+  -- The method-of-lines integrator has been rewritten.  It now works
+     properly with sources.  Note: it is not intended for multilevel
+     yet.  (#288, #287, #286, #164, #291, #137)
 
 # 18.02
 
