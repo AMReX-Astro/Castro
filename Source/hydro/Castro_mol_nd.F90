@@ -279,7 +279,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
      do n = 1, NQ
-        call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
+        call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                              flatn, q_lo, q_hi, &
                              sxm, sxp, &
 #if BL_SPACEDIM >= 2

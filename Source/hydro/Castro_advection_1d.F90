@@ -211,16 +211,16 @@ contains
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
        do n = 1, NQ
-          call ppm_reconstruct(q(:,n), q_lo, q_hi, &
+          call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &
                                lo(1), 0, hi(1), 0, dx, 0, 0)
 
-          call ppm_int_profile(q(:,n), q_lo, q_hi, &
-                               q(:,QU), q_lo, q_hi, &
-                               qaux(:,QC), qa_lo, qa_hi, &
+          call ppm_int_profile(q, q_lo, q_hi, NQ, n, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
                                sxm, sxp, q_lo, q_hi, &
-                               Ip(:,:,n), Im(:,:,n), I_lo, I_hi, &
+                               Ip, Im, I_lo, I_hi, NQ, n, &
                                lo(1), 0, hi(1), 0, dx, dt, 0, 0)
        enddo
 
@@ -259,30 +259,30 @@ contains
        ! get an edge-based gam1 here if we didn't get it from the EOS
        ! call above (for ppm_temp_fix = 1)
        if (ppm_temp_fix /= 1) then
-          call ppm_reconstruct(qaux(:,QGAMC), qa_lo, qa_hi, &
+          call ppm_reconstruct(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &
                                lo(1), 0, hi(1), 0, dx, 0, 0)
 
-          call ppm_int_profile(qaux(:,QGAMC), qa_lo, qa_hi, &
-                               q(:,QU), q_lo, q_hi, &
-                               qaux(:,QC), qa_lo, qa_hi, &
+          call ppm_int_profile(qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
                                sxm, sxp, q_lo, q_hi, &
-                               Ip_gc(:,:,1), Im_gc(:,:,1), I_lo, I_hi, &
+                               Ip_gc, Im_gc, I_lo, I_hi, 1, 1, &
                                lo(1), 0, hi(1), 0, dx, dt, 0, 0)
        endif
 
        do n = 1, QVAR
-          call ppm_reconstruct(srcQ(:,n), src_lo, src_hi, &
+          call ppm_reconstruct(srcQ, src_lo, src_hi, QVAR, n, &
                                flatn, q_lo, q_hi, &
                                sxm, sxp, q_lo, q_hi, &
                                lo(1), 0, hi(1), 0, dx, 0, 0)
 
-          call ppm_int_profile(srcQ(:,n), src_lo, src_hi, &
-                               q(:,QU), q_lo, q_hi, &
-                               qaux(:,QC), qa_lo, qa_hi, &
+          call ppm_int_profile(srcQ, src_lo, src_hi, QVAR, n, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
                                sxm, sxp, q_lo, q_hi, &
-                               Ip_src(:,:,n), Im_src(:,:,n), I_lo, I_hi, &
+                               Ip_src, Im_src, I_lo, I_hi, QVAR, n, &
                                lo(1), 0, hi(1), 0, dx, dt, 0, 0)
        enddo
 
