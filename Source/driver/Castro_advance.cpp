@@ -528,8 +528,16 @@ Castro::do_advance_mol (Real time,
   // using the new time state (since we just constructed it).  Note:
   // we always use do_old_sources here, since we want the actual
   // source and not a correction.
-  do_old_sources(old_source, S_old, prev_time, dt, amr_iteration, amr_ncycle);
-  do_old_sources(new_source, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+  // note: we need to have ghost cells here cause some sources (in
+  // particular pdivU) need them.  Perhaps it would be easier to just
+  // always require State_Type to have 1 ghost cell?
+  expand_state(Sborder, prev_time, Sborder.nGrow());
+  do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+  expand_state(Sborder, cur_time, Sborder.nGrow());
+  do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+
 
   // Do the second half of the reactions.
 
@@ -573,17 +581,19 @@ Castro::do_advance_sdc (Real time,
 
   check_for_nan(S_old);
 
+  MultiFab& old_source = get_old_data(Source_Type);
+  MultiFab& new_source = get_new_data(Source_Type);
 
   for (int m=0; m < SDC_NODES; m++) {
 
-    Real node_time = time + dt_sdc[iter]*dt;
+    Real node_time = time + dt_sdc[m]*dt;
 
     // fill Sborder with the starting node's info -- we use S_new as
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
-    MultiFab::Copy(S_new, k_new[m], 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, new_time, NUM_GROW);
+    MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+    expand_state(Sborder, cur_time, NUM_GROW);
 
 
     // Construct the "old-time" sources from Sborder.  Since we are
@@ -594,9 +604,6 @@ Castro::do_advance_sdc (Real time,
 #ifdef SELF_GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
-
-    MultiFab& old_source = get_old_data(Source_Type);
-    MultiFab& new_source = get_new_data(Source_Type);
 
     if (apply_sources()) {
 
@@ -643,7 +650,7 @@ Castro::do_advance_sdc (Real time,
     // nodes.  Initialize those now.
     if (sdc_iteration == 0 && m == 0) {
       for (int n=0; n < SDC_NODES; n++) {
-        MultiFab::Copy(A_old[n], k_new[0], 0, 0, NUM_STATE, 0);
+        MultiFab::Copy(*(A_old[n]), *(k_new[0]), 0, 0, NUM_STATE, 0);
       }
     }
 
