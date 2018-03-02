@@ -44,7 +44,6 @@ static amrex::Real small_ener;
 static int do_hydro;
 static int time_integration_method;
 static int fourth_order;
-static int fourth_order;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
