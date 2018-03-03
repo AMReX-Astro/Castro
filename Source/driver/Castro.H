@@ -274,7 +274,7 @@ public:
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
@@ -748,9 +748,9 @@ protected:
 
     //
     // Storage for the SDC time integration
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_old;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;

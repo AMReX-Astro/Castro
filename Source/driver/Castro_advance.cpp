@@ -489,7 +489,7 @@ Castro::do_advance_mol (Real time,
 
       // construct the update for the current stage -- this fills k_mol
       // with the righthand side for this stage
-      construct_mol_hydro_source(time, dt);
+      construct_mol_hydro_source(time, dt, *k_mol[mol_iteration]);
     }
 
   // For MOL integration, we are done with this stage, unless it is
@@ -643,14 +643,14 @@ Castro::do_advance_sdc (Real time,
 
     // construct the update for the current stage -- this fills k_mol
     // with the righthand side for this stage
-    construct_mol_hydro_source(time, dt);
+    construct_mol_hydro_source(time, dt, *A_new[m]);
 
     // if we are in the first SDC iteration, then we haven't yet stored
     // any old advective terms, so we cannot yet do the quadrature over
     // nodes.  Initialize those now.
     if (sdc_iteration == 0 && m == 0) {
       for (int n=0; n < SDC_NODES; n++) {
-        MultiFab::Copy(*(A_old[n]), *(k_new[0]), 0, 0, NUM_STATE, 0);
+        MultiFab::Copy(*(A_old[n]), *(A_new[0]), 0, 0, NUM_STATE, 0);
       }
     }
 
