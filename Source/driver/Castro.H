@@ -748,9 +748,23 @@ protected:
 
     //
     // Storage for the SDC time integration
+
+    // this is the new iterations solution at the time nodes
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+
+    // this is the old value of the advective update at the
+    // nodes of the time integration
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    // this is the new value of the advective update at the
+    // nodes of the time integration
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
+
+    // this is the old value of the reaction source at the
+    // nodes of the time integration
+#ifdef REACTIONS
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > R_old;
+#endif
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
