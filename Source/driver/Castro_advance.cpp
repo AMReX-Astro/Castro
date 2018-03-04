@@ -586,6 +586,10 @@ Castro::do_advance_sdc (Real time,
 
   for (int m=0; m < SDC_NODES; m++) {
 
+    // k_new represents carries the solution.  Coming into here, it
+    // will be entirely the old state, but we update it on each time
+    // node in place.
+
     Real node_time = time + dt_sdc[m]*dt;
 
     // fill Sborder with the starting node's info -- we use S_new as
@@ -594,7 +598,6 @@ Castro::do_advance_sdc (Real time,
     // work for multilevel.
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
     expand_state(Sborder, cur_time, NUM_GROW);
-
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -608,7 +611,7 @@ Castro::do_advance_sdc (Real time,
     if (apply_sources()) {
 
       // we pass in the stage time here
-      do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+      do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
 
       // hack: copy the source to the new data too, so fillpatch doesn't have to
       // worry about time
@@ -632,7 +635,7 @@ Castro::do_advance_sdc (Real time,
     // will be used to advance us to the next node the new time
 
     // Construct the primitive variables.
-    cons_to_prim_fourth(time);
+    cons_to_prim(time);
 
     // Check for CFL violations.
     check_for_cfl_violation(dt);
@@ -641,13 +644,17 @@ Castro::do_advance_sdc (Real time,
     if (cfl_violation)
       return dt;
 
-    // construct the update for the current stage -- this fills k_mol
-    // with the righthand side for this stage
-    construct_mol_hydro_source(time, dt, *A_new[m]);
+    // construct the update for the current stage -- this fills
+    // A_new[m] with the righthand side for this stage.  Note, for m =
+    // 0, the starting state is S_old and never changes with SDC
+    // iteration, so we only do this once.
+    if (!(sdc_iteration > 0 && m == 0)) {
+      construct_mol_hydro_source(time, dt, *A_new[m]);
+    }
 
-    // if we are in the first SDC iteration, then we haven't yet stored
-    // any old advective terms, so we cannot yet do the quadrature over
-    // nodes.  Initialize those now.
+    // also, if we are the first SDC iteration, we haven't yet stored
+    // any old advective terms, so we cannot yet do the quadrature
+    // over nodes.  Initialize those now.
     if (sdc_iteration == 0 && m == 0) {
       for (int n=0; n < SDC_NODES; n++) {
         MultiFab::Copy(*(A_old[n]), *(A_new[0]), 0, 0, NUM_STATE, 0);
@@ -656,9 +663,12 @@ Castro::do_advance_sdc (Real time,
 
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data
-
+    do_sdc_update(m, m+1);
 
   } // node iteration
+
+
+  // I think this bit only needs to be done for the last iteration...
 
   // We need to make source_old and source_new be the source terms at
   // the old and new time.  we never actually evaluate the sources
