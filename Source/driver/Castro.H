@@ -586,7 +586,7 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
-    void do_sdc_update(int m1, int m2);
+    void do_sdc_update(int m1, int m2, amrex::Real dt);
 
 #ifdef PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }

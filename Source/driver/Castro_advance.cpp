@@ -663,7 +663,7 @@ Castro::do_advance_sdc (Real time,
 
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data
-    do_sdc_update(m, m+1);
+    do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
 
   } // node iteration
 
