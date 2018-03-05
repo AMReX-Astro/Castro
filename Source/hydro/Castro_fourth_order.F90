@@ -1,7 +1,6 @@
 ! advection routines in support of method of lines integration
 
-subroutine ca_fourth_single_stage(time, &
-                                  lo, hi, domlo, domhi, &
+subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   stage_weight, &
                                   uin, uin_lo, uin_hi, &
                                   uout, uout_lo, uout_hi, &
@@ -255,26 +254,26 @@ subroutine ca_fourth_single_stage(time, &
 
      ! x-interfaces
      call states(1, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qxm(:,:,:,n), qxp(:,:,:,n), q_lo, q_hi, &
+                 qxm, qxp, q_lo, q_hi, &
                  lo, hi)
 
 #if BL_SPACEDIM >= 2
      ! y-interfaces
      call states(2, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qym(:,:,:,n), qyp(:,:,:,n), q_lo, q_hi, &
+                 qym, qyp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
 #if BL_SPACEDIM == 3
      ! z-interfaces
      call states(3, &
-                 q(:,:,:,n), q_lo, q_hi, &
+                 q, q_lo, q_hi, NQ, n, &
                  flatn, q_bar_lo, q_bar_hi, &
-                 qzm(:,:,:,n), qzp(:,:,:,n), q_lo, q_hi, &
+                 qzm, qzp, q_lo, q_hi, &
                  lo, hi)
 #endif
 
@@ -300,12 +299,10 @@ subroutine ca_fourth_single_stage(time, &
                         qaux, qa_lo, qa_hi, &
                         1, lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k, domlo, domhi)
 
-     do j = lo(2)-dg(2), hi(2)+dg(2)
-        do i = lo(1), hi(1)+1
-           call compute_flux_q(1, qx_avg(i,j,k,:), flx_avg(i,j,k,:), &
-                               qgdnvx_avg(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(1, qx_avg, q_lo, q_hi, &
+                         flx_avg, q_lo, q_hi, &
+                         qgdnvx_avg, q_lo, q_hi, &
+                         lo(1), hi(1)+1, lo(2)-dg(2), hi(2)+dg(2), k, k, k)
   enddo
 
 #if BL_SPACEDIM >= 2
@@ -316,12 +313,10 @@ subroutine ca_fourth_single_stage(time, &
                         qaux, qa_lo, qa_hi, &
                         2, lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k, domlo, domhi)
 
-     do j = lo(2), hi(2)+1
-        do i = lo(1)-1, hi(1)+1
-           call compute_flux_q(2, qy_avg(i,j,k,:), fly_avg(i,j,k,:), &
-                               qgdnvy_avg(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(2, qy_avg, q_lo, q_hi, &
+                         fly_avg, q_lo, q_hi, &
+                         qgdnvy_avg, q_lo, q_hi, &
+                         lo(1)-1, hi(1)+1, lo(2), hi(2)+1, k, k, k)
   enddo
 #endif
 
@@ -333,12 +328,10 @@ subroutine ca_fourth_single_stage(time, &
                         qaux, qa_lo, qa_hi, &
                         3, lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k, domlo, domhi)
 
-     do j = lo(2)-1, hi(2)+1
-        do i = lo(1)-1, hi(1)+1
-           call compute_flux_q(3, qz_avg(i,j,k,:), flz_avg(i,j,k,:), &
-                               qgdnvz_avg(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(3, qz_avg, q_lo, q_hi, &
+                         flz_avg, q_lo, q_hi, &
+                         qgdnvz_avg, q_lo, q_hi, &
+                         lo(1)-1, hi(1)+1, lo(2)-1, hi(2)+1, k, k, k)
   enddo
 #endif
 
@@ -424,33 +417,27 @@ subroutine ca_fourth_single_stage(time, &
   ! compute face-centered fluxes
   ! these will be stored in flx, fly, flz
   do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)+1
-           call compute_flux_q(1, qx_fc(i,j,k,:), flx(i,j,k,:), &
-                               qgdnvx(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(1, qx_fc, q_lo, q_hi, &
+                         flx, flx_lo, flx_hi, &
+                         qgdnvx, flx_lo, flx_hi, &
+                         lo(1), hi(1)+1, lo(2), hi(2), k, k, k)
   enddo
 
 #if BL_SPACEDIM >= 2
   do k = lo(3), hi(3)
-     do j = lo(2), hi(2)+1
-        do i = lo(1), hi(1)
-           call compute_flux_q(2, qy_fc(i,j,k,:), fly(i,j,k,:), &
-                               qgdnvy(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(2, qy_fc, q_lo, q_hi, &
+                         fly, fly_lo, fly_hi, &
+                         qgdnvy, fly_lo, fly_hi, &
+                         lo(1), hi(1), lo(2), hi(2)+1, k, k, k)
   enddo
 #endif
 
 #if BL_SPACEDIM == 3
   do k = lo(3), hi(3)+1
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           call compute_flux_q(3, qz_fc(i,j,k,:), flz(i,j,k,:), &
-                               qgdnvz(i,j,k,:), [i, j, k])
-        enddo
-     enddo
+     call compute_flux_q(3, qz_fc, q_lo, q_hi, &
+                         flz, flz_lo, flz_hi, &
+                         qgdnvz, flz_lo, flz_hi, &
+                         lo(1), hi(1), lo(2), hi(2), k, k, k)
   enddo
 #endif
 

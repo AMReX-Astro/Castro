@@ -172,14 +172,14 @@ extern "C"
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state), const int* idx);
 
   void ca_enforce_minimum_density
-    (const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
+    (const int* lo, const int* hi,
+     const amrex::Real* S_old, const int* s_old_lo, const int* s_old_hi,
            amrex::Real* S_new, const int* s_new_lo, const int* s_new_hi,
      const amrex::Real* vol, const int* vol_lo, const int* vol_hi,
-     const int* lo, const int* hi,
            amrex::Real* frac_change, const int* verbose, const int* idx);
 
   void ca_normalize_species
-    (BL_FORT_FAB_ARG_3D(S_new), const int* lo, const int* hi, const int* idx);
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new), const int* idx);
 
   void ca_get_center(amrex::Real* center);
   void ca_set_center(amrex::Real* center);
@@ -474,36 +474,36 @@ extern "C"
 
 #ifdef RADIATION
   void ca_estdt_rad
-    (const BL_FORT_FAB_ARG(state),
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG(state),
      const BL_FORT_FAB_ARG(gpr),
-     const int lo[], const int hi[],
      const amrex::Real dx[], amrex::Real* dt);
 #endif
 
 #ifdef REACTIONS
     void ca_estdt_burning
-    (const BL_FORT_FAB_ARG_3D(state_old),
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state_old),
      const BL_FORT_FAB_ARG_3D(state_new),
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
-     const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
 #endif
 
   void ca_check_timestep
-    (const BL_FORT_FAB_ARG_3D(state_old),
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state_old),
      const BL_FORT_FAB_ARG_3D(state_new),
 #ifdef REACTIONS
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
 #endif
-     const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
 
   void ca_ctu_update
-    (const int* is_finest_level,
+    (const int    lo[], const int    hi[],
+     const int* is_finest_level,
      const amrex::Real* time,
-     const int    lo[], const int    hi[],
      const int domlo[], const int domhi[],
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(stateout),
@@ -562,8 +562,8 @@ extern "C"
                            BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc, const int* idx);
 
   void ca_mol_single_stage
-    (const amrex::Real* time,
-     const int    lo[], const int    hi[],
+    (const int    lo[], const int    hi[],
+     const amrex::Real* time,
      const int domlo[], const int domhi[],
      const amrex::Real *stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
@@ -591,8 +591,8 @@ extern "C"
 
 
   void ca_fourth_single_stage
-    (const amrex::Real* time,
-     const int    lo[], const int    hi[],
+    (const int    lo[], const int    hi[],
+     const amrex::Real* time,
      const int domlo[], const int domhi[],
      const amrex::Real *stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
@@ -620,6 +620,16 @@ extern "C"
      const int&  verbose);
 
 
+  void ca_sdc_update_advection_o2
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(k_m),
+     BL_FORT_FAB_ARG_3D(k_n),
+     BL_FORT_FAB_ARG_3D(A_m),
+     BL_FORT_FAB_ARG_3D(A_0_old),
+     BL_FORT_FAB_ARG_3D(A_1_old),
+     const int* m_start);
+
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -645,7 +655,7 @@ extern "C"
 
 #ifdef POINTMASS
   void pm_compute_delta_mass
-    ( amrex::Real* pm_delta_mass, const int* lo, const int* hi,
+    (const int* lo, const int* hi, amrex::Real* pm_delta_mass, 
      const BL_FORT_FAB_ARG_3D(state),
      const BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(volume),

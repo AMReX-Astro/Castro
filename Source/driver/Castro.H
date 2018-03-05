@@ -274,7 +274,7 @@ public:
 
     void construct_hydro_source(amrex::Real time, amrex::Real dt);
 
-    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt);
+    void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
@@ -586,6 +586,8 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+    void do_sdc_update(int m1, int m2, amrex::Real dt);
+
 #ifdef PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
@@ -748,9 +750,23 @@ protected:
 
     //
     // Storage for the SDC time integration
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_old;
+
+    // this is the new iterations solution at the time nodes
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+
+    // this is the old value of the advective update at the
+    // nodes of the time integration
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    // this is the new value of the advective update at the
+    // nodes of the time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
+
+    // this is the old value of the reaction source at the
+    // nodes of the time integration
+#ifdef REACTIONS
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > R_old;
+#endif
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;

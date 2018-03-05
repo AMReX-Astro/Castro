@@ -489,7 +489,7 @@ Castro::do_advance_mol (Real time,
 
       // construct the update for the current stage -- this fills k_mol
       // with the righthand side for this stage
-      construct_mol_hydro_source(time, dt);
+      construct_mol_hydro_source(time, dt, *k_mol[mol_iteration]);
     }
 
   // For MOL integration, we are done with this stage, unless it is
@@ -528,8 +528,16 @@ Castro::do_advance_mol (Real time,
   // using the new time state (since we just constructed it).  Note:
   // we always use do_old_sources here, since we want the actual
   // source and not a correction.
-  do_old_sources(old_source, S_old, prev_time, dt, amr_iteration, amr_ncycle);
-  do_old_sources(new_source, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+  // note: we need to have ghost cells here cause some sources (in
+  // particular pdivU) need them.  Perhaps it would be easier to just
+  // always require State_Type to have 1 ghost cell?
+  expand_state(Sborder, prev_time, Sborder.nGrow());
+  do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+  expand_state(Sborder, cur_time, Sborder.nGrow());
+  do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+
 
   // Do the second half of the reactions.
 
@@ -573,18 +581,23 @@ Castro::do_advance_sdc (Real time,
 
   check_for_nan(S_old);
 
+  MultiFab& old_source = get_old_data(Source_Type);
+  MultiFab& new_source = get_new_data(Source_Type);
 
   for (int m=0; m < SDC_NODES; m++) {
 
-    Real node_time = time + dt_sdc[iter]*dt;
+    // k_new represents carries the solution.  Coming into here, it
+    // will be entirely the old state, but we update it on each time
+    // node in place.
+
+    Real node_time = time + dt_sdc[m]*dt;
 
     // fill Sborder with the starting node's info -- we use S_new as
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
-    MultiFab::Copy(S_new, k_new[m], 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, new_time, NUM_GROW);
-
+    MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+    expand_state(Sborder, cur_time, NUM_GROW);
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -595,13 +608,10 @@ Castro::do_advance_sdc (Real time,
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-    MultiFab& old_source = get_old_data(Source_Type);
-    MultiFab& new_source = get_new_data(Source_Type);
-
     if (apply_sources()) {
 
       // we pass in the stage time here
-      do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+      do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
 
       // hack: copy the source to the new data too, so fillpatch doesn't have to
       // worry about time
@@ -625,7 +635,7 @@ Castro::do_advance_sdc (Real time,
     // will be used to advance us to the next node the new time
 
     // Construct the primitive variables.
-    cons_to_prim_fourth(time);
+    cons_to_prim(time);
 
     // Check for CFL violations.
     check_for_cfl_violation(dt);
@@ -634,33 +644,46 @@ Castro::do_advance_sdc (Real time,
     if (cfl_violation)
       return dt;
 
-    // construct the update for the current stage -- this fills k_mol
-    // with the righthand side for this stage
-    construct_mol_hydro_source(time, dt);
+    // construct the update for the current stage -- this fills
+    // A_new[m] with the righthand side for this stage.  Note, for m =
+    // 0, the starting state is S_old and never changes with SDC
+    // iteration, so we only do this once.
+    if (!(sdc_iteration > 0 && m == 0)) {
+      construct_mol_hydro_source(time, dt, *A_new[m]);
+    }
 
-    // if we are in the first SDC iteration, then we haven't yet stored
-    // any old advective terms, so we cannot yet do the quadrature over
-    // nodes.  Initialize those now.
+    // also, if we are the first SDC iteration, we haven't yet stored
+    // any old advective terms, so we cannot yet do the quadrature
+    // over nodes.  Initialize those now.
     if (sdc_iteration == 0 && m == 0) {
       for (int n=0; n < SDC_NODES; n++) {
-        MultiFab::Copy(A_old[n], k_new[0], 0, 0, NUM_STATE, 0);
+        MultiFab::Copy(*(A_old[n]), *(A_new[0]), 0, 0, NUM_STATE, 0);
       }
     }
 
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data
-
+    do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
 
   } // node iteration
 
+
+  // I think this bit only needs to be done for the last iteration...
 
   // We need to make source_old and source_new be the source terms at
   // the old and new time.  we never actually evaluate the sources
   // using the new time state (since we just constructed it).  Note:
   // we always use do_old_sources here, since we want the actual
   // source and not a correction.
-  do_old_sources(old_source, S_old, prev_time, dt, amr_iteration, amr_ncycle);
-  do_old_sources(new_source, S_new, cur_time, dt, amr_iteration, amr_ncycle);
+
+  // note: we need to have ghost cells here cause some sources (in
+  // particular pdivU) need them.  Perhaps it would be easier to just
+  // always require State_Type to have 1 ghost cell?
+  expand_state(Sborder, prev_time, Sborder.nGrow());
+  do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+
+  expand_state(Sborder, cur_time, Sborder.nGrow());
+  do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -1086,13 +1109,13 @@ Castro::retry_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	const int* lo = bx.loVect();
 	const int* hi = bx.hiVect();
 
-	ca_check_timestep(BL_TO_FORTRAN_3D(S_old[mfi]),
+	ca_check_timestep(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_3D(S_old[mfi]),
 			  BL_TO_FORTRAN_3D(S_new[mfi]),
 #ifdef REACTIONS
 			  BL_TO_FORTRAN_3D(R_old[mfi]),
 			  BL_TO_FORTRAN_3D(R_new[mfi]),
 #endif
-			  ARLIM_3D(lo), ARLIM_3D(hi), ZFILL(dx),
+			  ZFILL(dx),
 			  &dt, &dt_sub);
 
     }

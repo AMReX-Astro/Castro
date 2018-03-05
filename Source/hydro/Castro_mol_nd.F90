@@ -1,7 +1,7 @@
 ! advection routines in support of method of lines integration
 
-subroutine ca_mol_single_stage(time, &
-                               lo, hi, domlo, domhi, &
+subroutine ca_mol_single_stage(lo, hi, time, &
+                               domlo, domhi, &
                                stage_weight, &
                                uin, uin_lo, uin_hi, &
                                uout, uout_lo, uout_hi, &
@@ -279,7 +279,7 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
      do n = 1, NQ
-        call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
+        call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                              flatn, q_lo, q_hi, &
                              sxm, sxp, &
 #if BL_SPACEDIM >= 2

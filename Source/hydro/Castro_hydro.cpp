@@ -107,8 +107,8 @@ Castro::construct_hydro_source(Real time, Real dt)
 #endif
 
 	  ca_ctu_update
-	    (&is_finest_level, &time,
-	     ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+	    (ARLIM_3D(lo), ARLIM_3D(hi), &is_finest_level, &time,
+	     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
 	     BL_TO_FORTRAN_3D(statein), 
 	     BL_TO_FORTRAN_3D(stateout),
 #ifdef RADIATION
@@ -250,12 +250,13 @@ Castro::construct_hydro_source(Real time, Real dt)
 
 
 void
-Castro::construct_mol_hydro_source(Real time, Real dt)
+Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using method of lines integration.  The output, as a
-  // update to the state, is stored in the k_mol array of multifabs.
+  // update to the state, is stored in the multifab A_update, which is
+  // passed in
 
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
@@ -272,7 +273,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
   MultiFab& S_new = get_new_data(State_Type);
 
-  MultiFab& k_stage = *k_mol[mol_iteration];
+  //MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -319,7 +320,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	FArrayBox &source_in  = sources_for_hydro[mfi];
 
 	// the output of this will be stored in the correct stage MF
-	FArrayBox &source_out = k_stage[mfi];
+	FArrayBox &source_out = A_update[mfi];
 	FArrayBox &source_hydro_only = hydro_source[mfi];
 
 #ifdef RADIATION
@@ -344,11 +345,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
-
         if (fourth_order) {
           ca_fourth_single_stage
-            (&time,
-             ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
@@ -374,8 +373,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
 
         } else {
           ca_mol_single_stage
-            (&time,
-             ARLIM_3D(lo), ARLIM_3D(hi), ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &(b_mol[mol_iteration]),
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
@@ -435,7 +433,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt)
     {
 
       bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(k_stage, dt, local);
+      Vector<Real> hydro_update = evaluate_source_change(A_update, dt, local);
 
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {
