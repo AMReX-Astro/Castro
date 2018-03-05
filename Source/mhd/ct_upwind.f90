@@ -795,7 +795,7 @@ implicit none
 				!Z-Direction
 				!-> Affected by X flux
 				uL(i,j,k,UMAGZ,3,1) = um(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k) - Ey(i,j,k))
-				uL(i,j,k,UMAGY,3,1) = um(i,j,k,UMAGZ,3) + dt/(6.d0*dz)*&
+				uL(i,j,k,UMAGY,3,1) = um(i,j,k,UMAGY,3) + dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
 									 (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
 				!-> Affected by Y flux
@@ -804,7 +804,7 @@ implicit none
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uL(i,j,k,UMAGX:UMAGY,3,2) = um(i,j,k,UMAGY:UMAGZ,3)
+				uL(i,j,k,UMAGX:UMAGY,3,2) = um(i,j,k,UMAGX:UMAGY,3)
 				uL(i,j,k,UEINT,1,1) = uL(i,j,k,UEINT,1,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,1),uL(i,j,k,UMAGX:UMAGZ,1,1))
 
 				uL(i,j,k,UEINT,1,2) = uL(i,j,k,UEINT,1,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,2),uL(i,j,k,UMAGX:UMAGZ,1,2))
@@ -848,7 +848,7 @@ implicit none
 				!Z-Direction
 				!-> Affected by X flux
 				uR(i,j,k,UMAGZ,3,1) = up(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k+1) - Ey(i,j,k+1))
-				uR(i,j,k,UMAGY,3,1) = up(i,j,k,UMAGZ,3) + dt/(6.d0*dz)*&
+				uR(i,j,k,UMAGY,3,1) = up(i,j,k,UMAGY,3) + dt/(6.d0*dz)*&
 									((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
 									 (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
 				!-> Affected by Y flux
@@ -858,7 +858,7 @@ implicit none
 									((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
 									 (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
 
-				uR(i,j,k,UMAGX:UMAGY,3,2) = up(i,j,k,UMAGY:UMAGZ,3)
+				uR(i,j,k,UMAGX:UMAGY,3,2) = up(i,j,k,UMAGX:UMAGY,3)
 
 				uR(i,j,k,UEINT,1,1) = uR(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,1),uR(i,j,k,UMAGX:UMAGZ,1,1))
 
