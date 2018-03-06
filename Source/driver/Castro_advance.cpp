@@ -584,6 +584,9 @@ Castro::do_advance_sdc (Real time,
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
 
+  // we loop over all nodes, even the last, since we need to compute
+  // the advective update source at each node
+
   for (int m=0; m < SDC_NODES; m++) {
 
     // k_new represents carries the solution.  Coming into here, it
@@ -662,8 +665,12 @@ Castro::do_advance_sdc (Real time,
     }
 
     // update to the next stage -- this involves computing the
-    // integral over the k-1 iteration data
-    do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
+    // integral over the k-1 iteration data.  Note we don't do
+    // this if we are on the final node (since there is nothing to
+    // update to
+    if (m < SDC_NODES-1) {
+      do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
+    }
 
   } // node iteration
 
