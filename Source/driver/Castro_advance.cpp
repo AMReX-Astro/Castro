@@ -1016,6 +1016,39 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       Sburn.define(grids, dmap, NUM_STATE, 0);
     }
 
+    if (time_integration_method == SDC) {
+
+      MultiFab& S_old = get_old_data(State_Type);
+      k_new.resize(SDC_NODES);
+      k_new[0].reset(&S_old);
+      for (int n = 1; n < SDC_NODES; ++n) {
+	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+	k_new[n]->setVal(0.0);
+      }
+
+      A_old.resize(SDC_NODES);
+      for (int n = 0; n < SDC_NODES; ++n) {
+	A_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+	A_old[n]->setVal(0.0);
+      }
+
+      A_new.resize(SDC_NODES);
+      MultiFab& _A = *A_old[0];
+      A_new[0].reset(&_A);
+      for (int n = 1; n < SDC_NODES; ++n) {
+	A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_new[n]->setVal(0.0);
+      }
+
+#ifdef REACTIONS
+      R_old.resize(SDC_NODES);
+      for (int n = 0; n < SDC_NODES; ++n) {
+	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        R_old[n]->setVal(0.0);
+      }
+#endif
+    }
+
     // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
@@ -1084,7 +1117,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
-
+    
+    if (time_integration_method == SDC) {
+      k_new.clear();
+      A_old.clear();
+      A_new.clear();
+#ifdef REACTIONS
+      R_old.clear();
+#endif
+    }
 }
 
 
