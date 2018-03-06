@@ -599,8 +599,11 @@ Castro::do_advance_sdc (Real time,
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
+    std::cout << "copying, m = " << m << std::endl;
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+    std::cout << "done" << std::endl;
     expand_state(Sborder, cur_time, NUM_GROW);
+    std::cout << "expanded" << std::endl;
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -1020,7 +1023,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
-      k_new[0].reset(&S_old);
+      k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
 	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
 	k_new[n]->setVal(0.0);
@@ -1033,8 +1036,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       }
 
       A_new.resize(SDC_NODES);
-      MultiFab& _A = *A_old[0];
-      A_new[0].reset(&_A);
+      A_new[0].reset(new MultiFab(*A_old[0], amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
 	A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         A_new[n]->setVal(0.0);
@@ -1120,8 +1122,8 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     
     if (time_integration_method == SDC) {
       k_new.clear();
-      A_old.clear();
       A_new.clear();
+      A_old.clear();
 #ifdef REACTIONS
       R_old.clear();
 #endif
