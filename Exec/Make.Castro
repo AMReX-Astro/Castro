@@ -183,6 +183,10 @@ ifeq ($(USE_PARTICLES), TRUE)
   Bdirs += Source/particles
 endif
 
+ifeq ($(USE_THORNADO), TRUE)
+  Bdirs += Source/two_moment
+endif
+
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
 Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 

@@ -994,6 +994,11 @@ Castro::initData ()
 	init_particles();
 #endif
 
+#ifdef THORNADO
+    if (level == 0)
+	init_thornado();
+#endif
+
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Done initializing the level " << level << " data " << std::endl;
 }

@@ -1,0 +1,8 @@
+# sources used with thornado
+# this is included if USE_THORNADO = TRUE
+
+ifeq ($(USE_THORNADO), TRUE)
+  CEXE_sources += Castro_twomoment.cpp
+  FEXE_headers += TwoMoment_F.H
+  ca_F90EXE_sources += two_moment_nd.F90
+endif

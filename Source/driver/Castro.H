@@ -193,6 +193,10 @@ public:
     void MAESTRO_init ();
 #endif
 
+#ifdef THORNADO
+    void thornado_init ();
+#endif
+
     //
     // Get problem metrics.
     //

@@ -312,6 +312,16 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
 
+#ifdef THORNADO
+  store_in_checkpoint = true;
+  int ngrow_thornado = 1;
+  int ncomp_thornado = 20*16*6*4;
+  desc_lst.addDescriptor(Thornado_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point, ngrow_thornado, ncomp_thornado,
+			 &cell_cons_interp, state_data_extrap,
+			 store_in_checkpoint);
+#endif
+
 #ifdef SELF_GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
