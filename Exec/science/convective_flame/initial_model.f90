@@ -171,7 +171,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
   ! allocate the storage in the model_parser module
   allocate(model_r(nx))
   allocate(model_state(nx,nvars_model))
-
+  npts_model = nx
 
   ! compute the coordinates of the new gridded function
   dCoord = (xmax - xmin) / dble(nx)
@@ -569,7 +569,7 @@ subroutine init_1d_tanh(nx, xmin, xmax)
   enddo
 
   do i = 1, nx
-     print *, i, model_state(i,idens_model), model_state(i,ispec_model:ispec_model-1+nspec)
+     print *, model_r(i), model_state(i,idens_model), model_state(i,ispec_model:ispec_model-1+nspec)
   enddo
 
 end subroutine init_1d_tanh
