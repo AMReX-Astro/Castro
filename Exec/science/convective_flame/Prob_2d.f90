@@ -85,7 +85,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
 
   ! generate the initial model
-  call init_1d_tanh(nx_model)
+  call init_1d_tanh(nx_model, problo(2), probhi(2))
 
   ! set the ambient conditions -- these are used for the upper boundary
   rho_ambient = model_state(npts_model,idens_model)

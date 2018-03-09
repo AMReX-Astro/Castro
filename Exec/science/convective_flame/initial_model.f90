@@ -43,7 +43,7 @@
 !!
 !! this uses the model_parser_module to store the result
 
-subroutine init_1d_tanh(nx)
+subroutine init_1d_tanh(nx, xmin, xmax)
 
   use bl_types
   use bl_constants_module
@@ -59,6 +59,7 @@ subroutine init_1d_tanh(nx)
   implicit none
 
   integer, intent(in) :: nx
+  real(kind=dp_t) :: xmin, xmax
 
   integer :: i, n
 
@@ -75,7 +76,7 @@ subroutine init_1d_tanh(nx)
   integer :: iash1, iash2, iash3
   logical :: species_defined
 
-  real (kind=dp_t) :: xmin, xmax, dCoord
+  real (kind=dp_t) :: dCoord
 
   real (kind=dp_t) :: dens_zone, temp_zone, pres_zone, entropy
   real (kind=dp_t) :: dpd, dpt, dsd, dst
@@ -100,6 +101,7 @@ subroutine init_1d_tanh(nx)
 
   type (eos_t) :: eos_state
 
+  real(kind=dp_t) :: sumX
 
   ! get the species indices
   species_defined = .true.
@@ -218,10 +220,14 @@ subroutine init_1d_tanh(nx)
   ! set an initial temperature profile and composition
   do i = 1, nx
 
-     !hyperbolic tangent transition:
+     ! hyperbolic tangent transition:
      model_state(i,ispec_model:ispec_model-1+nspec) = xn_star(1:nspec) + &
           HALF*(xn_base(1:nspec) - xn_star(1:nspec))* &
           (ONE + tanh((model_r(i) - (xmin + H_star - atm_delta) + atm_delta)/atm_delta))
+
+     ! force them to sum to 1
+     sumX = sum(model_state(i,ispec_model:ispec_model-1+nspec))
+     model_state(i,ispec_model:ispec_model-1+nspec) = model_state(i,ispec_model:ispec_model-1+nspec) / sumX
 
      model_state(i,itemp_model) = T_star + HALF*(T_base - T_star)* &
           (ONE + tanh((model_r(i) - (xmin + H_star - atm_delta) + atm_delta)/atm_delta))
@@ -560,6 +566,10 @@ subroutine init_1d_tanh(nx)
      model_state(i,itemp_model) = temp_zone
      model_state(i,ipres_model) = pres_zone
 
+  enddo
+
+  do i = 1, nx
+     print *, i, model_state(i,idens_model), model_state(i,ispec_model:ispec_model-1+nspec)
   enddo
 
 end subroutine init_1d_tanh
