@@ -14,13 +14,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: init, namlen
   integer :: name(namlen)
-  real(rt)         :: problo(2), probhi(2)
+  real(rt) :: problo(2), probhi(2)
 
   type (eos_t) :: eos_state
 
   integer :: untin, i
 
-  namelist /fortin/ pert_factor, x_pert_loc, pert_width, &
+  namelist /fortin/ nx_model, pert_factor, x_pert_loc, pert_width, &
                     cutoff_density, refine_cutoff_height, &
                     zero_vels, &
                     dens_base, T_star, T_base, T_lo, H_star, atm_delta, &
@@ -83,9 +83,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin, fortin)
   close(untin)
 
-  ! read the initial model
-  call read_model_file(model_name)
 
+  ! generate the initial model
+  call init_1d_tanh(nx_model)
 
   ! set the ambient conditions -- these are used for the upper boundary
   rho_ambient = model_state(npts_model,idens_model)

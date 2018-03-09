@@ -18,6 +18,8 @@ module probdata_module
 
   real(rt)        , save :: refine_cutoff_height
 
+  integer, save :: nx_model
+
   real(rt), save :: T_base, T_star, T_lo
   real(rt), save :: dens_base
   real(rt), save :: H_star, atm_delta
