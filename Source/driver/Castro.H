@@ -922,7 +922,8 @@ protected:
   
     // sdc
     int sdc_iteration;
-  
+    int current_sdc_node;
+
     // method of lines
     int mol_iteration;
 

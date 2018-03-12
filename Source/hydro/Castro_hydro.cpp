@@ -258,9 +258,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   // update to the state, is stored in the multifab A_update, which is
   // passed in
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
-
+  if (verbose && ParallelDescriptor::IOProcessor()) {
+    if (time_integration_method == MOL) {
+      std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
+    } else if (time_integration_method == SDC) {
+      std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
+    }
+  }
 
   // we'll add each stage's contribution to -div{F(U)} as we compute them
   if (mol_iteration == 0) {

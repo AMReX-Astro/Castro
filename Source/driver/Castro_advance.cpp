@@ -589,6 +589,8 @@ Castro::do_advance_sdc (Real time,
 
   for (int m=0; m < SDC_NODES; m++) {
 
+    current_sdc_node = m;
+
     // k_new represents carries the solution.  Coming into here, it
     // will be entirely the old state, but we update it on each time
     // node in place.
