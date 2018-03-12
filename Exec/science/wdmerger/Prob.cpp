@@ -17,6 +17,7 @@ int Castro::problem = -1;
 int Castro::use_stopping_criterion = 1;
 int Castro::use_energy_stopping_criterion = 0;
 Real Castro::ts_te_stopping_criterion = 1.e200;
+Real Castro::T_stopping_criterion = 1.e200;
 
 Real Castro::mass_p = 0.0;
 Real Castro::mass_s = 0.0;
@@ -607,6 +608,7 @@ void Castro::problem_post_init() {
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
+  pp.query("T_stopping_criterion", T_stopping_criterion);
 
   // Get the problem number fom Fortran.
 
@@ -656,6 +658,7 @@ void Castro::problem_post_restart() {
   pp.query("use_stopping_criterion", use_stopping_criterion);
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
+  pp.query("T_stopping_criterion", T_stopping_criterion);
 
   // Get the problem number from Fortran.
 
@@ -737,11 +740,14 @@ void Castro::check_to_stop(Real time) {
 
     get_job_status(&jobDoneStatus);
 
-#if (BL_SPACEDIM > 1)
     if (use_stopping_criterion) {
 
       if (problem == 0) {
 
+          // Note that we don't want to use the following in 1D
+          // since we're not simulating gravitationally bound systems.
+
+#if BL_SPACEDIM > 1
           if (use_energy_stopping_criterion) {
 
               // For the collision problem, we know we are done when the total energy
@@ -823,6 +829,7 @@ void Castro::check_to_stop(Real time) {
               }
 
           }
+#endif
 
           if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
@@ -832,6 +839,18 @@ void Castro::check_to_stop(Real time) {
 
               amrex::Print() << std::endl
                              << "Ending simulation because we are above the threshold for unstable burning."
+                             << std::endl;
+
+          }
+
+          if (T_curr_max >= T_stopping_criterion) {
+
+              jobDoneStatus = 1;
+
+              set_job_status(&jobDoneStatus);
+
+              amrex::Print() << std::endl
+                             << "Ending simulation because we are above the temperature threshold."
                              << std::endl;
 
           }
@@ -857,7 +876,6 @@ void Castro::check_to_stop(Real time) {
       }
 
     }
-#endif
 
     // Is the job done? If so, signal this to AMReX.
 
