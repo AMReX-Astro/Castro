@@ -630,6 +630,18 @@ extern "C"
      BL_FORT_FAB_ARG_3D(A_1_old),
      const int* m_start);
 
+#ifdef REACTIONS
+  void ca_sdc_update_o2
+    (const int lo[], const int hi[],
+     const amrex::Real* time,
+     const BL_FORT_FAB_ARG_3D(k_m),
+     BL_FORT_FAB_ARG_3D(k_n),
+     BL_FORT_FAB_ARG_3D(A_m),
+     BL_FORT_FAB_ARG_3D(A_0_old),
+     BL_FORT_FAB_ARG_3D(A_1_old),
+     const int* m_start);
+#endif
+
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,

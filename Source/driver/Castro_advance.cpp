@@ -669,6 +669,15 @@ Castro::do_advance_sdc (Real time,
       }
     }
 
+#ifdef REACTIONS
+    // if this is the first node of a new iteration, then we need
+    // to compute and store the old reactive source -- we don't
+    // save this, to save memory
+    if (m == 0) {
+      construct_old_react_source();
+    }
+#endif
+
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data.  Note we don't do
     // this if we are on the final node (since there is nothing to
