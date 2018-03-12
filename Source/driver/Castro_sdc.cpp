@@ -63,4 +63,33 @@ Castro::construct_old_react_source() {
   // this routine simply fills R_old with the old-iteration reactive
   // source
 
+  // at this point, k_new has not yet been updated, so it represents
+  // the state at the SDC nodes from the previous iteration
+  for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
+
+    const Box& bx = mfi.tilebox();
+
+    for (int m=0; m < SDC_NODES; m++) {
+
+      // do a conserve to primitive conversion
+
+      // construct the reactive source term
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
+                             BL_TO_FORTRAN_3D((*k_new[m])[mfi]),
+                             BL_TO_FORTRAN_3D((*R_old[m])[mfi]));
+
+      // if we are the very first iteration, then there is no old state
+      // at all the time nodes, so we just copy R_old[0] into the other
+      // nodes
+      if (sdc_iteration == 0) {
+
+        for (int n=1; n < SDC_NODES; n++) {
+          MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old.nComp(), 0);
+        }
+
+        break;
+      }
+
+    }
+
 }
