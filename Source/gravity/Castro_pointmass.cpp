@@ -25,8 +25,8 @@ Castro::pointmass_update(Real time, Real dt)
 
 	    const Box& bx = mfi.tilebox();
 
-	    pm_compute_delta_mass(&mass_change_at_center,
-				  ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+	    pm_compute_delta_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                                  &mass_change_at_center,
 				  BL_TO_FORTRAN_3D(S_old[mfi]),
 				  BL_TO_FORTRAN_3D(S_new[mfi]),
 				  BL_TO_FORTRAN_3D(volume[mfi]),

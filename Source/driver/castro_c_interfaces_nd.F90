@@ -129,7 +129,7 @@ contains
   end subroutine ca_reset_internal_e
 
 
-  subroutine ca_normalize_species(u, u_lo, u_hi, lo, hi, idx) &
+  subroutine ca_normalize_species(lo,hi,u, u_lo, u_hi, idx) &
        bind(C, name="ca_normalize_species")
 
     use castro_util_module, only: normalize_species
@@ -146,10 +146,10 @@ contains
   end subroutine ca_normalize_species
 
 
-  subroutine ca_enforce_minimum_density(uin, uin_lo, uin_hi, &
+  subroutine ca_enforce_minimum_density(lo, hi, uin, uin_lo, uin_hi, &
                                         uout, uout_lo, uout_hi, &
                                         vol, vol_lo, vol_hi, &
-                                        lo, hi, frac_change, verbose, idx) &
+                                        frac_change, verbose, idx) &
                                         bind(C, name="ca_enforce_minimum_density")
 #ifndef MHD 
     use advection_util_module, only: enforce_minimum_density

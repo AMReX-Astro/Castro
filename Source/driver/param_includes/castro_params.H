@@ -3,6 +3,14 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef PARTICLES
+static int do_tracer_particles;
+#endif
+#ifdef POINTMASS
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 #ifdef DIFFUSION
 static int diffuse_temp;
 static int diffuse_enth;
@@ -10,29 +18,6 @@ static int diffuse_spec;
 static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
-#ifdef MHD
-static int ppm_reference;
-static int ppm_flatten_before_integrals;
-#endif
-#ifdef PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -47,6 +32,7 @@ static amrex::Real small_pres;
 static amrex::Real small_ener;
 static int do_hydro;
 static int do_ctu;
+static int fourth_order;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
@@ -87,6 +73,7 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
+static int mol_order;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;
@@ -135,3 +122,18 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef MHD
+static int ppm_reference;
+static int ppm_flatten_before_integrals;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif

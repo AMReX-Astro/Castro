@@ -62,4 +62,4 @@ amr.plot_vars = ALL
 amr.derive_plot_vars = NONE
 
 # PROBIN FILENAME
-amr.probin_file = probin.p5
+amr.probin_file = probin.p3

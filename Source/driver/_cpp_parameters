@@ -59,6 +59,9 @@ do_hydro                     int          -1                  y
 # do we do the CTU unsplit method or a method-of-lines approach?
 do_ctu                       int           1                  y
 
+# do we do fourth-order accurate MOL hydro?
+fourth_order                 int           0                  y
+
 # if true, define an additional source term
 add_ext_src                  int           0
 
@@ -224,6 +227,12 @@ hse_interp_temp              int           0                  y
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
+
+
+# integration order for MOL integration
+# 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
+mol_order                    int           2                  y
+
 
 #-----------------------------------------------------------------------------
 # category: timestep control

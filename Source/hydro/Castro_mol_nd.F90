@@ -1,7 +1,7 @@
 ! advection routines in support of method of lines integration
 
-subroutine ca_mol_single_stage(time, &
-                               lo, hi, domlo, domhi, &
+subroutine ca_mol_single_stage(lo, hi, time, &
+                               domlo, domhi, &
                                stage_weight, &
                                uin, uin_lo, uin_hi, &
                                uout, uout_lo, uout_hi, &
@@ -113,7 +113,6 @@ subroutine ca_mol_single_stage(time, &
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
   real(rt)        , pointer:: div(:,:,:)
-  real(rt)        , pointer:: pdivu(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , pointer:: q1(:,:,:,:)
@@ -160,7 +159,6 @@ subroutine ca_mol_single_stage(time, &
   shk_hi(:) = hi(:) + dg(:)
 
   call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
-  call bl_allocate( pdivu, lo(1), hi(1)  , lo(2), hi(2)      , lo(3), hi(3)  )
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if BL_SPACEDIM >= 2
@@ -281,7 +279,7 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
      do n = 1, NQ
-        call ppm_reconstruct(q(:,:,:,n  ), q_lo, q_hi, &
+        call ppm_reconstruct(q, q_lo, q_hi, NQ, n, &
                              flatn, q_lo, q_hi, &
                              sxm, sxp, &
 #if BL_SPACEDIM >= 2
@@ -505,20 +503,6 @@ subroutine ca_mol_single_stage(time, &
   call divu(lo, hi, q, q_lo, q_hi, &
             dx, div, lo, hi+dg)
 
-  call calc_pdivu(lo, hi, &
-                  q1, flux1_lo, flux1_hi, &
-                  area1, area1_lo, area1_hi, &
-#if BL_SPACEDIM >= 2
-                  q2, flux2_lo, flux2_hi, &
-                  area2, area2_lo, area2_hi, &
-#endif
-#if BL_SPACEDIM == 3
-                  q3, flux3_lo, flux3_hi, &
-                  area3, area3_lo, area3_hi, &
-#endif
-                  vol, vol_lo, vol_hi, &
-                  dx, pdivu, lo, hi)
-
   do n = 1, NVAR
 
      if ( n == UTEMP ) then
@@ -638,10 +622,6 @@ subroutine ca_mol_single_stage(time, &
                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
                     flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
-              ! Add the p div(u) source term to (rho e).
-              if (n .eq. UEINT) then
-                 update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
-              endif
 
 #if BL_SPACEDIM == 1
               if (n == UMX) then
@@ -731,7 +711,6 @@ subroutine ca_mol_single_stage(time, &
 #endif
 
   call bl_deallocate(   div)
-  call bl_deallocate( pdivu)
 
   call bl_deallocate(q1)
 #if BL_SPACEDIM >= 2

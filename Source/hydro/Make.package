@@ -10,6 +10,7 @@ ca_F90EXE_sources += advection_util_nd.F90
 ca_F90EXE_sources += flatten_nd.F90
 
 ca_F90EXE_sources += ppm_nd.F90
+ca_F90EXE_sources += fourth_order.F90
 ca_F90EXE_sources += riemann_nd.F90
 ca_F90EXE_sources += riemann_util.F90
 ca_F90EXE_sources += slope_nd.F90
@@ -18,6 +19,7 @@ ca_F90EXE_sources += trace_ppm_nd.F90
 
 ca_F90EXE_sources += Castro_ctu_nd.F90
 ca_F90EXE_sources += Castro_mol_nd.F90
+ca_F90EXE_sources += Castro_fourth_order.F90
 ca_F90EXE_sources += Castro_advection_$(DIM)d.F90
 
 ifeq ($(DIM), 2)

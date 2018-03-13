@@ -1481,6 +1481,7 @@ contains
 
           drho    = rho_ref    - Ip(i,j,km,3,2,QRHO) - hdt*Ip_src(i,j,km,3,2,QRHO)
           dptot   = ptot_ref   - Ip(i,j,km,3,2,qptot) - hdt*Ip_src(i,j,km,3,2,QPRES)
+
           drhoe_g = rhoe_g_ref - Ip(i,j,km,3,2,QREINT) - hdt*Ip_src(i,j,km,3,2,QREINT)
           dtau  = tau_ref  - ONE/Ip(i,j,km,3,2,QRHO) + hdt*Ip_src(i,j,km,3,2,QRHO)/Ip(i,j,km,3,2,QRHO)**2
           der(:)  = er_ref(:)  - Ip(i,j,km,3,2,qrad:qradhi)
