@@ -2,6 +2,7 @@ New toy problem of a convectively propagate flame, where rotation
 keeps it localized.  Note this problem now generates the initial
 model in the probinit
 
+
 There are several parameters that affect the dynamics of this problem:
 
  -- atmosphere
