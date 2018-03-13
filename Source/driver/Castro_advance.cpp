@@ -109,13 +109,15 @@ Castro::advance (Real time,
 
         }
 
-    } else {
+    }
+#ifndef MHD 
+     else {
       for (int iter = 0; iter < MOL_STAGES; ++iter) {
 	mol_iteration = iter;
 	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
       }
     }
-
+#endif
     // Optionally kill the job at this point, if we've detected a violation.
 
     if (cfl_violation && hard_cfl_limit)
@@ -364,6 +366,7 @@ Castro::do_advance (Real time,
 }
 
 
+#ifndef MHD
 Real
 Castro::do_advance_mol (Real time,
                         Real dt,
@@ -388,12 +391,6 @@ Castro::do_advance_mol (Real time,
 
   MultiFab& S_old = get_old_data(State_Type);
   MultiFab& S_new = get_new_data(State_Type);
-#ifdef MHD
-  MultiFab& Bx_new = get_new_data(Mag_Type_x);
-  MultiFab& By_new = get_new_data(Mag_Type_y);
-  MultiFab& Bz_new = get_new_data(Mag_Type_z);
-#endif
-
   // Perform initialization steps.
 
   initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -535,21 +532,13 @@ Castro::do_advance_mol (Real time,
     MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
-  clean_state(
-#ifdef MHD
-              Bx_new, By_new, Bz_new,
-#endif 
-              S_new);
+  clean_state(S_new);
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(
-#ifdef MHD
-                 Bx_new, By_new, Bz_new,
-#endif 
-                 S_new, cur_time, S_new.nGrow());
+    expand_state(S_new, cur_time, S_new.nGrow());
   }
 
   // Check for NaN's.
@@ -564,18 +553,10 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(
-#ifdef MHD
-                 Bx_new, By_new, Bz_new,
-#endif 
-               Sborder, prev_time, Sborder.nGrow());
+  expand_state(Sborder, prev_time, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-  expand_state(
-#ifdef MHD
-                 Bx_new, By_new, Bz_new,
-#endif 
-               Sborder, cur_time, Sborder.nGrow());
+  expand_state(Sborder, cur_time, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
   // Do the second half of the reactions.
@@ -590,7 +571,7 @@ Castro::do_advance_mol (Real time,
 
   return dt;
 }
-
+#endif
 
 
 void
