@@ -572,6 +572,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      else
         ! do the artificial viscosity
+        continue
+#ifdef THIS_IS_NOT_FOURTH_ORDER_ACCURATE
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
@@ -613,6 +615,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
            enddo
         enddo
 #endif
+#endif  
      endif
 
   enddo
