@@ -325,7 +325,7 @@ Castro::do_advance (Real time,
 
 #ifdef THORNADO
     int my_ncomp = BL_SPACEDIM+3;  \\ rho, rho*u, rho*v, rho*w, rho*E, Y_e
-    int my_ngrow = 0;  \\ per Eirik
+    int my_ngrow = 1;  \\ one fluid ghost cell
     // Create a temporary so it has the right order of the right variables and no ghost cells
     MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
 
