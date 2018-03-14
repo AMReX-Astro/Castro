@@ -27,7 +27,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 
 #ifdef REACTIONS
     // advection + reactions
-    if (mol_order == 2) {
+    if (sdc_order == 2) {
       ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
                        BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                        BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
@@ -36,11 +36,11 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
                        &m_start);
     } else {
-      amrex::Abort("mol_order != 2 not implemented");
+      amrex::Abort("sdc_order != 2 not implemented");
     }
 #else
     // pure advection
-    if (mol_order == 2) {
+    if (sdc_order == 2) {
       ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
                                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
@@ -49,7 +49,14 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
                                  &m_start);
     } else {
-      amrex::Abort("mol_order != 2 not implemented");
+      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt_m,
+                                 BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                 BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                 BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                 BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                 BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                 BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                 &m_start);
     }
 #endif
 
@@ -57,6 +64,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 }
 
 
+#ifdef REACTIONS
 void
 Castro::construct_old_react_source() {
 
@@ -93,3 +101,4 @@ Castro::construct_old_react_source() {
     }
 
 }
+#endif
