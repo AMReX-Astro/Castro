@@ -30,8 +30,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! Set namelist defaults
 
-  rho0 = 1.4
-  drho0 = 0.14
+  rho0 = 1.4_rt
+  drho0 = 0.14_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -105,7 +105,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2)
 
         if (dist <= HALF) then
-           state(i,j,URHO) = rho0 + drho0*exp(-16*dist**2) * cos(M_PI*dist)**6
+           state(i,j,URHO) = rho0 + drho0*exp(-16.d0*dist**2) * cos(M_PI*dist)**6
         else
            state(i,j,URHO) = rho0
         endif
