@@ -683,7 +683,7 @@ Castro::do_advance_sdc (Real time,
     // this if we are on the final node (since there is nothing to
     // update to
     if (m < SDC_NODES-1) {
-      do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
+      do_sdc_update(m, m+1, (dt_sdc[m+1] - dt_sdc[m])*dt);
     }
 
   } // node iteration
