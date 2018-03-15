@@ -496,6 +496,7 @@ contains
     real(rt)         :: ptot, ctot, gamc_tot
 #endif
 
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
 

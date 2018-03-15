@@ -584,7 +584,12 @@ Castro::do_advance_sdc (Real time,
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
 
+  // we loop over all nodes, even the last, since we need to compute
+  // the advective update source at each node
+
   for (int m=0; m < SDC_NODES; m++) {
+
+    current_sdc_node = m;
 
     // k_new represents carries the solution.  Coming into here, it
     // will be entirely the old state, but we update it on each time
@@ -596,8 +601,11 @@ Castro::do_advance_sdc (Real time,
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
+    std::cout << "copying, m = " << m << std::endl;
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+    std::cout << "done" << std::endl;
     expand_state(Sborder, cur_time, NUM_GROW);
+    std::cout << "expanded" << std::endl;
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -661,9 +669,22 @@ Castro::do_advance_sdc (Real time,
       }
     }
 
+#ifdef REACTIONS
+    // if this is the first node of a new iteration, then we need
+    // to compute and store the old reactive source -- we don't
+    // save this, to save memory
+    if (m == 0) {
+      construct_old_react_source();
+    }
+#endif
+
     // update to the next stage -- this involves computing the
-    // integral over the k-1 iteration data
-    do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
+    // integral over the k-1 iteration data.  Note we don't do
+    // this if we are on the final node (since there is nothing to
+    // update to
+    if (m < SDC_NODES-1) {
+      do_sdc_update(m, m+1, dt_sdc[m+1]*dt);
+    }
 
   } // node iteration
 
@@ -1009,6 +1030,38 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       Sburn.define(grids, dmap, NUM_STATE, 0);
     }
 
+    if (time_integration_method == SDC) {
+
+      MultiFab& S_old = get_old_data(State_Type);
+      k_new.resize(SDC_NODES);
+      k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
+      for (int n = 1; n < SDC_NODES; ++n) {
+	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+	k_new[n]->setVal(0.0);
+      }
+
+      A_old.resize(SDC_NODES);
+      for (int n = 0; n < SDC_NODES; ++n) {
+	A_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+	A_old[n]->setVal(0.0);
+      }
+
+      A_new.resize(SDC_NODES);
+      A_new[0].reset(new MultiFab(*A_old[0], amrex::make_alias, 0, NUM_STATE));
+      for (int n = 1; n < SDC_NODES; ++n) {
+	A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_new[n]->setVal(0.0);
+      }
+
+#ifdef REACTIONS
+      R_old.resize(SDC_NODES);
+      for (int n = 0; n < SDC_NODES; ++n) {
+	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        R_old[n]->setVal(0.0);
+      }
+#endif
+    }
+
     // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
@@ -1077,7 +1130,15 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       k_mol.clear();
       Sburn.clear();
     }
-
+    
+    if (time_integration_method == SDC) {
+      k_new.clear();
+      A_new.clear();
+      A_old.clear();
+#ifdef REACTIONS
+      R_old.clear();
+#endif
+    }
 }
 
 

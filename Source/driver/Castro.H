@@ -588,6 +588,10 @@ public:
 
     void do_sdc_update(int m1, int m2, amrex::Real dt);
 
+#ifdef REACTIONS
+    void construct_old_react_source();
+#endif
+
 #ifdef PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
@@ -922,7 +926,8 @@ protected:
   
     // sdc
     int sdc_iteration;
-  
+    int current_sdc_node;
+
     // method of lines
     int mol_iteration;
 
