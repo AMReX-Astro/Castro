@@ -601,11 +601,8 @@ Castro::do_advance_sdc (Real time,
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
-    std::cout << "copying, m = " << m << std::endl;
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    std::cout << "done" << std::endl;
     expand_state(Sborder, cur_time, NUM_GROW);
-    std::cout << "expanded" << std::endl;
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -687,6 +684,11 @@ Castro::do_advance_sdc (Real time,
     }
 
   } // node iteration
+
+  // store A_old for the next SDC iteration
+  for (int n=0; n < SDC_NODES; n++) {
+    MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
+  }
 
 
   // I think this bit only needs to be done for the last iteration...
