@@ -680,13 +680,14 @@ Castro::do_advance_sdc (Real time,
     // this if we are on the final node (since there is nothing to
     // update to
     if (m < SDC_NODES-1) {
-      do_sdc_update(m, m+1, (dt_sdc[m+1] - dt_sdc[m])*dt);
+      do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
     }
 
   } // node iteration
 
-  // store A_old for the next SDC iteration
-  for (int n=0; n < SDC_NODES; n++) {
+  // store A_old for the next SDC iteration -- don't need to do n=0,
+  // since that is unchanged
+  for (int n=1; n < SDC_NODES; n++) {
     MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
   }
 

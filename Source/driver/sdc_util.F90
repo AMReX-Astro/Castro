@@ -51,7 +51,7 @@ contains
   end subroutine ca_sdc_update_advection_o2
 
 
-  subroutine ca_sdc_update_advection_o4(lo, hi, dt_m, &
+  subroutine ca_sdc_update_advection_o4(lo, hi, dt, &
                                         k_m, kmlo, kmhi, &
                                         k_n, knlo, knhi, &
                                         A_m, Amlo, Amhi, &
@@ -61,14 +61,15 @@ contains
                                         m_start) bind(C, name="ca_sdc_update_advection_o4")
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
+    ! dt is the total timestep from n to n+1
 
     use meth_params_module, only : NVAR
-    use bl_constants_module, only : FIVE, EIGHT
+    use bl_constants_module, only : TWO, FIVE, EIGHT
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: dt
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
@@ -87,14 +88,19 @@ contains
     real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
 
     integer :: i, j, k
+    real(rt) :: dt_m
+
+
+    dt_m = dt/TWO
 
     if (m_start == 0) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                k_n(i,j,k,:) = k_m(i,j,k,:) + dt_m/24.0_rt * &
-                     (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/24.0_rt * (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
              enddo
           enddo
        enddo
@@ -104,8 +110,9 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                k_n(i,j,k,:) = k_m(i,j,k,:) + dt_m/24.0_rt * &
-                     (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/24.0_rt * (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
              enddo
           enddo
        enddo
