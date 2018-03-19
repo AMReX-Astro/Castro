@@ -203,11 +203,11 @@ contains
   ! Reactions-limited timestep
 
 #ifdef REACTIONS
-  subroutine ca_estdt_burning(sold, so_lo, so_hi, &
+  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
                               snew, sn_lo, sn_hi, &
                               rold, ro_lo, ro_hi, &
                               rnew, rn_lo, rn_hi, &
-                              lo, hi, dx, dt_old, dt) &
+                              dx, dt_old, dt) &
                               bind(C, name="ca_estdt_burning")
 
     use bl_constants_module, only: HALF, ONE
@@ -506,13 +506,12 @@ contains
   ! Check whether the last timestep violated any of our stability criteria.
   ! If so, suggest a new timestep which would not.
 
-  subroutine ca_check_timestep(s_old, so_lo, so_hi, &
+  subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
                                s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
                                r_old, ro_lo, ro_hi, &
                                r_new, rn_lo, rn_hi, &
 #endif
-                               lo, hi, &
                                dx, dt_old, dt_new) &
                                bind(C, name="ca_check_timestep")
 

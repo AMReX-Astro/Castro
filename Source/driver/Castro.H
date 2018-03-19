@@ -54,6 +54,7 @@ enum StateType { State_Type = 0,
 // Create storage for all source terms.
 
 enum sources { ext_src = 0,
+               thermo_src,
 #ifdef SPONGE
                sponge_src,
 #endif
@@ -241,6 +242,11 @@ public:
                      int  amr_iteration,
                      int  amr_ncycle);
 
+    amrex::Real do_advance_mol (amrex::Real time,
+                     amrex::Real dt,
+                     int  amr_iteration,
+                     int  amr_ncycle);
+
     amrex::Real retry_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     amrex::Real subcycle_advance (amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
@@ -254,6 +260,8 @@ public:
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
     void cons_to_prim(const amrex::Real time);
+
+    void cons_to_prim_fourth(const amrex::Real time);
 
     void check_for_cfl_violation(const amrex::Real dt);
 
@@ -307,6 +315,16 @@ public:
     void construct_new_ext_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
     void fill_ext_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& S_old, amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+
+    void construct_old_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                                     amrex::Real time, amrex::Real dt);
+
+    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+                                     amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+    void fill_thermo_source(amrex::Real time, amrex::Real dt,
+                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
+                            amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
 #ifdef SELF_GRAVITY
@@ -663,6 +681,9 @@ protected:
     //
     amrex::MultiFab q;
 
+    // we need a second version when doing fourth order
+    amrex::MultiFab q_bar;
+
     //
     // The auxiliary primitive variable state array.
     //
@@ -902,6 +923,7 @@ protected:
     static std::string probin_file;
 
     static amrex::IntVect hydro_tile_size;
+    static amrex::IntVect no_tile_size;
 
     static int Knapsack_Weight_Type;
     static int num_state_type;

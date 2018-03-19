@@ -145,18 +145,18 @@ extern "C"
 
 #ifdef DIMENSION_AGNOSTIC
   void set_problem_tags
-    (int* tag, const int* tag_lo, const int* tag_hi,
+    (const int* lo, const int* hi,
+     int* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* tagval, const int* clearval,
-     const int* lo, const int* hi,
      const amrex::Real* dx, const amrex::Real* problo,
      const amrex::Real* time, const int* level);
 #else
   void set_problem_tags
-    (int* tag, ARLIM_P(tag_lo), ARLIM_P(tag_hi),
+    (const int lo[], const int hi[],
+     int* tag, ARLIM_P(tag_lo), ARLIM_P(tag_hi),
      BL_FORT_FAB_ARG(state),
      const int* tagval, const int* clearval,
-     const int lo[], const int hi[],
      const amrex::Real dx[], const amrex::Real problo[],
      const amrex::Real* time, const int* level);
 #endif
