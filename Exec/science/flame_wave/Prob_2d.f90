@@ -15,7 +15,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   namelist /fortin/ model_name, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density
+                    X_min, cutoff_density, hot_ash
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -25,6 +25,13 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   if (namlen > maxlen) call bl_error("probin file name too long")
 
+  ifuel = network_species_index("helium-4")
+  iash = network_species_index("oxygen-16")
+
+  if (ifuel < 0 .or. iash < 0) then
+     call bl_error("fuel or ash are not defined")
+  endif
+
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
@@ -32,7 +39,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! Namelist defaults
   X_min = 1.e-4_rt
   cutoff_density = 500.e0_rt
-
 
   dtemp = 3.81e8_rt
   x_half_max = 1.2e5_rt
@@ -101,6 +107,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
+  real(rt) :: sum_excess, sum_excess2, current_fuel
 
 
   do j = lo(2), hi(2)
@@ -165,9 +172,29 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                 (ONE + exp((x-x_half_max)/x_half_width))
         end if
 
+        ! switch back to mass fractions for a bit
         do n = 1,nspec
            state(i,j,UFS+n-1) = state(i,j,UFS+n-1) / state(i,j,URHO)
         end do
+
+        ! give the ash a similar profile by dropping the fuel and putting
+        ! the change in the ash
+        if (hot_ash) then
+           if (state(i,j,UFS-1+ifuel) > 0.1 .and. state(i,j,URHO) > 1.0e5_rt) then
+              current_fuel = state(i,j,UFS-1+ifuel)
+              state(i,j,UFS-1+ifuel) = min(ONE, max(current_fuel - current_fuel/(ONE + exp((x-x_half_max)/x_half_width)), ZERO))
+              sum_excess = 0.0_rt
+              do n = 1, nspec
+                 if (n == iash) continue
+                 sum_excess = sum_excess + state(i,j,UFS-1+n)
+              enddo
+              state(i,j,UFS-1+iash) = min(ONE, max((ONE - sum_excess), ZERO))
+              sum_excess2 = sum(state(i,j,UFS:UFS-1+nspec)) - ONE 
+              if (abs(sum_excess2) > 1.d-4) then
+                 print *, i,j, state(i,j,UFS:UFS-1+nspec), sum(state(i,j,UFS:UFS-1+nspec)) - ONE , sum_excess
+              endif
+           endif
+        endif
 
         eos_state%T = state(i,j,UTEMP)
         eos_state%p = temppres(i,j)
