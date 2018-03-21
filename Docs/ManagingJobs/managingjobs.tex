@@ -41,6 +41,12 @@ module load cray-mpich-compat/v7
 module swap craype/2.5.12
 \end{verbatim}
   However, unfortunately the same compiler bug as above appears.
+
+\item It seems that setting
+\begin{verbatim}
+IPA_DISABLE_DISCARDING=1
+\end{verbatim}
+when compiling, it will work around the bug.
 \end{itemize}
 
 %To compile and link we need to use the CCE/8.5.7 compilers and 
