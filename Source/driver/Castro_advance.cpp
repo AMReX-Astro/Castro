@@ -778,7 +778,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
 
-    } else {
+    } else if (time_integration_method == MOL)  {
       // for Method of lines, our initialization of Sborder depends on
       // which stage in the RK update we are working on
 
@@ -814,7 +814,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	expand_state(Sborder, new_time, NUM_GROW);
 
       }
+
+    } else if (time_integration_method == SDC) {
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+
+    } else {
+      amrex::Abort("invalid time_integration_method");
     }
+
 }
 
 
