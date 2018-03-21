@@ -167,7 +167,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      do i = lo(1), hi(1)
         x = problo(1) + (dble(i)+HALF)*delta(1)
 
-        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 1.0e5_rt) then
+        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 2.0e5_rt) then
            state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
                 (ONE + exp((x-x_half_max)/x_half_width))
         end if

@@ -1,11 +1,11 @@
 &fortin
 
-  model_name =  "flame_wave.hse.tanh.delta_12.000cm.dx_20.000cm"
+  model_name =  "flame_wave.hse.tanh.delta_12.000cm.dx_20.000cm.cool"
 
   interp_BC = F
   zero_vels = F
 
-  dtemp = 3.81d8
+  dtemp = 1.2e9
   x_half_max = 1.048d4
   x_half_width = 512.d0
 
