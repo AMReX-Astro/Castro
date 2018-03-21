@@ -349,14 +349,24 @@ Castro::do_advance (Real time,
     MultiFab& U_R_new = get_new_data(Thornado_Type);
 
     // For now we will not allowing logical tiling
-    for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
+    int n_sub = GetNSteps(dt_sub); \\ From thornado
+
+    for (int i = 0; i < n_sub; i++)
     {
+      dt_sub = dt / n_sub;
+
+      for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
+      {
+        if (i == 0)  init_thornado_on_patch();
+
         const Box& bx = mfi.validbox();
         call_to_thornado(BL_TO_FORTRAN_BOX(bx),
                          BL_TO_FORTRAN_FAB(U_F[mfi]),
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]),
-                         BL_TO_FORTRAN_FAB(dU_F[mfi]));
+                         BL_TO_FORTRAN_FAB(dU_F[mfi]),&dt_sub);
+      }
+      U_F.FillBoundary();
     }
 
 #endif
