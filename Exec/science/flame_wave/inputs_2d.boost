@@ -14,7 +14,7 @@ amr.n_cell           = 128         128
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   1 
+castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = "hse"
@@ -46,7 +46,7 @@ castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
 castro.diffuse_cutoff_density = 1.e4
-castro.diffuse_cond_scale_fac = 10.0                                            
+castro.diffuse_cond_scale_fac = 10.0
 
 
 # TIME STEP CONTROL
@@ -54,13 +54,16 @@ castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+castro.use_retry      = 1
+castro.hard_cfl_limit = 0
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 4 4 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -79,4 +82,3 @@ amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 amr.probin_file = probin.boost
-
