@@ -267,7 +267,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   }
 
   // we'll add each stage's contribution to -div{F(U)} as we compute them
-  if (mol_iteration == 0) {
+  // (I don't think we need hydro_source anymore)
+  if ((time_integration_method == MOL && mol_iteration == 0) ||
+      (time_integration_method == SDC && current_sdc_node == 0)) {
     hydro_source.setVal(0.0);
   }
 
@@ -335,6 +337,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 	FArrayBox& vol = volume[mfi];
 
+        Real stage_weight = 1.0;
+
+        if (time_integration_method == MOL) {
+          stage_weight = b_mol[mol_iteration];
+        } 
+
 	// Allocate fabs for fluxes
 	for (int i = 0; i < BL_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
@@ -352,7 +360,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         if (fourth_order) {
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             &(b_mol[mol_iteration]),
+             &stage_weight,
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
              BL_TO_FORTRAN_3D(q[mfi]),
@@ -378,7 +386,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         } else {
           ca_mol_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             &(b_mol[mol_iteration]),
+             &stage_weight,
              BL_TO_FORTRAN_3D(statein), 
              BL_TO_FORTRAN_3D(stateout),
              BL_TO_FORTRAN_3D(q[mfi]),
@@ -404,17 +412,17 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 	for (int i = 0; i < BL_SPACEDIM ; i++) {
-	  (*fluxes    [i])[mfi].saxpy(b_mol[mol_iteration], flux[i], 
-				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
+	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i], 
+                                  mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
-	  (*rad_fluxes[i])[mfi].saxpy(b_mol[mol_iteration], rad_flux[i], 
+	  (*rad_fluxes[i])[mfi].saxpy(stage_weight, rad_flux[i], 
 				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, Radiation::nGroups);
 #endif
 	}
 
 #if (BL_SPACEDIM <= 2)
 	if (!Geometry::IsCartesian()) {
-	  P_radial[mfi].saxpy(b_mol[mol_iteration], pradial,
+	  P_radial[mfi].saxpy(stage_weight, pradial,
                               mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
 	}
 #endif

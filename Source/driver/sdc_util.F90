@@ -64,7 +64,7 @@ contains
     ! dt is the total timestep from n to n+1
 
     use meth_params_module, only : NVAR
-    use bl_constants_module, only : TWO, FIVE, EIGHT
+    use bl_constants_module, only : HALF, TWO, FIVE, EIGHT
 
     implicit none
 
@@ -91,7 +91,7 @@ contains
     real(rt) :: dt_m
 
 
-    dt_m = dt/TWO
+    dt_m = HALF * dt
 
     if (m_start == 0) then
 
