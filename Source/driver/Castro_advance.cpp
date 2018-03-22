@@ -666,6 +666,7 @@ Castro::do_advance_sdc (Real time,
     // 0, the starting state is S_old and never changes with SDC
     // iteration, so we only do this once.
     //if (!(sdc_iteration > 0 && m == 0)) {
+    A_new[m]->setVal(0.0);
       construct_mol_hydro_source(time, dt, *A_new[m]);
     //}
 
