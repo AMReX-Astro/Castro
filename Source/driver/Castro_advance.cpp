@@ -120,6 +120,10 @@ Castro::advance (Real time,
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
 
+      // store the new solution
+      MultiFab& S_new = get_new_data(State_Type);
+      MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
+
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
@@ -591,6 +595,10 @@ Castro::do_advance_sdc (Real time,
 
     current_sdc_node = m;
 
+    if (ParallelDescriptor::IOProcessor())
+      std::cout << "SDC, iteraction " << sdc_iteration << " node: " << current_sdc_node << std::endl;
+
+
     // k_new represents carries the solution.  Coming into here, it
     // will be entirely the old state, but we update it on each time
     // node in place.
@@ -657,15 +665,16 @@ Castro::do_advance_sdc (Real time,
     // A_new[m] with the righthand side for this stage.  Note, for m =
     // 0, the starting state is S_old and never changes with SDC
     // iteration, so we only do this once.
-    if (!(sdc_iteration > 0 && m == 0)) {
+    //if (!(sdc_iteration > 0 && m == 0)) {
       construct_mol_hydro_source(time, dt, *A_new[m]);
-    }
+    //}
 
     // also, if we are the first SDC iteration, we haven't yet stored
     // any old advective terms, so we cannot yet do the quadrature
-    // over nodes.  Initialize those now.
+    // over nodes.  Initialize those now.  Recall, A_new[0] and A_old[0]
+    // are aliased.
     if (sdc_iteration == 0 && m == 0) {
-      for (int n=0; n < SDC_NODES; n++) {
+      for (int n=1; n < SDC_NODES; n++) {
         MultiFab::Copy(*(A_old[n]), *(A_new[0]), 0, 0, NUM_STATE, 0);
       }
     }
@@ -767,14 +776,15 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Scale the source term predictor by the current timestep.
 
 #ifndef SDC
-    if (source_term_predictor == 1) {
+    if (time_integration_method == CTU && source_term_predictor == 1) {
         sources_for_hydro.mult(0.5 * dt, NUM_GROW);
     }
 #endif
 
-    // For the hydrodynamics update we need to have NUM_GROW ghost zones available,
-    // but the state data does not carry ghost zones. So we use a FillPatch
-    // using the state data to give us Sborder, which does have ghost zones.
+    // For the hydrodynamics update we need to have NUM_GROW ghost
+    // zones available, but the state data does not carry ghost
+    // zones. So we use a FillPatch using the state data to give us
+    // Sborder, which does have ghost zones.
 
     if (time_integration_method == CTU) {
       // for the CTU unsplit method, we always start with the old state
@@ -820,6 +830,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       }
 
     } else if (time_integration_method == SDC) {
+
+      // we'll handle the filling inside of do_advance_sdc 
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 
     } else {
@@ -962,10 +974,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Add the source term predictor.
     // This must happen before the swap.
 
-    if (source_term_predictor == 1) {
-
+    if (time_integration_method == CTU && source_term_predictor == 1) {
         apply_source_term_predictor();
-
     }
 
 #else
