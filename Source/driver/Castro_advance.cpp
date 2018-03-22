@@ -366,8 +366,6 @@ Castro::do_advance_mol (Real time,
 
   BL_PROFILE("Castro::do_advance_mol()");
 
-  //std::cout << "mol_iteration = " << mol_iteration << std::endl;
-
   const Real prev_time = state[State_Type].prevTime();
   const Real  cur_time = state[State_Type].curTime();
 
@@ -595,10 +593,6 @@ Castro::do_advance_sdc (Real time,
 
     current_sdc_node = m;
 
-    if (ParallelDescriptor::IOProcessor())
-      std::cout << "SDC, iteraction " << sdc_iteration << " node: " << current_sdc_node << std::endl;
-
-
     // k_new represents carries the solution.  Coming into here, it
     // will be entirely the old state, but we update it on each time
     // node in place.
@@ -665,10 +659,10 @@ Castro::do_advance_sdc (Real time,
     // A_new[m] with the righthand side for this stage.  Note, for m =
     // 0, the starting state is S_old and never changes with SDC
     // iteration, so we only do this once.
-    //if (!(sdc_iteration > 0 && m == 0)) {
-    A_new[m]->setVal(0.0);
+    if (!(sdc_iteration > 0 && m == 0)) {
+      A_new[m]->setVal(0.0);
       construct_mol_hydro_source(time, dt, *A_new[m]);
-    //}
+    }
 
     // also, if we are the first SDC iteration, we haven't yet stored
     // any old advective terms, so we cannot yet do the quadrature
