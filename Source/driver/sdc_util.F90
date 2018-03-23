@@ -168,5 +168,33 @@ contains
     enddo
 
   end subroutine ca_sdc_update_o2
+
+  subroutine ca_instantaneous_react(lo, hi, &
+                                    state, s_lo, s_hi, nvar, &
+                                    R_source, r_lo, r_hi, nvar) &
+                                    bind(C, name="ca_instantaneous_react")
+
+    use meth_params_module, only : NVAR
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+
+    real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
+    real(rt), intent(inout) :: R_source(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
+
+    ! convert from cons to prim
+
+    ! fill the burn_state
+
+    ! call the rhs
+
+    ! store the instantaneous R
+
+  end subroutine ca_instantaneous_react
+
 #endif
+
 end module sdc_util

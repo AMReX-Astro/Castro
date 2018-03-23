@@ -79,8 +79,6 @@ Castro::construct_old_react_source() {
 
     for (int m=0; m < SDC_NODES; m++) {
 
-      // do a conserve to primitive conversion
-
       // construct the reactive source term
       ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
                              BL_TO_FORTRAN_3D((*k_new[m])[mfi]),
