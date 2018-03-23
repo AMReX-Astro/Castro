@@ -90,7 +90,7 @@ Castro::construct_old_react_source() {
       if (sdc_iteration == 0) {
 
         for (int n=1; n < SDC_NODES; n++) {
-          MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old.nComp(), 0);
+          MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old[0]->nComp(), 0);
         }
 
         break;
@@ -98,5 +98,6 @@ Castro::construct_old_react_source() {
 
     }
 
+  }
 }
 #endif

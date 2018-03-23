@@ -651,6 +651,12 @@ extern "C"
      BL_FORT_FAB_ARG_3D(A_0_old),
      BL_FORT_FAB_ARG_3D(A_1_old),
      const int* m_start);
+
+  void ca_instantaneous_react
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R));
+ 
 #endif
 
 #ifdef RADIATION

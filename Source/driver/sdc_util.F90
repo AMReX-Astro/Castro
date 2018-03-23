@@ -170,13 +170,17 @@ contains
   end subroutine ca_sdc_update_o2
 
   subroutine ca_instantaneous_react(lo, hi, &
-                                    state, s_lo, s_hi, nvar, &
-                                    R_source, r_lo, r_hi, nvar) &
+                                    state, s_lo, s_hi, &
+                                    R_source, r_lo, r_hi) &
                                     bind(C, name="ca_instantaneous_react")
 
     use advection_util_module, only : ctoprim
+    use bl_constants_module, only : ZERO
+    use burn_type_module
     use mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NVAR, NQ, NQAUX
+    use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
+    use network, only : nspec, aion
+    use actual_rhs_module
 
     implicit none
 
@@ -203,8 +207,8 @@ contains
 
     call ctoprim(lo, hi, &
                  state, s_lo, s_hi, &
-                 q, q_lo, q_hi, &
-                 qaux, q_lo, q_hi)
+                 q, s_lo, s_hi, &
+                 qaux, s_lo, s_hi)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -229,7 +233,7 @@ contains
              R_source(i,j,k, UFS:UFS-1+nspec_evolve) = &
                   q(i,j,k,QRHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
 
-             R_source(i,j,k, UENER) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
+             R_source(i,j,k, UEDEN) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
              R_source(i,j,k, UEINT) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
 
           enddo
