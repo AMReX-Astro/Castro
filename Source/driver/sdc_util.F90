@@ -174,7 +174,9 @@ contains
                                     R_source, r_lo, r_hi, nvar) &
                                     bind(C, name="ca_instantaneous_react")
 
-    use meth_params_module, only : NVAR
+    use advection_util_module, only : ctoprim
+    use mempool_module, only : bl_allocate, bl_deallocate
+    use meth_params_module, only : NVAR, NQ, NQAUX
 
     implicit none
 
@@ -185,13 +187,54 @@ contains
     real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
     real(rt), intent(inout) :: R_source(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
 
-    ! convert from cons to prim
+    real(rt), pointer :: q(:,:,:,:)
+    real(rt), pointer :: qaux(:,:,:,:)
 
-    ! fill the burn_state
+    type(burn_t) :: burn_state
 
-    ! call the rhs
+    integer :: i, j, k
 
-    ! store the instantaneous R
+    ! convert from cons to prim -- show this be here or in C++-land?
+    ! or should I do things like we do in burn_state and convert it manually?
+    ! (in that case, I am not sure if I can assume UTEMP is defined)
+
+    call bl_allocate(q, s_lo, s_hi, NQ)
+    call bl_allocate(qaux, s_lo, s_hi, NQAUX)
+
+    call ctoprim(lo, hi, &
+                 state, s_lo, s_hi, &
+                 q, q_lo, q_hi, &
+                 qaux, q_lo, q_hi)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! fill the burn_state
+             burn_state % rho = q(i,j,k,QRHO)
+             burn_state % T = q(i,j,k,QTEMP)
+             burn_state % xn(:) = q(i,j,k,QFS:QFS-1+nspec)
+
+             burn_state % i = i
+             burn_state % j = j
+             burn_state % k = k
+
+             ! call the rhs
+             call actual_rhs(burn_state)
+
+             ! store the instantaneous R
+             R_source(i,j,k,:) = ZERO
+
+             ! species rates come back in terms of molar fractions
+             R_source(i,j,k, UFS:UFS-1+nspec_evolve) = &
+                  q(i,j,k,QRHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
+
+             R_source(i,j,k, UENER) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
+             R_source(i,j,k, UEINT) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
+
+          enddo
+       enddo
+    enddo
 
   end subroutine ca_instantaneous_react
 
