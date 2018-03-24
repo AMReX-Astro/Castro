@@ -44,6 +44,9 @@ enum StateType { State_Type = 0,
 		 SDC_React_Type
 #endif
 #endif
+#ifdef THORNADO
+		 Thornado_Type
+#endif
 };
 
 // Create storage for all source terms.
@@ -194,7 +197,9 @@ public:
 #endif
 
 #ifdef THORNADO
-    void thornado_init ();
+    void init_thornado ();
+    void init_thornado_on_patch ();
+    void create_thornado_source ();
 #endif
 
     //

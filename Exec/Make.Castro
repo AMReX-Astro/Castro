@@ -114,6 +114,10 @@ ifeq ($(USE_POINTMASS), TRUE)
    DEFINES += -DPOINTMASS
 endif
 
+ifeq ($(USE_THORNADO), TRUE)
+   DEFINES += -DTHORNADO
+endif
+
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
@@ -184,7 +188,20 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_THORNADO), TRUE)
-  Bdirs += Source/two_moment
+  Bdirs  += Source/two_moment
+  Thdirs := thornado/SandBox/Interface_CASTRO
+  Thdirs += thornado/Modules/EquationOfState
+  Thdirs += thornado/Modules/Fields
+  Thdirs += thornado/Modules/Geometry
+  Thdirs += thornado/Modules/InputOutput
+  Thdirs += thornado/Modules/Library
+  Thdirs += thornado/Modules/Mesh
+  Thdirs += thornado/Modules/Numbers
+  Thdirs += thornado/Modules/Opacities
+  Thdirs += thornado/Modules/ProgramHeader
+  Thdirs += thornado/Modules/TimeStepping
+  Thdirs += thornado/Modules/Units
+  Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
 endif
 
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)

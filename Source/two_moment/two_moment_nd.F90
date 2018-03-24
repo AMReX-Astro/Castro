@@ -230,7 +230,7 @@
     integer, intent(in) :: iz_b1(4), iz_e1(4)
     integer, intent(in) :: nn, ns, nm
 
-    double precision, intent(inout) ::  U_F(  iz_b0(1):iz_e0(1),  iz_b0(2):iz_e0(2), &
+    double precision, intent(in   ) ::  U_F(  iz_b0(1):iz_e0(1),  iz_b0(2):iz_e0(2), &
                                               iz_b0(3):iz_e0(3),  iz_b0(4):iz_e0(4), &
                                               1:nn, 1:ns, 1:nm)
     double precision, intent(inout) ::  U_R(  iz_b1(1):iz_e1(1),  iz_b1(2):iz_e1(2), &
