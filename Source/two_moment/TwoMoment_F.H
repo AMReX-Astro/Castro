@@ -6,9 +6,16 @@
 extern "C"
 {
 #endif
-  void init_thornado(const int lo[], const int hi[],
-                     BL_FORT_FAB_ARG_3D( U_F), const int* nc_uf,
-                     BL_FORT_FAB_ARG_3D( U_R), const int* nc ur);
+  void InitThornado_Patch(const int* box_size, 
+                          const int* swX,
+                          const Real* grid_lo, const Real* grid_hi, 
+                          const int* n_energy, 
+                          const int* swE, 
+                          const Real* eL, 
+                          const Real* eR, 
+                          const int* n_species); 
+
+  void FreeThornado_Patch();
 
   void call_to_thornado(const int lo[], const int hi[],
                         BL_FORT_FAB_ARG_3D( U_F), const int* nc_uf,

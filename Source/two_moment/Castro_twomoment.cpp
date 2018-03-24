@@ -13,12 +13,7 @@ Castro::init_thornado()
     InitThornado(nDimsX, nDimsE);
 }
 void
-Castro::init_thornado_on_patch()
-{
-    int nDimsX = BL_SPACEDIM;
-    int nDimsE = 1;  // This is the number of energy groups -- for now we'll test with just 1
-    InitThornado(nDimsX, nDimsE);
-}
+
 void
 Castro::create_thornado_source()
 {
@@ -49,6 +44,14 @@ Castro::create_thornado_source()
     // int n_sub = GetNSteps(dt); // From thornado
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
 
+    IntVect swX(2,2,2);
+    RealVect grid_lo(3);
+    RealVect grid_hi(3);
+    int n_energy;
+    int n_species;
+
+    const Real* dx = geom.CellSize();
+
     for (int i = 0; i < n_sub; i++)
     {
       Real dt_sub = dt / n_sub;
@@ -56,7 +59,23 @@ Castro::create_thornado_source()
       // For now we will not allowing logical tiling
       for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
       {
-        if (i == 0)  init_thornado_on_patch();
+        Box bx = mfi.validbox();
+
+        if (i == 0) 
+        {
+           grid_lo[0] =  bx.smallEnd(0)  * dx[0];
+           grid_lo[1] =  bx.smallEnd(1)  * dx[1];
+           grid_lo[2] =  bx.smallEnd(2)  * dx[2];
+           grid_hi[0] = (bx.bigEnd(0)+1) * dx[0];
+           grid_hi[1] = (bx.bigEnd(1)+1) * dx[1];
+           grid_hi[2] = (bx.bigEnd(2)+1) * dx[2];
+
+            InitThornado_Patch(
+               bx.size(0), bx.size(1), bx.size(2),
+               swX.dataPtr(),
+               grid_lo.dataPtr(), grid.hi.dataPtr(),
+               &n_energy, &swE, &eL, &eR, &n_species);
+        }
 
         const Box& bx = mfi.validbox();
         call_to_thornado(BL_TO_FORTRAN_BOX(bx),
@@ -64,8 +83,11 @@ Castro::create_thornado_source()
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]),
                          BL_TO_FORTRAN_FAB(dU_F[mfi]),&dt_sub);
+
+        if (i == (n_sub-1)) FreeThornado_Patch();
       }
       U_F.FillBoundary();
     }
 }
+
 #endif
