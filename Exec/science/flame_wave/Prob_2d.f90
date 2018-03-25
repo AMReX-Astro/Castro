@@ -1,42 +1,55 @@
 subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
-  use probdata_module
-  use model_parser_module
+  use bl_types
+  use bl_constants_module
   use bl_error_module
+  use initial_model_module
+  use model_parser_module, only : model_r, model_state
+
+  use probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
+
+  use eos_type_module, only : eos_t
+  use eos_module, only : eos
+  use network
+
   implicit none
 
-  integer init, namlen
-  integer name(namlen)
-  real(rt)         problo(2), probhi(2)
+  integer :: init, namlen
+  integer :: name(namlen)
+  real(rt) :: problo(2), probhi(2)
 
-  integer untin,i
+  type (eos_t) :: eos_state
 
-  namelist /fortin/ model_name, interp_BC, zero_vels, &
+  integer :: untin, i
+
+  namelist /fortin/ nx_model, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, hot_ash
+                    X_min, cutoff_density, hot_ash, &
+                    dens_base, T_star, T_base, T_lo, H_star, atm_delta, &
+                    fuel1_name, fuel2_name, fuel3_name, &
+                    ash1_name, ash2_name, ash3_name, &
+                    fuel1_frac, fuel2_frac, fuel3_frac, &
+                    ash1_frac, ash2_frac, ash3_frac, &
+                    low_density_cutoff, index_base_from_temp, smallx
 
+  ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
-  character probin*(maxlen)
+  character (len=maxlen) :: probin
 
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
+  type(model_t) :: model_params
+
+  integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
+  logical :: species_defined
 
   if (namlen > maxlen) call bl_error("probin file name too long")
-
-  ifuel = network_species_index("helium-4")
-  iash = network_species_index("oxygen-16")
-
-  if (ifuel < 0 .or. iash < 0) then
-     call bl_error("fuel or ash are not defined")
-  endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
 
-  ! Namelist defaults
+  ! set namelist defaults here
   X_min = 1.e-4_rt
   cutoff_density = 500.e0_rt
 
@@ -47,12 +60,122 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   interp_BC = .false.
   zero_vels = .false.
 
+  dens_base = 2.d6
+
+  T_star = 1.d8
+  T_base = 5.d8
+  T_lo   = 5.e7
+
+  H_star = 500.d0
+  atm_delta  = 25.d0
+
+  fuel1_name = "helium-4"
+  fuel2_name = ""
+  fuel3_name = ""
+
+  ash1_name  = "iron-56"
+  ash2_name  = ""
+  ash3_name  = ""
+
+  fuel1_frac = ONE
+  fuel2_frac = ZERO
+  fuel3_frac = ZERO
+
+  ash1_frac = ONE
+  ash2_frac = ZERO
+  ash3_frac = ZERO
+
+  index_base_from_temp = .false.
+
+  low_density_cutoff = 1.d-4
+
+  smallx = 1.d-10
+
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
 
-  ! Read initial model
-  call read_model_file(model_name)
+  ! get the species indices
+  species_defined = .true.
+  ifuel1 = network_species_index(trim(fuel1_name))
+  if (ifuel1 < 0) species_defined = .false.
+
+  if (fuel2_name /= "") then
+     ifuel2 = network_species_index(trim(fuel2_name))
+     if (ifuel2 < 0) species_defined = .false.
+  endif
+
+  if (fuel3_name /= "") then
+     ifuel3 = network_species_index(trim(fuel3_name))
+     if (ifuel3 < 0) species_defined = .false.
+  endif
+
+  iash1 = network_species_index(trim(ash1_name))
+  if (iash1 < 0) species_defined = .false.
+
+  if (ash2_name /= "") then
+     iash2 = network_species_index(trim(ash2_name))
+     if (iash2 < 0) species_defined = .false.
+  endif
+
+  if (ash3_name /= "") then
+     iash3 = network_species_index(trim(ash3_name))
+     if (iash3 < 0) species_defined = .false.
+  endif
+
+  if (.not. species_defined) then
+     print *, ifuel1, ifuel2, ifuel3
+     print *, iash1, iash2, iash3
+     call bl_error("ERROR: species not defined")
+  endif
+
+
+  ! set the composition of the underlying star
+  model_params % xn_star(:) = smallx
+  model_params % xn_star(iash1) = ash1_frac
+  if (ash2_name /= "") model_params % xn_star(iash2) = ash2_frac
+  if (ash3_name /= "") model_params % xn_star(iash3) = ash3_frac
+
+  ! and the composition of the accreted layer
+  model_params % xn_base(:) = smallx
+  model_params % xn_base(ifuel1) = fuel1_frac
+  if (fuel2_name /= "") model_params % xn_base(ifuel2) = fuel2_frac
+  if (fuel3_name /= "") model_params % xn_base(ifuel3) = fuel3_frac
+
+  ! check if they sum to 1
+  if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then
+     call bl_error("ERROR: ash mass fractions don't sum to 1")
+  endif
+
+  if (abs(sum(model_params % xn_base) - ONE) > nspec*smallx) then
+     call bl_error("ERROR: fuel mass fractions don't sum to 1")
+  endif
+
+
+  ! now generate the initial models
+  call init_model_data(nx_model, 2)
+
+  model_params % dens_base = dens_base
+  model_params % T_star = T_star
+  model_params % T_base = T_base
+  model_params % T_lo = T_lo
+
+  model_params % H_star = H_star
+  model_params % atm_delta = atm_delta
+
+  model_params % low_density_cutoff = low_density_cutoff
+
+  model_params % index_base_from_temp = index_base_from_temp
+
+  call init_1d_tanh(nx_model, problo(2), probhi(2), model_params, 1)
+
+  ! store the model in the model_parser_module since that is used in
+  ! the boundary conditions
+  allocate(model_r(nx_model))
+  model_r(:) = gen_model_r(:, 1)
+
+  allocate(model_state(nx_model, nvars_model))
+  model_state(:, :) = gen_model_state(:, :, 1)
 
 end subroutine amrex_probinit
 
@@ -88,7 +211,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only: problo
   use network, only: nspec
-  use model_parser_module
+  use initial_model_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -115,16 +238,16 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
      do i = lo(1), hi(1)
 
-        state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
-                                       model_state(:,idens_model))
-        state(i,j,UTEMP) = interpolate(y,npts_model,model_r, &
-                                       model_state(:,itemp_model))
+        state(i,j,URHO)  = interpolate(y,npts_model,gen_model_r(:,1), &
+                                       gen_model_state(:,idens_model,1))
+        state(i,j,UTEMP) = interpolate(y,npts_model,gen_model_r(:,1), &
+                                       gen_model_state(:,itemp_model,1))
 
         state(i,j,UFS:UFS-1+nspec) = ZERO
 
         do n = 1, nspec
-           state(i,j,UFS-1+n) = interpolate(y,npts_model,model_r, &
-                                            model_state(:,ispec_model-1+n))
+           state(i,j,UFS-1+n) = interpolate(y,npts_model,gen_model_r(:,1), &
+                                            gen_model_state(:,ispec_model-1+n,1))
         enddo
 
      enddo
@@ -161,58 +284,58 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   state(:,:,UMX:UMZ) = 0.e0_rt
 
   ! Now add the perturbation
-  do j = lo(2), hi(2)
-     y = problo(2) + (dble(j)+HALF)*delta(2)
+  ! do j = lo(2), hi(2)
+  !    y = problo(2) + (dble(j)+HALF)*delta(2)
 
-     do i = lo(1), hi(1)
-        x = problo(1) + (dble(i)+HALF)*delta(1)
+  !    do i = lo(1), hi(1)
+  !       x = problo(1) + (dble(i)+HALF)*delta(1)
 
-        if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 2.0e5_rt) then
-           state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
-                (ONE + exp((x-x_half_max)/x_half_width))
-        end if
+  !       if (state(i,j,UFS) > 0.1 .and. state(i,j,URHO) > 2.0e5_rt) then
+  !          state(i,j,UTEMP)=state(i,j,UTEMP) + dtemp / &
+  !               (ONE + exp((x-x_half_max)/x_half_width))
+  !       end if
 
-        ! switch back to mass fractions for a bit
-        do n = 1,nspec
-           state(i,j,UFS+n-1) = state(i,j,UFS+n-1) / state(i,j,URHO)
-        end do
+  !       ! switch back to mass fractions for a bit
+  !       do n = 1,nspec
+  !          state(i,j,UFS+n-1) = state(i,j,UFS+n-1) / state(i,j,URHO)
+  !       end do
 
-        ! give the ash a similar profile by dropping the fuel and putting
-        ! the change in the ash
-        if (hot_ash) then
-           if (state(i,j,UFS-1+ifuel) > 0.1 .and. state(i,j,URHO) > 1.0e5_rt) then
-              current_fuel = state(i,j,UFS-1+ifuel)
-              state(i,j,UFS-1+ifuel) = min(ONE, max(current_fuel - current_fuel/(ONE + exp((x-x_half_max)/x_half_width)), ZERO))
-              sum_excess = 0.0_rt
-              do n = 1, nspec
-                 if (n == iash) continue
-                 sum_excess = sum_excess + state(i,j,UFS-1+n)
-              enddo
-              state(i,j,UFS-1+iash) = min(ONE, max((ONE - sum_excess), ZERO))
-              sum_excess2 = sum(state(i,j,UFS:UFS-1+nspec)) - ONE 
-              if (abs(sum_excess2) > 1.d-4) then
-                 print *, i,j, state(i,j,UFS:UFS-1+nspec), sum(state(i,j,UFS:UFS-1+nspec)) - ONE , sum_excess
-              endif
-           endif
-        endif
+  !       ! give the ash a similar profile by dropping the fuel and putting
+  !       ! the change in the ash
+  !       if (hot_ash) then
+  !          if (state(i,j,UFS-1+ifuel) > 0.1 .and. state(i,j,URHO) > 2.0e5_rt) then
+  !             current_fuel = state(i,j,UFS-1+ifuel)
+  !             state(i,j,UFS-1+ifuel) = min(ONE, max(current_fuel - current_fuel/(ONE + exp((x-x_half_max)/x_half_width)), ZERO))
+  !             sum_excess = 0.0_rt
+  !             do n = 1, nspec
+  !                if (n == iash) continue
+  !                sum_excess = sum_excess + state(i,j,UFS-1+n)
+  !             enddo
+  !             state(i,j,UFS-1+iash) = min(ONE, max((ONE - sum_excess), ZERO))
+  !             sum_excess2 = sum(state(i,j,UFS:UFS-1+nspec)) - ONE 
+  !             if (abs(sum_excess2) > 1.d-4) then
+  !                print *, i,j, state(i,j,UFS:UFS-1+nspec), sum(state(i,j,UFS:UFS-1+nspec)) - ONE , sum_excess
+  !             endif
+  !          endif
+  !       endif
 
-        eos_state%T = state(i,j,UTEMP)
-        eos_state%p = temppres(i,j)
-        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
+  !       eos_state%T = state(i,j,UTEMP)
+  !       eos_state%p = temppres(i,j)
+  !       eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
 
-        call eos(eos_input_tp, eos_state)
+  !       call eos(eos_input_tp, eos_state)
 
-        state(i,j,UEINT) = eos_state%e
-        state(i,j,URHO) = eos_state%rho
+  !       state(i,j,UEINT) = eos_state%e
+  !       state(i,j,URHO) = eos_state%rho
 
-        state(i,j,UEDEN) = state(i,j,UEINT)*state(i,j,URHO)
-        state(i,j,UEINT) = state(i,j,UEINT)*state(i,j,URHO)
+  !       state(i,j,UEDEN) = state(i,j,UEINT)*state(i,j,URHO)
+  !       state(i,j,UEINT) = state(i,j,UEINT)*state(i,j,URHO)
 
-        do n = 1,nspec
-           state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
-        end do
+  !       do n = 1,nspec
+  !          state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)
+  !       end do
 
-     end do
-  end do
+  !    end do
+  ! end do
 
 end subroutine ca_initdata

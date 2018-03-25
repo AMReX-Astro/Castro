@@ -1,7 +1,5 @@
 &fortin
 
-  model_name =  "flame_wave.hse.tanh.delta_12.000cm.dx_20.000cm.cool"
-
   interp_BC = F
   zero_vels = F
 
@@ -10,6 +8,28 @@
   x_half_width = 512.d0
 
   hot_ash = F
+
+  nx_model = 1024
+
+  dens_base = 2e6
+
+  T_star = 5.d7
+  T_base = 2.d8
+  T_lo   = 1.d7
+
+  H_star = 5000.d0
+  atm_delta  = 12.0
+
+  fuel1_name = "helium-4"
+  fuel1_frac = 1.0d0
+
+  ash1_name  = "iron-56"
+  ash1_frac = 1.0d0
+
+  low_density_cutoff = 1.d-4
+
+  index_base_from_temp = T
+
 /
 
 &sponge

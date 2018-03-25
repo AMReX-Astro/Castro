@@ -62,8 +62,8 @@ module initial_model_module
 
   ! arrays for storing the model data -- we have an extra index here
   ! which is the model number
-  real (rt), allocatable, save :: model_state(:,:,:)
-  real (rt), allocatable, save :: model_r(:,:)
+  real(rt), allocatable, save :: gen_model_state(:,:,:)
+  real(rt), allocatable, save :: gen_model_r(:,:)
 
   type :: model_t
 
@@ -94,8 +94,8 @@ contains
     integer, intent(in) :: nx, num_models_in
 
     ! allocate storage for the model data
-    allocate (model_state(npts_model, nvars_model, num_models))
-    allocate (model_r(npts_model, num_models))
+    allocate (gen_model_state(nx, nvars_model, num_models_in))
+    allocate (gen_model_r(nx, num_models_in))
 
     npts_model = nx
     num_models = num_models_in
@@ -126,12 +126,6 @@ contains
   real (rt) :: pres_base, entropy_base
 
   real :: A, B
-
-  ! we'll get the composition from the network module
-  ! we allow for 3 different species separately in the fuel and ash
-  integer :: ifuel1, ifuel2, ifuel3
-  integer :: iash1, iash2, iash3
-  logical :: species_defined
 
   real (rt) :: dCoord
 
@@ -173,14 +167,14 @@ contains
   dCoord = (xmax - xmin) / dble(nx)
 
   do i = 1, nx
-     model_r(i, model_num)  = xmin + (dble(i) - HALF)*dCoord
+     gen_model_r(i, model_num)  = xmin + (dble(i) - HALF)*dCoord
   enddo
 
 
   ! find the index of the base height
   index_base = -1
   do i = 1, nx
-     if (model_r(i, model_num) >= xmin + model_params % H_star + model_params % atm_delta) then
+     if (gen_model_r(i, model_num) >= xmin + model_params % H_star + model_params % atm_delta) then
         index_base = i+1
         exit
      endif
@@ -217,23 +211,23 @@ contains
   do i = 1, nx
 
      ! hyperbolic tangent transition:
-     model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_params % xn_star(1:nspec) + &
+     gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_params % xn_star(1:nspec) + &
           HALF*(model_params % xn_base(1:nspec) - model_params % xn_star(1:nspec))* &
-          (ONE + tanh((model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
+          (ONE + tanh((gen_model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
 
      ! force them to sum to 1
-     sumX = sum(model_state(i,ispec_model:ispec_model-1+nspec,model_num))
-     model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_state(i,ispec_model:ispec_model-1+nspec,model_num) / sumX
+     sumX = sum(gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num))
+     gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) / sumX
 
-     model_state(i,itemp_model,model_num) = model_params % T_star + &
+     gen_model_state(i,itemp_model,model_num) = model_params % T_star + &
           HALF*(model_params % T_base - model_params % T_star)* &
-          (ONE + tanh((model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
+          (ONE + tanh((gen_model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
 
 
      ! the density and pressure will be determined via HSE,
      ! for now, set them to the base conditions
-     model_state(i,idens_model,model_num) = model_params % dens_base
-     model_state(i,ipres_model,model_num) = pres_base
+     gen_model_state(i,idens_model,model_num) = model_params % dens_base
+     gen_model_state(i,ipres_model,model_num) = pres_base
 
   enddo
 
@@ -242,8 +236,8 @@ contains
      ! find the index of the base height -- look at the temperature for this
      index_base = -1
      do i = 1, nx
-        !if (model_r(i) >= xmin + H_star + atm_delta) then
-        if (model_state(i,itemp_model,model_num) > 0.9995*model_params % T_base) then
+        !if (gen_model_r(i) >= xmin + H_star + atm_delta) then
+        if (gen_model_state(i,itemp_model,model_num) > 0.9995*model_params % T_base) then
            index_base = i+1
            exit
         endif
@@ -259,13 +253,13 @@ contains
 
   ! make the base thermodynamics consistent for this base point -- that is
   ! what we will integrate from!
-  eos_state%rho = model_state(index_base,idens_model,model_num)
-  eos_state%T = model_state(index_base,itemp_model,model_num)
-  eos_state%xn(:) = model_state(index_base,ispec_model:ispec_model-1+nspec,model_num)
+  eos_state%rho = gen_model_state(index_base,idens_model,model_num)
+  eos_state%T = gen_model_state(index_base,itemp_model,model_num)
+  eos_state%xn(:) = gen_model_state(index_base,ispec_model:ispec_model-1+nspec,model_num)
 
   call eos(eos_input_rt, eos_state)
 
-  model_state(index_base,ipres_model,model_num) = eos_state%p
+  gen_model_state(index_base,ipres_model,model_num) = eos_state%p
 
 
 !-----------------------------------------------------------------------------
@@ -283,13 +277,13 @@ contains
   !---------------------------------------------------------------------------
   do i = index_base+1, nx
 
-     delx = model_r(i,model_num) - model_r(i-1,model_num)
+     delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
 
      ! we've already set initial guesses for density, temperature, and
      ! composition
-     dens_zone = model_state(i,idens_model,model_num)
-     temp_zone = model_state(i,itemp_model,model_num)
-     xn(:) = model_state(i,ispec_model:nvars_model,model_num)
+     dens_zone = gen_model_state(i,idens_model,model_num)
+     temp_zone = gen_model_state(i,itemp_model,model_num)
+     xn(:) = gen_model_state(i,ispec_model:nvars_model,model_num)
 
 
      !-----------------------------------------------------------------------
@@ -316,8 +310,8 @@ contains
               ! addition to the density.
 
               ! HSE differencing
-              p_want = model_state(i-1,ipres_model,model_num) + &
-                   delx*0.5*(dens_zone + model_state(i-1,idens_model,model_num))*const_grav
+              p_want = gen_model_state(i-1,ipres_model,model_num) + &
+                   delx*0.5*(dens_zone + gen_model_state(i-1,idens_model,model_num))*const_grav
 
 
               ! now we have two functions to zero:
@@ -383,8 +377,8 @@ contains
            else
 
               ! do isothermal
-              p_want = model_state(i-1,ipres_model,model_num) + &
-                   delx*0.5*(dens_zone + model_state(i-1,idens_model,model_num))*const_grav
+              p_want = gen_model_state(i-1,ipres_model,model_num) + &
+                   delx*0.5*(dens_zone + gen_model_state(i-1,idens_model,model_num))*const_grav
 
               temp_zone = model_params % T_lo
 
@@ -458,14 +452,14 @@ contains
      pres_zone = eos_state%p
 
      ! update the thermodynamics in this zone
-     model_state(i,idens_model,model_num) = dens_zone
-     model_state(i,itemp_model,model_num) = temp_zone
-     model_state(i,ipres_model,model_num) = pres_zone
+     gen_model_state(i,idens_model,model_num) = dens_zone
+     gen_model_state(i,itemp_model,model_num) = temp_zone
+     gen_model_state(i,ipres_model,model_num) = pres_zone
 
 
      ! to make this process converge faster, set the density in the
      ! next zone to the density in this zone
-     ! model_state(i+1,idens_model) = dens_zone
+     ! gen_model_state(i+1,idens_model) = dens_zone
 
   enddo
 
@@ -475,14 +469,14 @@ contains
   !---------------------------------------------------------------------------
   do i = index_base-1, 1, -1
 
-     delx = model_r(i+1,model_num) - model_r(i,model_num)
+     delx = gen_model_r(i+1,model_num) - gen_model_r(i,model_num)
 
      ! we already set the temperature and composition profiles
-     temp_zone = model_state(i,itemp_model,model_num)
-     xn(:) = model_state(i,ispec_model:nvars_model,model_num)
+     temp_zone = gen_model_state(i,itemp_model,model_num)
+     xn(:) = gen_model_state(i,ispec_model:nvars_model,model_num)
 
      ! use our previous initial guess for density
-     dens_zone = model_state(i+1,idens_model,model_num)
+     dens_zone = gen_model_state(i+1,idens_model,model_num)
 
 
      !-----------------------------------------------------------------------
@@ -501,11 +495,11 @@ contains
         ! find the density and pressure that are consistent
 
         ! HSE differencing
-        p_want = model_state(i+1,ipres_model,model_num) - &
-             delx*0.5*(dens_zone + model_state(i+1,idens_model,model_num))*const_grav
+        p_want = gen_model_state(i+1,ipres_model,model_num) - &
+             delx*0.5*(dens_zone + gen_model_state(i+1,idens_model,model_num))*const_grav
 
 
-        ! we will take the temperature already defined in model_state
+        ! we will take the temperature already defined in gen_model_state
         ! so we only need to zero:
         !   A = p_want - p(rho)
 
@@ -558,14 +552,14 @@ contains
      pres_zone = eos_state%p
 
      ! update the thermodynamics in this zone
-     model_state(i,idens_model,model_num) = dens_zone
-     model_state(i,itemp_model,model_num) = temp_zone
-     model_state(i,ipres_model,model_num) = pres_zone
+     gen_model_state(i,idens_model,model_num) = dens_zone
+     gen_model_state(i,itemp_model,model_num) = temp_zone
+     gen_model_state(i,ipres_model,model_num) = pres_zone
 
   enddo
 
   !do i = 1, nx
-  !   print *, model_r(i), model_state(i,idens_model), model_state(i,ispec_model:ispec_model-1+nspec)
+  !   print *, gen_model_r(i), gen_model_state(i,idens_model), gen_model_state(i,ispec_model:ispec_model-1+nspec)
   !enddo
 
 end subroutine init_1d_tanh
