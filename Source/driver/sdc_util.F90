@@ -131,6 +131,8 @@ contains
                               A_m, Amlo, Amhi, &
                               A_0_old, A0lo, A0hi, &
                               A_1_old, A1lo, A1hi, &
+                              R_0_old, R0lo, R0hi, &
+                              R_1_old, R1lo, R1hi, &
                               m_start) bind(C, name="ca_sdc_update_o2")
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
@@ -147,6 +149,8 @@ contains
     integer, intent(in) :: Amlo(3), Amhi(3)
     integer, intent(in) :: A0lo(3), A0hi(3)
     integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
     integer, intent(in) :: m_start
 
 
@@ -157,12 +161,67 @@ contains
     real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
     real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
 
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+
     integer :: i, j, k
 
+    type(burn_t) :: burn_state
+
+    ! for those variables without reactive sources, we can do the
+    ! explicit update -- we'll do that here for everything, and then
+    ! overwrite the reacting ones
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
              k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
+          enddo
+       enddo
+    enddo
+
+    ! now consider the reacting system
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
+
+             ! we have a choice of which energy variable to update
+             U_react(nspec+1) = k_m(i,j,k,UEDEN)
+
+             ! construct the source term to the update
+             ! for 2nd order, there is no advective correction, and we have
+             ! C = U^{m,(k+1)} - dt * R(U^{m+1,k}) + I_m^{m+1}
+             C(:) = U_react(:) - dt_m * R_react(:) + &
+                  HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
+                  HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+
+             ! now only save the subset
+             C_react(1:nspec) = C(1:nspec)
+             C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
+
+             ! set the initial guess
+             U_new(:) = U_react(:)
+
+             ! iterative loop
+             do while (err > tol)
+
+                ! get R for the new guess
+
+                ! construct the Jacobian
+
+                ! solve the linear system
+
+                ! correct
+
+                ! construct the norm
+
+             enddo
+
+             ! if we updated total energy, then correct internal, or vice versa
+
+             ! copy back to k_n
+
           enddo
        enddo
     enddo
