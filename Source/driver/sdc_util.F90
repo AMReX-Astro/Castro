@@ -137,8 +137,10 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR
+    use meth_params_module, only : NVAR, UEDEN, URHO, UFS
     use bl_constants_module, only : HALF
+    use burn_type_module, only : burn_t
+    use network, only : nspec
 
     implicit none
 
@@ -167,6 +169,11 @@ contains
     integer :: i, j, k
 
     type(burn_t) :: burn_state
+
+    real(rt) :: err, tol
+    real(rt) :: C(nvar)
+    real(rt) :: U_react(nspec+2), C_react(nspec+2), U_new(nspec+2), R_react(nspec+2)
+
 
     ! for those variables without reactive sources, we can do the
     ! explicit update -- we'll do that here for everything, and then
