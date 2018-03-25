@@ -185,9 +185,10 @@ contains
           do i = lo(1), hi(1)
 
              U_react(1:nspec) = k_m(i,j,k,UFS:UFS-1+nspec)
+             U_react(nspec+1) = k_m(i,j,k,URHO)
 
              ! we have a choice of which energy variable to update
-             U_react(nspec+1) = k_m(i,j,k,UEDEN)
+             U_react(nspec+2) = k_m(i,j,k,UEDEN)
 
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
@@ -198,7 +199,8 @@ contains
 
              ! now only save the subset
              C_react(1:nspec) = C(1:nspec)
-             C_react(nspec+1) = C(UEDEN)  ! need to consider which energy
+             C_react(nspec+1) = C(URHO)
+             C_react(nspec+2) = C(UEDEN)  ! need to consider which energy
 
              ! set the initial guess
              U_new(:) = U_react(:)
@@ -208,7 +210,9 @@ contains
 
                 ! get R for the new guess
 
-                ! construct the Jacobian
+                ! construct the Jacobian -- we can get most of the
+                ! terms from the network itself, but we do not rely on
+                ! it having derivative wrt density
 
                 ! solve the linear system
 
