@@ -137,8 +137,10 @@ contains
 
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
-    use meth_params_module, only : NVAR
+    use meth_params_module, only : NVAR, UEDEN, URHO, UFS
     use bl_constants_module, only : HALF
+    use burn_type_module, only : burn_t
+    use network, only : nspec
 
     implicit none
 
@@ -168,6 +170,11 @@ contains
 
     type(burn_t) :: burn_state
 
+    real(rt) :: err, tol
+    real(rt) :: C(nvar), R_full(nvar)
+    real(rt) :: U_react(nspec+2), C_react(nspec+2), U_new(nspec+2), R_react(nspec+2)
+
+
     ! for those variables without reactive sources, we can do the
     ! explicit update -- we'll do that here for everything, and then
     ! overwrite the reacting ones
@@ -193,7 +200,7 @@ contains
              ! construct the source term to the update
              ! for 2nd order, there is no advective correction, and we have
              ! C = U^{m,(k+1)} - dt * R(U^{m+1,k}) + I_m^{m+1}
-             C(:) = U_react(:) - dt_m * R_react(:) + &
+             C(:) = U_react(:) - dt_m * R_1_old(i,j,k,:) + &
                   HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
                   HALF * dt_m * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
 
@@ -209,6 +216,10 @@ contains
              do while (err > tol)
 
                 ! get R for the new guess
+                call single_zone_react_source(U_new, R_full, i,j,k)
+                R_react(URHO) = R_full(URHO)
+                R_react(UFS:UFS-1+nspec) = R_full(UFS:UFS-1+nspec)
+                R_react(UEDEN) = R_full(UEDEN)
 
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
@@ -240,13 +251,13 @@ contains
                                     R_source, r_lo, r_hi) &
                                     bind(C, name="ca_instantaneous_react")
 
-    use advection_util_module, only : ctoprim
     use bl_constants_module, only : ZERO
     use burn_type_module
     use mempool_module, only : bl_allocate, bl_deallocate
     use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
     use network, only : nspec, aion
-    use actual_rhs_module
+    use react_util_module
+
 
     implicit none
 
@@ -257,51 +268,16 @@ contains
     real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
     real(rt), intent(inout) :: R_source(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
 
-    real(rt), pointer :: q(:,:,:,:)
-    real(rt), pointer :: qaux(:,:,:,:)
-
-    type(burn_t) :: burn_state
-
     integer :: i, j, k
 
     ! convert from cons to prim -- show this be here or in C++-land?
     ! or should I do things like we do in burn_state and convert it manually?
     ! (in that case, I am not sure if I can assume UTEMP is defined)
 
-    call bl_allocate(q, s_lo, s_hi, NQ)
-    call bl_allocate(qaux, s_lo, s_hi, NQAUX)
-
-    call ctoprim(lo, hi, &
-                 state, s_lo, s_hi, &
-                 q, s_lo, s_hi, &
-                 qaux, s_lo, s_hi)
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-
-             ! fill the burn_state
-             burn_state % rho = q(i,j,k,QRHO)
-             burn_state % T = q(i,j,k,QTEMP)
-             burn_state % xn(:) = q(i,j,k,QFS:QFS-1+nspec)
-
-             burn_state % i = i
-             burn_state % j = j
-             burn_state % k = k
-
-             ! call the rhs
-             call actual_rhs(burn_state)
-
-             ! store the instantaneous R
-             R_source(i,j,k,:) = ZERO
-
-             ! species rates come back in terms of molar fractions
-             R_source(i,j,k, UFS:UFS-1+nspec_evolve) = &
-                  q(i,j,k,QRHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
-
-             R_source(i,j,k, UEDEN) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
-             R_source(i,j,k, UEINT) = q(i,j,k,QRHO) * burn_state % ydot(net_ienuc)
-
+             call single_zone_react_source(state(i,j,k,:), R_source(i,j,k,:), i,j,k)
           enddo
        enddo
     enddo
