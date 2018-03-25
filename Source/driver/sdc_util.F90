@@ -213,6 +213,9 @@ contains
                 ! construct the Jacobian -- we can get most of the
                 ! terms from the network itself, but we do not rely on
                 ! it having derivative wrt density
+                do m = 1, nspec+2
+                   J(m, m) = ONE
+                enddo
 
                 ! solve the linear system
 
