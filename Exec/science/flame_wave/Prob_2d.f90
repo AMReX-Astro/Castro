@@ -247,8 +247,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt)         temppres(state_l1:state_h1,state_l2:state_h2)
 
   type (eos_t) :: eos_state
-  real(rt) :: sum_excess, sum_excess2, current_fuel
-  integer :: model_num
+  real(rt) :: sum_excess, sum_excess2, current_fuel, f
+
 
   do j = lo(2), hi(2)
      y = problo(2) + (dble(j)+HALF)*delta(2)
@@ -257,25 +257,35 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         x = problo(1) + (dble(i)+HALF)*delta(1)
 
         if (x < x_half_max) then
-           model_num = 2
+           f = 1.0_rt
+        else if (x > x_half_max + x_half_width) then
+           f = 0.0_rt
         else
-           model_num = 1
+           f = -(x - x_half_max)/x_half_width + 1.0_rt
         endif
 
-        state(i,j,URHO)  = interpolate(y,npts_model,gen_model_r(:,model_num), &
-                                       gen_model_state(:,idens_model,model_num))
+        state(i,j,URHO)  = f * interpolate(y,npts_model,gen_model_r(:,2), &
+                                           gen_model_state(:,idens_model,2)) + &
+                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                                           gen_model_state(:,idens_model,1))
 
-        state(i,j,UTEMP) = interpolate(y,npts_model,gen_model_r(:,model_num), &
-                                       gen_model_state(:,itemp_model,model_num))
+        state(i,j,UTEMP) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+                                           gen_model_state(:,itemp_model,2)) + &
+                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                                           gen_model_state(:,itemp_model,1))
 
-        temppres(i,j) = interpolate(y,npts_model,gen_model_r(:,model_num), &
-                                    gen_model_state(:,ipres_model,model_num))
+        temppres(i,j) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+                                        gen_model_state(:,ipres_model,2)) + &
+                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                                           gen_model_state(:,ipres_model,1))
 
         state(i,j,UFS:UFS-1+nspec) = ZERO
 
         do n = 1, nspec
-           state(i,j,UFS-1+n) = interpolate(y,npts_model,gen_model_r(:,model_num), &
-                                            gen_model_state(:,ispec_model-1+n,model_num))
+           state(i,j,UFS-1+n) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+                                                gen_model_state(:,ispec_model-1+n,2)) + &
+                                (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                                                gen_model_state(:,ispec_model-1+n,1))
         enddo
 
         eos_state%rho = state(i,j,URHO)
