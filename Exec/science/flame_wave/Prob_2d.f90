@@ -27,7 +27,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   namelist /fortin/ nx_model, interp_BC, zero_vels, &
                     dtemp, x_half_max, x_half_width, &
                     X_min, cutoff_density, hot_ash, &
-                    dens_base, T_star, T_base, T_lo, H_star, atm_delta, &
+                    dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
                     fuel1_name, fuel2_name, fuel3_name, &
                     ash1_name, ash2_name, ash3_name, &
                     fuel1_frac, fuel2_frac, fuel3_frac, &
@@ -63,7 +63,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   dens_base = 2.d6
 
   T_star = 1.d8
-  T_base = 5.d8
+  T_hi = 5.d8
   T_lo   = 5.e7
 
   H_star = 500.d0
@@ -157,7 +157,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   model_params % dens_base = dens_base
   model_params % T_star = T_star
-  model_params % T_base = T_base
+  model_params % T_hi = T_hi
   model_params % T_lo = T_lo
 
   model_params % H_star = H_star
@@ -179,7 +179,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
-  model_params % T_base = model_params % T_base + dtemp
+  model_params % T_hi = model_params % T_hi + dtemp
 
   call init_1d_tanh(nx_model, problo(2), probhi(2), model_params, 2)
 

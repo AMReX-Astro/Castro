@@ -14,7 +14,7 @@
   dens_base = 3.43e6
 
   T_star = 5.d7
-  T_base = 2.d8
+  T_hi = 2.d8
   T_lo   = 1.d7
 
   H_star = 5000.d0

@@ -1,6 +1,6 @@
 !!  Create a 1-d hydrostatic, atmosphere with an isothermal region
 !!  (T_star) representing the NS, a hyperbolic tangent rise to a
-!!  peak temperature (T_base) representing the base of an accreted
+!!  peak temperature (T_hi) representing the base of an accreted
 !!  layer, an isoentropic profile down to a lower temperature (T_lo),
 !!  and then isothermal. This can serve as an initial model for a
 !!  nova or XRB.
@@ -9,7 +9,7 @@
 !!
 !!         ^
 !!         |
-!!  T_base +            /\
+!!  T_hi   +            /\
 !!         |           /  \
 !!         |          /  . \
 !!  T_star +---------+      \
@@ -23,10 +23,16 @@
 !!         |       atm_delta
 !!         |< H_star>|
 !!
-!!  We take dens_base, the density at the base of the isentropic layer
-!!  as input.  The composition is "ash" in the lower isothermal region
-!!  and "fuel" in the isentropic and upper isothermal regions.  In the
-!!  linear transition region, we linearly interpolate the composition.
+!!
+!!                   ^
+!!                   |
+!!                   +-- dens_base
+!!
+!!  dens_base is the density at a height H_star -- just below the rise
+!!  in T up to the peak T_hi.  The composition is "ash" in the lower
+!!  isothermal region and "fuel" in the isentropic and upper
+!!  isothermal regions.  In the transition region, we apply the same
+!!  hyperbolic tangent profile to interpolate the composition.
 !!
 !!  The fuel and ash compositions are specified by the fuel?_name,
 !!  fuel?_frac and ash?_name, ash?_frac parameters (name of the species
@@ -73,7 +79,7 @@ module initial_model_module
 
      real(rt) :: dens_base
      real(rt) :: T_star
-     real(rt) :: T_base
+     real(rt) :: T_hi
      real(rt) :: T_lo
 
      real(rt) :: H_star
@@ -219,7 +225,7 @@ contains
        gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) / sumX
 
        gen_model_state(i,itemp_model,model_num) = model_params % T_star + &
-            HALF*(model_params % T_base - model_params % T_star)* &
+            HALF*(model_params % T_hi - model_params % T_star)* &
             (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
        gen_model_state(0:index_base,itemp_model,model_num) = model_params % T_star
