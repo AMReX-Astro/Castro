@@ -147,13 +147,13 @@ contains
 
     integer :: index_base
 
-    logical :: isentropic
+    logical :: isentropic, flipped
 
     integer :: narg
 
     type (eos_t) :: eos_state
 
-    real(rt) :: sumX
+    real(rt) :: sumX, xc
 
 
     !-----------------------------------------------------------------------------
@@ -174,7 +174,7 @@ contains
     ! find the index of the base height
     index_base = -1
     do i = 1, nx
-       if (gen_model_r(i, model_num) >= xmin + model_params % H_star + model_params % atm_delta) then
+       if (gen_model_r(i, model_num) >= xmin + model_params % H_star) then
           index_base = i+1
           exit
        endif
@@ -191,28 +191,28 @@ contains
     !-----------------------------------------------------------------------------
     fluff = .false.
 
-    ! determine the conditions at the base
-    eos_state%T     = model_params % T_base
+    ! determine the conditions at the base -- this is below the atmosphere
+    eos_state%T     = model_params % T_star
     eos_state%rho   = model_params % dens_base
-    eos_state%xn(:) = model_params % xn_base(:)
+    eos_state%xn(:) = model_params % xn_star(:)
 
     call eos(eos_input_rt, eos_state)
 
     ! store the conditions at the base -- we'll use the entropy later
     ! to constrain the isentropic layer
     pres_base = eos_state%p
-    entropy_base = eos_state%s
 
-    print *, 'entropy_base = ', entropy_base
     print *, 'pres_base = ', pres_base
 
     ! set an initial temperature profile and composition
     do i = 1, nx
 
+       xc = gen_model_r(i,model_num) - (xmin + model_params % H_star) - 1.5_rt * model_params % atm_delta
+
        ! hyperbolic tangent transition:
        gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_params % xn_star(1:nspec) + &
             HALF*(model_params % xn_base(1:nspec) - model_params % xn_star(1:nspec))* &
-            (ONE + tanh((gen_model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
+            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
        ! force them to sum to 1
        sumX = sum(gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num))
@@ -220,35 +220,20 @@ contains
 
        gen_model_state(i,itemp_model,model_num) = model_params % T_star + &
             HALF*(model_params % T_base - model_params % T_star)* &
-            (ONE + tanh((gen_model_r(i,model_num) - (xmin + model_params % H_star - model_params % atm_delta) + model_params % atm_delta)/model_params % atm_delta))
+            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
+       gen_model_state(0:index_base,itemp_model,model_num) = model_params % T_star
 
        ! the density and pressure will be determined via HSE,
        ! for now, set them to the base conditions
        gen_model_state(i,idens_model,model_num) = model_params % dens_base
        gen_model_state(i,ipres_model,model_num) = pres_base
 
+       print *, i, gen_model_r(i,model_num), gen_model_state(i,itemp_model,model_num)
     enddo
 
-
-    if (model_params % index_base_from_temp) then
-       ! find the index of the base height -- look at the temperature for this
-       index_base = -1
-       do i = 1, nx
-          !if (gen_model_r(i) >= xmin + H_star + atm_delta) then
-          if (gen_model_state(i,itemp_model,model_num) > 0.9995*model_params % T_base) then
-             index_base = i+1
-             exit
-          endif
-       enddo
-
-       if (index_base == -1) then
-          print *, 'ERROR: base_height not found on grid'
-          call bl_error('ERROR: invalid base_height')
-       endif
-    endif
-
     print *, 'index_base = ', index_base
+
 
     ! make the base thermodynamics consistent for this base point -- that is
     ! what we will integrate from!
@@ -269,12 +254,32 @@ contains
     ! the temperature goes below T_lo -- then we will do isothermal.
     ! also, once the density goes below low_density_cutoff, we stop HSE
 
-    isentropic = .true.
+    isentropic = .false.
+    flipped = .false.   ! we start out isothermal and then 'flip' to isentropic
 
     !---------------------------------------------------------------------------
     ! integrate up
     !---------------------------------------------------------------------------
     do i = index_base+1, nx
+
+       print *, i, gen_model_state(i-1,itemp_model,model_num)
+
+       if ((gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) .and. .not. flipped) then
+          isentropic = .true.
+          flipped = .true.
+
+          ! now we need to know the entropy we are confining ourselves to
+          eos_state % rho = gen_model_state(i-1,idens_model,model_num)
+          eos_state % T = gen_model_state(i-1,itemp_model,model_num)
+          eos_state % xn(:) = gen_model_state(i-1,ispec_model:ispec_model-1+nspec,model_num)
+
+          call eos(eos_input_rt, eos_state)
+
+          entropy_base = eos_state % s
+
+          print *, "at the peak, T, rho = ", eos_state % T, eos_state % rho, model_num
+
+       endif
 
        delx = gen_model_r(i,model_num) - gen_model_r(i-1,model_num)
 
@@ -379,7 +384,9 @@ contains
                 p_want = gen_model_state(i-1,ipres_model,model_num) + &
                      delx*0.5*(dens_zone + gen_model_state(i-1,idens_model,model_num))*const_grav
 
-                temp_zone = model_params % T_lo
+                if (gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) then
+                   temp_zone = model_params % T_lo
+                endif
 
                 ! (t, rho) -> (p)
                 eos_state%T   = temp_zone

@@ -11,14 +11,14 @@
 
   nx_model = 1024
 
-  dens_base = 2e6
+  dens_base = 3.43e6
 
   T_star = 5.d7
   T_base = 2.d8
   T_lo   = 1.d7
 
   H_star = 5000.d0
-  atm_delta  = 12.0
+  atm_delta  = 50.0
 
   fuel1_name = "helium-4"
   fuel1_frac = 1.0d0

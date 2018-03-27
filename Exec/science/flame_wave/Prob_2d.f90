@@ -177,20 +177,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   allocate(model_state(nx_model, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
 
-  ! now create a perturbed model -- we want the same base pressure but
+  ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
-  eos_state % rho = dens_base
-  eos_state % T = T_base
-  eos_state % xn(:) = model_params % xn_base(:)
-
-  call eos(eos_input_rt, eos_state)
-
-  eos_state % T = eos_state % T + dtemp
-
-  call eos(eos_input_tp, eos_state)
-
-  model_params % dens_base = eos_state % rho
-  model_params % T_base = eos_state % T
+  model_params % T_base = model_params % T_base + dtemp
 
   call init_1d_tanh(nx_model, problo(2), probhi(2), model_params, 2)
 
