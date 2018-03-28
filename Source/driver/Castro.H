@@ -197,9 +197,9 @@ public:
 #endif
 
 #ifdef THORNADO
-    void init_thornado ();
-    void init_thornado_on_patch ();
-    void create_thornado_source ();
+    void init_thornado();
+    void init_thornado_on_patch();
+    void create_thornado_source();
 #endif
 
     //

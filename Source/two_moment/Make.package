@@ -2,73 +2,41 @@
 # this is included if USE_THORNADO = TRUE
 
 # These live here
-  CEXE_sources += Castro_twomoment.cpp
-  FEXE_headers += TwoMoment_F.H
-  ca_F90EXE_sources += two_moment_nd.F90
+
+CEXE_sources += Castro_twomoment.cpp
+
+ca_f90EXE_sources += ThornadoInitializationModule.f90
+
+FEXE_headers += TwoMoment_F.H
+ca_F90EXE_sources += two_moment_nd.F90
 
 #  These live in the thornado repo itself
 
 # In Modules/Numbers
   ca_f90EXE_sources += KindModule.f90
 
-# In SandBox/Interface_CASTRO
-  ca_f90EXE_sources += ThornadoInitializationModule.f90
-
-# In Modules/Fields
-  ca_f90EXE_sources += FluidFieldsModule.f90
-  ca_f90EXE_sources += FluidFieldsUtilitiesModule.f90
-  ca_f90EXE_sources += RadiationFieldsModule.f90
-  ca_f90EXE_sources += RadiationFieldsUtilitiesModule.f90
-
-# In Modules/EquationOfState
-  ca_f90EXE_sources += EquationOfStateModule.f90
-  ca_f90EXE_sources += EquationOfStateModule_IDEAL.f90
-  ca_F90EXE_sources += EquationOfStateModule_TABLE.F90
-
-# In Modules/Geometry
-  ca_f90EXE_sources += GeometryBoundaryConditionsModule.f90 
-  ca_f90EXE_sources += GeometryComputationModule.f90	      
-  ca_f90EXE_sources += GeometryInitializationModule.f90
-  ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
-  ca_f90EXE_sources += GeometryFieldsModule.f90	   
-
-# In Modules/InputOutput
-  ca_f90EXE_sources += InputOutputModule.f90
-  ca_f90EXE_sources += InputOutputModuleHDF.f90
-  ca_F90EXE_sources += InputOutputUtilitiesModule.f90
+# In Modules/ProgramHeader 
+  ca_f90EXE_sources += ProgramHeaderModule.f90
 
 # In Modules/Library
+  ca_f90EXE_sources += QuadratureModule.f90
   ca_f90EXE_sources += ReferenceElementModuleE.f90
-  ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
-  ca_f90EXE_sources += ReferenceElementModule.f90
-  ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
-  ca_f90EXE_sources += PolynomialBasisMappingModule.f90    
-  ca_f90EXE_sources += ReferenceElementModule_Old.f90
-  ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90  
   ca_f90EXE_sources += ReferenceElementModuleX.f90
-  ca_f90EXE_sources += PolynomialBasisModule_Legendre.f90  
+  ca_f90EXE_sources += ReferenceElementModule.f90
+  ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90
   ca_f90EXE_sources += ReferenceElementModuleX_Lagrange.f90
-  ca_f90EXE_sources += QuadratureModule.f90		    
-  ca_f90EXE_sources += UtilitiesModule.f90
+  ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
+  ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
 
 # In Modules/Mesh
   ca_f90EXE_sources += MeshModule.f90
 
-# In Modules/Opacities
-  ca_f90EXE_sources += NeutrinoOpacitiesModule.f90
-  ca_f90EXE_sources += NeutrinoOpacitiesComputationModule.f90
-  ca_f90EXE_sources += OpacityModule.f90
-  ca_f90EXE_sources += OpacityModule_IDEAL.f90
-  ca_F90EXE_sources += OpacityModule_TABLE.F90
+# In Modules/Geometry
+  ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
+  ca_f90EXE_sources += GeometryFieldsModule.f90	   
 
-# In Modules/ProgramHeader 
-  ca_f90EXE_sources += ProgramHeaderModule.f90
+# In Modules/Fields
+  ca_f90EXE_sources += FluidFieldsModule.f90
+  ca_f90EXE_sources += RadiationFieldsModule.f90
 
-#  In Modules/TimeStepping
-  ca_f90EXE_sources += TimeSteppingModule.f90
-  ca_f90EXE_sources += TimeSteppingModule_Explicit.f90
-
-# In Modules/Units
-  ca_f90EXE_sources += PhysicalConstantsModule.f90
-  ca_f90EXE_sources += UnitsModule.f90
-
+# In SandBox/Interface_CASTRO

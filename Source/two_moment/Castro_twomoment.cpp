@@ -1,4 +1,4 @@
-#ifdef THORNDAO
+
 #include "Castro.H"
 #include "Castro_F.H"
 
@@ -10,13 +10,16 @@ Castro::init_thornado()
 {
     int nDimsX = BL_SPACEDIM;
     int nDimsE = 1;  // This is the number of energy groups -- for now we'll test with just 1
-    InitThornado(nDimsX, nDimsE);
+#if 0
+    InitThornado(&nDimsX, &nDimsE);
+#endif
 }
-void
 
 void
 Castro::create_thornado_source()
 {
+    MultiFab& S_new = get_new_data(State_Type);
+
     int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
     int my_ngrow = 1;  // one fluid ghost cell
     // Create a temporary so it has the right order of the right variables and no ghost cells
@@ -45,13 +48,14 @@ Castro::create_thornado_source()
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
 
     IntVect swX(2,2,2);
-    RealVect grid_lo(3);
-    RealVect grid_hi(3);
+    Vector<Real> grid_lo(3);
+    Vector<Real> grid_hi(3);
     int n_energy;
     int n_species;
 
     const Real* dx = geom.CellSize();
 
+#if 0
     for (int i = 0; i < n_sub; i++)
     {
       Real dt_sub = dt / n_sub;
@@ -88,6 +92,5 @@ Castro::create_thornado_source()
       }
       U_F.FillBoundary();
     }
-}
-
 #endif
+}

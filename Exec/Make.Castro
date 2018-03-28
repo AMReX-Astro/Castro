@@ -187,24 +187,21 @@ ifeq ($(USE_PARTICLES), TRUE)
   Bdirs += Source/particles
 endif
 
-ifeq ($(USE_THORNADO), TRUE)
   Bdirs  += Source/two_moment
   Thdirs := thornado/SandBox/Interface_CASTRO
-  Thdirs += thornado/Modules/EquationOfState
-  Thdirs += thornado/Modules/Fields
-  Thdirs += thornado/Modules/Geometry
-  Thdirs += thornado/Modules/InputOutput
+  Thdirs += thornado/Modules/Numbers
+  Thdirs += thornado/Modules/ProgramHeader
   Thdirs += thornado/Modules/Library
   Thdirs += thornado/Modules/Mesh
-  Thdirs += thornado/Modules/Numbers
-  Thdirs += thornado/Modules/Opacities
-  Thdirs += thornado/Modules/ProgramHeader
-  Thdirs += thornado/Modules/TimeStepping
-  Thdirs += thornado/Modules/Units
+  Thdirs += thornado/Modules/Fields
+  Thdirs += thornado/Modules/Geometry
   Blocs += $(foreach dir, $(Thdirs), $(TOP)/$(dir))
+ifeq ($(USE_THORNADO), TRUE)
 endif
 
 Bpack += $(foreach dir, $(Bdirs), $(TOP)/$(dir)/Make.package)
+Bpack += $(TOP)/Source/two_moment/Make.package
+
 Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 
 
@@ -468,3 +465,4 @@ clean::
 print-%::
 	@echo "$* is $($*)"
 	@$(RM) AMReX_buildInfo.cpp
+

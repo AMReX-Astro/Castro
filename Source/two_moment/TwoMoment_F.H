@@ -6,6 +6,8 @@
 extern "C"
 {
 #endif
+  void InitThornado(const int* nDimsX, const int* nDimsE);
+
   void InitThornado_Patch(const int* box_size, 
                           const int* swX,
                           const Real* grid_lo, const Real* grid_hi, 
