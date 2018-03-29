@@ -19,12 +19,11 @@ extern "C"
 
   void FreeThornado_Patch();
 
-  void call_to_thornado(const int lo[], const int hi[],
-                        BL_FORT_FAB_ARG_3D( U_F), const int* nc_uf,
+  void call_to_thornado(const int lo[], const int hi[], amrex::Real* dt_sub,
+                        BL_FORT_FAB_ARG_3D( U_F), 
                         amrex::Real* U_R_o, 
                         BL_FORT_FAB_ARG_3D( U_R_n), const int* nc ur,
-                        BL_FORT_FAB_ARG_3D(dU_F), const int* nc_duf,
-                        amrex::Real* dt_sub);
+                        BL_FORT_FAB_ARG_3D(dU_F));
 
 #ifdef __cplusplus
 }

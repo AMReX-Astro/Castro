@@ -16,7 +16,7 @@ Castro::init_thornado()
 }
 
 void
-Castro::create_thornado_source()
+Castro::create_thornado_source(Real dt)
 {
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -24,10 +24,6 @@ Castro::create_thornado_source()
     int my_ngrow = 1;  // one fluid ghost cell
     // Create a temporary so it has the right order of the right variables and no ghost cells
     MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
-
-    // For right now create a temporary holder for the source term -- we'll incorporate it 
-    // more permanently later
-    MultiFab dU_F(grids, dmap, my_ncomp, my_ngrow);
 
     // Copy the current state S_new into U_F
     // Note that the first five components get copied as is
@@ -55,10 +51,18 @@ Castro::create_thornado_source()
 
     const Real* dx = geom.CellSize();
 
-#if 0
+    // For right now create a temporary holder for the source term -- we'll incorporate it 
+    //    more permanently later.  
+    MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
+
     for (int i = 0; i < n_sub; i++)
     {
       Real dt_sub = dt / n_sub;
+
+      // Make sure to zero dS here since not all the 
+      //    components will be filled in call_to_thornado
+      //    and we don't want to re-add terms from the last iteration
+      dS.setVal(0.);
 
       // For now we will not allowing logical tiling
       for (MFIter mfi(U_F, false); mfi.isValid(); ++mfi) 
@@ -73,24 +77,29 @@ Castro::create_thornado_source()
            grid_hi[0] = (bx.bigEnd(0)+1) * dx[0];
            grid_hi[1] = (bx.bigEnd(1)+1) * dx[1];
            grid_hi[2] = (bx.bigEnd(2)+1) * dx[2];
+        
+           int nx = bx.length(0);
+           int ny = bx.length(0);
+           int nz = bx.length(0);
 
-            InitThornado_Patch(
-               bx.size(0), bx.size(1), bx.size(2),
+            InitThornado_Patch(&nx, &ny, &nz, 
                swX.dataPtr(),
-               grid_lo.dataPtr(), grid.hi.dataPtr(),
+               grid_lo.dataPtr(), grid_hi.dataPtr(),
                &n_energy, &swE, &eL, &eR, &n_species);
         }
-
-        const Box& bx = mfi.validbox();
-        call_to_thornado(BL_TO_FORTRAN_BOX(bx),
-                         BL_TO_FORTRAN_FAB(U_F[mfi]),
+#if 0
+        call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub ,
+                         BL_TO_FORTRAN_FAB(S_new[mfi]),
+                         BL_TO_FORTRAN_FAB(dS[mfi]));
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]),
-                         BL_TO_FORTRAN_FAB(dU_F[mfi]),&dt_sub);
+#endif
+        // Add the source term to all components even though there should
+        //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
+        MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
 
         if (i == (n_sub-1)) FreeThornado_Patch();
       }
       U_F.FillBoundary();
     }
-#endif
 }

@@ -324,7 +324,7 @@ Castro::do_advance (Real time,
     }
 
 #ifdef THORNADO
-    create_thornado_source();
+    create_thornado_source(dt);
 #endif
 
     // Do the second half of the reactions.
