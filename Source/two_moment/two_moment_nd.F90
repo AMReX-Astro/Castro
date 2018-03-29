@@ -1,6 +1,7 @@
   subroutine call_to_thornado(lo, hi, dt, &
                               S, dS, s_lo, s_hi, &
-                              U_R_o, U_R_n, U_R_lo,   U_R_hi, nr) &
+                              U_R_o, U_R_n, U_R_lo, U_R_hi, nr,
+                              n_nodes, n_energy, n_species, n_moments) &
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
@@ -12,21 +13,17 @@
     integer, intent(in) ::  U_R_lo(3),  U_R_hi(3)
     integer, intent(in) :: dU_F_lo(3), dU_F_hi(3)
     integer, intent(in) ::  nr
+    real(rt), intent(in) :: dt !! KS: missing declaration
 
     ! Here we expect  nr = 20 x 16 x 6 x 4 (energy x nodes x species x moments)
 
     ! Conserved fluid state (rho, rho u, rho v, rho w, rho E, rho e...)
     real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR) 
-    real(rt), intent(inout) :: dS(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR) 
+    real(rt), intent(inout) :: dS(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     ! Old and new radiation state
-    real(rt), intent(inout) ::  U_R_o(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), nr) 
+    real(rt), intent(inout) ::  U_R_o(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), nr)
     real(rt), intent(inout) ::  U_R_n(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), nr) 
-
-    integer, parameter :: n_energy = 20  ! ne = n_energy
-    integer, parameter :: n_nodes  = 16  ! nn = n_nodes
-    integer, parameter :: n_species = 6  ! ns = n_species
-    integer, parameter :: n_moments = 4  ! nm = n_moments
 
     integer, parameter :: thor_density = 1
     integer, parameter :: thor_xmom    = 2
@@ -42,6 +39,7 @@
     integer  :: iz_b1(4), iz_e1(4)
     integer  :: i,j,k
     integer  :: ii,id,ie,im,is
+    integer  :: ng !! KS: missing declaration
 
     real(rt), allocatable ::  U_F_thor(:,:,:,:,:)
     real(rt), allocatable :: dU_F_thor(:,:,:,:,:)
@@ -54,14 +52,7 @@
     if (U_R_lo(1) .ne. S_lo(1) .or.  U_R_hi(1) .ne. S_hi(1) .or. &
         U_R_lo(2) .ne. S_lo(2) .or.  U_R_hi(2) .ne. S_hi(2) .or. &
         U_R_lo(3) .ne. S_lo(3) .or.  U_R_hi(3) .ne. S_hi(3)) then
-        print *,'INCONSISTENT ARRAY BOUNDS ON FLUID AND RADIATION VARS
-        stop
-    endif
-    ! End Sanity check 
-
-    ! Sanity check 
-    if (nr .ne. n_energy * n_nodes * n_species * n_moments) then
-        print *,'INCONSISTENT SIZE OF UR DOESNT MATCH NE * NN * NS * NM' 
+        print *,'INCONSISTENT ARRAY BOUNDS ON FLUID AND RADIATION VARS' !! KS: added closing '
         stop
     endif
     ! End Sanity check 
@@ -86,8 +77,8 @@
     iz_e1(3) = hi(3)+1
     iz_e1(4) = n_energy
 
-    ne = n_energy
     nn = n_nodes
+    ne = n_energy
     ns = n_species
     nm = n_moments
 
@@ -125,16 +116,12 @@
          U_F_thor(1:nn,i,j,k,thor_rhoe   ) = S_new(i,j,k,UEINT)
          U_F_thor(1:nn,i,j,k,thor_ne     ) = S_new(i,j,k,UFX)
 
-         !! U_R_o starts at ii = 0, while U_R_thor starts at id=ie=im=is=1, is that right?
-         !! ASA: We have allocated U_R_thor to start at 0 for spatial variables and 1 for id,ie,im,is 
-         !! ASA: you were correct about the flaw in the counting below -- I think I've fixed it 
-
          do is = 1, ns
          do im = 1, nm
          do ie = 1, ne
          do id = 1, nn
             ii = (is-1)*(nm*ne*nn) + (im-1)*(ne*nn) + (ie-1)*nn + (id-1)
-            U_R_thor(id,ie,i,j,k,im,is) = U_R_o(i,j,k,icomp)
+            U_R_thor(id,ie,i,j,k,im,is) = U_R_o(i,j,k,ii) !! KS: I changed icomp to ii
          end do
          end do
          end do
@@ -156,18 +143,18 @@
     do j = lo(2),hi(2)
     do i = lo(1),hi(1)
 
-         ! We store dS_F as a source term which we can add to S_new outside of this routine
+         ! We store dS as a source term which we can add to S_new outside of this routine
 
          ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          ! ASA: But why are we choosing 1 for the first component -- I made that up! 
          ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-         dS_F(i,j,k,URHO ) = dU_F_thor(1,i,j,k,thor_density) / dt
-         dS_F(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,thor_xmom)    / dt
-         dS_F(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,thor_ymom)    / dt
-         dS_F(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,thor_zmom)    / dt
-         dS_F(i,j,k,UEINT) = dU_F_thor(1,i,j,k,thor_rhoe)    / dt
-         dS_F(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,thor_ne)      / dt
+         dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,thor_density) / dt !! KS: changed these to dS since dS_F doesn't exist
+         dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,thor_xmom)    / dt
+         dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,thor_ymom)    / dt
+         dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,thor_zmom)    / dt
+         dS(i,j,k,UEINT) = dU_F_thor(1,i,j,k,thor_rhoe)    / dt
+         dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,thor_ne)      / dt
 
          do is = 1, ns
          do im = 1, nm

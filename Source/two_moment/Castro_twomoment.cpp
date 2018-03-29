@@ -8,11 +8,9 @@ using namespace amrex;
 void
 Castro::init_thornado()
 {
-    int nDimsX = BL_SPACEDIM;
-    int nDimsE = 1;  // This is the number of energy groups -- for now we'll test with just 1
-#if 0
+    int nDimsX = THORNADO_NDIMS_X;
+    int nDimsE = THORNADO_NDIMS_E;
     InitThornado(&nDimsX, &nDimsE);
-#endif
 }
 
 void
@@ -29,13 +27,18 @@ Castro::create_thornado_source(Real dt)
     // Note that the first five components get copied as is
     int src_comp = 0;
     int dst_comp = 0;
-    int   n_comp = BL_SPACEDIM+2;
-    MultiFab::Copy(U_F, S_new, src_comp, dst_comp, n_comp, my_ngrow); // rho, rho*u, rho*v, rho*w, rho*E
+    int   n_comp = 5;
+    int      cnt = 0;
 
-    // Now copy Y_e, which is first "aux" variable, into the 6th spot of U_F
-    src_comp = FirstAux;
-    dst_comp = BL_SPACEDIM+2;
-    MultiFab::Copy(U_F, S_new, src_comp, dst_comp, 1, my_ngrow);
+    // rho, rho*u, rho*v, rho*w, rho*E
+    MultiFab::Copy(U_F, S_new, Density , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_new, Xmom    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_new, Ymom    , cnt, 1, my_ngrow); cnt++;
+#if (BL_SPACEDIM == 3)
+    MultiFab::Copy(U_F, S_new, Zmom    , cnt, 1, my_ngrow); cnt++;
+#endif
+    MultiFab::Copy(U_F, S_new, Eden    , cnt, 1, my_ngrow); cnt++;
+    MultiFab::Copy(U_F, S_new, FirstAux, cnt, 1, my_ngrow); 
 
     MultiFab& U_R_old = get_old_data(Thornado_Type);
     MultiFab& U_R_new = get_new_data(Thornado_Type);
@@ -46,10 +49,13 @@ Castro::create_thornado_source(Real dt)
     IntVect swX(2,2,2);
     Vector<Real> grid_lo(3);
     Vector<Real> grid_hi(3);
-    int n_energy;
-    int n_species;
 
     const Real* dx = geom.CellSize();
+
+    int n_nodes   = THORNADO_NNODES;
+    int n_energy  = THORNADO_NENERGY;
+    int n_species = THORNADO_NSPECIES;
+    int n_moments = THORNADO_NMOMENTS;
 
     // For right now create a temporary holder for the source term -- we'll incorporate it 
     //    more permanently later.  
@@ -92,7 +98,8 @@ Castro::create_thornado_source(Real dt)
                          BL_TO_FORTRAN_FAB(S_new[mfi]),
                          BL_TO_FORTRAN_FAB(dS[mfi]));
                          U_R_old[mfi].dataPtr(),
-                         BL_TO_FORTRAN_FAB(U_R_new[mfi]),
+                         BL_TO_FORTRAN_FAB(U_R_new[mfi]
+                         n_energy, n_species, n_nodes, n_moments);
 #endif
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)

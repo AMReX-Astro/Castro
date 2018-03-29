@@ -832,6 +832,17 @@ protected:
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
 
+#ifdef THORNADO
+    static int THORNADO_NNODES;
+    static int THORNADO_NMOMENTS;
+    static int THORNADO_NENERGY;
+    static int THORNADO_NSPECIES;
+    static int THORNADO_NDOF;
+    static int THORNADO_NDIMS_X;
+    static int THORNADO_NDIMS_E;
+    static int THORNADO_NCOMP;
+#endif
+
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
