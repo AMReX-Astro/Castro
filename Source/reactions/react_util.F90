@@ -75,4 +75,39 @@ contains
 
   end subroutine single_zone_react_source
 
+
+  subroutine single_zone_jac(burn_state, dRdw)
+
+    ! we assume that we are coming in with a valid burn_state, e.g., as called
+    ! from single_zone_react_source
+
+    use burn_type_module, only : burn_t
+    use network, only : nspec
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
+                                   dual_energy_eta3
+    use bl_constants_module, only : ZERO, HALF, ONE
+    use actual_jac_module
+
+    implicit none
+
+    type(burn_t), intent(in) :: burn_state
+    real(rt), intent(out) :: dRdw(nspec+2, nspec+2)
+
+
+    call actual_jac(burn_state)
+
+    ! store the instantaneous R
+    dRdw(:,:) = ZERO
+
+    ! now perturb density and call the RHS to compute the derivative wrt rho
+
+    ! species rates come back in terms of molar fractions
+    R(UFS:UFS-1+nspec_evolve) = &
+         state(URHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
+
+    R(UEDEN) = state(URHO) * burn_state % ydot(net_ienuc)
+    R(UEINT) = state(URHO) * burn_state % ydot(net_ienuc)
+
+  end subroutine single_zone_react_source
+
 end module react_util_module
