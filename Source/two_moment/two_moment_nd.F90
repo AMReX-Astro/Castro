@@ -1,7 +1,7 @@
   subroutine call_to_thornado(lo, hi, dt, &
                               S, dS, s_lo, s_hi, &
                               U_R_o, U_R_n, U_R_lo, U_R_hi, nr,
-                              n_nodes, n_energy, n_species, n_moments) &
+                              n_dof, n_energy, n_species, n_moments) &
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
@@ -15,7 +15,7 @@
     integer, intent(in) ::  nr
     real(rt), intent(in) :: dt !! KS: missing declaration
 
-    ! Here we expect  nr = 20 x 16 x 6 x 4 (energy x nodes x species x moments)
+    ! Here we expect  nr = 20 x 16 x 6 x 4 (energy x dof x species x moments)
 
     ! Conserved fluid state (rho, rho u, rho v, rho w, rho E, rho e...)
     real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR) 
@@ -77,7 +77,7 @@
     iz_e1(3) = hi(3)+1
     iz_e1(4) = n_energy
 
-    nn = n_nodes
+    nn = n_dof
     ne = n_energy
     ns = n_species
     nm = n_moments

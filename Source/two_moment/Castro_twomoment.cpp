@@ -52,7 +52,7 @@ Castro::create_thornado_source(Real dt)
 
     const Real* dx = geom.CellSize();
 
-    int n_nodes   = THORNADO_NNODES;
+    int n_dof     = THORNADO_NDOF;
     int n_energy  = THORNADO_NENERGY;
     int n_species = THORNADO_NSPECIES;
     int n_moments = THORNADO_NMOMENTS;
@@ -99,7 +99,7 @@ Castro::create_thornado_source(Real dt)
                          BL_TO_FORTRAN_FAB(dS[mfi]));
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]
-                         n_energy, n_species, n_nodes, n_moments);
+                         n_energy, n_species, n_dof, n_moments);
 #endif
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
