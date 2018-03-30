@@ -86,6 +86,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
                                    dual_energy_eta3
     use bl_constants_module, only : ZERO, HALF, ONE
+    use actual_rhs_module
     use actual_jac_module
 
     implicit none
@@ -93,8 +94,13 @@ contains
     type(burn_t), intent(in) :: burn_state
     real(rt), intent(out) :: dRdw(nspec+2, nspec+2)
 
-
     call actual_jac(burn_state)
+
+    ! We integrate X, not Y
+    do n = 1, nspec_evolve
+       state % jac(n,:) = state % jac(n,:) * aion(n)
+       state % jac(:,n) = state % jac(:,n) * aion_inv(n)
+    enddo
 
     ! store the instantaneous R
     dRdw(:,:) = ZERO
