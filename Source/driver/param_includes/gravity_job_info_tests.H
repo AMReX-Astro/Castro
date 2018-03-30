@@ -1,0 +1,15 @@
+jobInfoFile << (gravity_type == "fillme" ? "    " : "[*] ") << "gravity_type = " << gravity_type << std::endl;
+jobInfoFile << (const_grav == 0.0 ? "    " : "[*] ") << "const_grav = " << const_grav << std::endl;
+jobInfoFile << (direct_sum_bcs == 0 ? "    " : "[*] ") << "direct_sum_bcs = " << direct_sum_bcs << std::endl;
+jobInfoFile << (drdxfac == 1 ? "    " : "[*] ") << "drdxfac = " << drdxfac << std::endl;
+jobInfoFile << (lnum == 0 ? "    " : "[*] ") << "lnum = " << lnum << std::endl;
+jobInfoFile << (verbose == 0 ? "    " : "[*] ") << "verbose = " << verbose << std::endl;
+jobInfoFile << (no_sync == 0 ? "    " : "[*] ") << "no_sync = " << no_sync << std::endl;
+jobInfoFile << (no_composite == 0 ? "    " : "[*] ") << "no_composite = " << no_composite << std::endl;
+jobInfoFile << (do_composite_phi_correction == 1 ? "    " : "[*] ") << "do_composite_phi_correction = " << do_composite_phi_correction << std::endl;
+jobInfoFile << (get_g_from_phi == 0 ? "    " : "[*] ") << "get_g_from_phi = " << get_g_from_phi << std::endl;
+jobInfoFile << (use_mlmg_solver == 0 ? "    " : "[*] ") << "use_mlmg_solver = " << use_mlmg_solver << std::endl;
+jobInfoFile << (mlmg_max_fmg_iter == 0 ? "    " : "[*] ") << "mlmg_max_fmg_iter = " << mlmg_max_fmg_iter << std::endl;
+jobInfoFile << (mlmg_agglomeration == 1 ? "    " : "[*] ") << "mlmg_agglomeration = " << mlmg_agglomeration << std::endl;
+jobInfoFile << (mlmg_consolidation == 1 ? "    " : "[*] ") << "mlmg_consolidation = " << mlmg_consolidation << std::endl;
+jobInfoFile << (mlmg_nsolve == 0 ? "    " : "[*] ") << "mlmg_nsolve = " << mlmg_nsolve << std::endl;
