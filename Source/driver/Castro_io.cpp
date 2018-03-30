@@ -878,9 +878,20 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-  ParmParse::dumpTable(jobInfoFile, true);
+  //ParmParse::dumpTable(jobInfoFile, true);
 
-  jobInfoFile.close();
+#include "castro_job_info_tests.H"
+#ifdef DIFFUSION
+#include "diffusion_job_info_tests.H"
+#endif
+#ifdef GRAVITY
+#include "gravity_job_info_tests.H"
+#endif
+#ifdef PARTICLES
+#include "particles_job_info_tests.H"
+#endif
+
+jobInfoFile.close();
 
 }
 
