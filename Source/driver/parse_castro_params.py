@@ -227,7 +227,10 @@ class Param(object):
     def get_job_info_test(self):
         # this is the output in C++ in the job_info writing
 
-        ostr = 'jobInfoFile << ({} == {} ? "    " : "[*] ") << "{} = " << {} << std::endl;\n'.format(self.cpp_var_name, self.default_format(), self.cpp_var_name, self.cpp_var_name)
+        ostr = 'jobInfoFile << ({}::{} == {} ? "    " : "[*] ") << "{}.{} = " << {}::{} << std::endl;\n'.format(
+            self.cpp_class, self.cpp_var_name, self.default_format(), 
+            self.namespace, self.cpp_var_name,
+            self.cpp_class, self.cpp_var_name)
 
         return ostr
         

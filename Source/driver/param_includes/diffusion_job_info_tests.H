@@ -1,1 +1,1 @@
-jobInfoFile << (verbose == 0 ? "    " : "[*] ") << "verbose = " << verbose << std::endl;
+jobInfoFile << (Diffusion::verbose == 0 ? "    " : "[*] ") << "diffusion.verbose = " << Diffusion::verbose << std::endl;
