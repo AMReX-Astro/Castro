@@ -878,8 +878,6 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-  //ParmParse::dumpTable(jobInfoFile, true);
-
 #include "castro_job_info_tests.H"
 #ifdef PARTICLES
 #include "particles_job_info_tests.H"
