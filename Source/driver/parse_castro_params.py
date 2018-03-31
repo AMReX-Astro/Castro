@@ -217,6 +217,24 @@ class Param(object):
 
         return ostr
 
+    def default_format(self):
+        """return the variable in a format that it can be recognized in C++ code"""
+        if self.dtype == "string":
+            return '{}'.format(self.default)
+        else:
+            return self.default
+
+    def get_job_info_test(self):
+        # this is the output in C++ in the job_info writing
+
+        ostr = 'jobInfoFile << ({}::{} == {} ? "    " : "[*] ") << "{}.{} = " << {}::{} << std::endl;\n'.format(
+            self.cpp_class, self.cpp_var_name, self.default_format(), 
+            self.namespace, self.cpp_var_name,
+            self.cpp_class, self.cpp_var_name)
+
+        return ostr
+        
+
     def get_decl_string(self):
         # this is the line that goes into castro_params.H included
         # into Castro.H
@@ -541,6 +559,23 @@ def parse_params(infile, meth_template):
 
         cq.close()
 
+        # write the job info tests
+        try:
+            jo = open("{}/{}_job_info_tests.H".format(param_include_dir, nm), "w")
+        except IOError:
+            sys.exit("unable to open {}_job_info_tests.H".format(nm))
+
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    jo.write(p.get_job_info_test())
+            else:
+                jo.write("#ifdef {}\n".format(ifdef))
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    jo.write(p.get_job_info_test())
+                jo.write("#endif\n")
+
+        jo.close()
 
     # write the Fortran module
     write_meth_module(params, meth_template)

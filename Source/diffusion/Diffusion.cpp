@@ -42,6 +42,14 @@ Diffusion::read_params ()
     }
 }
 
+
+void 
+Diffusion::output_job_info_params(std::ostream& jobInfoFile)
+{
+#include "diffusion_job_info_tests.H"
+}
+
+
 void
 Diffusion::install_level (int                   level,
                           AmrLevel*             level_data,

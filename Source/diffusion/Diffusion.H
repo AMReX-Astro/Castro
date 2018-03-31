@@ -11,6 +11,8 @@ public:
   ~Diffusion ();
   void read_params ();
 
+  void output_job_info_params(std::ostream& jobInfoFile);
+
   void install_level (int                   level,
                       amrex::AmrLevel*             level_data,
                       amrex::MultiFab&             volume,

@@ -15,6 +15,8 @@ public:
   ~Gravity ();
   void read_params ();
 
+  void output_job_info_params(std::ostream& jobInfoFile);
+
   void set_numpts_in_gravity(int numpts);
 
   void install_level (int                   level,
