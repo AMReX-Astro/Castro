@@ -253,6 +253,13 @@ Gravity::read_params ()
     }
 }
 
+void 
+Gravity::output_job_info_params(std::ostream& jobInfoFile)
+{
+#include "gravity_job_info_tests.H"
+}
+
+
 void
 Gravity::set_numpts_in_gravity (int numpts)
 {

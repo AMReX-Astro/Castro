@@ -881,14 +881,15 @@ Castro::writeJobInfo (const std::string& dir)
   //ParmParse::dumpTable(jobInfoFile, true);
 
 #include "castro_job_info_tests.H"
-#ifdef DIFFUSION
-#include "diffusion_job_info_tests.H"
-#endif
-#ifdef GRAVITY
-#include "gravity_job_info_tests.H"
-#endif
 #ifdef PARTICLES
 #include "particles_job_info_tests.H"
+#endif
+
+#ifdef GRAVITY
+  gravity->output_job_info_params(jobInfoFile);
+#endif
+#ifdef DIFFUSION
+  diffusion->output_job_info_params(jobInfoFile);
 #endif
 
 jobInfoFile.close();
