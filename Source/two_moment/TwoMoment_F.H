@@ -8,22 +8,22 @@ extern "C"
 #endif
   void InitThornado(const int* nDimsX, const int* nDimsE);
 
-  void InitThornado_Patch(const int* box_size, 
-                          const int* swX,
-                          const Real* grid_lo, const Real* grid_hi, 
+  void InitThornado_Patch(const int* len, int* swX,
+                          const amrex::Real* grid_lo, const amrex::Real* grid_hi, 
                           const int* n_energy, 
                           const int* swE, 
-                          const Real* eL, 
-                          const Real* eR, 
+                          const amrex::Real* eL, 
+                          const amrex::Real* eR, 
                           const int* n_species); 
 
   void FreeThornado_Patch();
 
   void call_to_thornado(const int lo[], const int hi[], amrex::Real* dt_sub,
-                        BL_FORT_FAB_ARG_3D( U_F), 
+                        amrex::Real* U_F, 
+                        BL_FORT_FAB_ARG_3D(dU_F), const int* nc,
                         amrex::Real* U_R_o, 
-                        BL_FORT_FAB_ARG_3D( U_R_n), const int* nc ur,
-                        BL_FORT_FAB_ARG_3D(dU_F));
+                        BL_FORT_FAB_ARG_3D( U_R_n), const int* nr,
+                        int* n_energy, int* n_species, int* n_dof, int* n_moments);
 
 #ifdef __cplusplus
 }

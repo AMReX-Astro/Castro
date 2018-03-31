@@ -1,6 +1,6 @@
 
 #include "Castro.H"
-#include "Castro_F.H"
+#include "TwoMoment_F.H"
 
 using std::string;
 using namespace amrex;
@@ -19,7 +19,7 @@ Castro::create_thornado_source(Real dt)
     MultiFab& S_new = get_new_data(State_Type);
 
     int my_ncomp = BL_SPACEDIM+3;  // rho, rho*u, rho*v, rho*w, rho*E, Y_e
-    int my_ngrow = 1;  // one fluid ghost cell
+    int my_ngrow = 2;  // two fluid ghost cells
     // Create a temporary so it has the right order of the right variables and no ghost cells
     MultiFab U_F(grids, dmap, my_ncomp, my_ngrow);
 
@@ -46,7 +46,7 @@ Castro::create_thornado_source(Real dt)
     // int n_sub = GetNSteps(dt); // From thornado
     int n_sub = 1; // THIS IS JUST A HACK TO MAKE IT COMPILE 
 
-    IntVect swX(2,2,2);
+    int swE = 0; // stencil for energy array; no energy ghost cells needed
     Vector<Real> grid_lo(3);
     Vector<Real> grid_hi(3);
 
@@ -60,6 +60,18 @@ Castro::create_thornado_source(Real dt)
     // For right now create a temporary holder for the source term -- we'll incorporate it 
     //    more permanently later.  
     MultiFab dS(grids, dmap, S_new.nComp(), S_new.nGrow());
+
+    // ASA -- WE NEED TO SET THESE FOR REAL
+    Real eL = 0.;
+    Real eR = 0.;
+
+    int swX[3];
+    swX[0] = 1;
+    swX[1] = 1;
+    swX[2] = 1;
+
+    int * boxlen = new int[3];
+    int nr_comp = U_R_new.nComp();
 
     for (int i = 0; i < n_sub; i++)
     {
@@ -83,24 +95,22 @@ Castro::create_thornado_source(Real dt)
            grid_hi[0] = (bx.bigEnd(0)+1) * dx[0];
            grid_hi[1] = (bx.bigEnd(1)+1) * dx[1];
            grid_hi[2] = (bx.bigEnd(2)+1) * dx[2];
-        
-           int nx = bx.length(0);
-           int ny = bx.length(0);
-           int nz = bx.length(0);
 
-            InitThornado_Patch(&nx, &ny, &nz, 
-               swX.dataPtr(),
+           boxlen[0] = bx.length(0);
+           boxlen[1] = bx.length(1);
+           boxlen[2] = bx.length(2);
+  
+           InitThornado_Patch(boxlen, swX,
                grid_lo.dataPtr(), grid_hi.dataPtr(),
                &n_energy, &swE, &eL, &eR, &n_species);
         }
-#if 0
-        call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub ,
-                         BL_TO_FORTRAN_FAB(S_new[mfi]),
-                         BL_TO_FORTRAN_FAB(dS[mfi]));
+
+        call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
+                         S_new[mfi].dataPtr(),
+                         BL_TO_FORTRAN_FAB(dS[mfi]),
                          U_R_old[mfi].dataPtr(),
-                         BL_TO_FORTRAN_FAB(U_R_new[mfi]
-                         n_energy, n_species, n_dof, n_moments);
-#endif
+                         BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
+                         &n_energy, &n_species, &n_dof, &n_moments);
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
         MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
@@ -109,4 +119,5 @@ Castro::create_thornado_source(Real dt)
       }
       U_F.FillBoundary();
     }
+    delete boxlen;
 }

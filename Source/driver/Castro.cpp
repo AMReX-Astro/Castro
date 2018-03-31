@@ -100,7 +100,7 @@ int          Castro::THORNADO_NSPECIES = 6;
 int          Castro::THORNADO_NMOMENTS = 4;
 int          Castro::THORNADO_NDIMS_X  = BL_SPACEDIM;
 int          Castro::THORNADO_NDIMS_E  = 1;
-//int          Castro::THORNADO_NDOF     = THORNADO_NNODES**(THORNADO_NDIMS_X + THORNADO_NDIMS_E);   // = 16 for 3D and 1 energy
+int          Castro::THORNADO_NDOF     = std::pow(THORNADO_NNODES,(THORNADO_NDIMS_X + THORNADO_NDIMS_E));   // = 16 for 3D and 1 energy
 int          Castro::THORNADO_NCOMP    = THORNADO_NDOF * THORNADO_NENERGY * THORNADO_NSPECIES *THORNADO_NMOMENTS;
 #endif
 
