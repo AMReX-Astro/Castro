@@ -316,7 +316,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   int ngrow_thornado = ngrow_state;
   desc_lst.addDescriptor(Thornado_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, ngrow_thornado, THORNADO_NCOMP,
+			 StateDescriptor::Point, ngrow_thornado, THORNADO_RAD_NCOMP,
 			 &cell_cons_interp, state_data_extrap,
 			 store_in_checkpoint);
 #endif

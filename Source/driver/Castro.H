@@ -837,10 +837,11 @@ protected:
     static int THORNADO_NMOMENTS;
     static int THORNADO_NENERGY;
     static int THORNADO_NSPECIES;
-    static int THORNADO_NDOF;
     static int THORNADO_NDIMS_X;
     static int THORNADO_NDIMS_E;
-    static int THORNADO_NCOMP;
+    static int THORNADO_FLUID_NDOF;
+    static int THORNADO_RAD_NDOF;
+    static int THORNADO_RAD_NCOMP;
 #endif
 
     static int         lastDtPlotLimited;

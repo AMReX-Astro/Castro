@@ -23,7 +23,8 @@ extern "C"
                         BL_FORT_FAB_ARG_3D(dU_F), const int* nc,
                         amrex::Real* U_R_o, 
                         BL_FORT_FAB_ARG_3D( U_R_n), const int* nr,
-                        int* n_energy, int* n_species, int* n_dof, int* n_moments);
+                        int* n_fluid_dof, int* n_energy, int* n_species, 
+                        int* n_rad_dof, int* n_moments);
 
 #ifdef __cplusplus
 }

@@ -52,10 +52,11 @@ Castro::create_thornado_source(Real dt)
 
     const Real* dx = geom.CellSize();
 
-    int n_dof     = THORNADO_NDOF;
-    int n_energy  = THORNADO_NENERGY;
-    int n_species = THORNADO_NSPECIES;
-    int n_moments = THORNADO_NMOMENTS;
+    int n_fluid_dof = THORNADO_FLUID_NDOF;
+    int n_rad_dof   = THORNADO_RAD_NDOF;
+    int n_energy    = THORNADO_NENERGY;
+    int n_species   = THORNADO_NSPECIES;
+    int n_moments   = THORNADO_NMOMENTS;
 
     // For right now create a temporary holder for the source term -- we'll incorporate it 
     //    more permanently later.  
@@ -105,12 +106,20 @@ Castro::create_thornado_source(Real dt)
                &n_energy, &swE, &eL, &eR, &n_species);
         }
 
+        // n_fluid_dof = THORNADO_FLUID_NDOF;
+        // n_rad_dof   = THORNADO_RAD_NDOF;
+        // n_energy    = THORNADO_NENERGY;
+        // n_species   = THORNADO_NSPECIES;
+        // n_moments   = THORNADO_NMOMENTS;
+
         call_to_thornado(BL_TO_FORTRAN_BOX(bx), &dt_sub,
                          S_new[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(dS[mfi]),
                          U_R_old[mfi].dataPtr(),
                          BL_TO_FORTRAN_FAB(U_R_new[mfi]), 
-                         &n_energy, &n_species, &n_dof, &n_moments);
+                         &n_fluid_dof, &n_energy, &n_species, 
+                         &n_rad_dof, &n_moments);
+
         // Add the source term to all components even though there should
         //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
         MultiFab::Add(S_new, dS, Density, 0, S_new.nComp(), 0);
