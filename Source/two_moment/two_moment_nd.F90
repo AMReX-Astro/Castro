@@ -1,29 +1,30 @@
   subroutine call_to_thornado(lo, hi, dt, &
-                              S, dS, s_lo, s_hi, nc, &
-                              U_R_o, U_R_n, U_R_lo, U_R_hi, nr, &
-                              n_dof, n_energy, n_species, n_moments) &
+                              S, dS, s_lo, s_hi, n_fluid_comp, &
+                              U_R_o, U_R_n, U_R_lo, U_R_hi, n_rad_comp, &
+                              n_fluid_dof, n_energy, n_species, &
+                              n_rad_dof, n_moments) &
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UFX,NVAR
+    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UFX
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) ::  s_lo(3),  s_hi(3)
     integer, intent(in) ::  U_R_lo(3),  U_R_hi(3)
-    integer, intent(in) ::  nc, nr
-    integer, intent(in) ::  n_dof, n_energy, n_species, n_moments
+    integer, intent(in) ::  n_fluid_comp, n_rad_comp
+    integer, intent(in) ::  n_fluid_dof, n_energy, n_species, n_rad_dof, n_moments
     real(rt), intent(in) :: dt
 
-    ! Here we expect  nr = 20 x 16 x 6 x 4 (energy x dof x species x moments)
+    ! Here we expect  n_rad_comp = 20 x 16 x 6 x 4 (energy x dof x species x moments)
 
     ! Conserved fluid state (rho, rho u, rho v, rho w, rho E, rho e...)
-    real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR) 
-    real(rt), intent(inout) :: dS(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) ::  S(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),n_fluid_comp) 
+    real(rt), intent(inout) :: dS(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),n_fluid_comp)
 
     ! Old and new radiation state
-    real(rt), intent(inout) ::  U_R_o(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), nr)
-    real(rt), intent(inout) ::  U_R_n(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), nr) 
+    real(rt), intent(inout) ::  U_R_o(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), n_rad_comp)
+    real(rt), intent(inout) ::  U_R_n(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), n_rad_comp) 
 
     integer, parameter :: thor_density = 1
     integer, parameter :: thor_xmom    = 2
@@ -77,11 +78,6 @@
     iz_e1(3) = hi(3)+1
     iz_e1(4) = n_energy
 
-    nn = n_dof
-    ne = n_energy
-    ns = n_species
-    nm = n_moments
-
     !! Should this be 1:nn instead of 1:4 given lines 113-118?
     !! Actually, why is this an array at all since only the first entry is used in lines 152-157?
     !! For clarity, should 1:6 be 1:thor_ne?
@@ -96,11 +92,13 @@
     !! ASA: Another question -- should the definition of iz_b*, iz_e* above be consistent with the size 
     !!      of the arrays, i.e should iz_e1 be hi(1)+ng instead of hi(1)+1?
     ! ************************************************************************************
-    allocate( U_F_thor(1:4, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
-    allocate(dU_F_thor(1:4, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
+    allocate( U_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
+    allocate(dU_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
 
-    allocate( U_R_thor(1:nn, 1:ne, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, 1:nm, 1:ns))
-    allocate(dU_R_thor(1:nn, 1:ne, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, 1:nm, 1:ns))
+    allocate( U_R_thor(1:n_rad_dof, 1:n_energy, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, &
+                       1:n_moments, 1:n_species))
+    allocate(dU_R_thor(1:n_rad_dof, 1:n_energy, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, &
+                       1:n_moments, 1:n_species))
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into temporary thornado arrays
@@ -109,18 +107,18 @@
     do j = lo(2)-ng,hi(2)+ng
     do i = lo(1)-ng,hi(1)+ng
 
-         U_F_thor(1:nn,i,j,k,thor_density) = S(i,j,k,URHO)
-         U_F_thor(1:nn,i,j,k,thor_xmom   ) = S(i,j,k,UMX)
-         U_F_thor(1:nn,i,j,k,thor_ymom   ) = S(i,j,k,UMY)
-         U_F_thor(1:nn,i,j,k,thor_zmom   ) = S(i,j,k,UMZ)
-         U_F_thor(1:nn,i,j,k,thor_rhoe   ) = S(i,j,k,UEINT)
-         U_F_thor(1:nn,i,j,k,thor_ne     ) = S(i,j,k,UFX)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_density) = S(i,j,k,URHO)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_xmom   ) = S(i,j,k,UMX)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_ymom   ) = S(i,j,k,UMY)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_zmom   ) = S(i,j,k,UMZ)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_rhoe   ) = S(i,j,k,UEINT)
+         U_F_thor(1:n_fluid_dof,i,j,k,thor_ne     ) = S(i,j,k,UFX)
 
-         do is = 1, ns
-         do im = 1, nm
-         do ie = 1, ne
-         do id = 1, nn
-            ii = (is-1)*(nm*ne*nn) + (im-1)*(ne*nn) + (ie-1)*nn + (id-1)
+         do is = 1, n_species
+         do im = 1, n_moments
+         do ie = 1, n_energy
+         do id = 1, n_rad_dof
+            ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
             U_R_thor(id,ie,i,j,k,im,is) = U_R_o(i,j,k,ii)
          end do
          end do
@@ -134,7 +132,9 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    ! call ComputeIncrement(iz_b0, iz_e0, iz_b1, iz_e1, U_F_thor, U_R_thor, dU_F_thor, dU_R_thor, nn, ns, nm)
+    ! call ComputeIncrement(iz_b0, iz_e0, iz_b1, iz_e1, &
+    !                       U_F_thor, U_R_thor, dU_F_thor, dU_R_thor, &
+    !                       n_rad_dof, n_species, n_moments)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -156,11 +156,11 @@
          dS(i,j,k,UEINT) = dU_F_thor(1,i,j,k,thor_rhoe)    / dt
          dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,thor_ne)      / dt
 
-         do is = 1, ns
-         do im = 1, nm
-         do ie = 1, ne
-         do id = 1, nn
-            ii = (is-1)*(nm*ne*nn) + (im-1)*(ne*nn) + (ie-1)*nn + (id-1)
+         do is = 1, n_species
+         do im = 1, n_moments
+         do ie = 1, n_energy
+         do id = 1, n_rad_dof
+            ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
             U_R_n(i,j,k,ii) = U_R_thor(id,ie,i,j,k,im,is) 
          end do
          end do
