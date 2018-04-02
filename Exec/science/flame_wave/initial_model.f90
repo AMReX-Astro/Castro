@@ -226,7 +226,7 @@ contains
             HALF*(model_params % T_hi - model_params % T_star)* &
             (ONE + tanh(xc/(HALF*model_params % atm_delta)))
 
-       gen_model_state(0:index_base,itemp_model,model_num) = model_params % T_star
+       gen_model_state(1:index_base,itemp_model,model_num) = model_params % T_star
 
        ! the density and pressure will be determined via HSE,
        ! for now, set them to the base conditions
