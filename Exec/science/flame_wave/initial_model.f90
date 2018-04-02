@@ -64,7 +64,7 @@ module initial_model_module
   integer, parameter :: ispec_model = 4
 
   ! number of points in the model file
-  integer, save :: npts_model, num_models
+  integer, save :: gen_npts_model, num_models
 
   ! arrays for storing the model data -- we have an extra index here
   ! which is the model number
@@ -103,7 +103,7 @@ contains
     allocate (gen_model_state(nx, nvars_model, num_models_in))
     allocate (gen_model_r(nx, num_models_in))
 
-    npts_model = nx
+    gen_npts_model = nx
     num_models = num_models_in
 
   end subroutine init_model_data
@@ -167,7 +167,7 @@ contains
     ! mapping onto, and then we want to force it into HSE on that mesh.
     !-----------------------------------------------------------------------------
 
-    npts_model = nx
+    gen_npts_model = nx
 
     ! compute the coordinates of the new gridded function
     dCoord = (xmax - xmin) / dble(nx)
@@ -208,8 +208,6 @@ contains
     ! to constrain the isentropic layer
     pres_base = eos_state%p
 
-    print *, 'pres_base = ', pres_base
-
     ! set an initial temperature profile and composition
     do i = 1, nx
 
@@ -235,11 +233,7 @@ contains
        gen_model_state(i,idens_model,model_num) = model_params % dens_base
        gen_model_state(i,ipres_model,model_num) = pres_base
 
-       print *, i, gen_model_r(i,model_num), gen_model_state(i,itemp_model,model_num)
     enddo
-
-    print *, 'index_base = ', index_base
-
 
     ! make the base thermodynamics consistent for this base point -- that is
     ! what we will integrate from!
@@ -268,8 +262,6 @@ contains
     !---------------------------------------------------------------------------
     do i = index_base+1, nx
 
-       print *, i, gen_model_state(i-1,itemp_model,model_num)
-
        if ((gen_model_r(i,model_num) > xmin + model_params % H_star + 3.0_rt * model_params % atm_delta) .and. .not. flipped) then
           isentropic = .true.
           flipped = .true.
@@ -282,8 +274,6 @@ contains
           call eos(eos_input_rt, eos_state)
 
           entropy_base = eos_state % s
-
-          print *, "at the peak, T, rho = ", eos_state % T, eos_state % rho, model_num
 
        endif
 

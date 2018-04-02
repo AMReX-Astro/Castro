@@ -4,7 +4,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use bl_constants_module
   use bl_error_module
   use initial_model_module
-  use model_parser_module, only : model_r, model_state
+  use model_parser_module, only : model_r, model_state, npts_model, model_initialized
 
   use probdata_module
 
@@ -177,6 +177,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   allocate(model_state(nx_model, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
 
+  npts_model = nx_model
+  model_initialized = .true.
+
   ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
   model_params % T_hi = model_params % T_hi + dtemp
@@ -253,27 +256,27 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            f = -(x - x_half_max)/x_half_width + 1.0_rt
         endif
 
-        state(i,j,URHO)  = f * interpolate(y,npts_model,gen_model_r(:,2), &
+        state(i,j,URHO)  = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
                                            gen_model_state(:,idens_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
                                            gen_model_state(:,idens_model,1))
 
-        state(i,j,UTEMP) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+        state(i,j,UTEMP) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
                                            gen_model_state(:,itemp_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
                                            gen_model_state(:,itemp_model,1))
 
-        temppres(i,j) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+        temppres(i,j) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
                                         gen_model_state(:,ipres_model,2)) + &
-                           (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                           (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
                                            gen_model_state(:,ipres_model,1))
 
         state(i,j,UFS:UFS-1+nspec) = ZERO
 
         do n = 1, nspec
-           state(i,j,UFS-1+n) = f * interpolate(y,npts_model,gen_model_r(:,2), &
+           state(i,j,UFS-1+n) = f * interpolate(y,gen_npts_model,gen_model_r(:,2), &
                                                 gen_model_state(:,ispec_model-1+n,2)) + &
-                                (1.0_rt - f) * interpolate(y,npts_model,gen_model_r(:,1), &
+                                (1.0_rt - f) * interpolate(y,gen_npts_model,gen_model_r(:,1), &
                                                 gen_model_state(:,ispec_model-1+n,1))
         enddo
 
