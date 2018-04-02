@@ -34,6 +34,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   use mhd_plm_module, only : plm
   use meth_params_module!, only : QVAR, NTHERM, NHYP, normalize_species, NVAR, URHO, UEDEN
   use bl_constants_module
+  use network, only: nspec
 
   implicit none
 
@@ -284,6 +285,8 @@ subroutine ca_advance_mhd(time, lo, hi, &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),UMZ)
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),UEDEN) = &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),UEDEN)
+  flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),UFS:UFS+nspec-1) = &
+       flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),UFS:UFS+nspec-1)
 
   flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),URHO) = &
        flxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),URHO)
@@ -295,6 +298,9 @@ subroutine ca_advance_mhd(time, lo, hi, &
        flxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),UMZ)
   flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),UEDEN) = &
        flxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),UEDEN)
+  flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),UFS:UFS+nspec-1) = &
+       flxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3),UFS:UFS+nspec-1)
+
 
   flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),URHO) = &
        flxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),URHO)
@@ -306,6 +312,9 @@ subroutine ca_advance_mhd(time, lo, hi, &
        flxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),UMZ)
   flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),UEDEN) = &
        flxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),UEDEN)
+  flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),UFS:UFS+nspec-1) = &
+       flxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3),UFS:UFS+nspec-1)
+
 
   Ex(ex_lo(1):ex_hi(1),ex_lo(2):ex_hi(2), ex_lo(3):ex_hi(3)) = Extemp(ex_lo(1):ex_hi(1),ex_lo(2):ex_hi(2),ex_lo(3):ex_hi(3))
   Ey(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2), ey_lo(3):ey_hi(3)) = Eytemp(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2),ey_lo(3):ey_hi(3))
@@ -328,12 +337,12 @@ subroutine ca_advance_mhd(time, lo, hi, &
   deallocate(Extemp,Eytemp,Eztemp)
 
   ! Enforce the density >= small_dens.  Make sure we do this immediately after consup.
-  call enforce_minimum_density(uin, uin_lo, uin_hi, &
-                               uout,uout_lo, uout_hi, &
-                               bxout, bxout_lo, bxout_hi, &
-                               byout, byout_lo, byout_hi, &
-                               bzout, bzout_lo, bzout_hi, &
-                               lo,hi,print_fortran_warnings)
+!  call enforce_minimum_density(uin, uin_lo, uin_hi, &
+!                               uout,uout_lo, uout_hi, &
+!                               bxout, bxout_lo, bxout_hi, &
+!                               byout, byout_lo, byout_hi, &
+!                               bzout, bzout_lo, bzout_hi, &
+!                               lo,hi,print_fortran_warnings)
 
   if (do_grav .gt. 0)  then
      call add_grav_source(uin,uin_lo, uin_hi, &
@@ -717,7 +726,8 @@ subroutine consup(uin, uin_lo, uin_hi, &
                   lo,hi,dx,dy,dz,dt)
 
   use amrex_fort_module, only : rt => amrex_real
-  use meth_params_module, only : QVAR, UMX,UMY,UMZ, NVAR, URHO, UEDEN, UEINT
+  use meth_params_module, only : QVAR, UMX,UMY,UMZ, NVAR, URHO, UEDEN, UEINT, UFS
+  use network, only: nspec
 
   implicit none
 
@@ -759,6 +769,9 @@ subroutine consup(uin, uin_lo, uin_hi, &
            uout(i,j,k,UEDEN) = uin(i,j,k,UEDEN) - dt/dx*(fluxx(i+1,j,k,UEDEN) - fluxx(i,j,k,UEDEN)) &
                 - dt/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
                 - dt/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN)) !Add source terms later
+           uout(i,j,k,UFS:UFS+nspec-1) = uin(i,j,k,UFS:UFS+nspec-1) - dt/dx*(fluxx(i+1,j,k,UFS:UFS+nspec-1) - &
+           fluxx(i,j,k,UFS:UFS+nspec-1)) - dt/dy*(fluxy(i,j+1,k,UFS:UFS+nspec-1) - fluxy(i,j,k,UFS:UFS+nspec-1)) &
+                - dt/dz*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1)) !Add source terms later
 
            bcc(i,j,k,:) = bcc(i,j,k,:) - dt/dx*(fluxx(i+1, j, k, NVAR+1:NVAR+3)- fluxx(i,j,k, NVAR+1:NVAR+3)) &
                                        - dt/dy*(fluxy(i, j+1, k, NVAR+1:NVAR+3)- fluxy(i,j,k, NVAR+1:NVAR+3)) &

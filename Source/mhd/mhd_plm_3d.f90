@@ -443,13 +443,20 @@ contains
              Ip(i,j,k,QW,1) = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Ip(i,j,k,QPRES,1) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,1) 		 = temp(i+1,j,k,ibx) !! Bx stuff
+             Ip(i,j,k,QMAGX,1) = temp(i+1,j,k,ibx) !! Bx stuff
              Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             
-             !update this, when species work is done
+            
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i-1,j,k,ii)
+               dR = s(i+1,j,k,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(1-dt_over_a/dx*s(i,j,k,QU))*dW
+             enddo 
+
              eos_state % rho = Ip(i,j,k,QRHO,1)
              eos_state % p   = Ip(i,j,k,QPRES,1)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,1)
 
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
@@ -468,13 +475,20 @@ contains
              Im(i,j,k,QW,1) = temp(i,j,k,4) +0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Im(i,j,k,QPRES,1) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX,1)		 = temp(i-1,j,k,ibx) !! Bx stuff
+             Im(i,j,k,QMAGX,1)  = temp(i-1,j,k,ibx) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i-1,j,k,ii)
+               dR = s(i+1,j,k,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
+             enddo 
 
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,1)
              eos_state % p   = Im(i,j,k,QPRES,1)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,1)
 
              call eos(eos_input_rp, eos_state)
              Im(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
@@ -492,10 +506,10 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip By
-             dQL(1:6) = 	temp(i,j,k,1:ibx) - temp(i,j-1,k,1:ibx) !gas + bx
-             dQL(7) = 	temp(i,j,k,8) - temp(i,j-1,k,iby+1)		!bz
-             dQR(1:6) = 	temp(i,j+1,k,1:ibx) - temp(i,j,k,1:ibx)
-             dQR(7) = 	temp(i,j+1,k,ibz) - temp(i,j,k,ibz)
+             dQL(1:6) = temp(i,j,k,1:ibx) - temp(i,j-1,k,1:ibx) !gas + bx
+             dQL(7) = temp(i,j,k,8) - temp(i,j-1,k,iby+1)		!bz
+             dQR(1:6) = temp(i,j+1,k,1:ibx) - temp(i,j,k,1:ibx)
+             dQR(7) = temp(i,j+1,k,ibz) - temp(i,j,k,ibz)
              !do ii = 1,7
              !	!call vanleer(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
              !	call minmod(dW(ii),dQL(ii),dQR(ii)) !!slope limiting
@@ -517,7 +531,7 @@ contains
              smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
              smhd(6) = temp(i,j,k,2)
              smhd(7) = temp(i,j,k,4)
-             smhd 	= smhd*(tby(i,j+1,k) - tby(i,j,k))/dy !cross-talk of normal magnetic field direction
+             smhd    = smhd*(tby(i,j+1,k) - tby(i,j,k))/dy !cross-talk of normal magnetic field direction
 
 
 
@@ -528,14 +542,22 @@ contains
              Ip(i,j,k,QW,2) = temp(i,j,k,4) +0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Ip(i,j,k,QPRES,2) = temp(i,j,k,5) +0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,2) 		= temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
-             Ip(i,j,k,QMAGY,2) 		= temp(i,j+1,k,iby) !! By stuff
-             Ip(i,j,k,QMAGZ,2)  		= temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+             Ip(i,j,k,QMAGX,2)  = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
+             Ip(i,j,k,QMAGY,2)  = temp(i,j+1,k,iby) !! By stuff
+             Ip(i,j,k,QMAGZ,2)  = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+             
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i,j-1,k,ii)
+               dR = s(i,j+1,k,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(1-dt_over_a/dy*s(i,j,k,QV))*dW
+             enddo
 
              !update this, when species work is done
              eos_state % rho = Ip(i,j,k,QRHO,2)
              eos_state % p   = Ip(i,j,k,QPRES,2)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,2)
 
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
@@ -555,14 +577,23 @@ contains
              Im(i,j,k,QW,2) = temp(i,j,k,4) + 0.5d0*summ(4) + 0.5d0*dt_over_a*smhd(4)
              Im(i,j,k,QPRES,2) = temp(i,j,k,5) + 0.5d0*summ(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX,2) 		= temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
-             Im(i,j,k,QMAGY,2)		= temp(i,j-1,k,iby) !! By stuff
-             Im(i,j,k,QMAGZ,2) 		= temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+             Im(i,j,k,QMAGX,2) = temp(i,j,k,ibx) + 0.5d0*summ(6) + 0.5d0*dt_over_a*smhd(6)
+             Im(i,j,k,QMAGY,2) = temp(i,j-1,k,iby) !! By stuff
+             Im(i,j,k,QMAGZ,2) = temp(i,j,k,ibz) + 0.5d0*summ(7) + 0.5d0*dt_over_a*smhd(7)
+
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i,j-1,k,ii)
+               dR = s(i,j+1,k,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
+             enddo
+
 
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,2)
              eos_state % p   = Im(i,j,k,QPRES,2)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,2)
 
              call eos(eos_input_rp, eos_state)
              Im(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
@@ -614,11 +645,18 @@ contains
 
              Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Ip(i,j,k,QMAGZ,3) 		= temp(i,j,k+1,ibz) !! Bz stuff
-      
-             !update this, when species work is done
+
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i,j,k-1,ii)
+               dR = s(i,j,k+1,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
+             enddo
+     
              eos_state % rho = Ip(i,j,k,QRHO,3)
              eos_state % p   = Ip(i,j,k,QPRES,3)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,3)
 
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
@@ -640,10 +678,18 @@ contains
              Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3)		= temp(i,j,k-1,ibz) !! Bz stuff
 
+             !species
+             do ii = QFS, QFS+nspec-1  
+               dL = s(i,j,k,ii) - s(i,j,k-1,ii)
+               dR = s(i,j,k+1,ii) - s(i,j,k,ii)
+               call vanleer(dW,dL,dR)
+               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
+             enddo
+
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,3)
              eos_state % p   = Im(i,j,k,QPRES,3)
-             eos_state % xn  = s(i,j,k,QFS:QFS+nspec-1)
+             eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1, 3)
 
              call eos(eos_input_rp, eos_state)
              Im(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
@@ -654,15 +700,6 @@ contains
        enddo
     enddo
 
-    ! TODO: species
-    do n = 1, nspec
-       do idir = 1, 3
-          Im(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n,idir) = &
-               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n)
-          Ip(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n,idir) = &
-               s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QFS-1+n)
-       enddo
-    enddo
 
     !Need to add source terms, heating cooling, gravity, etc.
   end subroutine plm
