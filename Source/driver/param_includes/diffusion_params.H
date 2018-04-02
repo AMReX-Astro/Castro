@@ -4,3 +4,4 @@
 // mk_params.sh
 
 static int verbose;
+static int use_mlmg_solver;

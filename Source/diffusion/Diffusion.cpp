@@ -4,6 +4,11 @@
 #include "Castro_F.H"
 #include <AMReX_FMultiGrid.H>
 
+#ifdef CASTRO_MLMG
+#include <AMReX_MLABecLaplacian.H>
+#include <AMReX_MLMG.H>
+#endif
+
 #define MAX_LEV 15
 
 #include "diffusion_defaults.H"
@@ -74,6 +79,23 @@ Diffusion::applyop (int level, MultiFab& Temperature,
                     MultiFab& CrseTemp, MultiFab& DiffTerm, 
                     Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
+#ifdef CASTRO_MLMG
+    if (use_mlmg_solver)
+    {
+        applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
+    }
+    else
+#endif
+    {
+        applyop_fmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
+    }
+}
+
+void
+Diffusion::applyop_fmg (int level, MultiFab& Temperature, 
+                        MultiFab& CrseTemp, MultiFab& DiffTerm, 
+                        Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
+{
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... compute diffusive term at level " << level << '\n';
@@ -126,6 +148,23 @@ void
 Diffusion::applyViscOp (int level, MultiFab& Vel, 
                         MultiFab& CrseVel, MultiFab& ViscTerm, 
                         Vector<std::unique_ptr<MultiFab> >& visc_coeff)
+{
+#ifdef CASTRO_MLMG
+    if (use_mlmg_solver)
+    {
+        applyViscOp_mlmg(level, Vel, CrseVel, Visc_Coeff, visc_coeff);
+    }
+    else
+#endif
+    {
+        applyViscOp_fmg(level, Vel, CrseVel, Visc_Coeff, visc_coeff);
+    }
+}
+
+void
+Diffusion::applyViscOp_fmg (int level, MultiFab& Vel, 
+                            MultiFab& CrseVel, MultiFab& ViscTerm, 
+                            Vector<std::unique_ptr<MultiFab> >& visc_coeff)
 {
     if (verbose && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
@@ -273,7 +312,127 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
         mg_bc[0] = MGT_BC_NEU;
+    }
+
+#ifdef CASTRO_MLMG
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        if (geom.isPeriodic(idim)) {
+            mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
+            mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
+        } else {
+            if (phys_bc->lo(idim) == Inflow) {
+                mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
+            } else {
+                mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
+            }
+            if (phys_bc->hi(idim) == Symmetry) {
+                mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
+            } else {
+                mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
+            }
+        }
+    }
+
+    // Set Neumann bc at r=0.
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+        mlmg_lobc[0] = MLLinOp::BCType::Neumann;
+    }
+#endif
+
 }
 
+
+#ifdef CASTRO_MLMG
+
+void
+Diffusion::applyop_mlmg (int level, MultiFab& Temperature, 
+                         MultiFab& CrseTemp, MultiFab& DiffTerm, 
+                         Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
+{
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+        std::cout << "   " << '\n';
+        std::cout << "... compute diffusive term at level " << level << '\n';
+    }
+
+    const Geometry& geom = parent->Geom(level);
+    const BoxArray& ba = Temperature.boxArray();
+    const DistributionMapping& dm = Temperature.DistributionMap();
+    
+    MLABecLaplacian mlabec({geom}, {ba}, {dm},
+                           LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
+
+    mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
+
+    if (level > 0) {
+        const auto& rr = parent->refRatio(level-1);
+        mlabec.setCoarseFineBC(&CrseTemp, rr[0]);
+    }
+    mlabec.setLevelBC(0, &Temperature);
+
+    mlabec.setScalars(0.0, -1.0);
+    mlabec.setBCoeffs(0, {AMREX_D_DECL(temp_cond_coef[0].get(),
+                                       temp_cond_coef[1].get(),
+                                       temp_cond_coef[2].get())});
+
+    MLMG mlmg(mlabec);
+    mlmg.setVerbose(verbose);
+    mlmg.apply({&DiffTerm}, {&Temperature});
+}
+
+void
+Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel, 
+                            MultiFab& CrseVel, MultiFab& ViscTerm, 
+                            Vector<std::unique_ptr<MultiFab> >& visc_coeff)
+{
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+        std::cout << "   " << '\n';
+        std::cout << "... compute second part of viscous term at level " << level << '\n';
+    }
+
+    const Geometry& geom = parent->Geom(level);
+    const BoxArray& ba = Vel.boxArray();
+    const DistributionMapping& dm = Vel.DistributionMap();
+    
+    MLABecLaplacian mlabec({geom}, {ba}, {dm},
+                           LPInfo().setMetricTerm(false).setMaxCoarseningLevel(0));
+
+    mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
+
+    // Here are computing (1/r^2) d/dr (const * d/dr(r^2 u))
+
+#if (BL_SPACEDIM < 3)
+    // Here we weight the Vel going into the FMG applyop
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	weight_cc(level, Vel);
+        if (level > 0) {
+            weight_cc(level, CrseVel);
+        }
+    }
+#endif
+
+    if (level > 0) {
+        const auto& rr = parent->refRatio(level-1);
+        mlabec.setCoarseFineBC(&CrseVel, rr[0]);
+    }
+    mlabec.setLevelBC(0, &Vel);
+
+    mlabec.setScalars(0.0, -1.0);
+    mlabec.setBCoeffs(0, {AMREX_D_DECL(visc_coeff[0].get(),
+                                       visc_coeff[1].get(),
+                                       visc_coeff[2].get())});
+
+    MLMG mlmg(mlabec);
+    mlmg.setVerbose(verbose);
+    mlmg.apply({&ViscTerm}, {&Vel});
+
+#if (BL_SPACEDIM < 3)
+    // Do this to unweight Res
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+	unweight_cc(level, ViscTerm);
+    }
+#endif
+}
+
+#endif

@@ -2092,8 +2092,9 @@ Gravity::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
         mg_bc[0] = MGT_BC_NEU;
+    }
 
 #ifdef CASTRO_MLMG
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {

@@ -609,3 +609,6 @@ mlmg_nsolve                  int           0                  n
 # more output)
 (v, verbose)                int            0                
 
+# Use MLMG as the operator
+use_mlmg_solver              int           0                  n
+
