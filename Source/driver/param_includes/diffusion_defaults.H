@@ -5,3 +5,4 @@
 
 int         Diffusion::verbose = 0;
 int         Diffusion::use_mlmg_solver = 0;
+int         Diffusion::mlmg_maxorder = 4;

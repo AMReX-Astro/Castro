@@ -362,6 +362,7 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     
     MLABecLaplacian mlabec({geom}, {ba}, {dm},
                            LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
+    mlabec.setMaxOrder(mlmg_maxorder);
 
     mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
 
@@ -397,6 +398,7 @@ Diffusion::applyViscOp_mlmg (int level, MultiFab& Vel,
     
     MLABecLaplacian mlabec({geom}, {ba}, {dm},
                            LPInfo().setMetricTerm(false).setMaxCoarseningLevel(0));
+    mlabec.setMaxOrder(mlmg_maxorder);
 
     mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
 
