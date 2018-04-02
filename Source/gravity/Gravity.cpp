@@ -2939,10 +2939,6 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
         mlpoisson.setLevelBC(ilev, phi[ilev]);
     }
 
-#if (AMREX_SPACEDIM == 1)
-    static_assert(false, "solve_phi_with_mlmg: 1d not supported yet");
-#endif
-
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose);
     if (crse_level == 0) {
