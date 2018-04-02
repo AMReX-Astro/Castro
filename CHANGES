@@ -1,4 +1,4 @@
-changes since last merge
+# 18.04
 
   -- The job_info file now indicates which runtime parameters were
      changed from their default value (#314)
