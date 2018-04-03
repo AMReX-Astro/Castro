@@ -152,12 +152,12 @@ Diffusion::applyViscOp (int level, MultiFab& Vel,
 #ifdef CASTRO_MLMG
     if (use_mlmg_solver)
     {
-        applyViscOp_mlmg(level, Vel, CrseVel, Visc_Coeff, visc_coeff);
+        applyViscOp_mlmg(level, Vel, CrseVel, ViscTerm, visc_coeff);
     }
     else
 #endif
     {
-        applyViscOp_fmg(level, Vel, CrseVel, Visc_Coeff, visc_coeff);
+        applyViscOp_fmg(level, Vel, CrseVel, ViscTerm, visc_coeff);
     }
 }
 
