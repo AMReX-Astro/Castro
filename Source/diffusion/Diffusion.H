@@ -3,6 +3,10 @@
 
 #include <AMReX_AmrLevel.H>
 
+#ifdef CASTRO_MLMG
+#include <AMReX_MLLinOp.H>
+#endif
+
 class Diffusion {
 
 public:
@@ -26,13 +30,6 @@ public:
 
   void make_mg_bc();
 
-  void GetCrsePhi(int level, 
-                  amrex::MultiFab& phi_crse,
-                  amrex::Real time);
-
-  void zeroPhiFluxReg (int level);
-
-
 protected:
   //
   // Pointers to amr,amrlevel.
@@ -54,6 +51,11 @@ protected:
 
   amrex::BCRec*       phys_bc;
 
+#ifdef CASTRO_MLMG
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
+  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
+#endif
+
 #include "diffusion_params.H"
 
   static int   stencil_type;
@@ -63,6 +65,21 @@ protected:
   void   weight_cc(int level,amrex::MultiFab& cc);
   void unweight_cc(int level,amrex::MultiFab& cc);
 #endif
+
+  void applyop_fmg(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
+                   amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
+
+  void applyViscOp_fmg(int level,amrex::MultiFab& Vel, amrex::MultiFab& CrseVel,
+                       amrex::MultiFab& ViscTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
+
+#ifdef CASTRO_MLMG
+  void applyop_mlmg(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
+                    amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
+
+  void applyViscOp_mlmg(int level,amrex::MultiFab& Vel, amrex::MultiFab& CrseVel,
+                        amrex::MultiFab& ViscTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& visc_coeff);
+#endif
+
 };
 #endif
 
