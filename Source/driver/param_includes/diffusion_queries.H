@@ -4,3 +4,5 @@
 // mk_params.sh
 
 pp.query("v", verbose);
+pp.query("use_mlmg_solver", use_mlmg_solver);
+pp.query("mlmg_maxorder", mlmg_maxorder);
