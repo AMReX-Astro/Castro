@@ -43,6 +43,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
   logical :: species_defined
 
+  real(rt) :: dx_model
+  integer :: ng
+
   if (namlen > maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
@@ -151,9 +154,15 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
      call bl_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
+  ! we are going to generate an initial model from problo(2) to
+  ! probhi(2) with nx_model zones.  But to allow for a interpolated
+  ! lower boundary, we'll add 4 ghostcells to this, so we need to
+  ! compute dx
+  dx_model = (probhi(2) - problo(2))/nx_model
+  ng = 4
 
   ! now generate the initial models
-  call init_model_data(nx_model, 2)
+  call init_model_data(nx_model+ng, 2)
 
   model_params % dens_base = dens_base
   model_params % T_star = T_star
@@ -167,24 +176,24 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   model_params % index_base_from_temp = index_base_from_temp
 
-  call init_1d_tanh(nx_model, problo(2), probhi(2), model_params, 1)
+  call init_1d_tanh(nx_model+ng, problo(2)-ng*dx_model, probhi(2), model_params, 1)
 
   ! store the model in the model_parser_module since that is used in
   ! the boundary conditions
-  allocate(model_r(nx_model))
+  allocate(model_r(nx_model+ng))
   model_r(:) = gen_model_r(:, 1)
 
-  allocate(model_state(nx_model, nvars_model))
+  allocate(model_state(nx_model+ng, nvars_model))
   model_state(:, :) = gen_model_state(:, :, 1)
 
-  npts_model = nx_model
+  npts_model = nx_model+ng
   model_initialized = .true.
 
   ! now create a perturbed model -- we want the same base conditions
   ! a hotter temperature
   model_params % T_hi = model_params % T_hi + dtemp
 
-  call init_1d_tanh(nx_model, problo(2), probhi(2), model_params, 2)
+  call init_1d_tanh(nx_model+ng, problo(2)-ng*dx_model, probhi(2), model_params, 2)
 
 end subroutine amrex_probinit
 
