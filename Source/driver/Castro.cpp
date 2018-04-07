@@ -902,8 +902,7 @@ Castro::initData ()
              const int idx = mfi.tileIndex();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     &idx);
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
            }
 
          // now copy back the averages
