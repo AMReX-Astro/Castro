@@ -1248,7 +1248,7 @@ contains
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type, dg
-    use bl_constants_module
+    use bl_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1421,7 +1421,7 @@ contains
 
     use network, only : nspec
     use meth_params_module, only : NVAR, URHO, UFS
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, ONE
     use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1516,7 +1516,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ
-    use bl_constants_module
+    use bl_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1657,7 +1657,7 @@ contains
     ! this computes the *node-centered* divergence
 
     use meth_params_module, only : QU, QV, QW, NQ, GDPRES, GDU, GDV, GDW
-    use bl_constants_module
+    use bl_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 

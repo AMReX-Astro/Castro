@@ -1,6 +1,6 @@
 module fourth_order
 
-  use bl_constants_module
+  use bl_constants_module, only : ZERO, TWO, ONE
   use prob_params_module, only : dg
 
   use amrex_fort_module, only : rt => amrex_real
