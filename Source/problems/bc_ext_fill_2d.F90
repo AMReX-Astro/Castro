@@ -41,7 +41,7 @@ contains
     real(rt), intent(in   ) :: delta(2), xlo(2), time
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
 
-    integer  :: i, j, q, n, iter, m
+    integer  :: i, j, q, n, iter, m, joff
     real(rt) :: y
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -196,8 +196,6 @@ contains
                             ! reflect normal, zero gradient for transverse
                             ! note: we need to match the corresponding
                             ! zone on the other side of the interface
-
-
                             joff = domlo(2)-j-1
                             adv(i,j,UMY) = -dens_zone*(adv(i,domlo(2)+joff,UMY)/adv(i,domlo(2)+joff,URHO))
 
