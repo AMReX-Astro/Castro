@@ -410,7 +410,6 @@ contains
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
-    use bl_constants_module
 
     use amrex_fort_module, only: rt => amrex_real
     implicit none

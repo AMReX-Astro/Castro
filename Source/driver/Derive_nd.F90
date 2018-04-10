@@ -105,7 +105,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -156,7 +156,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -279,7 +279,7 @@ contains
     !
     ! This routine will derive the radial velocity.
     !
-    use bl_constants_module
+    use bl_constants_module, only : HALF
     use prob_params_module, only: center
 
     use amrex_fort_module, only : rt => amrex_real
@@ -491,7 +491,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -537,7 +537,7 @@ contains
                          domhi,dx,xlo,time,dt,bc,level,grid_no) &
                          bind(C, name="ca_dereint1")
 
-    use bl_constants_module
+    use bl_constants_module, only : ONE, HALF
     use meth_params_module, only: URHO, UMX, UMY, UMZ, UEDEN 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -617,7 +617,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -667,7 +667,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -717,7 +717,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
-    use bl_constants_module
+    use bl_constants_module, only : ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -905,7 +905,7 @@ contains
     ! This routine will calculate vorticity
     !     
 
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF
     use prob_params_module, only: dg
 
     use amrex_fort_module, only : rt => amrex_real
@@ -987,7 +987,7 @@ contains
     ! This routine will calculate the divergence of velocity.
     !
 
-    use bl_constants_module
+    use bl_constants_module, only : ZERO, HALF
     use prob_params_module, only: dg
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1039,7 +1039,7 @@ contains
     ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
     !
 
-    use bl_constants_module
+    use bl_constants_module, only : HALF
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1104,13 +1104,13 @@ contains
     ! This routine will calculate the thermal conductivity
     !
 
-    use bl_constants_module
+    use bl_constants_module, only : ZERO
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
-    use network
-    use conductivity_module
+    use network, only : nspec, naux
+    use conductivity_module, only : conductivity
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1164,13 +1164,13 @@ contains
     ! This routine will calculate the thermal conductivity
     !
 
-    use bl_constants_module
+    use bl_constants_module, only : ZERO
     use meth_params_module, only: diffuse_cutoff_density, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
-    use network
-    use conductivity_module
+    use network, only : nspec, naux
+    use conductivity_module, only : conductivity
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1224,10 +1224,9 @@ contains
     ! This routine will calculate the thermal conductivity
     !
 
-    use bl_constants_module
     use meth_params_module, only: UTEMP
     use prob_params_module, only: dim
-    use diffusion_module
+    use diffusion_module, only : ca_fill_temp_cond
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
