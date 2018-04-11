@@ -67,7 +67,7 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 
         const Box& bx = mfi.tilebox();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
         BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
 	   BL_TO_FORTRAN_3D(state_old[mfi]),

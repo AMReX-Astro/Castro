@@ -371,7 +371,7 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
 		 BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),

@@ -859,7 +859,7 @@ Castro::initData ()
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_3D(S_new[mfi]), ZFILL(dx),
@@ -2808,7 +2808,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
                              tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
 			     BL_TO_FORTRAN_3D(S_new[mfi]),

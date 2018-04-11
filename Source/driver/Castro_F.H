@@ -208,7 +208,7 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* glo, 
      const amrex::Real* time, const int* bc);
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 
   void ca_hypfill
     (BL_FORT_FAB_ARG_3D(state),
@@ -851,7 +851,7 @@ extern "C"
 }
 #endif
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
     (const int& level, const amrex::Real& time,
@@ -901,7 +901,7 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
-#ifdef DIMENSION_AGNOSTIC
+#ifdef AMREX_DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),
