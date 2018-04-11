@@ -20,7 +20,7 @@ from __future__ import print_function
 #
 #   default: the default value.  If specified as a pair, (a, b), then
 #     the first value is the normal default and the second is for
-#     debug mode (#ifdef DEBUG)
+#     debug mode (#ifdef AMREX_DEBUG)
 #
 # the next are optional:
 #
@@ -88,7 +88,7 @@ class Param(object):
     """ the basic parameter class.  For each parameter, we hold the name,
         type, and default.  For some parameters, we also take a second
         value of the default, for use in debug mode (delimited via
-        #ifdef DEBUG)
+        #ifdef AMREX_DEBUG)
 
     """
 
@@ -146,7 +146,7 @@ class Param(object):
         ostr = ""
 
         if not self.debug_default is None:
-            ostr += "#ifdef DEBUG\n"
+            ostr += "#ifdef AMREX_DEBUG\n"
             ostr += "{} = {};\n".format(tstr, self.debug_default)
             ostr += "#else\n"
             ostr += "{} = {};\n".format(tstr, self.default)
@@ -192,7 +192,7 @@ class Param(object):
             ostr += "    allocate(character(len=1)::{})\n".format(name)
 
         if not self.debug_default is None:
-            ostr += "#ifdef DEBUG\n"
+            ostr += "#ifdef AMREX_DEBUG\n"
             ostr += "    {} = {};\n".format(name, debug_default)
             ostr += "#else\n"
             ostr += "    {} = {};\n".format(name, default)
