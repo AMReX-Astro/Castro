@@ -11,7 +11,7 @@ static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 static int do_tracer_particles;
 #endif
 #ifdef ROTATION

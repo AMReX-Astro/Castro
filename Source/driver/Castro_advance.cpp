@@ -161,7 +161,7 @@ Castro::advance (Real time,
     final_radiation_call(S_new, amr_iteration, amr_ncycle);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     advance_particles(amr_iteration, time, dt);
 #endif
 

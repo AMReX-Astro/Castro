@@ -12,7 +12,7 @@
 #include <AMReX_Lazy.H>
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "AMReX_AmrParticles.H"
 #endif
 
@@ -151,7 +151,7 @@ public:
     //
     virtual void initData () override;
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     //
     // Read particle-related inputs
     //
@@ -574,7 +574,7 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
@@ -810,7 +810,7 @@ protected:
     //
 #include <castro_params.H>
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include "particles_params.H"
 #endif
 
@@ -860,7 +860,7 @@ protected:
     friend class Radiation;
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 

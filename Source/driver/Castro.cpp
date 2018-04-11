@@ -28,7 +28,7 @@
 #include "RAD_F.H"
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 #include <AMReX_Particles_F.H>
 #endif
 
@@ -181,7 +181,7 @@ Castro::variableCleanUp ()
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   delete TracerPC;
   TracerPC = 0;
 #endif
@@ -359,7 +359,7 @@ Castro::read_params ()
 	amrex::Error();
       }
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
 
@@ -988,7 +988,7 @@ Castro::initData ()
     phirot_new.setVal(0.);
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (level == 0)
 	init_particles();
 #endif
@@ -1627,7 +1627,7 @@ Castro::post_timestep (int iteration)
       do_energy_diagnostics();
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC)
     {
 	const int ncycle = parent->nCycle(level);
@@ -1653,7 +1653,7 @@ Castro::post_restart ()
 
    Real cur_time = state[State_Type].curTime();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
@@ -1858,7 +1858,7 @@ Castro::post_regrid (int lbase,
 {
     fine_mask.clear();
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
     if (TracerPC && level == lbase) {
 	TracerPC->Redistribute(lbase);
     }
@@ -2922,7 +2922,7 @@ Castro::derive (const std::string& name,
   }
 #endif
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
   return ParticleDerive(name,time,ngrow);
 #else
    return AmrLevel::derive(name,time,ngrow);

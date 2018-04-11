@@ -10,7 +10,7 @@
 
 using namespace amrex;
 
-#ifdef PARTICLES
+#ifdef AMREX_PARTICLES
 
 AmrTracerParticleContainer* Castro::TracerPC =  0;
 
