@@ -1257,10 +1257,12 @@ subroutine qflux(qflx,flx,q)
 
 	qflx = 0.d0
 	qflx(QRHO)  = flx(URHO)
-	qflx(QU)    = ( flx(UMX) - flx(URHO ) * q(QU))/q(QRHO)
-	qflx(QV)    = ( flx(UMY) - flx(URHO ) * q(QV))/q(QRHO)
-	qflx(QW)    = ( flx(UMZ) - flx(URHO ) * q(QW))/q(QRHO)
-        
+	qflx(QU)    = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
+	qflx(QV)    = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
+	qflx(QW)    = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
+       
+        qflx(QFS:QFS+nspec-1)  = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
+            
         eos_state % rho = q(QRHO)
         eos_state % p   = q(QPRES) 
         eos_state % xn  = q(QFS:QFS+nspec-1)

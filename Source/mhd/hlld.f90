@@ -139,6 +139,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UMAGN) = 0.d0
       FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN)  
       FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN) 
+      FL(UFS:UFS+nspec-1) = qL(QRHO)*qL(QVELN)*qL(QFS:QFS+nspec-1) 
 
       eos_state % rho = qR(QRHO)
       eos_state % p   = qR(QPRES) 
@@ -161,6 +162,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UMAGN) = 0.d0
       FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)   
       FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN) 
+      FR(UFS:UFS+nspec-1) = qR(QRHO)*qR(QVELN)*qR(QFS:QFS+nspec-1) 
 
 
       ! From Miyoshi and Kusano paper eq.(3) 
@@ -200,6 +202,11 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	! Density eq.(43)
 	UsL(URHO) = qL(QRHO)*((sL - qL(QVELN))/(sL - sM))
 	UsR(URHO) = qR(QRHO)*((sR - qR(QVELN))/(sR - sM))
+        
+        !------------------------------------------- Species * states ------------------------------------------------
+
+        UsL(UFS:UFS+nspec-1) = qL(QFS:QFS+nspec-1)*UsL(URHO)
+        UsR(UFS:UFS+nspec-1) = qR(QFS:QFS+nspec-1)*UsR(URHO)
 
 	!--------------------------------------------------------- Vel * states----------------------------------------------------------------
 
@@ -284,6 +291,10 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 	!Dens
 	UssL(URHO)  = UsL(URHO)
 	UssR(URHO)  = UsR(URHO)
+
+        !species
+        UssL(UFS:UFS+nspec-1) = UsL(UFS:UFS+nspec-1)
+        UssR(UFS:UFS+nspec-1) = UsR(UFS:UFS+nspec-1)
 	
 	!Vel in normal direction
 	UssL(UMN)    = sM
