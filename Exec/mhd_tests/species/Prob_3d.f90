@@ -103,6 +103,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
+  use bl_constants_module, only : ZERO
 
   implicit none
 
@@ -135,10 +136,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UEINT) = rhoe
            state(i,j,k,UTEMP) = T
            
-           r2 = ((xcen-0.25d0)**2 + (ycen-0.25d0)**2 + (zcen-0.25d0)**2) / 0.01d0
+           r2 = ((xcen-0.5d0)**2 + (ycen-0.5d0)**2 + (zcen-0.5d0)**2) / 0.01d0
+           state(i,j,k,UFS:UFS-1+nspec) = ZERO
            state(i,j,k,UFS)  = exp(-r2)
            state(i,j,k,UFS+1)= 1.d0 - exp(-r2)
-
+           
         enddo
      enddo
   enddo
