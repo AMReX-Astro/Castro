@@ -10,7 +10,7 @@ CEXE_headers += Castro_prob_err_list.H
 CEXE_sources += Castro_prob_err.cpp
 FEXE_headers += Castro_prob_err_F.H
 
-ifneq ($(DIMENSION_AGNOSTIC), TRUE)
+ifneq ($(AMREX_DIMENSION_AGNOSTIC), TRUE)
   ca_F90EXE_sources += bc_fill_$(DIM)d.F90
   ca_f90EXE_sources += Prob_$(DIM)d.f90
   ca_f90EXE_sources += problem_tagging_$(DIM)d.f90
@@ -23,6 +23,6 @@ endif
 ca_f90EXE_sources += problem_derive_nd.f90
 ca_f90EXE_sources += Problem.f90
 
-ifneq ($(DIMENSION_AGNOSTIC), TRUE)
+ifneq ($(AMREX_DIMENSION_AGNOSTIC), TRUE)
     ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
 endif
