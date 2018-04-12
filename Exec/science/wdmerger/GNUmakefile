@@ -16,7 +16,7 @@ USE_ROTATION ?= TRUE
 
 # We want to use the dimension agnostic version of certain source files.
 
-AMREX_DIMENSION_AGNOSTIC = TRUE
+DIMENSION_AGNOSTIC = TRUE
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 
