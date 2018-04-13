@@ -51,6 +51,7 @@ contains
 
     real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ(7)
     real(rt) :: temp(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,8), smhd(7)
+    real(rt) :: temp_s(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,nspec)!store species with lo-1 and hi+1
     real(rt) :: tbx(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
     real(rt) :: tby(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
     real(rt) :: tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
@@ -83,6 +84,7 @@ contains
     temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,4) = s(:,:,:,QW)
     temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,5) = s(:,:,:,QPRES)
     temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(:,:,:,QMAGX:QMAGZ) !Mag vars Cell Centered
+    temp_s(s_l1:s_h1, s_l2:s_h2, s_l3: s_h3,:) = s(:,:,:,QFS:QFS+nspec-1)
     !-------------------- Fill Boundaries ---------------------------------------------------
     temp(s_l1-1,s_l2-1,s_l3-1,1) = s(s_l1,s_l2,s_l3,QRHO)
     temp(s_l1-1,s_l2-1,s_l3-1,2) = s(s_l1,s_l2,s_l3,QU)
@@ -90,6 +92,7 @@ contains
     temp(s_l1-1,s_l2-1,s_l3-1,4) = s(s_l1,s_l2,s_l3,QW)
     temp(s_l1-1,s_l2-1,s_l3-1,5) = s(s_l1,s_l2,s_l3,QPRES)
     temp(s_l1-1,s_l2-1,s_l3-1,ibx:ibz) = s(s_l1,s_l2,s_l3,QMAGX:QMAGZ)
+    temp_s(s_l1-1, s_l2-1, s_l3-1, :) = s(s_l1,s_l2,s_l3,QFS:QFS+nspec-1)
 
     temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,1) = s(s_l1,:,:,QRHO)
     temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,2) = s(s_l1,:,:,QU)
@@ -97,6 +100,7 @@ contains
     temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,4) = s(s_l1,:,:,QW)
     temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,5) = s(s_l1,:,:,QPRES)
     temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_l1,:,:,QMAGX:QMAGZ)
+    temp_s(s_l1-1, s_l2:s_h2, s_l3:s_h3, :) = s(s_l1,:,:,QFS:QFS+nspec-1)
 
     temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,1) = s(:,s_l2,:,QRHO)
     temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,2) = s(:,s_l2,:,QU)
@@ -104,13 +108,15 @@ contains
     temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,4) = s(:,s_l2,:,QW)
     temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,5) = s(:,s_l2,:,QPRES)
     temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,ibx:ibz) = s(:,s_l2,:,QMAGX:QMAGZ)
+    temp_s(s_l1:s_h1, s_l2-1, s_l3:s_h3, :) = s(:,s_l2,:,QFS:QFS+nspec-1)
 
     temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,1) = s(:,:,s_l3,QRHO)
     temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,2) = s(:,:,s_l3,QU)
     temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,3) = s(:,:,s_l3,QV)
     temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,4) = s(:,:,s_l3,QW)
     temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,5) = s(:,:,s_l3,QPRES)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,ibx:ibz) = s(:,:,s_l3,QMAGX:QMAGZ)
+    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,ibx:ibz) = s(:,:,s_l3,QMAGX:QMAGZ)    
+    temp_s(s_l1:s_h1, s_l2:s_h2, s_l3-1, :) = s(:,:,s_l3,QFS:QFS+nspec-1)
 
     temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,1) = s(s_h1,:,:,QRHO)
     temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,2) = s(s_h1,:,:,QU)
@@ -118,6 +124,7 @@ contains
     temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,4) = s(s_h1,:,:,QW)
     temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,5) = s(s_h1,:,:,QPRES)
     temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_h1,:,:,QMAGX:QMAGZ)
+    temp_s(s_h1+1, s_l2:s_h2, s_l3:s_h3, :) = s(s_h1,:,:,QFS:QFS+nspec-1)
 
     temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,1) = s(:,s_h2,:,QRHO)
     temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,2) = s(:,s_h2,:,QU)
@@ -125,6 +132,7 @@ contains
     temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,4) = s(:,s_h2,:,QW)
     temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,5) = s(:,s_h2,:,QPRES)
     temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,ibx:ibz) = s(:,s_h2,:,QMAGX:QMAGZ)
+    temp_s(s_l1:s_h1, s_h2+1, s_l3:s_h3, :) = s(:,s_h2,:,QFS:QFS+nspec-1)
 
     temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,1) = s(:,:,s_h3,QRHO)
     temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,2) = s(:,:,s_h3,QU)
@@ -132,6 +140,7 @@ contains
     temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,4) = s(:,:,s_h3,QW)
     temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,5) = s(:,:,s_h3,QPRES)
     temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,ibx:ibz) = s(:,:,s_h3,QMAGX:QMAGZ)
+    temp_s(s_l1:s_h1, s_l2:s_h2, s_h3+1, :) = s(:,:,s_h3,QFS:QFS+nspec-1)
 
     temp(s_h1+1,s_h2+1,s_h3+1,1) = s(s_h1,s_h2,s_h3,QRHO)
     temp(s_h1+1,s_h2+1,s_h3+1,2) = s(s_h1,s_h2,s_h3,QU)
@@ -139,6 +148,7 @@ contains
     temp(s_h1+1,s_h2+1,s_h3+1,4) = s(s_h1,s_h2,s_h3,QW)
     temp(s_h1+1,s_h2+1,s_h3+1,5) = s(s_h1,s_h2,s_h3,QPRES)
     temp(s_h1+1,s_h2+1,s_h3+1,ibx:ibz) = s(s_h1,s_h2,s_h3,QMAGX:QMAGZ)
+    temp_s(s_h1+1, s_h2+1, s_h3+1, :) = s(s_h1,s_h2,s_h3,QFS:QFS+nspec-1)
 
     ! Temp face centered magnetic fields
 
@@ -448,8 +458,8 @@ contains
             
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i-1,j,k,ii)
-               dR = s(i+1,j,k,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
+               dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(1-dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
@@ -479,8 +489,8 @@ contains
              Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i-1,j,k,ii)
-               dR = s(i+1,j,k,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
+               dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
@@ -548,8 +558,8 @@ contains
              
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i,j-1,k,ii)
-               dR = s(i,j+1,k,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
+               dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(1-dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
@@ -583,8 +593,8 @@ contains
 
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i,j-1,k,ii)
-               dR = s(i,j+1,k,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
+               dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
@@ -648,8 +658,8 @@ contains
 
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i,j,k-1,ii)
-               dR = s(i,j,k+1,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
+               dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
@@ -680,8 +690,8 @@ contains
 
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = s(i,j,k,ii) - s(i,j,k-1,ii)
-               dR = s(i,j,k+1,ii) - s(i,j,k,ii)
+               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
+               dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
                Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
