@@ -104,7 +104,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec
   use bl_constants_module, only : ZERO
-
+  use prob_params_module, only : problo
   implicit none
 
   integer :: level, nscal
@@ -120,13 +120,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   integer :: i,j,k
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + delta(3)*(float(k) + 0.5e0_rt)
+     zcen = problo(3) + delta(3)*(dble(k) + 0.5e0_rt)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + delta(2)*(float(j) + 0.5e0_rt)
+        ycen = problo(2) + delta(2)*(dble(j) + 0.5e0_rt)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(float(i) + 0.5e0_rt)
+           xcen = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
            state(i,j,k,URHO) = rho
            state(i,j,k,UMX) = rho*u_x
