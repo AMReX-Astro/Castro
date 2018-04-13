@@ -69,6 +69,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   call eos(eos_input_rp, eos_state)
 
   rhoe = rho*eos_state%e
+  T  = eos_state % T
 
   end subroutine amrex_probinit
 
