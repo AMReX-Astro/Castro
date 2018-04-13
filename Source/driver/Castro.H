@@ -44,6 +44,9 @@ enum StateType { State_Type = 0,
 		 SDC_React_Type
 #endif
 #endif
+#ifdef THORNADO
+		 Thornado_Type
+#endif
 };
 
 // Create storage for all source terms.
@@ -194,7 +197,9 @@ public:
 #endif
 
 #ifdef THORNADO
-    void thornado_init ();
+    void init_thornado();
+    void init_thornado_on_patch();
+    void create_thornado_source(amrex::Real dt);
 #endif
 
     //
@@ -826,6 +831,18 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+
+#ifdef THORNADO
+    static int THORNADO_NNODES;
+    static int THORNADO_NMOMENTS;
+    static int THORNADO_NENERGY;
+    static int THORNADO_NSPECIES;
+    static int THORNADO_NDIMS_X;
+    static int THORNADO_NDIMS_E;
+    static int THORNADO_FLUID_NDOF;
+    static int THORNADO_RAD_NDOF;
+    static int THORNADO_RAD_NCOMP;
+#endif
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;

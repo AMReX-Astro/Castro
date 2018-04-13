@@ -1,8 +1,42 @@
 # sources used with thornado
 # this is included if USE_THORNADO = TRUE
 
-ifeq ($(USE_THORNADO), TRUE)
-  CEXE_sources += Castro_twomoment.cpp
-  FEXE_headers += TwoMoment_F.H
-  ca_F90EXE_sources += two_moment_nd.F90
-endif
+# These live here
+
+CEXE_sources += Castro_twomoment.cpp
+
+ca_f90EXE_sources += ThornadoInitializationModule.f90
+
+FEXE_headers += TwoMoment_F.H
+ca_F90EXE_sources += two_moment_nd.F90
+
+#  These live in the thornado repo itself
+
+# In Modules/Numbers
+  ca_f90EXE_sources += KindModule.f90
+
+# In Modules/ProgramHeader 
+  ca_f90EXE_sources += ProgramHeaderModule.f90
+
+# In Modules/Library
+  ca_f90EXE_sources += QuadratureModule.f90
+  ca_f90EXE_sources += ReferenceElementModuleE.f90
+  ca_f90EXE_sources += ReferenceElementModuleX.f90
+  ca_f90EXE_sources += ReferenceElementModule.f90
+  ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90
+  ca_f90EXE_sources += ReferenceElementModuleX_Lagrange.f90
+  ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
+  ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
+
+# In Modules/Mesh
+  ca_f90EXE_sources += MeshModule.f90
+
+# In Modules/Geometry
+  ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
+  ca_f90EXE_sources += GeometryFieldsModule.f90	   
+
+# In Modules/Fields
+  ca_f90EXE_sources += FluidFieldsModule.f90
+  ca_f90EXE_sources += RadiationFieldsModule.f90
+
+# In SandBox/Interface_CASTRO
