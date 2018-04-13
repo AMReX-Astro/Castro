@@ -6,7 +6,12 @@
                               bind(C, name="call_to_thornado")
 
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UFX
+    use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
+    use GeometryFieldsModuleE, only : uGE
+    use GeometryFieldsModule, only : uGF
+    use FluidFieldsModule, only : uCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne, nCF
+    use RadiationFieldsModule, only : uCR
+    use ProgramHeaderModule, only : iZ_B0, iZ_B1, iZ_E0, iZ_E1
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -26,30 +31,17 @@
     real(rt), intent(inout) ::  U_R_o(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), n_rad_comp)
     real(rt), intent(inout) ::  U_R_n(U_R_lo(1): U_R_hi(1),  U_R_lo(2): U_R_hi(2),   U_R_lo(3): U_R_hi(3), n_rad_comp) 
 
-    integer, parameter :: thor_density = 1
-    integer, parameter :: thor_xmom    = 2
-    integer, parameter :: thor_ymom    = 3
-    integer, parameter :: thor_zmom    = 4
-    integer, parameter :: thor_rhoe    = 5
-    integer, parameter :: thor_ne      = 6
-    integer, parameter :: thor_nfluid  = 6
-
     ! Temporary variables
     integer  :: ne,nn,ns,nm
-    integer  :: iz_b0(4), iz_e0(4)
-    integer  :: iz_b1(4), iz_e1(4)
     integer  :: i,j,k
     integer  :: ii,id,ie,im,is
     integer  :: ng
 
-    real(rt), allocatable ::  U_F_thor(:,:,:,:,:)
     real(rt), allocatable :: dU_F_thor(:,:,:,:,:)
-
-    real(rt), allocatable ::  U_R_thor(:,:,:,:,:,:,:)
-    real(rt), allocatable :: dU_R_thor(:,:,:,:,:,:,:)
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
+    !! KS: do we want a sanity check against uCF and uCR too?
     if (U_R_lo(1) .ne. S_lo(1) .or.  U_R_hi(1) .ne. S_hi(1) .or. &
         U_R_lo(2) .ne. S_lo(2) .or.  U_R_hi(2) .ne. S_hi(2) .or. &
         U_R_lo(3) .ne. S_lo(3) .or.  U_R_hi(3) .ne. S_hi(3)) then
@@ -58,68 +50,31 @@
     endif
     ! End Sanity check 
 
-    iz_b0(1) = lo(1)
-    iz_b0(2) = lo(2)
-    iz_b0(3) = lo(3)
-    iz_b0(4) = 1
-
-    iz_e0(1) = hi(1)
-    iz_e0(2) = hi(2)
-    iz_e0(3) = hi(3)
-    iz_e0(4) = n_energy
-
-    iz_b1(1) = lo(1)-1
-    iz_b1(2) = lo(2)-1
-    iz_b1(3) = lo(3)-1
-    iz_b1(4) = 1
-
-    iz_e1(1) = hi(1)+1
-    iz_e1(2) = hi(2)+1
-    iz_e1(3) = hi(3)+1
-    iz_e1(4) = n_energy
-
-    !! Should this be 1:nn instead of 1:4 given lines 113-118?
-    !! Actually, why is this an array at all since only the first entry is used in lines 152-157?
-    !! For clarity, should 1:6 be 1:thor_ne?
-
-    !! ASA:I made up the idea that we only use the first component below -- should that be the
-    !! ASA:    average of the nn components??? 
-    !! ASA: I also made up the 1:4 -- I'm confused about what that should be
+    !! KS: Do the corner ghost cells get passed too?
+    ng = 2 ! 2 ghost zones for both fluid and radiation
+    allocate(dU_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:nCF))
 
     ! ************************************************************************************
-    ! ASA: Set ng for the temporaries here -- don't know what it should be
-    ng = 2
-    !! ASA: Another question -- should the definition of iz_b*, iz_e* above be consistent with the size 
-    !!      of the arrays, i.e should iz_e1 be hi(1)+ng instead of hi(1)+1?
-    ! ************************************************************************************
-    allocate( U_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
-    allocate(dU_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:6))
-
-    allocate( U_R_thor(1:n_rad_dof, 1:n_energy, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, &
-                       1:n_moments, 1:n_species))
-    allocate(dU_R_thor(1:n_rad_dof, 1:n_energy, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng, &
-                       1:n_moments, 1:n_species))
-
-    ! ************************************************************************************
-    ! Copy from the Castro arrays into temporary thornado arrays
+    ! Copy from the Castro arrays into thornado arrays from InitThornado_Patch
     ! ************************************************************************************
     do k = lo(3)-ng,hi(3)+ng
     do j = lo(2)-ng,hi(2)+ng
     do i = lo(1)-ng,hi(1)+ng
 
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_density) = S(i,j,k,URHO)
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_xmom   ) = S(i,j,k,UMX)
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_ymom   ) = S(i,j,k,UMY)
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_zmom   ) = S(i,j,k,UMZ)
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_rhoe   ) = S(i,j,k,UEINT)
-         U_F_thor(1:n_fluid_dof,i,j,k,thor_ne     ) = S(i,j,k,UFX)
+         !! KS: need unit conversion from thornado variables to castro variables
+         uCF(1:n_fluid_dof,i,j,k,iCF_D) = S(i,j,k,URHO)
+         uCF(1:n_fluid_dof,i,j,k,iCF_S1) = S(i,j,k,UMX)
+         uCF(1:n_fluid_dof,i,j,k,iCF_S2) = S(i,j,k,UMY)
+         uCF(1:n_fluid_dof,i,j,k,iCF_S3) = S(i,j,k,UMZ)
+         uCF(1:n_fluid_dof,i,j,k,iCF_E) = S(i,j,k,UEDEN)
+         uCF(1:n_fluid_dof,i,j,k,iCF_Ne) = S(i,j,k,UFX) !! KS: Make sure that Ne is filled at some point and maintained
 
          do is = 1, n_species
          do im = 1, n_moments
          do ie = 1, n_energy
          do id = 1, n_rad_dof
             ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
-            U_R_thor(id,ie,i,j,k,im,is) = U_R_o(i,j,k,ii)
+            uCR(id,ie,i,j,k,im,is) = U_R_o(i,j,k,ii)
          end do
          end do
          end do
@@ -132,9 +87,9 @@
     ! ************************************************************************************
     ! Call the Fortran interface that lives in the thornado repo
     ! ************************************************************************************
-    ! call ComputeIncrement(iz_b0, iz_e0, iz_b1, iz_e1, &
-    !                       U_F_thor, U_R_thor, dU_F_thor, dU_R_thor, &
-    !                       n_rad_dof, n_species, n_moments)
+    ! call ComputeIncrement(iZ_B0, iZ_E0, iZ_B1, iZ_E1, &
+    !                       uGFE, uGF, &
+    !                       uCF, uCR, dU_F_thor)
 
     ! ************************************************************************************
     ! Copy back from the thornado arrays into Castro arrays
@@ -143,25 +98,28 @@
     do j = lo(2),hi(2)
     do i = lo(1),hi(1)
 
+
+         !! KS: need unit conversion from thornado variables to castro variables
+         !! KS: if we fill UEINT, need the final fluid state from ComputeIncrement; is that uCF at this point?
          ! We store dS as a source term which we can add to S outside of this routine
-
-         ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         ! ASA: But why are we choosing 1 for the first component -- I made that up! 
-         ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-         dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,thor_density) / dt
-         dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,thor_xmom)    / dt
-         dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,thor_ymom)    / dt
-         dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,thor_zmom)    / dt
-         dS(i,j,k,UEINT) = dU_F_thor(1,i,j,k,thor_rhoe)    / dt
-         dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,thor_ne)      / dt
+         ! dU_F_thor returned from ComputeIncrement has dt divided out,
+         !  so it needs to be multiplied by dt to have the right units
+         ! dU_F_thor returned as a cell-averaged quantity so all components are the same,
+         !  can just use the first component
+         dS(i,j,k,URHO ) = dU_F_thor(1,i,j,k,iCF_D)*dt
+         dS(i,j,k,UMX  ) = dU_F_thor(1,i,j,k,iCF_S1)*dt
+         dS(i,j,k,UMY  ) = dU_F_thor(1,i,j,k,iCF_S2)*dt
+         dS(i,j,k,UMZ  ) = dU_F_thor(1,i,j,k,iCF_S3)*dt
+         dS(i,j,k,UEDEN) = dU_F_thor(1,i,j,k,iCF_E)*dt
+!         dS(i,j,k,UEINT) = ?
+         dS(i,j,k,UFX  ) = dU_F_thor(1,i,j,k,iCF_Ne)*dt
 
          do is = 1, n_species
          do im = 1, n_moments
          do ie = 1, n_energy
          do id = 1, n_rad_dof
             ii = (is-1)*(n_moments*n_energy*n_rad_dof) + (im-1)*(n_energy*n_rad_dof) + (ie-1)*n_rad_dof + (id-1)
-            U_R_n(i,j,k,ii) = U_R_thor(id,ie,i,j,k,im,is) 
+            U_R_n(i,j,k,ii) = uCR(id,ie,i,j,k,im,is) 
          end do
          end do
          end do
