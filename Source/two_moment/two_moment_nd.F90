@@ -5,6 +5,7 @@
                               n_rad_dof, n_moments) &
                               bind(C, name="call_to_thornado")
 
+    use mempool_module, only : bl_allocate, bl_deallocate
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEINT,UEDEN,UFX
     use GeometryFieldsModuleE, only : uGE
@@ -37,7 +38,7 @@
     integer  :: ii,id,ie,im,is
     integer  :: ng
 
-    real(rt), allocatable :: dU_F_thor(:,:,:,:,:)
+    real(rt), pointer :: dU_F_thor(:,:,:,:,:)
 
     ! Sanity check on size of arrays
     ! Note that we have set ngrow_thornado = ngrow_state in Castro_setup.cpp
@@ -52,7 +53,7 @@
 
     !! KS: Do the corner ghost cells get passed too?
     ng = 2 ! 2 ghost zones for both fluid and radiation
-    allocate(dU_F_thor(1:n_fluid_dof, lo(1)-ng:hi(1)+ng, lo(2)-ng:hi(2)+ng, lo(3)-ng:hi(3)+ng,1:nCF))
+    call bl_allocate(dU_F_thor, 1, n_fluid_dof, lo(1)-ng, hi(1)+ng, lo(2)-ng, hi(2)+ng, lo(3)-ng, hi(3)+ng, 1, nCF)
 
     ! ************************************************************************************
     ! Copy from the Castro arrays into thornado arrays from InitThornado_Patch
@@ -128,5 +129,7 @@
     end do
     end do
     end do
+
+    call bl_deallocate(dU_F_thor)
 
   end subroutine call_to_thornado
