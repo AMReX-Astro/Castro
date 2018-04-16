@@ -461,7 +461,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(1-dt_over_a/dx*s(i,j,k,QU))*dW
+               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
@@ -492,7 +492,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
                dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*dx*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
+               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
              enddo 
 
              !update this, when species work is done
@@ -561,7 +561,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(1-dt_over_a/dy*s(i,j,k,QV))*dW
+               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
              !update this, when species work is done
@@ -596,7 +596,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
                dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*dy*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
+               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
 
@@ -661,7 +661,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
+               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
      
              eos_state % rho = Ip(i,j,k,QRHO,3)
@@ -693,7 +693,7 @@ contains
                dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
                dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
                call vanleer(dW,dL,dR)
-               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*dz*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
+               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
 
              !update this, when species work is done
