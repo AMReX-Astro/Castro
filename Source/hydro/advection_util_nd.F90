@@ -435,7 +435,7 @@ contains
                      q,     q_lo,   q_hi, &
                      qaux, qa_lo,  qa_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -627,7 +627,7 @@ contains
                        src, src_lo, src_hi, &
                        srcQ,srQ_lo, srQ_hi)
 
-    use mempool_module, only : bl_allocate, bl_deallocate
+    use amrex_mempool_module, only : bl_allocate, bl_deallocate
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
@@ -792,7 +792,7 @@ contains
     use bl_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
     use prob_params_module, only: dim, dg
-    use mempool_module, only: bl_allocate, bl_deallocate
+    use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
     implicit none
 
